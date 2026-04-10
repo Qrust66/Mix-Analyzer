@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Mix Analyzer v1.7 - Visual audio mix analysis tool
-Generates detailed PDF reports for audio tracks to aid mixing and mastering decisions.
+Generates detailed Excel reports for audio tracks to aid mixing and mastering decisions.
 
 Usage:
     python mix_analyzer.py
@@ -29,7 +29,6 @@ import pyloudnorm as pyln
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 from scipy import signal
 
 import tkinter as tk
@@ -1131,7 +1130,7 @@ def analyze_track(filepath, compute_tempo=False):
 
     return result
 # ============================================================================
-# PDF GENERATION - Enhanced with tempogram and spectral panorama
+# CHART GENERATION - Enhanced with tempogram and spectral panorama
 # ============================================================================
 
 # Cyberpunk industrial theme colors
@@ -1782,613 +1781,10 @@ def page_dynamic_range_map(analysis, track_info):
     return fig
 
 
-def generate_track_pdf(analysis, output_path, track_info, style_name):
-    """Generate complete PDF for a track (9 pages for v1.6)."""
-    with PdfPages(output_path) as pdf:
-        for page_fn in [
-            lambda: page_identity(analysis, track_info, style_name),
-            lambda: page_temporal(analysis, track_info),
-            lambda: page_spectral(analysis, track_info),
-            lambda: page_spectrogram(analysis, track_info),
-            lambda: page_musical(analysis, track_info),
-            lambda: page_stereo(analysis, track_info),
-            lambda: page_multiband_timeline(analysis, track_info),
-            lambda: page_dynamic_range_map(analysis, track_info),
-            lambda: page_characteristics(analysis, track_info, style_name),
-        ]:
-            try:
-                fig = page_fn()
-                pdf.savefig(fig, facecolor=fig.get_facecolor())
-                plt.close(fig)
-            except Exception as e:
-                fig = plt.figure(figsize=(11, 8.5))
-                ax = fig.add_subplot(111)
-                ax.axis('off')
-                ax.text(0.5, 0.5, f"Error generating page: {e}",
-                        ha='center', va='center', color='red', transform=ax.transAxes)
-                pdf.savefig(fig)
-                plt.close(fig)
-# ============================================================================
-# GLOBAL REPORT - Multi-track comparison
-# ============================================================================
-
-
-def generate_global_pdf(analyses_with_info, output_path, style_name, full_mix_info=None):
-    """
-    Generate global comparison report.
-    analyses_with_info: list of tuples (analysis, track_info)
-    full_mix_info: dict with master metadata (state, plugins, loudness_target, note) or None
-    """
-    # Separate tracks by type
-    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
-    buses = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'BUS']
-    full_mixes = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Full Mix']
-
-    # Run Full Mix-specific analyses (structure and difference spectrogram)
-    full_mix_structure = None
-    difference_spectrogram = None
-    if full_mixes:
-        full_mix_analysis = full_mixes[0][0]
-        try:
-            full_mix_structure = analyze_structure_sections(
-                full_mix_analysis['_mono'],
-                full_mix_analysis['sample_rate']
-            )
-        except Exception:
-            full_mix_structure = None
-
-        if individuals:
-            try:
-                individual_monos = [a['_mono'] for a, _ in individuals]
-                # Only include individuals with same sample rate as the full mix
-                fm_sr = full_mix_analysis['sample_rate']
-                valid_monos = [a['_mono'] for a, _ in individuals
-                               if a['sample_rate'] == fm_sr]
-                if valid_monos:
-                    difference_spectrogram = compute_difference_spectrogram(
-                        full_mix_analysis['_mono'],
-                        valid_monos,
-                        fm_sr
-                    )
-            except Exception:
-                difference_spectrogram = None
-
-    with PdfPages(output_path) as pdf:
-        # PAGE 1: Summary table
-        fig = plt.figure(figsize=(11, 8.5))
-        fig.suptitle('GLOBAL REPORT', fontsize=16, color=THEME['accent1'], fontweight='bold', y=0.97)
-        fig.text(0.5, 0.935,
-                 f"Tracks: {len(individuals)} individual | {len(buses)} BUS | {len(full_mixes)} full mix",
-                 ha='center', fontsize=10, color=THEME['fg_dim'])
-        fig.text(0.5, 0.915, f"Style context: {style_name}",
-                 ha='center', fontsize=9, color=THEME['accent2'])
-
-        ax = fig.add_subplot(111)
-        ax.axis('off')
-
-        # Build rows, Full Mix first (highlighted), then BUS, then Individual
-        headers = ['#', 'Type', 'Name', 'Category', 'LUFS', 'Peak', 'Crest', 'Dom.Band', 'Width']
-        rows = []
-        row_colors = []
-
-        idx = 1
-        for a, ti in full_mixes:
-            rows.append(_format_row(idx, 'MIX', a, ti))
-            row_colors.append(THEME['accent2'])
-            idx += 1
-        for a, ti in buses:
-            rows.append(_format_row(idx, 'BUS', a, ti))
-            row_colors.append(THEME['accent3'])
-            idx += 1
-        for a, ti in individuals:
-            rows.append(_format_row(idx, 'TRK', a, ti))
-            row_colors.append(None)
-            idx += 1
-
-        if rows:
-            table = ax.table(cellText=rows, colLabels=headers,
-                             loc='upper center', cellLoc='left',
-                             colWidths=[0.04, 0.06, 0.28, 0.15, 0.09, 0.08, 0.08, 0.14, 0.08])
-            table.auto_set_font_size(False)
-            table.set_fontsize(7)
-            table.scale(1, 1.4)
-
-            for (row, col), cell in table.get_celld().items():
-                cell.set_edgecolor(THEME['grid'])
-                if row == 0:
-                    cell.set_facecolor('#1a3a5a')
-                    cell.set_text_props(color=THEME['fg'], fontweight='bold')
-                else:
-                    hl = row_colors[row - 1] if row - 1 < len(row_colors) else None
-                    if hl:
-                        cell.set_facecolor('#1a1a2a')
-                        if col == 1:  # Type column
-                            cell.set_text_props(color=hl, fontweight='bold')
-                        else:
-                            cell.set_text_props(color=THEME['fg'])
-                    else:
-                        cell.set_facecolor(THEME['panel'])
-                        cell.set_text_props(color=THEME['fg'])
-        else:
-            ax.text(0.5, 0.5, 'No tracks to display',
-                    ha='center', va='center', color=THEME['fg_dim'], transform=ax.transAxes)
-
-        plt.tight_layout(rect=[0, 0.02, 1, 0.88])
-        pdf.savefig(fig, facecolor=fig.get_facecolor())
-        plt.close(fig)
-
-        # PAGE 2: Masking matrix (individuals only, hires 22 bands)
-        if individuals:
-            fig = plt.figure(figsize=(16, 9))
-            fig.suptitle('FREQUENCY MASKING MATRIX (High Resolution)', fontsize=14,
-                         color=THEME['accent1'], fontweight='bold', y=0.97)
-            fig.text(0.5, 0.935,
-                     'Individual tracks only — 22 third-octave bands — BUS and Full Mix excluded',
-                     ha='center', fontsize=9, color=THEME['fg_dim'])
-
-            ax = fig.add_subplot(111)
-            hires_labels = [label for label, _, _ in FREQ_BANDS_HIRES]
-            n_bands = len(FREQ_BANDS_HIRES)
-            matrix = np.zeros((len(individuals), n_bands))
-            for i, (a, ti) in enumerate(individuals):
-                hires = compute_hires_band_energies(a['_mono'], a['sample_rate'])
-                for j, (label, _, _) in enumerate(FREQ_BANDS_HIRES):
-                    matrix[i, j] = hires[label]
-
-            im = ax.imshow(matrix, aspect='auto', cmap='magma', interpolation='nearest')
-            track_labels = [a['filename'][:35] for a, _ in individuals]
-            ax.set_yticks(range(len(individuals)))
-            ax.set_yticklabels(track_labels, fontsize=6)
-            ax.set_xticks(range(n_bands))
-            ax.set_xticklabels(hires_labels, rotation=45, ha='right', fontsize=7)
-            ax.grid(True, which='major', color=THEME['grid'], linewidth=0.3, alpha=0.5)
-            cbar = fig.colorbar(im, ax=ax, label='% of track energy', pad=0.01)
-            cbar.ax.tick_params(labelsize=7)
-
-            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
-            pdf.savefig(fig, facecolor=fig.get_facecolor())
-            plt.close(fig)
-
-        # PAGE 3: Spectral budget by category family
-        if individuals:
-            fig = plt.figure(figsize=(11, 8.5))
-            fig.suptitle('SPECTRAL BUDGET BY CATEGORY', fontsize=14, color=THEME['accent1'],
-                         fontweight='bold', y=0.97)
-            fig.text(0.5, 0.935,
-                     'Cumulative energy per band, grouped by category family',
-                     ha='center', fontsize=9, color=THEME['fg_dim'])
-
-            # Group by family
-            family_data = {}
-            for a, ti in individuals:
-                cat = ti.get('category', '(not set)')
-                family = CATEGORY_FAMILY.get(cat, 'Unknown')
-                if family not in family_data:
-                    family_data[family] = {name: 0.0 for name, _, _ in FREQ_BANDS}
-                    family_data[family]['_count'] = 0
-                for name, _, _ in FREQ_BANDS:
-                    family_data[family][name] += a['spectrum']['band_energies'][name]
-                family_data[family]['_count'] += 1
-
-            # Plot stacked bar chart per band, showing contribution per family
-            ax = fig.add_subplot(111)
-            family_names = sorted(family_data.keys())
-            family_colors_map = {
-                'Drums': THEME['accent3'],
-                'Bass': THEME['accent2'],
-                'Synth': THEME['accent1'],
-                'Guitar': THEME['warning'],
-                'Vocal': THEME['accent4'],
-                'FX & Other': '#888888',
-                'Unknown': '#555555',
-            }
-
-            band_x = np.arange(len(FREQ_BANDS))
-            bottom = np.zeros(len(FREQ_BANDS))
-
-            for family in family_names:
-                values = np.array([family_data[family][name] for name, _, _ in FREQ_BANDS])
-                # Normalize by count for readability (average per track in family)
-                count = family_data[family].get('_count', 1)
-                values_avg = values / count
-                color = family_colors_map.get(family, '#aaaaaa')
-                ax.bar(band_x, values_avg, bottom=bottom,
-                       label=f"{family} ({count} tr.)", color=color,
-                       edgecolor=THEME['fg_dim'], linewidth=0.3)
-                bottom += values_avg
-
-            ax.set_xticks(band_x)
-            ax.set_xticklabels([BAND_LABELS[name] for name, _, _ in FREQ_BANDS],
-                                rotation=25, ha='right', fontsize=9)
-            ax.set_ylabel('Avg % energy per track (stacked by family)')
-            ax.legend(loc='upper right', fontsize=8)
-            ax.set_title('Which categories occupy which bands',
-                         color=THEME['accent1'], fontsize=10)
-
-            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
-            pdf.savefig(fig, facecolor=fig.get_facecolor())
-            plt.close(fig)
-
-        # PAGE 4: Rankings
-        if individuals or buses:
-            fig = plt.figure(figsize=(11, 8.5))
-            fig.suptitle('RANKINGS', fontsize=14, color=THEME['accent1'], fontweight='bold', y=0.97)
-            fig.text(0.5, 0.935, 'Individual tracks only', ha='center', fontsize=9, color=THEME['fg_dim'])
-
-            ax = fig.add_subplot(111)
-            ax.axis('off')
-
-            # Use individuals only for rankings
-            tracks_for_ranking = individuals if individuals else buses
-
-            sorted_compressed = sorted(tracks_for_ranking,
-                                        key=lambda x: x[0]['loudness']['crest_factor'])[:8]
-            sorted_loudest = sorted(tracks_for_ranking,
-                                     key=lambda x: -x[0]['loudness']['lufs_integrated']
-                                     if np.isfinite(x[0]['loudness']['lufs_integrated']) else 0)[:8]
-            stereo_tracks = [(a, ti) for a, ti in tracks_for_ranking if a['stereo']['is_stereo']]
-            sorted_widest = sorted(stereo_tracks,
-                                    key=lambda x: -x[0]['stereo']['width_overall'])[:5]
-
-            y = 0.88
-            ax.text(0.04, y, '[MOST COMPRESSED]  (lowest crest factor)',
-                    fontsize=12, color=THEME['warning'], fontweight='bold', transform=ax.transAxes)
-            y -= 0.04
-            for a, ti in sorted_compressed:
-                name = a['filename'][:42]
-                cat = ti.get('category', '')
-                cat_str = f" ({cat})" if cat and cat != '(not set)' else ''
-                ax.text(0.07, y,
-                        f"- {name}{cat_str} -> crest: {a['loudness']['crest_factor']:.1f} dB",
-                        fontsize=9, color=THEME['fg'], transform=ax.transAxes)
-                y -= 0.03
-            y -= 0.03
-
-            ax.text(0.04, y, '[LOUDEST]  (highest integrated LUFS)',
-                    fontsize=12, color=THEME['accent3'], fontweight='bold', transform=ax.transAxes)
-            y -= 0.04
-            for a, ti in sorted_loudest:
-                lufs = a['loudness']['lufs_integrated']
-                lufs_s = f"{lufs:+.1f} LUFS" if np.isfinite(lufs) else '-'
-                name = a['filename'][:42]
-                cat = ti.get('category', '')
-                cat_str = f" ({cat})" if cat and cat != '(not set)' else ''
-                ax.text(0.07, y,
-                        f"- {name}{cat_str} -> {lufs_s}",
-                        fontsize=9, color=THEME['fg'], transform=ax.transAxes)
-                y -= 0.03
-            y -= 0.03
-
-            if sorted_widest:
-                ax.text(0.04, y, '[WIDEST STEREO IMAGE]',
-                        fontsize=12, color=THEME['accent1'], fontweight='bold', transform=ax.transAxes)
-                y -= 0.04
-                for a, ti in sorted_widest:
-                    name = a['filename'][:42]
-                    cat = ti.get('category', '')
-                    cat_str = f" ({cat})" if cat and cat != '(not set)' else ''
-                    ax.text(0.07, y,
-                            f"- {name}{cat_str} -> width: {a['stereo']['width_overall']:.2f}",
-                            fontsize=9, color=THEME['fg'], transform=ax.transAxes)
-                    y -= 0.03
-
-            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
-            pdf.savefig(fig, facecolor=fig.get_facecolor())
-            plt.close(fig)
-
-        # PAGE 5: BUS analysis (if any)
-        if buses:
-            fig = plt.figure(figsize=(11, 8.5))
-            fig.suptitle('BUS ANALYSIS', fontsize=14, color=THEME['accent1'], fontweight='bold', y=0.97)
-            fig.text(0.5, 0.935,
-                     f"{len(buses)} BUS track(s) identified",
-                     ha='center', fontsize=9, color=THEME['fg_dim'])
-
-            ax = fig.add_subplot(111)
-            ax.axis('off')
-
-            y = 0.88
-            for a, ti in buses:
-                L = a['loudness']
-                S = a['spectrum']
-                stereo = a['stereo']
-                # Find children (individuals assigned to this BUS)
-                bus_name = ti.get('name', a['filename'])
-                children = [(a2, ti2) for a2, ti2 in individuals
-                            if ti2.get('parent_bus') == a['filename']]
-
-                ax.text(0.04, y, f"[{a['filename'][:55]}]",
-                        fontsize=11, color=THEME['accent3'], fontweight='bold', transform=ax.transAxes)
-                y -= 0.035
-                ax.text(0.07, y,
-                        f"Peak: {L['peak_db']:+.1f} dB | Crest: {L['crest_factor']:.1f} dB | "
-                        f"LUFS: {L['lufs_integrated']:+.1f} | "
-                        f"Dom: {BAND_LABELS.get(S['dominant_band'], S['dominant_band'])}",
-                        fontsize=8, color=THEME['fg'], transform=ax.transAxes)
-                y -= 0.03
-                ax.text(0.07, y, f"Child tracks assigned: {len(children)}",
-                        fontsize=8, color=THEME['fg_dim'], transform=ax.transAxes)
-                y -= 0.025
-                for child_a, child_ti in children[:6]:
-                    ax.text(0.10, y, f"* {child_a['filename'][:50]}",
-                            fontsize=7, color=THEME['fg_dim'], transform=ax.transAxes)
-                    y -= 0.02
-                if len(children) > 6:
-                    ax.text(0.10, y, f"... and {len(children) - 6} more",
-                            fontsize=7, color=THEME['fg_dim'], transform=ax.transAxes, style='italic')
-                    y -= 0.02
-                y -= 0.03
-                if y < 0.08:
-                    break
-
-            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
-            pdf.savefig(fig, facecolor=fig.get_facecolor())
-            plt.close(fig)
-
-        # PAGE 6: Full Mix analysis (if present)
-        if full_mixes:
-            for a, ti in full_mixes:
-                fig = plt.figure(figsize=(11, 8.5))
-                fig.suptitle('FULL MIX ANALYSIS', fontsize=14, color=THEME['accent2'],
-                             fontweight='bold', y=0.97)
-                fig.text(0.5, 0.935, f"{a['filename'][:70]}",
-                         ha='center', fontsize=9, color=THEME['fg_dim'])
-
-                ax = fig.add_subplot(111)
-                ax.axis('off')
-
-                L = a['loudness']
-                S = a['spectrum']
-                stereo = a['stereo']
-
-                y = 0.88
-
-                # Mix metadata (if provided)
-                if full_mix_info:
-                    ax.text(0.04, y, '[MIX CONTEXT]',
-                            fontsize=12, color=THEME['accent2'], fontweight='bold', transform=ax.transAxes)
-                    y -= 0.04
-                    state = full_mix_info.get('state', 'Not specified')
-                    ax.text(0.07, y, f"- Completion state: {state}",
-                            fontsize=10, color=THEME['fg'], transform=ax.transAxes)
-                    y -= 0.035
-                    plugins = full_mix_info.get('plugins', [])
-                    plugins_str = ', '.join(plugins) if plugins else 'None declared'
-                    ax.text(0.07, y, f"- Active master bus plugins: {plugins_str}",
-                            fontsize=10, color=THEME['fg'], transform=ax.transAxes)
-                    y -= 0.035
-                    target = full_mix_info.get('loudness_target', 'Not specified')
-                    ax.text(0.07, y, f"- Loudness target: {target}",
-                            fontsize=10, color=THEME['fg'], transform=ax.transAxes)
-                    y -= 0.035
-                    note = full_mix_info.get('note', '').strip()
-                    if note:
-                        ax.text(0.07, y, f"- Note: {note[:100]}",
-                                fontsize=10, color=THEME['fg'], transform=ax.transAxes)
-                        y -= 0.035
-                    y -= 0.025
-
-                # Measurements
-                ax.text(0.04, y, '[MEASUREMENTS]',
-                        fontsize=12, color=THEME['accent1'], fontweight='bold', transform=ax.transAxes)
-                y -= 0.04
-
-                measurements = [
-                    ('Integrated LUFS',
-                     f"{L['lufs_integrated']:+.2f} LUFS" if np.isfinite(L['lufs_integrated']) else '-'),
-                    ('Short-term LUFS max',
-                     f"{L['lufs_short_term_max']:+.2f} LUFS" if np.isfinite(L['lufs_short_term_max']) else '-'),
-                    ('True Peak', f"{L['true_peak_db']:+.2f} dBFS"),
-                    ('Crest factor', f"{L['crest_factor']:.2f} dB"),
-                    ('PLR', f"{L['plr']:.2f} dB"),
-                    ('LRA', f"{L['lra']:.2f} LU"),
-                    ('Dominant band', BAND_LABELS.get(S['dominant_band'], S['dominant_band'])),
-                    ('Spectral centroid', f"{S['centroid']:.0f} Hz"),
-                    ('Phase correlation',
-                     f"{stereo['correlation']:+.3f}" if stereo['is_stereo'] else 'Mono'),
-                    ('Stereo width',
-                     f"{stereo['width_overall']:.3f}" if stereo['is_stereo'] else 'Mono'),
-                ]
-                for label, value in measurements:
-                    ax.text(0.08, y, label, fontsize=9, color=THEME['fg_dim'], transform=ax.transAxes)
-                    ax.text(0.40, y, value, fontsize=10, color=THEME['fg'],
-                            fontweight='bold', transform=ax.transAxes)
-                    y -= 0.03
-
-                # Anomalies
-                if a.get('anomalies'):
-                    y -= 0.02
-                    ax.text(0.04, y, '[ANOMALIES DETECTED]',
-                            fontsize=12, color=THEME['warning'], fontweight='bold', transform=ax.transAxes)
-                    y -= 0.04
-                    for sev, desc in a['anomalies'][:6]:
-                        color = THEME['critical'] if sev == 'critical' else THEME['warning']
-                        ax.text(0.07, y, f"- [{sev.upper()}] {desc[:90]}",
-                                fontsize=8, color=color, transform=ax.transAxes)
-                        y -= 0.028
-
-                plt.tight_layout(rect=[0, 0.02, 1, 0.90])
-                pdf.savefig(fig, facecolor=fig.get_facecolor())
-                plt.close(fig)
-
-        # PAGE 6b: Full Mix structure detection (Full Mix only)
-        if full_mixes and full_mix_structure and full_mix_structure.get('success'):
-            fig = plt.figure(figsize=(11, 8.5))
-            fig.suptitle('FULL MIX STRUCTURE', fontsize=14, color=THEME['accent2'],
-                         fontweight='bold', y=0.97)
-            fig.text(0.5, 0.935,
-                     'Automatic section detection and global energy envelope',
-                     ha='center', fontsize=9, color=THEME['fg_dim'])
-
-            ax = fig.add_subplot(1, 1, 1)
-
-            env_times = full_mix_structure['envelope_times']
-            env_db = full_mix_structure['energy_envelope']
-            boundaries = full_mix_structure['boundaries']
-
-            # Plot energy envelope
-            ax.fill_between(env_times, env_db, -80,
-                             color=THEME['accent1'], alpha=0.3)
-            ax.plot(env_times, env_db, color=THEME['accent1'], linewidth=1.5,
-                     label='RMS energy envelope')
-
-            # Draw section boundaries
-            section_colors = [THEME['accent2'], THEME['accent3'], THEME['accent4'],
-                              THEME['warning'], THEME['accent1']]
-            # Filter boundaries to remove micro-sections at the edges
-            valid_bounds = [b for b in boundaries
-                            if b > 0.5 and b < (env_times[-1] - 0.5)]
-
-            for i, b in enumerate(valid_bounds):
-                color = section_colors[i % len(section_colors)]
-                ax.axvline(b, color=color, linewidth=1.5, linestyle='--', alpha=0.7)
-                ax.text(b, ax.get_ylim()[1] if hasattr(ax, 'get_ylim') else -5,
-                        f'{b:.1f}s',
-                        fontsize=8, color=color,
-                        rotation=90, va='top', ha='right')
-
-            ax.set_xlabel('Time (s)', fontsize=11)
-            ax.set_ylabel('RMS energy (dB)', fontsize=11)
-            ax.set_title(f"{len(valid_bounds)} section boundaries detected",
-                         color=THEME['accent1'], fontsize=12, pad=15)
-            ax.grid(True, alpha=0.3)
-            ax.set_ylim(-60, 0)
-
-            # Contextual note
-            fig.text(0.5, 0.04,
-                     'Section boundaries are detected via spectral similarity changes. '
-                     'They approximate musical transitions (intro/verse/drop/break/outro) '
-                     'and help understand the macro structure of the track.',
-                     ha='center', fontsize=8, color=THEME['fg_dim'], style='italic', wrap=True)
-
-            plt.tight_layout(rect=[0, 0.07, 1, 0.90])
-            pdf.savefig(fig, facecolor=fig.get_facecolor())
-            plt.close(fig)
-
-        # PAGE 6c: Difference spectrogram (Full Mix vs sum of individuals)
-        if full_mixes and difference_spectrogram and difference_spectrogram.get('success'):
-            fig = plt.figure(figsize=(11, 8.5))
-            fig.suptitle('MASTER BUS EFFECT', fontsize=14, color=THEME['accent2'],
-                         fontweight='bold', y=0.97)
-            fig.text(0.5, 0.935,
-                     'Difference between Full Mix and sum of individual tracks (in dB)',
-                     ha='center', fontsize=9, color=THEME['fg_dim'])
-
-            ax = fig.add_subplot(1, 1, 1)
-
-            diff_db = difference_spectrogram['diff_db']
-            times = difference_spectrogram['times']
-            freqs = difference_spectrogram['freqs']
-
-            # Use a diverging colormap (red = boosted, blue = cut)
-            # Limit frequency display to audible range
-            freq_mask = freqs <= 20000
-            diff_display = diff_db[freq_mask]
-            freqs_display = freqs[freq_mask]
-
-            img = ax.imshow(diff_display, aspect='auto', origin='lower', cmap='RdBu_r',
-                             vmin=-12, vmax=12,
-                             extent=[times[0], times[-1], freqs_display[0], freqs_display[-1]])
-            ax.set_yscale('symlog', linthresh=100)
-            ax.set_ylim(20, 20000)
-            ax.set_xlabel('Time (s)', fontsize=11)
-            ax.set_ylabel('Frequency (Hz)', fontsize=11)
-            ax.set_title('Master bus modification at each frequency and time (red = boosted, blue = cut)',
-                         color=THEME['accent1'], fontsize=11, pad=15)
-            cbar = fig.colorbar(img, ax=ax, pad=0.01)
-            cbar.set_label('Difference (dB)', fontsize=9)
-            cbar.ax.tick_params(labelsize=8)
-
-            # Contextual note
-            fig.text(0.5, 0.04,
-                     'This shows how the master bus processing (EQ, compression, limiting, saturation) '
-                     'modifies the raw sum of your tracks. Flat color means no modification; '
-                     'red/blue patches reveal frequency-dependent changes.',
-                     ha='center', fontsize=8, color=THEME['fg_dim'], style='italic', wrap=True)
-
-            plt.tight_layout(rect=[0, 0.07, 1, 0.90])
-            pdf.savefig(fig, facecolor=fig.get_facecolor())
-            plt.close(fig)
-
-        # PAGE 7: Anomalies compilation across all tracks
-        all_with_anomalies = [(a, ti) for a, ti in analyses_with_info if a.get('anomalies')]
-        if all_with_anomalies:
-            fig = plt.figure(figsize=(11, 8.5))
-            fig.suptitle('ANOMALIES OVERVIEW', fontsize=14, color=THEME['critical'],
-                         fontweight='bold', y=0.97)
-            fig.text(0.5, 0.935,
-                     f"{len(all_with_anomalies)} track(s) with detected anomalies",
-                     ha='center', fontsize=9, color=THEME['fg_dim'])
-
-            ax = fig.add_subplot(111)
-            ax.axis('off')
-
-            y = 0.88
-
-            # Critical first
-            critical_list = []
-            warning_list = []
-            info_list = []
-            for a, ti in all_with_anomalies:
-                for sev, desc in a['anomalies']:
-                    entry = (a['filename'], ti.get('type', 'Individual'), desc)
-                    if sev == 'critical':
-                        critical_list.append(entry)
-                    elif sev == 'warning':
-                        warning_list.append(entry)
-                    else:
-                        info_list.append(entry)
-
-            if critical_list:
-                ax.text(0.04, y, f'[CRITICAL] ({len(critical_list)})',
-                        fontsize=12, color=THEME['critical'], fontweight='bold', transform=ax.transAxes)
-                y -= 0.04
-                for fname, ttype, desc in critical_list[:12]:
-                    ax.text(0.07, y, f"- [{ttype}] {fname[:40]}: {desc[:55]}",
-                            fontsize=8, color=THEME['fg'], transform=ax.transAxes)
-                    y -= 0.028
-                y -= 0.02
-
-            if warning_list and y > 0.15:
-                ax.text(0.04, y, f'[WARNING] ({len(warning_list)})',
-                        fontsize=12, color=THEME['warning'], fontweight='bold', transform=ax.transAxes)
-                y -= 0.04
-                for fname, ttype, desc in warning_list[:15]:
-                    if y < 0.08:
-                        break
-                    ax.text(0.07, y, f"- [{ttype}] {fname[:40]}: {desc[:55]}",
-                            fontsize=8, color=THEME['fg'], transform=ax.transAxes)
-                    y -= 0.028
-
-            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
-            pdf.savefig(fig, facecolor=fig.get_facecolor())
-            plt.close(fig)
-
 
 # ============================================================================
-# EXCEL GENERATION - openpyxl (normal mode)
+# EXCEL REPORT
 # ============================================================================
-
-# Metric glossary for cell comments (Phase 2)
-METRIC_GLOSSARY = {
-    'LUFS': 'Loudness Units Full Scale (integrated). Target depends on style.\n-14 LUFS = streaming standard. -8 LUFS = very hot.',
-    'Peak (dB)': 'True peak level in dBFS. Should stay below 0 dBFS.\n-1 dBFS or lower is safe for mastering headroom.',
-    'Crest (dB)': 'Peak-to-RMS ratio. Measures dynamic range.\n<6 dB = very compressed, 6-12 = moderate, >12 = dynamic.',
-    'Stereo Width': 'Mid/Side energy ratio. 0 = mono, 0.5 = balanced, >0.7 = very wide.\nBass/kick should be narrow, pads/FX can be wide.',
-    'Dom. Band': 'Frequency band with highest energy concentration.\nReveals the spectral center of gravity for this track.',
-    'Centroid (Hz)': 'Spectral centroid — brightness indicator.\nLow = dark/warm, high = bright/harsh.',
-    'Duration (s)': 'Track length in seconds.',
-    'PLR': 'Peak-to-Loudness Ratio. Peak dBFS minus LUFS.\nHigher = more headroom. <6 dB may clip on normalization.',
-    'PSR': 'Peak-to-Short-term Loudness Ratio.\nMeasures instantaneous headroom. Lower = more compressed.',
-    'LRA': 'Loudness Range in LU. Measures macro-dynamic variation.\n<4 = very compressed, 4-8 = moderate, >8 = dynamic.',
-    'Phase Correlation': 'Stereo phase correlation. +1 = perfect mono compat.\n<0.3 = risky phase issues. <0 = phase problems.',
-    'Flatness': 'Spectral flatness (0-1). 0 = tonal, 1 = noise-like.\nUseful to distinguish pitched from noisy content.',
-    'RMS': 'Root Mean Square level. Average perceived loudness.',
-    'True Peak': 'Inter-sample peak level. Can exceed 0 dBFS due to reconstruction.\nCritical for broadcast/streaming compliance.',
-    'Track': 'Filename of the analyzed audio bounce.',
-    'Type': 'Track role: Individual (single instrument), BUS (submix), Full Mix (master bounce).',
-    'Category': 'Instrument category for grouping and masking analysis.',
-}
 
 
 def _safe_sheet_name(name, max_len=31):
@@ -4837,7 +4233,7 @@ def _format_row(idx, type_tag, analysis, track_info):
 # TKINTER USER INTERFACE - Multi-tab with list+details pattern
 # ============================================================================
 
-# Tkinter theme colors (matching PDF theme)
+# Tkinter theme colors (matching report theme)
 UI_THEME = {
     'bg':           '#0a0a12',
     'panel':        '#1a1a24',
@@ -5278,8 +4674,8 @@ class MixAnalyzerApp:
                 '  Set the mix completion state, active master bus plugins, loudness '
                 'target, and any notes about the mix.\n\n'
                 'Step 4 — Analysis tab:\n'
-                '  Choose output format (PDF, Excel, or Both). Click "RUN ANALYSIS". '
-                'Wait for the reports to be generated. Open the output folder or generate '
+                '  Click "RUN ANALYSIS". '
+                'Wait for the Excel report to be generated. Open the output folder or generate '
                 'an AI prompt when done.\n'
             )),
             ('heading', '4. SHARING THE REPORT WITH CLAUDE'),
@@ -5287,7 +4683,7 @@ class MixAnalyzerApp:
                 '1. Click "Generate AI Analysis Prompt" after analysis completes.\n'
                 '2. Click "Copy to Clipboard".\n'
                 '3. Open a new Claude conversation (claude.ai).\n'
-                '4. Drag the PDF or XLSX report files into the conversation.\n'
+                '4. Drag the XLSX report file into the conversation.\n'
                 '5. Paste the prompt and send.\n'
                 '6. Claude will analyze your reports and provide specific, data-driven '
                 'mixing recommendations tailored to your style.\n'
@@ -5924,18 +5320,12 @@ class MixAnalyzerApp:
                                           state='disabled')
         self.analysis_summary.grid(row=1, column=0, columnspan=3, sticky='we', pady=10)
 
-        # Controls row: Refresh + Output format
+        # Controls row: Refresh
         controls_row = ttk.Frame(frame)
         controls_row.grid(row=2, column=0, columnspan=3, sticky='we', pady=(5, 15))
 
         ttk.Button(controls_row, text='Refresh summary',
                     command=self._refresh_analysis_summary).pack(side='left')
-
-        ttk.Label(controls_row, text='Output format:').pack(side='left', padx=(25, 5))
-        self.output_format = tk.StringVar(value='PDF')
-        ttk.Combobox(controls_row, textvariable=self.output_format,
-                     values=['PDF', 'Excel', 'Both'], state='readonly',
-                     width=10, height=50).pack(side='left')
 
         # Run + Cancel row
         run_row = ttk.Frame(frame)
@@ -6137,8 +5527,6 @@ class MixAnalyzerApp:
         input_folder = Path(self.input_folder.get())
         output_folder = Path(self.output_folder.get())
         output_folder.mkdir(parents=True, exist_ok=True)
-        out_fmt = self.output_format.get()
-
         # Determine project name from Full Mix track (fallback: folder name)
         project_name = None
         for fname, cfg in self.track_configs.items():
@@ -6154,7 +5542,7 @@ class MixAnalyzerApp:
         included_files = [f for f in self.track_order
                            if self.track_configs[f]['include']]
 
-        # Build full mix info once (shared by PDF and Excel)
+        # Build full mix info
         active_plugins = [p for p, v in self.mix_plugins.items() if v.get()]
         full_mix_info = {
             'state': self.mix_state.get(),
@@ -6163,19 +5551,12 @@ class MixAnalyzerApp:
             'note': self.mix_note.get(),
         }
 
-        # Compute total steps for progress: analyze + PDF per track + global PDF + optional Excel
+        # Compute total steps for progress: analyze + Excel generation
         n_tracks = len(included_files)
-        do_pdf = out_fmt in ('PDF', 'Both')
-        do_excel = out_fmt in ('Excel', 'Both')
-        # Steps: analyze(n) + pdf_per_track(n if pdf) + global_pdf(1 if pdf) + excel(1 if excel)
-        total_steps = n_tracks  # analysis
-        if do_pdf:
-            total_steps += n_tracks + 1  # per-track PDFs + global PDF
-        if do_excel:
-            total_steps += 1  # Excel generation
+        total_steps = n_tracks + 1  # analysis + Excel
         completed_steps = 0
 
-        self.log(f"Starting analysis: {n_tracks} tracks — format: {out_fmt}")
+        self.log(f"Starting analysis: {n_tracks} tracks — format: Excel")
         self.log(f"Output folder: {output_folder}")
         self.log("-" * 60)
 
@@ -6222,66 +5603,8 @@ class MixAnalyzerApp:
                 traceback.print_exc()
             completed_steps += 1
 
-        # --- PDF generation ---
-        if do_pdf and analyses_with_info:
-            self._update_progress(
-                int(completed_steps / total_steps * 100),
-                'Generating PDF reports', '', '', '')
-
-            for i, (analysis, ti) in enumerate(analyses_with_info, 1):
-                if self.cancel_requested:
-                    self.log("CANCELLED by user.")
-                    self._update_progress(0, 'Cancelled', '', '', '')
-                    for gf in generated_files:
-                        try:
-                            if gf.exists():
-                                gf.unlink()
-                        except Exception:
-                            pass
-                    return
-
-                fname = ti['name']
-                eta = self._compute_eta(completed_steps, total_steps)
-                self._update_progress(
-                    int(completed_steps / total_steps * 100),
-                    'Generating PDF reports',
-                    f'Writing: {fname}',
-                    f'[{i}/{len(analyses_with_info)}]',
-                    eta)
-                try:
-                    pdf_name = f"{report_prefix}_{os.path.splitext(fname)[0]}.pdf"
-                    pdf_path = output_folder / pdf_name
-                    if pdf_path.exists():
-                        pdf_path.unlink()
-                    self.log(f"    -> PDF: {pdf_name}")
-                    generate_track_pdf(analysis, str(pdf_path), ti, self.style.get())
-                    generated_files.append(pdf_path)
-                except Exception as e:
-                    self.log(f"    ERROR PDF: {e}")
-                    traceback.print_exc()
-                completed_steps += 1
-
-            # Global PDF
-            self.log("-" * 60)
-            self.log("Generating global PDF report...")
-            self._update_progress(
-                int(completed_steps / total_steps * 100),
-                'Generating PDF reports', 'Global report', '', '')
-            try:
-                global_pdf = output_folder / f'{report_prefix}_GLOBAL.pdf'
-                if global_pdf.exists():
-                    global_pdf.unlink()
-                generate_global_pdf(analyses_with_info, str(global_pdf),
-                                     self.style.get(), full_mix_info)
-                generated_files.append(global_pdf)
-                self.log(f"Global report: {global_pdf.name}")
-            except Exception as e:
-                self.log(f"ERROR global report: {e}")
-                traceback.print_exc()
-            completed_steps += 1
-
         # --- Excel generation ---
-        if do_excel and analyses_with_info:
+        if analyses_with_info:
             if self.cancel_requested:
                 self.log("CANCELLED by user.")
                 self._update_progress(0, 'Cancelled', '', '', '')
@@ -6322,7 +5645,7 @@ class MixAnalyzerApp:
         # Done
         self._update_progress(100, 'Done', '', '', '')
         self.log("=" * 60)
-        self.log(f"DONE: {len(analyses_with_info)} tracks processed — format: {out_fmt}")
+        self.log(f"DONE: {len(analyses_with_info)} tracks processed — Excel report generated")
         self.log(f"Location: {output_folder}")
 
         self.analysis_results = analyses_with_info
@@ -6395,7 +5718,7 @@ class MixAnalyzerApp:
         tk.Label(frame,
                   text='1. Click "Copy to Clipboard" below\n'
                        '2. Open a new conversation on Claude.ai (or similar AI)\n'
-                       '3. Attach all the PDF files from your output folder\n'
+                       '3. Attach the XLSX report file from your output folder\n'
                        '4. Paste this prompt in the message and send',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg_dim'],
                   font=('Calibri', 10), justify='left').pack(anchor='w', pady=(0, 12))
@@ -6473,7 +5796,7 @@ class MixAnalyzerApp:
                 f"- Note: {self.mix_note.get() if self.mix_note.get() else 'None'}"
             )
 
-        prompt = f"""You are a senior mixing and mastering engineer specialized in {self.style.get()} music. I am providing you with a complete set of PDF analysis reports generated by the Mix Analyzer tool for one of my music projects. I need your help diagnosing the mix and proposing concrete, actionable improvements.
+        prompt = f"""You are a senior mixing and mastering engineer specialized in {self.style.get()} music. I am providing you with an Excel analysis report generated by the Mix Analyzer tool for one of my music projects. I need your help diagnosing the mix and proposing concrete, actionable improvements.
 
 PROJECT CONTEXT:
 - Style: {self.style.get()}
@@ -6484,9 +5807,8 @@ PROJECT CONTEXT:
 
 TRACK INVENTORY (Individual tracks by category):{cat_inventory_str}
 
-ATTACHED PDF REPORTS:
-- One PDF per analyzed track (7 pages each): Identity, Temporal, Spectral, Spectrograms, Musical, Stereo, Characteristics
-- One global report named 00_GLOBAL_REPORT.pdf with multi-track comparisons, masking matrix, spectral budget by category, rankings, BUS analysis, Full Mix analysis, and anomalies overview
+ATTACHED EXCEL REPORT:
+- One comprehensive XLSX report with multiple sheets: per-track analysis, Summary, Dashboard, Global Comparison, Full Mix Analysis, Freq Conflicts, Track Comparison, Mix Health Score, Version Tracking, and AI Prompt
 
 YOUR TASK:
 Please analyze the reports and provide:
@@ -6506,7 +5828,7 @@ Please analyze the reports and provide:
 7. **Concrete action items**: Provide a prioritized list of specific, non-generic actions I should take. Avoid boilerplate advice. Each recommendation should reference specific tracks or measurements from the reports.
 
 CRITICAL INSTRUCTIONS:
-- Base ALL your recommendations strictly on what is visible in the attached PDF reports. Do not make assumptions about content you cannot see.
+- Base ALL your recommendations strictly on what is visible in the attached Excel report. Do not make assumptions about content you cannot see.
 - Avoid generic mixing advice. Do not say things like "add a highpass at 80 Hz on bass tracks" unless you can point to a specific measurement in a specific report that justifies it.
 - When a recommendation is subjective or style-dependent, explicitly acknowledge it.
 - Consider the {self.style.get()} aesthetic. What would be a "problem" in another style may be intentional here.
