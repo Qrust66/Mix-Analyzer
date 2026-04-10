@@ -2498,6 +2498,1547 @@ def _xl_add_comment(cell, text):
     cell.comment = Comment(text, 'Mix Analyzer')
 
 
+def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0,
+                                   default_min_tracks=2, log_fn=None):
+    """
+    Génère le sheet 'Freq Conflicts' (P3.1) dans le workbook donné.
+    Utilise FREQ_BANDS_HIRES pour les bandes de fréquence.
+    Filtre les pistes : Individual uniquement, exclut BUS et Full Mix.
+    """
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.formatting.rule import ColorScaleRule, DataBarRule, FormulaRule
+    from openpyxl.utils import get_column_letter
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    log_fn("    Excel: writing Freq Conflicts sheet (P3.1)...")
+
+    # Filter: Individual tracks only
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    if not individuals:
+        ws = wb.create_sheet('Freq Conflicts')
+        ws.sheet_properties.tabColor = 'FF3333'
+        _xl_write_header(ws, 'FREQUENCY CONFLICT DETECTOR', 'No individual tracks found.')
+        return
+
+    # Compute hires band energies for each individual track
+    track_names = []
+    all_energies = []  # list of dicts {band_label: energy_value}
+    for a, ti in individuals:
+        track_names.append(a['filename'])
+        hires = compute_hires_band_energies(a['_mono'], a['sample_rate'])
+        all_energies.append(hires)
+
+    band_labels = [label for label, _, _ in FREQ_BANDS_HIRES]
+    n_bands = len(band_labels)
+    n_tracks = len(track_names)
+
+    # Build energy matrix and normalize per band (% of max in that band)
+    import numpy as np
+    matrix = np.zeros((n_bands, n_tracks))
+    for t_idx, energies in enumerate(all_energies):
+        for b_idx, label in enumerate(band_labels):
+            matrix[b_idx, t_idx] = energies.get(label, 0.0)
+
+    # Normalize each band row: percentage of max energy in that band
+    norm_matrix = np.zeros_like(matrix)
+    for b_idx in range(n_bands):
+        row_max = np.max(matrix[b_idx]) if np.max(matrix[b_idx]) > 0 else 1.0
+        norm_matrix[b_idx] = 100.0 * matrix[b_idx] / row_max
+
+    # Theme styles
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    panel_fill = PatternFill('solid', fgColor='1A1A24')
+    header_fill = PatternFill('solid', fgColor='1A3A5A')
+    accent_font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    data_font = Font(name='Calibri', size=10, color='E8E8F0')
+    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+    conflict_fill = PatternFill('solid', fgColor='FF3333')
+    ok_fill = PatternFill('solid', fgColor='00FF9F')
+
+    # Create sheet
+    ws = wb.create_sheet('Freq Conflicts')
+    ws.sheet_properties.tabColor = 'FF3D8B'
+
+    # Row 1: Title
+    ws.merge_cells('A1:J1')
+    ws['A1'] = 'FREQUENCY CONFLICT DETECTOR'
+    ws['A1'].font = Font(name='Calibri', size=16, bold=True, color='00D9FF')
+    ws['A1'].fill = bg_fill
+
+    # Row 2: Threshold parameter
+    ws['A2'] = 'Conflict threshold (% of max band energy)'
+    ws['A2'].font = dim_font
+    ws['A2'].fill = bg_fill
+    ws['B2'] = default_threshold
+    ws['B2'].font = accent_font
+    ws['B2'].fill = panel_fill
+    ws['B2'].border = thin_border
+
+    # Row 3: Min tracks parameter
+    ws['A3'] = 'Min tracks for conflict'
+    ws['A3'].font = dim_font
+    ws['A3'].fill = bg_fill
+    ws['B3'] = default_min_tracks
+    ws['B3'].font = accent_font
+    ws['B3'].fill = panel_fill
+    ws['B3'].border = thin_border
+
+    # Row 4: empty separator
+    # Row 5: Headers
+    header_row = 5
+    ws.cell(row=header_row, column=1, value='Frequency Band').font = header_font
+    ws.cell(row=header_row, column=1).fill = header_fill
+    ws.cell(row=header_row, column=1).border = thin_border
+    ws.cell(row=header_row, column=1).alignment = Alignment(horizontal='center', vertical='center')
+
+    for t_idx, name in enumerate(track_names):
+        col = t_idx + 2
+        c = ws.cell(row=header_row, column=col, value=name[:20])
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+
+    conflict_count_col = n_tracks + 2
+    status_col = n_tracks + 3
+
+    ws.cell(row=header_row, column=conflict_count_col, value='Conflict count').font = header_font
+    ws.cell(row=header_row, column=conflict_count_col).fill = header_fill
+    ws.cell(row=header_row, column=conflict_count_col).border = thin_border
+    ws.cell(row=header_row, column=conflict_count_col).alignment = Alignment(horizontal='center')
+
+    ws.cell(row=header_row, column=status_col, value='Status').font = header_font
+    ws.cell(row=header_row, column=status_col).fill = header_fill
+    ws.cell(row=header_row, column=status_col).border = thin_border
+    ws.cell(row=header_row, column=status_col).alignment = Alignment(horizontal='center')
+
+    # Data rows (one per band)
+    data_start_row = 6
+    for b_idx, label in enumerate(band_labels):
+        row = data_start_row + b_idx
+        # Band label
+        c = ws.cell(row=row, column=1, value=label)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        # Track energy values (normalized %)
+        for t_idx in range(n_tracks):
+            col = t_idx + 2
+            val = round(norm_matrix[b_idx, t_idx], 1)
+            c = ws.cell(row=row, column=col, value=val)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '0.0'
+
+        # Conflict count formula: COUNTIF over track columns where value >= threshold in B2
+        first_track_col = get_column_letter(2)
+        last_track_col = get_column_letter(n_tracks + 1)
+        countif_range = f'{first_track_col}{row}:{last_track_col}{row}'
+        formula_count = f'=COUNTIF({countif_range},">="&$B$2)'
+        c = ws.cell(row=row, column=conflict_count_col, value=formula_count)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+        # Status formula: IF conflict_count >= B3 then "CONFLICT" else "OK"
+        cc_letter = get_column_letter(conflict_count_col)
+        formula_status = f'=IF({cc_letter}{row}>=$B$3,"CONFLICT","OK")'
+        c = ws.cell(row=row, column=status_col, value=formula_status)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+    data_end_row = data_start_row + n_bands - 1
+
+    # --- Conditional Formatting ---
+    # 1. Color scale on data cells (green -> yellow -> red)
+    data_range = (f'{get_column_letter(2)}{data_start_row}:'
+                  f'{get_column_letter(n_tracks + 1)}{data_end_row}')
+    ws.conditional_formatting.add(
+        data_range,
+        ColorScaleRule(
+            start_type='num', start_value=0, start_color='00FF9F',
+            mid_type='num', mid_value=50, mid_color='FFFF00',
+            end_type='num', end_value=100, end_color='FF3333'))
+
+    # 2. Status column: red if CONFLICT, green if OK
+    status_range = f'{get_column_letter(status_col)}{data_start_row}:{get_column_letter(status_col)}{data_end_row}'
+    ws.conditional_formatting.add(
+        status_range,
+        FormulaRule(
+            formula=[f'{get_column_letter(status_col)}{data_start_row}="CONFLICT"'],
+            fill=conflict_fill))
+    ws.conditional_formatting.add(
+        status_range,
+        FormulaRule(
+            formula=[f'{get_column_letter(status_col)}{data_start_row}="OK"'],
+            fill=ok_fill))
+
+    # 3. Data bars on conflict count column
+    cc_range = f'{get_column_letter(conflict_count_col)}{data_start_row}:{get_column_letter(conflict_count_col)}{data_end_row}'
+    ws.conditional_formatting.add(
+        cc_range,
+        DataBarRule(start_type='num', start_value=0,
+                    end_type='num', end_value=n_tracks,
+                    color='FF3D8B'))
+
+    # --- Autofilter ---
+    last_col_letter = get_column_letter(status_col)
+    ws.auto_filter.ref = f'A{header_row}:{last_col_letter}{data_end_row}'
+
+    # --- Freeze panes (row 6, col B = headers + band labels visible) ---
+    ws.freeze_panes = 'B6'
+
+    # --- Column widths ---
+    ws.column_dimensions['A'].width = 20
+    for t_idx in range(n_tracks):
+        ws.column_dimensions[get_column_letter(t_idx + 2)].width = 12
+    ws.column_dimensions[get_column_letter(conflict_count_col)].width = 15
+    ws.column_dimensions[get_column_letter(status_col)].width = 12
+
+    log_fn("    Excel: Freq Conflicts sheet done.")
+
+
+def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
+    """
+    Génère le sheet 'Track Comparison' (P3.2) dans le workbook donné.
+    Crée des sélecteurs de pistes (data validations) et un tableau
+    comparatif avec deltas calculés via formules INDEX/MATCH.
+    Filtre les pistes : Individual uniquement, exclut BUS et Full Mix.
+    """
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.formatting.rule import ColorScaleRule
+    from openpyxl.utils import get_column_letter
+    from openpyxl.worksheet.datavalidation import DataValidation
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    log_fn("    Excel: writing Track Comparison sheet (P3.2)...")
+
+    # Filter: Individual tracks only
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    if not individuals:
+        ws = workbook.create_sheet('Track Comparison')
+        ws.sheet_properties.tabColor = 'FF8B3D'
+        _xl_write_header(ws, 'TRACK COMPARISON TOOL', 'No individual tracks found.')
+        return
+
+    track_names = [a['filename'] for a, ti in individuals]
+
+    # --- Metrics definition ---
+    # (display_name, key_path, is_numeric)
+    # key_path is used to build the data table; the column index in the hidden
+    # data table maps to these metrics in order.
+    band_keys = [name for name, _, _ in FREQ_BANDS]
+    band_display = {
+        'sub': 'Sub Energy %', 'bass': 'Bass Energy %',
+        'low_mid': 'Low-Mid Energy %', 'mid': 'Mid Energy %',
+        'high_mid': 'High-Mid Energy %', 'presence': 'Presence Energy %',
+        'air': 'Air Energy %',
+    }
+    metrics = [
+        ('LUFS', True),
+        ('Peak (dBFS)', True),
+        ('Crest Factor (dB)', True),
+        ('Stereo Width', True),
+        ('PLR (dB)', True),
+        ('PSR (dB)', True),
+        ('Dominant Band', False),
+    ]
+    for bk in band_keys:
+        metrics.append((band_display[bk], True))
+
+    n_metrics = len(metrics)
+
+    # --- Build hidden data sheet ---
+    ws_data = workbook.create_sheet('_track_data')
+    ws_data.sheet_state = 'hidden'
+
+    # Header row
+    data_headers = ['Track Name'] + [m[0] for m in metrics]
+    for col, h in enumerate(data_headers, 1):
+        ws_data.cell(row=1, column=col, value=h)
+
+    # Data rows
+    for r_idx, (a, ti) in enumerate(individuals):
+        row = r_idx + 2
+        L = a['loudness']
+        S = a['spectrum']
+        st = a['stereo']
+        ws_data.cell(row=row, column=1, value=a['filename'])
+        col = 2
+        # LUFS
+        ws_data.cell(row=row, column=col,
+                     value=round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None)
+        col += 1
+        # Peak
+        ws_data.cell(row=row, column=col, value=round(L['peak_db'], 2))
+        col += 1
+        # Crest
+        ws_data.cell(row=row, column=col, value=round(L['crest_factor'], 2))
+        col += 1
+        # Width
+        ws_data.cell(row=row, column=col,
+                     value=round(st['width_overall'], 3) if st['is_stereo'] else None)
+        col += 1
+        # PLR
+        ws_data.cell(row=row, column=col, value=round(L['plr'], 2))
+        col += 1
+        # PSR
+        ws_data.cell(row=row, column=col, value=round(L['psr'], 2))
+        col += 1
+        # Dominant Band
+        ws_data.cell(row=row, column=col,
+                     value=BAND_LABELS.get(S['dominant_band'], S['dominant_band']))
+        col += 1
+        # Band energies (7 bands)
+        for bk in band_keys:
+            ws_data.cell(row=row, column=col,
+                         value=round(S['band_energies'].get(bk, 0.0), 2))
+            col += 1
+
+    n_data_rows = len(individuals)
+    data_range_end = n_data_rows + 1  # last data row in _track_data
+
+    # --- Theme styles ---
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    panel_fill = PatternFill('solid', fgColor='1A1A24')
+    header_fill = PatternFill('solid', fgColor='1A3A5A')
+    accent_font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    data_font = Font(name='Calibri', size=10, color='E8E8F0')
+    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+
+    # --- Main sheet ---
+    ws = workbook.create_sheet('Track Comparison')
+    ws.sheet_properties.tabColor = 'FF8B3D'
+
+    # Row 1: Title
+    ws.merge_cells('A1:K1')
+    ws['A1'] = 'TRACK COMPARISON TOOL'
+    ws['A1'].font = Font(name='Calibri', size=16, bold=True, color='00D9FF')
+    ws['A1'].fill = bg_fill
+
+    # --- Section 1: Track selectors (rows 2-6) ---
+    track_list_str = ','.join(track_names)
+    track_list_with_empty = ',' + track_list_str  # leading comma = empty option
+
+    dv_required = DataValidation(type='list', formula1=f'"{track_list_str}"', allow_blank=False)
+    dv_required.error = 'Please select a track from the list.'
+    dv_required.errorTitle = 'Invalid track'
+    ws.add_data_validation(dv_required)
+
+    dv_optional = DataValidation(type='list', formula1=f'"{track_list_with_empty}"', allow_blank=True)
+    dv_optional.error = 'Please select a track from the list or leave empty.'
+    dv_optional.errorTitle = 'Invalid track'
+    ws.add_data_validation(dv_optional)
+
+    selectors = [
+        ('Track A (reference)', track_names[0] if len(track_names) > 0 else '', dv_required),
+        ('Track B', track_names[1] if len(track_names) > 1 else (track_names[0] if track_names else ''), dv_required),
+        ('Track C (optional)', '', dv_optional),
+        ('Track D (optional)', '', dv_optional),
+    ]
+
+    for i, (label, default, dv) in enumerate(selectors):
+        row = i + 2
+        ws.cell(row=row, column=1, value=label).font = dim_font
+        ws.cell(row=row, column=1).fill = bg_fill
+        c = ws.cell(row=row, column=2, value=default)
+        c.font = accent_font
+        c.fill = panel_fill
+        c.border = thin_border
+        dv.add(f'B{row}')
+
+    # Note row
+    ws.cell(row=6, column=1,
+            value='Track A is the reference. Deltas show how B/C/D differ from A.').font = dim_font
+    ws.cell(row=6, column=1).fill = bg_fill
+
+    # Row 7: empty separator
+
+    # Row 8: empty separator
+
+    # --- Section 3: Comparison table (row 9 = headers, row 10+ = data) ---
+    header_row = 9
+    # Columns: A=Metric, B=Track A, C=Track B, D=Δ B-A, E=% B-A,
+    #           F=Track C, G=Δ C-A, H=% C-A, I=Track D, J=Δ D-A, K=% D-A
+    comp_headers = ['Metric', 'Track A', 'Track B', 'Δ B-A', '% B-A',
+                    'Track C', 'Δ C-A', '% C-A', 'Track D', 'Δ D-A', '% D-A']
+    for col, h in enumerate(comp_headers, 1):
+        c = ws.cell(row=header_row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+
+    # --- Build INDEX/MATCH formulas ---
+    # _track_data sheet: column A = names, columns B onwards = metrics
+    # MATCH($B$2, _track_data!$A:$A, 0) gives the row of Track A
+    # INDEX(_track_data!B:B, match_result) gives the metric value
+
+    data_sheet = '_track_data'
+    name_col_ref = f"'{data_sheet}'!$A$2:$A${data_range_end}"
+
+    data_start_row = 10
+
+    for m_idx, (metric_name, is_numeric) in enumerate(metrics):
+        row = data_start_row + m_idx
+        metric_col_idx = m_idx + 2  # column in _track_data (1-based, +1 for Track Name col)
+        metric_col_letter = get_column_letter(metric_col_idx)
+        metric_range = f"'{data_sheet}'!${metric_col_letter}$2:${metric_col_letter}${data_range_end}"
+
+        # Metric name
+        c = ws.cell(row=row, column=1, value=metric_name)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        # Track A value (col B) - always shown
+        match_a = f'MATCH($B$2,{name_col_ref},0)'
+        formula_a = f'=IFERROR(INDEX({metric_range},{match_a}),"")'
+        c = ws.cell(row=row, column=2, value=formula_a)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        # Track B (col C), Delta B-A (col D), % B-A (col E)
+        match_b = f'MATCH($B$3,{name_col_ref},0)'
+        formula_b = f'=IFERROR(INDEX({metric_range},{match_b}),"")'
+        c = ws.cell(row=row, column=3, value=formula_b)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        if is_numeric:
+            # Delta = B - A
+            formula_delta_b = f'=IFERROR(C{row}-B{row},"")'
+            c = ws.cell(row=row, column=4, value=formula_delta_b)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.00;-0.00;0.00'
+            # % delta = (B-A)/ABS(A)*100
+            formula_pct_b = f'=IFERROR(IF(B{row}=0,"",D{row}/ABS(B{row})*100),"")'
+            c = ws.cell(row=row, column=5, value=formula_pct_b)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.0"%";-0.0"%";0.0"%"'
+        else:
+            # Dominant Band: text comparison
+            formula_delta_b = f'=IF(C{row}=B{row},"match","differ")'
+            c = ws.cell(row=row, column=4, value=formula_delta_b)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            # No % for text
+            ws.cell(row=row, column=5, value='').fill = bg_fill
+
+        # Track C (col F), Delta C-A (col G), % C-A (col H) — conditional on B4 not empty
+        match_c = f'MATCH($B$4,{name_col_ref},0)'
+        formula_c = f'=IF($B$4="","",IFERROR(INDEX({metric_range},{match_c}),""))'
+        c = ws.cell(row=row, column=6, value=formula_c)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        if is_numeric:
+            formula_delta_c = f'=IF($B$4="","",IFERROR(F{row}-B{row},""))'
+            c = ws.cell(row=row, column=7, value=formula_delta_c)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.00;-0.00;0.00'
+            formula_pct_c = f'=IF($B$4="","",IFERROR(IF(B{row}=0,"",G{row}/ABS(B{row})*100),""))'
+            c = ws.cell(row=row, column=8, value=formula_pct_c)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.0"%";-0.0"%";0.0"%"'
+        else:
+            formula_delta_c = f'=IF($B$4="","",IF(F{row}=B{row},"match","differ"))'
+            c = ws.cell(row=row, column=7, value=formula_delta_c)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            ws.cell(row=row, column=8, value='').fill = bg_fill
+
+        # Track D (col I), Delta D-A (col J), % D-A (col K) — conditional on B5 not empty
+        match_d = f'MATCH($B$5,{name_col_ref},0)'
+        formula_d = f'=IF($B$5="","",IFERROR(INDEX({metric_range},{match_d}),""))'
+        c = ws.cell(row=row, column=9, value=formula_d)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        if is_numeric:
+            formula_delta_d = f'=IF($B$5="","",IFERROR(I{row}-B{row},""))'
+            c = ws.cell(row=row, column=10, value=formula_delta_d)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.00;-0.00;0.00'
+            formula_pct_d = f'=IF($B$5="","",IFERROR(IF(B{row}=0,"",J{row}/ABS(B{row})*100),""))'
+            c = ws.cell(row=row, column=11, value=formula_pct_d)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.0"%";-0.0"%";0.0"%"'
+        else:
+            formula_delta_d = f'=IF($B$5="","",IF(I{row}=B{row},"match","differ"))'
+            c = ws.cell(row=row, column=10, value=formula_delta_d)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            ws.cell(row=row, column=11, value='').fill = bg_fill
+
+    data_end_row = data_start_row + n_metrics - 1
+
+    # --- Conditional Formatting ---
+    # Color scale on delta columns (D, G, J): red-white-green centered on 0
+    for delta_col_letter in ['D', 'G', 'J']:
+        delta_range = f'{delta_col_letter}{data_start_row}:{delta_col_letter}{data_end_row}'
+        ws.conditional_formatting.add(
+            delta_range,
+            ColorScaleRule(
+                start_type='min', start_color='FF3333',
+                mid_type='num', mid_value=0, mid_color='FFFFFF',
+                end_type='max', end_color='00FF9F'))
+
+    # Color scale on band energy values (rows for band metrics, columns B, C, F, I)
+    # Band metrics start at index 7 (after Dominant Band) in the metrics list
+    band_start_row = data_start_row + 7  # first band metric row
+    band_end_row = data_end_row
+    for val_col_letter in ['B', 'C', 'F', 'I']:
+        band_range = f'{val_col_letter}{band_start_row}:{val_col_letter}{band_end_row}'
+        ws.conditional_formatting.add(
+            band_range,
+            ColorScaleRule(
+                start_type='num', start_value=0, start_color='00FF9F',
+                mid_type='num', mid_value=50, mid_color='FFFF00',
+                end_type='num', end_value=100, end_color='FF3333'))
+
+    # --- Freeze panes (row 10, col A = headers visible) ---
+    ws.freeze_panes = 'A10'
+
+    # --- Column widths ---
+    ws.column_dimensions['A'].width = 20
+    for col_idx in range(2, 12):
+        ws.column_dimensions[get_column_letter(col_idx)].width = 12
+
+    log_fn("    Excel: Track Comparison sheet done.")
+
+
+def _calc_loudness_score(individuals, full_mix):
+    """Loudness sub-score (0-100). Returns (score, details_list)."""
+    details = []
+    scores = []
+
+    # Coherence: std of individual LUFS
+    ind_lufs = [a['loudness']['lufs_integrated'] for a, _ in individuals
+                if np.isfinite(a['loudness']['lufs_integrated'])]
+    if len(ind_lufs) >= 2:
+        lufs_std = float(np.std(ind_lufs))
+        coh_score = max(0, 100 - lufs_std * 10)
+        details.append(('LUFS std (individuals)', round(lufs_std, 2), '< 4 LU', round(coh_score, 1)))
+    else:
+        coh_score = 70
+        details.append(('LUFS std (individuals)', 'N/A', '< 4 LU', coh_score))
+    scores.append((coh_score, 0.4))
+
+    # Full Mix target distance from -14 LUFS
+    if full_mix:
+        fm_lufs = full_mix['loudness']['lufs_integrated']
+        if np.isfinite(fm_lufs):
+            dist = abs(fm_lufs - (-14))
+            target_score = max(0, 100 - dist * 5)
+            details.append(('Full Mix LUFS', round(fm_lufs, 2), '-14 LUFS', round(target_score, 1)))
+        else:
+            target_score = 50
+            details.append(('Full Mix LUFS', 'N/A', '-14 LUFS', target_score))
+    else:
+        target_score = 70
+        details.append(('Full Mix LUFS', 'No Full Mix', '-14 LUFS', target_score))
+    scores.append((target_score, 0.4))
+
+    # True peak safety
+    if full_mix:
+        tp = full_mix['loudness'].get('true_peak_db', full_mix['loudness']['peak_db'])
+        if tp < -1.0:
+            peak_score = 100
+        else:
+            peak_score = max(0, 100 - (tp + 1) * 50)
+        details.append(('True Peak (Full Mix)', round(tp, 2), '< -1.0 dBFS', round(peak_score, 1)))
+    else:
+        peak_score = 70
+        details.append(('True Peak (Full Mix)', 'No Full Mix', '< -1.0 dBFS', peak_score))
+    scores.append((peak_score, 0.2))
+
+    total = sum(s * w for s, w in scores)
+    note = 'Tight LUFS' if total >= 75 else ('Moderate spread' if total >= 50 else 'Wide LUFS spread')
+    return round(total, 1), details, note
+
+
+def _calc_dynamics_score(individuals, full_mix):
+    """Dynamics sub-score (0-100). Returns (score, details_list, note)."""
+    details = []
+    scores = []
+
+    # Crest factor mean
+    ind_crests = [a['loudness']['crest_factor'] for a, _ in individuals]
+    if ind_crests:
+        crest_mean = float(np.mean(ind_crests))
+        # Linear 0 at crest=4, 100 at crest=14
+        crest_score = max(0, min(100, (crest_mean - 4) * 10))
+        details.append(('Crest factor mean', round(crest_mean, 2), '8-14 dB', round(crest_score, 1)))
+    else:
+        crest_score = 50
+        details.append(('Crest factor mean', 'N/A', '8-14 dB', crest_score))
+    scores.append((crest_score, 0.4))
+
+    # PLR Full Mix
+    if full_mix:
+        plr = full_mix['loudness']['plr']
+        # Peak at 100 when PLR=12, degrade symmetrically
+        plr_score = max(0, 100 - abs(plr - 12) * 10)
+        details.append(('PLR (Full Mix)', round(plr, 2), '11-14 dB', round(plr_score, 1)))
+    else:
+        plr_score = 60
+        details.append(('PLR (Full Mix)', 'No Full Mix', '11-14 dB', plr_score))
+    scores.append((plr_score, 0.4))
+
+    # Variance of crest factors
+    if len(ind_crests) >= 2:
+        crest_std = float(np.std(ind_crests))
+        var_score = max(0, 100 - crest_std * 5)
+        details.append(('Crest std (individuals)', round(crest_std, 2), '< 4 dB', round(var_score, 1)))
+    else:
+        var_score = 70
+        details.append(('Crest std (individuals)', 'N/A', '< 4 dB', var_score))
+    scores.append((var_score, 0.2))
+
+    total = sum(s * w for s, w in scores)
+    note = 'Good dynamics' if total >= 75 else ('Low crest' if crest_score < 50 else 'Moderate')
+    return round(total, 1), details, note
+
+
+def _calc_spectral_balance_score(individuals, full_mix):
+    """Spectral Balance sub-score (0-100). Returns (score, details_list, note)."""
+    details = []
+
+    # Use Full Mix if available, otherwise average individuals
+    if full_mix:
+        energies = full_mix['spectrum']['band_energies']
+        source = 'Full Mix'
+    elif individuals:
+        # Average band energies across individuals
+        avg = {name: 0.0 for name, _, _ in FREQ_BANDS}
+        for a, _ in individuals:
+            for name, _, _ in FREQ_BANDS:
+                avg[name] += a['spectrum']['band_energies'].get(name, 0.0)
+        for name, _, _ in FREQ_BANDS:
+            avg[name] /= len(individuals)
+        energies = avg
+        source = 'Individual avg'
+    else:
+        return 50.0, [('Source', 'No tracks', '-', 50)], 'No data'
+
+    band_values = [energies.get(name, 0.0) for name, _, _ in FREQ_BANDS]
+    total_e = sum(band_values)
+    if total_e <= 0:
+        return 50.0, [('Total energy', 0, '> 0', 50)], 'No energy'
+
+    # Spectral entropy (normalized)
+    probs = [v / total_e for v in band_values if v > 0]
+    if probs:
+        entropy = -sum(p * np.log2(p) for p in probs)
+        max_entropy = np.log2(len(FREQ_BANDS))
+        entropy_norm = (entropy / max_entropy) * 100 if max_entropy > 0 else 50
+    else:
+        entropy_norm = 0
+    details.append(('Spectral entropy', f'{entropy_norm:.1f}%', '> 70%', round(entropy_norm, 1)))
+
+    score = entropy_norm
+
+    # Penalty if Sub Energy = 0
+    sub_e = energies.get('sub', 0.0)
+    if sub_e <= 0.5:
+        score = max(0, score - 10)
+        details.append(('Sub Energy', f'{sub_e:.1f}%', '> 0.5%', '-10 penalty'))
+    else:
+        details.append(('Sub Energy', f'{sub_e:.1f}%', '> 0.5%', 'OK'))
+
+    # Penalty if Air Energy = 0
+    air_e = energies.get('air', 0.0)
+    if air_e <= 0.5:
+        score = max(0, score - 10)
+        details.append(('Air Energy', f'{air_e:.1f}%', '> 0.5%', '-10 penalty'))
+    else:
+        details.append(('Air Energy', f'{air_e:.1f}%', '> 0.5%', 'OK'))
+
+    # Penalty if any band > 35%
+    max_band = max(band_values)
+    max_band_name = [name for name, _, _ in FREQ_BANDS
+                     if energies.get(name, 0) == max_band][0]
+    if max_band > 35:
+        penalty = min(20, (max_band - 35) * 2)
+        score = max(0, score - penalty)
+        details.append((f'Dominant band ({BAND_LABELS[max_band_name]})',
+                        f'{max_band:.1f}%', '< 35%', f'-{penalty:.0f} penalty'))
+    else:
+        details.append(('Max band energy', f'{max_band:.1f}%', '< 35%', 'OK'))
+
+    score = max(0, min(100, score))
+    note = 'Balanced' if score >= 75 else ('Uneven' if score < 50 else 'Moderate')
+    return round(score, 1), details, note
+
+
+def _calc_stereo_image_score(individuals, full_mix):
+    """Stereo Image sub-score (0-100). Returns (score, details_list, note)."""
+    details = []
+    scores = []
+
+    # Width score (60 pts weight)
+    if full_mix and full_mix['stereo']['is_stereo']:
+        width = full_mix['stereo']['width_overall']
+        if 0.4 <= width <= 0.7:
+            width_score = 100
+        elif width < 0.4:
+            width_score = max(0, 100 - (0.4 - width) * 200)
+        else:
+            width_score = max(0, 100 - (width - 0.7) * 200)
+        details.append(('Stereo Width (Full Mix)', round(width, 3), '0.40-0.70', round(width_score, 1)))
+    elif individuals:
+        widths = [a['stereo']['width_overall'] for a, _ in individuals if a['stereo']['is_stereo']]
+        if widths:
+            avg_w = float(np.mean(widths))
+            if 0.3 <= avg_w <= 0.7:
+                width_score = 100
+            elif avg_w < 0.3:
+                width_score = max(0, 100 - (0.3 - avg_w) * 200)
+            else:
+                width_score = max(0, 100 - (avg_w - 0.7) * 200)
+            details.append(('Avg Width (individuals)', round(avg_w, 3), '0.30-0.70', round(width_score, 1)))
+        else:
+            width_score = 50
+            details.append(('Stereo Width', 'Mono tracks', '0.40-0.70', width_score))
+    else:
+        width_score = 50
+        details.append(('Stereo Width', 'No data', '0.40-0.70', width_score))
+    scores.append((width_score, 0.6))
+
+    # Sub mono check (40 pts): sub should be more mono than high
+    src = full_mix if full_mix else (individuals[0][0] if individuals else None)
+    if src and src['stereo']['is_stereo']:
+        sub_w = src['stereo']['width_per_band'].get('sub', 0.0)
+        high_w = src['stereo']['width_per_band'].get('presence', 0.5)
+        if sub_w <= high_w:
+            mono_score = 100
+        else:
+            mono_score = max(0, 100 - (sub_w - high_w) * 200)
+        details.append(('Sub width vs High width', f'{sub_w:.2f} vs {high_w:.2f}',
+                        'Sub < High', round(mono_score, 1)))
+    else:
+        mono_score = 70
+        details.append(('Sub mono check', 'N/A', 'Sub < High', mono_score))
+    scores.append((mono_score, 0.4))
+
+    total = sum(s * w for s, w in scores)
+    note = 'Good image' if total >= 75 else ('Too narrow' if width_score < 50 else 'Wide')
+    return round(total, 1), details, note
+
+
+def _calc_anomalies_score(analyses_with_info):
+    """Anomalies sub-score (0-100). Returns (score, details_list, note)."""
+    details = []
+    total_anomalies = 0
+    critical_count = 0
+    warning_count = 0
+
+    for a, ti in analyses_with_info:
+        if ti.get('type') == 'BUS':
+            continue
+        try:
+            anoms = detect_anomalies(a)
+            for sev, desc in anoms:
+                total_anomalies += 1
+                if sev == 'critical':
+                    critical_count += 1
+                else:
+                    warning_count += 1
+        except Exception:
+            pass
+
+    # Score: 100 - penalties
+    penalty = critical_count * 15 + warning_count * 5
+    score = max(0, 100 - penalty)
+
+    details.append(('Total anomalies', total_anomalies, '0', round(score, 1)))
+    details.append(('Critical', critical_count, '0', f'-{critical_count * 15} pts'))
+    details.append(('Warnings', warning_count, '0', f'-{warning_count * 5} pts'))
+
+    note = f'{total_anomalies} anomalies' if total_anomalies > 0 else 'Clean'
+    return round(score, 1), details, note
+
+
+def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
+    """
+    Génère le sheet 'Mix Health Score' (P3.3) dans le workbook donné.
+    Calcule un score global de santé du mix sur 100, décomposé en
+    5 sous-scores : Loudness, Dynamics, Spectral Balance, Stereo Image,
+    Anomalies. Filtre les pistes : Individual + Full Mix, exclut BUS.
+    """
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.formatting.rule import ColorScaleRule
+    from openpyxl.utils import get_column_letter
+    import datetime
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    log_fn("    Excel: writing Mix Health Score sheet (P3.3)...")
+
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    full_mixes = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Full Mix']
+    full_mix = full_mixes[0][0] if full_mixes else None
+
+    if not individuals and not full_mix:
+        ws = workbook.create_sheet('Mix Health Score')
+        ws.sheet_properties.tabColor = '3DFFAA'
+        _xl_write_header(ws, 'MIX HEALTH SCORE', 'No tracks available for scoring.')
+        return
+
+    # Compute sub-scores
+    loud_score, loud_details, loud_note = _calc_loudness_score(individuals, full_mix)
+    dyn_score, dyn_details, dyn_note = _calc_dynamics_score(individuals, full_mix)
+    spec_score, spec_details, spec_note = _calc_spectral_balance_score(individuals, full_mix)
+    stereo_score, stereo_details, stereo_note = _calc_stereo_image_score(individuals, full_mix)
+    anom_score, anom_details, anom_note = _calc_anomalies_score(analyses_with_info)
+
+    categories = [
+        ('Loudness', loud_score, 0.20, loud_note, loud_details),
+        ('Dynamics', dyn_score, 0.20, dyn_note, dyn_details),
+        ('Spectral Balance', spec_score, 0.25, spec_note, spec_details),
+        ('Stereo Image', stereo_score, 0.15, stereo_note, stereo_details),
+        ('Anomalies', anom_score, 0.20, anom_note, anom_details),
+    ]
+
+    global_score = round(sum(s * w for _, s, w, _, _ in categories), 1)
+
+    # Theme styles
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    panel_fill = PatternFill('solid', fgColor='1A1A24')
+    header_fill = PatternFill('solid', fgColor='1A3A5A')
+    accent_font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    data_font = Font(name='Calibri', size=10, color='E8E8F0')
+    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+
+    # Score color
+    if global_score >= 80:
+        score_color = '00FF9F'
+    elif global_score >= 60:
+        score_color = 'AAFF00'
+    elif global_score >= 40:
+        score_color = 'FFAA00'
+    elif global_score >= 20:
+        score_color = 'FF3333'
+    else:
+        score_color = '990000'
+
+    # Create sheet
+    ws = workbook.create_sheet('Mix Health Score')
+    ws.sheet_properties.tabColor = '3DFFAA'
+
+    # --- Section 1: Global score (rows 1-8) ---
+    ws['A1'] = 'MIX HEALTH SCORE'
+    ws['A1'].font = Font(name='Calibri', size=18, bold=True, color='00D9FF')
+    ws['A1'].fill = bg_fill
+
+    # Score display
+    ws.merge_cells('A3:D3')
+    ws['A3'] = global_score
+    ws['A3'].font = Font(name='Calibri', size=36, bold=True, color=score_color)
+    ws['A3'].fill = bg_fill
+    ws['A3'].alignment = Alignment(horizontal='center', vertical='center')
+    ws['A3'].number_format = '0.0"/100"'
+
+    ws['A5'] = f'Calculated on: {datetime.date.today().isoformat()}'
+    ws['A5'].font = dim_font
+    ws['A5'].fill = bg_fill
+    ws['A6'] = f'Tracks analyzed: {len(individuals)} Individual' + \
+               (f' + 1 Full Mix' if full_mix else '')
+    ws['A6'].font = dim_font
+    ws['A6'].fill = bg_fill
+    ws['A7'] = 'Indicative score based on technical heuristics. ' \
+               'Not an artistic judgment. Use as a tracking tool between mix iterations.'
+    ws['A7'].font = Font(name='Calibri', size=10, italic=True, color='8888A0')
+    ws['A7'].fill = bg_fill
+
+    # --- Section 2: Sub-scores table (rows 10-17) ---
+    cat_header_row = 10
+    cat_headers = ['Category', 'Score', 'Weight', 'Notes']
+    for col, h in enumerate(cat_headers, 1):
+        c = ws.cell(row=cat_header_row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', vertical='center')
+
+    for i, (name, score, weight, note, _) in enumerate(categories):
+        row = cat_header_row + 1 + i
+        c = ws.cell(row=row, column=1, value=name)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        c = ws.cell(row=row, column=2, value=score)
+        c.font = accent_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+        c.number_format = '0.0'
+
+        c = ws.cell(row=row, column=3, value=f'{int(weight * 100)}%')
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+        c = ws.cell(row=row, column=4, value=note)
+        c.font = dim_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+    # Separator row 16
+    sep_row = cat_header_row + 1 + len(categories)
+
+    # Weighted total row
+    total_row = sep_row + 1
+    c = ws.cell(row=total_row, column=1, value='WEIGHTED TOTAL')
+    c.font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    c.fill = bg_fill
+    c.border = thin_border
+
+    c = ws.cell(row=total_row, column=2, value=global_score)
+    c.font = Font(name='Calibri', size=14, bold=True, color=score_color)
+    c.fill = bg_fill
+    c.border = thin_border
+    c.alignment = Alignment(horizontal='center')
+    c.number_format = '0.0'
+
+    c = ws.cell(row=total_row, column=3, value='100%')
+    c.font = data_font
+    c.fill = bg_fill
+    c.border = thin_border
+    c.alignment = Alignment(horizontal='center')
+
+    # Color scale on sub-score column (B11:B15)
+    score_start = cat_header_row + 1
+    score_end = score_start + len(categories) - 1
+    ws.conditional_formatting.add(
+        f'B{score_start}:B{score_end}',
+        ColorScaleRule(
+            start_type='num', start_value=0, start_color='FF3333',
+            mid_type='num', mid_value=50, mid_color='FFAA00',
+            end_type='num', end_value=100, end_color='00FF9F'))
+
+    # --- Section 3: Details per category (from row 20) ---
+    detail_row = 20
+
+    for cat_name, _, _, _, cat_details in categories:
+        # Sub-header
+        c = ws.cell(row=detail_row, column=1, value=f'{cat_name} Details')
+        c.font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+        c.fill = panel_fill
+        c.border = thin_border
+        for col in range(2, 5):
+            c2 = ws.cell(row=detail_row, column=col)
+            c2.fill = panel_fill
+            c2.border = thin_border
+        # Detail column headers
+        detail_row += 1
+        for col, h in enumerate(['Metric', 'Value', 'Ideal Range', 'Contribution'], 1):
+            c = ws.cell(row=detail_row, column=col, value=h)
+            c.font = Font(name='Calibri', size=10, bold=True, color='E8E8F0')
+            c.fill = header_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+
+        detail_row += 1
+        for metric, value, ideal, contrib in cat_details:
+            c = ws.cell(row=detail_row, column=1, value=metric)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+
+            c = ws.cell(row=detail_row, column=2, value=value)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+
+            c = ws.cell(row=detail_row, column=3, value=ideal)
+            c.font = dim_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+
+            c = ws.cell(row=detail_row, column=4, value=contrib)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+
+            detail_row += 1
+
+        detail_row += 1  # blank row between sections
+
+    # --- Freeze panes (row 11) ---
+    ws.freeze_panes = 'A11'
+
+    # --- Column widths ---
+    ws.column_dimensions['A'].width = 25
+    ws.column_dimensions['B'].width = 10
+    ws.column_dimensions['C'].width = 12
+    ws.column_dimensions['D'].width = 30
+
+    log_fn("    Excel: Mix Health Score sheet done.")
+
+
+def _find_previous_reports(output_folder, song_name):
+    """Find previous Mix Analyzer .xlsx reports in the output folder matching the song name."""
+    import glob
+    import re
+    pattern = os.path.join(output_folder, f'{song_name}_MixAnalyzer_*.xlsx')
+    files = glob.glob(pattern)
+    results = []
+    date_re = re.compile(r'_MixAnalyzer_(\d{4}-\d{2}-\d{2})')
+    for f in files:
+        m = date_re.search(os.path.basename(f))
+        if m:
+            results.append((m.group(1), f))
+    results.sort(key=lambda x: x[0])
+    return results
+
+
+def _extract_metrics_from_report(xlsx_path, log_fn=None):
+    """Extract key metrics from a previous Mix Analyzer .xlsx report.
+    Returns a dict of metric_name -> value, or None if extraction fails."""
+    try:
+        from openpyxl import load_workbook
+        wb = load_workbook(xlsx_path, read_only=True, data_only=True)
+        metrics = {}
+
+        # Read from Summary sheet
+        if 'Summary' in wb.sheetnames:
+            ws = wb['Summary']
+            # Headers at row 4: Track, Type, Category, LUFS, Peak, Crest, Width, ...
+            # Find Full Mix row and Individual rows
+            fm_lufs = None
+            fm_peak = None
+            fm_crest = None
+            fm_width = None
+            ind_crests = []
+            track_count = 0
+            for row in ws.iter_rows(min_row=5, max_col=10, values_only=True):
+                if row[0] is None:
+                    break
+                track_type = row[1]
+                if track_type == 'Full Mix':
+                    fm_lufs = row[3]
+                    fm_peak = row[4]
+                    fm_crest = row[5]
+                    fm_width = row[6]
+                elif track_type == 'Individual':
+                    track_count += 1
+                    if row[5] is not None:
+                        try:
+                            ind_crests.append(float(row[5]))
+                        except (ValueError, TypeError):
+                            pass
+
+            if fm_lufs is not None:
+                metrics['Full Mix LUFS'] = fm_lufs
+            if fm_peak is not None:
+                metrics['Full Mix Peak (dBFS)'] = fm_peak
+            if fm_crest is not None:
+                metrics['Full Mix Crest (dB)'] = fm_crest
+            if fm_width is not None and fm_width != 'mono':
+                try:
+                    metrics['Full Mix Width'] = float(fm_width)
+                except (ValueError, TypeError):
+                    pass
+            if ind_crests:
+                metrics['Avg Individual Crest (dB)'] = round(sum(ind_crests) / len(ind_crests), 2)
+            metrics['Track count'] = track_count
+
+        # Read from Dashboard for PLR, True Peak
+        if 'Dashboard' in wb.sheetnames:
+            ws_dash = wb['Dashboard']
+            # Headers at row 4: Track, Type, ..., True Peak at col 7, PLR at col 10
+            # Find header row first
+            header_row_vals = None
+            for row in ws_dash.iter_rows(min_row=1, max_row=10, max_col=20, values_only=True):
+                if row and row[0] == 'Track':
+                    header_row_vals = list(row)
+                    break
+            if header_row_vals:
+                tp_idx = None
+                plr_idx = None
+                for i, h in enumerate(header_row_vals):
+                    if h and 'True Peak' in str(h):
+                        tp_idx = i
+                    if h and h == 'PLR (dB)':
+                        plr_idx = i
+                type_idx = header_row_vals.index('Type') if 'Type' in header_row_vals else 1
+
+                for row in ws_dash.iter_rows(min_row=5, max_col=20, values_only=True):
+                    if row[0] is None:
+                        break
+                    if type_idx < len(row) and row[type_idx] == 'Full Mix':
+                        if tp_idx is not None and tp_idx < len(row) and row[tp_idx] is not None:
+                            try:
+                                metrics['Full Mix True Peak (dBFS)'] = float(row[tp_idx])
+                            except (ValueError, TypeError):
+                                pass
+                        if plr_idx is not None and plr_idx < len(row) and row[plr_idx] is not None:
+                            try:
+                                metrics['Full Mix PLR'] = float(row[plr_idx])
+                            except (ValueError, TypeError):
+                                pass
+
+        # Read Mix Health Score if present
+        if 'Mix Health Score' in wb.sheetnames:
+            ws_hs = wb['Mix Health Score']
+            # Global score is in A3
+            score_val = ws_hs['A3'].value
+            if score_val is not None:
+                try:
+                    metrics['Mix Health Score'] = float(score_val)
+                except (ValueError, TypeError):
+                    pass
+
+        # Count anomalies from Anomalies sheet
+        if 'Anomalies' in wb.sheetnames:
+            ws_anom = wb['Anomalies']
+            anom_count = 0
+            for row in ws_anom.iter_rows(min_row=5, max_col=3, values_only=True):
+                if row[0] is None:
+                    break
+                anom_count += 1
+            if anom_count > 0:
+                metrics['Anomaly count'] = anom_count
+            else:
+                metrics['Anomaly count'] = 0
+
+        wb.close()
+        return metrics
+    except Exception as e:
+        if log_fn:
+            log_fn(f"    Warning: could not read {os.path.basename(xlsx_path)}: {e}")
+        return None
+
+
+def _compute_current_metrics(analyses_with_info):
+    """Compute version tracking metrics from the current in-memory analyses."""
+    metrics = {}
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    full_mixes = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Full Mix']
+    full_mix = full_mixes[0][0] if full_mixes else None
+
+    if full_mix:
+        L = full_mix['loudness']
+        st = full_mix['stereo']
+        metrics['Full Mix LUFS'] = round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None
+        metrics['Full Mix True Peak (dBFS)'] = round(L.get('true_peak_db', L['peak_db']), 2)
+        metrics['Full Mix Crest (dB)'] = round(L['crest_factor'], 2)
+        metrics['Full Mix PLR'] = round(L['plr'], 2)
+        metrics['Full Mix Peak (dBFS)'] = round(L['peak_db'], 2)
+        metrics['Full Mix Width'] = round(st['width_overall'], 3) if st['is_stereo'] else None
+
+    if individuals:
+        ind_crests = [a['loudness']['crest_factor'] for a, _ in individuals]
+        metrics['Avg Individual Crest (dB)'] = round(float(np.mean(ind_crests)), 2)
+
+    # Anomaly count
+    anom_count = 0
+    for a, ti in analyses_with_info:
+        if ti.get('type') == 'BUS':
+            continue
+        try:
+            anoms = detect_anomalies(a)
+            anom_count += len(anoms)
+        except Exception:
+            pass
+    metrics['Anomaly count'] = anom_count
+
+    # Health score
+    try:
+        loud_s, _, _ = _calc_loudness_score(individuals, full_mix)
+        dyn_s, _, _ = _calc_dynamics_score(individuals, full_mix)
+        spec_s, _, _ = _calc_spectral_balance_score(individuals, full_mix)
+        stereo_s, _, _ = _calc_stereo_image_score(individuals, full_mix)
+        anom_s, _, _ = _calc_anomalies_score(analyses_with_info)
+        health = round(loud_s * 0.20 + dyn_s * 0.20 + spec_s * 0.25 + stereo_s * 0.15 + anom_s * 0.20, 1)
+        metrics['Mix Health Score'] = health
+    except Exception:
+        pass
+
+    metrics['Track count'] = len(individuals)
+
+    return metrics
+
+
+def _compute_trend(first_val, last_val, metric_name):
+    """Compute trend symbol based on metric direction preference.
+    Returns one of: '↗' (improving), '↘' (worsening), '→' (stable), '—' (insufficient data)."""
+    if first_val is None or last_val is None:
+        return '—'
+    try:
+        first_val = float(first_val)
+        last_val = float(last_val)
+    except (ValueError, TypeError):
+        return '—'
+
+    if first_val == 0:
+        return '→'
+
+    pct_change = abs((last_val - first_val) / abs(first_val)) * 100
+    if pct_change < 5:
+        return '→'
+
+    delta = last_val - first_val
+
+    # Metrics where "higher is better"
+    higher_is_better = {'Mix Health Score', 'Full Mix Crest (dB)', 'Avg Individual Crest (dB)',
+                        'Track count'}
+    # Metrics where "lower is better"
+    lower_is_better = {'Anomaly count', 'Full Mix True Peak (dBFS)', 'Full Mix Peak (dBFS)'}
+    # Metrics where "closer to target" is better
+    target_metrics = {'Full Mix LUFS': -14.0, 'Full Mix PLR': 12.0, 'Full Mix Width': 0.55}
+
+    if metric_name in higher_is_better:
+        return '↗' if delta > 0 else '↘'
+    elif metric_name in lower_is_better:
+        return '↗' if delta < 0 else '↘'
+    elif metric_name in target_metrics:
+        target = target_metrics[metric_name]
+        old_dist = abs(first_val - target)
+        new_dist = abs(last_val - target)
+        return '↗' if new_dist < old_dist else ('↘' if new_dist > old_dist else '→')
+    else:
+        return '→'
+
+
+def generate_version_tracking_sheet(workbook, analyses_with_info,
+                                     output_folder=None, song_name=None,
+                                     log_fn=None):
+    """
+    Génère le sheet 'Version Tracking' (P3.4) dans le workbook donné.
+    Détecte automatiquement les rapports Mix Analyzer précédents dans
+    output_folder qui matchent le pattern {song_name}_MixAnalyzer_*_GLOBAL.xlsx,
+    extrait leurs métriques clés, et affiche l'évolution chronologique
+    des indicateurs critiques.
+    """
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.formatting.rule import ColorScaleRule
+    from openpyxl.utils import get_column_letter
+    import datetime
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    log_fn("    Excel: writing Version Tracking sheet (P3.4)...")
+
+    # Theme styles
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    panel_fill = PatternFill('solid', fgColor='1A1A24')
+    header_fill = PatternFill('solid', fgColor='1A3A5A')
+    accent_font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    data_font = Font(name='Calibri', size=10, color='E8E8F0')
+    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+
+    ws = workbook.create_sheet('Version Tracking')
+    ws.sheet_properties.tabColor = '3DAAFF'
+
+    # --- Gather version data ---
+    current_date = datetime.date.today().isoformat()
+    current_metrics = _compute_current_metrics(analyses_with_info)
+
+    # Find previous reports
+    previous_reports = []
+    if output_folder and song_name:
+        found = _find_previous_reports(output_folder, song_name)
+        for date_str, path in found:
+            # Skip the current report if it already exists on disk (same date)
+            if date_str == current_date:
+                continue
+            extracted = _extract_metrics_from_report(path, log_fn=log_fn)
+            if extracted is not None:
+                previous_reports.append((date_str, path, extracted))
+
+    # Build ordered version list: previous + current
+    versions = []
+    for date_str, path, metrics in previous_reports:
+        versions.append((date_str, os.path.basename(path), metrics))
+    versions.append((current_date, '[current report]', current_metrics))
+
+    n_versions = len(versions)
+
+    # Metrics to track (in order)
+    tracked_metrics = [
+        'Full Mix LUFS',
+        'Full Mix True Peak (dBFS)',
+        'Full Mix Crest (dB)',
+        'Full Mix PLR',
+        'Full Mix Width',
+        'Avg Individual Crest (dB)',
+        'Anomaly count',
+        'Mix Health Score',
+        'Track count',
+    ]
+
+    # --- Section 1: Header (rows 1-6) ---
+    ws['A1'] = 'VERSION TRACKING'
+    ws['A1'].font = Font(name='Calibri', size=18, bold=True, color='00D9FF')
+    ws['A1'].fill = bg_fill
+
+    subtitle = f'Mix evolution over time for: {song_name}' if song_name else 'Mix evolution over time'
+    ws['A3'] = subtitle
+    ws['A3'].font = dim_font
+    ws['A3'].fill = bg_fill
+
+    ws['A5'] = f'Versions detected: {n_versions}'
+    ws['A5'].font = data_font
+    ws['A5'].fill = bg_fill
+
+    if n_versions >= 2:
+        ws['A6'] = f'Oldest: {versions[0][0]}  |  Most recent: {versions[-1][0]}'
+    else:
+        ws['A6'] = f'Current version: {current_date}'
+    ws['A6'].font = dim_font
+    ws['A6'].fill = bg_fill
+
+    if n_versions == 1:
+        ws['A7'] = ('No previous versions detected. This is the first Mix Analyzer report '
+                    'for this song in this folder. Subsequent reports will appear here for comparison.')
+        ws['A7'].font = Font(name='Calibri', size=10, italic=True, color='8888A0')
+        ws['A7'].fill = bg_fill
+
+    # --- Section 2: Evolution table (row 8 = headers) ---
+    header_row = 8
+
+    # Column A: Metric
+    c = ws.cell(row=header_row, column=1, value='Metric')
+    c.font = header_font
+    c.fill = header_fill
+    c.border = thin_border
+
+    # Columns B onwards: versions
+    for v_idx, (date_str, fname, _) in enumerate(versions):
+        col = v_idx + 2
+        label = f'{date_str}'
+        if fname == '[current report]':
+            label += ' (current)'
+        c = ws.cell(row=header_row, column=col, value=label)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', wrap_text=True)
+
+    # Delta columns after versions
+    delta_abs_col = n_versions + 2
+    delta_pct_col = n_versions + 3
+    trend_col = n_versions + 4
+
+    for col, label in [(delta_abs_col, 'Δ first→last'),
+                       (delta_pct_col, 'Δ %'),
+                       (trend_col, 'Trend')]:
+        c = ws.cell(row=header_row, column=col, value=label)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+    # Data rows
+    data_start_row = 9
+    for m_idx, metric_name in enumerate(tracked_metrics):
+        row = data_start_row + m_idx
+
+        # Metric name
+        c = ws.cell(row=row, column=1, value=metric_name)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        # Version values
+        first_val = None
+        last_val = None
+        for v_idx, (_, _, metrics) in enumerate(versions):
+            col = v_idx + 2
+            val = metrics.get(metric_name)
+            c = ws.cell(row=row, column=col, value=val)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+            if val is not None:
+                if isinstance(val, float):
+                    c.number_format = '0.00'
+                if first_val is None:
+                    first_val = val
+                last_val = val
+
+        # Delta absolute
+        if n_versions >= 2 and first_val is not None and last_val is not None:
+            try:
+                delta = float(last_val) - float(first_val)
+                c = ws.cell(row=row, column=delta_abs_col, value=round(delta, 2))
+                c.number_format = '+0.00;-0.00;0.00'
+            except (ValueError, TypeError):
+                c = ws.cell(row=row, column=delta_abs_col, value='—')
+        else:
+            c = ws.cell(row=row, column=delta_abs_col, value='—')
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+        # Delta percentage
+        if n_versions >= 2 and first_val is not None and last_val is not None:
+            try:
+                fv = float(first_val)
+                lv = float(last_val)
+                if fv != 0:
+                    pct = round((lv - fv) / abs(fv) * 100, 1)
+                    c = ws.cell(row=row, column=delta_pct_col, value=f'{pct:+.1f}%')
+                else:
+                    c = ws.cell(row=row, column=delta_pct_col, value='—')
+            except (ValueError, TypeError):
+                c = ws.cell(row=row, column=delta_pct_col, value='—')
+        else:
+            c = ws.cell(row=row, column=delta_pct_col, value='—')
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+        # Trend
+        if n_versions >= 2:
+            trend = _compute_trend(first_val, last_val, metric_name)
+        else:
+            trend = '—'
+        c = ws.cell(row=row, column=trend_col, value=trend)
+        c.font = Font(name='Calibri', size=12, bold=True,
+                      color='00FF9F' if trend == '↗' else
+                      ('FF3333' if trend == '↘' else '8888A0'))
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+    data_end_row = data_start_row + len(tracked_metrics) - 1
+
+    # --- Conditional formatting on delta column ---
+    if n_versions >= 2:
+        delta_range = f'{get_column_letter(delta_abs_col)}{data_start_row}:{get_column_letter(delta_abs_col)}{data_end_row}'
+        ws.conditional_formatting.add(
+            delta_range,
+            ColorScaleRule(
+                start_type='min', start_color='FF3333',
+                mid_type='num', mid_value=0, mid_color='FFFFFF',
+                end_type='max', end_color='00FF9F'))
+
+    # --- Section 4: Source files (after data rows) ---
+    source_row = data_end_row + 3
+
+    c = ws.cell(row=source_row, column=1, value='Source files used for this comparison:')
+    c.font = accent_font
+    c.fill = panel_fill
+    c.border = thin_border
+    for col in range(2, 4):
+        ws.cell(row=source_row, column=col).fill = panel_fill
+
+    source_row += 1
+    for col, h in enumerate(['Date', 'File', 'Status'], 1):
+        c = ws.cell(row=source_row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+
+    source_row += 1
+    for date_str, fname, _ in versions:
+        c = ws.cell(row=source_row, column=1, value=date_str)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        c = ws.cell(row=source_row, column=2, value=fname)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        status = '[in-memory, current report]' if fname == '[current report]' else 'read from disk'
+        c = ws.cell(row=source_row, column=3, value=status)
+        c.font = dim_font
+        c.fill = bg_fill
+        c.border = thin_border
+        source_row += 1
+
+    # Sparkline note
+    source_row += 1
+    ws.cell(row=source_row, column=1,
+            value='Sparkline visualization can be added in a future version.').font = dim_font
+    ws.cell(row=source_row, column=1).fill = bg_fill
+
+    # --- Freeze panes (row 9) ---
+    ws.freeze_panes = 'A9'
+
+    # --- Column widths ---
+    ws.column_dimensions['A'].width = 30
+    for v_idx in range(n_versions):
+        ws.column_dimensions[get_column_letter(v_idx + 2)].width = 14
+    ws.column_dimensions[get_column_letter(delta_abs_col)].width = 14
+    ws.column_dimensions[get_column_letter(delta_pct_col)].width = 10
+    ws.column_dimensions[get_column_letter(trend_col)].width = 8
+
+    log_fn("    Excel: Version Tracking sheet done.")
+
+
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None):
     """
@@ -3220,6 +4761,28 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # Move Dashboard to be the 2nd sheet (after Index)
     wb.move_sheet(ws_dash, offset=-(len(wb.sheetnames) - 2))
+
+    # ---- P3.1: Frequency Conflict Detector ----
+    generate_freq_conflicts_sheet(wb, analyses_with_info, log_fn=log_fn)
+
+    # ---- P3.2: Track Comparison Tool ----
+    generate_track_comparison_sheet(wb, analyses_with_info, log_fn=log_fn)
+
+    # ---- P3.3: Mix Health Score ----
+    generate_health_score_sheet(wb, analyses_with_info, log_fn=log_fn)
+
+    # ---- P3.4: Version Tracking ----
+    import re as _re
+    _output_dir = os.path.dirname(output_path) if output_path else None
+    _song_name = None
+    _base = os.path.basename(output_path) if output_path else ''
+    _m = _re.match(r'^(.+?)_MixAnalyzer_', _base)
+    if _m:
+        _song_name = _m.group(1)
+    generate_version_tracking_sheet(wb, analyses_with_info,
+                                     output_folder=_output_dir,
+                                     song_name=_song_name,
+                                     log_fn=log_fn)
 
     # ---- P2.5: Polish cyberpunk theme on Index and special sheets ----
     # Apply background fill to empty rows in Index
