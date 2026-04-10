@@ -2712,6 +2712,344 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     log_fn("    Excel: Freq Conflicts sheet done.")
 
 
+def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
+    """
+    Génère le sheet 'Track Comparison' (P3.2) dans le workbook donné.
+    Crée des sélecteurs de pistes (data validations) et un tableau
+    comparatif avec deltas calculés via formules INDEX/MATCH.
+    Filtre les pistes : Individual uniquement, exclut BUS et Full Mix.
+    """
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.formatting.rule import ColorScaleRule
+    from openpyxl.utils import get_column_letter
+    from openpyxl.worksheet.datavalidation import DataValidation
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    log_fn("    Excel: writing Track Comparison sheet (P3.2)...")
+
+    # Filter: Individual tracks only
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    if not individuals:
+        ws = workbook.create_sheet('Track Comparison')
+        ws.sheet_properties.tabColor = 'FF8B3D'
+        _xl_write_header(ws, 'TRACK COMPARISON TOOL', 'No individual tracks found.')
+        return
+
+    track_names = [a['filename'] for a, ti in individuals]
+
+    # --- Metrics definition ---
+    # (display_name, key_path, is_numeric)
+    # key_path is used to build the data table; the column index in the hidden
+    # data table maps to these metrics in order.
+    band_keys = [name for name, _, _ in FREQ_BANDS]
+    band_display = {
+        'sub': 'Sub Energy %', 'bass': 'Bass Energy %',
+        'low_mid': 'Low-Mid Energy %', 'mid': 'Mid Energy %',
+        'high_mid': 'High-Mid Energy %', 'presence': 'Presence Energy %',
+        'air': 'Air Energy %',
+    }
+    metrics = [
+        ('LUFS', True),
+        ('Peak (dBFS)', True),
+        ('Crest Factor (dB)', True),
+        ('Stereo Width', True),
+        ('PLR (dB)', True),
+        ('PSR (dB)', True),
+        ('Dominant Band', False),
+    ]
+    for bk in band_keys:
+        metrics.append((band_display[bk], True))
+
+    n_metrics = len(metrics)
+
+    # --- Build hidden data sheet ---
+    ws_data = workbook.create_sheet('_track_data')
+    ws_data.sheet_state = 'hidden'
+
+    # Header row
+    data_headers = ['Track Name'] + [m[0] for m in metrics]
+    for col, h in enumerate(data_headers, 1):
+        ws_data.cell(row=1, column=col, value=h)
+
+    # Data rows
+    for r_idx, (a, ti) in enumerate(individuals):
+        row = r_idx + 2
+        L = a['loudness']
+        S = a['spectrum']
+        st = a['stereo']
+        ws_data.cell(row=row, column=1, value=a['filename'])
+        col = 2
+        # LUFS
+        ws_data.cell(row=row, column=col,
+                     value=round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None)
+        col += 1
+        # Peak
+        ws_data.cell(row=row, column=col, value=round(L['peak_db'], 2))
+        col += 1
+        # Crest
+        ws_data.cell(row=row, column=col, value=round(L['crest_factor'], 2))
+        col += 1
+        # Width
+        ws_data.cell(row=row, column=col,
+                     value=round(st['width_overall'], 3) if st['is_stereo'] else None)
+        col += 1
+        # PLR
+        ws_data.cell(row=row, column=col, value=round(L['plr'], 2))
+        col += 1
+        # PSR
+        ws_data.cell(row=row, column=col, value=round(L['psr'], 2))
+        col += 1
+        # Dominant Band
+        ws_data.cell(row=row, column=col,
+                     value=BAND_LABELS.get(S['dominant_band'], S['dominant_band']))
+        col += 1
+        # Band energies (7 bands)
+        for bk in band_keys:
+            ws_data.cell(row=row, column=col,
+                         value=round(S['band_energies'].get(bk, 0.0), 2))
+            col += 1
+
+    n_data_rows = len(individuals)
+    data_range_end = n_data_rows + 1  # last data row in _track_data
+
+    # --- Theme styles ---
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    panel_fill = PatternFill('solid', fgColor='1A1A24')
+    header_fill = PatternFill('solid', fgColor='1A3A5A')
+    accent_font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    data_font = Font(name='Calibri', size=10, color='E8E8F0')
+    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+
+    # --- Main sheet ---
+    ws = workbook.create_sheet('Track Comparison')
+    ws.sheet_properties.tabColor = 'FF8B3D'
+
+    # Row 1: Title
+    ws.merge_cells('A1:K1')
+    ws['A1'] = 'TRACK COMPARISON TOOL'
+    ws['A1'].font = Font(name='Calibri', size=16, bold=True, color='00D9FF')
+    ws['A1'].fill = bg_fill
+
+    # --- Section 1: Track selectors (rows 2-6) ---
+    track_list_str = ','.join(track_names)
+    track_list_with_empty = ',' + track_list_str  # leading comma = empty option
+
+    dv_required = DataValidation(type='list', formula1=f'"{track_list_str}"', allow_blank=False)
+    dv_required.error = 'Please select a track from the list.'
+    dv_required.errorTitle = 'Invalid track'
+    ws.add_data_validation(dv_required)
+
+    dv_optional = DataValidation(type='list', formula1=f'"{track_list_with_empty}"', allow_blank=True)
+    dv_optional.error = 'Please select a track from the list or leave empty.'
+    dv_optional.errorTitle = 'Invalid track'
+    ws.add_data_validation(dv_optional)
+
+    selectors = [
+        ('Track A (reference)', track_names[0] if len(track_names) > 0 else '', dv_required),
+        ('Track B', track_names[1] if len(track_names) > 1 else (track_names[0] if track_names else ''), dv_required),
+        ('Track C (optional)', '', dv_optional),
+        ('Track D (optional)', '', dv_optional),
+    ]
+
+    for i, (label, default, dv) in enumerate(selectors):
+        row = i + 2
+        ws.cell(row=row, column=1, value=label).font = dim_font
+        ws.cell(row=row, column=1).fill = bg_fill
+        c = ws.cell(row=row, column=2, value=default)
+        c.font = accent_font
+        c.fill = panel_fill
+        c.border = thin_border
+        dv.add(f'B{row}')
+
+    # Note row
+    ws.cell(row=6, column=1,
+            value='Track A is the reference. Deltas show how B/C/D differ from A.').font = dim_font
+    ws.cell(row=6, column=1).fill = bg_fill
+
+    # Row 7: empty separator
+
+    # Row 8: empty separator
+
+    # --- Section 3: Comparison table (row 9 = headers, row 10+ = data) ---
+    header_row = 9
+    # Columns: A=Metric, B=Track A, C=Track B, D=Δ B-A, E=% B-A,
+    #           F=Track C, G=Δ C-A, H=% C-A, I=Track D, J=Δ D-A, K=% D-A
+    comp_headers = ['Metric', 'Track A', 'Track B', 'Δ B-A', '% B-A',
+                    'Track C', 'Δ C-A', '% C-A', 'Track D', 'Δ D-A', '% D-A']
+    for col, h in enumerate(comp_headers, 1):
+        c = ws.cell(row=header_row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+
+    # --- Build INDEX/MATCH formulas ---
+    # _track_data sheet: column A = names, columns B onwards = metrics
+    # MATCH($B$2, _track_data!$A:$A, 0) gives the row of Track A
+    # INDEX(_track_data!B:B, match_result) gives the metric value
+
+    data_sheet = '_track_data'
+    name_col_ref = f"'{data_sheet}'!$A$2:$A${data_range_end}"
+
+    data_start_row = 10
+
+    for m_idx, (metric_name, is_numeric) in enumerate(metrics):
+        row = data_start_row + m_idx
+        metric_col_idx = m_idx + 2  # column in _track_data (1-based, +1 for Track Name col)
+        metric_col_letter = get_column_letter(metric_col_idx)
+        metric_range = f"'{data_sheet}'!${metric_col_letter}$2:${metric_col_letter}${data_range_end}"
+
+        # Metric name
+        c = ws.cell(row=row, column=1, value=metric_name)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        # Track A value (col B) - always shown
+        match_a = f'MATCH($B$2,{name_col_ref},0)'
+        formula_a = f'=IFERROR(INDEX({metric_range},{match_a}),"")'
+        c = ws.cell(row=row, column=2, value=formula_a)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        # Track B (col C), Delta B-A (col D), % B-A (col E)
+        match_b = f'MATCH($B$3,{name_col_ref},0)'
+        formula_b = f'=IFERROR(INDEX({metric_range},{match_b}),"")'
+        c = ws.cell(row=row, column=3, value=formula_b)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        if is_numeric:
+            # Delta = B - A
+            formula_delta_b = f'=IFERROR(C{row}-B{row},"")'
+            c = ws.cell(row=row, column=4, value=formula_delta_b)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.00;-0.00;0.00'
+            # % delta = (B-A)/ABS(A)*100
+            formula_pct_b = f'=IFERROR(IF(B{row}=0,"",D{row}/ABS(B{row})*100),"")'
+            c = ws.cell(row=row, column=5, value=formula_pct_b)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.0"%";-0.0"%";0.0"%"'
+        else:
+            # Dominant Band: text comparison
+            formula_delta_b = f'=IF(C{row}=B{row},"match","differ")'
+            c = ws.cell(row=row, column=4, value=formula_delta_b)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            # No % for text
+            ws.cell(row=row, column=5, value='').fill = bg_fill
+
+        # Track C (col F), Delta C-A (col G), % C-A (col H) — conditional on B4 not empty
+        match_c = f'MATCH($B$4,{name_col_ref},0)'
+        formula_c = f'=IF($B$4="","",IFERROR(INDEX({metric_range},{match_c}),""))'
+        c = ws.cell(row=row, column=6, value=formula_c)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        if is_numeric:
+            formula_delta_c = f'=IF($B$4="","",IFERROR(F{row}-B{row},""))'
+            c = ws.cell(row=row, column=7, value=formula_delta_c)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.00;-0.00;0.00'
+            formula_pct_c = f'=IF($B$4="","",IFERROR(IF(B{row}=0,"",G{row}/ABS(B{row})*100),""))'
+            c = ws.cell(row=row, column=8, value=formula_pct_c)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.0"%";-0.0"%";0.0"%"'
+        else:
+            formula_delta_c = f'=IF($B$4="","",IF(F{row}=B{row},"match","differ"))'
+            c = ws.cell(row=row, column=7, value=formula_delta_c)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            ws.cell(row=row, column=8, value='').fill = bg_fill
+
+        # Track D (col I), Delta D-A (col J), % D-A (col K) — conditional on B5 not empty
+        match_d = f'MATCH($B$5,{name_col_ref},0)'
+        formula_d = f'=IF($B$5="","",IFERROR(INDEX({metric_range},{match_d}),""))'
+        c = ws.cell(row=row, column=9, value=formula_d)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        if is_numeric:
+            formula_delta_d = f'=IF($B$5="","",IFERROR(I{row}-B{row},""))'
+            c = ws.cell(row=row, column=10, value=formula_delta_d)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.00;-0.00;0.00'
+            formula_pct_d = f'=IF($B$5="","",IFERROR(IF(B{row}=0,"",J{row}/ABS(B{row})*100),""))'
+            c = ws.cell(row=row, column=11, value=formula_pct_d)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '+0.0"%";-0.0"%";0.0"%"'
+        else:
+            formula_delta_d = f'=IF($B$5="","",IF(I{row}=B{row},"match","differ"))'
+            c = ws.cell(row=row, column=10, value=formula_delta_d)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            ws.cell(row=row, column=11, value='').fill = bg_fill
+
+    data_end_row = data_start_row + n_metrics - 1
+
+    # --- Conditional Formatting ---
+    # Color scale on delta columns (D, G, J): red-white-green centered on 0
+    for delta_col_letter in ['D', 'G', 'J']:
+        delta_range = f'{delta_col_letter}{data_start_row}:{delta_col_letter}{data_end_row}'
+        ws.conditional_formatting.add(
+            delta_range,
+            ColorScaleRule(
+                start_type='min', start_color='FF3333',
+                mid_type='num', mid_value=0, mid_color='FFFFFF',
+                end_type='max', end_color='00FF9F'))
+
+    # Color scale on band energy values (rows for band metrics, columns B, C, F, I)
+    # Band metrics start at index 7 (after Dominant Band) in the metrics list
+    band_start_row = data_start_row + 7  # first band metric row
+    band_end_row = data_end_row
+    for val_col_letter in ['B', 'C', 'F', 'I']:
+        band_range = f'{val_col_letter}{band_start_row}:{val_col_letter}{band_end_row}'
+        ws.conditional_formatting.add(
+            band_range,
+            ColorScaleRule(
+                start_type='num', start_value=0, start_color='00FF9F',
+                mid_type='num', mid_value=50, mid_color='FFFF00',
+                end_type='num', end_value=100, end_color='FF3333'))
+
+    # --- Freeze panes (row 10, col A = headers visible) ---
+    ws.freeze_panes = 'A10'
+
+    # --- Column widths ---
+    ws.column_dimensions['A'].width = 20
+    for col_idx in range(2, 12):
+        ws.column_dimensions[get_column_letter(col_idx)].width = 12
+
+    log_fn("    Excel: Track Comparison sheet done.")
+
+
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None):
     """
@@ -3437,6 +3775,9 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # ---- P3.1: Frequency Conflict Detector ----
     generate_freq_conflicts_sheet(wb, analyses_with_info, log_fn=log_fn)
+
+    # ---- P3.2: Track Comparison Tool ----
+    generate_track_comparison_sheet(wb, analyses_with_info, log_fn=log_fn)
 
     # ---- P2.5: Polish cyberpunk theme on Index and special sheets ----
     # Apply background fill to empty rows in Index
