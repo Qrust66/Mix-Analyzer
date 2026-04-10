@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Mix Analyzer v1.5 - Visual audio mix analysis tool
+Mix Analyzer v1.7 - Visual audio mix analysis tool
 Generates detailed PDF reports for audio tracks to aid mixing and mastering decisions.
 
 Usage:
@@ -311,6 +311,32 @@ BAND_LABELS = {
     'air':      'Air (8-20 kHz)',
 }
 
+# High-resolution bands for masking matrix (~third-octave, 22 bands)
+FREQ_BANDS_HIRES = [
+    ('20-32 Hz',     20,     32),
+    ('32-50 Hz',     32,     50),
+    ('50-80 Hz',     50,     80),
+    ('80-125 Hz',    80,     125),
+    ('125-160 Hz',   125,    160),
+    ('160-200 Hz',   160,    200),
+    ('200-250 Hz',   200,    250),
+    ('250-315 Hz',   250,    315),
+    ('315-400 Hz',   315,    400),
+    ('400-500 Hz',   400,    500),
+    ('500-630 Hz',   500,    630),
+    ('630-800 Hz',   630,    800),
+    ('800-1k Hz',    800,    1000),
+    ('1-1.25 kHz',   1000,   1250),
+    ('1.25-1.6 kHz', 1250,   1600),
+    ('1.6-2 kHz',    1600,   2000),
+    ('2-2.5 kHz',    2000,   2500),
+    ('2.5-3.15 kHz', 2500,   3150),
+    ('3.15-4 kHz',   3150,   4000),
+    ('4-5 kHz',      4000,   5000),
+    ('5-8 kHz',      5000,   8000),
+    ('8-20 kHz',     8000,   20000),
+]
+
 
 def load_audio(filepath):
     """Load audio file. Returns (data, sr, is_stereo)."""
@@ -439,6 +465,27 @@ def analyze_spectrum(mono, sr):
         'flatness': flatness,
         'peaks': peak_list,
     }
+
+
+def compute_hires_band_energies(mono, sr):
+    """Compute band energies for FREQ_BANDS_HIRES (used in masking matrix)."""
+    n_fft = 8192
+    S = np.abs(librosa.stft(mono, n_fft=n_fft, hop_length=n_fft // 4))
+    spectrum_mean = np.mean(S, axis=1)
+    freqs = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
+    total_energy = np.sum(spectrum_mean ** 2) + 1e-12
+    energies = {}
+    for idx_b, (label, flow, fhigh) in enumerate(FREQ_BANDS_HIRES):
+        # Use <= for last band to include Nyquist
+        if idx_b == len(FREQ_BANDS_HIRES) - 1:
+            mask = (freqs >= flow) & (freqs <= fhigh)
+        else:
+            mask = (freqs >= flow) & (freqs < fhigh)
+        if np.any(mask):
+            energies[label] = 100 * float(np.sum(spectrum_mean[mask] ** 2)) / total_energy
+        else:
+            energies[label] = 0.0
+    return energies
 
 
 def analyze_temporal(mono, sr):
@@ -895,11 +942,13 @@ def analyze_dynamic_range_timeline(mono, sr):
     }
 
 
-def analyze_structure_sections(mono, sr, n_sections_target=8):
+def analyze_structure_sections(mono, sr, n_sections_target=14):
     """
-    Detect musical section boundaries using spectral similarity.
+    Detect musical section boundaries using multi-feature novelty detection.
     Only used for Full Mix tracks.
     Returns boundaries (in seconds) and energy envelope.
+    Uses two passes: chroma agglomerative + spectral flux novelty curve,
+    then merges boundaries. Target: 12-16 sections for industrial music.
     """
     result = {
         'boundaries': [],
@@ -909,25 +958,72 @@ def analyze_structure_sections(mono, sr, n_sections_target=8):
     }
 
     try:
-        # Compute chromagram for harmonic similarity
         hop_length = 2048
+
+        # --- Pass 1: Chroma-based agglomerative segmentation ---
         chroma = librosa.feature.chroma_cqt(y=mono, sr=sr, hop_length=hop_length)
-
-        # Segment using agglomerative clustering
         try:
-            bounds = librosa.segment.agglomerative(chroma, k=n_sections_target)
-            bound_times = librosa.frames_to_time(bounds, sr=sr, hop_length=hop_length)
+            bounds_chroma = librosa.segment.agglomerative(chroma, k=n_sections_target)
+            bt_chroma = librosa.frames_to_time(bounds_chroma, sr=sr, hop_length=hop_length)
         except Exception:
-            bound_times = np.array([])
+            bt_chroma = np.array([])
 
-        result['boundaries'] = bound_times.tolist() if len(bound_times) > 0 else []
+        # --- Pass 2: Spectral flux novelty curve ---
+        try:
+            S = np.abs(librosa.stft(mono, n_fft=2048, hop_length=hop_length))
+            # Compute novelty from spectral flux
+            novelty_sf = np.sqrt(np.sum(np.maximum(0, np.diff(S, axis=1)) ** 2, axis=0))
+            # Smooth with a small kernel for finer detection
+            kernel_size = max(1, int(sr / hop_length * 0.5))  # ~0.5s smoothing
+            if kernel_size > 1:
+                kernel = np.ones(kernel_size) / kernel_size
+                novelty_sf = np.convolve(novelty_sf, kernel, mode='same')
+            # Normalize
+            novelty_sf = novelty_sf / (np.max(novelty_sf) + 1e-12)
+            # Adaptive threshold: mean + 0.4 * std (lower than default for more sensitivity)
+            threshold = np.mean(novelty_sf) + 0.4 * np.std(novelty_sf)
+            min_distance = max(1, int(sr / hop_length * 2.0))  # at least 2s between boundaries
+            peaks, _ = signal.find_peaks(novelty_sf, height=threshold,
+                                          distance=min_distance, prominence=0.05)
+            bt_novelty = librosa.frames_to_time(peaks, sr=sr, hop_length=hop_length)
+        except Exception:
+            bt_novelty = np.array([])
 
-        # Overall energy envelope (RMS over larger window for smoothness)
+        # --- Pass 3: MFCC-based novelty for timbral changes ---
+        try:
+            mfcc = librosa.feature.mfcc(y=mono, sr=sr, n_mfcc=13, hop_length=hop_length)
+            mfcc_delta = np.sqrt(np.sum(np.diff(mfcc, axis=1) ** 2, axis=0))
+            kernel_size_m = max(1, int(sr / hop_length * 0.8))
+            if kernel_size_m > 1:
+                kernel_m = np.ones(kernel_size_m) / kernel_size_m
+                mfcc_delta = np.convolve(mfcc_delta, kernel_m, mode='same')
+            mfcc_delta = mfcc_delta / (np.max(mfcc_delta) + 1e-12)
+            threshold_m = np.mean(mfcc_delta) + 0.5 * np.std(mfcc_delta)
+            min_dist_m = max(1, int(sr / hop_length * 3.0))
+            peaks_m, _ = signal.find_peaks(mfcc_delta, height=threshold_m,
+                                             distance=min_dist_m, prominence=0.05)
+            bt_mfcc = librosa.frames_to_time(peaks_m, sr=sr, hop_length=hop_length)
+        except Exception:
+            bt_mfcc = np.array([])
+
+        # --- Merge all boundaries ---
+        all_bounds = np.concatenate([bt_chroma, bt_novelty, bt_mfcc])
+        all_bounds = np.sort(all_bounds)
+        # Deduplicate: merge boundaries within 1.5s of each other
+        if len(all_bounds) > 0:
+            merged = [all_bounds[0]]
+            for b in all_bounds[1:]:
+                if b - merged[-1] > 1.5:
+                    merged.append(b)
+            all_bounds = np.array(merged)
+
+        result['boundaries'] = all_bounds.tolist() if len(all_bounds) > 0 else []
+
+        # Overall energy envelope (RMS)
         frame_length = 8192
         envelope_hop = 2048
         rms = librosa.feature.rms(y=mono, frame_length=frame_length, hop_length=envelope_hop)[0]
         envelope_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr, hop_length=envelope_hop)
-        # Convert to dB
         with np.errstate(divide='ignore'):
             rms_db = 20 * np.log10(np.maximum(rms, 1e-10))
         result['energy_envelope'] = rms_db
@@ -1821,29 +1917,32 @@ def generate_global_pdf(analyses_with_info, output_path, style_name, full_mix_in
         pdf.savefig(fig, facecolor=fig.get_facecolor())
         plt.close(fig)
 
-        # PAGE 2: Masking matrix (individuals only, excludes BUS and Full Mix)
+        # PAGE 2: Masking matrix (individuals only, hires 22 bands)
         if individuals:
-            fig = plt.figure(figsize=(11, 8.5))
-            fig.suptitle('FREQUENCY MASKING MATRIX', fontsize=14, color=THEME['accent1'],
-                         fontweight='bold', y=0.97)
+            fig = plt.figure(figsize=(16, 9))
+            fig.suptitle('FREQUENCY MASKING MATRIX (High Resolution)', fontsize=14,
+                         color=THEME['accent1'], fontweight='bold', y=0.97)
             fig.text(0.5, 0.935,
-                     'Individual tracks only (BUS and Full Mix excluded to avoid double-counting)',
+                     'Individual tracks only — 22 third-octave bands — BUS and Full Mix excluded',
                      ha='center', fontsize=9, color=THEME['fg_dim'])
 
             ax = fig.add_subplot(111)
-            band_names = [BAND_LABELS[name] for name, _, _ in FREQ_BANDS]
-            matrix = np.zeros((len(individuals), len(FREQ_BANDS)))
+            hires_labels = [label for label, _, _ in FREQ_BANDS_HIRES]
+            n_bands = len(FREQ_BANDS_HIRES)
+            matrix = np.zeros((len(individuals), n_bands))
             for i, (a, ti) in enumerate(individuals):
-                for j, (name, _, _) in enumerate(FREQ_BANDS):
-                    matrix[i, j] = a['spectrum']['band_energies'][name]
+                hires = compute_hires_band_energies(a['_mono'], a['sample_rate'])
+                for j, (label, _, _) in enumerate(FREQ_BANDS_HIRES):
+                    matrix[i, j] = hires[label]
 
             im = ax.imshow(matrix, aspect='auto', cmap='magma', interpolation='nearest')
-            track_labels = [a['filename'][:30] for a, _ in individuals]
+            track_labels = [a['filename'][:35] for a, _ in individuals]
             ax.set_yticks(range(len(individuals)))
             ax.set_yticklabels(track_labels, fontsize=6)
-            ax.set_xticks(range(len(band_names)))
-            ax.set_xticklabels(band_names, rotation=25, ha='right', fontsize=8)
-            cbar = fig.colorbar(im, ax=ax, label='% of track energy')
+            ax.set_xticks(range(n_bands))
+            ax.set_xticklabels(hires_labels, rotation=45, ha='right', fontsize=7)
+            ax.grid(True, which='major', color=THEME['grid'], linewidth=0.3, alpha=0.5)
+            cbar = fig.colorbar(im, ax=ax, label='% of track energy', pad=0.01)
             cbar.ax.tick_params(labelsize=7)
 
             plt.tight_layout(rect=[0, 0.02, 1, 0.90])
@@ -2266,6 +2365,884 @@ def generate_global_pdf(analyses_with_info, output_path, style_name, full_mix_in
             plt.close(fig)
 
 
+# ============================================================================
+# EXCEL GENERATION - openpyxl (normal mode)
+# ============================================================================
+
+# Metric glossary for cell comments (Phase 2)
+METRIC_GLOSSARY = {
+    'LUFS': 'Loudness Units Full Scale (integrated). Target depends on style.\n-14 LUFS = streaming standard. -8 LUFS = very hot.',
+    'Peak (dB)': 'True peak level in dBFS. Should stay below 0 dBFS.\n-1 dBFS or lower is safe for mastering headroom.',
+    'Crest (dB)': 'Peak-to-RMS ratio. Measures dynamic range.\n<6 dB = very compressed, 6-12 = moderate, >12 = dynamic.',
+    'Stereo Width': 'Mid/Side energy ratio. 0 = mono, 0.5 = balanced, >0.7 = very wide.\nBass/kick should be narrow, pads/FX can be wide.',
+    'Dom. Band': 'Frequency band with highest energy concentration.\nReveals the spectral center of gravity for this track.',
+    'Centroid (Hz)': 'Spectral centroid — brightness indicator.\nLow = dark/warm, high = bright/harsh.',
+    'Duration (s)': 'Track length in seconds.',
+    'PLR': 'Peak-to-Loudness Ratio. Peak dBFS minus LUFS.\nHigher = more headroom. <6 dB may clip on normalization.',
+    'PSR': 'Peak-to-Short-term Loudness Ratio.\nMeasures instantaneous headroom. Lower = more compressed.',
+    'LRA': 'Loudness Range in LU. Measures macro-dynamic variation.\n<4 = very compressed, 4-8 = moderate, >8 = dynamic.',
+    'Phase Correlation': 'Stereo phase correlation. +1 = perfect mono compat.\n<0.3 = risky phase issues. <0 = phase problems.',
+    'Flatness': 'Spectral flatness (0-1). 0 = tonal, 1 = noise-like.\nUseful to distinguish pitched from noisy content.',
+    'RMS': 'Root Mean Square level. Average perceived loudness.',
+    'True Peak': 'Inter-sample peak level. Can exceed 0 dBFS due to reconstruction.\nCritical for broadcast/streaming compliance.',
+    'Track': 'Filename of the analyzed audio bounce.',
+    'Type': 'Track role: Individual (single instrument), BUS (submix), Full Mix (master bounce).',
+    'Category': 'Instrument category for grouping and masking analysis.',
+}
+
+
+def _safe_sheet_name(name, max_len=31):
+    """Sanitize name for Excel sheet name rules."""
+    for ch in '[]:*?/\\':
+        name = name.replace(ch, '_')
+    return name[:max_len] if len(name) > max_len else name
+
+
+def _fig_to_image(fig, dpi=200, target_width=1600, target_height=900):
+    """Render matplotlib figure to openpyxl Image via temp PNG. Returns (Image, tmp_path)."""
+    import tempfile
+    from openpyxl.drawing.image import Image as XlImage
+
+    fig.set_size_inches(target_width / dpi, target_height / dpi)
+    tmp = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+    tmp_path = tmp.name
+    tmp.close()
+    fig.savefig(tmp_path, dpi=dpi, facecolor=fig.get_facecolor(), bbox_inches='tight')
+    plt.close(fig)
+    img = XlImage(tmp_path)
+    return img, tmp_path
+
+
+def _xl_write_header(ws, title, subtitle=''):
+    """Write sheet header in row 1-2 with formatting."""
+    from openpyxl.styles import Font, PatternFill, Alignment
+    header_fill = PatternFill('solid', fgColor='0A0A12')
+    accent_font = Font(name='Calibri', size=16, bold=True, color='00D9FF')
+    sub_font = Font(name='Calibri', size=11, color='8888A0')
+
+    ws.merge_cells('A1:J1')
+    ws['A1'] = title
+    ws['A1'].font = accent_font
+    ws['A1'].fill = header_fill
+    ws['A1'].alignment = Alignment(horizontal='left')
+    if subtitle:
+        ws.merge_cells('A2:J2')
+        ws['A2'] = subtitle
+        ws['A2'].font = sub_font
+        ws['A2'].fill = header_fill
+    return 4  # next row to write data
+
+
+def _xl_add_nav_row(ws, row, sheet_names_ordered, current_idx):
+    """Add prev/next/Index/Anomalies navigation links to a track sheet."""
+    from openpyxl.styles import Font, Alignment
+    nav_font = Font(name='Calibri', size=9, color='00D9FF', underline='single')
+    sep_font = Font(name='Calibri', size=9, color='8888A0')
+
+    col = 3  # Start in column C to leave A-B for metrics
+    # Back to Index
+    c = ws.cell(row=row, column=col, value='< Index')
+    c.font = nav_font
+    c.hyperlink = '#Index!A1'
+    col += 1
+
+    ws.cell(row=row, column=col, value=' | ').font = sep_font
+    col += 1
+
+    # Anomalies
+    c = ws.cell(row=row, column=col, value='Anomalies')
+    c.font = nav_font
+    c.hyperlink = '#Anomalies!A1'
+    col += 1
+
+    ws.cell(row=row, column=col, value=' | ').font = sep_font
+    col += 1
+
+    # Summary
+    c = ws.cell(row=row, column=col, value='Summary')
+    c.font = nav_font
+    c.hyperlink = '#Summary!A1'
+    col += 1
+
+    ws.cell(row=row, column=col, value=' | ').font = sep_font
+    col += 1
+
+    # Previous track
+    if current_idx > 0:
+        prev_name = sheet_names_ordered[current_idx - 1]
+        c = ws.cell(row=row, column=col, value=f'< Prev')
+        c.font = nav_font
+        c.hyperlink = f'#{prev_name}!A1'
+    else:
+        ws.cell(row=row, column=col, value='< Prev').font = Font(name='Calibri', size=9, color='333344')
+    col += 1
+
+    ws.cell(row=row, column=col, value=' | ').font = sep_font
+    col += 1
+
+    # Next track
+    if current_idx < len(sheet_names_ordered) - 1:
+        next_name = sheet_names_ordered[current_idx + 1]
+        c = ws.cell(row=row, column=col, value='Next >')
+        c.font = nav_font
+        c.hyperlink = f'#{next_name}!A1'
+    else:
+        ws.cell(row=row, column=col, value='Next >').font = Font(name='Calibri', size=9, color='333344')
+
+    return row + 1
+
+
+def _xl_add_comment(cell, text):
+    """Add a comment (tooltip) to a cell."""
+    from openpyxl.comments import Comment
+    cell.comment = Comment(text, 'Mix Analyzer')
+
+
+def generate_excel_report(analyses_with_info, output_path, style_name,
+                           full_mix_info=None, ai_prompt='', log_fn=None):
+    """
+    Generate complete Excel report with 8 sheets.
+    analyses_with_info: list of (analysis, track_info) tuples
+    """
+    import tempfile
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.drawing.image import Image as XlImage
+    from openpyxl.utils import get_column_letter
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    wb = Workbook()
+    tmp_files = []
+
+    # Theme colors for Excel
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    panel_fill = PatternFill('solid', fgColor='1A1A24')
+    header_fill = PatternFill('solid', fgColor='1A3A5A')
+    accent_font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    data_font = Font(name='Calibri', size=10, color='E8E8F0')
+    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    warn_font = Font(name='Calibri', size=10, bold=True, color='FFAA00')
+    crit_font = Font(name='Calibri', size=10, bold=True, color='FF3333')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+
+    # Separate tracks
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    buses = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'BUS']
+    full_mixes = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Full Mix']
+
+    # ---- SHEET 1: Index ----
+    log_fn("    Excel: writing Index sheet...")
+    ws_index = wb.active
+    ws_index.title = 'Index'
+    ws_index.sheet_properties.tabColor = '00D9FF'
+    row = _xl_write_header(ws_index, 'MIX ANALYZER — REPORT INDEX',
+                            f'Style: {style_name} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+
+    # Track list with hyperlinks
+    headers = ['#', 'Track Name', 'Type', 'Category', 'Sheet Link']
+    for col, h in enumerate(headers, 1):
+        c = ws_index.cell(row=row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+    row += 1
+
+    sheet_names = {}  # track_name -> sheet_name
+    for idx, (a, ti) in enumerate(analyses_with_info, 1):
+        sname = _safe_sheet_name(os.path.splitext(ti['name'])[0])
+        # Avoid duplicate sheet names
+        base = sname
+        counter = 1
+        while sname in sheet_names.values():
+            sname = f"{base[:28]}_{counter}"
+            counter += 1
+        sheet_names[ti['name']] = sname
+
+        ws_index.cell(row=row, column=1, value=idx).font = data_font
+        ws_index.cell(row=row, column=2, value=ti['name']).font = data_font
+        ws_index.cell(row=row, column=3, value=ti['type']).font = accent_font if ti['type'] == 'Full Mix' else data_font
+        ws_index.cell(row=row, column=4, value=ti.get('category', '')).font = data_font
+        link_cell = ws_index.cell(row=row, column=5, value=sname)
+        link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
+        link_cell.hyperlink = f"#{sname}!A1"
+        for col in range(1, 6):
+            ws_index.cell(row=row, column=col).border = thin_border
+            ws_index.cell(row=row, column=col).fill = panel_fill
+        row += 1
+
+    # Also link to special sheets
+    row += 1
+    for special_name in ['Dashboard', 'Summary', 'Anomalies', 'Full Mix Context', 'Global Comparison',
+                             'Full Mix Analysis', 'AI Prompt', 'Freq Conflicts', 'Track Comparison',
+                             'Mix Health Score', 'Version History']:
+        ws_index.cell(row=row, column=2, value=special_name).font = data_font
+        link_cell = ws_index.cell(row=row, column=5, value=special_name)
+        link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
+        link_cell.hyperlink = f"#{special_name}!A1"
+        row += 1
+
+    ws_index.column_dimensions['B'].width = 45
+    ws_index.column_dimensions['C'].width = 12
+    ws_index.column_dimensions['D'].width = 20
+    ws_index.column_dimensions['E'].width = 25
+
+    # ---- SHEET 2: Summary ----
+    log_fn("    Excel: writing Summary sheet...")
+    from openpyxl.formatting.rule import ColorScaleRule, DataBarRule, IconSetRule
+    ws_sum = wb.create_sheet('Summary')
+    ws_sum.sheet_properties.tabColor = 'B967FF'
+    row = _xl_write_header(ws_sum, 'SUMMARY — GLOBAL METRICS', f'{len(analyses_with_info)} tracks analyzed')
+
+    sum_headers = ['Track', 'Type', 'Category', 'LUFS', 'Peak (dB)', 'Crest (dB)',
+                   'Stereo Width', 'Dom. Band', 'Centroid (Hz)', 'Duration (s)']
+    for col, h in enumerate(sum_headers, 1):
+        c = ws_sum.cell(row=row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', vertical='center')
+        # Add glossary comment
+        if h in METRIC_GLOSSARY:
+            _xl_add_comment(c, METRIC_GLOSSARY[h])
+    sum_header_row = row
+    row += 1
+
+    for a, ti in analyses_with_info:
+        L = a['loudness']
+        S = a['spectrum']
+        st = a['stereo']
+        vals = [
+            a['filename'],
+            ti['type'],
+            ti.get('category', ''),
+            round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None,
+            round(L['peak_db'], 2),
+            round(L['crest_factor'], 2),
+            round(st['width_overall'], 3) if st['is_stereo'] else 'mono',
+            BAND_LABELS.get(S['dominant_band'], S['dominant_band']),
+            round(S['centroid'], 0),
+            round(a['duration'], 1),
+        ]
+        for col, v in enumerate(vals, 1):
+            c = ws_sum.cell(row=row, column=col, value=v)
+            c.font = data_font
+            c.border = thin_border
+            c.fill = panel_fill
+            if col >= 4:
+                c.alignment = Alignment(horizontal='center')
+        row += 1
+
+    # Enriched conditional formatting (Phase 2)
+    if len(analyses_with_info) > 0:
+        data_start = sum_header_row + 1
+        data_end = data_start + len(analyses_with_info) - 1
+        # LUFS: color scale (red=quiet -> yellow -> green=loud)
+        ws_sum.conditional_formatting.add(
+            f'D{data_start}:D{data_end}',
+            ColorScaleRule(start_type='min', start_color='FF3333',
+                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                           end_type='max', end_color='00FF9F'))
+        # LUFS: data bars
+        ws_sum.conditional_formatting.add(
+            f'D{data_start}:D{data_end}',
+            DataBarRule(start_type='min', end_type='max', color='00D9FF'))
+        # Peak: color scale (red=hot -> green=safe)
+        ws_sum.conditional_formatting.add(
+            f'E{data_start}:E{data_end}',
+            ColorScaleRule(start_type='max', start_color='FF3333',
+                           end_type='min', end_color='00FF9F'))
+        # Crest factor: color scale + data bars
+        ws_sum.conditional_formatting.add(
+            f'F{data_start}:F{data_end}',
+            ColorScaleRule(start_type='min', start_color='FF3333',
+                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                           end_type='max', end_color='00D9FF'))
+        ws_sum.conditional_formatting.add(
+            f'F{data_start}:F{data_end}',
+            DataBarRule(start_type='min', end_type='max', color='B967FF'))
+        # Stereo Width: data bars
+        ws_sum.conditional_formatting.add(
+            f'G{data_start}:G{data_end}',
+            DataBarRule(start_type='min', end_type='max', color='00FF9F'))
+        # Centroid: color scale (low=warm -> high=bright)
+        ws_sum.conditional_formatting.add(
+            f'I{data_start}:I{data_end}',
+            ColorScaleRule(start_type='min', start_color='B967FF',
+                           end_type='max', end_color='FF3D8B'))
+
+    # Auto-filter on Summary
+    ws_sum.auto_filter.ref = f'A{sum_header_row}:J{max(row - 1, sum_header_row + 1)}'
+
+    for col_idx in range(1, 11):
+        ws_sum.column_dimensions[get_column_letter(col_idx)].width = 16
+    ws_sum.column_dimensions['A'].width = 40
+
+    # ---- SHEET 3: Anomalies ----
+    log_fn("    Excel: writing Anomalies sheet...")
+    ws_anom = wb.create_sheet('Anomalies')
+    ws_anom.sheet_properties.tabColor = 'FF3333'
+    row = _xl_write_header(ws_anom, 'ANOMALIES')
+
+    anom_headers = ['Track', 'Type', 'Severity', 'Description']
+    for col, h in enumerate(anom_headers, 1):
+        c = ws_anom.cell(row=row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+    row += 1
+
+    crit_fill = PatternFill('solid', fgColor='2A0A0A')
+    warn_fill = PatternFill('solid', fgColor='2A1A0A')
+    for a, ti in analyses_with_info:
+        if a.get('anomalies'):
+            for sev, desc in a['anomalies']:
+                row_fill = crit_fill if sev == 'critical' else (warn_fill if sev == 'warning' else panel_fill)
+                ws_anom.cell(row=row, column=1, value=a['filename']).font = data_font
+                ws_anom.cell(row=row, column=2, value=ti['type']).font = data_font
+                sev_cell = ws_anom.cell(row=row, column=3, value=sev.upper())
+                sev_cell.font = crit_font if sev == 'critical' else warn_font
+                ws_anom.cell(row=row, column=4, value=desc).font = data_font
+                for col in range(1, 5):
+                    ws_anom.cell(row=row, column=col).border = thin_border
+                    ws_anom.cell(row=row, column=col).fill = row_fill
+                row += 1
+
+    ws_anom.auto_filter.ref = f'A4:D{max(row - 1, 5)}'
+    ws_anom.column_dimensions['A'].width = 40
+    ws_anom.column_dimensions['B'].width = 12
+    ws_anom.column_dimensions['C'].width = 12
+    ws_anom.column_dimensions['D'].width = 70
+
+    # ---- SHEET 4: Full Mix Context ----
+    log_fn("    Excel: writing Full Mix Context sheet...")
+    ws_ctx = wb.create_sheet('Full Mix Context')
+    ws_ctx.sheet_properties.tabColor = 'B967FF'
+    row = _xl_write_header(ws_ctx, 'FULL MIX CONTEXT')
+
+    if full_mix_info:
+        ctx_items = [
+            ('Mix State', full_mix_info.get('state', 'Not specified')),
+            ('Active Plugins', ', '.join(full_mix_info.get('plugins', [])) or 'None'),
+            ('Loudness Target', full_mix_info.get('loudness_target', 'Not specified')),
+            ('Note', full_mix_info.get('note', '') or 'None'),
+        ]
+        for label, val in ctx_items:
+            ws_ctx.cell(row=row, column=1, value=label).font = accent_font
+            ws_ctx.cell(row=row, column=2, value=val).font = data_font
+            ws_ctx.cell(row=row, column=1).fill = panel_fill
+            ws_ctx.cell(row=row, column=2).fill = panel_fill
+            ws_ctx.cell(row=row, column=1).border = thin_border
+            ws_ctx.cell(row=row, column=2).border = thin_border
+            row += 1
+    else:
+        ws_ctx.cell(row=row, column=1, value='No Full Mix context configured.').font = dim_font
+
+    ws_ctx.column_dimensions['A'].width = 20
+    ws_ctx.column_dimensions['B'].width = 60
+
+    # ---- SHEET 5+: One sheet per track (Individual + BUS) ----
+    track_sheets = [(a, ti) for a, ti in analyses_with_info
+                    if ti['type'] in ('Individual', 'BUS')]
+    # Build ordered list of sheet names for navigation
+    track_sheet_names_ordered = []
+    for a_t, ti_t in track_sheets:
+        track_sheet_names_ordered.append(
+            sheet_names.get(ti_t['name'], _safe_sheet_name(os.path.splitext(ti_t['name'])[0])))
+
+    # Metric glossary keys for per-track sheets
+    _trk_glossary = {
+        'Duration': 'Duration (s)', 'LUFS Integrated': 'LUFS', 'LUFS Short-term Max': 'LUFS',
+        'True Peak': 'True Peak', 'Peak': 'Peak (dB)', 'RMS': 'RMS',
+        'Crest Factor': 'Crest (dB)', 'PLR': 'PLR', 'PSR': 'PSR', 'LRA': 'LRA',
+        'Centroid': 'Centroid (Hz)', 'Flatness': 'Flatness',
+        'Phase Correlation': 'Phase Correlation', 'Stereo Width': 'Stereo Width',
+    }
+
+    for sheet_idx, (a, ti) in enumerate(track_sheets):
+        sname = sheet_names.get(ti['name'], _safe_sheet_name(os.path.splitext(ti['name'])[0]))
+        log_fn(f"    Excel: writing sheet {sheet_idx + 1}/{len(track_sheets)}: {sname}")
+        ws_trk = wb.create_sheet(sname)
+        ws_trk.sheet_properties.tabColor = 'FF3D8B' if ti['type'] == 'BUS' else '00D9FF'
+        row = _xl_write_header(ws_trk, ti['name'],
+                                f"Type: {ti['type']} | Category: {ti.get('category', '')}")
+
+        # Navigation links (Phase 2)
+        row = _xl_add_nav_row(ws_trk, row, track_sheet_names_ordered, sheet_idx)
+        row += 1
+
+        # Metrics table
+        L = a['loudness']
+        S = a['spectrum']
+        st = a['stereo']
+        metrics = [
+            ('Duration', f"{a['duration']:.1f} s"),
+            ('LUFS Integrated', f"{L['lufs_integrated']:+.2f}" if np.isfinite(L['lufs_integrated']) else '-'),
+            ('LUFS Short-term Max', f"{L['lufs_short_term_max']:+.2f}" if np.isfinite(L['lufs_short_term_max']) else '-'),
+            ('True Peak', f"{L['true_peak_db']:+.2f} dBFS"),
+            ('Peak', f"{L['peak_db']:+.2f} dB"),
+            ('RMS', f"{L['rms_db']:+.2f} dB"),
+            ('Crest Factor', f"{L['crest_factor']:.2f} dB"),
+            ('PLR', f"{L['plr']:.2f} dB"),
+            ('PSR', f"{L['psr']:.2f} dB"),
+            ('LRA', f"{L['lra']:.2f} LU"),
+            ('Dominant Band', BAND_LABELS.get(S['dominant_band'], S['dominant_band'])),
+            ('Centroid', f"{S['centroid']:.0f} Hz"),
+            ('Rolloff 85%', f"{S['rolloff']:.0f} Hz"),
+            ('Flatness', f"{S['flatness']:.4f}"),
+            ('Phase Correlation', f"{st['correlation']:+.3f}" if st['is_stereo'] else 'Mono'),
+            ('Stereo Width', f"{st['width_overall']:.3f}" if st['is_stereo'] else 'Mono'),
+        ]
+        for label, val in metrics:
+            c_label = ws_trk.cell(row=row, column=1, value=label)
+            c_label.font = accent_font
+            c_label.fill = panel_fill
+            c_label.border = thin_border
+            c_label.alignment = Alignment(horizontal='left', vertical='center')
+            # Add glossary comment (Phase 2)
+            glossary_key = _trk_glossary.get(label)
+            if glossary_key and glossary_key in METRIC_GLOSSARY:
+                _xl_add_comment(c_label, METRIC_GLOSSARY[glossary_key])
+
+            c_val = ws_trk.cell(row=row, column=2, value=val)
+            c_val.font = data_font
+            c_val.fill = panel_fill
+            c_val.border = thin_border
+            c_val.alignment = Alignment(horizontal='right', vertical='center')
+            row += 1
+
+        # Anomalies for this track
+        if a.get('anomalies'):
+            row += 1
+            ws_trk.cell(row=row, column=1, value='ANOMALIES').font = Font(
+                name='Calibri', size=12, bold=True, color='FFAA00')
+            row += 1
+            for sev, desc in a['anomalies']:
+                c_sev = ws_trk.cell(row=row, column=1, value=sev.upper())
+                c_sev.font = crit_font if sev == 'critical' else warn_font
+                c_sev.fill = panel_fill
+                c_sev.border = thin_border
+                c_desc = ws_trk.cell(row=row, column=2, value=desc)
+                c_desc.font = data_font
+                c_desc.fill = panel_fill
+                c_desc.border = thin_border
+                row += 1
+
+        # Embed matplotlib visualizations as images
+        row += 2
+        img_row = row
+        page_fns = [
+            ('Identity', lambda: page_identity(a, ti, style_name)),
+            ('Temporal', lambda: page_temporal(a, ti)),
+            ('Spectral', lambda: page_spectral(a, ti)),
+            ('Spectrogram', lambda: page_spectrogram(a, ti)),
+            ('Musical', lambda: page_musical(a, ti)),
+            ('Stereo', lambda: page_stereo(a, ti)),
+            ('Multiband Timeline', lambda: page_multiband_timeline(a, ti)),
+            ('Dynamic Range', lambda: page_dynamic_range_map(a, ti)),
+            ('Characteristics', lambda: page_characteristics(a, ti, style_name)),
+        ]
+
+        for page_name, page_fn in page_fns:
+            try:
+                fig = page_fn()
+                img, tmp_path = _fig_to_image(fig)
+                tmp_files.append(tmp_path)
+                ws_trk.add_image(img, f'A{img_row}')
+                img_row += 48  # ~48 rows per image at default height
+            except Exception:
+                pass
+
+        ws_trk.column_dimensions['A'].width = 25
+        ws_trk.column_dimensions['B'].width = 40
+
+    # ---- SHEET: Global Comparison ----
+    log_fn("    Excel: writing Global Comparison sheet...")
+    ws_global = wb.create_sheet('Global Comparison')
+    ws_global.sheet_properties.tabColor = '00FF9F'
+    row = _xl_write_header(ws_global, 'GLOBAL COMPARISON',
+                            'Masking matrix, spectral balance, LUFS/Crest comparisons (excludes BUS)')
+
+    if individuals:
+        # Masking matrix as image
+        try:
+            fig = plt.figure(figsize=(16, 9))
+            fig.suptitle('FREQUENCY MASKING MATRIX (High Resolution)', fontsize=14,
+                         color=THEME['accent1'], fontweight='bold', y=0.97)
+            ax = fig.add_subplot(111)
+            hires_labels = [label for label, _, _ in FREQ_BANDS_HIRES]
+            n_bands = len(FREQ_BANDS_HIRES)
+            matrix = np.zeros((len(individuals), n_bands))
+            for i, (a_i, ti_i) in enumerate(individuals):
+                hires = compute_hires_band_energies(a_i['_mono'], a_i['sample_rate'])
+                for j, (label, _, _) in enumerate(FREQ_BANDS_HIRES):
+                    matrix[i, j] = hires[label]
+            im = ax.imshow(matrix, aspect='auto', cmap='magma', interpolation='nearest')
+            track_labels = [a_i['filename'][:35] for a_i, _ in individuals]
+            ax.set_yticks(range(len(individuals)))
+            ax.set_yticklabels(track_labels, fontsize=6)
+            ax.set_xticks(range(n_bands))
+            ax.set_xticklabels(hires_labels, rotation=45, ha='right', fontsize=7)
+            fig.colorbar(im, ax=ax, label='% of track energy', pad=0.01)
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+
+            img, tmp_path = _fig_to_image(fig)
+            tmp_files.append(tmp_path)
+            ws_global.add_image(img, f'A{row}')
+            row += 50
+        except Exception:
+            pass
+
+        # LUFS comparison bar chart
+        try:
+            fig = plt.figure(figsize=(16, 9))
+            fig.suptitle('LUFS COMPARISON', fontsize=14, color=THEME['accent1'],
+                         fontweight='bold', y=0.97)
+            ax = fig.add_subplot(111)
+            names = [a_i['filename'][:30] for a_i, _ in individuals]
+            lufs_vals = [a_i['loudness']['lufs_integrated'] for a_i, _ in individuals]
+            lufs_vals = [v if np.isfinite(v) else -70 for v in lufs_vals]
+            colors = [THEME['accent1'] if v > -20 else THEME['accent4'] for v in lufs_vals]
+            ax.barh(range(len(names)), lufs_vals, color=colors, edgecolor=THEME['fg_dim'], linewidth=0.3)
+            ax.set_yticks(range(len(names)))
+            ax.set_yticklabels(names, fontsize=7)
+            ax.set_xlabel('Integrated LUFS', fontsize=11)
+            ax.invert_yaxis()
+            ax.grid(True, alpha=0.3, axis='x')
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+
+            img, tmp_path = _fig_to_image(fig)
+            tmp_files.append(tmp_path)
+            ws_global.add_image(img, f'A{row}')
+            row += 50
+        except Exception:
+            pass
+
+        # Crest factor comparison
+        try:
+            fig = plt.figure(figsize=(16, 9))
+            fig.suptitle('CREST FACTOR COMPARISON', fontsize=14, color=THEME['accent1'],
+                         fontweight='bold', y=0.97)
+            ax = fig.add_subplot(111)
+            crest_vals = [a_i['loudness']['crest_factor'] for a_i, _ in individuals]
+            bar_colors = []
+            for v in crest_vals:
+                if v < 6:
+                    bar_colors.append(THEME['critical'])
+                elif v < 12:
+                    bar_colors.append(THEME['warning'])
+                else:
+                    bar_colors.append(THEME['accent4'])
+            ax.barh(range(len(names)), crest_vals, color=bar_colors,
+                     edgecolor=THEME['fg_dim'], linewidth=0.3)
+            ax.set_yticks(range(len(names)))
+            ax.set_yticklabels(names, fontsize=7)
+            ax.set_xlabel('Crest Factor (dB)', fontsize=11)
+            ax.axvline(6, color=THEME['critical'], linewidth=1, linestyle='--', alpha=0.7)
+            ax.axvline(12, color=THEME['accent4'], linewidth=1, linestyle='--', alpha=0.7)
+            ax.invert_yaxis()
+            ax.grid(True, alpha=0.3, axis='x')
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+
+            img, tmp_path = _fig_to_image(fig)
+            tmp_files.append(tmp_path)
+            ws_global.add_image(img, f'A{row}')
+            row += 50
+        except Exception:
+            pass
+
+        # Spectral balance comparison
+        try:
+            fig = plt.figure(figsize=(16, 9))
+            fig.suptitle('SPECTRAL BALANCE COMPARISON', fontsize=14, color=THEME['accent1'],
+                         fontweight='bold', y=0.97)
+            ax = fig.add_subplot(111)
+            band_names_7 = [BAND_LABELS[name] for name, _, _ in FREQ_BANDS]
+            band_x = np.arange(len(FREQ_BANDS))
+            bar_width = 0.8 / max(len(individuals), 1)
+            for idx_t, (a_i, ti_i) in enumerate(individuals[:12]):
+                offsets = band_x + idx_t * bar_width - 0.4
+                vals = [a_i['spectrum']['band_energies'][name] for name, _, _ in FREQ_BANDS]
+                ax.bar(offsets, vals, width=bar_width, label=a_i['filename'][:20], alpha=0.8)
+            ax.set_xticks(band_x)
+            ax.set_xticklabels(band_names_7, rotation=25, ha='right', fontsize=9)
+            ax.set_ylabel('% energy')
+            ax.legend(fontsize=6, ncol=3, loc='upper right')
+            ax.grid(True, alpha=0.3, axis='y')
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+
+            img, tmp_path = _fig_to_image(fig)
+            tmp_files.append(tmp_path)
+            ws_global.add_image(img, f'A{row}')
+            row += 50
+        except Exception:
+            pass
+
+    # ---- SHEET: Full Mix Analysis ----
+    log_fn("    Excel: writing Full Mix Analysis sheet...")
+    ws_fm = wb.create_sheet('Full Mix Analysis')
+    ws_fm.sheet_properties.tabColor = 'B967FF'
+
+    if full_mixes:
+        a_fm, ti_fm = full_mixes[0]
+        row = _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', a_fm['filename'])
+
+        L = a_fm['loudness']
+        S = a_fm['spectrum']
+        st = a_fm['stereo']
+        tempo = a_fm.get('tempo', {})
+
+        fm_metrics = [
+            ('LUFS Integrated', f"{L['lufs_integrated']:+.2f}" if np.isfinite(L['lufs_integrated']) else '-'),
+            ('LUFS Short-term Max', f"{L['lufs_short_term_max']:+.2f}" if np.isfinite(L['lufs_short_term_max']) else '-'),
+            ('True Peak', f"{L['true_peak_db']:+.2f} dBFS"),
+            ('Crest Factor', f"{L['crest_factor']:.2f} dB"),
+            ('PLR', f"{L['plr']:.2f} dB"),
+            ('LRA', f"{L['lra']:.2f} LU"),
+            ('Dominant Band', BAND_LABELS.get(S['dominant_band'], S['dominant_band'])),
+            ('Centroid', f"{S['centroid']:.0f} Hz"),
+            ('Phase Correlation', f"{st['correlation']:+.3f}" if st['is_stereo'] else 'Mono'),
+            ('Stereo Width', f"{st['width_overall']:.3f}" if st['is_stereo'] else 'Mono'),
+            ('Tempo (median)', f"{tempo.get('tempo_median', 0):.1f} BPM"),
+            ('Tempo range', f"{tempo.get('tempo_min', 0):.0f}-{tempo.get('tempo_max', 0):.0f} BPM"),
+        ]
+        for label, val in fm_metrics:
+            c1 = ws_fm.cell(row=row, column=1, value=label)
+            c1.font = accent_font
+            c1.fill = panel_fill
+            c1.border = thin_border
+            c1.alignment = Alignment(horizontal='left', vertical='center')
+            glossary_key_fm = {'LUFS Integrated': 'LUFS', 'Crest Factor': 'Crest (dB)',
+                               'PLR': 'PLR', 'LRA': 'LRA', 'Centroid': 'Centroid (Hz)',
+                               'Phase Correlation': 'Phase Correlation',
+                               'Stereo Width': 'Stereo Width', 'True Peak': 'True Peak'}.get(label)
+            if glossary_key_fm and glossary_key_fm in METRIC_GLOSSARY:
+                _xl_add_comment(c1, METRIC_GLOSSARY[glossary_key_fm])
+            c2 = ws_fm.cell(row=row, column=2, value=val)
+            c2.font = data_font
+            c2.fill = panel_fill
+            c2.border = thin_border
+            c2.alignment = Alignment(horizontal='right', vertical='center')
+            row += 1
+
+        # Structure detection
+        row += 1
+        try:
+            full_mix_structure = analyze_structure_sections(a_fm['_mono'], a_fm['sample_rate'])
+            if full_mix_structure and full_mix_structure.get('success'):
+                ws_fm.cell(row=row, column=1, value='SECTION BOUNDARIES').font = Font(
+                    name='Calibri', size=12, bold=True, color='B967FF')
+                row += 1
+                bounds = full_mix_structure.get('boundaries', [])
+                valid_bounds = [b for b in bounds if b > 0.5]
+                for i, b in enumerate(valid_bounds):
+                    ws_fm.cell(row=row, column=1, value=f'Section {i + 1}').font = data_font
+                    ws_fm.cell(row=row, column=2, value=f'{b:.1f} s').font = data_font
+                    row += 1
+        except Exception:
+            pass
+
+        # Full Mix visualizations
+        row += 2
+        fm_pages = [
+            ('Identity', lambda: page_identity(a_fm, ti_fm, style_name)),
+            ('Temporal', lambda: page_temporal(a_fm, ti_fm)),
+            ('Spectral', lambda: page_spectral(a_fm, ti_fm)),
+            ('Spectrogram', lambda: page_spectrogram(a_fm, ti_fm)),
+            ('Multiband', lambda: page_multiband_timeline(a_fm, ti_fm)),
+            ('Dynamic Range', lambda: page_dynamic_range_map(a_fm, ti_fm)),
+        ]
+        for page_name, page_fn in fm_pages:
+            try:
+                fig = page_fn()
+                img, tmp_path = _fig_to_image(fig)
+                tmp_files.append(tmp_path)
+                ws_fm.add_image(img, f'A{row}')
+                row += 48
+            except Exception:
+                pass
+
+        ws_fm.column_dimensions['A'].width = 25
+        ws_fm.column_dimensions['B'].width = 40
+    else:
+        _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', 'No Full Mix track detected.')
+
+    # ---- SHEET 8: AI Prompt ----
+    log_fn("    Excel: writing AI Prompt sheet...")
+    ws_ai = wb.create_sheet('AI Prompt')
+    ws_ai.sheet_properties.tabColor = '00FF9F'
+    row = _xl_write_header(ws_ai, 'AI ANALYSIS PROMPT',
+                            'Copy this text and paste it into Claude along with this report file.')
+    row += 1
+
+    if ai_prompt:
+        ws_ai.cell(row=row, column=1, value=ai_prompt).font = data_font
+        ws_ai.cell(row=row, column=1).alignment = Alignment(wrap_text=True, vertical='top')
+        ws_ai.column_dimensions['A'].width = 120
+        ws_ai.row_dimensions[row].height = 600
+    else:
+        ws_ai.cell(row=row, column=1, value='No AI prompt available.').font = dim_font
+
+    # ---- SHEET: Dashboard (Phase 2) ----
+    # Flat data table with all numeric metrics for filtering
+    log_fn("    Excel: writing Dashboard sheet...")
+    ws_dash = wb.create_sheet('Dashboard')
+    ws_dash.sheet_properties.tabColor = 'FFAA00'
+    row = _xl_write_header(ws_dash, 'DASHBOARD — ALL METRICS',
+                            'Use filters to slice by Category, Type, or value ranges')
+
+    dash_headers = [
+        'Track', 'Type', 'Category', 'Family',
+        'LUFS', 'Peak (dB)', 'True Peak (dBFS)', 'RMS (dB)',
+        'Crest (dB)', 'PLR (dB)', 'PSR (dB)', 'LRA (LU)',
+        'Width', 'Correlation', 'Centroid (Hz)', 'Rolloff (Hz)',
+        'Flatness', 'Dom. Band', 'Duration (s)',
+    ]
+    for col, h in enumerate(dash_headers, 1):
+        c = ws_dash.cell(row=row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        if h in METRIC_GLOSSARY:
+            _xl_add_comment(c, METRIC_GLOSSARY[h])
+    dash_header_row = row
+    row += 1
+
+    for a, ti in analyses_with_info:
+        L = a['loudness']
+        S = a['spectrum']
+        st = a['stereo']
+        cat = ti.get('category', '(not set)')
+        family = CATEGORY_FAMILY.get(cat, 'Unknown')
+        vals = [
+            a['filename'],
+            ti['type'],
+            cat,
+            family,
+            round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None,
+            round(L['peak_db'], 2),
+            round(L['true_peak_db'], 2),
+            round(L['rms_db'], 2),
+            round(L['crest_factor'], 2),
+            round(L['plr'], 2),
+            round(L['psr'], 2),
+            round(L['lra'], 2),
+            round(st['width_overall'], 3) if st['is_stereo'] else None,
+            round(st['correlation'], 3) if st['is_stereo'] else None,
+            round(S['centroid'], 0),
+            round(S['rolloff'], 0),
+            round(S['flatness'], 4),
+            BAND_LABELS.get(S['dominant_band'], S['dominant_band']),
+            round(a['duration'], 1),
+        ]
+        for col, v in enumerate(vals, 1):
+            c = ws_dash.cell(row=row, column=col, value=v)
+            c.font = data_font
+            c.border = thin_border
+            c.fill = panel_fill
+            if col >= 5:
+                c.alignment = Alignment(horizontal='center')
+        row += 1
+
+    # Apply auto-filter on the Dashboard table
+    dash_data_end = max(row - 1, dash_header_row + 1)
+    last_col = get_column_letter(len(dash_headers))
+    ws_dash.auto_filter.ref = f'A{dash_header_row}:{last_col}{dash_data_end}'
+
+    # Enriched conditional formatting on Dashboard
+    if len(analyses_with_info) > 0:
+        ds = dash_header_row + 1
+        de = dash_data_end
+        # LUFS (E): data bars + color scale
+        ws_dash.conditional_formatting.add(
+            f'E{ds}:E{de}',
+            DataBarRule(start_type='min', end_type='max', color='00D9FF'))
+        ws_dash.conditional_formatting.add(
+            f'E{ds}:E{de}',
+            ColorScaleRule(start_type='min', start_color='FF3333',
+                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                           end_type='max', end_color='00FF9F'))
+        # Peak (F): color scale
+        ws_dash.conditional_formatting.add(
+            f'F{ds}:F{de}',
+            ColorScaleRule(start_type='max', start_color='FF3333',
+                           end_type='min', end_color='00FF9F'))
+        # Crest (I): data bars + color scale
+        ws_dash.conditional_formatting.add(
+            f'I{ds}:I{de}',
+            DataBarRule(start_type='min', end_type='max', color='B967FF'))
+        ws_dash.conditional_formatting.add(
+            f'I{ds}:I{de}',
+            ColorScaleRule(start_type='min', start_color='FF3333',
+                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                           end_type='max', end_color='00D9FF'))
+        # PLR (J): data bars
+        ws_dash.conditional_formatting.add(
+            f'J{ds}:J{de}',
+            DataBarRule(start_type='min', end_type='max', color='00FF9F'))
+        # PSR (K): data bars
+        ws_dash.conditional_formatting.add(
+            f'K{ds}:K{de}',
+            DataBarRule(start_type='min', end_type='max', color='00D9FF'))
+        # LRA (L): data bars
+        ws_dash.conditional_formatting.add(
+            f'L{ds}:L{de}',
+            DataBarRule(start_type='min', end_type='max', color='FFAA00'))
+        # Width (M): data bars
+        ws_dash.conditional_formatting.add(
+            f'M{ds}:M{de}',
+            DataBarRule(start_type='min', end_type='max', color='00FF9F'))
+        # Correlation (N): color scale (low=red -> high=green)
+        ws_dash.conditional_formatting.add(
+            f'N{ds}:N{de}',
+            ColorScaleRule(start_type='min', start_color='FF3333',
+                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                           end_type='max', end_color='00FF9F'))
+        # Centroid (O): color scale
+        ws_dash.conditional_formatting.add(
+            f'O{ds}:O{de}',
+            ColorScaleRule(start_type='min', start_color='B967FF',
+                           end_type='max', end_color='FF3D8B'))
+
+    # Column widths for Dashboard
+    ws_dash.column_dimensions['A'].width = 40
+    for col_idx in range(2, len(dash_headers) + 1):
+        ws_dash.column_dimensions[get_column_letter(col_idx)].width = 14
+    ws_dash.row_dimensions[dash_header_row].height = 30
+
+    # Move Dashboard to be the 2nd sheet (after Index)
+    wb.move_sheet(ws_dash, offset=-(len(wb.sheetnames) - 2))
+
+    # ---- P2.5: Polish cyberpunk theme on Index and special sheets ----
+    # Apply background fill to empty rows in Index
+    for r in range(1, ws_index.max_row + 1):
+        for col in range(1, 6):
+            c = ws_index.cell(row=r, column=col)
+            if c.fill == PatternFill():
+                c.fill = bg_fill
+
+    # Save workbook
+    log_fn("    Excel: saving workbook...")
+    wb.save(output_path)
+
+    # Cleanup temp image files
+    for tmp_path in tmp_files:
+        try:
+            os.unlink(tmp_path)
+        except Exception:
+            pass
+
+    log_fn(f"    Excel: saved to {os.path.basename(output_path)}")
+
+
 def _format_row(idx, type_tag, analysis, track_info):
     """Helper to build a row for the summary table."""
     L = analysis['loudness']
@@ -2474,19 +3451,23 @@ def setup_ttk_styles():
     style = ttk.Style()
     style.theme_use('clam')
 
-    # Notebook (tabs)
+    # Notebook (tabs) — selected tab is bigger
     style.configure('TNotebook',
                     background=UI_THEME['bg'],
                     borderwidth=0)
     style.configure('TNotebook.Tab',
                     background=UI_THEME['panel'],
                     foreground=UI_THEME['fg_dim'],
-                    padding=[18, 10],
-                    font=('Calibri', 11, 'bold'),
+                    padding=[18, 8],
+                    font=('Calibri', 11),
                     borderwidth=0)
     style.map('TNotebook.Tab',
               background=[('selected', UI_THEME['panel_light'])],
-              foreground=[('selected', UI_THEME['accent1'])])
+              foreground=[('selected', UI_THEME['accent1'])],
+              font=[('selected', ('Calibri', 14, 'bold')),
+                    ('!selected', ('Calibri', 11))],
+              padding=[('selected', [22, 12]),
+                       ('!selected', [18, 8])])
 
     # Frames
     style.configure('TFrame', background=UI_THEME['bg'])
@@ -2500,10 +3481,14 @@ def setup_ttk_styles():
     style.configure('Title.TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['accent1'],
-                    font=('Calibri', 18, 'bold'))
+                    font=('Calibri', 20, 'bold'))
     style.configure('SubTitle.TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['accent2'],
+                    font=('Calibri', 15, 'bold'))
+    style.configure('Section.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=UI_THEME['fg'],
                     font=('Calibri', 13, 'bold'))
     style.configure('Dim.TLabel',
                     background=UI_THEME['bg'],
@@ -2590,7 +3575,7 @@ def setup_ttk_styles():
 class MixAnalyzerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title('Mix Analyzer v1.5')
+        self.root.title('Mix Analyzer v1.7')
         self.root.geometry('1280x820')
         self.root.configure(bg=UI_THEME['bg'])
         self.root.minsize(1100, 700)
@@ -2618,6 +3603,8 @@ class MixAnalyzerApp:
         # Analysis results
         self.analysis_results = None
         self.output_dir_after_run = None
+        self.cancel_requested = False
+        self._analysis_start_time = None
 
         self._build_ui()
 
@@ -2627,8 +3614,17 @@ class MixAnalyzerApp:
         title_frame.pack(fill='x')
         ttk.Label(title_frame, text='MIX ANALYZER',
                   style='Title.TLabel').pack(side='left')
-        ttk.Label(title_frame, text='  v1.5 - Visual mix diagnostic',
+        ttk.Label(title_frame, text='  v1.7 - Visual mix diagnostic',
                   style='Dim.TLabel').pack(side='left', padx=(10, 0))
+
+        help_btn = tk.Button(title_frame, text='HELP',
+                              bg=UI_THEME['accent1'], fg=UI_THEME['bg'],
+                              font=('Calibri', 11, 'bold'),
+                              activebackground=UI_THEME['accent2'],
+                              relief='flat', bd=0, padx=16, pady=4,
+                              cursor='hand2',
+                              command=self._show_main_help)
+        help_btn.pack(side='right', padx=(10, 0))
 
         # Notebook
         self.notebook = ttk.Notebook(self.root)
@@ -2648,6 +3644,107 @@ class MixAnalyzerApp:
         self._build_tracks_tab()
         self._build_fullmix_tab()
         self._build_analysis_tab()
+
+    # ------------------------------------------------------------------
+    # MAIN HELP WINDOW
+    # ------------------------------------------------------------------
+    def _show_main_help(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title('Mix Analyzer — Help')
+        dialog.configure(bg=UI_THEME['bg'])
+        dialog.geometry('780x680')
+        dialog.transient(self.root)
+
+        frame = tk.Frame(dialog, bg=UI_THEME['bg'], padx=20, pady=20)
+        frame.pack(fill='both', expand=True)
+
+        tk.Label(frame, text='Mix Analyzer — Help',
+                  bg=UI_THEME['bg'], fg=UI_THEME['accent1'],
+                  font=('Calibri', 18, 'bold')).pack(anchor='w', pady=(0, 12))
+
+        text_widget = tk.Text(frame, wrap='word', bg=UI_THEME['panel'],
+                               fg=UI_THEME['fg'], font=('Calibri', 11),
+                               bd=0, padx=16, pady=16, relief='flat',
+                               spacing1=2, spacing3=2)
+        text_widget.pack(fill='both', expand=True)
+
+        # Configure heading tag
+        text_widget.tag_configure('heading', font=('Calibri', 14, 'bold'),
+                                   foreground=UI_THEME['accent2'],
+                                   spacing1=14, spacing3=6)
+        text_widget.tag_configure('subheading', font=('Calibri', 12, 'bold'),
+                                   foreground=UI_THEME['accent1'],
+                                   spacing1=10, spacing3=4)
+
+        sections = [
+            ('heading', '1. INSTALLATION'),
+            ('body', (
+                'Python 3.13 — download from https://www.python.org/downloads/\n\n'
+                'Install dependencies (open a terminal / command prompt):\n'
+                '  py -m pip install numpy scipy librosa matplotlib soundfile openpyxl reportlab\n\n'
+                'Troubleshooting (Windows):\n'
+                '  - If "py" is not recognized, make sure Python was added to PATH during '
+                'installation. Re-run the installer and check "Add Python to PATH".\n'
+                '  - If pip fails, try:  python -m pip install --upgrade pip\n'
+            )),
+            ('heading', '2. EXPORTING AUDIO FROM ABLETON LIVE 12'),
+            ('body', (
+                'File > Export Audio/Video (Ctrl+Shift+R)\n\n'
+                'Recommended settings:\n'
+                '  - File Type: WAV\n'
+                '  - Bit Depth: 24-bit\n'
+                '  - Sample Rate: 44100 Hz (or your project rate)\n'
+                '  - Rendered Track: All Individual Tracks\n'
+                '  - Convert to Mono: OFF\n'
+                '  - Normalize: OFF (critical — normalization distorts measurements)\n'
+                '  - Render as Loop: OFF\n\n'
+                'Export all tracks to a single folder. Make sure your Ableton tracks are '
+                'clearly named before exporting (e.g. "Kick Main", "Bass 303", "Lead Synth") '
+                'so the auto-detect feature can identify categories.\n'
+            )),
+            ('heading', '3. USING MIX ANALYZER'),
+            ('body', (
+                'Step 1 — Setup tab:\n'
+                '  Load the folder containing your exported audio files. Choose your '
+                'musical style.\n\n'
+                'Step 2 — Track Identification tab:\n'
+                '  Mark your full song bounce as "Full Mix" (only one allowed). Run '
+                '"Auto-detect all" to automatically categorize tracks by name. Review '
+                'and correct any categories that were not detected.\n\n'
+                'Step 3 — Full Mix tab:\n'
+                '  Set the mix completion state, active master bus plugins, loudness '
+                'target, and any notes about the mix.\n\n'
+                'Step 4 — Analysis tab:\n'
+                '  Choose output format (PDF, Excel, or Both). Click "RUN ANALYSIS". '
+                'Wait for the reports to be generated. Open the output folder or generate '
+                'an AI prompt when done.\n'
+            )),
+            ('heading', '4. SHARING THE REPORT WITH CLAUDE'),
+            ('body', (
+                '1. Click "Generate AI Analysis Prompt" after analysis completes.\n'
+                '2. Click "Copy to Clipboard".\n'
+                '3. Open a new Claude conversation (claude.ai).\n'
+                '4. Drag the PDF or XLSX report files into the conversation.\n'
+                '5. Paste the prompt and send.\n'
+                '6. Claude will analyze your reports and provide specific, data-driven '
+                'mixing recommendations tailored to your style.\n'
+            )),
+        ]
+
+        for tag, content in sections:
+            if tag == 'heading':
+                text_widget.insert('end', content + '\n', 'heading')
+            else:
+                text_widget.insert('end', content + '\n')
+
+        text_widget.config(state='disabled')
+
+        tk.Button(frame, text='Close', command=dialog.destroy,
+                   bg=UI_THEME['accent1'], fg=UI_THEME['bg'],
+                   font=('Calibri', 11, 'bold'),
+                   activebackground=UI_THEME['accent2'],
+                   relief='flat', bd=0, padx=20, pady=6,
+                   cursor='hand2').pack(pady=(12, 0))
 
     # ------------------------------------------------------------------
     # TAB 1 - SETUP
@@ -2680,7 +3777,7 @@ class MixAnalyzerApp:
         style_row.grid(row=3, column=0, columnspan=4, sticky='we', pady=8)
         ttk.Label(style_row, text='Musical style:').pack(side='left')
         ttk.Combobox(style_row, textvariable=self.style,
-                     values=STYLES, state='readonly', width=35).pack(
+                     values=STYLES, state='readonly', width=35, height=50).pack(
             side='left', padx=(10, 5))
         HelpButton(style_row, 'style').pack(side='left', padx=(0, 5))
 
@@ -2814,9 +3911,8 @@ class MixAnalyzerApp:
         left = tk.Frame(paned, bg=UI_THEME['bg'])
         paned.add(left, minsize=350)
 
-        tk.Label(left, text='Tracks in folder',
-                  bg=UI_THEME['bg'], fg=UI_THEME['accent2'],
-                  font=('Calibri', 13, 'bold')).pack(anchor='w', pady=(0, 5))
+        ttk.Label(left, text='Tracks in folder',
+                  style='SubTitle.TLabel').pack(anchor='w', pady=(0, 5))
 
         # Action buttons
         action_row = tk.Frame(left, bg=UI_THEME['bg'])
@@ -2844,11 +3940,15 @@ class MixAnalyzerApp:
                                            activestyle='none')
         self.tracks_listbox.pack(side='left', fill='both', expand=True)
 
-        scrollbar = ttk.Scrollbar(list_frame, orient='vertical',
+        self.tracks_scrollbar = ttk.Scrollbar(list_frame, orient='vertical',
                                     command=self.tracks_listbox.yview)
-        scrollbar.pack(side='right', fill='y')
-        self.tracks_listbox.config(yscrollcommand=scrollbar.set)
+        self.tracks_listbox.config(yscrollcommand=self.tracks_scrollbar.set)
         self.tracks_listbox.bind('<<ListboxSelect>>', self._on_track_selected)
+
+        # Show/hide scrollbar based on content overflow
+        def _update_scrollbar(event=None):
+            self.root.after(50, self._check_scrollbar_visibility)
+        list_frame.bind('<Configure>', _update_scrollbar)
 
         # Legend
         legend_frame = tk.Frame(left, bg=UI_THEME['bg'])
@@ -2904,7 +4004,7 @@ class MixAnalyzerApp:
                   font=('Calibri', 11)).grid(row=1, column=0, sticky='w', pady=8)
         self.detail_type = tk.StringVar()
         self.detail_type_combo = ttk.Combobox(f, textvariable=self.detail_type,
-                                                 values=TRACK_TYPES, state='readonly', width=20)
+                                                 values=TRACK_TYPES, state='readonly', width=20, height=50)
         self.detail_type_combo.grid(row=1, column=1, sticky='w', pady=8, padx=(10, 5))
         self.detail_type_combo.bind('<<ComboboxSelected>>', self._on_type_change)
         HelpButton(f, 'type').grid(row=1, column=2, sticky='w', pady=8)
@@ -2921,7 +4021,7 @@ class MixAnalyzerApp:
                 cat_values.append(item)
         cat_values.append('(not set)')
         self.detail_category_combo = ttk.Combobox(f, textvariable=self.detail_category,
-                                                     values=cat_values, state='readonly', width=35)
+                                                     values=cat_values, state='readonly', width=35, height=50)
         self.detail_category_combo.grid(row=2, column=1, sticky='w', pady=8, padx=(10, 5))
         self.detail_category_combo.bind('<<ComboboxSelected>>', self._on_detail_change)
         HelpButton(f, 'category').grid(row=2, column=2, sticky='w', pady=8)
@@ -2932,7 +4032,7 @@ class MixAnalyzerApp:
                   font=('Calibri', 11)).grid(row=3, column=0, sticky='w', pady=8)
         self.detail_parent_bus = tk.StringVar()
         self.detail_parent_bus_combo = ttk.Combobox(f, textvariable=self.detail_parent_bus,
-                                                       values=['None'], state='readonly', width=35)
+                                                       values=['None'], state='readonly', width=35, height=50)
         self.detail_parent_bus_combo.grid(row=3, column=1, sticky='w', pady=8, padx=(10, 5))
         self.detail_parent_bus_combo.bind('<<ComboboxSelected>>', self._on_detail_change)
         HelpButton(f, 'parent_bus').grid(row=3, column=2, sticky='w', pady=8)
@@ -2974,6 +4074,20 @@ class MixAnalyzerApp:
 
     def _refresh_tracks_list(self):
         self.tracks_listbox.delete(0, 'end')
+
+        # Compute longest common prefix to strip from display (>= 3 chars)
+        common_prefix = ''
+        if len(self.track_order) > 1:
+            ref = self.track_order[0]
+            for i in range(len(ref)):
+                ch = ref[i]
+                if all(len(fn) > i and fn[i] == ch for fn in self.track_order):
+                    common_prefix += ch
+                else:
+                    break
+            if len(common_prefix) < 3:
+                common_prefix = ''
+
         for fname in self.track_order:
             cfg = self.track_configs[fname]
             # Build prefix
@@ -2988,7 +4102,12 @@ class MixAnalyzerApp:
             cat = cfg['category']
             if cat == '(not set)':
                 cat = '?'
-            display_name = fname if len(fname) <= 50 else fname[:47] + '...'
+            # Strip common prefix for display, except Full Mix keeps full name
+            if common_prefix and cfg['type'] != 'Full Mix':
+                short_name = fname[len(common_prefix):]
+            else:
+                short_name = fname
+            display_name = short_name if len(short_name) <= 50 else short_name[:47] + '...'
             line = f"{prefix} {display_name}   ({cat})"
             self.tracks_listbox.insert('end', line)
 
@@ -3007,6 +4126,22 @@ class MixAnalyzerApp:
         bus_options = ['None'] + [f for f in self.track_order
                                     if self.track_configs[f]['type'] == 'BUS']
         self.detail_parent_bus_combo.configure(values=bus_options)
+        self._check_scrollbar_visibility()
+
+    def _check_scrollbar_visibility(self):
+        """Show scrollbar only when listbox content overflows."""
+        lb = self.tracks_listbox
+        sb = self.tracks_scrollbar
+        try:
+            visible_height = lb.winfo_height()
+            line_height = lb.bbox(0)[3] if lb.size() > 0 and lb.bbox(0) else 16
+            total_height = lb.size() * line_height
+            if total_height > visible_height:
+                sb.pack(side='right', fill='y')
+            else:
+                sb.pack_forget()
+        except Exception:
+            sb.pack(side='right', fill='y')
 
     def _on_track_selected(self, event=None):
         selection = self.tracks_listbox.curselection()
@@ -3143,7 +4278,7 @@ class MixAnalyzerApp:
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
                   font=('Calibri', 11)).pack(side='left')
         ttk.Combobox(state_row, textvariable=self.mix_state,
-                     values=MIX_STATES, state='readonly', width=25).pack(
+                     values=MIX_STATES, state='readonly', width=25, height=50).pack(
             side='left', padx=(10, 5))
         HelpButton(state_row, 'mix_state').pack(side='left')
 
@@ -3177,7 +4312,7 @@ class MixAnalyzerApp:
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
                   font=('Calibri', 11)).pack(side='left')
         ttk.Combobox(target_row, textvariable=self.mix_loudness_target,
-                     values=LOUDNESS_TARGETS, state='readonly', width=35).pack(
+                     values=LOUDNESS_TARGETS, state='readonly', width=35, height=50).pack(
             side='left', padx=(10, 5))
         HelpButton(target_row, 'loudness_target').pack(side='left')
 
@@ -3220,47 +4355,100 @@ class MixAnalyzerApp:
             row=0, column=0, columnspan=3, sticky='w', pady=(0, 15))
 
         # Summary
-        self.analysis_summary = tk.Text(frame, height=6, bg=UI_THEME['panel'],
+        self.analysis_summary = tk.Text(frame, height=5, bg=UI_THEME['panel'],
                                           fg=UI_THEME['fg'], font=('Calibri', 10),
                                           bd=0, padx=15, pady=12, relief='flat',
                                           state='disabled')
         self.analysis_summary.grid(row=1, column=0, columnspan=3, sticky='we', pady=10)
 
-        ttk.Button(frame, text='Refresh summary',
-                    command=self._refresh_analysis_summary).grid(
-            row=2, column=0, sticky='w', pady=(5, 15))
+        # Controls row: Refresh + Output format
+        controls_row = ttk.Frame(frame)
+        controls_row.grid(row=2, column=0, columnspan=3, sticky='we', pady=(5, 15))
 
-        self.run_button = ttk.Button(frame, text='>>> RUN ANALYSIS <<<',
+        ttk.Button(controls_row, text='Refresh summary',
+                    command=self._refresh_analysis_summary).pack(side='left')
+
+        ttk.Label(controls_row, text='Output format:').pack(side='left', padx=(25, 5))
+        self.output_format = tk.StringVar(value='PDF')
+        ttk.Combobox(controls_row, textvariable=self.output_format,
+                     values=['PDF', 'Excel', 'Both'], state='readonly',
+                     width=10, height=50).pack(side='left')
+
+        # Run + Cancel row
+        run_row = ttk.Frame(frame)
+        run_row.grid(row=3, column=0, columnspan=3, sticky='we', pady=(5, 10))
+
+        self.run_button = ttk.Button(run_row, text='>>> RUN ANALYSIS <<<',
                                        style='Accent.TButton',
                                        command=self._run_analysis)
-        self.run_button.grid(row=3, column=0, columnspan=3, sticky='we', pady=(5, 15))
+        self.run_button.pack(side='left', fill='x', expand=True)
 
-        self.ai_button = ttk.Button(frame, text='Generate AI Analysis Prompt',
+        self.cancel_button = ttk.Button(run_row, text='Cancel',
+                                          command=self._request_cancel,
+                                          state='disabled')
+        self.cancel_button.pack(side='left', padx=(10, 0))
+
+        # Multi-level progress display
+        progress_frame = tk.Frame(frame, bg=UI_THEME['panel'], padx=12, pady=10)
+        progress_frame.grid(row=4, column=0, columnspan=3, sticky='we', pady=(0, 10))
+
+        self.progress_bar = ttk.Progressbar(progress_frame, mode='determinate',
+                                              maximum=100)
+        self.progress_bar.pack(fill='x', pady=(0, 6))
+
+        self.progress_step = tk.Label(progress_frame, text='Step: Idle',
+                                        bg=UI_THEME['panel'], fg=UI_THEME['accent1'],
+                                        font=('Calibri', 10, 'bold'), anchor='w')
+        self.progress_step.pack(fill='x')
+
+        self.progress_substep = tk.Label(progress_frame, text='Substep: —',
+                                           bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                                           font=('Calibri', 10), anchor='w')
+        self.progress_substep.pack(fill='x')
+
+        progress_bottom = tk.Frame(progress_frame, bg=UI_THEME['panel'])
+        progress_bottom.pack(fill='x')
+
+        self.progress_counter = tk.Label(progress_bottom, text='',
+                                           bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
+                                           font=('Calibri', 10), anchor='w')
+        self.progress_counter.pack(side='left')
+
+        self.progress_eta = tk.Label(progress_bottom, text='',
+                                       bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
+                                       font=('Calibri', 10), anchor='e')
+        self.progress_eta.pack(side='right')
+
+        # Post-run buttons
+        buttons_row = ttk.Frame(frame)
+        buttons_row.grid(row=5, column=0, columnspan=3, sticky='w', pady=(0, 10))
+
+        self.ai_button = ttk.Button(buttons_row, text='Generate AI Analysis Prompt',
                                       command=self._show_ai_prompt,
                                       state='disabled')
-        self.ai_button.grid(row=4, column=0, sticky='w', pady=(0, 15))
+        self.ai_button.pack(side='left')
 
-        self.open_folder_button = ttk.Button(frame, text='Open output folder',
+        self.open_folder_button = ttk.Button(buttons_row, text='Open output folder',
                                                 command=self._open_output_folder,
                                                 state='disabled')
-        self.open_folder_button.grid(row=4, column=1, sticky='w', padx=(10, 0))
+        self.open_folder_button.pack(side='left', padx=(10, 0))
 
         # Log
         ttk.Label(frame, text='Log:', style='Dim.TLabel').grid(
-            row=5, column=0, columnspan=3, sticky='w', pady=(10, 5))
+            row=6, column=0, columnspan=3, sticky='w', pady=(5, 3))
 
         log_frame = tk.Frame(frame, bg=UI_THEME['bg'])
-        log_frame.grid(row=6, column=0, columnspan=3, sticky='nsew', pady=5)
+        log_frame.grid(row=7, column=0, columnspan=3, sticky='nsew', pady=5)
 
         self.log_text = scrolledtext.ScrolledText(
-            log_frame, height=16, bg='#050508', fg=UI_THEME['accent4'],
+            log_frame, height=12, bg='#050508', fg=UI_THEME['accent4'],
             font=('Consolas', 9), bd=0, padx=10, pady=8,
             insertbackground=UI_THEME['fg'])
         self.log_text.pack(fill='both', expand=True)
 
         frame.columnconfigure(0, weight=1)
         frame.columnconfigure(1, weight=1)
-        frame.rowconfigure(6, weight=1)
+        frame.rowconfigure(7, weight=1)
 
     def _refresh_analysis_summary(self):
         if not self.track_configs:
@@ -3298,9 +4486,50 @@ class MixAnalyzerApp:
         self.analysis_summary.config(state='disabled')
 
     def log(self, msg):
-        self.log_text.insert('end', msg + '\n')
-        self.log_text.see('end')
-        self.root.update_idletasks()
+        """Thread-safe log: if called from worker, schedule via root.after."""
+        import threading as _th
+        def _do_log():
+            self.log_text.insert('end', msg + '\n')
+            self.log_text.see('end')
+        if _th.current_thread() is _th.main_thread():
+            _do_log()
+        else:
+            self.root.after(0, _do_log)
+
+    def _update_progress(self, pct, step='', substep='', counter='', eta=''):
+        """Thread-safe progress update."""
+        def _do():
+            self.progress_bar['value'] = pct
+            if step:
+                self.progress_step.config(text=f'Step: {step}')
+            if substep:
+                self.progress_substep.config(text=f'Substep: {substep}')
+            self.progress_counter.config(text=counter)
+            self.progress_eta.config(text=eta)
+        self.root.after(0, _do)
+
+    def _compute_eta(self, completed, total):
+        """Return formatted ETA string."""
+        import time
+        if completed <= 0 or not self._analysis_start_time:
+            return ''
+        elapsed = time.time() - self._analysis_start_time
+        remaining = (elapsed / completed) * (total - completed)
+        mins, secs = divmod(int(remaining), 60)
+        return f'ETA: {mins:02d}:{secs:02d}'
+
+    def _request_cancel(self):
+        self.cancel_requested = True
+        self.cancel_button.configure(state='disabled')
+        self.log("Cancel requested — stopping after current track...")
+
+    def _reset_progress(self):
+        """Reset progress display to idle state."""
+        self.progress_bar['value'] = 0
+        self.progress_step.config(text='Step: Idle')
+        self.progress_substep.config(text='Substep: —')
+        self.progress_counter.config(text='')
+        self.progress_eta.config(text='')
 
     def _run_analysis(self):
         if not self.input_folder.get() or not self.output_folder.get():
@@ -3312,25 +4541,40 @@ class MixAnalyzerApp:
 
         self._save_config()
         self.log_text.delete('1.0', 'end')
+        self.cancel_requested = False
+        self._reset_progress()
         self.run_button.configure(state='disabled')
         self.ai_button.configure(state='disabled')
         self.open_folder_button.configure(state='disabled')
+        self.cancel_button.configure(state='normal')
+
+        import time
+        self._analysis_start_time = time.time()
 
         def worker():
             try:
                 self._do_analysis()
             except Exception as e:
-                self.log(f"ERROR: {e}")
-                traceback.print_exc()
+                if 'CancelledError' not in type(e).__name__:
+                    err_msg = f"ERROR: {e}"
+                    self.root.after(0, lambda: self.log(err_msg))
+                    traceback.print_exc()
             finally:
-                self.run_button.configure(state='normal')
+                def _cleanup():
+                    self.run_button.configure(state='normal')
+                    self.cancel_button.configure(state='disabled')
+                    self.cancel_requested = False
+                self.root.after(0, _cleanup)
 
         threading.Thread(target=worker, daemon=True).start()
 
     def _do_analysis(self):
+        import time
+
         input_folder = Path(self.input_folder.get())
         output_folder = Path(self.output_folder.get())
         output_folder.mkdir(parents=True, exist_ok=True)
+        out_fmt = self.output_format.get()
 
         # Determine project name from Full Mix track (fallback: folder name)
         project_name = None
@@ -3347,15 +4591,59 @@ class MixAnalyzerApp:
         included_files = [f for f in self.track_order
                            if self.track_configs[f]['include']]
 
-        self.log(f"Starting analysis: {len(included_files)} tracks")
+        # Build full mix info once (shared by PDF and Excel)
+        active_plugins = [p for p, v in self.mix_plugins.items() if v.get()]
+        full_mix_info = {
+            'state': self.mix_state.get(),
+            'plugins': active_plugins,
+            'loudness_target': self.mix_loudness_target.get(),
+            'note': self.mix_note.get(),
+        }
+
+        # Compute total steps for progress: analyze + PDF per track + global PDF + optional Excel
+        n_tracks = len(included_files)
+        do_pdf = out_fmt in ('PDF', 'Both')
+        do_excel = out_fmt in ('Excel', 'Both')
+        # Steps: analyze(n) + pdf_per_track(n if pdf) + global_pdf(1 if pdf) + excel(1 if excel)
+        total_steps = n_tracks  # analysis
+        if do_pdf:
+            total_steps += n_tracks + 1  # per-track PDFs + global PDF
+        if do_excel:
+            total_steps += 1  # Excel generation
+        completed_steps = 0
+
+        self.log(f"Starting analysis: {n_tracks} tracks — format: {out_fmt}")
         self.log(f"Output folder: {output_folder}")
         self.log("-" * 60)
 
+        self._update_progress(0, 'Analyzing tracks', '', f'[0/{n_tracks}]', '')
+
         analyses_with_info = []
+        generated_files = []
+
         for i, fname in enumerate(included_files, 1):
+            if self.cancel_requested:
+                self.log("CANCELLED by user.")
+                self._update_progress(0, 'Cancelled', '', '', '')
+                # Clean up partial files
+                for gf in generated_files:
+                    try:
+                        if gf.exists():
+                            gf.unlink()
+                    except Exception:
+                        pass
+                return
+
             filepath = input_folder / fname
             cfg = self.track_configs[fname]
-            self.log(f"[{i}/{len(included_files)}] Analyzing: {fname}")
+            eta = self._compute_eta(completed_steps, total_steps)
+            self._update_progress(
+                int(completed_steps / total_steps * 100),
+                'Analyzing tracks',
+                f'Analyzing: {fname}',
+                f'[{i}/{n_tracks}]',
+                eta)
+            self.log(f"[{i}/{n_tracks}] Analyzing: {fname}")
             try:
                 is_full_mix = (cfg['type'] == 'Full Mix')
                 analysis = analyze_track(str(filepath), compute_tempo=is_full_mix)
@@ -3366,47 +4654,121 @@ class MixAnalyzerApp:
                     'name': fname,
                 }
                 analyses_with_info.append((analysis, ti))
-
-                pdf_name = f"{report_prefix}_{os.path.splitext(fname)[0]}.pdf"
-                pdf_path = output_folder / pdf_name
-                if pdf_path.exists():
-                    pdf_path.unlink()
-                self.log(f"    -> Generating PDF: {pdf_name}")
-                generate_track_pdf(analysis, str(pdf_path), ti, self.style.get())
             except Exception as e:
                 self.log(f"    ERROR: {e}")
                 traceback.print_exc()
+            completed_steps += 1
 
-        if analyses_with_info:
+        # --- PDF generation ---
+        if do_pdf and analyses_with_info:
+            self._update_progress(
+                int(completed_steps / total_steps * 100),
+                'Generating PDF reports', '', '', '')
+
+            for i, (analysis, ti) in enumerate(analyses_with_info, 1):
+                if self.cancel_requested:
+                    self.log("CANCELLED by user.")
+                    self._update_progress(0, 'Cancelled', '', '', '')
+                    for gf in generated_files:
+                        try:
+                            if gf.exists():
+                                gf.unlink()
+                        except Exception:
+                            pass
+                    return
+
+                fname = ti['name']
+                eta = self._compute_eta(completed_steps, total_steps)
+                self._update_progress(
+                    int(completed_steps / total_steps * 100),
+                    'Generating PDF reports',
+                    f'Writing: {fname}',
+                    f'[{i}/{len(analyses_with_info)}]',
+                    eta)
+                try:
+                    pdf_name = f"{report_prefix}_{os.path.splitext(fname)[0]}.pdf"
+                    pdf_path = output_folder / pdf_name
+                    if pdf_path.exists():
+                        pdf_path.unlink()
+                    self.log(f"    -> PDF: {pdf_name}")
+                    generate_track_pdf(analysis, str(pdf_path), ti, self.style.get())
+                    generated_files.append(pdf_path)
+                except Exception as e:
+                    self.log(f"    ERROR PDF: {e}")
+                    traceback.print_exc()
+                completed_steps += 1
+
+            # Global PDF
             self.log("-" * 60)
-            self.log("Generating global report...")
+            self.log("Generating global PDF report...")
+            self._update_progress(
+                int(completed_steps / total_steps * 100),
+                'Generating PDF reports', 'Global report', '', '')
             try:
-                # Build full mix info
-                active_plugins = [p for p, v in self.mix_plugins.items() if v.get()]
-                full_mix_info = {
-                    'state': self.mix_state.get(),
-                    'plugins': active_plugins,
-                    'loudness_target': self.mix_loudness_target.get(),
-                    'note': self.mix_note.get(),
-                }
                 global_pdf = output_folder / f'{report_prefix}_GLOBAL.pdf'
                 if global_pdf.exists():
                     global_pdf.unlink()
                 generate_global_pdf(analyses_with_info, str(global_pdf),
                                      self.style.get(), full_mix_info)
+                generated_files.append(global_pdf)
                 self.log(f"Global report: {global_pdf.name}")
             except Exception as e:
                 self.log(f"ERROR global report: {e}")
                 traceback.print_exc()
+            completed_steps += 1
 
+        # --- Excel generation ---
+        if do_excel and analyses_with_info:
+            if self.cancel_requested:
+                self.log("CANCELLED by user.")
+                self._update_progress(0, 'Cancelled', '', '', '')
+                for gf in generated_files:
+                    try:
+                        if gf.exists():
+                            gf.unlink()
+                    except Exception:
+                        pass
+                return
+
+            self._update_progress(
+                int(completed_steps / total_steps * 100),
+                'Generating Excel report', '', '', '')
+            self.log("-" * 60)
+            self.log("Generating Excel report...")
+            try:
+                # Temporarily store results so _build_ai_prompt can use them
+                old_results = self.analysis_results
+                self.analysis_results = analyses_with_info
+                ai_prompt = self._build_ai_prompt()
+                self.analysis_results = old_results
+
+                xlsx_path = output_folder / f'{report_prefix}.xlsx'
+                if xlsx_path.exists():
+                    xlsx_path.unlink()
+                generate_excel_report(
+                    analyses_with_info, str(xlsx_path), self.style.get(),
+                    full_mix_info=full_mix_info, ai_prompt=ai_prompt,
+                    log_fn=self.log)
+                generated_files.append(xlsx_path)
+                self.log(f"Excel report: {xlsx_path.name}")
+            except Exception as e:
+                self.log(f"ERROR Excel report: {e}")
+                traceback.print_exc()
+            completed_steps += 1
+
+        # Done
+        self._update_progress(100, 'Done', '', '', '')
         self.log("=" * 60)
-        self.log(f"DONE: {len(analyses_with_info)} reports generated")
+        self.log(f"DONE: {len(analyses_with_info)} tracks processed — format: {out_fmt}")
         self.log(f"Location: {output_folder}")
 
         self.analysis_results = analyses_with_info
         self.output_dir_after_run = output_folder
-        self.ai_button.configure(state='normal')
-        self.open_folder_button.configure(state='normal')
+
+        def _enable_buttons():
+            self.ai_button.configure(state='normal')
+            self.open_folder_button.configure(state='normal')
+        self.root.after(0, _enable_buttons)
 
     def _open_output_folder(self):
         if self.output_dir_after_run and os.path.isdir(self.output_dir_after_run):
