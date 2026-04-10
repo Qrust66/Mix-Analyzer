@@ -2369,6 +2369,28 @@ def generate_global_pdf(analyses_with_info, output_path, style_name, full_mix_in
 # EXCEL GENERATION - openpyxl (normal mode)
 # ============================================================================
 
+# Metric glossary for cell comments (Phase 2)
+METRIC_GLOSSARY = {
+    'LUFS': 'Loudness Units Full Scale (integrated). Target depends on style.\n-14 LUFS = streaming standard. -8 LUFS = very hot.',
+    'Peak (dB)': 'True peak level in dBFS. Should stay below 0 dBFS.\n-1 dBFS or lower is safe for mastering headroom.',
+    'Crest (dB)': 'Peak-to-RMS ratio. Measures dynamic range.\n<6 dB = very compressed, 6-12 = moderate, >12 = dynamic.',
+    'Stereo Width': 'Mid/Side energy ratio. 0 = mono, 0.5 = balanced, >0.7 = very wide.\nBass/kick should be narrow, pads/FX can be wide.',
+    'Dom. Band': 'Frequency band with highest energy concentration.\nReveals the spectral center of gravity for this track.',
+    'Centroid (Hz)': 'Spectral centroid — brightness indicator.\nLow = dark/warm, high = bright/harsh.',
+    'Duration (s)': 'Track length in seconds.',
+    'PLR': 'Peak-to-Loudness Ratio. Peak dBFS minus LUFS.\nHigher = more headroom. <6 dB may clip on normalization.',
+    'PSR': 'Peak-to-Short-term Loudness Ratio.\nMeasures instantaneous headroom. Lower = more compressed.',
+    'LRA': 'Loudness Range in LU. Measures macro-dynamic variation.\n<4 = very compressed, 4-8 = moderate, >8 = dynamic.',
+    'Phase Correlation': 'Stereo phase correlation. +1 = perfect mono compat.\n<0.3 = risky phase issues. <0 = phase problems.',
+    'Flatness': 'Spectral flatness (0-1). 0 = tonal, 1 = noise-like.\nUseful to distinguish pitched from noisy content.',
+    'RMS': 'Root Mean Square level. Average perceived loudness.',
+    'True Peak': 'Inter-sample peak level. Can exceed 0 dBFS due to reconstruction.\nCritical for broadcast/streaming compliance.',
+    'Track': 'Filename of the analyzed audio bounce.',
+    'Type': 'Track role: Individual (single instrument), BUS (submix), Full Mix (master bounce).',
+    'Category': 'Instrument category for grouping and masking analysis.',
+}
+
+
 def _safe_sheet_name(name, max_len=31):
     """Sanitize name for Excel sheet name rules."""
     for ch in '[]:*?/\\':
@@ -2409,6 +2431,71 @@ def _xl_write_header(ws, title, subtitle=''):
         ws['A2'].font = sub_font
         ws['A2'].fill = header_fill
     return 4  # next row to write data
+
+
+def _xl_add_nav_row(ws, row, sheet_names_ordered, current_idx):
+    """Add prev/next/Index/Anomalies navigation links to a track sheet."""
+    from openpyxl.styles import Font, Alignment
+    nav_font = Font(name='Calibri', size=9, color='00D9FF', underline='single')
+    sep_font = Font(name='Calibri', size=9, color='8888A0')
+
+    col = 3  # Start in column C to leave A-B for metrics
+    # Back to Index
+    c = ws.cell(row=row, column=col, value='< Index')
+    c.font = nav_font
+    c.hyperlink = '#Index!A1'
+    col += 1
+
+    ws.cell(row=row, column=col, value=' | ').font = sep_font
+    col += 1
+
+    # Anomalies
+    c = ws.cell(row=row, column=col, value='Anomalies')
+    c.font = nav_font
+    c.hyperlink = '#Anomalies!A1'
+    col += 1
+
+    ws.cell(row=row, column=col, value=' | ').font = sep_font
+    col += 1
+
+    # Summary
+    c = ws.cell(row=row, column=col, value='Summary')
+    c.font = nav_font
+    c.hyperlink = '#Summary!A1'
+    col += 1
+
+    ws.cell(row=row, column=col, value=' | ').font = sep_font
+    col += 1
+
+    # Previous track
+    if current_idx > 0:
+        prev_name = sheet_names_ordered[current_idx - 1]
+        c = ws.cell(row=row, column=col, value=f'< Prev')
+        c.font = nav_font
+        c.hyperlink = f'#{prev_name}!A1'
+    else:
+        ws.cell(row=row, column=col, value='< Prev').font = Font(name='Calibri', size=9, color='333344')
+    col += 1
+
+    ws.cell(row=row, column=col, value=' | ').font = sep_font
+    col += 1
+
+    # Next track
+    if current_idx < len(sheet_names_ordered) - 1:
+        next_name = sheet_names_ordered[current_idx + 1]
+        c = ws.cell(row=row, column=col, value='Next >')
+        c.font = nav_font
+        c.hyperlink = f'#{next_name}!A1'
+    else:
+        ws.cell(row=row, column=col, value='Next >').font = Font(name='Calibri', size=9, color='333344')
+
+    return row + 1
+
+
+def _xl_add_comment(cell, text):
+    """Add a comment (tooltip) to a cell."""
+    from openpyxl.comments import Comment
+    cell.comment = Comment(text, 'Mix Analyzer')
 
 
 def generate_excel_report(analyses_with_info, output_path, style_name,
@@ -2493,7 +2580,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # Also link to special sheets
     row += 1
-    for special_name in ['Summary', 'Anomalies', 'Full Mix Context', 'Global Comparison', 'Full Mix Analysis', 'AI Prompt']:
+    for special_name in ['Dashboard', 'Summary', 'Anomalies', 'Full Mix Context', 'Global Comparison', 'Full Mix Analysis', 'AI Prompt']:
         ws_index.cell(row=row, column=2, value=special_name).font = data_font
         link_cell = ws_index.cell(row=row, column=5, value=special_name)
         link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
@@ -2507,6 +2594,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # ---- SHEET 2: Summary ----
     log_fn("    Excel: writing Summary sheet...")
+    from openpyxl.formatting.rule import ColorScaleRule, DataBarRule, IconSetRule
     ws_sum = wb.create_sheet('Summary')
     ws_sum.sheet_properties.tabColor = 'B967FF'
     row = _xl_write_header(ws_sum, 'SUMMARY — GLOBAL METRICS', f'{len(analyses_with_info)} tracks analyzed')
@@ -2518,6 +2606,11 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         c.font = header_font
         c.fill = header_fill
         c.border = thin_border
+        c.alignment = Alignment(horizontal='center', vertical='center')
+        # Add glossary comment
+        if h in METRIC_GLOSSARY:
+            _xl_add_comment(c, METRIC_GLOSSARY[h])
+    sum_header_row = row
     row += 1
 
     for a, ti in analyses_with_info:
@@ -2541,24 +2634,50 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             c.font = data_font
             c.border = thin_border
             c.fill = panel_fill
+            if col >= 4:
+                c.alignment = Alignment(horizontal='center')
         row += 1
 
-    # Conditional formatting: color scale on LUFS column (D)
-    from openpyxl.formatting.rule import ColorScaleRule
+    # Enriched conditional formatting (Phase 2)
     if len(analyses_with_info) > 0:
-        data_start = 5
+        data_start = sum_header_row + 1
         data_end = data_start + len(analyses_with_info) - 1
+        # LUFS: color scale (red=quiet -> yellow -> green=loud)
         ws_sum.conditional_formatting.add(
             f'D{data_start}:D{data_end}',
             ColorScaleRule(start_type='min', start_color='FF3333',
                            mid_type='percentile', mid_value=50, mid_color='FFAA00',
                            end_type='max', end_color='00FF9F'))
-        # Color scale on Crest factor (F)
+        # LUFS: data bars
+        ws_sum.conditional_formatting.add(
+            f'D{data_start}:D{data_end}',
+            DataBarRule(start_type='min', end_type='max', color='00D9FF'))
+        # Peak: color scale (red=hot -> green=safe)
+        ws_sum.conditional_formatting.add(
+            f'E{data_start}:E{data_end}',
+            ColorScaleRule(start_type='max', start_color='FF3333',
+                           end_type='min', end_color='00FF9F'))
+        # Crest factor: color scale + data bars
         ws_sum.conditional_formatting.add(
             f'F{data_start}:F{data_end}',
             ColorScaleRule(start_type='min', start_color='FF3333',
                            mid_type='percentile', mid_value=50, mid_color='FFAA00',
                            end_type='max', end_color='00D9FF'))
+        ws_sum.conditional_formatting.add(
+            f'F{data_start}:F{data_end}',
+            DataBarRule(start_type='min', end_type='max', color='B967FF'))
+        # Stereo Width: data bars
+        ws_sum.conditional_formatting.add(
+            f'G{data_start}:G{data_end}',
+            DataBarRule(start_type='min', end_type='max', color='00FF9F'))
+        # Centroid: color scale (low=warm -> high=bright)
+        ws_sum.conditional_formatting.add(
+            f'I{data_start}:I{data_end}',
+            ColorScaleRule(start_type='min', start_color='B967FF',
+                           end_type='max', end_color='FF3D8B'))
+
+    # Auto-filter on Summary
+    ws_sum.auto_filter.ref = f'A{sum_header_row}:J{max(row - 1, sum_header_row + 1)}'
 
     for col_idx in range(1, 11):
         ws_sum.column_dimensions[get_column_letter(col_idx)].width = 16
@@ -2578,9 +2697,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         c.border = thin_border
     row += 1
 
+    crit_fill = PatternFill('solid', fgColor='2A0A0A')
+    warn_fill = PatternFill('solid', fgColor='2A1A0A')
     for a, ti in analyses_with_info:
         if a.get('anomalies'):
             for sev, desc in a['anomalies']:
+                row_fill = crit_fill if sev == 'critical' else (warn_fill if sev == 'warning' else panel_fill)
                 ws_anom.cell(row=row, column=1, value=a['filename']).font = data_font
                 ws_anom.cell(row=row, column=2, value=ti['type']).font = data_font
                 sev_cell = ws_anom.cell(row=row, column=3, value=sev.upper())
@@ -2588,7 +2710,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                 ws_anom.cell(row=row, column=4, value=desc).font = data_font
                 for col in range(1, 5):
                     ws_anom.cell(row=row, column=col).border = thin_border
-                    ws_anom.cell(row=row, column=col).fill = panel_fill
+                    ws_anom.cell(row=row, column=col).fill = row_fill
                 row += 1
 
     ws_anom.auto_filter.ref = f'A4:D{max(row - 1, 5)}'
@@ -2627,6 +2749,21 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # ---- SHEET 5+: One sheet per track (Individual + BUS) ----
     track_sheets = [(a, ti) for a, ti in analyses_with_info
                     if ti['type'] in ('Individual', 'BUS')]
+    # Build ordered list of sheet names for navigation
+    track_sheet_names_ordered = []
+    for a_t, ti_t in track_sheets:
+        track_sheet_names_ordered.append(
+            sheet_names.get(ti_t['name'], _safe_sheet_name(os.path.splitext(ti_t['name'])[0])))
+
+    # Metric glossary keys for per-track sheets
+    _trk_glossary = {
+        'Duration': 'Duration (s)', 'LUFS Integrated': 'LUFS', 'LUFS Short-term Max': 'LUFS',
+        'True Peak': 'True Peak', 'Peak': 'Peak (dB)', 'RMS': 'RMS',
+        'Crest Factor': 'Crest (dB)', 'PLR': 'PLR', 'PSR': 'PSR', 'LRA': 'LRA',
+        'Centroid': 'Centroid (Hz)', 'Flatness': 'Flatness',
+        'Phase Correlation': 'Phase Correlation', 'Stereo Width': 'Stereo Width',
+    }
+
     for sheet_idx, (a, ti) in enumerate(track_sheets):
         sname = sheet_names.get(ti['name'], _safe_sheet_name(os.path.splitext(ti['name'])[0]))
         log_fn(f"    Excel: writing sheet {sheet_idx + 1}/{len(track_sheets)}: {sname}")
@@ -2634,6 +2771,10 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         ws_trk.sheet_properties.tabColor = 'FF3D8B' if ti['type'] == 'BUS' else '00D9FF'
         row = _xl_write_header(ws_trk, ti['name'],
                                 f"Type: {ti['type']} | Category: {ti.get('category', '')}")
+
+        # Navigation links (Phase 2)
+        row = _xl_add_nav_row(ws_trk, row, track_sheet_names_ordered, sheet_idx)
+        row += 1
 
         # Metrics table
         L = a['loudness']
@@ -2658,12 +2799,21 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             ('Stereo Width', f"{st['width_overall']:.3f}" if st['is_stereo'] else 'Mono'),
         ]
         for label, val in metrics:
-            ws_trk.cell(row=row, column=1, value=label).font = accent_font
-            ws_trk.cell(row=row, column=2, value=val).font = data_font
-            ws_trk.cell(row=row, column=1).fill = panel_fill
-            ws_trk.cell(row=row, column=2).fill = panel_fill
-            ws_trk.cell(row=row, column=1).border = thin_border
-            ws_trk.cell(row=row, column=2).border = thin_border
+            c_label = ws_trk.cell(row=row, column=1, value=label)
+            c_label.font = accent_font
+            c_label.fill = panel_fill
+            c_label.border = thin_border
+            c_label.alignment = Alignment(horizontal='left', vertical='center')
+            # Add glossary comment (Phase 2)
+            glossary_key = _trk_glossary.get(label)
+            if glossary_key and glossary_key in METRIC_GLOSSARY:
+                _xl_add_comment(c_label, METRIC_GLOSSARY[glossary_key])
+
+            c_val = ws_trk.cell(row=row, column=2, value=val)
+            c_val.font = data_font
+            c_val.fill = panel_fill
+            c_val.border = thin_border
+            c_val.alignment = Alignment(horizontal='right', vertical='center')
             row += 1
 
         # Anomalies for this track
@@ -2673,8 +2823,14 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                 name='Calibri', size=12, bold=True, color='FFAA00')
             row += 1
             for sev, desc in a['anomalies']:
-                ws_trk.cell(row=row, column=1, value=sev.upper()).font = crit_font if sev == 'critical' else warn_font
-                ws_trk.cell(row=row, column=2, value=desc).font = data_font
+                c_sev = ws_trk.cell(row=row, column=1, value=sev.upper())
+                c_sev.font = crit_font if sev == 'critical' else warn_font
+                c_sev.fill = panel_fill
+                c_sev.border = thin_border
+                c_desc = ws_trk.cell(row=row, column=2, value=desc)
+                c_desc.font = data_font
+                c_desc.fill = panel_fill
+                c_desc.border = thin_border
                 row += 1
 
         # Embed matplotlib visualizations as images
@@ -2856,10 +3012,22 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             ('Tempo range', f"{tempo.get('tempo_min', 0):.0f}-{tempo.get('tempo_max', 0):.0f} BPM"),
         ]
         for label, val in fm_metrics:
-            ws_fm.cell(row=row, column=1, value=label).font = accent_font
-            ws_fm.cell(row=row, column=2, value=val).font = data_font
-            ws_fm.cell(row=row, column=1).fill = panel_fill
-            ws_fm.cell(row=row, column=2).fill = panel_fill
+            c1 = ws_fm.cell(row=row, column=1, value=label)
+            c1.font = accent_font
+            c1.fill = panel_fill
+            c1.border = thin_border
+            c1.alignment = Alignment(horizontal='left', vertical='center')
+            glossary_key_fm = {'LUFS Integrated': 'LUFS', 'Crest Factor': 'Crest (dB)',
+                               'PLR': 'PLR', 'LRA': 'LRA', 'Centroid': 'Centroid (Hz)',
+                               'Phase Correlation': 'Phase Correlation',
+                               'Stereo Width': 'Stereo Width', 'True Peak': 'True Peak'}.get(label)
+            if glossary_key_fm and glossary_key_fm in METRIC_GLOSSARY:
+                _xl_add_comment(c1, METRIC_GLOSSARY[glossary_key_fm])
+            c2 = ws_fm.cell(row=row, column=2, value=val)
+            c2.font = data_font
+            c2.fill = panel_fill
+            c2.border = thin_border
+            c2.alignment = Alignment(horizontal='right', vertical='center')
             row += 1
 
         # Structure detection
@@ -2919,6 +3087,145 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         ws_ai.row_dimensions[row].height = 600
     else:
         ws_ai.cell(row=row, column=1, value='No AI prompt available.').font = dim_font
+
+    # ---- SHEET: Dashboard (Phase 2) ----
+    # Flat data table with all numeric metrics for filtering
+    log_fn("    Excel: writing Dashboard sheet...")
+    ws_dash = wb.create_sheet('Dashboard')
+    ws_dash.sheet_properties.tabColor = 'FFAA00'
+    row = _xl_write_header(ws_dash, 'DASHBOARD — ALL METRICS',
+                            'Use filters to slice by Category, Type, or value ranges')
+
+    dash_headers = [
+        'Track', 'Type', 'Category', 'Family',
+        'LUFS', 'Peak (dB)', 'True Peak (dBFS)', 'RMS (dB)',
+        'Crest (dB)', 'PLR (dB)', 'PSR (dB)', 'LRA (LU)',
+        'Width', 'Correlation', 'Centroid (Hz)', 'Rolloff (Hz)',
+        'Flatness', 'Dom. Band', 'Duration (s)',
+    ]
+    for col, h in enumerate(dash_headers, 1):
+        c = ws_dash.cell(row=row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        if h in METRIC_GLOSSARY:
+            _xl_add_comment(c, METRIC_GLOSSARY[h])
+    dash_header_row = row
+    row += 1
+
+    for a, ti in analyses_with_info:
+        L = a['loudness']
+        S = a['spectrum']
+        st = a['stereo']
+        cat = ti.get('category', '(not set)')
+        family = CATEGORY_FAMILY.get(cat, 'Unknown')
+        vals = [
+            a['filename'],
+            ti['type'],
+            cat,
+            family,
+            round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None,
+            round(L['peak_db'], 2),
+            round(L['true_peak_db'], 2),
+            round(L['rms_db'], 2),
+            round(L['crest_factor'], 2),
+            round(L['plr'], 2),
+            round(L['psr'], 2),
+            round(L['lra'], 2),
+            round(st['width_overall'], 3) if st['is_stereo'] else None,
+            round(st['correlation'], 3) if st['is_stereo'] else None,
+            round(S['centroid'], 0),
+            round(S['rolloff'], 0),
+            round(S['flatness'], 4),
+            BAND_LABELS.get(S['dominant_band'], S['dominant_band']),
+            round(a['duration'], 1),
+        ]
+        for col, v in enumerate(vals, 1):
+            c = ws_dash.cell(row=row, column=col, value=v)
+            c.font = data_font
+            c.border = thin_border
+            c.fill = panel_fill
+            if col >= 5:
+                c.alignment = Alignment(horizontal='center')
+        row += 1
+
+    # Apply auto-filter on the Dashboard table
+    dash_data_end = max(row - 1, dash_header_row + 1)
+    last_col = get_column_letter(len(dash_headers))
+    ws_dash.auto_filter.ref = f'A{dash_header_row}:{last_col}{dash_data_end}'
+
+    # Enriched conditional formatting on Dashboard
+    if len(analyses_with_info) > 0:
+        ds = dash_header_row + 1
+        de = dash_data_end
+        # LUFS (E): data bars + color scale
+        ws_dash.conditional_formatting.add(
+            f'E{ds}:E{de}',
+            DataBarRule(start_type='min', end_type='max', color='00D9FF'))
+        ws_dash.conditional_formatting.add(
+            f'E{ds}:E{de}',
+            ColorScaleRule(start_type='min', start_color='FF3333',
+                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                           end_type='max', end_color='00FF9F'))
+        # Peak (F): color scale
+        ws_dash.conditional_formatting.add(
+            f'F{ds}:F{de}',
+            ColorScaleRule(start_type='max', start_color='FF3333',
+                           end_type='min', end_color='00FF9F'))
+        # Crest (I): data bars + color scale
+        ws_dash.conditional_formatting.add(
+            f'I{ds}:I{de}',
+            DataBarRule(start_type='min', end_type='max', color='B967FF'))
+        ws_dash.conditional_formatting.add(
+            f'I{ds}:I{de}',
+            ColorScaleRule(start_type='min', start_color='FF3333',
+                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                           end_type='max', end_color='00D9FF'))
+        # PLR (J): data bars
+        ws_dash.conditional_formatting.add(
+            f'J{ds}:J{de}',
+            DataBarRule(start_type='min', end_type='max', color='00FF9F'))
+        # PSR (K): data bars
+        ws_dash.conditional_formatting.add(
+            f'K{ds}:K{de}',
+            DataBarRule(start_type='min', end_type='max', color='00D9FF'))
+        # LRA (L): data bars
+        ws_dash.conditional_formatting.add(
+            f'L{ds}:L{de}',
+            DataBarRule(start_type='min', end_type='max', color='FFAA00'))
+        # Width (M): data bars
+        ws_dash.conditional_formatting.add(
+            f'M{ds}:M{de}',
+            DataBarRule(start_type='min', end_type='max', color='00FF9F'))
+        # Correlation (N): color scale (low=red -> high=green)
+        ws_dash.conditional_formatting.add(
+            f'N{ds}:N{de}',
+            ColorScaleRule(start_type='min', start_color='FF3333',
+                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                           end_type='max', end_color='00FF9F'))
+        # Centroid (O): color scale
+        ws_dash.conditional_formatting.add(
+            f'O{ds}:O{de}',
+            ColorScaleRule(start_type='min', start_color='B967FF',
+                           end_type='max', end_color='FF3D8B'))
+
+    # Column widths for Dashboard
+    ws_dash.column_dimensions['A'].width = 40
+    for col_idx in range(2, len(dash_headers) + 1):
+        ws_dash.column_dimensions[get_column_letter(col_idx)].width = 14
+    ws_dash.row_dimensions[dash_header_row].height = 30
+
+    # Move Dashboard to be the 2nd sheet (after Index)
+    wb.move_sheet(ws_dash, offset=-(len(wb.sheetnames) - 2))
+
+    # ---- P2.5: Polish cyberpunk theme on Index and special sheets ----
+    # Apply background fill to empty rows in Index
+    for r in range(1, ws_index.max_row + 1):
+        for col in range(1, 6):
+            c = ws_index.cell(row=r, column=col)
+            if c.fill == PatternFill():
+                c.fill = bg_fill
 
     # Save workbook
     log_fn("    Excel: saving workbook...")
