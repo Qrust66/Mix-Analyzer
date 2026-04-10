@@ -311,6 +311,32 @@ BAND_LABELS = {
     'air':      'Air (8-20 kHz)',
 }
 
+# High-resolution bands for masking matrix (~third-octave, 22 bands)
+FREQ_BANDS_HIRES = [
+    ('20-32 Hz',     20,     32),
+    ('32-50 Hz',     32,     50),
+    ('50-80 Hz',     50,     80),
+    ('80-125 Hz',    80,     125),
+    ('125-160 Hz',   125,    160),
+    ('160-200 Hz',   160,    200),
+    ('200-250 Hz',   200,    250),
+    ('250-315 Hz',   250,    315),
+    ('315-400 Hz',   315,    400),
+    ('400-500 Hz',   400,    500),
+    ('500-630 Hz',   500,    630),
+    ('630-800 Hz',   630,    800),
+    ('800-1k Hz',    800,    1000),
+    ('1-1.25 kHz',   1000,   1250),
+    ('1.25-1.6 kHz', 1250,   1600),
+    ('1.6-2 kHz',    1600,   2000),
+    ('2-2.5 kHz',    2000,   2500),
+    ('2.5-3.15 kHz', 2500,   3150),
+    ('3.15-4 kHz',   3150,   4000),
+    ('4-5 kHz',      4000,   5000),
+    ('5-8 kHz',      5000,   8000),
+    ('8-20 kHz',     8000,   20000),
+]
+
 
 def load_audio(filepath):
     """Load audio file. Returns (data, sr, is_stereo)."""
@@ -439,6 +465,23 @@ def analyze_spectrum(mono, sr):
         'flatness': flatness,
         'peaks': peak_list,
     }
+
+
+def compute_hires_band_energies(mono, sr):
+    """Compute band energies for FREQ_BANDS_HIRES (used in masking matrix)."""
+    n_fft = 8192
+    S = np.abs(librosa.stft(mono, n_fft=n_fft, hop_length=n_fft // 4))
+    spectrum_mean = np.mean(S, axis=1)
+    freqs = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
+    total_energy = np.sum(spectrum_mean ** 2) + 1e-12
+    energies = {}
+    for label, flow, fhigh in FREQ_BANDS_HIRES:
+        mask = (freqs >= flow) & (freqs < fhigh)
+        if np.any(mask):
+            energies[label] = 100 * float(np.sum(spectrum_mean[mask] ** 2)) / total_energy
+        else:
+            energies[label] = 0.0
+    return energies
 
 
 def analyze_temporal(mono, sr):
@@ -895,11 +938,13 @@ def analyze_dynamic_range_timeline(mono, sr):
     }
 
 
-def analyze_structure_sections(mono, sr, n_sections_target=8):
+def analyze_structure_sections(mono, sr, n_sections_target=14):
     """
-    Detect musical section boundaries using spectral similarity.
+    Detect musical section boundaries using multi-feature novelty detection.
     Only used for Full Mix tracks.
     Returns boundaries (in seconds) and energy envelope.
+    Uses two passes: chroma agglomerative + spectral flux novelty curve,
+    then merges boundaries. Target: 12-16 sections for industrial music.
     """
     result = {
         'boundaries': [],
@@ -909,25 +954,72 @@ def analyze_structure_sections(mono, sr, n_sections_target=8):
     }
 
     try:
-        # Compute chromagram for harmonic similarity
         hop_length = 2048
+
+        # --- Pass 1: Chroma-based agglomerative segmentation ---
         chroma = librosa.feature.chroma_cqt(y=mono, sr=sr, hop_length=hop_length)
-
-        # Segment using agglomerative clustering
         try:
-            bounds = librosa.segment.agglomerative(chroma, k=n_sections_target)
-            bound_times = librosa.frames_to_time(bounds, sr=sr, hop_length=hop_length)
+            bounds_chroma = librosa.segment.agglomerative(chroma, k=n_sections_target)
+            bt_chroma = librosa.frames_to_time(bounds_chroma, sr=sr, hop_length=hop_length)
         except Exception:
-            bound_times = np.array([])
+            bt_chroma = np.array([])
 
-        result['boundaries'] = bound_times.tolist() if len(bound_times) > 0 else []
+        # --- Pass 2: Spectral flux novelty curve ---
+        try:
+            S = np.abs(librosa.stft(mono, n_fft=2048, hop_length=hop_length))
+            # Compute novelty from spectral flux
+            novelty_sf = np.sqrt(np.sum(np.maximum(0, np.diff(S, axis=1)) ** 2, axis=0))
+            # Smooth with a small kernel for finer detection
+            kernel_size = max(1, int(sr / hop_length * 0.5))  # ~0.5s smoothing
+            if kernel_size > 1:
+                kernel = np.ones(kernel_size) / kernel_size
+                novelty_sf = np.convolve(novelty_sf, kernel, mode='same')
+            # Normalize
+            novelty_sf = novelty_sf / (np.max(novelty_sf) + 1e-12)
+            # Adaptive threshold: mean + 0.4 * std (lower than default for more sensitivity)
+            threshold = np.mean(novelty_sf) + 0.4 * np.std(novelty_sf)
+            min_distance = max(1, int(sr / hop_length * 2.0))  # at least 2s between boundaries
+            peaks, _ = signal.find_peaks(novelty_sf, height=threshold,
+                                          distance=min_distance, prominence=0.05)
+            bt_novelty = librosa.frames_to_time(peaks, sr=sr, hop_length=hop_length)
+        except Exception:
+            bt_novelty = np.array([])
 
-        # Overall energy envelope (RMS over larger window for smoothness)
+        # --- Pass 3: MFCC-based novelty for timbral changes ---
+        try:
+            mfcc = librosa.feature.mfcc(y=mono, sr=sr, n_mfcc=13, hop_length=hop_length)
+            mfcc_delta = np.sqrt(np.sum(np.diff(mfcc, axis=1) ** 2, axis=0))
+            kernel_size_m = max(1, int(sr / hop_length * 0.8))
+            if kernel_size_m > 1:
+                kernel_m = np.ones(kernel_size_m) / kernel_size_m
+                mfcc_delta = np.convolve(mfcc_delta, kernel_m, mode='same')
+            mfcc_delta = mfcc_delta / (np.max(mfcc_delta) + 1e-12)
+            threshold_m = np.mean(mfcc_delta) + 0.5 * np.std(mfcc_delta)
+            min_dist_m = max(1, int(sr / hop_length * 3.0))
+            peaks_m, _ = signal.find_peaks(mfcc_delta, height=threshold_m,
+                                             distance=min_dist_m, prominence=0.05)
+            bt_mfcc = librosa.frames_to_time(peaks_m, sr=sr, hop_length=hop_length)
+        except Exception:
+            bt_mfcc = np.array([])
+
+        # --- Merge all boundaries ---
+        all_bounds = np.concatenate([bt_chroma, bt_novelty, bt_mfcc])
+        all_bounds = np.sort(all_bounds)
+        # Deduplicate: merge boundaries within 1.5s of each other
+        if len(all_bounds) > 0:
+            merged = [all_bounds[0]]
+            for b in all_bounds[1:]:
+                if b - merged[-1] > 1.5:
+                    merged.append(b)
+            all_bounds = np.array(merged)
+
+        result['boundaries'] = all_bounds.tolist() if len(all_bounds) > 0 else []
+
+        # Overall energy envelope (RMS)
         frame_length = 8192
         envelope_hop = 2048
         rms = librosa.feature.rms(y=mono, frame_length=frame_length, hop_length=envelope_hop)[0]
         envelope_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr, hop_length=envelope_hop)
-        # Convert to dB
         with np.errstate(divide='ignore'):
             rms_db = 20 * np.log10(np.maximum(rms, 1e-10))
         result['energy_envelope'] = rms_db
@@ -1821,29 +1913,32 @@ def generate_global_pdf(analyses_with_info, output_path, style_name, full_mix_in
         pdf.savefig(fig, facecolor=fig.get_facecolor())
         plt.close(fig)
 
-        # PAGE 2: Masking matrix (individuals only, excludes BUS and Full Mix)
+        # PAGE 2: Masking matrix (individuals only, hires 22 bands)
         if individuals:
-            fig = plt.figure(figsize=(11, 8.5))
-            fig.suptitle('FREQUENCY MASKING MATRIX', fontsize=14, color=THEME['accent1'],
-                         fontweight='bold', y=0.97)
+            fig = plt.figure(figsize=(16, 9))
+            fig.suptitle('FREQUENCY MASKING MATRIX (High Resolution)', fontsize=14,
+                         color=THEME['accent1'], fontweight='bold', y=0.97)
             fig.text(0.5, 0.935,
-                     'Individual tracks only (BUS and Full Mix excluded to avoid double-counting)',
+                     'Individual tracks only — 22 third-octave bands — BUS and Full Mix excluded',
                      ha='center', fontsize=9, color=THEME['fg_dim'])
 
             ax = fig.add_subplot(111)
-            band_names = [BAND_LABELS[name] for name, _, _ in FREQ_BANDS]
-            matrix = np.zeros((len(individuals), len(FREQ_BANDS)))
+            hires_labels = [label for label, _, _ in FREQ_BANDS_HIRES]
+            n_bands = len(FREQ_BANDS_HIRES)
+            matrix = np.zeros((len(individuals), n_bands))
             for i, (a, ti) in enumerate(individuals):
-                for j, (name, _, _) in enumerate(FREQ_BANDS):
-                    matrix[i, j] = a['spectrum']['band_energies'][name]
+                hires = compute_hires_band_energies(a['_mono'], a['sample_rate'])
+                for j, (label, _, _) in enumerate(FREQ_BANDS_HIRES):
+                    matrix[i, j] = hires[label]
 
             im = ax.imshow(matrix, aspect='auto', cmap='magma', interpolation='nearest')
-            track_labels = [a['filename'][:30] for a, _ in individuals]
+            track_labels = [a['filename'][:35] for a, _ in individuals]
             ax.set_yticks(range(len(individuals)))
             ax.set_yticklabels(track_labels, fontsize=6)
-            ax.set_xticks(range(len(band_names)))
-            ax.set_xticklabels(band_names, rotation=25, ha='right', fontsize=8)
-            cbar = fig.colorbar(im, ax=ax, label='% of track energy')
+            ax.set_xticks(range(n_bands))
+            ax.set_xticklabels(hires_labels, rotation=45, ha='right', fontsize=7)
+            ax.grid(True, which='major', color=THEME['grid'], linewidth=0.3, alpha=0.5)
+            cbar = fig.colorbar(im, ax=ax, label='% of track energy', pad=0.01)
             cbar.ax.tick_params(labelsize=7)
 
             plt.tight_layout(rect=[0, 0.02, 1, 0.90])
@@ -2264,6 +2359,575 @@ def generate_global_pdf(analyses_with_info, output_path, style_name, full_mix_in
             plt.tight_layout(rect=[0, 0.02, 1, 0.90])
             pdf.savefig(fig, facecolor=fig.get_facecolor())
             plt.close(fig)
+
+
+# ============================================================================
+# EXCEL GENERATION - openpyxl (normal mode)
+# ============================================================================
+
+def _safe_sheet_name(name, max_len=31):
+    """Sanitize name for Excel sheet name rules."""
+    for ch in '[]:*?/\\':
+        name = name.replace(ch, '_')
+    return name[:max_len] if len(name) > max_len else name
+
+
+def _fig_to_image(fig, dpi=200, target_width=1600, target_height=900):
+    """Render matplotlib figure to openpyxl Image via temp PNG. Returns (Image, tmp_path)."""
+    import tempfile
+    from openpyxl.drawing.image import Image as XlImage
+
+    fig.set_size_inches(target_width / dpi, target_height / dpi)
+    tmp = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+    tmp_path = tmp.name
+    tmp.close()
+    fig.savefig(tmp_path, dpi=dpi, facecolor=fig.get_facecolor(), bbox_inches='tight')
+    plt.close(fig)
+    img = XlImage(tmp_path)
+    return img, tmp_path
+
+
+def _xl_write_header(ws, title, subtitle=''):
+    """Write sheet header in row 1-2 with formatting."""
+    from openpyxl.styles import Font, PatternFill, Alignment
+    header_fill = PatternFill('solid', fgColor='0A0A12')
+    accent_font = Font(name='Calibri', size=16, bold=True, color='00D9FF')
+    sub_font = Font(name='Calibri', size=11, color='8888A0')
+
+    ws.merge_cells('A1:J1')
+    ws['A1'] = title
+    ws['A1'].font = accent_font
+    ws['A1'].fill = header_fill
+    ws['A1'].alignment = Alignment(horizontal='left')
+    if subtitle:
+        ws.merge_cells('A2:J2')
+        ws['A2'] = subtitle
+        ws['A2'].font = sub_font
+        ws['A2'].fill = header_fill
+    return 4  # next row to write data
+
+
+def generate_excel_report(analyses_with_info, output_path, style_name,
+                           full_mix_info=None, ai_prompt='', log_fn=None):
+    """
+    Generate complete Excel report with 8 sheets.
+    analyses_with_info: list of (analysis, track_info) tuples
+    """
+    import tempfile
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, numbers
+    from openpyxl.drawing.image import Image as XlImage
+    from openpyxl.utils import get_column_letter
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    wb = Workbook()
+    tmp_files = []
+
+    # Theme colors for Excel
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    panel_fill = PatternFill('solid', fgColor='1A1A24')
+    header_fill = PatternFill('solid', fgColor='1A3A5A')
+    accent_font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    data_font = Font(name='Calibri', size=10, color='E8E8F0')
+    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    warn_font = Font(name='Calibri', size=10, bold=True, color='FFAA00')
+    crit_font = Font(name='Calibri', size=10, bold=True, color='FF3333')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+
+    # Separate tracks
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    buses = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'BUS']
+    full_mixes = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Full Mix']
+
+    # ---- SHEET 1: Index ----
+    log_fn("    Excel: writing Index sheet...")
+    ws_index = wb.active
+    ws_index.title = 'Index'
+    ws_index.sheet_properties.tabColor = '00D9FF'
+    row = _xl_write_header(ws_index, 'MIX ANALYZER — REPORT INDEX',
+                            f'Style: {style_name} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+
+    # Track list with hyperlinks
+    headers = ['#', 'Track Name', 'Type', 'Category', 'Sheet Link']
+    for col, h in enumerate(headers, 1):
+        c = ws_index.cell(row=row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+    row += 1
+
+    sheet_names = {}  # track_name -> sheet_name
+    for idx, (a, ti) in enumerate(analyses_with_info, 1):
+        sname = _safe_sheet_name(os.path.splitext(ti['name'])[0])
+        # Avoid duplicate sheet names
+        base = sname
+        counter = 1
+        while sname in sheet_names.values():
+            sname = f"{base[:28]}_{counter}"
+            counter += 1
+        sheet_names[ti['name']] = sname
+
+        ws_index.cell(row=row, column=1, value=idx).font = data_font
+        ws_index.cell(row=row, column=2, value=ti['name']).font = data_font
+        ws_index.cell(row=row, column=3, value=ti['type']).font = accent_font if ti['type'] == 'Full Mix' else data_font
+        ws_index.cell(row=row, column=4, value=ti.get('category', '')).font = data_font
+        link_cell = ws_index.cell(row=row, column=5, value=sname)
+        link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
+        link_cell.hyperlink = f"#{sname}!A1"
+        for col in range(1, 6):
+            ws_index.cell(row=row, column=col).border = thin_border
+            ws_index.cell(row=row, column=col).fill = panel_fill
+        row += 1
+
+    # Also link to special sheets
+    row += 1
+    for special_name in ['Summary', 'Anomalies', 'Full Mix Context', 'Global Comparison', 'Full Mix Analysis', 'AI Prompt']:
+        ws_index.cell(row=row, column=2, value=special_name).font = data_font
+        link_cell = ws_index.cell(row=row, column=5, value=special_name)
+        link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
+        link_cell.hyperlink = f"#{special_name}!A1"
+        row += 1
+
+    ws_index.column_dimensions['B'].width = 45
+    ws_index.column_dimensions['C'].width = 12
+    ws_index.column_dimensions['D'].width = 20
+    ws_index.column_dimensions['E'].width = 25
+
+    # ---- SHEET 2: Summary ----
+    log_fn("    Excel: writing Summary sheet...")
+    ws_sum = wb.create_sheet('Summary')
+    ws_sum.sheet_properties.tabColor = 'B967FF'
+    row = _xl_write_header(ws_sum, 'SUMMARY — GLOBAL METRICS', f'{len(analyses_with_info)} tracks analyzed')
+
+    sum_headers = ['Track', 'Type', 'Category', 'LUFS', 'Peak (dB)', 'Crest (dB)',
+                   'Stereo Width', 'Dom. Band', 'Centroid (Hz)', 'Duration (s)']
+    for col, h in enumerate(sum_headers, 1):
+        c = ws_sum.cell(row=row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+    row += 1
+
+    for a, ti in analyses_with_info:
+        L = a['loudness']
+        S = a['spectrum']
+        st = a['stereo']
+        vals = [
+            a['filename'],
+            ti['type'],
+            ti.get('category', ''),
+            round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None,
+            round(L['peak_db'], 2),
+            round(L['crest_factor'], 2),
+            round(st['width_overall'], 3) if st['is_stereo'] else 'mono',
+            BAND_LABELS.get(S['dominant_band'], S['dominant_band']),
+            round(S['centroid'], 0),
+            round(a['duration'], 1),
+        ]
+        for col, v in enumerate(vals, 1):
+            c = ws_sum.cell(row=row, column=col, value=v)
+            c.font = data_font
+            c.border = thin_border
+            c.fill = panel_fill
+        row += 1
+
+    # Conditional formatting: color scale on LUFS column (D)
+    from openpyxl.formatting.rule import ColorScaleRule
+    if len(analyses_with_info) > 0:
+        data_start = 5
+        data_end = data_start + len(analyses_with_info) - 1
+        ws_sum.conditional_formatting.add(
+            f'D{data_start}:D{data_end}',
+            ColorScaleRule(start_type='min', start_color='FF3333',
+                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                           end_type='max', end_color='00FF9F'))
+        # Color scale on Crest factor (F)
+        ws_sum.conditional_formatting.add(
+            f'F{data_start}:F{data_end}',
+            ColorScaleRule(start_type='min', start_color='FF3333',
+                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                           end_type='max', end_color='00D9FF'))
+
+    for col_idx in range(1, 11):
+        ws_sum.column_dimensions[get_column_letter(col_idx)].width = 16
+    ws_sum.column_dimensions['A'].width = 40
+
+    # ---- SHEET 3: Anomalies ----
+    log_fn("    Excel: writing Anomalies sheet...")
+    ws_anom = wb.create_sheet('Anomalies')
+    ws_anom.sheet_properties.tabColor = 'FF3333'
+    row = _xl_write_header(ws_anom, 'ANOMALIES')
+
+    anom_headers = ['Track', 'Type', 'Severity', 'Description']
+    for col, h in enumerate(anom_headers, 1):
+        c = ws_anom.cell(row=row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+    row += 1
+
+    for a, ti in analyses_with_info:
+        if a.get('anomalies'):
+            for sev, desc in a['anomalies']:
+                ws_anom.cell(row=row, column=1, value=a['filename']).font = data_font
+                ws_anom.cell(row=row, column=2, value=ti['type']).font = data_font
+                sev_cell = ws_anom.cell(row=row, column=3, value=sev.upper())
+                sev_cell.font = crit_font if sev == 'critical' else warn_font
+                ws_anom.cell(row=row, column=4, value=desc).font = data_font
+                for col in range(1, 5):
+                    ws_anom.cell(row=row, column=col).border = thin_border
+                    ws_anom.cell(row=row, column=col).fill = panel_fill
+                row += 1
+
+    ws_anom.auto_filter.ref = f'A4:D{max(row - 1, 5)}'
+    ws_anom.column_dimensions['A'].width = 40
+    ws_anom.column_dimensions['B'].width = 12
+    ws_anom.column_dimensions['C'].width = 12
+    ws_anom.column_dimensions['D'].width = 70
+
+    # ---- SHEET 4: Full Mix Context ----
+    log_fn("    Excel: writing Full Mix Context sheet...")
+    ws_ctx = wb.create_sheet('Full Mix Context')
+    ws_ctx.sheet_properties.tabColor = 'B967FF'
+    row = _xl_write_header(ws_ctx, 'FULL MIX CONTEXT')
+
+    if full_mix_info:
+        ctx_items = [
+            ('Mix State', full_mix_info.get('state', 'Not specified')),
+            ('Active Plugins', ', '.join(full_mix_info.get('plugins', [])) or 'None'),
+            ('Loudness Target', full_mix_info.get('loudness_target', 'Not specified')),
+            ('Note', full_mix_info.get('note', '') or 'None'),
+        ]
+        for label, val in ctx_items:
+            ws_ctx.cell(row=row, column=1, value=label).font = accent_font
+            ws_ctx.cell(row=row, column=2, value=val).font = data_font
+            ws_ctx.cell(row=row, column=1).fill = panel_fill
+            ws_ctx.cell(row=row, column=2).fill = panel_fill
+            ws_ctx.cell(row=row, column=1).border = thin_border
+            ws_ctx.cell(row=row, column=2).border = thin_border
+            row += 1
+    else:
+        ws_ctx.cell(row=row, column=1, value='No Full Mix context configured.').font = dim_font
+
+    ws_ctx.column_dimensions['A'].width = 20
+    ws_ctx.column_dimensions['B'].width = 60
+
+    # ---- SHEET 5+: One sheet per track (Individual + BUS) ----
+    track_sheets = [(a, ti) for a, ti in analyses_with_info
+                    if ti['type'] in ('Individual', 'BUS')]
+    for sheet_idx, (a, ti) in enumerate(track_sheets):
+        sname = sheet_names.get(ti['name'], _safe_sheet_name(os.path.splitext(ti['name'])[0]))
+        log_fn(f"    Excel: writing sheet {sheet_idx + 1}/{len(track_sheets)}: {sname}")
+        ws_trk = wb.create_sheet(sname)
+        ws_trk.sheet_properties.tabColor = 'FF3D8B' if ti['type'] == 'BUS' else '00D9FF'
+        row = _xl_write_header(ws_trk, ti['name'],
+                                f"Type: {ti['type']} | Category: {ti.get('category', '')}")
+
+        # Metrics table
+        L = a['loudness']
+        S = a['spectrum']
+        st = a['stereo']
+        metrics = [
+            ('Duration', f"{a['duration']:.1f} s"),
+            ('LUFS Integrated', f"{L['lufs_integrated']:+.2f}" if np.isfinite(L['lufs_integrated']) else '-'),
+            ('LUFS Short-term Max', f"{L['lufs_short_term_max']:+.2f}" if np.isfinite(L['lufs_short_term_max']) else '-'),
+            ('True Peak', f"{L['true_peak_db']:+.2f} dBFS"),
+            ('Peak', f"{L['peak_db']:+.2f} dB"),
+            ('RMS', f"{L['rms_db']:+.2f} dB"),
+            ('Crest Factor', f"{L['crest_factor']:.2f} dB"),
+            ('PLR', f"{L['plr']:.2f} dB"),
+            ('PSR', f"{L['psr']:.2f} dB"),
+            ('LRA', f"{L['lra']:.2f} LU"),
+            ('Dominant Band', BAND_LABELS.get(S['dominant_band'], S['dominant_band'])),
+            ('Centroid', f"{S['centroid']:.0f} Hz"),
+            ('Rolloff 85%', f"{S['rolloff']:.0f} Hz"),
+            ('Flatness', f"{S['flatness']:.4f}"),
+            ('Phase Correlation', f"{st['correlation']:+.3f}" if st['is_stereo'] else 'Mono'),
+            ('Stereo Width', f"{st['width_overall']:.3f}" if st['is_stereo'] else 'Mono'),
+        ]
+        for label, val in metrics:
+            ws_trk.cell(row=row, column=1, value=label).font = accent_font
+            ws_trk.cell(row=row, column=2, value=val).font = data_font
+            ws_trk.cell(row=row, column=1).fill = panel_fill
+            ws_trk.cell(row=row, column=2).fill = panel_fill
+            ws_trk.cell(row=row, column=1).border = thin_border
+            ws_trk.cell(row=row, column=2).border = thin_border
+            row += 1
+
+        # Anomalies for this track
+        if a.get('anomalies'):
+            row += 1
+            ws_trk.cell(row=row, column=1, value='ANOMALIES').font = Font(
+                name='Calibri', size=12, bold=True, color='FFAA00')
+            row += 1
+            for sev, desc in a['anomalies']:
+                ws_trk.cell(row=row, column=1, value=sev.upper()).font = crit_font if sev == 'critical' else warn_font
+                ws_trk.cell(row=row, column=2, value=desc).font = data_font
+                row += 1
+
+        # Embed matplotlib visualizations as images
+        row += 2
+        img_row = row
+        page_fns = [
+            ('Identity', lambda: page_identity(a, ti, style_name)),
+            ('Temporal', lambda: page_temporal(a, ti)),
+            ('Spectral', lambda: page_spectral(a, ti)),
+            ('Spectrogram', lambda: page_spectrogram(a, ti)),
+            ('Musical', lambda: page_musical(a, ti)),
+            ('Stereo', lambda: page_stereo(a, ti)),
+            ('Multiband Timeline', lambda: page_multiband_timeline(a, ti)),
+            ('Dynamic Range', lambda: page_dynamic_range_map(a, ti)),
+            ('Characteristics', lambda: page_characteristics(a, ti, style_name)),
+        ]
+
+        for page_name, page_fn in page_fns:
+            try:
+                fig = page_fn()
+                img, tmp_path = _fig_to_image(fig)
+                tmp_files.append(tmp_path)
+                ws_trk.add_image(img, f'A{img_row}')
+                img_row += 48  # ~48 rows per image at default height
+            except Exception:
+                pass
+
+        ws_trk.column_dimensions['A'].width = 25
+        ws_trk.column_dimensions['B'].width = 40
+
+    # ---- SHEET: Global Comparison ----
+    log_fn("    Excel: writing Global Comparison sheet...")
+    ws_global = wb.create_sheet('Global Comparison')
+    ws_global.sheet_properties.tabColor = '00FF9F'
+    row = _xl_write_header(ws_global, 'GLOBAL COMPARISON',
+                            'Masking matrix, spectral balance, LUFS/Crest comparisons (excludes BUS)')
+
+    if individuals:
+        # Masking matrix as image
+        try:
+            fig = plt.figure(figsize=(16, 9))
+            fig.suptitle('FREQUENCY MASKING MATRIX (High Resolution)', fontsize=14,
+                         color=THEME['accent1'], fontweight='bold', y=0.97)
+            ax = fig.add_subplot(111)
+            hires_labels = [label for label, _, _ in FREQ_BANDS_HIRES]
+            n_bands = len(FREQ_BANDS_HIRES)
+            matrix = np.zeros((len(individuals), n_bands))
+            for i, (a_i, ti_i) in enumerate(individuals):
+                hires = compute_hires_band_energies(a_i['_mono'], a_i['sample_rate'])
+                for j, (label, _, _) in enumerate(FREQ_BANDS_HIRES):
+                    matrix[i, j] = hires[label]
+            im = ax.imshow(matrix, aspect='auto', cmap='magma', interpolation='nearest')
+            track_labels = [a_i['filename'][:35] for a_i, _ in individuals]
+            ax.set_yticks(range(len(individuals)))
+            ax.set_yticklabels(track_labels, fontsize=6)
+            ax.set_xticks(range(n_bands))
+            ax.set_xticklabels(hires_labels, rotation=45, ha='right', fontsize=7)
+            fig.colorbar(im, ax=ax, label='% of track energy', pad=0.01)
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+
+            img, tmp_path = _fig_to_image(fig)
+            tmp_files.append(tmp_path)
+            ws_global.add_image(img, f'A{row}')
+            row += 50
+        except Exception:
+            pass
+
+        # LUFS comparison bar chart
+        try:
+            fig = plt.figure(figsize=(16, 9))
+            fig.suptitle('LUFS COMPARISON', fontsize=14, color=THEME['accent1'],
+                         fontweight='bold', y=0.97)
+            ax = fig.add_subplot(111)
+            names = [a_i['filename'][:30] for a_i, _ in individuals]
+            lufs_vals = [a_i['loudness']['lufs_integrated'] for a_i, _ in individuals]
+            lufs_vals = [v if np.isfinite(v) else -70 for v in lufs_vals]
+            colors = [THEME['accent1'] if v > -20 else THEME['accent4'] for v in lufs_vals]
+            ax.barh(range(len(names)), lufs_vals, color=colors, edgecolor=THEME['fg_dim'], linewidth=0.3)
+            ax.set_yticks(range(len(names)))
+            ax.set_yticklabels(names, fontsize=7)
+            ax.set_xlabel('Integrated LUFS', fontsize=11)
+            ax.invert_yaxis()
+            ax.grid(True, alpha=0.3, axis='x')
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+
+            img, tmp_path = _fig_to_image(fig)
+            tmp_files.append(tmp_path)
+            ws_global.add_image(img, f'A{row}')
+            row += 50
+        except Exception:
+            pass
+
+        # Crest factor comparison
+        try:
+            fig = plt.figure(figsize=(16, 9))
+            fig.suptitle('CREST FACTOR COMPARISON', fontsize=14, color=THEME['accent1'],
+                         fontweight='bold', y=0.97)
+            ax = fig.add_subplot(111)
+            crest_vals = [a_i['loudness']['crest_factor'] for a_i, _ in individuals]
+            bar_colors = []
+            for v in crest_vals:
+                if v < 6:
+                    bar_colors.append(THEME['critical'])
+                elif v < 12:
+                    bar_colors.append(THEME['warning'])
+                else:
+                    bar_colors.append(THEME['accent4'])
+            ax.barh(range(len(names)), crest_vals, color=bar_colors,
+                     edgecolor=THEME['fg_dim'], linewidth=0.3)
+            ax.set_yticks(range(len(names)))
+            ax.set_yticklabels(names, fontsize=7)
+            ax.set_xlabel('Crest Factor (dB)', fontsize=11)
+            ax.axvline(6, color=THEME['critical'], linewidth=1, linestyle='--', alpha=0.7)
+            ax.axvline(12, color=THEME['accent4'], linewidth=1, linestyle='--', alpha=0.7)
+            ax.invert_yaxis()
+            ax.grid(True, alpha=0.3, axis='x')
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+
+            img, tmp_path = _fig_to_image(fig)
+            tmp_files.append(tmp_path)
+            ws_global.add_image(img, f'A{row}')
+            row += 50
+        except Exception:
+            pass
+
+        # Spectral balance comparison
+        try:
+            fig = plt.figure(figsize=(16, 9))
+            fig.suptitle('SPECTRAL BALANCE COMPARISON', fontsize=14, color=THEME['accent1'],
+                         fontweight='bold', y=0.97)
+            ax = fig.add_subplot(111)
+            band_names_7 = [BAND_LABELS[name] for name, _, _ in FREQ_BANDS]
+            band_x = np.arange(len(FREQ_BANDS))
+            bar_width = 0.8 / max(len(individuals), 1)
+            for idx_t, (a_i, ti_i) in enumerate(individuals[:12]):
+                offsets = band_x + idx_t * bar_width - 0.4
+                vals = [a_i['spectrum']['band_energies'][name] for name, _, _ in FREQ_BANDS]
+                ax.bar(offsets, vals, width=bar_width, label=a_i['filename'][:20], alpha=0.8)
+            ax.set_xticks(band_x)
+            ax.set_xticklabels(band_names_7, rotation=25, ha='right', fontsize=9)
+            ax.set_ylabel('% energy')
+            ax.legend(fontsize=6, ncol=3, loc='upper right')
+            ax.grid(True, alpha=0.3, axis='y')
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+
+            img, tmp_path = _fig_to_image(fig)
+            tmp_files.append(tmp_path)
+            ws_global.add_image(img, f'A{row}')
+            row += 50
+        except Exception:
+            pass
+
+    # ---- SHEET: Full Mix Analysis ----
+    log_fn("    Excel: writing Full Mix Analysis sheet...")
+    ws_fm = wb.create_sheet('Full Mix Analysis')
+    ws_fm.sheet_properties.tabColor = 'B967FF'
+
+    if full_mixes:
+        a_fm, ti_fm = full_mixes[0]
+        row = _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', a_fm['filename'])
+
+        L = a_fm['loudness']
+        S = a_fm['spectrum']
+        st = a_fm['stereo']
+        tempo = a_fm.get('tempo', {})
+
+        fm_metrics = [
+            ('LUFS Integrated', f"{L['lufs_integrated']:+.2f}" if np.isfinite(L['lufs_integrated']) else '-'),
+            ('LUFS Short-term Max', f"{L['lufs_short_term_max']:+.2f}" if np.isfinite(L['lufs_short_term_max']) else '-'),
+            ('True Peak', f"{L['true_peak_db']:+.2f} dBFS"),
+            ('Crest Factor', f"{L['crest_factor']:.2f} dB"),
+            ('PLR', f"{L['plr']:.2f} dB"),
+            ('LRA', f"{L['lra']:.2f} LU"),
+            ('Dominant Band', BAND_LABELS.get(S['dominant_band'], S['dominant_band'])),
+            ('Centroid', f"{S['centroid']:.0f} Hz"),
+            ('Phase Correlation', f"{st['correlation']:+.3f}" if st['is_stereo'] else 'Mono'),
+            ('Stereo Width', f"{st['width_overall']:.3f}" if st['is_stereo'] else 'Mono'),
+            ('Tempo (median)', f"{tempo.get('tempo_median', 0):.1f} BPM"),
+            ('Tempo range', f"{tempo.get('tempo_min', 0):.0f}-{tempo.get('tempo_max', 0):.0f} BPM"),
+        ]
+        for label, val in fm_metrics:
+            ws_fm.cell(row=row, column=1, value=label).font = accent_font
+            ws_fm.cell(row=row, column=2, value=val).font = data_font
+            ws_fm.cell(row=row, column=1).fill = panel_fill
+            ws_fm.cell(row=row, column=2).fill = panel_fill
+            row += 1
+
+        # Structure detection
+        row += 1
+        try:
+            full_mix_structure = analyze_structure_sections(a_fm['_mono'], a_fm['sample_rate'])
+            if full_mix_structure and full_mix_structure.get('success'):
+                ws_fm.cell(row=row, column=1, value='SECTION BOUNDARIES').font = Font(
+                    name='Calibri', size=12, bold=True, color='B967FF')
+                row += 1
+                bounds = full_mix_structure.get('boundaries', [])
+                valid_bounds = [b for b in bounds if b > 0.5]
+                for i, b in enumerate(valid_bounds):
+                    ws_fm.cell(row=row, column=1, value=f'Section {i + 1}').font = data_font
+                    ws_fm.cell(row=row, column=2, value=f'{b:.1f} s').font = data_font
+                    row += 1
+        except Exception:
+            pass
+
+        # Full Mix visualizations
+        row += 2
+        fm_pages = [
+            ('Identity', lambda: page_identity(a_fm, ti_fm, style_name)),
+            ('Temporal', lambda: page_temporal(a_fm, ti_fm)),
+            ('Spectral', lambda: page_spectral(a_fm, ti_fm)),
+            ('Spectrogram', lambda: page_spectrogram(a_fm, ti_fm)),
+            ('Multiband', lambda: page_multiband_timeline(a_fm, ti_fm)),
+            ('Dynamic Range', lambda: page_dynamic_range_map(a_fm, ti_fm)),
+        ]
+        for page_name, page_fn in fm_pages:
+            try:
+                fig = page_fn()
+                img, tmp_path = _fig_to_image(fig)
+                tmp_files.append(tmp_path)
+                ws_fm.add_image(img, f'A{row}')
+                row += 48
+            except Exception:
+                pass
+
+        ws_fm.column_dimensions['A'].width = 25
+        ws_fm.column_dimensions['B'].width = 40
+    else:
+        _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', 'No Full Mix track detected.')
+
+    # ---- SHEET 8: AI Prompt ----
+    log_fn("    Excel: writing AI Prompt sheet...")
+    ws_ai = wb.create_sheet('AI Prompt')
+    ws_ai.sheet_properties.tabColor = '00FF9F'
+    row = _xl_write_header(ws_ai, 'AI ANALYSIS PROMPT',
+                            'Copy this text and paste it into Claude along with this report file.')
+    row += 1
+
+    if ai_prompt:
+        ws_ai.cell(row=row, column=1, value=ai_prompt).font = data_font
+        ws_ai.cell(row=row, column=1).alignment = Alignment(wrap_text=True, vertical='top')
+        ws_ai.column_dimensions['A'].width = 120
+        ws_ai.row_dimensions[row].height = 600
+    else:
+        ws_ai.cell(row=row, column=1, value='No AI prompt available.').font = dim_font
+
+    # Save workbook
+    log_fn("    Excel: saving workbook...")
+    wb.save(output_path)
+
+    # Cleanup temp image files
+    for tmp_path in tmp_files:
+        try:
+            os.unlink(tmp_path)
+        except Exception:
+            pass
+
+    log_fn(f"    Excel: saved to {os.path.basename(output_path)}")
 
 
 def _format_row(idx, type_tag, analysis, track_info):
@@ -3731,13 +4395,45 @@ class MixAnalyzerApp:
                 traceback.print_exc()
             completed_steps += 1
 
-        # --- Excel generation (placeholder — Tour 1b) ---
+        # --- Excel generation ---
         if do_excel and analyses_with_info:
+            if self.cancel_requested:
+                self.log("CANCELLED by user.")
+                self._update_progress(0, 'Cancelled', '', '', '')
+                return
+
             self._update_progress(
                 int(completed_steps / total_steps * 100),
                 'Generating Excel report', '', '', '')
             self.log("-" * 60)
-            self.log("Excel generation: not yet implemented (coming in Tour 1b).")
+            self.log("Generating Excel report...")
+            try:
+                active_plugins = [p for p, v in self.mix_plugins.items() if v.get()]
+                full_mix_info_xl = {
+                    'state': self.mix_state.get(),
+                    'plugins': active_plugins,
+                    'loudness_target': self.mix_loudness_target.get(),
+                    'note': self.mix_note.get(),
+                }
+                ai_prompt = self._build_ai_prompt() if self.analysis_results or analyses_with_info else ''
+                # Temporarily store results so _build_ai_prompt can use them
+                old_results = self.analysis_results
+                self.analysis_results = analyses_with_info
+                ai_prompt = self._build_ai_prompt()
+                self.analysis_results = old_results
+
+                xlsx_path = output_folder / f'{report_prefix}.xlsx'
+                if xlsx_path.exists():
+                    xlsx_path.unlink()
+                generate_excel_report(
+                    analyses_with_info, str(xlsx_path), self.style.get(),
+                    full_mix_info=full_mix_info_xl, ai_prompt=ai_prompt,
+                    log_fn=self.log)
+                generated_files.append(xlsx_path)
+                self.log(f"Excel report: {xlsx_path.name}")
+            except Exception as e:
+                self.log(f"ERROR Excel report: {e}")
+                traceback.print_exc()
             completed_steps += 1
 
         # Done
