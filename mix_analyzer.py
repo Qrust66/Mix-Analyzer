@@ -3533,6 +3533,512 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     log_fn("    Excel: Mix Health Score sheet done.")
 
 
+def _find_previous_reports(output_folder, song_name):
+    """Find previous Mix Analyzer .xlsx reports in the output folder matching the song name."""
+    import glob
+    import re
+    pattern = os.path.join(output_folder, f'{song_name}_MixAnalyzer_*.xlsx')
+    files = glob.glob(pattern)
+    results = []
+    date_re = re.compile(r'_MixAnalyzer_(\d{4}-\d{2}-\d{2})')
+    for f in files:
+        m = date_re.search(os.path.basename(f))
+        if m:
+            results.append((m.group(1), f))
+    results.sort(key=lambda x: x[0])
+    return results
+
+
+def _extract_metrics_from_report(xlsx_path, log_fn=None):
+    """Extract key metrics from a previous Mix Analyzer .xlsx report.
+    Returns a dict of metric_name -> value, or None if extraction fails."""
+    try:
+        from openpyxl import load_workbook
+        wb = load_workbook(xlsx_path, read_only=True, data_only=True)
+        metrics = {}
+
+        # Read from Summary sheet
+        if 'Summary' in wb.sheetnames:
+            ws = wb['Summary']
+            # Headers at row 4: Track, Type, Category, LUFS, Peak, Crest, Width, ...
+            # Find Full Mix row and Individual rows
+            fm_lufs = None
+            fm_peak = None
+            fm_crest = None
+            fm_width = None
+            ind_crests = []
+            track_count = 0
+            for row in ws.iter_rows(min_row=5, max_col=10, values_only=True):
+                if row[0] is None:
+                    break
+                track_type = row[1]
+                if track_type == 'Full Mix':
+                    fm_lufs = row[3]
+                    fm_peak = row[4]
+                    fm_crest = row[5]
+                    fm_width = row[6]
+                elif track_type == 'Individual':
+                    track_count += 1
+                    if row[5] is not None:
+                        try:
+                            ind_crests.append(float(row[5]))
+                        except (ValueError, TypeError):
+                            pass
+
+            if fm_lufs is not None:
+                metrics['Full Mix LUFS'] = fm_lufs
+            if fm_peak is not None:
+                metrics['Full Mix Peak (dBFS)'] = fm_peak
+            if fm_crest is not None:
+                metrics['Full Mix Crest (dB)'] = fm_crest
+            if fm_width is not None and fm_width != 'mono':
+                try:
+                    metrics['Full Mix Width'] = float(fm_width)
+                except (ValueError, TypeError):
+                    pass
+            if ind_crests:
+                metrics['Avg Individual Crest (dB)'] = round(sum(ind_crests) / len(ind_crests), 2)
+            metrics['Track count'] = track_count
+
+        # Read from Dashboard for PLR, True Peak
+        if 'Dashboard' in wb.sheetnames:
+            ws_dash = wb['Dashboard']
+            # Headers at row 4: Track, Type, ..., True Peak at col 7, PLR at col 10
+            # Find header row first
+            header_row_vals = None
+            for row in ws_dash.iter_rows(min_row=1, max_row=10, max_col=20, values_only=True):
+                if row and row[0] == 'Track':
+                    header_row_vals = list(row)
+                    break
+            if header_row_vals:
+                tp_idx = None
+                plr_idx = None
+                for i, h in enumerate(header_row_vals):
+                    if h and 'True Peak' in str(h):
+                        tp_idx = i
+                    if h and h == 'PLR (dB)':
+                        plr_idx = i
+                type_idx = header_row_vals.index('Type') if 'Type' in header_row_vals else 1
+
+                for row in ws_dash.iter_rows(min_row=5, max_col=20, values_only=True):
+                    if row[0] is None:
+                        break
+                    if type_idx < len(row) and row[type_idx] == 'Full Mix':
+                        if tp_idx is not None and tp_idx < len(row) and row[tp_idx] is not None:
+                            try:
+                                metrics['Full Mix True Peak (dBFS)'] = float(row[tp_idx])
+                            except (ValueError, TypeError):
+                                pass
+                        if plr_idx is not None and plr_idx < len(row) and row[plr_idx] is not None:
+                            try:
+                                metrics['Full Mix PLR'] = float(row[plr_idx])
+                            except (ValueError, TypeError):
+                                pass
+
+        # Read Mix Health Score if present
+        if 'Mix Health Score' in wb.sheetnames:
+            ws_hs = wb['Mix Health Score']
+            # Global score is in A3
+            score_val = ws_hs['A3'].value
+            if score_val is not None:
+                try:
+                    metrics['Mix Health Score'] = float(score_val)
+                except (ValueError, TypeError):
+                    pass
+
+        # Count anomalies from Anomalies sheet
+        if 'Anomalies' in wb.sheetnames:
+            ws_anom = wb['Anomalies']
+            anom_count = 0
+            for row in ws_anom.iter_rows(min_row=5, max_col=3, values_only=True):
+                if row[0] is None:
+                    break
+                anom_count += 1
+            if anom_count > 0:
+                metrics['Anomaly count'] = anom_count
+            else:
+                metrics['Anomaly count'] = 0
+
+        wb.close()
+        return metrics
+    except Exception as e:
+        if log_fn:
+            log_fn(f"    Warning: could not read {os.path.basename(xlsx_path)}: {e}")
+        return None
+
+
+def _compute_current_metrics(analyses_with_info):
+    """Compute version tracking metrics from the current in-memory analyses."""
+    metrics = {}
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    full_mixes = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Full Mix']
+    full_mix = full_mixes[0][0] if full_mixes else None
+
+    if full_mix:
+        L = full_mix['loudness']
+        st = full_mix['stereo']
+        metrics['Full Mix LUFS'] = round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None
+        metrics['Full Mix True Peak (dBFS)'] = round(L.get('true_peak_db', L['peak_db']), 2)
+        metrics['Full Mix Crest (dB)'] = round(L['crest_factor'], 2)
+        metrics['Full Mix PLR'] = round(L['plr'], 2)
+        metrics['Full Mix Peak (dBFS)'] = round(L['peak_db'], 2)
+        metrics['Full Mix Width'] = round(st['width_overall'], 3) if st['is_stereo'] else None
+
+    if individuals:
+        ind_crests = [a['loudness']['crest_factor'] for a, _ in individuals]
+        metrics['Avg Individual Crest (dB)'] = round(float(np.mean(ind_crests)), 2)
+
+    # Anomaly count
+    anom_count = 0
+    for a, ti in analyses_with_info:
+        if ti.get('type') == 'BUS':
+            continue
+        try:
+            anoms = detect_anomalies(a)
+            anom_count += len(anoms)
+        except Exception:
+            pass
+    metrics['Anomaly count'] = anom_count
+
+    # Health score
+    try:
+        loud_s, _, _ = _calc_loudness_score(individuals, full_mix)
+        dyn_s, _, _ = _calc_dynamics_score(individuals, full_mix)
+        spec_s, _, _ = _calc_spectral_balance_score(individuals, full_mix)
+        stereo_s, _, _ = _calc_stereo_image_score(individuals, full_mix)
+        anom_s, _, _ = _calc_anomalies_score(analyses_with_info)
+        health = round(loud_s * 0.20 + dyn_s * 0.20 + spec_s * 0.25 + stereo_s * 0.15 + anom_s * 0.20, 1)
+        metrics['Mix Health Score'] = health
+    except Exception:
+        pass
+
+    metrics['Track count'] = len(individuals)
+
+    return metrics
+
+
+def _compute_trend(first_val, last_val, metric_name):
+    """Compute trend symbol based on metric direction preference.
+    Returns one of: '↗' (improving), '↘' (worsening), '→' (stable), '—' (insufficient data)."""
+    if first_val is None or last_val is None:
+        return '—'
+    try:
+        first_val = float(first_val)
+        last_val = float(last_val)
+    except (ValueError, TypeError):
+        return '—'
+
+    if first_val == 0:
+        return '→'
+
+    pct_change = abs((last_val - first_val) / abs(first_val)) * 100
+    if pct_change < 5:
+        return '→'
+
+    delta = last_val - first_val
+
+    # Metrics where "higher is better"
+    higher_is_better = {'Mix Health Score', 'Full Mix Crest (dB)', 'Avg Individual Crest (dB)',
+                        'Track count'}
+    # Metrics where "lower is better"
+    lower_is_better = {'Anomaly count', 'Full Mix True Peak (dBFS)', 'Full Mix Peak (dBFS)'}
+    # Metrics where "closer to target" is better
+    target_metrics = {'Full Mix LUFS': -14.0, 'Full Mix PLR': 12.0, 'Full Mix Width': 0.55}
+
+    if metric_name in higher_is_better:
+        return '↗' if delta > 0 else '↘'
+    elif metric_name in lower_is_better:
+        return '↗' if delta < 0 else '↘'
+    elif metric_name in target_metrics:
+        target = target_metrics[metric_name]
+        old_dist = abs(first_val - target)
+        new_dist = abs(last_val - target)
+        return '↗' if new_dist < old_dist else ('↘' if new_dist > old_dist else '→')
+    else:
+        return '→'
+
+
+def generate_version_tracking_sheet(workbook, analyses_with_info,
+                                     output_folder=None, song_name=None,
+                                     log_fn=None):
+    """
+    Génère le sheet 'Version Tracking' (P3.4) dans le workbook donné.
+    Détecte automatiquement les rapports Mix Analyzer précédents dans
+    output_folder qui matchent le pattern {song_name}_MixAnalyzer_*_GLOBAL.xlsx,
+    extrait leurs métriques clés, et affiche l'évolution chronologique
+    des indicateurs critiques.
+    """
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.formatting.rule import ColorScaleRule
+    from openpyxl.utils import get_column_letter
+    import datetime
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    log_fn("    Excel: writing Version Tracking sheet (P3.4)...")
+
+    # Theme styles
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    panel_fill = PatternFill('solid', fgColor='1A1A24')
+    header_fill = PatternFill('solid', fgColor='1A3A5A')
+    accent_font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    data_font = Font(name='Calibri', size=10, color='E8E8F0')
+    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+
+    ws = workbook.create_sheet('Version Tracking')
+    ws.sheet_properties.tabColor = '3DAAFF'
+
+    # --- Gather version data ---
+    current_date = datetime.date.today().isoformat()
+    current_metrics = _compute_current_metrics(analyses_with_info)
+
+    # Find previous reports
+    previous_reports = []
+    if output_folder and song_name:
+        found = _find_previous_reports(output_folder, song_name)
+        for date_str, path in found:
+            # Skip the current report if it already exists on disk (same date)
+            if date_str == current_date:
+                continue
+            extracted = _extract_metrics_from_report(path, log_fn=log_fn)
+            if extracted is not None:
+                previous_reports.append((date_str, path, extracted))
+
+    # Build ordered version list: previous + current
+    versions = []
+    for date_str, path, metrics in previous_reports:
+        versions.append((date_str, os.path.basename(path), metrics))
+    versions.append((current_date, '[current report]', current_metrics))
+
+    n_versions = len(versions)
+
+    # Metrics to track (in order)
+    tracked_metrics = [
+        'Full Mix LUFS',
+        'Full Mix True Peak (dBFS)',
+        'Full Mix Crest (dB)',
+        'Full Mix PLR',
+        'Full Mix Width',
+        'Avg Individual Crest (dB)',
+        'Anomaly count',
+        'Mix Health Score',
+        'Track count',
+    ]
+
+    # --- Section 1: Header (rows 1-6) ---
+    ws['A1'] = 'VERSION TRACKING'
+    ws['A1'].font = Font(name='Calibri', size=18, bold=True, color='00D9FF')
+    ws['A1'].fill = bg_fill
+
+    subtitle = f'Mix evolution over time for: {song_name}' if song_name else 'Mix evolution over time'
+    ws['A3'] = subtitle
+    ws['A3'].font = dim_font
+    ws['A3'].fill = bg_fill
+
+    ws['A5'] = f'Versions detected: {n_versions}'
+    ws['A5'].font = data_font
+    ws['A5'].fill = bg_fill
+
+    if n_versions >= 2:
+        ws['A6'] = f'Oldest: {versions[0][0]}  |  Most recent: {versions[-1][0]}'
+    else:
+        ws['A6'] = f'Current version: {current_date}'
+    ws['A6'].font = dim_font
+    ws['A6'].fill = bg_fill
+
+    if n_versions == 1:
+        ws['A7'] = ('No previous versions detected. This is the first Mix Analyzer report '
+                    'for this song in this folder. Subsequent reports will appear here for comparison.')
+        ws['A7'].font = Font(name='Calibri', size=10, italic=True, color='8888A0')
+        ws['A7'].fill = bg_fill
+
+    # --- Section 2: Evolution table (row 8 = headers) ---
+    header_row = 8
+
+    # Column A: Metric
+    c = ws.cell(row=header_row, column=1, value='Metric')
+    c.font = header_font
+    c.fill = header_fill
+    c.border = thin_border
+
+    # Columns B onwards: versions
+    for v_idx, (date_str, fname, _) in enumerate(versions):
+        col = v_idx + 2
+        label = f'{date_str}'
+        if fname == '[current report]':
+            label += ' (current)'
+        c = ws.cell(row=header_row, column=col, value=label)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', wrap_text=True)
+
+    # Delta columns after versions
+    delta_abs_col = n_versions + 2
+    delta_pct_col = n_versions + 3
+    trend_col = n_versions + 4
+
+    for col, label in [(delta_abs_col, 'Δ first→last'),
+                       (delta_pct_col, 'Δ %'),
+                       (trend_col, 'Trend')]:
+        c = ws.cell(row=header_row, column=col, value=label)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+    # Data rows
+    data_start_row = 9
+    for m_idx, metric_name in enumerate(tracked_metrics):
+        row = data_start_row + m_idx
+
+        # Metric name
+        c = ws.cell(row=row, column=1, value=metric_name)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        # Version values
+        first_val = None
+        last_val = None
+        for v_idx, (_, _, metrics) in enumerate(versions):
+            col = v_idx + 2
+            val = metrics.get(metric_name)
+            c = ws.cell(row=row, column=col, value=val)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+            if val is not None:
+                if isinstance(val, float):
+                    c.number_format = '0.00'
+                if first_val is None:
+                    first_val = val
+                last_val = val
+
+        # Delta absolute
+        if n_versions >= 2 and first_val is not None and last_val is not None:
+            try:
+                delta = float(last_val) - float(first_val)
+                c = ws.cell(row=row, column=delta_abs_col, value=round(delta, 2))
+                c.number_format = '+0.00;-0.00;0.00'
+            except (ValueError, TypeError):
+                c = ws.cell(row=row, column=delta_abs_col, value='—')
+        else:
+            c = ws.cell(row=row, column=delta_abs_col, value='—')
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+        # Delta percentage
+        if n_versions >= 2 and first_val is not None and last_val is not None:
+            try:
+                fv = float(first_val)
+                lv = float(last_val)
+                if fv != 0:
+                    pct = round((lv - fv) / abs(fv) * 100, 1)
+                    c = ws.cell(row=row, column=delta_pct_col, value=f'{pct:+.1f}%')
+                else:
+                    c = ws.cell(row=row, column=delta_pct_col, value='—')
+            except (ValueError, TypeError):
+                c = ws.cell(row=row, column=delta_pct_col, value='—')
+        else:
+            c = ws.cell(row=row, column=delta_pct_col, value='—')
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+        # Trend
+        if n_versions >= 2:
+            trend = _compute_trend(first_val, last_val, metric_name)
+        else:
+            trend = '—'
+        c = ws.cell(row=row, column=trend_col, value=trend)
+        c.font = Font(name='Calibri', size=12, bold=True,
+                      color='00FF9F' if trend == '↗' else
+                      ('FF3333' if trend == '↘' else '8888A0'))
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+    data_end_row = data_start_row + len(tracked_metrics) - 1
+
+    # --- Conditional formatting on delta column ---
+    if n_versions >= 2:
+        delta_range = f'{get_column_letter(delta_abs_col)}{data_start_row}:{get_column_letter(delta_abs_col)}{data_end_row}'
+        ws.conditional_formatting.add(
+            delta_range,
+            ColorScaleRule(
+                start_type='min', start_color='FF3333',
+                mid_type='num', mid_value=0, mid_color='FFFFFF',
+                end_type='max', end_color='00FF9F'))
+
+    # --- Section 4: Source files (after data rows) ---
+    source_row = data_end_row + 3
+
+    c = ws.cell(row=source_row, column=1, value='Source files used for this comparison:')
+    c.font = accent_font
+    c.fill = panel_fill
+    c.border = thin_border
+    for col in range(2, 4):
+        ws.cell(row=source_row, column=col).fill = panel_fill
+
+    source_row += 1
+    for col, h in enumerate(['Date', 'File', 'Status'], 1):
+        c = ws.cell(row=source_row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+
+    source_row += 1
+    for date_str, fname, _ in versions:
+        c = ws.cell(row=source_row, column=1, value=date_str)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        c = ws.cell(row=source_row, column=2, value=fname)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        status = '[in-memory, current report]' if fname == '[current report]' else 'read from disk'
+        c = ws.cell(row=source_row, column=3, value=status)
+        c.font = dim_font
+        c.fill = bg_fill
+        c.border = thin_border
+        source_row += 1
+
+    # Sparkline note
+    source_row += 1
+    ws.cell(row=source_row, column=1,
+            value='Sparkline visualization can be added in a future version.').font = dim_font
+    ws.cell(row=source_row, column=1).fill = bg_fill
+
+    # --- Freeze panes (row 9) ---
+    ws.freeze_panes = 'A9'
+
+    # --- Column widths ---
+    ws.column_dimensions['A'].width = 30
+    for v_idx in range(n_versions):
+        ws.column_dimensions[get_column_letter(v_idx + 2)].width = 14
+    ws.column_dimensions[get_column_letter(delta_abs_col)].width = 14
+    ws.column_dimensions[get_column_letter(delta_pct_col)].width = 10
+    ws.column_dimensions[get_column_letter(trend_col)].width = 8
+
+    log_fn("    Excel: Version Tracking sheet done.")
+
+
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None):
     """
@@ -4264,6 +4770,19 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # ---- P3.3: Mix Health Score ----
     generate_health_score_sheet(wb, analyses_with_info, log_fn=log_fn)
+
+    # ---- P3.4: Version Tracking ----
+    import re as _re
+    _output_dir = os.path.dirname(output_path) if output_path else None
+    _song_name = None
+    _base = os.path.basename(output_path) if output_path else ''
+    _m = _re.match(r'^(.+?)_MixAnalyzer_', _base)
+    if _m:
+        _song_name = _m.group(1)
+    generate_version_tracking_sheet(wb, analyses_with_info,
+                                     output_folder=_output_dir,
+                                     song_name=_song_name,
+                                     log_fn=log_fn)
 
     # ---- P2.5: Polish cyberpunk theme on Index and special sheets ----
     # Apply background fill to empty rows in Index
