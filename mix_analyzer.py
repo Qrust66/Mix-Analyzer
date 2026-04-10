@@ -2580,7 +2580,9 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # Also link to special sheets
     row += 1
-    for special_name in ['Dashboard', 'Summary', 'Anomalies', 'Full Mix Context', 'Global Comparison', 'Full Mix Analysis', 'AI Prompt']:
+    for special_name in ['Dashboard', 'Summary', 'Anomalies', 'Full Mix Context', 'Global Comparison',
+                             'Full Mix Analysis', 'AI Prompt', 'Freq Conflicts', 'Track Comparison',
+                             'Mix Health Score', 'Version History']:
         ws_index.cell(row=row, column=2, value=special_name).font = data_font
         link_cell = ws_index.cell(row=row, column=5, value=special_name)
         link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
