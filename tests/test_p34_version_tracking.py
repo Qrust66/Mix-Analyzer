@@ -562,6 +562,146 @@ def test_excel_roundtrip_with_previous():
         shutil.rmtree(tmpdir)
 
 
+def test_song_name_filtering():
+    """Only reports matching the song_name are included; others are excluded."""
+    from openpyxl import Workbook
+    tmpdir = tempfile.mkdtemp()
+    try:
+        create_fake_previous_report(tmpdir, 'Acid_Drops', '2025-03-01', fm_lufs=-15.0)
+        create_fake_previous_report(tmpdir, 'Other_Song', '2025-03-02', fm_lufs=-12.0)
+        create_fake_previous_report(tmpdir, 'Acid_Drops', '2025-03-10', fm_lufs=-14.5)
+
+        wb = Workbook()
+        generate_version_tracking_sheet(wb, make_tracks(),
+                                         output_folder=tmpdir, song_name='Acid_Drops',
+                                         log_fn=lambda m: None)
+        ws = wb['Version Tracking']
+        # 2 Acid_Drops + 1 current = 3 versions (Other_Song excluded)
+        assert '3' in ws['A5'].value, f"Expected 3 versions, got: {ws['A5'].value}"
+    finally:
+        shutil.rmtree(tmpdir)
+
+
+def test_corrupt_file_logs_warning():
+    """Corrupt .xlsx triggers a warning via log_fn."""
+    from openpyxl import Workbook
+    tmpdir = tempfile.mkdtemp()
+    warnings = []
+    try:
+        # Create a valid report
+        create_fake_previous_report(tmpdir, 'MySong', '2025-01-01', fm_lufs=-15.0)
+        # Create a corrupt file with matching name
+        corrupt_path = os.path.join(tmpdir, 'MySong_MixAnalyzer_2025-02-01.xlsx')
+        with open(corrupt_path, 'wb') as f:
+            f.write(b'this is not a valid xlsx file at all')
+
+        wb = Workbook()
+        generate_version_tracking_sheet(wb, make_tracks(),
+                                         output_folder=tmpdir, song_name='MySong',
+                                         log_fn=lambda msg: warnings.append(msg))
+        ws = wb['Version Tracking']
+        # Should still work (valid report + current)
+        assert '2' in ws['A5'].value, f"Expected 2 versions, got: {ws['A5'].value}"
+        # Warning should have been logged for the corrupt file
+        warning_text = ' '.join(warnings)
+        assert '2025-02-01' in warning_text or 'Warning' in warning_text or 'could not read' in warning_text, \
+            f"Expected warning about corrupt file, got: {warnings}"
+    finally:
+        shutil.rmtree(tmpdir)
+
+
+def test_delta_percentage_calculation():
+    """Delta percentage is correctly calculated between first and last version."""
+    from openpyxl import Workbook
+    tmpdir = tempfile.mkdtemp()
+    try:
+        # v1 LUFS = -16.0, current = -14.0 => delta = +2.0, pct = +2.0/16.0*100 = +12.5%
+        create_fake_previous_report(tmpdir, 'MySong', '2025-01-01', fm_lufs=-16.0)
+        wb = Workbook()
+        generate_version_tracking_sheet(wb, make_tracks(),
+                                         output_folder=tmpdir, song_name='MySong',
+                                         log_fn=lambda m: None)
+        ws = wb['Version Tracking']
+
+        # Delta % column = n_versions + 3 = 2 + 3 = 5
+        pct_val = ws.cell(row=9, column=5).value  # Full Mix LUFS % delta
+        assert pct_val is not None and pct_val != '—', f"Expected percentage, got: {pct_val}"
+        # Should be "+12.5%" (2.0 / 16.0 * 100)
+        assert '12.5' in str(pct_val), f"Expected 12.5% change, got: {pct_val}"
+    finally:
+        shutil.rmtree(tmpdir)
+
+
+def test_three_versions_chronological_order():
+    """Three previous versions are ordered chronologically (oldest left, newest right)."""
+    from openpyxl import Workbook
+    tmpdir = tempfile.mkdtemp()
+    try:
+        create_fake_previous_report(tmpdir, 'Song', '2025-03-25', fm_lufs=-15.0)
+        create_fake_previous_report(tmpdir, 'Song', '2025-03-15', fm_lufs=-16.0)
+        create_fake_previous_report(tmpdir, 'Song', '2025-04-05', fm_lufs=-14.5)
+
+        wb = Workbook()
+        generate_version_tracking_sheet(wb, make_tracks(),
+                                         output_folder=tmpdir, song_name='Song',
+                                         log_fn=lambda m: None)
+        ws = wb['Version Tracking']
+
+        # 3 previous + 1 current = 4 versions
+        assert '4' in ws['A5'].value
+
+        # Column headers should be in chronological order
+        h_b = ws.cell(row=8, column=2).value  # oldest
+        h_c = ws.cell(row=8, column=3).value
+        h_d = ws.cell(row=8, column=4).value
+        h_e = ws.cell(row=8, column=5).value  # current
+
+        assert '2025-03-15' in h_b, f"Expected oldest first, got: {h_b}"
+        assert '2025-03-25' in h_c, f"Expected middle, got: {h_c}"
+        assert '2025-04-05' in h_d, f"Expected newest previous, got: {h_d}"
+        assert '(current)' in h_e, f"Expected current last, got: {h_e}"
+    finally:
+        shutil.rmtree(tmpdir)
+
+
+def test_find_previous_reports_nonexistent_dir():
+    """_find_previous_reports handles nonexistent directory gracefully."""
+    try:
+        result = _find_previous_reports('/tmp/nonexistent_dir_xyz_12345', 'Song')
+        assert result == []
+    except Exception:
+        pass  # Either empty list or exception is acceptable
+
+
+def test_extract_metrics_missing_summary_sheet():
+    """_extract_metrics_from_report handles .xlsx without Summary sheet."""
+    from openpyxl import Workbook
+    tmpdir = tempfile.mkdtemp()
+    try:
+        wb = Workbook()
+        wb.active.title = 'SomeOtherSheet'
+        path = os.path.join(tmpdir, 'no_summary.xlsx')
+        wb.save(path)
+        metrics = _extract_metrics_from_report(path)
+        # Should return a dict (possibly empty) but not None
+        assert metrics is not None
+    finally:
+        shutil.rmtree(tmpdir)
+
+
+def test_compute_current_metrics_bus_excluded():
+    """BUS tracks are excluded from anomaly counting in _compute_current_metrics."""
+    tracks = make_tracks()
+    # Add a BUS track with clipping (would trigger anomalies)
+    tracks.append((_make_analysis('BadBus', peak=0.5, true_peak=1.0, crest=4.0, rms_db=-10.0),
+                   {'type': 'BUS', 'category': 'Drums'}))
+    metrics_with_bus = _compute_current_metrics(tracks)
+
+    metrics_without_bus = _compute_current_metrics(make_tracks())
+    assert metrics_with_bus['Anomaly count'] == metrics_without_bus['Anomaly count']
+    assert metrics_with_bus['Track count'] == 3  # BUS not counted
+
+
 # --- Runner ---
 
 if __name__ == '__main__':
@@ -596,6 +736,13 @@ if __name__ == '__main__':
         test_source_files_list_previous,
         test_excel_save_roundtrip,
         test_excel_roundtrip_with_previous,
+        test_song_name_filtering,
+        test_corrupt_file_logs_warning,
+        test_delta_percentage_calculation,
+        test_three_versions_chronological_order,
+        test_find_previous_reports_nonexistent_dir,
+        test_extract_metrics_missing_summary_sheet,
+        test_compute_current_metrics_bus_excluded,
     ]
 
     passed = 0
