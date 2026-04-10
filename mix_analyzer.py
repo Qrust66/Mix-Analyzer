@@ -475,8 +475,12 @@ def compute_hires_band_energies(mono, sr):
     freqs = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
     total_energy = np.sum(spectrum_mean ** 2) + 1e-12
     energies = {}
-    for label, flow, fhigh in FREQ_BANDS_HIRES:
-        mask = (freqs >= flow) & (freqs < fhigh)
+    for idx_b, (label, flow, fhigh) in enumerate(FREQ_BANDS_HIRES):
+        # Use <= for last band to include Nyquist
+        if idx_b == len(FREQ_BANDS_HIRES) - 1:
+            mask = (freqs >= flow) & (freqs <= fhigh)
+        else:
+            mask = (freqs >= flow) & (freqs < fhigh)
         if np.any(mask):
             energies[label] = 100 * float(np.sum(spectrum_mean[mask] ** 2)) / total_energy
         else:
@@ -2415,7 +2419,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     """
     import tempfile
     from openpyxl import Workbook
-    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side, numbers
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from openpyxl.drawing.image import Image as XlImage
     from openpyxl.utils import get_column_letter
 
@@ -4173,9 +4177,15 @@ class MixAnalyzerApp:
         self.analysis_summary.config(state='disabled')
 
     def log(self, msg):
-        self.log_text.insert('end', msg + '\n')
-        self.log_text.see('end')
-        self.root.update_idletasks()
+        """Thread-safe log: if called from worker, schedule via root.after."""
+        import threading as _th
+        def _do_log():
+            self.log_text.insert('end', msg + '\n')
+            self.log_text.see('end')
+        if _th.current_thread() is _th.main_thread():
+            _do_log()
+        else:
+            self.root.after(0, _do_log)
 
     def _update_progress(self, pct, step='', substep='', counter='', eta=''):
         """Thread-safe progress update."""
@@ -4237,7 +4247,8 @@ class MixAnalyzerApp:
                 self._do_analysis()
             except Exception as e:
                 if 'CancelledError' not in type(e).__name__:
-                    self.log(f"ERROR: {e}")
+                    err_msg = f"ERROR: {e}"
+                    self.root.after(0, lambda: self.log(err_msg))
                     traceback.print_exc()
             finally:
                 def _cleanup():
@@ -4270,6 +4281,15 @@ class MixAnalyzerApp:
 
         included_files = [f for f in self.track_order
                            if self.track_configs[f]['include']]
+
+        # Build full mix info once (shared by PDF and Excel)
+        active_plugins = [p for p, v in self.mix_plugins.items() if v.get()]
+        full_mix_info = {
+            'state': self.mix_state.get(),
+            'plugins': active_plugins,
+            'loudness_target': self.mix_loudness_target.get(),
+            'note': self.mix_note.get(),
+        }
 
         # Compute total steps for progress: analyze + PDF per track + global PDF + optional Excel
         n_tracks = len(included_files)
@@ -4376,13 +4396,6 @@ class MixAnalyzerApp:
                 int(completed_steps / total_steps * 100),
                 'Generating PDF reports', 'Global report', '', '')
             try:
-                active_plugins = [p for p, v in self.mix_plugins.items() if v.get()]
-                full_mix_info = {
-                    'state': self.mix_state.get(),
-                    'plugins': active_plugins,
-                    'loudness_target': self.mix_loudness_target.get(),
-                    'note': self.mix_note.get(),
-                }
                 global_pdf = output_folder / f'{report_prefix}_GLOBAL.pdf'
                 if global_pdf.exists():
                     global_pdf.unlink()
@@ -4400,6 +4413,12 @@ class MixAnalyzerApp:
             if self.cancel_requested:
                 self.log("CANCELLED by user.")
                 self._update_progress(0, 'Cancelled', '', '', '')
+                for gf in generated_files:
+                    try:
+                        if gf.exists():
+                            gf.unlink()
+                    except Exception:
+                        pass
                 return
 
             self._update_progress(
@@ -4408,14 +4427,6 @@ class MixAnalyzerApp:
             self.log("-" * 60)
             self.log("Generating Excel report...")
             try:
-                active_plugins = [p for p, v in self.mix_plugins.items() if v.get()]
-                full_mix_info_xl = {
-                    'state': self.mix_state.get(),
-                    'plugins': active_plugins,
-                    'loudness_target': self.mix_loudness_target.get(),
-                    'note': self.mix_note.get(),
-                }
-                ai_prompt = self._build_ai_prompt() if self.analysis_results or analyses_with_info else ''
                 # Temporarily store results so _build_ai_prompt can use them
                 old_results = self.analysis_results
                 self.analysis_results = analyses_with_info
@@ -4427,7 +4438,7 @@ class MixAnalyzerApp:
                     xlsx_path.unlink()
                 generate_excel_report(
                     analyses_with_info, str(xlsx_path), self.style.get(),
-                    full_mix_info=full_mix_info_xl, ai_prompt=ai_prompt,
+                    full_mix_info=full_mix_info, ai_prompt=ai_prompt,
                     log_fn=self.log)
                 generated_files.append(xlsx_path)
                 self.log(f"Excel report: {xlsx_path.name}")
