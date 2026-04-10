@@ -3050,6 +3050,489 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
     log_fn("    Excel: Track Comparison sheet done.")
 
 
+def _calc_loudness_score(individuals, full_mix):
+    """Loudness sub-score (0-100). Returns (score, details_list)."""
+    details = []
+    scores = []
+
+    # Coherence: std of individual LUFS
+    ind_lufs = [a['loudness']['lufs_integrated'] for a, _ in individuals
+                if np.isfinite(a['loudness']['lufs_integrated'])]
+    if len(ind_lufs) >= 2:
+        lufs_std = float(np.std(ind_lufs))
+        coh_score = max(0, 100 - lufs_std * 10)
+        details.append(('LUFS std (individuals)', round(lufs_std, 2), '< 4 LU', round(coh_score, 1)))
+    else:
+        coh_score = 70
+        details.append(('LUFS std (individuals)', 'N/A', '< 4 LU', coh_score))
+    scores.append((coh_score, 0.4))
+
+    # Full Mix target distance from -14 LUFS
+    if full_mix:
+        fm_lufs = full_mix['loudness']['lufs_integrated']
+        if np.isfinite(fm_lufs):
+            dist = abs(fm_lufs - (-14))
+            target_score = max(0, 100 - dist * 5)
+            details.append(('Full Mix LUFS', round(fm_lufs, 2), '-14 LUFS', round(target_score, 1)))
+        else:
+            target_score = 50
+            details.append(('Full Mix LUFS', 'N/A', '-14 LUFS', target_score))
+    else:
+        target_score = 70
+        details.append(('Full Mix LUFS', 'No Full Mix', '-14 LUFS', target_score))
+    scores.append((target_score, 0.4))
+
+    # True peak safety
+    if full_mix:
+        tp = full_mix['loudness'].get('true_peak_db', full_mix['loudness']['peak_db'])
+        if tp < -1.0:
+            peak_score = 100
+        else:
+            peak_score = max(0, 100 - (tp + 1) * 50)
+        details.append(('True Peak (Full Mix)', round(tp, 2), '< -1.0 dBFS', round(peak_score, 1)))
+    else:
+        peak_score = 70
+        details.append(('True Peak (Full Mix)', 'No Full Mix', '< -1.0 dBFS', peak_score))
+    scores.append((peak_score, 0.2))
+
+    total = sum(s * w for s, w in scores)
+    note = 'Tight LUFS' if total >= 75 else ('Moderate spread' if total >= 50 else 'Wide LUFS spread')
+    return round(total, 1), details, note
+
+
+def _calc_dynamics_score(individuals, full_mix):
+    """Dynamics sub-score (0-100). Returns (score, details_list, note)."""
+    details = []
+    scores = []
+
+    # Crest factor mean
+    ind_crests = [a['loudness']['crest_factor'] for a, _ in individuals]
+    if ind_crests:
+        crest_mean = float(np.mean(ind_crests))
+        # Linear 0 at crest=4, 100 at crest=14
+        crest_score = max(0, min(100, (crest_mean - 4) * 10))
+        details.append(('Crest factor mean', round(crest_mean, 2), '8-14 dB', round(crest_score, 1)))
+    else:
+        crest_score = 50
+        details.append(('Crest factor mean', 'N/A', '8-14 dB', crest_score))
+    scores.append((crest_score, 0.4))
+
+    # PLR Full Mix
+    if full_mix:
+        plr = full_mix['loudness']['plr']
+        # Peak at 100 when PLR=12, degrade symmetrically
+        plr_score = max(0, 100 - abs(plr - 12) * 10)
+        details.append(('PLR (Full Mix)', round(plr, 2), '11-14 dB', round(plr_score, 1)))
+    else:
+        plr_score = 60
+        details.append(('PLR (Full Mix)', 'No Full Mix', '11-14 dB', plr_score))
+    scores.append((plr_score, 0.4))
+
+    # Variance of crest factors
+    if len(ind_crests) >= 2:
+        crest_std = float(np.std(ind_crests))
+        var_score = max(0, 100 - crest_std * 5)
+        details.append(('Crest std (individuals)', round(crest_std, 2), '< 4 dB', round(var_score, 1)))
+    else:
+        var_score = 70
+        details.append(('Crest std (individuals)', 'N/A', '< 4 dB', var_score))
+    scores.append((var_score, 0.2))
+
+    total = sum(s * w for s, w in scores)
+    note = 'Good dynamics' if total >= 75 else ('Low crest' if crest_score < 50 else 'Moderate')
+    return round(total, 1), details, note
+
+
+def _calc_spectral_balance_score(individuals, full_mix):
+    """Spectral Balance sub-score (0-100). Returns (score, details_list, note)."""
+    details = []
+
+    # Use Full Mix if available, otherwise average individuals
+    if full_mix:
+        energies = full_mix['spectrum']['band_energies']
+        source = 'Full Mix'
+    elif individuals:
+        # Average band energies across individuals
+        avg = {name: 0.0 for name, _, _ in FREQ_BANDS}
+        for a, _ in individuals:
+            for name, _, _ in FREQ_BANDS:
+                avg[name] += a['spectrum']['band_energies'].get(name, 0.0)
+        for name, _, _ in FREQ_BANDS:
+            avg[name] /= len(individuals)
+        energies = avg
+        source = 'Individual avg'
+    else:
+        return 50.0, [('Source', 'No tracks', '-', 50)], 'No data'
+
+    band_values = [energies.get(name, 0.0) for name, _, _ in FREQ_BANDS]
+    total_e = sum(band_values)
+    if total_e <= 0:
+        return 50.0, [('Total energy', 0, '> 0', 50)], 'No energy'
+
+    # Spectral entropy (normalized)
+    probs = [v / total_e for v in band_values if v > 0]
+    if probs:
+        entropy = -sum(p * np.log2(p) for p in probs)
+        max_entropy = np.log2(len(FREQ_BANDS))
+        entropy_norm = (entropy / max_entropy) * 100 if max_entropy > 0 else 50
+    else:
+        entropy_norm = 0
+    details.append(('Spectral entropy', f'{entropy_norm:.1f}%', '> 70%', round(entropy_norm, 1)))
+
+    score = entropy_norm
+
+    # Penalty if Sub Energy = 0
+    sub_e = energies.get('sub', 0.0)
+    if sub_e <= 0.5:
+        score = max(0, score - 10)
+        details.append(('Sub Energy', f'{sub_e:.1f}%', '> 0.5%', '-10 penalty'))
+    else:
+        details.append(('Sub Energy', f'{sub_e:.1f}%', '> 0.5%', 'OK'))
+
+    # Penalty if Air Energy = 0
+    air_e = energies.get('air', 0.0)
+    if air_e <= 0.5:
+        score = max(0, score - 10)
+        details.append(('Air Energy', f'{air_e:.1f}%', '> 0.5%', '-10 penalty'))
+    else:
+        details.append(('Air Energy', f'{air_e:.1f}%', '> 0.5%', 'OK'))
+
+    # Penalty if any band > 35%
+    max_band = max(band_values)
+    max_band_name = [name for name, _, _ in FREQ_BANDS
+                     if energies.get(name, 0) == max_band][0]
+    if max_band > 35:
+        penalty = min(20, (max_band - 35) * 2)
+        score = max(0, score - penalty)
+        details.append((f'Dominant band ({BAND_LABELS[max_band_name]})',
+                        f'{max_band:.1f}%', '< 35%', f'-{penalty:.0f} penalty'))
+    else:
+        details.append(('Max band energy', f'{max_band:.1f}%', '< 35%', 'OK'))
+
+    score = max(0, min(100, score))
+    note = 'Balanced' if score >= 75 else ('Uneven' if score < 50 else 'Moderate')
+    return round(score, 1), details, note
+
+
+def _calc_stereo_image_score(individuals, full_mix):
+    """Stereo Image sub-score (0-100). Returns (score, details_list, note)."""
+    details = []
+    scores = []
+
+    # Width score (60 pts weight)
+    if full_mix and full_mix['stereo']['is_stereo']:
+        width = full_mix['stereo']['width_overall']
+        if 0.4 <= width <= 0.7:
+            width_score = 100
+        elif width < 0.4:
+            width_score = max(0, 100 - (0.4 - width) * 200)
+        else:
+            width_score = max(0, 100 - (width - 0.7) * 200)
+        details.append(('Stereo Width (Full Mix)', round(width, 3), '0.40-0.70', round(width_score, 1)))
+    elif individuals:
+        widths = [a['stereo']['width_overall'] for a, _ in individuals if a['stereo']['is_stereo']]
+        if widths:
+            avg_w = float(np.mean(widths))
+            if 0.3 <= avg_w <= 0.7:
+                width_score = 100
+            elif avg_w < 0.3:
+                width_score = max(0, 100 - (0.3 - avg_w) * 200)
+            else:
+                width_score = max(0, 100 - (avg_w - 0.7) * 200)
+            details.append(('Avg Width (individuals)', round(avg_w, 3), '0.30-0.70', round(width_score, 1)))
+        else:
+            width_score = 50
+            details.append(('Stereo Width', 'Mono tracks', '0.40-0.70', width_score))
+    else:
+        width_score = 50
+        details.append(('Stereo Width', 'No data', '0.40-0.70', width_score))
+    scores.append((width_score, 0.6))
+
+    # Sub mono check (40 pts): sub should be more mono than high
+    src = full_mix if full_mix else (individuals[0][0] if individuals else None)
+    if src and src['stereo']['is_stereo']:
+        sub_w = src['stereo']['width_per_band'].get('sub', 0.0)
+        high_w = src['stereo']['width_per_band'].get('presence', 0.5)
+        if sub_w <= high_w:
+            mono_score = 100
+        else:
+            mono_score = max(0, 100 - (sub_w - high_w) * 200)
+        details.append(('Sub width vs High width', f'{sub_w:.2f} vs {high_w:.2f}',
+                        'Sub < High', round(mono_score, 1)))
+    else:
+        mono_score = 70
+        details.append(('Sub mono check', 'N/A', 'Sub < High', mono_score))
+    scores.append((mono_score, 0.4))
+
+    total = sum(s * w for s, w in scores)
+    note = 'Good image' if total >= 75 else ('Too narrow' if width_score < 50 else 'Wide')
+    return round(total, 1), details, note
+
+
+def _calc_anomalies_score(analyses_with_info):
+    """Anomalies sub-score (0-100). Returns (score, details_list, note)."""
+    details = []
+    total_anomalies = 0
+    critical_count = 0
+    warning_count = 0
+
+    for a, ti in analyses_with_info:
+        if ti.get('type') == 'BUS':
+            continue
+        try:
+            anoms = detect_anomalies(a)
+            for sev, desc in anoms:
+                total_anomalies += 1
+                if sev == 'critical':
+                    critical_count += 1
+                else:
+                    warning_count += 1
+        except Exception:
+            pass
+
+    # Score: 100 - penalties
+    penalty = critical_count * 15 + warning_count * 5
+    score = max(0, 100 - penalty)
+
+    details.append(('Total anomalies', total_anomalies, '0', round(score, 1)))
+    details.append(('Critical', critical_count, '0', f'-{critical_count * 15} pts'))
+    details.append(('Warnings', warning_count, '0', f'-{warning_count * 5} pts'))
+
+    note = f'{total_anomalies} anomalies' if total_anomalies > 0 else 'Clean'
+    return round(score, 1), details, note
+
+
+def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
+    """
+    Génère le sheet 'Mix Health Score' (P3.3) dans le workbook donné.
+    Calcule un score global de santé du mix sur 100, décomposé en
+    5 sous-scores : Loudness, Dynamics, Spectral Balance, Stereo Image,
+    Anomalies. Filtre les pistes : Individual + Full Mix, exclut BUS.
+    """
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.formatting.rule import ColorScaleRule
+    from openpyxl.utils import get_column_letter
+    import datetime
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    log_fn("    Excel: writing Mix Health Score sheet (P3.3)...")
+
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    full_mixes = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Full Mix']
+    full_mix = full_mixes[0][0] if full_mixes else None
+
+    if not individuals and not full_mix:
+        ws = workbook.create_sheet('Mix Health Score')
+        ws.sheet_properties.tabColor = '3DFFAA'
+        _xl_write_header(ws, 'MIX HEALTH SCORE', 'No tracks available for scoring.')
+        return
+
+    # Compute sub-scores
+    loud_score, loud_details, loud_note = _calc_loudness_score(individuals, full_mix)
+    dyn_score, dyn_details, dyn_note = _calc_dynamics_score(individuals, full_mix)
+    spec_score, spec_details, spec_note = _calc_spectral_balance_score(individuals, full_mix)
+    stereo_score, stereo_details, stereo_note = _calc_stereo_image_score(individuals, full_mix)
+    anom_score, anom_details, anom_note = _calc_anomalies_score(analyses_with_info)
+
+    categories = [
+        ('Loudness', loud_score, 0.20, loud_note, loud_details),
+        ('Dynamics', dyn_score, 0.20, dyn_note, dyn_details),
+        ('Spectral Balance', spec_score, 0.25, spec_note, spec_details),
+        ('Stereo Image', stereo_score, 0.15, stereo_note, stereo_details),
+        ('Anomalies', anom_score, 0.20, anom_note, anom_details),
+    ]
+
+    global_score = round(sum(s * w for _, s, w, _, _ in categories), 1)
+
+    # Theme styles
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    panel_fill = PatternFill('solid', fgColor='1A1A24')
+    header_fill = PatternFill('solid', fgColor='1A3A5A')
+    accent_font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    data_font = Font(name='Calibri', size=10, color='E8E8F0')
+    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+
+    # Score color
+    if global_score >= 80:
+        score_color = '00FF9F'
+    elif global_score >= 60:
+        score_color = 'AAFF00'
+    elif global_score >= 40:
+        score_color = 'FFAA00'
+    elif global_score >= 20:
+        score_color = 'FF3333'
+    else:
+        score_color = '990000'
+
+    # Create sheet
+    ws = workbook.create_sheet('Mix Health Score')
+    ws.sheet_properties.tabColor = '3DFFAA'
+
+    # --- Section 1: Global score (rows 1-8) ---
+    ws['A1'] = 'MIX HEALTH SCORE'
+    ws['A1'].font = Font(name='Calibri', size=18, bold=True, color='00D9FF')
+    ws['A1'].fill = bg_fill
+
+    # Score display
+    ws.merge_cells('A3:D3')
+    ws['A3'] = global_score
+    ws['A3'].font = Font(name='Calibri', size=36, bold=True, color=score_color)
+    ws['A3'].fill = bg_fill
+    ws['A3'].alignment = Alignment(horizontal='center', vertical='center')
+    ws['A3'].number_format = '0.0"/100"'
+
+    ws['A5'] = f'Calculated on: {datetime.date.today().isoformat()}'
+    ws['A5'].font = dim_font
+    ws['A5'].fill = bg_fill
+    ws['A6'] = f'Tracks analyzed: {len(individuals)} Individual' + \
+               (f' + 1 Full Mix' if full_mix else '')
+    ws['A6'].font = dim_font
+    ws['A6'].fill = bg_fill
+    ws['A7'] = 'Indicative score based on technical heuristics. ' \
+               'Not an artistic judgment. Use as a tracking tool between mix iterations.'
+    ws['A7'].font = Font(name='Calibri', size=10, italic=True, color='8888A0')
+    ws['A7'].fill = bg_fill
+
+    # --- Section 2: Sub-scores table (rows 10-17) ---
+    cat_header_row = 10
+    cat_headers = ['Category', 'Score', 'Weight', 'Notes']
+    for col, h in enumerate(cat_headers, 1):
+        c = ws.cell(row=cat_header_row, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', vertical='center')
+
+    for i, (name, score, weight, note, _) in enumerate(categories):
+        row = cat_header_row + 1 + i
+        c = ws.cell(row=row, column=1, value=name)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        c = ws.cell(row=row, column=2, value=score)
+        c.font = accent_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+        c.number_format = '0.0'
+
+        c = ws.cell(row=row, column=3, value=f'{int(weight * 100)}%')
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+        c = ws.cell(row=row, column=4, value=note)
+        c.font = dim_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+    # Separator row 16
+    sep_row = cat_header_row + 1 + len(categories)
+
+    # Weighted total row
+    total_row = sep_row + 1
+    c = ws.cell(row=total_row, column=1, value='WEIGHTED TOTAL')
+    c.font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    c.fill = bg_fill
+    c.border = thin_border
+
+    c = ws.cell(row=total_row, column=2, value=global_score)
+    c.font = Font(name='Calibri', size=14, bold=True, color=score_color)
+    c.fill = bg_fill
+    c.border = thin_border
+    c.alignment = Alignment(horizontal='center')
+    c.number_format = '0.0'
+
+    c = ws.cell(row=total_row, column=3, value='100%')
+    c.font = data_font
+    c.fill = bg_fill
+    c.border = thin_border
+    c.alignment = Alignment(horizontal='center')
+
+    # Color scale on sub-score column (B11:B15)
+    score_start = cat_header_row + 1
+    score_end = score_start + len(categories) - 1
+    ws.conditional_formatting.add(
+        f'B{score_start}:B{score_end}',
+        ColorScaleRule(
+            start_type='num', start_value=0, start_color='FF3333',
+            mid_type='num', mid_value=50, mid_color='FFAA00',
+            end_type='num', end_value=100, end_color='00FF9F'))
+
+    # --- Section 3: Details per category (from row 20) ---
+    detail_row = 20
+
+    for cat_name, _, _, _, cat_details in categories:
+        # Sub-header
+        c = ws.cell(row=detail_row, column=1, value=f'{cat_name} Details')
+        c.font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+        c.fill = panel_fill
+        c.border = thin_border
+        for col in range(2, 5):
+            c2 = ws.cell(row=detail_row, column=col)
+            c2.fill = panel_fill
+            c2.border = thin_border
+        # Detail column headers
+        detail_row += 1
+        for col, h in enumerate(['Metric', 'Value', 'Ideal Range', 'Contribution'], 1):
+            c = ws.cell(row=detail_row, column=col, value=h)
+            c.font = Font(name='Calibri', size=10, bold=True, color='E8E8F0')
+            c.fill = header_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+
+        detail_row += 1
+        for metric, value, ideal, contrib in cat_details:
+            c = ws.cell(row=detail_row, column=1, value=metric)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+
+            c = ws.cell(row=detail_row, column=2, value=value)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+
+            c = ws.cell(row=detail_row, column=3, value=ideal)
+            c.font = dim_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+
+            c = ws.cell(row=detail_row, column=4, value=contrib)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+
+            detail_row += 1
+
+        detail_row += 1  # blank row between sections
+
+    # --- Freeze panes (row 11) ---
+    ws.freeze_panes = 'A11'
+
+    # --- Column widths ---
+    ws.column_dimensions['A'].width = 25
+    ws.column_dimensions['B'].width = 10
+    ws.column_dimensions['C'].width = 12
+    ws.column_dimensions['D'].width = 30
+
+    log_fn("    Excel: Mix Health Score sheet done.")
+
+
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None):
     """
@@ -3778,6 +4261,9 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # ---- P3.2: Track Comparison Tool ----
     generate_track_comparison_sheet(wb, analyses_with_info, log_fn=log_fn)
+
+    # ---- P3.3: Mix Health Score ----
+    generate_health_score_sheet(wb, analyses_with_info, log_fn=log_fn)
 
     # ---- P2.5: Polish cyberpunk theme on Index and special sheets ----
     # Apply background fill to empty rows in Index
