@@ -2498,6 +2498,220 @@ def _xl_add_comment(cell, text):
     cell.comment = Comment(text, 'Mix Analyzer')
 
 
+def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0,
+                                   default_min_tracks=2, log_fn=None):
+    """
+    Génère le sheet 'Freq Conflicts' (P3.1) dans le workbook donné.
+    Utilise FREQ_BANDS_HIRES pour les bandes de fréquence.
+    Filtre les pistes : Individual uniquement, exclut BUS et Full Mix.
+    """
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.formatting.rule import ColorScaleRule, DataBarRule, FormulaRule
+    from openpyxl.utils import get_column_letter
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    log_fn("    Excel: writing Freq Conflicts sheet (P3.1)...")
+
+    # Filter: Individual tracks only
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    if not individuals:
+        ws = wb.create_sheet('Freq Conflicts')
+        ws.sheet_properties.tabColor = 'FF3333'
+        _xl_write_header(ws, 'FREQUENCY CONFLICT DETECTOR', 'No individual tracks found.')
+        return
+
+    # Compute hires band energies for each individual track
+    track_names = []
+    all_energies = []  # list of dicts {band_label: energy_value}
+    for a, ti in individuals:
+        track_names.append(a['filename'])
+        hires = compute_hires_band_energies(a['_mono'], a['sample_rate'])
+        all_energies.append(hires)
+
+    band_labels = [label for label, _, _ in FREQ_BANDS_HIRES]
+    n_bands = len(band_labels)
+    n_tracks = len(track_names)
+
+    # Build energy matrix and normalize per band (% of max in that band)
+    import numpy as np
+    matrix = np.zeros((n_bands, n_tracks))
+    for t_idx, energies in enumerate(all_energies):
+        for b_idx, label in enumerate(band_labels):
+            matrix[b_idx, t_idx] = energies.get(label, 0.0)
+
+    # Normalize each band row: percentage of max energy in that band
+    norm_matrix = np.zeros_like(matrix)
+    for b_idx in range(n_bands):
+        row_max = np.max(matrix[b_idx]) if np.max(matrix[b_idx]) > 0 else 1.0
+        norm_matrix[b_idx] = 100.0 * matrix[b_idx] / row_max
+
+    # Theme styles
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    panel_fill = PatternFill('solid', fgColor='1A1A24')
+    header_fill = PatternFill('solid', fgColor='1A3A5A')
+    accent_font = Font(name='Calibri', size=11, bold=True, color='00D9FF')
+    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    data_font = Font(name='Calibri', size=10, color='E8E8F0')
+    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+    conflict_fill = PatternFill('solid', fgColor='FF3333')
+    ok_fill = PatternFill('solid', fgColor='00FF9F')
+
+    # Create sheet
+    ws = wb.create_sheet('Freq Conflicts')
+    ws.sheet_properties.tabColor = 'FF3D8B'
+
+    # Row 1: Title
+    ws.merge_cells('A1:J1')
+    ws['A1'] = 'FREQUENCY CONFLICT DETECTOR'
+    ws['A1'].font = Font(name='Calibri', size=16, bold=True, color='00D9FF')
+    ws['A1'].fill = bg_fill
+
+    # Row 2: Threshold parameter
+    ws['A2'] = 'Conflict threshold (% of max band energy)'
+    ws['A2'].font = dim_font
+    ws['A2'].fill = bg_fill
+    ws['B2'] = default_threshold
+    ws['B2'].font = accent_font
+    ws['B2'].fill = panel_fill
+    ws['B2'].border = thin_border
+
+    # Row 3: Min tracks parameter
+    ws['A3'] = 'Min tracks for conflict'
+    ws['A3'].font = dim_font
+    ws['A3'].fill = bg_fill
+    ws['B3'] = default_min_tracks
+    ws['B3'].font = accent_font
+    ws['B3'].fill = panel_fill
+    ws['B3'].border = thin_border
+
+    # Row 4: empty separator
+    # Row 5: Headers
+    header_row = 5
+    ws.cell(row=header_row, column=1, value='Frequency Band').font = header_font
+    ws.cell(row=header_row, column=1).fill = header_fill
+    ws.cell(row=header_row, column=1).border = thin_border
+    ws.cell(row=header_row, column=1).alignment = Alignment(horizontal='center', vertical='center')
+
+    for t_idx, name in enumerate(track_names):
+        col = t_idx + 2
+        c = ws.cell(row=header_row, column=col, value=name[:20])
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+
+    conflict_count_col = n_tracks + 2
+    status_col = n_tracks + 3
+
+    ws.cell(row=header_row, column=conflict_count_col, value='Conflict count').font = header_font
+    ws.cell(row=header_row, column=conflict_count_col).fill = header_fill
+    ws.cell(row=header_row, column=conflict_count_col).border = thin_border
+    ws.cell(row=header_row, column=conflict_count_col).alignment = Alignment(horizontal='center')
+
+    ws.cell(row=header_row, column=status_col, value='Status').font = header_font
+    ws.cell(row=header_row, column=status_col).fill = header_fill
+    ws.cell(row=header_row, column=status_col).border = thin_border
+    ws.cell(row=header_row, column=status_col).alignment = Alignment(horizontal='center')
+
+    # Data rows (one per band)
+    data_start_row = 6
+    for b_idx, label in enumerate(band_labels):
+        row = data_start_row + b_idx
+        # Band label
+        c = ws.cell(row=row, column=1, value=label)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+
+        # Track energy values (normalized %)
+        for t_idx in range(n_tracks):
+            col = t_idx + 2
+            val = round(norm_matrix[b_idx, t_idx], 1)
+            c = ws.cell(row=row, column=col, value=val)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.number_format = '0.0'
+
+        # Conflict count formula: COUNTIF over track columns where value >= threshold in B2
+        first_track_col = get_column_letter(2)
+        last_track_col = get_column_letter(n_tracks + 1)
+        countif_range = f'{first_track_col}{row}:{last_track_col}{row}'
+        formula_count = f'=COUNTIF({countif_range},">="&$B$2)'
+        c = ws.cell(row=row, column=conflict_count_col, value=formula_count)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+        # Status formula: IF conflict_count >= B3 then "CONFLICT" else "OK"
+        cc_letter = get_column_letter(conflict_count_col)
+        formula_status = f'=IF({cc_letter}{row}>=$B$3,"CONFLICT","OK")'
+        c = ws.cell(row=row, column=status_col, value=formula_status)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+
+    data_end_row = data_start_row + n_bands - 1
+
+    # --- Conditional Formatting ---
+    # 1. Color scale on data cells (green -> yellow -> red)
+    data_range = (f'{get_column_letter(2)}{data_start_row}:'
+                  f'{get_column_letter(n_tracks + 1)}{data_end_row}')
+    ws.conditional_formatting.add(
+        data_range,
+        ColorScaleRule(
+            start_type='num', start_value=0, start_color='00FF9F',
+            mid_type='num', mid_value=50, mid_color='FFFF00',
+            end_type='num', end_value=100, end_color='FF3333'))
+
+    # 2. Status column: red if CONFLICT, green if OK
+    status_range = f'{get_column_letter(status_col)}{data_start_row}:{get_column_letter(status_col)}{data_end_row}'
+    ws.conditional_formatting.add(
+        status_range,
+        FormulaRule(
+            formula=[f'{get_column_letter(status_col)}{data_start_row}="CONFLICT"'],
+            fill=conflict_fill))
+    ws.conditional_formatting.add(
+        status_range,
+        FormulaRule(
+            formula=[f'{get_column_letter(status_col)}{data_start_row}="OK"'],
+            fill=ok_fill))
+
+    # 3. Data bars on conflict count column
+    cc_range = f'{get_column_letter(conflict_count_col)}{data_start_row}:{get_column_letter(conflict_count_col)}{data_end_row}'
+    ws.conditional_formatting.add(
+        cc_range,
+        DataBarRule(start_type='num', start_value=0,
+                    end_type='num', end_value=n_tracks,
+                    color='FF3D8B'))
+
+    # --- Autofilter ---
+    last_col_letter = get_column_letter(status_col)
+    ws.auto_filter.ref = f'A{header_row}:{last_col_letter}{data_end_row}'
+
+    # --- Freeze panes (row 6, col B = headers + band labels visible) ---
+    ws.freeze_panes = 'B6'
+
+    # --- Column widths ---
+    ws.column_dimensions['A'].width = 20
+    for t_idx in range(n_tracks):
+        ws.column_dimensions[get_column_letter(t_idx + 2)].width = 12
+    ws.column_dimensions[get_column_letter(conflict_count_col)].width = 15
+    ws.column_dimensions[get_column_letter(status_col)].width = 12
+
+    log_fn("    Excel: Freq Conflicts sheet done.")
+
+
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None):
     """
@@ -3220,6 +3434,9 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # Move Dashboard to be the 2nd sheet (after Index)
     wb.move_sheet(ws_dash, offset=-(len(wb.sheetnames) - 2))
+
+    # ---- P3.1: Frequency Conflict Detector ----
+    generate_freq_conflicts_sheet(wb, analyses_with_info, log_fn=log_fn)
 
     # ---- P2.5: Polish cyberpunk theme on Index and special sheets ----
     # Apply background fill to empty rows in Index
