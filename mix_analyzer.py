@@ -968,6 +968,7 @@ def analyze_structure_sections(mono, sr, n_sections_target=14):
             bt_chroma = np.array([])
 
         # --- Pass 2: Spectral flux novelty curve ---
+        novelty_sf = np.array([])  # M4.2: initialize before try for use in merge step
         try:
             S = np.abs(librosa.stft(mono, n_fft=2048, hop_length=hop_length))
             # Compute novelty from spectral flux
@@ -1005,16 +1006,41 @@ def analyze_structure_sections(mono, sr, n_sections_target=14):
         except Exception:
             bt_mfcc = np.array([])
 
-        # --- Merge all boundaries ---
+        # --- M4.2: Merge all boundaries with minimum spacing and section cap ---
+        MIN_DISTANCE_SECONDS = 10.0  # M4.2: minimum 10s between sections
+        MAX_SECTIONS_ABSOLUTE = 16   # M4.2: absolute cap on section count
+
         all_bounds = np.concatenate([bt_chroma, bt_novelty, bt_mfcc])
-        all_bounds = np.sort(all_bounds)
-        # Deduplicate: merge boundaries within 1.5s of each other
-        if len(all_bounds) > 0:
-            merged = [all_bounds[0]]
-            for b in all_bounds[1:]:
-                if b - merged[-1] > 1.5:
-                    merged.append(b)
-            all_bounds = np.array(merged)
+
+        # Compute salience for each boundary using spectral flux novelty curve
+        all_salience = np.ones(len(all_bounds))
+        if len(novelty_sf) > 0 and len(all_bounds) > 0:
+            for i, b in enumerate(all_bounds):
+                frame_idx = min(int(b * sr / hop_length), len(novelty_sf) - 1)
+                all_salience[i] = novelty_sf[max(0, frame_idx)]
+
+        # Sort by time
+        sort_idx = np.argsort(all_bounds)
+        all_bounds = all_bounds[sort_idx]
+        all_salience = all_salience[sort_idx]
+
+        # M4.2: Filter sections too close together (keep most salient)
+        if len(all_bounds) > 1:
+            keep = [0]
+            for i in range(1, len(all_bounds)):
+                if all_bounds[i] - all_bounds[keep[-1]] >= MIN_DISTANCE_SECONDS:
+                    keep.append(i)
+                else:
+                    # Two sections too close: keep the more salient one
+                    if all_salience[i] > all_salience[keep[-1]]:
+                        keep[-1] = i
+            all_bounds = all_bounds[keep]
+            all_salience = all_salience[keep]
+
+        # M4.2: Cap at MAX_SECTIONS_ABSOLUTE (keep most salient)
+        if len(all_bounds) > MAX_SECTIONS_ABSOLUTE:
+            top_idx = np.argsort(all_salience)[-MAX_SECTIONS_ABSOLUTE:]
+            all_bounds = np.sort(all_bounds[top_idx])
 
         result['boundaries'] = all_bounds.tolist() if len(all_bounds) > 0 else []
 
