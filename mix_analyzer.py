@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Mix Analyzer v1.5 - Visual audio mix analysis tool
+Mix Analyzer v1.7 - Visual audio mix analysis tool
 Generates detailed PDF reports for audio tracks to aid mixing and mastering decisions.
 
 Usage:
@@ -2474,19 +2474,23 @@ def setup_ttk_styles():
     style = ttk.Style()
     style.theme_use('clam')
 
-    # Notebook (tabs)
+    # Notebook (tabs) — selected tab is bigger
     style.configure('TNotebook',
                     background=UI_THEME['bg'],
                     borderwidth=0)
     style.configure('TNotebook.Tab',
                     background=UI_THEME['panel'],
                     foreground=UI_THEME['fg_dim'],
-                    padding=[18, 10],
-                    font=('Calibri', 11, 'bold'),
+                    padding=[18, 8],
+                    font=('Calibri', 11),
                     borderwidth=0)
     style.map('TNotebook.Tab',
               background=[('selected', UI_THEME['panel_light'])],
-              foreground=[('selected', UI_THEME['accent1'])])
+              foreground=[('selected', UI_THEME['accent1'])],
+              font=[('selected', ('Calibri', 14, 'bold')),
+                    ('!selected', ('Calibri', 11))],
+              padding=[('selected', [22, 12]),
+                       ('!selected', [18, 8])])
 
     # Frames
     style.configure('TFrame', background=UI_THEME['bg'])
@@ -2500,10 +2504,14 @@ def setup_ttk_styles():
     style.configure('Title.TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['accent1'],
-                    font=('Calibri', 18, 'bold'))
+                    font=('Calibri', 20, 'bold'))
     style.configure('SubTitle.TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['accent2'],
+                    font=('Calibri', 15, 'bold'))
+    style.configure('Section.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=UI_THEME['fg'],
                     font=('Calibri', 13, 'bold'))
     style.configure('Dim.TLabel',
                     background=UI_THEME['bg'],
@@ -2590,7 +2598,7 @@ def setup_ttk_styles():
 class MixAnalyzerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title('Mix Analyzer v1.5')
+        self.root.title('Mix Analyzer v1.7')
         self.root.geometry('1280x820')
         self.root.configure(bg=UI_THEME['bg'])
         self.root.minsize(1100, 700)
@@ -2618,6 +2626,8 @@ class MixAnalyzerApp:
         # Analysis results
         self.analysis_results = None
         self.output_dir_after_run = None
+        self.cancel_requested = False
+        self._analysis_start_time = None
 
         self._build_ui()
 
@@ -2627,8 +2637,17 @@ class MixAnalyzerApp:
         title_frame.pack(fill='x')
         ttk.Label(title_frame, text='MIX ANALYZER',
                   style='Title.TLabel').pack(side='left')
-        ttk.Label(title_frame, text='  v1.5 - Visual mix diagnostic',
+        ttk.Label(title_frame, text='  v1.7 - Visual mix diagnostic',
                   style='Dim.TLabel').pack(side='left', padx=(10, 0))
+
+        help_btn = tk.Button(title_frame, text='HELP',
+                              bg=UI_THEME['accent1'], fg=UI_THEME['bg'],
+                              font=('Calibri', 11, 'bold'),
+                              activebackground=UI_THEME['accent2'],
+                              relief='flat', bd=0, padx=16, pady=4,
+                              cursor='hand2',
+                              command=self._show_main_help)
+        help_btn.pack(side='right', padx=(10, 0))
 
         # Notebook
         self.notebook = ttk.Notebook(self.root)
@@ -2648,6 +2667,107 @@ class MixAnalyzerApp:
         self._build_tracks_tab()
         self._build_fullmix_tab()
         self._build_analysis_tab()
+
+    # ------------------------------------------------------------------
+    # MAIN HELP WINDOW
+    # ------------------------------------------------------------------
+    def _show_main_help(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title('Mix Analyzer — Help')
+        dialog.configure(bg=UI_THEME['bg'])
+        dialog.geometry('780x680')
+        dialog.transient(self.root)
+
+        frame = tk.Frame(dialog, bg=UI_THEME['bg'], padx=20, pady=20)
+        frame.pack(fill='both', expand=True)
+
+        tk.Label(frame, text='Mix Analyzer — Help',
+                  bg=UI_THEME['bg'], fg=UI_THEME['accent1'],
+                  font=('Calibri', 18, 'bold')).pack(anchor='w', pady=(0, 12))
+
+        text_widget = tk.Text(frame, wrap='word', bg=UI_THEME['panel'],
+                               fg=UI_THEME['fg'], font=('Calibri', 11),
+                               bd=0, padx=16, pady=16, relief='flat',
+                               spacing1=2, spacing3=2)
+        text_widget.pack(fill='both', expand=True)
+
+        # Configure heading tag
+        text_widget.tag_configure('heading', font=('Calibri', 14, 'bold'),
+                                   foreground=UI_THEME['accent2'],
+                                   spacing1=14, spacing3=6)
+        text_widget.tag_configure('subheading', font=('Calibri', 12, 'bold'),
+                                   foreground=UI_THEME['accent1'],
+                                   spacing1=10, spacing3=4)
+
+        sections = [
+            ('heading', '1. INSTALLATION'),
+            ('body', (
+                'Python 3.13 — download from https://www.python.org/downloads/\n\n'
+                'Install dependencies (open a terminal / command prompt):\n'
+                '  py -m pip install numpy scipy librosa matplotlib soundfile openpyxl reportlab\n\n'
+                'Troubleshooting (Windows):\n'
+                '  - If "py" is not recognized, make sure Python was added to PATH during '
+                'installation. Re-run the installer and check "Add Python to PATH".\n'
+                '  - If pip fails, try:  python -m pip install --upgrade pip\n'
+            )),
+            ('heading', '2. EXPORTING AUDIO FROM ABLETON LIVE 12'),
+            ('body', (
+                'File > Export Audio/Video (Ctrl+Shift+R)\n\n'
+                'Recommended settings:\n'
+                '  - File Type: WAV\n'
+                '  - Bit Depth: 24-bit\n'
+                '  - Sample Rate: 44100 Hz (or your project rate)\n'
+                '  - Rendered Track: All Individual Tracks\n'
+                '  - Convert to Mono: OFF\n'
+                '  - Normalize: OFF (critical — normalization distorts measurements)\n'
+                '  - Render as Loop: OFF\n\n'
+                'Export all tracks to a single folder. Make sure your Ableton tracks are '
+                'clearly named before exporting (e.g. "Kick Main", "Bass 303", "Lead Synth") '
+                'so the auto-detect feature can identify categories.\n'
+            )),
+            ('heading', '3. USING MIX ANALYZER'),
+            ('body', (
+                'Step 1 — Setup tab:\n'
+                '  Load the folder containing your exported audio files. Choose your '
+                'musical style.\n\n'
+                'Step 2 — Track Identification tab:\n'
+                '  Mark your full song bounce as "Full Mix" (only one allowed). Run '
+                '"Auto-detect all" to automatically categorize tracks by name. Review '
+                'and correct any categories that were not detected.\n\n'
+                'Step 3 — Full Mix tab:\n'
+                '  Set the mix completion state, active master bus plugins, loudness '
+                'target, and any notes about the mix.\n\n'
+                'Step 4 — Analysis tab:\n'
+                '  Choose output format (PDF, Excel, or Both). Click "RUN ANALYSIS". '
+                'Wait for the reports to be generated. Open the output folder or generate '
+                'an AI prompt when done.\n'
+            )),
+            ('heading', '4. SHARING THE REPORT WITH CLAUDE'),
+            ('body', (
+                '1. Click "Generate AI Analysis Prompt" after analysis completes.\n'
+                '2. Click "Copy to Clipboard".\n'
+                '3. Open a new Claude conversation (claude.ai).\n'
+                '4. Drag the PDF or XLSX report files into the conversation.\n'
+                '5. Paste the prompt and send.\n'
+                '6. Claude will analyze your reports and provide specific, data-driven '
+                'mixing recommendations tailored to your style.\n'
+            )),
+        ]
+
+        for tag, content in sections:
+            if tag == 'heading':
+                text_widget.insert('end', content + '\n', 'heading')
+            else:
+                text_widget.insert('end', content + '\n')
+
+        text_widget.config(state='disabled')
+
+        tk.Button(frame, text='Close', command=dialog.destroy,
+                   bg=UI_THEME['accent1'], fg=UI_THEME['bg'],
+                   font=('Calibri', 11, 'bold'),
+                   activebackground=UI_THEME['accent2'],
+                   relief='flat', bd=0, padx=20, pady=6,
+                   cursor='hand2').pack(pady=(12, 0))
 
     # ------------------------------------------------------------------
     # TAB 1 - SETUP
@@ -2680,7 +2800,7 @@ class MixAnalyzerApp:
         style_row.grid(row=3, column=0, columnspan=4, sticky='we', pady=8)
         ttk.Label(style_row, text='Musical style:').pack(side='left')
         ttk.Combobox(style_row, textvariable=self.style,
-                     values=STYLES, state='readonly', width=35).pack(
+                     values=STYLES, state='readonly', width=35, height=50).pack(
             side='left', padx=(10, 5))
         HelpButton(style_row, 'style').pack(side='left', padx=(0, 5))
 
@@ -2814,9 +2934,8 @@ class MixAnalyzerApp:
         left = tk.Frame(paned, bg=UI_THEME['bg'])
         paned.add(left, minsize=350)
 
-        tk.Label(left, text='Tracks in folder',
-                  bg=UI_THEME['bg'], fg=UI_THEME['accent2'],
-                  font=('Calibri', 13, 'bold')).pack(anchor='w', pady=(0, 5))
+        ttk.Label(left, text='Tracks in folder',
+                  style='SubTitle.TLabel').pack(anchor='w', pady=(0, 5))
 
         # Action buttons
         action_row = tk.Frame(left, bg=UI_THEME['bg'])
@@ -2844,11 +2963,15 @@ class MixAnalyzerApp:
                                            activestyle='none')
         self.tracks_listbox.pack(side='left', fill='both', expand=True)
 
-        scrollbar = ttk.Scrollbar(list_frame, orient='vertical',
+        self.tracks_scrollbar = ttk.Scrollbar(list_frame, orient='vertical',
                                     command=self.tracks_listbox.yview)
-        scrollbar.pack(side='right', fill='y')
-        self.tracks_listbox.config(yscrollcommand=scrollbar.set)
+        self.tracks_listbox.config(yscrollcommand=self.tracks_scrollbar.set)
         self.tracks_listbox.bind('<<ListboxSelect>>', self._on_track_selected)
+
+        # Show/hide scrollbar based on content overflow
+        def _update_scrollbar(event=None):
+            self.root.after(50, self._check_scrollbar_visibility)
+        list_frame.bind('<Configure>', _update_scrollbar)
 
         # Legend
         legend_frame = tk.Frame(left, bg=UI_THEME['bg'])
@@ -2904,7 +3027,7 @@ class MixAnalyzerApp:
                   font=('Calibri', 11)).grid(row=1, column=0, sticky='w', pady=8)
         self.detail_type = tk.StringVar()
         self.detail_type_combo = ttk.Combobox(f, textvariable=self.detail_type,
-                                                 values=TRACK_TYPES, state='readonly', width=20)
+                                                 values=TRACK_TYPES, state='readonly', width=20, height=50)
         self.detail_type_combo.grid(row=1, column=1, sticky='w', pady=8, padx=(10, 5))
         self.detail_type_combo.bind('<<ComboboxSelected>>', self._on_type_change)
         HelpButton(f, 'type').grid(row=1, column=2, sticky='w', pady=8)
@@ -2921,7 +3044,7 @@ class MixAnalyzerApp:
                 cat_values.append(item)
         cat_values.append('(not set)')
         self.detail_category_combo = ttk.Combobox(f, textvariable=self.detail_category,
-                                                     values=cat_values, state='readonly', width=35)
+                                                     values=cat_values, state='readonly', width=35, height=50)
         self.detail_category_combo.grid(row=2, column=1, sticky='w', pady=8, padx=(10, 5))
         self.detail_category_combo.bind('<<ComboboxSelected>>', self._on_detail_change)
         HelpButton(f, 'category').grid(row=2, column=2, sticky='w', pady=8)
@@ -2932,7 +3055,7 @@ class MixAnalyzerApp:
                   font=('Calibri', 11)).grid(row=3, column=0, sticky='w', pady=8)
         self.detail_parent_bus = tk.StringVar()
         self.detail_parent_bus_combo = ttk.Combobox(f, textvariable=self.detail_parent_bus,
-                                                       values=['None'], state='readonly', width=35)
+                                                       values=['None'], state='readonly', width=35, height=50)
         self.detail_parent_bus_combo.grid(row=3, column=1, sticky='w', pady=8, padx=(10, 5))
         self.detail_parent_bus_combo.bind('<<ComboboxSelected>>', self._on_detail_change)
         HelpButton(f, 'parent_bus').grid(row=3, column=2, sticky='w', pady=8)
@@ -2974,6 +3097,20 @@ class MixAnalyzerApp:
 
     def _refresh_tracks_list(self):
         self.tracks_listbox.delete(0, 'end')
+
+        # Compute longest common prefix to strip from display (>= 3 chars)
+        common_prefix = ''
+        if len(self.track_order) > 1:
+            ref = self.track_order[0]
+            for i in range(len(ref)):
+                ch = ref[i]
+                if all(len(fn) > i and fn[i] == ch for fn in self.track_order):
+                    common_prefix += ch
+                else:
+                    break
+            if len(common_prefix) < 3:
+                common_prefix = ''
+
         for fname in self.track_order:
             cfg = self.track_configs[fname]
             # Build prefix
@@ -2988,7 +3125,12 @@ class MixAnalyzerApp:
             cat = cfg['category']
             if cat == '(not set)':
                 cat = '?'
-            display_name = fname if len(fname) <= 50 else fname[:47] + '...'
+            # Strip common prefix for display, except Full Mix keeps full name
+            if common_prefix and cfg['type'] != 'Full Mix':
+                short_name = fname[len(common_prefix):]
+            else:
+                short_name = fname
+            display_name = short_name if len(short_name) <= 50 else short_name[:47] + '...'
             line = f"{prefix} {display_name}   ({cat})"
             self.tracks_listbox.insert('end', line)
 
@@ -3007,6 +3149,22 @@ class MixAnalyzerApp:
         bus_options = ['None'] + [f for f in self.track_order
                                     if self.track_configs[f]['type'] == 'BUS']
         self.detail_parent_bus_combo.configure(values=bus_options)
+        self._check_scrollbar_visibility()
+
+    def _check_scrollbar_visibility(self):
+        """Show scrollbar only when listbox content overflows."""
+        lb = self.tracks_listbox
+        sb = self.tracks_scrollbar
+        try:
+            visible_height = lb.winfo_height()
+            line_height = lb.bbox(0)[3] if lb.size() > 0 and lb.bbox(0) else 16
+            total_height = lb.size() * line_height
+            if total_height > visible_height:
+                sb.pack(side='right', fill='y')
+            else:
+                sb.pack_forget()
+        except Exception:
+            sb.pack(side='right', fill='y')
 
     def _on_track_selected(self, event=None):
         selection = self.tracks_listbox.curselection()
@@ -3143,7 +3301,7 @@ class MixAnalyzerApp:
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
                   font=('Calibri', 11)).pack(side='left')
         ttk.Combobox(state_row, textvariable=self.mix_state,
-                     values=MIX_STATES, state='readonly', width=25).pack(
+                     values=MIX_STATES, state='readonly', width=25, height=50).pack(
             side='left', padx=(10, 5))
         HelpButton(state_row, 'mix_state').pack(side='left')
 
@@ -3177,7 +3335,7 @@ class MixAnalyzerApp:
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
                   font=('Calibri', 11)).pack(side='left')
         ttk.Combobox(target_row, textvariable=self.mix_loudness_target,
-                     values=LOUDNESS_TARGETS, state='readonly', width=35).pack(
+                     values=LOUDNESS_TARGETS, state='readonly', width=35, height=50).pack(
             side='left', padx=(10, 5))
         HelpButton(target_row, 'loudness_target').pack(side='left')
 
@@ -3220,47 +3378,100 @@ class MixAnalyzerApp:
             row=0, column=0, columnspan=3, sticky='w', pady=(0, 15))
 
         # Summary
-        self.analysis_summary = tk.Text(frame, height=6, bg=UI_THEME['panel'],
+        self.analysis_summary = tk.Text(frame, height=5, bg=UI_THEME['panel'],
                                           fg=UI_THEME['fg'], font=('Calibri', 10),
                                           bd=0, padx=15, pady=12, relief='flat',
                                           state='disabled')
         self.analysis_summary.grid(row=1, column=0, columnspan=3, sticky='we', pady=10)
 
-        ttk.Button(frame, text='Refresh summary',
-                    command=self._refresh_analysis_summary).grid(
-            row=2, column=0, sticky='w', pady=(5, 15))
+        # Controls row: Refresh + Output format
+        controls_row = ttk.Frame(frame)
+        controls_row.grid(row=2, column=0, columnspan=3, sticky='we', pady=(5, 15))
 
-        self.run_button = ttk.Button(frame, text='>>> RUN ANALYSIS <<<',
+        ttk.Button(controls_row, text='Refresh summary',
+                    command=self._refresh_analysis_summary).pack(side='left')
+
+        ttk.Label(controls_row, text='Output format:').pack(side='left', padx=(25, 5))
+        self.output_format = tk.StringVar(value='PDF')
+        ttk.Combobox(controls_row, textvariable=self.output_format,
+                     values=['PDF', 'Excel', 'Both'], state='readonly',
+                     width=10, height=50).pack(side='left')
+
+        # Run + Cancel row
+        run_row = ttk.Frame(frame)
+        run_row.grid(row=3, column=0, columnspan=3, sticky='we', pady=(5, 10))
+
+        self.run_button = ttk.Button(run_row, text='>>> RUN ANALYSIS <<<',
                                        style='Accent.TButton',
                                        command=self._run_analysis)
-        self.run_button.grid(row=3, column=0, columnspan=3, sticky='we', pady=(5, 15))
+        self.run_button.pack(side='left', fill='x', expand=True)
 
-        self.ai_button = ttk.Button(frame, text='Generate AI Analysis Prompt',
+        self.cancel_button = ttk.Button(run_row, text='Cancel',
+                                          command=self._request_cancel,
+                                          state='disabled')
+        self.cancel_button.pack(side='left', padx=(10, 0))
+
+        # Multi-level progress display
+        progress_frame = tk.Frame(frame, bg=UI_THEME['panel'], padx=12, pady=10)
+        progress_frame.grid(row=4, column=0, columnspan=3, sticky='we', pady=(0, 10))
+
+        self.progress_bar = ttk.Progressbar(progress_frame, mode='determinate',
+                                              maximum=100)
+        self.progress_bar.pack(fill='x', pady=(0, 6))
+
+        self.progress_step = tk.Label(progress_frame, text='Step: Idle',
+                                        bg=UI_THEME['panel'], fg=UI_THEME['accent1'],
+                                        font=('Calibri', 10, 'bold'), anchor='w')
+        self.progress_step.pack(fill='x')
+
+        self.progress_substep = tk.Label(progress_frame, text='Substep: —',
+                                           bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                                           font=('Calibri', 10), anchor='w')
+        self.progress_substep.pack(fill='x')
+
+        progress_bottom = tk.Frame(progress_frame, bg=UI_THEME['panel'])
+        progress_bottom.pack(fill='x')
+
+        self.progress_counter = tk.Label(progress_bottom, text='',
+                                           bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
+                                           font=('Calibri', 10), anchor='w')
+        self.progress_counter.pack(side='left')
+
+        self.progress_eta = tk.Label(progress_bottom, text='',
+                                       bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
+                                       font=('Calibri', 10), anchor='e')
+        self.progress_eta.pack(side='right')
+
+        # Post-run buttons
+        buttons_row = ttk.Frame(frame)
+        buttons_row.grid(row=5, column=0, columnspan=3, sticky='w', pady=(0, 10))
+
+        self.ai_button = ttk.Button(buttons_row, text='Generate AI Analysis Prompt',
                                       command=self._show_ai_prompt,
                                       state='disabled')
-        self.ai_button.grid(row=4, column=0, sticky='w', pady=(0, 15))
+        self.ai_button.pack(side='left')
 
-        self.open_folder_button = ttk.Button(frame, text='Open output folder',
+        self.open_folder_button = ttk.Button(buttons_row, text='Open output folder',
                                                 command=self._open_output_folder,
                                                 state='disabled')
-        self.open_folder_button.grid(row=4, column=1, sticky='w', padx=(10, 0))
+        self.open_folder_button.pack(side='left', padx=(10, 0))
 
         # Log
         ttk.Label(frame, text='Log:', style='Dim.TLabel').grid(
-            row=5, column=0, columnspan=3, sticky='w', pady=(10, 5))
+            row=6, column=0, columnspan=3, sticky='w', pady=(5, 3))
 
         log_frame = tk.Frame(frame, bg=UI_THEME['bg'])
-        log_frame.grid(row=6, column=0, columnspan=3, sticky='nsew', pady=5)
+        log_frame.grid(row=7, column=0, columnspan=3, sticky='nsew', pady=5)
 
         self.log_text = scrolledtext.ScrolledText(
-            log_frame, height=16, bg='#050508', fg=UI_THEME['accent4'],
+            log_frame, height=12, bg='#050508', fg=UI_THEME['accent4'],
             font=('Consolas', 9), bd=0, padx=10, pady=8,
             insertbackground=UI_THEME['fg'])
         self.log_text.pack(fill='both', expand=True)
 
         frame.columnconfigure(0, weight=1)
         frame.columnconfigure(1, weight=1)
-        frame.rowconfigure(6, weight=1)
+        frame.rowconfigure(7, weight=1)
 
     def _refresh_analysis_summary(self):
         if not self.track_configs:
@@ -3302,6 +3513,41 @@ class MixAnalyzerApp:
         self.log_text.see('end')
         self.root.update_idletasks()
 
+    def _update_progress(self, pct, step='', substep='', counter='', eta=''):
+        """Thread-safe progress update."""
+        def _do():
+            self.progress_bar['value'] = pct
+            if step:
+                self.progress_step.config(text=f'Step: {step}')
+            if substep:
+                self.progress_substep.config(text=f'Substep: {substep}')
+            self.progress_counter.config(text=counter)
+            self.progress_eta.config(text=eta)
+        self.root.after(0, _do)
+
+    def _compute_eta(self, completed, total):
+        """Return formatted ETA string."""
+        import time
+        if completed <= 0 or not self._analysis_start_time:
+            return ''
+        elapsed = time.time() - self._analysis_start_time
+        remaining = (elapsed / completed) * (total - completed)
+        mins, secs = divmod(int(remaining), 60)
+        return f'ETA: {mins:02d}:{secs:02d}'
+
+    def _request_cancel(self):
+        self.cancel_requested = True
+        self.cancel_button.configure(state='disabled')
+        self.log("Cancel requested — stopping after current track...")
+
+    def _reset_progress(self):
+        """Reset progress display to idle state."""
+        self.progress_bar['value'] = 0
+        self.progress_step.config(text='Step: Idle')
+        self.progress_substep.config(text='Substep: —')
+        self.progress_counter.config(text='')
+        self.progress_eta.config(text='')
+
     def _run_analysis(self):
         if not self.input_folder.get() or not self.output_folder.get():
             messagebox.showerror('Error', 'Please set input and output folders in Setup tab.')
@@ -3312,25 +3558,39 @@ class MixAnalyzerApp:
 
         self._save_config()
         self.log_text.delete('1.0', 'end')
+        self.cancel_requested = False
+        self._reset_progress()
         self.run_button.configure(state='disabled')
         self.ai_button.configure(state='disabled')
         self.open_folder_button.configure(state='disabled')
+        self.cancel_button.configure(state='normal')
+
+        import time
+        self._analysis_start_time = time.time()
 
         def worker():
             try:
                 self._do_analysis()
             except Exception as e:
-                self.log(f"ERROR: {e}")
-                traceback.print_exc()
+                if 'CancelledError' not in type(e).__name__:
+                    self.log(f"ERROR: {e}")
+                    traceback.print_exc()
             finally:
-                self.run_button.configure(state='normal')
+                def _cleanup():
+                    self.run_button.configure(state='normal')
+                    self.cancel_button.configure(state='disabled')
+                    self.cancel_requested = False
+                self.root.after(0, _cleanup)
 
         threading.Thread(target=worker, daemon=True).start()
 
     def _do_analysis(self):
+        import time
+
         input_folder = Path(self.input_folder.get())
         output_folder = Path(self.output_folder.get())
         output_folder.mkdir(parents=True, exist_ok=True)
+        out_fmt = self.output_format.get()
 
         # Determine project name from Full Mix track (fallback: folder name)
         project_name = None
@@ -3347,15 +3607,50 @@ class MixAnalyzerApp:
         included_files = [f for f in self.track_order
                            if self.track_configs[f]['include']]
 
-        self.log(f"Starting analysis: {len(included_files)} tracks")
+        # Compute total steps for progress: analyze + PDF per track + global PDF + optional Excel
+        n_tracks = len(included_files)
+        do_pdf = out_fmt in ('PDF', 'Both')
+        do_excel = out_fmt in ('Excel', 'Both')
+        # Steps: analyze(n) + pdf_per_track(n if pdf) + global_pdf(1 if pdf) + excel(1 if excel)
+        total_steps = n_tracks  # analysis
+        if do_pdf:
+            total_steps += n_tracks + 1  # per-track PDFs + global PDF
+        if do_excel:
+            total_steps += 1  # Excel generation
+        completed_steps = 0
+
+        self.log(f"Starting analysis: {n_tracks} tracks — format: {out_fmt}")
         self.log(f"Output folder: {output_folder}")
         self.log("-" * 60)
 
+        self._update_progress(0, 'Analyzing tracks', '', f'[0/{n_tracks}]', '')
+
         analyses_with_info = []
+        generated_files = []
+
         for i, fname in enumerate(included_files, 1):
+            if self.cancel_requested:
+                self.log("CANCELLED by user.")
+                self._update_progress(0, 'Cancelled', '', '', '')
+                # Clean up partial files
+                for gf in generated_files:
+                    try:
+                        if gf.exists():
+                            gf.unlink()
+                    except Exception:
+                        pass
+                return
+
             filepath = input_folder / fname
             cfg = self.track_configs[fname]
-            self.log(f"[{i}/{len(included_files)}] Analyzing: {fname}")
+            eta = self._compute_eta(completed_steps, total_steps)
+            self._update_progress(
+                int(completed_steps / total_steps * 100),
+                'Analyzing tracks',
+                f'Analyzing: {fname}',
+                f'[{i}/{n_tracks}]',
+                eta)
+            self.log(f"[{i}/{n_tracks}] Analyzing: {fname}")
             try:
                 is_full_mix = (cfg['type'] == 'Full Mix')
                 analysis = analyze_track(str(filepath), compute_tempo=is_full_mix)
@@ -3366,22 +3661,57 @@ class MixAnalyzerApp:
                     'name': fname,
                 }
                 analyses_with_info.append((analysis, ti))
-
-                pdf_name = f"{report_prefix}_{os.path.splitext(fname)[0]}.pdf"
-                pdf_path = output_folder / pdf_name
-                if pdf_path.exists():
-                    pdf_path.unlink()
-                self.log(f"    -> Generating PDF: {pdf_name}")
-                generate_track_pdf(analysis, str(pdf_path), ti, self.style.get())
             except Exception as e:
                 self.log(f"    ERROR: {e}")
                 traceback.print_exc()
+            completed_steps += 1
 
-        if analyses_with_info:
+        # --- PDF generation ---
+        if do_pdf and analyses_with_info:
+            self._update_progress(
+                int(completed_steps / total_steps * 100),
+                'Generating PDF reports', '', '', '')
+
+            for i, (analysis, ti) in enumerate(analyses_with_info, 1):
+                if self.cancel_requested:
+                    self.log("CANCELLED by user.")
+                    self._update_progress(0, 'Cancelled', '', '', '')
+                    for gf in generated_files:
+                        try:
+                            if gf.exists():
+                                gf.unlink()
+                        except Exception:
+                            pass
+                    return
+
+                fname = ti['name']
+                eta = self._compute_eta(completed_steps, total_steps)
+                self._update_progress(
+                    int(completed_steps / total_steps * 100),
+                    'Generating PDF reports',
+                    f'Writing: {fname}',
+                    f'[{i}/{len(analyses_with_info)}]',
+                    eta)
+                try:
+                    pdf_name = f"{report_prefix}_{os.path.splitext(fname)[0]}.pdf"
+                    pdf_path = output_folder / pdf_name
+                    if pdf_path.exists():
+                        pdf_path.unlink()
+                    self.log(f"    -> PDF: {pdf_name}")
+                    generate_track_pdf(analysis, str(pdf_path), ti, self.style.get())
+                    generated_files.append(pdf_path)
+                except Exception as e:
+                    self.log(f"    ERROR PDF: {e}")
+                    traceback.print_exc()
+                completed_steps += 1
+
+            # Global PDF
             self.log("-" * 60)
-            self.log("Generating global report...")
+            self.log("Generating global PDF report...")
+            self._update_progress(
+                int(completed_steps / total_steps * 100),
+                'Generating PDF reports', 'Global report', '', '')
             try:
-                # Build full mix info
                 active_plugins = [p for p, v in self.mix_plugins.items() if v.get()]
                 full_mix_info = {
                     'state': self.mix_state.get(),
@@ -3394,19 +3724,35 @@ class MixAnalyzerApp:
                     global_pdf.unlink()
                 generate_global_pdf(analyses_with_info, str(global_pdf),
                                      self.style.get(), full_mix_info)
+                generated_files.append(global_pdf)
                 self.log(f"Global report: {global_pdf.name}")
             except Exception as e:
                 self.log(f"ERROR global report: {e}")
                 traceback.print_exc()
+            completed_steps += 1
 
+        # --- Excel generation (placeholder — Tour 1b) ---
+        if do_excel and analyses_with_info:
+            self._update_progress(
+                int(completed_steps / total_steps * 100),
+                'Generating Excel report', '', '', '')
+            self.log("-" * 60)
+            self.log("Excel generation: not yet implemented (coming in Tour 1b).")
+            completed_steps += 1
+
+        # Done
+        self._update_progress(100, 'Done', '', '', '')
         self.log("=" * 60)
-        self.log(f"DONE: {len(analyses_with_info)} reports generated")
+        self.log(f"DONE: {len(analyses_with_info)} tracks processed — format: {out_fmt}")
         self.log(f"Location: {output_folder}")
 
         self.analysis_results = analyses_with_info
         self.output_dir_after_run = output_folder
-        self.ai_button.configure(state='normal')
-        self.open_folder_button.configure(state='normal')
+
+        def _enable_buttons():
+            self.ai_button.configure(state='normal')
+            self.open_folder_button.configure(state='normal')
+        self.root.after(0, _enable_buttons)
 
     def _open_output_folder(self):
         if self.output_dir_after_run and os.path.isdir(self.output_dir_after_run):
