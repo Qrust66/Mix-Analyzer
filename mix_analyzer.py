@@ -1,0 +1,3606 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Mix Analyzer v1.5 - Visual audio mix analysis tool
+Generates detailed PDF reports for audio tracks to aid mixing and mastering decisions.
+
+Usage:
+    python mix_analyzer.py
+
+Dependencies:
+    pip install librosa pyloudnorm soundfile reportlab numpy scipy matplotlib
+"""
+
+import os
+import sys
+import json
+import threading
+import traceback
+import webbrowser
+import subprocess
+from pathlib import Path
+from datetime import datetime
+
+import numpy as np
+import soundfile as sf
+import librosa
+import librosa.display
+import pyloudnorm as pyln
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+from scipy import signal
+
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox, scrolledtext
+
+
+# ============================================================================
+# CATEGORIES - 25 options organized hierarchically
+# ============================================================================
+
+CATEGORIES = {
+    'Drums': [
+        'Kick',
+        'Snare / Clap',
+        'Hi-Hat / Cymbal',
+        'Tom',
+        'Percussion',
+        'Drum Loop / Bus',
+    ],
+    'Bass': [
+        'Sub Bass',
+        'Bass (standard)',
+        'Acid Bass',
+        '808 / Pitched Bass',
+    ],
+    'Synth': [
+        'Lead Synth',
+        'Pluck / Stab',
+        'Pad / Drone',
+        'Arpeggio / Sequence',
+        'Texture / Atmosphere',
+    ],
+    'Guitar': [
+        'Guitar Clean',
+        'Guitar Distorted',
+        'Guitar Acoustic',
+    ],
+    'Vocal': [
+        'Lead Vocal',
+        'Backing / Harmony Vocal',
+        'Vocal FX / Chop',
+    ],
+    'FX & Other': [
+        'FX / Riser / Impact',
+        'Noise / Ambience',
+        'Sample / Loop',
+        'Other',
+    ],
+}
+
+# Flat list for dropdowns
+ALL_CATEGORIES = []
+for family, items in CATEGORIES.items():
+    for item in items:
+        ALL_CATEGORIES.append(item)
+ALL_CATEGORIES.append('(not set)')
+
+# Category -> family mapping
+CATEGORY_FAMILY = {}
+for family, items in CATEGORIES.items():
+    for item in items:
+        CATEGORY_FAMILY[item] = family
+CATEGORY_FAMILY['(not set)'] = 'Unknown'
+
+
+# ============================================================================
+# TRACK TYPES
+# ============================================================================
+
+TRACK_TYPES = ['Individual', 'BUS', 'Full Mix']
+
+
+# ============================================================================
+# MUSICAL STYLES - 30 styles mapped to 7 analytical families
+# ============================================================================
+
+STYLES = [
+    'Generic',
+    'Acoustic / Folk',
+    'Ambient / Drone',
+    'Bass Music (Dubstep, DnB)',
+    'Blues',
+    'Classical / Orchestral',
+    'Country',
+    'Dance / EDM',
+    'Electronic (General)',
+    'Experimental',
+    'Film Score / Cinematic',
+    'Funk / Soul',
+    'Hip-Hop / Rap',
+    'House / Deep House',
+    'Indie / Alternative',
+    'Industrial',
+    'Jazz',
+    'Latin',
+    'Lo-Fi',
+    'Metal',
+    'Pop',
+    'Punk',
+    'R&B',
+    'Reggae / Dub',
+    'Rock',
+    'Singer-Songwriter',
+    'Synthwave / Retrowave',
+    'Techno',
+    'Trance',
+    'Trap',
+    'World Music',
+]
+
+STYLE_FAMILY = {
+    'Generic':                     'generic',
+    'Acoustic / Folk':             'acoustic',
+    'Blues':                       'acoustic',
+    'Country':                     'acoustic',
+    'Singer-Songwriter':           'acoustic',
+    'Jazz':                        'acoustic',
+    'Classical / Orchestral':      'acoustic',
+    'Rock':                        'rock',
+    'Indie / Alternative':         'rock',
+    'Punk':                        'rock',
+    'Metal':                       'rock',
+    'Ambient / Drone':             'electronic_soft',
+    'Lo-Fi':                       'electronic_soft',
+    'Experimental':                'electronic_soft',
+    'Film Score / Cinematic':      'electronic_soft',
+    'Dance / EDM':                 'electronic_dance',
+    'House / Deep House':          'electronic_dance',
+    'Techno':                      'electronic_dance',
+    'Trance':                      'electronic_dance',
+    'Electronic (General)':        'electronic_dance',
+    'Industrial':                  'electronic_aggressive',
+    'Bass Music (Dubstep, DnB)':   'electronic_aggressive',
+    'Synthwave / Retrowave':       'electronic_aggressive',
+    'Hip-Hop / Rap':               'urban',
+    'Trap':                        'urban',
+    'R&B':                         'urban',
+    'Funk / Soul':                 'urban',
+    'Reggae / Dub':                'urban',
+    'Pop':                         'pop',
+    'Latin':                       'pop',
+    'World Music':                 'pop',
+}
+
+# Analytical profiles per family
+FAMILY_PROFILES = {
+    'generic':                {'target_lufs_mix': -14, 'typical_crest_mix': 10, 'density_tolerance': 'normal'},
+    'acoustic':               {'target_lufs_mix': -16, 'typical_crest_mix': 14, 'density_tolerance': 'low'},
+    'rock':                   {'target_lufs_mix': -10, 'typical_crest_mix': 10, 'density_tolerance': 'high'},
+    'electronic_soft':        {'target_lufs_mix': -16, 'typical_crest_mix': 14, 'density_tolerance': 'low'},
+    'electronic_dance':       {'target_lufs_mix': -9,  'typical_crest_mix': 8,  'density_tolerance': 'high'},
+    'electronic_aggressive':  {'target_lufs_mix': -8,  'typical_crest_mix': 8,  'density_tolerance': 'very_high'},
+    'urban':                  {'target_lufs_mix': -10, 'typical_crest_mix': 9,  'density_tolerance': 'high'},
+    'pop':                    {'target_lufs_mix': -10, 'typical_crest_mix': 9,  'density_tolerance': 'normal'},
+}
+
+
+# ============================================================================
+# MIX COMPLETION STATES
+# ============================================================================
+
+MIX_STATES = [
+    'Rough mix',
+    'Mix in progress',
+    'Pre-final mix',
+    'Final mix',
+    'Pre-master',
+    'Final master',
+]
+
+MASTER_PLUGINS = [
+    'EQ',
+    'Compression',
+    'Limiting',
+    'Saturation',
+    'Stereo Imager',
+    'Other',
+]
+
+LOUDNESS_TARGETS = [
+    '-14 LUFS (Streaming standard)',
+    '-12 LUFS (Intermediate)',
+    '-10 LUFS (Hot)',
+    '-8 LUFS (Very hot)',
+    'Custom / Not defined',
+]
+
+
+# ============================================================================
+# AUTO-DETECTION PATTERNS (conservative, short patterns at start of filename)
+# ============================================================================
+
+AUTO_DETECT_PATTERNS = [
+    # Kick variations
+    (['kick', 'bd', 'bassdrum', 'bass drum', 'kik'], 'Kick'),
+    # Snare
+    (['snare', 'snr', 'sn '], 'Snare / Clap'),
+    (['clap', 'clp'], 'Snare / Clap'),
+    # Hats
+    (['hat', 'hh', 'hihat', 'hi-hat', 'cymbal', 'ride', 'crash'], 'Hi-Hat / Cymbal'),
+    # Toms
+    (['tom', 'floor tom'], 'Tom'),
+    # Perc
+    (['perc', 'tambourine', 'shaker', 'conga', 'bongo', 'clave', 'cowbell'], 'Percussion'),
+    # Sub
+    (['sub bass', 'subbass', 'sub_bass', 'sub-bass', 'sub '], 'Sub Bass'),
+    # Acid
+    (['acid', '303', 'tb303', 'tb-303'], 'Acid Bass'),
+    # 808
+    (['808'], '808 / Pitched Bass'),
+    # Bass
+    (['bass', 'bs '], 'Bass (standard)'),
+    # Lead
+    (['lead', 'ld '], 'Lead Synth'),
+    # Pluck
+    (['pluck', 'stab'], 'Pluck / Stab'),
+    # Pad
+    (['pad', 'drone'], 'Pad / Drone'),
+    # Arp
+    (['arp', 'seq', 'sequence'], 'Arpeggio / Sequence'),
+    # Texture
+    (['texture', 'atmo', 'ambient'], 'Texture / Atmosphere'),
+    # Guitar
+    (['gtr clean', 'clean gtr', 'guitar clean'], 'Guitar Clean'),
+    (['gtr dist', 'dist gtr', 'guitar dist', 'metal gtr'], 'Guitar Distorted'),
+    (['acoustic gtr', 'acoustic guitar', 'gtr acoustic'], 'Guitar Acoustic'),
+    (['gtr', 'guitar'], 'Guitar Clean'),  # fallback
+    # Vocal
+    (['lead vox', 'lead vocal', 'vox lead', 'main vocal'], 'Lead Vocal'),
+    (['backing', 'harmony vox', 'vox harm', 'bv '], 'Backing / Harmony Vocal'),
+    (['vox chop', 'vox fx', 'vocal fx', 'vocal chop'], 'Vocal FX / Chop'),
+    (['vox', 'vocal'], 'Lead Vocal'),  # fallback
+    # FX
+    (['riser', 'impact', 'fx '], 'FX / Riser / Impact'),
+    (['noise', 'ambience'], 'Noise / Ambience'),
+    (['loop', 'sample'], 'Sample / Loop'),
+]
+
+
+def auto_detect_category(filename, project_name=None):
+    """Attempt to detect category from filename. Returns '(not set)' if no match.
+    If project_name is provided, it is stripped from the filename before matching
+    to avoid false positives (e.g. song 'Acid Drops' matching 'Acid Bass')."""
+    name_lower = filename.lower().replace('_', ' ').replace('-', ' ')
+    for ext in ['.wav', '.aiff', '.aif', '.flac', '.ogg']:
+        if name_lower.endswith(ext):
+            name_lower = name_lower[:-len(ext)]
+            break
+    if project_name:
+        pn = project_name.lower().replace('_', ' ').replace('-', ' ').strip()
+        if pn and pn in name_lower:
+            name_lower = name_lower.replace(pn, ' ').strip()
+    for patterns, category in AUTO_DETECT_PATTERNS:
+        for pattern in patterns:
+            if pattern in name_lower:
+                return category
+    return '(not set)'
+# ============================================================================
+# AUDIO ANALYSIS ENGINE
+# ============================================================================
+
+FREQ_BANDS = [
+    ('sub',      20,    60),
+    ('bass',     60,    250),
+    ('low_mid',  250,   500),
+    ('mid',      500,   2000),
+    ('high_mid', 2000,  4000),
+    ('presence', 4000,  8000),
+    ('air',      8000,  20000),
+]
+
+BAND_LABELS = {
+    'sub':      'Sub (20-60 Hz)',
+    'bass':     'Bass (60-250 Hz)',
+    'low_mid':  'Low-Mid (250-500 Hz)',
+    'mid':      'Mid (500-2000 Hz)',
+    'high_mid': 'High-Mid (2-4 kHz)',
+    'presence': 'Presence (4-8 kHz)',
+    'air':      'Air (8-20 kHz)',
+}
+
+
+def load_audio(filepath):
+    """Load audio file. Returns (data, sr, is_stereo)."""
+    data, sr = sf.read(filepath, always_2d=True)
+    is_stereo = data.shape[1] >= 2
+    if data.shape[1] > 2:
+        data = data[:, :2]
+    return data.astype(np.float32), sr, is_stereo
+
+
+def to_mono(data):
+    if data.ndim == 2 and data.shape[1] > 1:
+        return np.mean(data, axis=1)
+    return data.flatten()
+
+
+def db(x, floor=-120):
+    x = np.asarray(x, dtype=np.float64)
+    with np.errstate(divide='ignore'):
+        result = 20 * np.log10(np.maximum(np.abs(x), 1e-12))
+    return np.maximum(result, floor)
+
+
+def analyze_loudness(data, sr):
+    mono = to_mono(data)
+    audio_for_lufs = data if data.ndim == 2 else mono.reshape(-1, 1)
+
+    meter = pyln.Meter(sr)
+    try:
+        lufs_integrated = float(meter.integrated_loudness(audio_for_lufs))
+    except Exception:
+        lufs_integrated = -float('inf')
+
+    block_size = int(3 * sr)
+    hop = int(0.1 * sr)
+    st_values = []
+    if len(mono) > block_size:
+        for i in range(0, len(mono) - block_size, hop):
+            block = audio_for_lufs[i:i+block_size]
+            try:
+                lufs_st = meter.integrated_loudness(block)
+                if np.isfinite(lufs_st):
+                    st_values.append(lufs_st)
+            except Exception:
+                pass
+
+    if st_values:
+        lufs_st_max = float(max(st_values))
+        lra = float(np.percentile(st_values, 95) - np.percentile(st_values, 10))
+    else:
+        lufs_st_max = lufs_integrated
+        lra = 0.0
+
+    peak = float(np.max(np.abs(data)))
+    peak_db = float(db(peak))
+
+    try:
+        oversampled = signal.resample_poly(mono, 4, 1)
+        true_peak = float(np.max(np.abs(oversampled)))
+        true_peak_db = float(db(true_peak))
+    except Exception:
+        true_peak_db = peak_db
+
+    rms = float(np.sqrt(np.mean(mono ** 2)))
+    rms_db = float(db(rms))
+
+    crest_factor = peak_db - rms_db if rms > 0 else 0.0
+    plr = peak_db - lufs_integrated if np.isfinite(lufs_integrated) else 0.0
+    psr = peak_db - lufs_st_max if np.isfinite(lufs_st_max) else 0.0
+
+    return {
+        'peak_db': peak_db,
+        'true_peak_db': true_peak_db,
+        'rms_db': rms_db,
+        'lufs_integrated': lufs_integrated,
+        'lufs_short_term_max': lufs_st_max,
+        'lra': lra,
+        'crest_factor': crest_factor,
+        'plr': plr,
+        'psr': psr,
+    }
+
+
+def analyze_spectrum(mono, sr):
+    n_fft = 8192
+    S = np.abs(librosa.stft(mono, n_fft=n_fft, hop_length=n_fft//4))
+    spectrum_mean = np.mean(S, axis=1)
+    freqs = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
+
+    band_energies = {}
+    total_energy = np.sum(spectrum_mean ** 2) + 1e-12
+    for name, flow, fhigh in FREQ_BANDS:
+        mask = (freqs >= flow) & (freqs < fhigh)
+        if np.any(mask):
+            energy = float(np.sum(spectrum_mean[mask] ** 2))
+            band_energies[name] = 100 * energy / total_energy
+        else:
+            band_energies[name] = 0.0
+
+    dominant_band = max(band_energies, key=band_energies.get)
+
+    try:
+        centroid = float(np.mean(librosa.feature.spectral_centroid(y=mono, sr=sr)))
+        rolloff = float(np.mean(librosa.feature.spectral_rolloff(y=mono, sr=sr, roll_percent=0.85)))
+        flatness = float(np.mean(librosa.feature.spectral_flatness(y=mono)))
+    except Exception:
+        centroid = rolloff = flatness = 0.0
+
+    spectrum_db = db(spectrum_mean / (np.max(spectrum_mean) + 1e-12))
+    peaks, properties = signal.find_peaks(spectrum_db, height=-20, distance=20, prominence=6)
+    peak_freqs = freqs[peaks][:8]
+    peak_heights = spectrum_db[peaks][:8]
+    peak_list = sorted(
+        [(float(f), float(h)) for f, h in zip(peak_freqs, peak_heights)],
+        key=lambda x: x[1], reverse=True
+    )[:6]
+
+    return {
+        'freqs': freqs,
+        'spectrum_mean': spectrum_mean,
+        'spectrum_db_normalized': spectrum_db,
+        'band_energies': band_energies,
+        'dominant_band': dominant_band,
+        'centroid': centroid,
+        'rolloff': rolloff,
+        'flatness': flatness,
+        'peaks': peak_list,
+    }
+
+
+def analyze_temporal(mono, sr):
+    frame_length = 2048
+    hop_length = 512
+    rms = librosa.feature.rms(y=mono, frame_length=frame_length, hop_length=hop_length)[0]
+    rms_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr, hop_length=hop_length)
+
+    try:
+        onset_frames = librosa.onset.onset_detect(y=mono, sr=sr, hop_length=hop_length, units='frames')
+        onset_times = librosa.frames_to_time(onset_frames, sr=sr, hop_length=hop_length)
+    except Exception:
+        onset_times = np.array([])
+
+    hist_values, hist_bins = np.histogram(mono, bins=100, range=(-1, 1))
+
+    return {
+        'rms_envelope': rms,
+        'rms_times': rms_times,
+        'onset_times': onset_times,
+        'num_onsets': len(onset_times),
+        'hist_values': hist_values,
+        'hist_bins': hist_bins,
+    }
+
+
+def analyze_tempo_dynamic(mono, sr):
+    """
+    Enhanced tempo analysis with confidence score and tempogram.
+    Returns median tempo, range, confidence, and tempogram data.
+    """
+    result = {
+        'tempo_median': 0.0,
+        'tempo_min': 0.0,
+        'tempo_max': 0.0,
+        'tempo_std': 0.0,
+        'confidence': 0.0,
+        'confidence_label': 'unreliable',
+        'tempogram': None,
+        'tempogram_times': None,
+        'tempo_over_time': None,
+        'reliable': False,
+    }
+
+    try:
+        # Onset strength envelope - foundation for tempo detection
+        hop_length = 512
+        onset_env = librosa.onset.onset_strength(y=mono, sr=sr, hop_length=hop_length)
+
+        # Onset strength must be meaningful - if too low, content is not percussive enough
+        onset_strength_mean = float(np.mean(onset_env))
+        onset_strength_max = float(np.max(onset_env)) if len(onset_env) > 0 else 0.0
+
+        if onset_strength_max < 0.01 or onset_strength_mean < 0.001:
+            # Essentially no transients - tempo is meaningless
+            result['confidence_label'] = 'not applicable (non-percussive)'
+            return result
+
+        # Global tempo estimate
+        tempo_global, beats = librosa.beat.beat_track(onset_envelope=onset_env, sr=sr, hop_length=hop_length)
+        tempo_global = float(tempo_global) if np.isscalar(tempo_global) else (float(tempo_global[0]) if len(tempo_global) else 0.0)
+
+        # Dynamic tempo via tempogram
+        try:
+            tempogram = librosa.feature.tempogram(onset_envelope=onset_env, sr=sr, hop_length=hop_length)
+            tempogram_times = librosa.times_like(tempogram, sr=sr, hop_length=hop_length)
+
+            # Extract dominant tempo per frame
+            # Tempogram bins correspond to tempo values via fourier_tempo_frequencies
+            try:
+                tempo_frequencies = librosa.tempo_frequencies(tempogram.shape[0], hop_length=hop_length, sr=sr)
+            except Exception:
+                tempo_frequencies = None
+
+            if tempo_frequencies is not None and len(tempo_frequencies) == tempogram.shape[0]:
+                # For each time frame, find the tempo with max correlation
+                # Restrict to reasonable tempo range (30-300 BPM)
+                valid_bins = (tempo_frequencies >= 30) & (tempo_frequencies <= 300)
+                if np.any(valid_bins):
+                    restricted = tempogram[valid_bins]
+                    restricted_freqs = tempo_frequencies[valid_bins]
+                    dominant_idx = np.argmax(restricted, axis=0)
+                    tempo_over_time = restricted_freqs[dominant_idx]
+
+                    # Also compute confidence per frame (peak prominence vs mean)
+                    peak_values = np.max(restricted, axis=0)
+                    mean_values = np.mean(restricted, axis=0)
+                    per_frame_confidence = peak_values / (mean_values + 1e-9)
+
+                    # Overall confidence: median of per-frame confidence, normalized
+                    median_confidence = float(np.median(per_frame_confidence))
+
+                    # Stats on tempo over time
+                    # Filter out outliers using median-based approach
+                    tempo_median = float(np.median(tempo_over_time))
+                    tempo_min = float(np.percentile(tempo_over_time, 5))
+                    tempo_max = float(np.percentile(tempo_over_time, 95))
+                    tempo_std = float(np.std(tempo_over_time))
+
+                    result['tempogram'] = tempogram
+                    result['tempogram_times'] = tempogram_times
+                    result['tempo_over_time'] = tempo_over_time
+                    result['tempo_median'] = tempo_median
+                    result['tempo_min'] = tempo_min
+                    result['tempo_max'] = tempo_max
+                    result['tempo_std'] = tempo_std
+
+                    # Confidence scoring (heuristic)
+                    # A track needs: strong AND frequent onsets, consistent tempo, clear peak prominence
+                    # Count significant onsets per second to detect truly percussive content
+                    try:
+                        onset_frames = librosa.onset.onset_detect(onset_envelope=onset_env, sr=sr, hop_length=hop_length)
+                        duration_s = len(mono) / sr
+                        onsets_per_sec = len(onset_frames) / duration_s if duration_s > 0 else 0
+                    except Exception:
+                        onsets_per_sec = 0
+
+                    # Require at least 1 onset per second for tempo to be meaningful (slowest = 60 BPM = 1/s)
+                    if onsets_per_sec < 0.8:
+                        # Sustained content - tempo is meaningless regardless of what librosa says
+                        result['tempo_median'] = tempo_global
+                        result['confidence'] = 0.1
+                        result['confidence_label'] = 'not applicable (sustained/non-rhythmic content)'
+                        result['reliable'] = False
+                        return result
+
+                    # Normal confidence computation for rhythmic content
+                    confidence = min(1.0, (
+                        min(1.0, onset_strength_mean * 50) * 0.25 +
+                        min(1.0, median_confidence / 4.0) * 0.35 +
+                        max(0.0, 1.0 - tempo_std / 30.0) * 0.25 +
+                        min(1.0, onsets_per_sec / 2.0) * 0.15
+                    ))
+
+                    # Hard penalty if tempo is outside typical musical range
+                    # Most music is 60-180 BPM. Outside this, detection is almost certainly wrong.
+                    if tempo_median < 55 or tempo_median > 200:
+                        confidence *= 0.25  # drastically reduce
+                    elif tempo_median < 70 or tempo_median > 180:
+                        confidence *= 0.6
+
+                    result['confidence'] = float(confidence)
+
+                    if confidence >= 0.7:
+                        result['confidence_label'] = 'high'
+                        result['reliable'] = True
+                    elif confidence >= 0.4:
+                        result['confidence_label'] = 'medium'
+                        result['reliable'] = True
+                    elif confidence >= 0.2:
+                        result['confidence_label'] = 'low'
+                        result['reliable'] = False
+                    else:
+                        result['confidence_label'] = 'very low (likely unreliable)'
+                        result['reliable'] = False
+        except Exception:
+            # Fallback to global tempo
+            result['tempo_median'] = tempo_global
+            result['tempo_min'] = tempo_global
+            result['tempo_max'] = tempo_global
+            result['confidence'] = 0.3
+            result['confidence_label'] = 'low (global estimate only)'
+
+    except Exception:
+        pass
+
+    return result
+
+
+def analyze_musical(mono, sr):
+    try:
+        chroma = librosa.feature.chroma_cqt(y=mono, sr=sr, hop_length=1024)
+    except Exception:
+        try:
+            chroma = librosa.feature.chroma_stft(y=mono, sr=sr, hop_length=1024)
+        except Exception:
+            chroma = np.zeros((12, 10))
+
+    note_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+    chroma_mean = np.mean(chroma, axis=1)
+    dominant_note = note_names[int(np.argmax(chroma_mean))]
+
+    tonal_strength = float(np.max(chroma_mean) / (np.mean(chroma_mean) + 1e-9))
+
+    return {
+        'chroma': chroma,
+        'dominant_note': dominant_note,
+        'tonal_strength': tonal_strength,
+        'is_tonal': tonal_strength > 1.8,
+    }
+
+
+def analyze_stereo(data, sr):
+    """Stereo analysis including spectral panorama (vectorscope per frequency)."""
+    if data.shape[1] < 2:
+        return {
+            'is_stereo': False,
+            'correlation': 1.0,
+            'width_overall': 0.0,
+            'width_per_band': {name: 0.0 for name, _, _ in FREQ_BANDS},
+            'mid': to_mono(data),
+            'side': np.zeros(len(to_mono(data))),
+            'pan_per_freq': None,
+            'pan_freqs': None,
+            'pan_energy': None,
+        }
+
+    L = data[:, 0]
+    R = data[:, 1]
+
+    if np.std(L) > 0 and np.std(R) > 0:
+        correlation = float(np.corrcoef(L, R)[0, 1])
+    else:
+        correlation = 1.0
+
+    M = 0.5 * (L + R)
+    S = 0.5 * (L - R)
+
+    energy_m = np.sum(M ** 2) + 1e-12
+    energy_s = np.sum(S ** 2)
+    width_overall = float(energy_s / (energy_m + energy_s))
+
+    width_per_band = {}
+    n_fft = 4096
+    SL = np.abs(librosa.stft(L, n_fft=n_fft))
+    SR = np.abs(librosa.stft(R, n_fft=n_fft))
+    SM = np.abs(librosa.stft(M, n_fft=n_fft))
+    SS = np.abs(librosa.stft(S, n_fft=n_fft))
+    freqs = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
+
+    for name, flow, fhigh in FREQ_BANDS:
+        mask = (freqs >= flow) & (freqs < fhigh)
+        if np.any(mask):
+            em = np.sum(SM[mask] ** 2) + 1e-12
+            es = np.sum(SS[mask] ** 2)
+            width_per_band[name] = float(es / (em + es))
+        else:
+            width_per_band[name] = 0.0
+
+    # Spectral panorama (vectorscope per frequency)
+    # For each frequency bin, compute the pan position -1 (L) to +1 (R)
+    # pan = (R - L) / (R + L) in magnitude
+    SL_mean = np.mean(SL, axis=1)
+    SR_mean = np.mean(SR, axis=1)
+    total = SL_mean + SR_mean + 1e-12
+    pan_per_freq = (SR_mean - SL_mean) / total  # -1 (full left) to +1 (full right)
+    pan_energy = SL_mean + SR_mean  # total energy at each freq (for color intensity)
+
+    return {
+        'is_stereo': True,
+        'correlation': correlation,
+        'width_overall': width_overall,
+        'width_per_band': width_per_band,
+        'mid': M,
+        'side': S,
+        'pan_per_freq': pan_per_freq,
+        'pan_freqs': freqs,
+        'pan_energy': pan_energy,
+    }
+
+
+def detect_anomalies(analysis):
+    """Detect objective anomalies. Returns a list of (severity, description) tuples."""
+    anomalies = []
+    L = analysis['loudness']
+    S = analysis['spectrum']
+    stereo = analysis['stereo']
+
+    # Clipping risk
+    if L['peak_db'] > -0.3:
+        anomalies.append(('critical', f"Peak level at {L['peak_db']:+.2f} dBFS - clipping risk"))
+    elif L['peak_db'] > -1.0:
+        anomalies.append(('warning', f"Peak level at {L['peak_db']:+.2f} dBFS - very little headroom"))
+
+    # True peak
+    if L['true_peak_db'] > 0.0:
+        anomalies.append(('critical', f"True Peak at {L['true_peak_db']:+.2f} dBFS - inter-sample clipping"))
+
+    # Phase
+    if stereo['is_stereo']:
+        if stereo['correlation'] < -0.3:
+            anomalies.append(('critical', f"Phase correlation {stereo['correlation']:+.2f} - serious mono compatibility issue"))
+        elif stereo['correlation'] < 0.0:
+            anomalies.append(('warning', f"Phase correlation {stereo['correlation']:+.2f} - mono compatibility concern"))
+
+    # Very low energy
+    if L['rms_db'] < -60:
+        anomalies.append(('warning', f"RMS level very low ({L['rms_db']:.1f} dBFS) - track may be nearly silent"))
+
+    # Strong resonance peaks
+    strong_peaks = [p for p in S['peaks'] if p[1] > -3 and p[0] > 100]
+    if len(strong_peaks) >= 2:
+        freqs_str = ', '.join(f"{p[0]:.0f}Hz" for p in strong_peaks[:3])
+        anomalies.append(('warning', f"Strong resonance peaks detected at: {freqs_str}"))
+
+    # Extreme compression
+    if L['crest_factor'] < 5 and L['rms_db'] > -30:
+        anomalies.append(('warning', f"Very low crest factor ({L['crest_factor']:.1f} dB) - heavy compression"))
+
+    # Extreme stereo imbalance
+    if stereo['is_stereo']:
+        if stereo['width_overall'] > 0.6:
+            anomalies.append(('info', f"Very wide stereo image ({stereo['width_overall']:.2f}) - verify mono compatibility"))
+
+    return anomalies
+
+
+def describe_characteristics(analysis):
+    """Objective descriptive characteristics of the track. No prescriptions."""
+    chars = []
+    L = analysis['loudness']
+    S = analysis['spectrum']
+    T = analysis['temporal']
+    M = analysis['musical']
+    stereo = analysis['stereo']
+    tempo = analysis.get('tempo', {})
+    duration = analysis['duration']
+
+    # Tonal character
+    if M['is_tonal']:
+        chars.append(('tonal', f"Tonal content (strongest note class: {M['dominant_note']}, tonal strength {M['tonal_strength']:.1f})"))
+    else:
+        chars.append(('atonal', f"Non-tonal / percussive or noisy content (tonal strength {M['tonal_strength']:.1f})"))
+
+    # Temporal profile
+    onsets_per_sec = T['num_onsets'] / duration if duration > 0 else 0
+    if onsets_per_sec < 0.3:
+        chars.append(('sustained', f"Sustained profile ({T['num_onsets']} transients over {duration:.1f}s = {onsets_per_sec:.2f}/s)"))
+    elif onsets_per_sec > 3.0:
+        chars.append(('rhythmic', f"Dense rhythmic profile ({T['num_onsets']} transients = {onsets_per_sec:.2f}/s)"))
+    else:
+        chars.append(('transient', f"Transient profile ({T['num_onsets']} transients = {onsets_per_sec:.2f}/s)"))
+
+    # Spectral character
+    chars.append(('spectrum', f"Dominant band: {BAND_LABELS[S['dominant_band']]} ({S['band_energies'][S['dominant_band']]:.1f}% of energy)"))
+    chars.append(('spectrum', f"Spectral centroid: {S['centroid']:.0f} Hz, rolloff 85%: {S['rolloff']:.0f} Hz"))
+
+    # Dynamics
+    if L['crest_factor'] < 6:
+        chars.append(('dynamics', f"Very compressed dynamics (crest factor {L['crest_factor']:.1f} dB)"))
+    elif L['crest_factor'] < 10:
+        chars.append(('dynamics', f"Moderately compressed dynamics (crest factor {L['crest_factor']:.1f} dB)"))
+    elif L['crest_factor'] < 15:
+        chars.append(('dynamics', f"Preserved dynamics (crest factor {L['crest_factor']:.1f} dB)"))
+    else:
+        chars.append(('dynamics', f"High dynamic range (crest factor {L['crest_factor']:.1f} dB)"))
+
+    # Stereo
+    if stereo['is_stereo']:
+        w = stereo['width_overall']
+        if w < 0.05:
+            chars.append(('stereo', f"Quasi-mono stereo image (width {w:.2f})"))
+        elif w < 0.15:
+            chars.append(('stereo', f"Narrow stereo image (width {w:.2f})"))
+        elif w < 0.30:
+            chars.append(('stereo', f"Moderate stereo image (width {w:.2f})"))
+        else:
+            chars.append(('stereo', f"Wide stereo image (width {w:.2f})"))
+        chars.append(('stereo', f"Phase correlation {stereo['correlation']:+.2f}"))
+    else:
+        chars.append(('stereo', "Mono track"))
+
+    # Tempo (only if computed and reliable)
+    if tempo.get('reliable'):
+        tm = tempo['tempo_median']
+        tmin = tempo['tempo_min']
+        tmax = tempo['tempo_max']
+        conf = tempo['confidence_label']
+        if tmax - tmin > 5:
+            chars.append(('tempo', f"Dynamic tempo: median {tm:.1f} BPM, range {tmin:.1f}-{tmax:.1f} BPM (confidence: {conf})"))
+        else:
+            chars.append(('tempo', f"Stable tempo: {tm:.1f} BPM (confidence: {conf})"))
+    elif tempo.get('confidence_label') != 'not computed (individual track)':
+        label = tempo.get('confidence_label', 'unreliable')
+        chars.append(('tempo', f"Tempo detection: {label}"))
+    # If tempo is 'not computed', just skip it (no line added)
+
+    return chars
+
+
+def analyze_multiband_timeline(mono, sr, n_segments=200):
+    """
+    Compute energy per frequency band over time.
+    Returns a dict with time axis and energy array per band.
+    """
+    n_fft = 2048
+    hop_length = max(1, len(mono) // n_segments)
+    if hop_length < 256:
+        hop_length = 256
+
+    # Compute magnitude spectrogram
+    S = np.abs(librosa.stft(mono, n_fft=n_fft, hop_length=hop_length))
+    freqs = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
+    times = librosa.times_like(S, sr=sr, hop_length=hop_length)
+
+    # For each band, compute energy per frame
+    band_energy_timeline = {}
+    for name, flow, fhigh in FREQ_BANDS:
+        mask = (freqs >= flow) & (freqs < fhigh)
+        if np.any(mask):
+            # Energy per frame in dB for readability
+            band_energy = np.sum(S[mask] ** 2, axis=0)
+            # Convert to dB, floor at -80
+            with np.errstate(divide='ignore'):
+                band_db = 10 * np.log10(np.maximum(band_energy, 1e-10))
+            band_energy_timeline[name] = band_db
+        else:
+            band_energy_timeline[name] = np.full(len(times), -80.0)
+
+    return {
+        'times': times,
+        'bands': band_energy_timeline,
+    }
+
+
+def analyze_dynamic_range_timeline(mono, sr):
+    """
+    Sliding window peak vs RMS analysis.
+    Returns time series of peak, RMS, and instantaneous crest factor.
+    """
+    window_size = int(0.050 * sr)  # 50 ms windows
+    hop_size = int(0.020 * sr)     # 20 ms hop
+
+    if len(mono) < window_size:
+        return {
+            'times': np.array([0.0]),
+            'peak_db': np.array([db(np.max(np.abs(mono)))]),
+            'rms_db': np.array([db(np.sqrt(np.mean(mono ** 2)))]),
+            'crest_instant': np.array([0.0]),
+        }
+
+    n_windows = (len(mono) - window_size) // hop_size + 1
+    peaks = np.zeros(n_windows)
+    rmss = np.zeros(n_windows)
+    times = np.zeros(n_windows)
+
+    for i in range(n_windows):
+        start = i * hop_size
+        end = start + window_size
+        block = mono[start:end]
+        peaks[i] = np.max(np.abs(block))
+        rmss[i] = np.sqrt(np.mean(block ** 2))
+        times[i] = (start + window_size / 2) / sr
+
+    peak_db = db(peaks)
+    rms_db = db(rmss)
+    crest_instant = peak_db - rms_db
+
+    return {
+        'times': times,
+        'peak_db': peak_db,
+        'rms_db': rms_db,
+        'crest_instant': crest_instant,
+    }
+
+
+def analyze_structure_sections(mono, sr, n_sections_target=8):
+    """
+    Detect musical section boundaries using spectral similarity.
+    Only used for Full Mix tracks.
+    Returns boundaries (in seconds) and energy envelope.
+    """
+    result = {
+        'boundaries': [],
+        'energy_envelope': None,
+        'envelope_times': None,
+        'success': False,
+    }
+
+    try:
+        # Compute chromagram for harmonic similarity
+        hop_length = 2048
+        chroma = librosa.feature.chroma_cqt(y=mono, sr=sr, hop_length=hop_length)
+
+        # Segment using agglomerative clustering
+        try:
+            bounds = librosa.segment.agglomerative(chroma, k=n_sections_target)
+            bound_times = librosa.frames_to_time(bounds, sr=sr, hop_length=hop_length)
+        except Exception:
+            bound_times = np.array([])
+
+        result['boundaries'] = bound_times.tolist() if len(bound_times) > 0 else []
+
+        # Overall energy envelope (RMS over larger window for smoothness)
+        frame_length = 8192
+        envelope_hop = 2048
+        rms = librosa.feature.rms(y=mono, frame_length=frame_length, hop_length=envelope_hop)[0]
+        envelope_times = librosa.frames_to_time(np.arange(len(rms)), sr=sr, hop_length=envelope_hop)
+        # Convert to dB
+        with np.errstate(divide='ignore'):
+            rms_db = 20 * np.log10(np.maximum(rms, 1e-10))
+        result['energy_envelope'] = rms_db
+        result['envelope_times'] = envelope_times
+        result['success'] = True
+    except Exception:
+        pass
+
+    return result
+
+
+def compute_difference_spectrogram(full_mix_mono, individuals_monos, sr):
+    """
+    Compute the spectrogram difference between Full Mix and the sum of individual tracks.
+    Returns the difference in dB, the sum spectrogram, and the mix spectrogram.
+    Used to reveal the effect of master bus processing.
+    """
+    result = {
+        'success': False,
+        'diff_db': None,
+        'times': None,
+        'freqs': None,
+    }
+
+    if not individuals_monos:
+        return result
+
+    try:
+        # Align lengths: use the minimum length
+        min_len = min(len(full_mix_mono), *[len(m) for m in individuals_monos])
+        if min_len < sr:  # Need at least 1 second
+            return result
+
+        mix = full_mix_mono[:min_len]
+        # Sum all individuals, aligned to the same length
+        summed = np.zeros(min_len, dtype=np.float32)
+        for ind in individuals_monos:
+            summed[:min(len(ind), min_len)] += ind[:min(len(ind), min_len)]
+
+        # Compute magnitude spectrograms
+        n_fft = 2048
+        hop_length = 512
+        S_mix = np.abs(librosa.stft(mix, n_fft=n_fft, hop_length=hop_length))
+        S_sum = np.abs(librosa.stft(summed, n_fft=n_fft, hop_length=hop_length))
+
+        # Compute dB difference (mix - sum in dB domain)
+        S_mix_db = 20 * np.log10(np.maximum(S_mix, 1e-10))
+        S_sum_db = 20 * np.log10(np.maximum(S_sum, 1e-10))
+        diff_db = S_mix_db - S_sum_db
+
+        # Clip to reasonable range for visualization
+        diff_db = np.clip(diff_db, -24, 24)
+
+        times = librosa.times_like(S_mix, sr=sr, hop_length=hop_length)
+        freqs = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
+
+        result['success'] = True
+        result['diff_db'] = diff_db
+        result['times'] = times
+        result['freqs'] = freqs
+    except Exception:
+        pass
+
+    return result
+
+
+def analyze_track(filepath, compute_tempo=False):
+    """Complete analysis of a single track."""
+    data, sr, is_stereo = load_audio(filepath)
+    mono = to_mono(data)
+    duration = len(mono) / sr
+
+    result = {
+        'filepath': filepath,
+        'filename': os.path.basename(filepath),
+        'duration': duration,
+        'sample_rate': sr,
+        'is_stereo': is_stereo,
+        'num_channels': data.shape[1],
+    }
+
+    result['loudness'] = analyze_loudness(data, sr)
+    result['spectrum'] = analyze_spectrum(mono, sr)
+    result['temporal'] = analyze_temporal(mono, sr)
+    # Tempo is only computed for Full Mix tracks (too unreliable on isolated tracks)
+    if compute_tempo:
+        result['tempo'] = analyze_tempo_dynamic(mono, sr)
+    else:
+        result['tempo'] = {
+            'tempo_median': 0.0, 'tempo_min': 0.0, 'tempo_max': 0.0, 'tempo_std': 0.0,
+            'confidence': 0.0, 'confidence_label': 'not computed (individual track)',
+            'tempogram': None, 'tempogram_times': None, 'tempo_over_time': None,
+            'reliable': False,
+        }
+    result['musical'] = analyze_musical(mono, sr)
+    result['stereo'] = analyze_stereo(data, sr)
+    # New analyses for v1.6
+    result['multiband_timeline'] = analyze_multiband_timeline(mono, sr)
+    result['dynamic_range_timeline'] = analyze_dynamic_range_timeline(mono, sr)
+    result['anomalies'] = detect_anomalies(result)
+    result['characteristics'] = describe_characteristics(result)
+
+    result['_mono'] = mono
+    result['_data'] = data
+
+    return result
+# ============================================================================
+# PDF GENERATION - Enhanced with tempogram and spectral panorama
+# ============================================================================
+
+# Cyberpunk industrial theme colors
+THEME = {
+    'bg':           '#0a0a12',
+    'panel':        '#1a1a24',
+    'fg':           '#e8e8f0',
+    'fg_dim':       '#8888a0',
+    'accent1':      '#00d9ff',  # cyan
+    'accent2':      '#b967ff',  # violet
+    'accent3':      '#ff3d8b',  # magenta
+    'accent4':      '#00ff9f',  # green
+    'warning':      '#ffaa00',
+    'critical':     '#ff3333',
+    'grid':         '#333344',
+}
+
+plt.rcParams.update({
+    'figure.facecolor': THEME['bg'],
+    'axes.facecolor':   THEME['panel'],
+    'savefig.facecolor': THEME['bg'],
+    'axes.edgecolor':   THEME['fg_dim'],
+    'axes.labelcolor':  THEME['fg'],
+    'text.color':       THEME['fg'],
+    'xtick.color':      THEME['fg_dim'],
+    'ytick.color':      THEME['fg_dim'],
+    'grid.color':       THEME['grid'],
+    'grid.alpha':       0.5,
+    'axes.grid':        True,
+    'figure.dpi':       100,
+    'font.family':      'sans-serif',
+})
+
+
+def make_page_header(fig, title, track_name, track_info=None):
+    """Uniform page header. track_info: dict with type, category, etc."""
+    fig.suptitle(title, fontsize=15, color=THEME['accent1'], fontweight='bold', y=0.975)
+    display_name = track_name if len(track_name) <= 60 else track_name[:57] + '...'
+    fig.text(0.5, 0.938, f"Track: {display_name}", ha='center', fontsize=9, color=THEME['fg_dim'])
+    if track_info:
+        info_parts = []
+        if track_info.get('type'):
+            info_parts.append(f"Type: {track_info['type']}")
+        if track_info.get('category') and track_info['category'] != '(not set)':
+            info_parts.append(f"Category: {track_info['category']}")
+        if track_info.get('parent_bus') and track_info['parent_bus'] != 'None':
+            info_parts.append(f"Parent BUS: {track_info['parent_bus']}")
+        if info_parts:
+            fig.text(0.5, 0.915, ' | '.join(info_parts), ha='center', fontsize=8,
+                     color=THEME['accent2'], fontweight='bold')
+
+
+def page_identity(analysis, track_info, style_name):
+    """Page 1 - Identity and key metrics."""
+    fig = plt.figure(figsize=(11, 8.5))
+    make_page_header(fig, 'TRACK IDENTITY', analysis['filename'], track_info)
+
+    ax = fig.add_subplot(111)
+    ax.axis('off')
+
+    L = analysis['loudness']
+    S = analysis['spectrum']
+    stereo = analysis['stereo']
+    tempo = analysis['tempo']
+
+    channels_str = 'Stereo' if analysis['is_stereo'] else 'Mono'
+
+    col1 = [
+        ('Duration', f"{analysis['duration']:.2f} s"),
+        ('Sample rate', f"{analysis['sample_rate']} Hz"),
+        ('Channels', channels_str),
+        ('', ''),
+        ('Peak level', f"{L['peak_db']:+.2f} dBFS"),
+        ('True Peak', f"{L['true_peak_db']:+.2f} dBFS"),
+        ('RMS level', f"{L['rms_db']:+.2f} dBFS"),
+        ('', ''),
+        ('Integrated LUFS', f"{L['lufs_integrated']:+.2f} LUFS" if np.isfinite(L['lufs_integrated']) else '—'),
+        ('Short-term LUFS max', f"{L['lufs_short_term_max']:+.2f} LUFS" if np.isfinite(L['lufs_short_term_max']) else '—'),
+        ('Loudness Range (LRA)', f"{L['lra']:.2f} LU"),
+    ]
+
+    col2 = [
+        ('Crest factor', f"{L['crest_factor']:.2f} dB"),
+        ('PLR (Peak to Loudness)', f"{L['plr']:.2f} dB"),
+        ('PSR (Peak to Short-term)', f"{L['psr']:.2f} dB"),
+        ('', ''),
+        ('Dominant band', BAND_LABELS.get(S['dominant_band'], S['dominant_band'])),
+        ('Spectral centroid', f"{S['centroid']:.0f} Hz"),
+        ('Spectral rolloff (85%)', f"{S['rolloff']:.0f} Hz"),
+        ('', ''),
+        ('Tempo (median)', f"{tempo['tempo_median']:.1f} BPM" if tempo['reliable'] else 'Not reliable'),
+        ('Phase correlation', f"{stereo['correlation']:.3f}" if stereo['is_stereo'] else '—'),
+        ('Stereo width', f"{stereo['width_overall']:.3f}" if stereo['is_stereo'] else '—'),
+    ]
+
+    y0 = 0.87
+    dy = 0.055
+    for i, (label, value) in enumerate(col1):
+        y = y0 - i * dy
+        if label:
+            ax.text(0.04, y, label, fontsize=10, color=THEME['fg_dim'], transform=ax.transAxes)
+            ax.text(0.33, y, value, fontsize=11, color=THEME['fg'], fontweight='bold', transform=ax.transAxes)
+
+    for i, (label, value) in enumerate(col2):
+        y = y0 - i * dy
+        if label:
+            ax.text(0.52, y, label, fontsize=10, color=THEME['fg_dim'], transform=ax.transAxes)
+            ax.text(0.82, y, value, fontsize=11, color=THEME['fg'], fontweight='bold', transform=ax.transAxes)
+
+    ax.text(0.04, 0.04, f"Style context: {style_name}",
+            fontsize=9, color=THEME['fg_dim'], transform=ax.transAxes)
+    ax.text(0.04, 0.01, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            fontsize=9, color=THEME['fg_dim'], transform=ax.transAxes)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.90])
+    return fig
+
+
+def page_temporal(analysis, track_info):
+    fig = plt.figure(figsize=(11, 8.5))
+    make_page_header(fig, 'TEMPORAL VIEW', analysis['filename'], track_info)
+
+    mono = analysis['_mono']
+    sr = analysis['sample_rate']
+    T = analysis['temporal']
+    times = np.arange(len(mono)) / sr
+
+    if len(mono) > 200000:
+        step = len(mono) // 100000
+        times_vis = times[::step]
+        mono_vis = mono[::step]
+    else:
+        times_vis = times
+        mono_vis = mono
+
+    ax1 = fig.add_subplot(2, 1, 1)
+    ax1.fill_between(times_vis, mono_vis, -mono_vis, color=THEME['accent1'], alpha=0.25, linewidth=0)
+    ax1.plot(times_vis, mono_vis, color=THEME['accent1'], linewidth=0.3, alpha=0.6)
+    ax1.plot(T['rms_times'], T['rms_envelope'], color=THEME['accent3'], linewidth=1.5, label='RMS')
+    ax1.plot(T['rms_times'], -T['rms_envelope'], color=THEME['accent3'], linewidth=1.5)
+    onset_display = T['onset_times']
+    if len(onset_display) > 150:
+        step = len(onset_display) // 150
+        onset_display = onset_display[::step]
+    for onset_t in onset_display:
+        ax1.axvline(onset_t, color=THEME['accent4'], alpha=0.35, linewidth=0.4)
+    ax1.set_xlabel('Time (s)')
+    ax1.set_ylabel('Amplitude')
+    ax1.set_title(f"Waveform with RMS envelope  |  Transients detected: {T['num_onsets']}",
+                  color=THEME['accent1'], fontsize=10)
+    ax1.set_ylim(-1.05, 1.05)
+    ax1.legend(loc='upper right', fontsize=8)
+
+    ax2 = fig.add_subplot(2, 1, 2)
+    bin_centers = 0.5 * (T['hist_bins'][:-1] + T['hist_bins'][1:])
+    ax2.bar(bin_centers, T['hist_values'], width=(T['hist_bins'][1] - T['hist_bins'][0]),
+            color=THEME['accent2'], alpha=0.7, edgecolor=THEME['accent2'])
+    ax2.set_yscale('log')
+    ax2.set_xlabel('Amplitude')
+    ax2.set_ylabel('Count')
+    ax2.set_title('Amplitude distribution histogram', color=THEME['accent1'], fontsize=10)
+    ax2.set_xlim(-1.05, 1.05)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.90])
+    return fig
+
+
+def page_spectral(analysis, track_info):
+    fig = plt.figure(figsize=(11, 8.5))
+    make_page_header(fig, 'SPECTRAL VIEW', analysis['filename'], track_info)
+
+    S = analysis['spectrum']
+
+    ax1 = fig.add_subplot(2, 1, 1)
+    freqs = S['freqs']
+    spec_db = S['spectrum_db_normalized']
+    mask = freqs > 0
+    ax1.semilogx(freqs[mask], spec_db[mask], color=THEME['accent1'], linewidth=1.2)
+    ax1.fill_between(freqs[mask], spec_db[mask], -100, color=THEME['accent1'], alpha=0.2)
+
+    for pf, ph in S['peaks']:
+        if pf > 20:
+            ax1.plot(pf, ph, 'o', color=THEME['accent3'], markersize=6)
+            ax1.annotate(f"{pf:.0f}Hz", (pf, ph), textcoords="offset points",
+                         xytext=(5, 5), fontsize=7, color=THEME['accent3'])
+
+    ax1.set_xlim(20, 20000)
+    ax1.set_ylim(-80, 5)
+    ax1.set_xlabel('Frequency (Hz)')
+    ax1.set_ylabel('Magnitude (dB)')
+    ax1.set_title('Average spectrum (FFT)', color=THEME['accent1'], fontsize=10)
+
+    band_colors = ['#2a1a4a', '#1a3a2a', '#4a3a1a', '#4a1a2a', '#4a1a3a', '#2a1a4a', '#1a3a4a']
+    for i, (name, flow, fhigh) in enumerate(FREQ_BANDS):
+        ax1.axvspan(flow, fhigh, alpha=0.15, color=band_colors[i % len(band_colors)])
+
+    ax2 = fig.add_subplot(2, 1, 2)
+    band_names = [BAND_LABELS[name] for name, _, _ in FREQ_BANDS]
+    band_values = [S['band_energies'][name] for name, _, _ in FREQ_BANDS]
+    bars = ax2.bar(range(len(band_names)), band_values, color=band_colors[:len(band_names)],
+                    edgecolor=THEME['fg_dim'], linewidth=0.5)
+    dominant_idx = [i for i, (n, _, _) in enumerate(FREQ_BANDS) if n == S['dominant_band']]
+    if dominant_idx:
+        bars[dominant_idx[0]].set_edgecolor(THEME['accent1'])
+        bars[dominant_idx[0]].set_linewidth(2.5)
+
+    ax2.set_xticks(range(len(band_names)))
+    ax2.set_xticklabels(band_names, rotation=25, ha='right', fontsize=8)
+    ax2.set_ylabel('% of total energy')
+    ax2.set_title('Spectral balance by band', color=THEME['accent1'], fontsize=10)
+    for i, v in enumerate(band_values):
+        ax2.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=8, color=THEME['fg'])
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.90])
+    return fig
+
+
+def page_spectrogram(analysis, track_info):
+    fig = plt.figure(figsize=(11, 8.5))
+    make_page_header(fig, 'SPECTRO-TEMPORAL VIEW', analysis['filename'], track_info)
+
+    mono = analysis['_mono']
+    sr = analysis['sample_rate']
+
+    ax1 = fig.add_subplot(2, 1, 1)
+    D = librosa.amplitude_to_db(np.abs(librosa.stft(mono, n_fft=2048, hop_length=512)), ref=np.max)
+    img1 = librosa.display.specshow(D, sr=sr, x_axis='time', y_axis='log', ax=ax1,
+                                      cmap='magma', vmin=-80, vmax=0)
+    ax1.set_title('Spectrogram (log scale)', color=THEME['accent1'], fontsize=10)
+    fig.colorbar(img1, ax=ax1, format='%+2.0f dB', pad=0.01)
+
+    ax2 = fig.add_subplot(2, 1, 2)
+    mel = librosa.feature.melspectrogram(y=mono, sr=sr, n_mels=128, fmax=sr/2)
+    mel_db = librosa.power_to_db(mel, ref=np.max)
+    img2 = librosa.display.specshow(mel_db, sr=sr, x_axis='time', y_axis='mel', ax=ax2,
+                                      cmap='magma', vmin=-80, vmax=0)
+    ax2.set_title('Mel spectrogram (human perception)', color=THEME['accent1'], fontsize=10)
+    fig.colorbar(img2, ax=ax2, format='%+2.0f dB', pad=0.01)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.90])
+    return fig
+
+
+def page_musical(analysis, track_info):
+    """Page 5 - Musical analysis.
+    For individual tracks: chromagram + tonal info only.
+    For Full Mix tracks: chromagram + tempogram + tempo stats.
+    """
+    fig = plt.figure(figsize=(11, 8.5))
+    make_page_header(fig, 'MUSICAL ANALYSIS', analysis['filename'], track_info)
+
+    M = analysis['musical']
+    tempo = analysis['tempo']
+    sr = analysis['sample_rate']
+    is_full_mix = track_info.get('type') == 'Full Mix'
+
+    if is_full_mix and tempo.get('tempogram') is not None:
+        # Full Mix: chromagram + tempogram + stats
+        # Chromagram (top)
+        ax1 = fig.add_subplot(3, 1, 1)
+        img = librosa.display.specshow(M['chroma'], sr=sr, x_axis='time', y_axis='chroma',
+                                         ax=ax1, cmap='magma')
+        ax1.set_title('Chromagram (pitch classes over time)', color=THEME['accent1'], fontsize=10)
+        fig.colorbar(img, ax=ax1, pad=0.01)
+
+        # Tempogram (middle)
+        ax2 = fig.add_subplot(3, 1, 2)
+        tg = tempo['tempogram']
+        tg_times = tempo['tempogram_times']
+        try:
+            tempo_freqs = librosa.tempo_frequencies(tg.shape[0], hop_length=512, sr=sr)
+            valid = (tempo_freqs >= 30) & (tempo_freqs <= 250)
+            if np.any(valid):
+                tg_display = tg[valid]
+                freqs_display = tempo_freqs[valid]
+                img = ax2.imshow(tg_display, aspect='auto', origin='lower', cmap='magma',
+                                  extent=[tg_times[0], tg_times[-1], freqs_display[-1], freqs_display[0]])
+                if tempo.get('tempo_over_time') is not None and len(tempo['tempo_over_time']) == len(tg_times):
+                    ax2.plot(tg_times, tempo['tempo_over_time'], color=THEME['accent4'],
+                             linewidth=1.5, alpha=0.9, label='Detected tempo')
+                    ax2.legend(loc='upper right', fontsize=8)
+                ax2.set_ylabel('Tempo (BPM)')
+                ax2.set_xlabel('Time (s)')
+                ax2.set_ylim(30, 250)
+                fig.colorbar(img, ax=ax2, pad=0.01)
+                conf_text = f"Confidence: {tempo['confidence_label']}"
+                ax2.set_title(f"Tempogram - tempo evolution over time  |  {conf_text}",
+                              color=THEME['accent1'], fontsize=10)
+        except Exception:
+            ax2.text(0.5, 0.5, 'Tempogram unavailable',
+                     ha='center', va='center', transform=ax2.transAxes, color=THEME['fg_dim'])
+
+        # Info panel (bottom)
+        ax3 = fig.add_subplot(3, 1, 3)
+        ax3.axis('off')
+
+        info_lines = []
+        if M['is_tonal']:
+            info_lines.append(('Dominant pitch class', M['dominant_note']))
+            info_lines.append(('Tonal strength', f"{M['tonal_strength']:.2f} (tonal content)"))
+        else:
+            info_lines.append(('Tonal character', 'Non-tonal / percussive mix'))
+            info_lines.append(('Tonal strength', f"{M['tonal_strength']:.2f}"))
+
+        if tempo['reliable']:
+            info_lines.append(('Tempo (median)', f"{tempo['tempo_median']:.1f} BPM"))
+            if tempo['tempo_max'] - tempo['tempo_min'] > 5:
+                info_lines.append(('Tempo range', f"{tempo['tempo_min']:.1f} - {tempo['tempo_max']:.1f} BPM"))
+                info_lines.append(('Tempo variability', f"std = {tempo['tempo_std']:.1f} BPM"))
+            info_lines.append(('Confidence', tempo['confidence_label']))
+
+        info_lines.append(('Transients count', f"{analysis['temporal']['num_onsets']}"))
+
+        y0 = 0.90
+        for i, (label, value) in enumerate(info_lines):
+            y = y0 - i * 0.11
+            ax3.text(0.08, y, label, fontsize=11, color=THEME['fg_dim'], transform=ax3.transAxes)
+            ax3.text(0.45, y, value, fontsize=12, color=THEME['accent1'], fontweight='bold',
+                     transform=ax3.transAxes)
+    else:
+        # Individual track: chromagram only (larger) + simple info
+        ax1 = fig.add_subplot(2, 1, 1)
+        img = librosa.display.specshow(M['chroma'], sr=sr, x_axis='time', y_axis='chroma',
+                                         ax=ax1, cmap='magma')
+        ax1.set_title('Chromagram (pitch classes over time)', color=THEME['accent1'], fontsize=10)
+        fig.colorbar(img, ax=ax1, pad=0.01)
+
+        # Info panel
+        ax2 = fig.add_subplot(2, 1, 2)
+        ax2.axis('off')
+
+        info_lines = []
+        if M['is_tonal']:
+            info_lines.append(('Dominant pitch class', M['dominant_note']))
+            info_lines.append(('Tonal strength', f"{M['tonal_strength']:.2f} (tonal content detected)"))
+        else:
+            info_lines.append(('Tonal character', 'Non-tonal / percussive'))
+            info_lines.append(('Tonal strength', f"{M['tonal_strength']:.2f}"))
+
+        info_lines.append(('Transients count', f"{analysis['temporal']['num_onsets']}"))
+
+        y0 = 0.85
+        for i, (label, value) in enumerate(info_lines):
+            y = y0 - i * 0.12
+            ax2.text(0.10, y, label, fontsize=12, color=THEME['fg_dim'], transform=ax2.transAxes)
+            ax2.text(0.50, y, value, fontsize=14, color=THEME['accent1'], fontweight='bold',
+                     transform=ax2.transAxes)
+
+        # Note about tempo
+        ax2.text(0.10, 0.15,
+                 'Tempo detection is only performed on the Full Mix track, '
+                 'where it reflects the complete rhythmic context.',
+                 fontsize=9, color=THEME['fg_dim'], transform=ax2.transAxes,
+                 style='italic', wrap=True)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.90])
+    return fig
+
+
+def page_stereo(analysis, track_info):
+    """Page 6 - Stereo analysis with spectral panorama (new)."""
+    fig = plt.figure(figsize=(11, 8.5))
+    make_page_header(fig, 'STEREO ANALYSIS', analysis['filename'], track_info)
+
+    stereo = analysis['stereo']
+    sr = analysis['sample_rate']
+
+    if not stereo['is_stereo']:
+        ax = fig.add_subplot(111)
+        ax.axis('off')
+        ax.text(0.5, 0.5, 'MONO TRACK\n\nStereo analysis not applicable',
+                ha='center', va='center',
+                fontsize=24, color=THEME['fg_dim'], transform=ax.transAxes)
+        plt.tight_layout(rect=[0, 0.03, 1, 0.90])
+        return fig
+
+    # Top-left: Width per band
+    ax1 = fig.add_subplot(2, 3, 1)
+    band_names_short = ['Sub', 'Bass', 'L-Mid', 'Mid', 'H-Mid', 'Pres', 'Air']
+    width_values = [stereo['width_per_band'][name] for name, _, _ in FREQ_BANDS]
+    ax1.barh(range(len(band_names_short)), width_values, color=THEME['accent1'], alpha=0.7,
+             edgecolor=THEME['accent2'])
+    ax1.set_yticks(range(len(band_names_short)))
+    ax1.set_yticklabels(band_names_short, fontsize=8)
+    ax1.set_xlabel('Width', fontsize=8)
+    ax1.set_title('Width per band', color=THEME['accent1'], fontsize=9)
+    ax1.set_xlim(0, 1)
+
+    # Top-center: Correlation + width big display
+    ax2 = fig.add_subplot(2, 3, 2)
+    ax2.axis('off')
+    corr = stereo['correlation']
+    width = stereo['width_overall']
+    corr_color = THEME['accent4'] if corr > 0.3 else (THEME['warning'] if corr > -0.2 else THEME['critical'])
+
+    ax2.text(0.5, 0.85, 'Phase correlation', ha='center', fontsize=10, color=THEME['fg_dim'], transform=ax2.transAxes)
+    ax2.text(0.5, 0.62, f"{corr:+.3f}", ha='center', fontsize=26, color=corr_color, fontweight='bold', transform=ax2.transAxes)
+    ax2.text(0.5, 0.35, 'Overall width', ha='center', fontsize=10, color=THEME['fg_dim'], transform=ax2.transAxes)
+    ax2.text(0.5, 0.12, f"{width:.3f}", ha='center', fontsize=26, color=THEME['accent1'], fontweight='bold', transform=ax2.transAxes)
+
+    # Top-right: Lissajous
+    ax3 = fig.add_subplot(2, 3, 3)
+    L = analysis['_data'][:, 0]
+    R = analysis['_data'][:, 1]
+    step = max(1, len(L) // 4000)
+    ax3.scatter(L[::step], R[::step], s=1, color=THEME['accent1'], alpha=0.3)
+    ax3.set_xlim(-1, 1)
+    ax3.set_ylim(-1, 1)
+    ax3.set_xlabel('L', fontsize=8)
+    ax3.set_ylabel('R', fontsize=8)
+    ax3.set_title('Lissajous (L vs R)', color=THEME['accent1'], fontsize=9)
+    ax3.axhline(0, color=THEME['fg_dim'], linewidth=0.5)
+    ax3.axvline(0, color=THEME['fg_dim'], linewidth=0.5)
+    ax3.set_aspect('equal')
+
+    # Bottom-left: Mid/Side spectrum
+    ax4 = fig.add_subplot(2, 3, 4)
+    n_fft = 4096
+    SM_spec = np.mean(np.abs(librosa.stft(stereo['mid'], n_fft=n_fft)), axis=1)
+    SS_spec = np.mean(np.abs(librosa.stft(stereo['side'], n_fft=n_fft)), axis=1)
+    freqs_ms = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
+    SM_db = db(SM_spec / (np.max(SM_spec) + 1e-12))
+    SS_db = db(SS_spec / (np.max(SM_spec) + 1e-12))
+    mask = freqs_ms > 20
+    ax4.semilogx(freqs_ms[mask], SM_db[mask], color=THEME['accent1'], label='Mid', linewidth=1.2)
+    ax4.semilogx(freqs_ms[mask], SS_db[mask], color=THEME['accent3'], label='Side', linewidth=1.2)
+    ax4.set_xlim(20, 20000)
+    ax4.set_ylim(-80, 5)
+    ax4.set_xlabel('Freq (Hz)', fontsize=8)
+    ax4.set_ylabel('Mag (dB)', fontsize=8)
+    ax4.set_title('Mid / Side spectrum', color=THEME['accent1'], fontsize=9)
+    ax4.legend(loc='upper right', fontsize=7)
+
+    # Bottom-center + bottom-right: Spectral panorama (NEW)
+    ax5 = fig.add_subplot(2, 3, (5, 6))
+    if stereo.get('pan_per_freq') is not None:
+        pan = stereo['pan_per_freq']
+        energy = stereo['pan_energy']
+        pan_freqs = stereo['pan_freqs']
+        freq_mask = (pan_freqs >= 20) & (pan_freqs <= 20000)
+
+        # Normalize energy for color intensity
+        energy_norm = energy[freq_mask] / (np.max(energy[freq_mask]) + 1e-12)
+        energy_db = 20 * np.log10(np.maximum(energy_norm, 1e-4))
+        # Clamp to -60 to 0
+        energy_db = np.clip(energy_db, -60, 0)
+
+        scatter = ax5.scatter(pan_freqs[freq_mask], pan[freq_mask],
+                               c=energy_db, cmap='magma',
+                               s=8, alpha=0.9, vmin=-60, vmax=0)
+        ax5.set_xscale('log')
+        ax5.set_xlim(20, 20000)
+        ax5.set_ylim(-1.1, 1.1)
+        ax5.axhline(0, color=THEME['fg_dim'], linewidth=0.8, linestyle='--', alpha=0.7)
+        ax5.axhline(1, color=THEME['fg_dim'], linewidth=0.4, alpha=0.3)
+        ax5.axhline(-1, color=THEME['fg_dim'], linewidth=0.4, alpha=0.3)
+        ax5.set_xlabel('Frequency (Hz)', fontsize=9)
+        ax5.set_ylabel('Pan (-1 = Left, +1 = Right)', fontsize=9)
+        ax5.set_title('Spectral Panorama - where each frequency sits in stereo field',
+                      color=THEME['accent1'], fontsize=10)
+        ax5.set_yticks([-1, -0.5, 0, 0.5, 1])
+        ax5.set_yticklabels(['L', '-0.5', 'C', '+0.5', 'R'])
+        cbar = fig.colorbar(scatter, ax=ax5, pad=0.01)
+        cbar.set_label('Energy (dB)', fontsize=8)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.90])
+    return fig
+
+
+def page_characteristics(analysis, track_info, style_name):
+    """Page 7 - Detected characteristics (descriptive, not prescriptive)."""
+    fig = plt.figure(figsize=(11, 8.5))
+    make_page_header(fig, 'DETECTED CHARACTERISTICS', analysis['filename'], track_info)
+
+    ax = fig.add_subplot(111)
+    ax.axis('off')
+
+    chars = analysis['characteristics']
+    anomalies = analysis['anomalies']
+
+    y = 0.88
+
+    # Anomalies first (if any)
+    if anomalies:
+        critical_anoms = [a for a in anomalies if a[0] == 'critical']
+        warning_anoms = [a for a in anomalies if a[0] == 'warning']
+        info_anoms = [a for a in anomalies if a[0] == 'info']
+
+        if critical_anoms:
+            ax.text(0.04, y, '[CRITICAL]', fontsize=13, color=THEME['critical'],
+                    fontweight='bold', transform=ax.transAxes)
+            y -= 0.05
+            for sev, desc in critical_anoms:
+                ax.text(0.07, y, '- ' + desc, fontsize=10, color=THEME['fg'],
+                        transform=ax.transAxes)
+                y -= 0.04
+            y -= 0.02
+
+        if warning_anoms:
+            ax.text(0.04, y, '[WARNING]', fontsize=13, color=THEME['warning'],
+                    fontweight='bold', transform=ax.transAxes)
+            y -= 0.05
+            for sev, desc in warning_anoms:
+                ax.text(0.07, y, '- ' + desc, fontsize=10, color=THEME['fg'],
+                        transform=ax.transAxes)
+                y -= 0.04
+            y -= 0.02
+
+        if info_anoms:
+            ax.text(0.04, y, '[NOTICE]', fontsize=13, color=THEME['accent1'],
+                    fontweight='bold', transform=ax.transAxes)
+            y -= 0.05
+            for sev, desc in info_anoms:
+                ax.text(0.07, y, '- ' + desc, fontsize=10, color=THEME['fg'],
+                        transform=ax.transAxes)
+                y -= 0.04
+            y -= 0.03
+
+    # Descriptive characteristics
+    ax.text(0.04, y, 'OBJECTIVE OBSERVATIONS',
+            fontsize=13, color=THEME['accent2'], fontweight='bold', transform=ax.transAxes)
+    y -= 0.05
+
+    for cat, desc in chars:
+        if y < 0.05:
+            break
+        ax.text(0.07, y, '- ' + desc, fontsize=10, color=THEME['fg'], transform=ax.transAxes)
+        y -= 0.045
+
+    # Footer
+    ax.text(0.04, 0.02,
+            f"Note: This page presents objective measurements only. "
+            f"Style-specific interpretation and recommendations should be made via AI analysis of the full report set.",
+            fontsize=8, color=THEME['fg_dim'], style='italic', transform=ax.transAxes, wrap=True)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.90])
+    return fig
+
+
+def page_multiband_timeline(analysis, track_info):
+    """Page 8 - Multiband energy timeline: energy per frequency band over time."""
+    fig = plt.figure(figsize=(11, 8.5))
+    make_page_header(fig, 'MULTIBAND ENERGY TIMELINE', analysis['filename'], track_info)
+
+    mbt = analysis['multiband_timeline']
+    times = mbt['times']
+    bands = mbt['bands']
+
+    # Single large plot with all 7 bands as separate lines
+    ax = fig.add_subplot(1, 1, 1)
+
+    band_colors_list = [
+        '#b967ff',  # sub - violet
+        '#8a5bff',  # bass - blue-violet
+        '#00d9ff',  # low-mid - cyan
+        '#00ff9f',  # mid - green
+        '#ffcc00',  # high-mid - yellow
+        '#ff8800',  # presence - orange
+        '#ff3d8b',  # air - magenta
+    ]
+
+    for i, (name, flow, fhigh) in enumerate(FREQ_BANDS):
+        if name in bands:
+            ax.plot(times, bands[name],
+                     label=BAND_LABELS[name],
+                     color=band_colors_list[i],
+                     linewidth=1.2, alpha=0.9)
+
+    ax.set_xlabel('Time (s)', fontsize=11)
+    ax.set_ylabel('Energy (dB)', fontsize=11)
+    ax.set_title('Energy per frequency band across the track duration',
+                 color=THEME['accent1'], fontsize=12, pad=15)
+    ax.legend(loc='lower right', fontsize=9, ncol=2,
+              framealpha=0.85, facecolor=THEME['panel'],
+              edgecolor=THEME['fg_dim'], labelcolor=THEME['fg'])
+    ax.grid(True, alpha=0.3)
+
+    # Add contextual note
+    fig.text(0.5, 0.04,
+             'This view reveals arrangement dynamics: watch when each frequency range enters, '
+             'dominates, or disappears. Useful for identifying sections, detecting sub drops, '
+             'and spotting masking in time.',
+             ha='center', fontsize=8, color=THEME['fg_dim'], style='italic', wrap=True)
+
+    plt.tight_layout(rect=[0, 0.07, 1, 0.90])
+    return fig
+
+
+def page_dynamic_range_map(analysis, track_info):
+    """Page 9 - Dynamic range map: peak vs RMS sliding + crest factor over time."""
+    fig = plt.figure(figsize=(11, 8.5))
+    make_page_header(fig, 'DYNAMIC RANGE MAP', analysis['filename'], track_info)
+
+    drt = analysis['dynamic_range_timeline']
+    times = drt['times']
+    peak_db = drt['peak_db']
+    rms_db = drt['rms_db']
+    crest = drt['crest_instant']
+
+    # Two subplots: peak+RMS on top, crest factor on bottom
+    ax1 = fig.add_subplot(2, 1, 1)
+    ax1.fill_between(times, peak_db, rms_db,
+                      color=THEME['accent1'], alpha=0.2, label='Dynamic headroom')
+    ax1.plot(times, peak_db, color=THEME['accent3'], linewidth=1.3, label='Peak (50ms window)')
+    ax1.plot(times, rms_db, color=THEME['accent4'], linewidth=1.3, label='RMS (50ms window)')
+    ax1.set_xlabel('Time (s)', fontsize=10)
+    ax1.set_ylabel('Level (dB)', fontsize=10)
+    ax1.set_title('Sliding Peak vs RMS - headroom between the two lines shows dynamic range',
+                   color=THEME['accent1'], fontsize=11, pad=10)
+    ax1.legend(loc='lower right', fontsize=9,
+               framealpha=0.85, facecolor=THEME['panel'],
+               edgecolor=THEME['fg_dim'], labelcolor=THEME['fg'])
+    ax1.grid(True, alpha=0.3)
+    ax1.set_ylim(-80, 5)
+
+    # Crest factor over time
+    ax2 = fig.add_subplot(2, 1, 2)
+    # Color the crest line by severity
+    ax2.fill_between(times, crest, 0,
+                      where=(crest >= 12), color=THEME['accent4'], alpha=0.3,
+                      label='High dynamic (>12 dB)', interpolate=True)
+    ax2.fill_between(times, crest, 0,
+                      where=((crest >= 6) & (crest < 12)), color=THEME['warning'], alpha=0.3,
+                      label='Moderate (6-12 dB)', interpolate=True)
+    ax2.fill_between(times, crest, 0,
+                      where=(crest < 6), color=THEME['critical'], alpha=0.3,
+                      label='Compressed (<6 dB)', interpolate=True)
+    ax2.plot(times, crest, color=THEME['fg'], linewidth=1.2)
+    ax2.axhline(12, color=THEME['accent4'], linewidth=0.6, alpha=0.5, linestyle='--')
+    ax2.axhline(6, color=THEME['warning'], linewidth=0.6, alpha=0.5, linestyle='--')
+
+    # Global crest factor reference line
+    global_crest = analysis['loudness']['crest_factor']
+    ax2.axhline(global_crest, color=THEME['accent1'], linewidth=1.5, linestyle=':',
+                label=f'Global crest factor: {global_crest:.1f} dB')
+
+    ax2.set_xlabel('Time (s)', fontsize=10)
+    ax2.set_ylabel('Crest factor (dB)', fontsize=10)
+    ax2.set_title('Instantaneous crest factor - reveals where compression acts most',
+                   color=THEME['accent1'], fontsize=11, pad=10)
+    ax2.legend(loc='upper right', fontsize=8,
+               framealpha=0.85, facecolor=THEME['panel'],
+               edgecolor=THEME['fg_dim'], labelcolor=THEME['fg'])
+    ax2.grid(True, alpha=0.3)
+    ax2.set_ylim(-2, max(30, np.max(crest) + 3))
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.90])
+    return fig
+
+
+def generate_track_pdf(analysis, output_path, track_info, style_name):
+    """Generate complete PDF for a track (9 pages for v1.6)."""
+    with PdfPages(output_path) as pdf:
+        for page_fn in [
+            lambda: page_identity(analysis, track_info, style_name),
+            lambda: page_temporal(analysis, track_info),
+            lambda: page_spectral(analysis, track_info),
+            lambda: page_spectrogram(analysis, track_info),
+            lambda: page_musical(analysis, track_info),
+            lambda: page_stereo(analysis, track_info),
+            lambda: page_multiband_timeline(analysis, track_info),
+            lambda: page_dynamic_range_map(analysis, track_info),
+            lambda: page_characteristics(analysis, track_info, style_name),
+        ]:
+            try:
+                fig = page_fn()
+                pdf.savefig(fig, facecolor=fig.get_facecolor())
+                plt.close(fig)
+            except Exception as e:
+                fig = plt.figure(figsize=(11, 8.5))
+                ax = fig.add_subplot(111)
+                ax.axis('off')
+                ax.text(0.5, 0.5, f"Error generating page: {e}",
+                        ha='center', va='center', color='red', transform=ax.transAxes)
+                pdf.savefig(fig)
+                plt.close(fig)
+# ============================================================================
+# GLOBAL REPORT - Multi-track comparison
+# ============================================================================
+
+
+def generate_global_pdf(analyses_with_info, output_path, style_name, full_mix_info=None):
+    """
+    Generate global comparison report.
+    analyses_with_info: list of tuples (analysis, track_info)
+    full_mix_info: dict with master metadata (state, plugins, loudness_target, note) or None
+    """
+    # Separate tracks by type
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    buses = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'BUS']
+    full_mixes = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Full Mix']
+
+    # Run Full Mix-specific analyses (structure and difference spectrogram)
+    full_mix_structure = None
+    difference_spectrogram = None
+    if full_mixes:
+        full_mix_analysis = full_mixes[0][0]
+        try:
+            full_mix_structure = analyze_structure_sections(
+                full_mix_analysis['_mono'],
+                full_mix_analysis['sample_rate']
+            )
+        except Exception:
+            full_mix_structure = None
+
+        if individuals:
+            try:
+                individual_monos = [a['_mono'] for a, _ in individuals]
+                # Only include individuals with same sample rate as the full mix
+                fm_sr = full_mix_analysis['sample_rate']
+                valid_monos = [a['_mono'] for a, _ in individuals
+                               if a['sample_rate'] == fm_sr]
+                if valid_monos:
+                    difference_spectrogram = compute_difference_spectrogram(
+                        full_mix_analysis['_mono'],
+                        valid_monos,
+                        fm_sr
+                    )
+            except Exception:
+                difference_spectrogram = None
+
+    with PdfPages(output_path) as pdf:
+        # PAGE 1: Summary table
+        fig = plt.figure(figsize=(11, 8.5))
+        fig.suptitle('GLOBAL REPORT', fontsize=16, color=THEME['accent1'], fontweight='bold', y=0.97)
+        fig.text(0.5, 0.935,
+                 f"Tracks: {len(individuals)} individual | {len(buses)} BUS | {len(full_mixes)} full mix",
+                 ha='center', fontsize=10, color=THEME['fg_dim'])
+        fig.text(0.5, 0.915, f"Style context: {style_name}",
+                 ha='center', fontsize=9, color=THEME['accent2'])
+
+        ax = fig.add_subplot(111)
+        ax.axis('off')
+
+        # Build rows, Full Mix first (highlighted), then BUS, then Individual
+        headers = ['#', 'Type', 'Name', 'Category', 'LUFS', 'Peak', 'Crest', 'Dom.Band', 'Width']
+        rows = []
+        row_colors = []
+
+        idx = 1
+        for a, ti in full_mixes:
+            rows.append(_format_row(idx, 'MIX', a, ti))
+            row_colors.append(THEME['accent2'])
+            idx += 1
+        for a, ti in buses:
+            rows.append(_format_row(idx, 'BUS', a, ti))
+            row_colors.append(THEME['accent3'])
+            idx += 1
+        for a, ti in individuals:
+            rows.append(_format_row(idx, 'TRK', a, ti))
+            row_colors.append(None)
+            idx += 1
+
+        if rows:
+            table = ax.table(cellText=rows, colLabels=headers,
+                             loc='upper center', cellLoc='left',
+                             colWidths=[0.04, 0.06, 0.28, 0.15, 0.09, 0.08, 0.08, 0.14, 0.08])
+            table.auto_set_font_size(False)
+            table.set_fontsize(7)
+            table.scale(1, 1.4)
+
+            for (row, col), cell in table.get_celld().items():
+                cell.set_edgecolor(THEME['grid'])
+                if row == 0:
+                    cell.set_facecolor('#1a3a5a')
+                    cell.set_text_props(color=THEME['fg'], fontweight='bold')
+                else:
+                    hl = row_colors[row - 1] if row - 1 < len(row_colors) else None
+                    if hl:
+                        cell.set_facecolor('#1a1a2a')
+                        if col == 1:  # Type column
+                            cell.set_text_props(color=hl, fontweight='bold')
+                        else:
+                            cell.set_text_props(color=THEME['fg'])
+                    else:
+                        cell.set_facecolor(THEME['panel'])
+                        cell.set_text_props(color=THEME['fg'])
+        else:
+            ax.text(0.5, 0.5, 'No tracks to display',
+                    ha='center', va='center', color=THEME['fg_dim'], transform=ax.transAxes)
+
+        plt.tight_layout(rect=[0, 0.02, 1, 0.88])
+        pdf.savefig(fig, facecolor=fig.get_facecolor())
+        plt.close(fig)
+
+        # PAGE 2: Masking matrix (individuals only, excludes BUS and Full Mix)
+        if individuals:
+            fig = plt.figure(figsize=(11, 8.5))
+            fig.suptitle('FREQUENCY MASKING MATRIX', fontsize=14, color=THEME['accent1'],
+                         fontweight='bold', y=0.97)
+            fig.text(0.5, 0.935,
+                     'Individual tracks only (BUS and Full Mix excluded to avoid double-counting)',
+                     ha='center', fontsize=9, color=THEME['fg_dim'])
+
+            ax = fig.add_subplot(111)
+            band_names = [BAND_LABELS[name] for name, _, _ in FREQ_BANDS]
+            matrix = np.zeros((len(individuals), len(FREQ_BANDS)))
+            for i, (a, ti) in enumerate(individuals):
+                for j, (name, _, _) in enumerate(FREQ_BANDS):
+                    matrix[i, j] = a['spectrum']['band_energies'][name]
+
+            im = ax.imshow(matrix, aspect='auto', cmap='magma', interpolation='nearest')
+            track_labels = [a['filename'][:30] for a, _ in individuals]
+            ax.set_yticks(range(len(individuals)))
+            ax.set_yticklabels(track_labels, fontsize=6)
+            ax.set_xticks(range(len(band_names)))
+            ax.set_xticklabels(band_names, rotation=25, ha='right', fontsize=8)
+            cbar = fig.colorbar(im, ax=ax, label='% of track energy')
+            cbar.ax.tick_params(labelsize=7)
+
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+            pdf.savefig(fig, facecolor=fig.get_facecolor())
+            plt.close(fig)
+
+        # PAGE 3: Spectral budget by category family
+        if individuals:
+            fig = plt.figure(figsize=(11, 8.5))
+            fig.suptitle('SPECTRAL BUDGET BY CATEGORY', fontsize=14, color=THEME['accent1'],
+                         fontweight='bold', y=0.97)
+            fig.text(0.5, 0.935,
+                     'Cumulative energy per band, grouped by category family',
+                     ha='center', fontsize=9, color=THEME['fg_dim'])
+
+            # Group by family
+            family_data = {}
+            for a, ti in individuals:
+                cat = ti.get('category', '(not set)')
+                family = CATEGORY_FAMILY.get(cat, 'Unknown')
+                if family not in family_data:
+                    family_data[family] = {name: 0.0 for name, _, _ in FREQ_BANDS}
+                    family_data[family]['_count'] = 0
+                for name, _, _ in FREQ_BANDS:
+                    family_data[family][name] += a['spectrum']['band_energies'][name]
+                family_data[family]['_count'] += 1
+
+            # Plot stacked bar chart per band, showing contribution per family
+            ax = fig.add_subplot(111)
+            family_names = sorted(family_data.keys())
+            family_colors_map = {
+                'Drums': THEME['accent3'],
+                'Bass': THEME['accent2'],
+                'Synth': THEME['accent1'],
+                'Guitar': THEME['warning'],
+                'Vocal': THEME['accent4'],
+                'FX & Other': '#888888',
+                'Unknown': '#555555',
+            }
+
+            band_x = np.arange(len(FREQ_BANDS))
+            bottom = np.zeros(len(FREQ_BANDS))
+
+            for family in family_names:
+                values = np.array([family_data[family][name] for name, _, _ in FREQ_BANDS])
+                # Normalize by count for readability (average per track in family)
+                count = family_data[family].get('_count', 1)
+                values_avg = values / count
+                color = family_colors_map.get(family, '#aaaaaa')
+                ax.bar(band_x, values_avg, bottom=bottom,
+                       label=f"{family} ({count} tr.)", color=color,
+                       edgecolor=THEME['fg_dim'], linewidth=0.3)
+                bottom += values_avg
+
+            ax.set_xticks(band_x)
+            ax.set_xticklabels([BAND_LABELS[name] for name, _, _ in FREQ_BANDS],
+                                rotation=25, ha='right', fontsize=9)
+            ax.set_ylabel('Avg % energy per track (stacked by family)')
+            ax.legend(loc='upper right', fontsize=8)
+            ax.set_title('Which categories occupy which bands',
+                         color=THEME['accent1'], fontsize=10)
+
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+            pdf.savefig(fig, facecolor=fig.get_facecolor())
+            plt.close(fig)
+
+        # PAGE 4: Rankings
+        if individuals or buses:
+            fig = plt.figure(figsize=(11, 8.5))
+            fig.suptitle('RANKINGS', fontsize=14, color=THEME['accent1'], fontweight='bold', y=0.97)
+            fig.text(0.5, 0.935, 'Individual tracks only', ha='center', fontsize=9, color=THEME['fg_dim'])
+
+            ax = fig.add_subplot(111)
+            ax.axis('off')
+
+            # Use individuals only for rankings
+            tracks_for_ranking = individuals if individuals else buses
+
+            sorted_compressed = sorted(tracks_for_ranking,
+                                        key=lambda x: x[0]['loudness']['crest_factor'])[:8]
+            sorted_loudest = sorted(tracks_for_ranking,
+                                     key=lambda x: -x[0]['loudness']['lufs_integrated']
+                                     if np.isfinite(x[0]['loudness']['lufs_integrated']) else 0)[:8]
+            stereo_tracks = [(a, ti) for a, ti in tracks_for_ranking if a['stereo']['is_stereo']]
+            sorted_widest = sorted(stereo_tracks,
+                                    key=lambda x: -x[0]['stereo']['width_overall'])[:5]
+
+            y = 0.88
+            ax.text(0.04, y, '[MOST COMPRESSED]  (lowest crest factor)',
+                    fontsize=12, color=THEME['warning'], fontweight='bold', transform=ax.transAxes)
+            y -= 0.04
+            for a, ti in sorted_compressed:
+                name = a['filename'][:42]
+                cat = ti.get('category', '')
+                cat_str = f" ({cat})" if cat and cat != '(not set)' else ''
+                ax.text(0.07, y,
+                        f"- {name}{cat_str} -> crest: {a['loudness']['crest_factor']:.1f} dB",
+                        fontsize=9, color=THEME['fg'], transform=ax.transAxes)
+                y -= 0.03
+            y -= 0.03
+
+            ax.text(0.04, y, '[LOUDEST]  (highest integrated LUFS)',
+                    fontsize=12, color=THEME['accent3'], fontweight='bold', transform=ax.transAxes)
+            y -= 0.04
+            for a, ti in sorted_loudest:
+                lufs = a['loudness']['lufs_integrated']
+                lufs_s = f"{lufs:+.1f} LUFS" if np.isfinite(lufs) else '-'
+                name = a['filename'][:42]
+                cat = ti.get('category', '')
+                cat_str = f" ({cat})" if cat and cat != '(not set)' else ''
+                ax.text(0.07, y,
+                        f"- {name}{cat_str} -> {lufs_s}",
+                        fontsize=9, color=THEME['fg'], transform=ax.transAxes)
+                y -= 0.03
+            y -= 0.03
+
+            if sorted_widest:
+                ax.text(0.04, y, '[WIDEST STEREO IMAGE]',
+                        fontsize=12, color=THEME['accent1'], fontweight='bold', transform=ax.transAxes)
+                y -= 0.04
+                for a, ti in sorted_widest:
+                    name = a['filename'][:42]
+                    cat = ti.get('category', '')
+                    cat_str = f" ({cat})" if cat and cat != '(not set)' else ''
+                    ax.text(0.07, y,
+                            f"- {name}{cat_str} -> width: {a['stereo']['width_overall']:.2f}",
+                            fontsize=9, color=THEME['fg'], transform=ax.transAxes)
+                    y -= 0.03
+
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+            pdf.savefig(fig, facecolor=fig.get_facecolor())
+            plt.close(fig)
+
+        # PAGE 5: BUS analysis (if any)
+        if buses:
+            fig = plt.figure(figsize=(11, 8.5))
+            fig.suptitle('BUS ANALYSIS', fontsize=14, color=THEME['accent1'], fontweight='bold', y=0.97)
+            fig.text(0.5, 0.935,
+                     f"{len(buses)} BUS track(s) identified",
+                     ha='center', fontsize=9, color=THEME['fg_dim'])
+
+            ax = fig.add_subplot(111)
+            ax.axis('off')
+
+            y = 0.88
+            for a, ti in buses:
+                L = a['loudness']
+                S = a['spectrum']
+                stereo = a['stereo']
+                # Find children (individuals assigned to this BUS)
+                bus_name = ti.get('name', a['filename'])
+                children = [(a2, ti2) for a2, ti2 in individuals
+                            if ti2.get('parent_bus') == a['filename']]
+
+                ax.text(0.04, y, f"[{a['filename'][:55]}]",
+                        fontsize=11, color=THEME['accent3'], fontweight='bold', transform=ax.transAxes)
+                y -= 0.035
+                ax.text(0.07, y,
+                        f"Peak: {L['peak_db']:+.1f} dB | Crest: {L['crest_factor']:.1f} dB | "
+                        f"LUFS: {L['lufs_integrated']:+.1f} | "
+                        f"Dom: {BAND_LABELS.get(S['dominant_band'], S['dominant_band'])}",
+                        fontsize=8, color=THEME['fg'], transform=ax.transAxes)
+                y -= 0.03
+                ax.text(0.07, y, f"Child tracks assigned: {len(children)}",
+                        fontsize=8, color=THEME['fg_dim'], transform=ax.transAxes)
+                y -= 0.025
+                for child_a, child_ti in children[:6]:
+                    ax.text(0.10, y, f"* {child_a['filename'][:50]}",
+                            fontsize=7, color=THEME['fg_dim'], transform=ax.transAxes)
+                    y -= 0.02
+                if len(children) > 6:
+                    ax.text(0.10, y, f"... and {len(children) - 6} more",
+                            fontsize=7, color=THEME['fg_dim'], transform=ax.transAxes, style='italic')
+                    y -= 0.02
+                y -= 0.03
+                if y < 0.08:
+                    break
+
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+            pdf.savefig(fig, facecolor=fig.get_facecolor())
+            plt.close(fig)
+
+        # PAGE 6: Full Mix analysis (if present)
+        if full_mixes:
+            for a, ti in full_mixes:
+                fig = plt.figure(figsize=(11, 8.5))
+                fig.suptitle('FULL MIX ANALYSIS', fontsize=14, color=THEME['accent2'],
+                             fontweight='bold', y=0.97)
+                fig.text(0.5, 0.935, f"{a['filename'][:70]}",
+                         ha='center', fontsize=9, color=THEME['fg_dim'])
+
+                ax = fig.add_subplot(111)
+                ax.axis('off')
+
+                L = a['loudness']
+                S = a['spectrum']
+                stereo = a['stereo']
+
+                y = 0.88
+
+                # Mix metadata (if provided)
+                if full_mix_info:
+                    ax.text(0.04, y, '[MIX CONTEXT]',
+                            fontsize=12, color=THEME['accent2'], fontweight='bold', transform=ax.transAxes)
+                    y -= 0.04
+                    state = full_mix_info.get('state', 'Not specified')
+                    ax.text(0.07, y, f"- Completion state: {state}",
+                            fontsize=10, color=THEME['fg'], transform=ax.transAxes)
+                    y -= 0.035
+                    plugins = full_mix_info.get('plugins', [])
+                    plugins_str = ', '.join(plugins) if plugins else 'None declared'
+                    ax.text(0.07, y, f"- Active master bus plugins: {plugins_str}",
+                            fontsize=10, color=THEME['fg'], transform=ax.transAxes)
+                    y -= 0.035
+                    target = full_mix_info.get('loudness_target', 'Not specified')
+                    ax.text(0.07, y, f"- Loudness target: {target}",
+                            fontsize=10, color=THEME['fg'], transform=ax.transAxes)
+                    y -= 0.035
+                    note = full_mix_info.get('note', '').strip()
+                    if note:
+                        ax.text(0.07, y, f"- Note: {note[:100]}",
+                                fontsize=10, color=THEME['fg'], transform=ax.transAxes)
+                        y -= 0.035
+                    y -= 0.025
+
+                # Measurements
+                ax.text(0.04, y, '[MEASUREMENTS]',
+                        fontsize=12, color=THEME['accent1'], fontweight='bold', transform=ax.transAxes)
+                y -= 0.04
+
+                measurements = [
+                    ('Integrated LUFS',
+                     f"{L['lufs_integrated']:+.2f} LUFS" if np.isfinite(L['lufs_integrated']) else '-'),
+                    ('Short-term LUFS max',
+                     f"{L['lufs_short_term_max']:+.2f} LUFS" if np.isfinite(L['lufs_short_term_max']) else '-'),
+                    ('True Peak', f"{L['true_peak_db']:+.2f} dBFS"),
+                    ('Crest factor', f"{L['crest_factor']:.2f} dB"),
+                    ('PLR', f"{L['plr']:.2f} dB"),
+                    ('LRA', f"{L['lra']:.2f} LU"),
+                    ('Dominant band', BAND_LABELS.get(S['dominant_band'], S['dominant_band'])),
+                    ('Spectral centroid', f"{S['centroid']:.0f} Hz"),
+                    ('Phase correlation',
+                     f"{stereo['correlation']:+.3f}" if stereo['is_stereo'] else 'Mono'),
+                    ('Stereo width',
+                     f"{stereo['width_overall']:.3f}" if stereo['is_stereo'] else 'Mono'),
+                ]
+                for label, value in measurements:
+                    ax.text(0.08, y, label, fontsize=9, color=THEME['fg_dim'], transform=ax.transAxes)
+                    ax.text(0.40, y, value, fontsize=10, color=THEME['fg'],
+                            fontweight='bold', transform=ax.transAxes)
+                    y -= 0.03
+
+                # Anomalies
+                if a.get('anomalies'):
+                    y -= 0.02
+                    ax.text(0.04, y, '[ANOMALIES DETECTED]',
+                            fontsize=12, color=THEME['warning'], fontweight='bold', transform=ax.transAxes)
+                    y -= 0.04
+                    for sev, desc in a['anomalies'][:6]:
+                        color = THEME['critical'] if sev == 'critical' else THEME['warning']
+                        ax.text(0.07, y, f"- [{sev.upper()}] {desc[:90]}",
+                                fontsize=8, color=color, transform=ax.transAxes)
+                        y -= 0.028
+
+                plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+                pdf.savefig(fig, facecolor=fig.get_facecolor())
+                plt.close(fig)
+
+        # PAGE 6b: Full Mix structure detection (Full Mix only)
+        if full_mixes and full_mix_structure and full_mix_structure.get('success'):
+            fig = plt.figure(figsize=(11, 8.5))
+            fig.suptitle('FULL MIX STRUCTURE', fontsize=14, color=THEME['accent2'],
+                         fontweight='bold', y=0.97)
+            fig.text(0.5, 0.935,
+                     'Automatic section detection and global energy envelope',
+                     ha='center', fontsize=9, color=THEME['fg_dim'])
+
+            ax = fig.add_subplot(1, 1, 1)
+
+            env_times = full_mix_structure['envelope_times']
+            env_db = full_mix_structure['energy_envelope']
+            boundaries = full_mix_structure['boundaries']
+
+            # Plot energy envelope
+            ax.fill_between(env_times, env_db, -80,
+                             color=THEME['accent1'], alpha=0.3)
+            ax.plot(env_times, env_db, color=THEME['accent1'], linewidth=1.5,
+                     label='RMS energy envelope')
+
+            # Draw section boundaries
+            section_colors = [THEME['accent2'], THEME['accent3'], THEME['accent4'],
+                              THEME['warning'], THEME['accent1']]
+            # Filter boundaries to remove micro-sections at the edges
+            valid_bounds = [b for b in boundaries
+                            if b > 0.5 and b < (env_times[-1] - 0.5)]
+
+            for i, b in enumerate(valid_bounds):
+                color = section_colors[i % len(section_colors)]
+                ax.axvline(b, color=color, linewidth=1.5, linestyle='--', alpha=0.7)
+                ax.text(b, ax.get_ylim()[1] if hasattr(ax, 'get_ylim') else -5,
+                        f'{b:.1f}s',
+                        fontsize=8, color=color,
+                        rotation=90, va='top', ha='right')
+
+            ax.set_xlabel('Time (s)', fontsize=11)
+            ax.set_ylabel('RMS energy (dB)', fontsize=11)
+            ax.set_title(f"{len(valid_bounds)} section boundaries detected",
+                         color=THEME['accent1'], fontsize=12, pad=15)
+            ax.grid(True, alpha=0.3)
+            ax.set_ylim(-60, 0)
+
+            # Contextual note
+            fig.text(0.5, 0.04,
+                     'Section boundaries are detected via spectral similarity changes. '
+                     'They approximate musical transitions (intro/verse/drop/break/outro) '
+                     'and help understand the macro structure of the track.',
+                     ha='center', fontsize=8, color=THEME['fg_dim'], style='italic', wrap=True)
+
+            plt.tight_layout(rect=[0, 0.07, 1, 0.90])
+            pdf.savefig(fig, facecolor=fig.get_facecolor())
+            plt.close(fig)
+
+        # PAGE 6c: Difference spectrogram (Full Mix vs sum of individuals)
+        if full_mixes and difference_spectrogram and difference_spectrogram.get('success'):
+            fig = plt.figure(figsize=(11, 8.5))
+            fig.suptitle('MASTER BUS EFFECT', fontsize=14, color=THEME['accent2'],
+                         fontweight='bold', y=0.97)
+            fig.text(0.5, 0.935,
+                     'Difference between Full Mix and sum of individual tracks (in dB)',
+                     ha='center', fontsize=9, color=THEME['fg_dim'])
+
+            ax = fig.add_subplot(1, 1, 1)
+
+            diff_db = difference_spectrogram['diff_db']
+            times = difference_spectrogram['times']
+            freqs = difference_spectrogram['freqs']
+
+            # Use a diverging colormap (red = boosted, blue = cut)
+            # Limit frequency display to audible range
+            freq_mask = freqs <= 20000
+            diff_display = diff_db[freq_mask]
+            freqs_display = freqs[freq_mask]
+
+            img = ax.imshow(diff_display, aspect='auto', origin='lower', cmap='RdBu_r',
+                             vmin=-12, vmax=12,
+                             extent=[times[0], times[-1], freqs_display[0], freqs_display[-1]])
+            ax.set_yscale('symlog', linthresh=100)
+            ax.set_ylim(20, 20000)
+            ax.set_xlabel('Time (s)', fontsize=11)
+            ax.set_ylabel('Frequency (Hz)', fontsize=11)
+            ax.set_title('Master bus modification at each frequency and time (red = boosted, blue = cut)',
+                         color=THEME['accent1'], fontsize=11, pad=15)
+            cbar = fig.colorbar(img, ax=ax, pad=0.01)
+            cbar.set_label('Difference (dB)', fontsize=9)
+            cbar.ax.tick_params(labelsize=8)
+
+            # Contextual note
+            fig.text(0.5, 0.04,
+                     'This shows how the master bus processing (EQ, compression, limiting, saturation) '
+                     'modifies the raw sum of your tracks. Flat color means no modification; '
+                     'red/blue patches reveal frequency-dependent changes.',
+                     ha='center', fontsize=8, color=THEME['fg_dim'], style='italic', wrap=True)
+
+            plt.tight_layout(rect=[0, 0.07, 1, 0.90])
+            pdf.savefig(fig, facecolor=fig.get_facecolor())
+            plt.close(fig)
+
+        # PAGE 7: Anomalies compilation across all tracks
+        all_with_anomalies = [(a, ti) for a, ti in analyses_with_info if a.get('anomalies')]
+        if all_with_anomalies:
+            fig = plt.figure(figsize=(11, 8.5))
+            fig.suptitle('ANOMALIES OVERVIEW', fontsize=14, color=THEME['critical'],
+                         fontweight='bold', y=0.97)
+            fig.text(0.5, 0.935,
+                     f"{len(all_with_anomalies)} track(s) with detected anomalies",
+                     ha='center', fontsize=9, color=THEME['fg_dim'])
+
+            ax = fig.add_subplot(111)
+            ax.axis('off')
+
+            y = 0.88
+
+            # Critical first
+            critical_list = []
+            warning_list = []
+            info_list = []
+            for a, ti in all_with_anomalies:
+                for sev, desc in a['anomalies']:
+                    entry = (a['filename'], ti.get('type', 'Individual'), desc)
+                    if sev == 'critical':
+                        critical_list.append(entry)
+                    elif sev == 'warning':
+                        warning_list.append(entry)
+                    else:
+                        info_list.append(entry)
+
+            if critical_list:
+                ax.text(0.04, y, f'[CRITICAL] ({len(critical_list)})',
+                        fontsize=12, color=THEME['critical'], fontweight='bold', transform=ax.transAxes)
+                y -= 0.04
+                for fname, ttype, desc in critical_list[:12]:
+                    ax.text(0.07, y, f"- [{ttype}] {fname[:40]}: {desc[:55]}",
+                            fontsize=8, color=THEME['fg'], transform=ax.transAxes)
+                    y -= 0.028
+                y -= 0.02
+
+            if warning_list and y > 0.15:
+                ax.text(0.04, y, f'[WARNING] ({len(warning_list)})',
+                        fontsize=12, color=THEME['warning'], fontweight='bold', transform=ax.transAxes)
+                y -= 0.04
+                for fname, ttype, desc in warning_list[:15]:
+                    if y < 0.08:
+                        break
+                    ax.text(0.07, y, f"- [{ttype}] {fname[:40]}: {desc[:55]}",
+                            fontsize=8, color=THEME['fg'], transform=ax.transAxes)
+                    y -= 0.028
+
+            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+            pdf.savefig(fig, facecolor=fig.get_facecolor())
+            plt.close(fig)
+
+
+def _format_row(idx, type_tag, analysis, track_info):
+    """Helper to build a row for the summary table."""
+    L = analysis['loudness']
+    S = analysis['spectrum']
+    st = analysis['stereo']
+    lufs = f"{L['lufs_integrated']:+.1f}" if np.isfinite(L['lufs_integrated']) else '-'
+    width = f"{st['width_overall']:.2f}" if st['is_stereo'] else 'mono'
+    name = analysis['filename']
+    if len(name) > 32:
+        name = name[:29] + '...'
+    cat = track_info.get('category', '(not set)')
+    if len(cat) > 16:
+        cat = cat[:13] + '...'
+    dom_band = BAND_LABELS.get(S['dominant_band'], S['dominant_band'])
+    if len(dom_band) > 16:
+        dom_band = dom_band[:13] + '...'
+    return [
+        str(idx),
+        type_tag,
+        name,
+        cat,
+        lufs,
+        f"{L['peak_db']:+.1f}",
+        f"{L['crest_factor']:.1f}",
+        dom_band,
+        width,
+    ]
+# ============================================================================
+# TKINTER USER INTERFACE - Multi-tab with list+details pattern
+# ============================================================================
+
+# Tkinter theme colors (matching PDF theme)
+UI_THEME = {
+    'bg':           '#0a0a12',
+    'panel':        '#1a1a24',
+    'panel_light':  '#242438',
+    'fg':           '#e8e8f0',
+    'fg_dim':       '#8888a0',
+    'accent1':      '#00d9ff',
+    'accent2':      '#b967ff',
+    'accent3':      '#ff3d8b',
+    'accent4':      '#00ff9f',
+    'warning':      '#ffaa00',
+    'critical':     '#ff3333',
+    'border':       '#333344',
+    'select':       '#2a2a4a',
+}
+
+
+# Help texts for the info buttons
+HELP_TEXTS = {
+    'category': """CATEGORY - What kind of sound this track contains.
+
+Categories are organized into families:
+
+DRUMS: Kick, Snare/Clap, Hi-Hat/Cymbal, Tom, Percussion, Drum Loop/Bus
+  Use Drum Loop/Bus for pre-mixed drum loops or drum BUS sums.
+
+BASS: Sub Bass, Bass (standard), Acid Bass, 808 / Pitched Bass
+  Sub Bass = pure sub frequencies (usually sine-like, 30-80 Hz).
+  Bass (standard) = general bass synth or DI bass (40-250 Hz).
+  Acid Bass = 303-style resonant saw bass with filter modulation.
+  808 = pitched sub bass, hip-hop style, with variable pitch.
+
+SYNTH: Lead, Pluck/Stab, Pad/Drone, Arpeggio/Sequence, Texture/Atmosphere
+  Lead = melodic, foreground synth.
+  Pluck/Stab = short, percussive synth.
+  Pad = sustained, often slow-evolving.
+  Arp = repeated melodic pattern.
+  Texture = atmospheric, background sound.
+
+GUITAR: Clean, Distorted, Acoustic
+
+VOCAL: Lead, Backing/Harmony, FX/Chop
+
+FX & OTHER: Risers, Noise, Samples, Other
+
+Choose the closest match. If unsure, pick Other.""",
+
+    'type': """TRACK TYPE - How this file relates to your project.
+
+INDIVIDUAL: A single track containing one instrument or one sound.
+  Most of your exported tracks should be Individual.
+
+BUS: A summed bus track (e.g. Drums Bus = kick + snare + hats + perc combined).
+  Ableton exports both individual tracks AND the bus if you have a group.
+  Mark the bus itself as BUS to avoid double-counting in the masking analysis.
+
+FULL MIX: The complete bounce of the entire song (all tracks summed + master bus).
+  Only ONE file should be marked as Full Mix.
+  This is your reference for the overall sound of the project.
+  The global report will give this file its own dedicated section.""",
+
+    'parent_bus': """PARENT BUS - If this individual track is part of a group bus.
+
+When you use groups in Ableton (e.g. a Drums group containing kick, snare, hats),
+Ableton exports each individual track AND the summed bus.
+
+Set this field to indicate which BUS this track belongs to, so the global report
+can show BUS vs. components consistency.
+
+Leave as None if this track doesn't belong to any bus.""",
+
+    'style': """STYLE - The musical style context for the analysis.
+
+This setting adjusts the interpretation thresholds used in the analysis:
+- Target loudness expectations
+- Typical crest factor ranges
+- Acceptable density levels
+
+Choose the style closest to your project. If unsure, pick Generic.
+The style is grouped internally into 7 analytical families (acoustic, rock,
+electronic soft, electronic dance, electronic aggressive, urban, pop) that
+determine the analytical profile.
+
+Note: The style does NOT change the raw measurements, only their interpretation.""",
+
+    'mix_state': """MIX COMPLETION STATE - Where this bounce is in the production cycle.
+
+Rough mix: First draft, levels only, no real processing
+Mix in progress: Active mixing, still iterating
+Pre-final mix: Mix nearly done, final adjustments
+Final mix: Ready for mastering, no more mix changes
+Pre-master: Mastering in progress
+Final master: Completed, ready for release
+
+This context helps interpret measurements correctly. For example:
+- A limiter on the master bus of a 'Rough mix' is unusual
+- A very hot LUFS on a 'Final master' is expected
+- Low crest factor on a 'Mix in progress' may be intentional or not""",
+
+    'master_plugins': """MASTER BUS PLUGINS - Effects active on the master bus during export.
+
+Check all that apply. This is important because:
+- Compression and limiting reduce dynamic range measurements
+- EQ changes the spectral balance
+- Stereo imagers affect stereo width and correlation
+
+When the AI analyzes your reports, it will take these into account to
+distinguish 'the mix has issues' from 'the master processing is affecting
+the measurements'.
+
+If you export with an empty master bus (recommended for mix diagnosis),
+leave everything unchecked.""",
+
+    'loudness_target': """LOUDNESS TARGET - What you're aiming for on the final master.
+
+-14 LUFS: Spotify, Apple Music, YouTube (streaming standard)
+-12 LUFS: Conservative hot master
+-10 LUFS: Common for rock, electronic (pre-streaming levels)
+-8 LUFS: Very hot, competitive loudness (not recommended for streaming)
+Custom: Your own target or undefined
+
+This helps the AI understand if your current LUFS is on target or not.""",
+}
+
+
+class HelpButton(tk.Button):
+    """A small info button that opens a help dialog."""
+    def __init__(self, master, help_key, **kwargs):
+        super().__init__(master, text='\u24d8', width=2,  # circled i
+                          bg=UI_THEME['panel'], fg=UI_THEME['accent1'],
+                          activebackground=UI_THEME['panel_light'],
+                          activeforeground=UI_THEME['accent1'],
+                          relief='flat', bd=0, cursor='hand2',
+                          font=('Segoe UI', 11, 'bold'),
+                          command=lambda: self._show_help(help_key),
+                          **kwargs)
+        self.help_key = help_key
+
+    def _show_help(self, key):
+        text = HELP_TEXTS.get(key, 'No help available for this item.')
+        dialog = tk.Toplevel(self.winfo_toplevel())
+        dialog.title('Help')
+        dialog.configure(bg=UI_THEME['bg'])
+        dialog.geometry('560x480')
+        dialog.transient(self.winfo_toplevel())
+
+        frame = tk.Frame(dialog, bg=UI_THEME['bg'], padx=20, pady=20)
+        frame.pack(fill='both', expand=True)
+
+        title_lbl = tk.Label(frame, text='ⓘ  Help',
+                              bg=UI_THEME['bg'], fg=UI_THEME['accent1'],
+                              font=('Calibri', 16, 'bold'))
+        title_lbl.pack(anchor='w', pady=(0, 10))
+
+        text_widget = tk.Text(frame, wrap='word', bg=UI_THEME['panel'],
+                               fg=UI_THEME['fg'], font=('Calibri', 11),
+                               bd=0, padx=12, pady=12, relief='flat')
+        text_widget.pack(fill='both', expand=True)
+        text_widget.insert('1.0', text)
+        text_widget.config(state='disabled')
+
+        close_btn = tk.Button(frame, text='Close',
+                               command=dialog.destroy,
+                               bg=UI_THEME['accent1'], fg=UI_THEME['bg'],
+                               font=('Calibri', 11, 'bold'),
+                               activebackground=UI_THEME['accent2'],
+                               relief='flat', bd=0, padx=20, pady=6,
+                               cursor='hand2')
+        close_btn.pack(pady=(12, 0))
+
+
+def setup_ttk_styles():
+    """Configure ttk styles to match our cyberpunk theme."""
+    style = ttk.Style()
+    style.theme_use('clam')
+
+    # Notebook (tabs)
+    style.configure('TNotebook',
+                    background=UI_THEME['bg'],
+                    borderwidth=0)
+    style.configure('TNotebook.Tab',
+                    background=UI_THEME['panel'],
+                    foreground=UI_THEME['fg_dim'],
+                    padding=[18, 10],
+                    font=('Calibri', 11, 'bold'),
+                    borderwidth=0)
+    style.map('TNotebook.Tab',
+              background=[('selected', UI_THEME['panel_light'])],
+              foreground=[('selected', UI_THEME['accent1'])])
+
+    # Frames
+    style.configure('TFrame', background=UI_THEME['bg'])
+    style.configure('Panel.TFrame', background=UI_THEME['panel'])
+
+    # Labels
+    style.configure('TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=UI_THEME['fg'],
+                    font=('Calibri', 11))
+    style.configure('Title.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=UI_THEME['accent1'],
+                    font=('Calibri', 18, 'bold'))
+    style.configure('SubTitle.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=UI_THEME['accent2'],
+                    font=('Calibri', 13, 'bold'))
+    style.configure('Dim.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=UI_THEME['fg_dim'],
+                    font=('Calibri', 10))
+    style.configure('Panel.TLabel',
+                    background=UI_THEME['panel'],
+                    foreground=UI_THEME['fg'],
+                    font=('Calibri', 11))
+    style.configure('PanelDim.TLabel',
+                    background=UI_THEME['panel'],
+                    foreground=UI_THEME['fg_dim'],
+                    font=('Calibri', 10))
+
+    # Entries
+    style.configure('TEntry',
+                    fieldbackground=UI_THEME['panel'],
+                    foreground=UI_THEME['fg'],
+                    bordercolor=UI_THEME['border'],
+                    lightcolor=UI_THEME['border'],
+                    darkcolor=UI_THEME['border'],
+                    insertcolor=UI_THEME['fg'])
+
+    # Combobox
+    style.configure('TCombobox',
+                    fieldbackground=UI_THEME['panel'],
+                    background=UI_THEME['panel'],
+                    foreground=UI_THEME['fg'],
+                    bordercolor=UI_THEME['border'],
+                    arrowcolor=UI_THEME['accent1'],
+                    selectbackground=UI_THEME['select'],
+                    selectforeground=UI_THEME['fg'])
+    style.map('TCombobox',
+              fieldbackground=[('readonly', UI_THEME['panel'])],
+              foreground=[('readonly', UI_THEME['fg'])])
+
+    # Buttons
+    style.configure('TButton',
+                    background=UI_THEME['panel_light'],
+                    foreground=UI_THEME['fg'],
+                    bordercolor=UI_THEME['accent1'],
+                    focuscolor=UI_THEME['accent1'],
+                    font=('Calibri', 11),
+                    padding=8)
+    style.map('TButton',
+              background=[('active', UI_THEME['accent1']), ('pressed', UI_THEME['accent2'])],
+              foreground=[('active', UI_THEME['bg'])])
+
+    style.configure('Accent.TButton',
+                    background=UI_THEME['accent1'],
+                    foreground=UI_THEME['bg'],
+                    font=('Calibri', 12, 'bold'),
+                    padding=12)
+    style.map('Accent.TButton',
+              background=[('active', UI_THEME['accent2'])],
+              foreground=[('active', UI_THEME['fg'])])
+
+    # Checkbutton
+    style.configure('TCheckbutton',
+                    background=UI_THEME['bg'],
+                    foreground=UI_THEME['fg'],
+                    font=('Calibri', 11),
+                    focuscolor=UI_THEME['accent1'])
+    style.configure('Panel.TCheckbutton',
+                    background=UI_THEME['panel'],
+                    foreground=UI_THEME['fg'],
+                    font=('Calibri', 11))
+
+    # Scrollbar
+    style.configure('Vertical.TScrollbar',
+                    background=UI_THEME['panel'],
+                    troughcolor=UI_THEME['bg'],
+                    bordercolor=UI_THEME['border'],
+                    arrowcolor=UI_THEME['accent1'])
+
+    return style
+
+
+# ============================================================================
+# MAIN APPLICATION CLASS
+# ============================================================================
+
+
+class MixAnalyzerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title('Mix Analyzer v1.5')
+        self.root.geometry('1280x820')
+        self.root.configure(bg=UI_THEME['bg'])
+        self.root.minsize(1100, 700)
+
+        setup_ttk_styles()
+
+        # State
+        self.input_folder = tk.StringVar()
+        self.output_folder = tk.StringVar()
+        self.style = tk.StringVar(value='Industrial')
+
+        # Track configs: dict filename -> config dict
+        self.track_configs = {}
+        # Order of files as discovered
+        self.track_order = []
+        # Currently selected track in detail panel
+        self.selected_track = None
+
+        # Full mix state
+        self.mix_state = tk.StringVar(value=MIX_STATES[0])
+        self.mix_loudness_target = tk.StringVar(value=LOUDNESS_TARGETS[0])
+        self.mix_note = tk.StringVar()
+        self.mix_plugins = {p: tk.BooleanVar(value=False) for p in MASTER_PLUGINS}
+
+        # Analysis results
+        self.analysis_results = None
+        self.output_dir_after_run = None
+
+        self._build_ui()
+
+    def _build_ui(self):
+        # Top title
+        title_frame = ttk.Frame(self.root, padding=(15, 12, 15, 0))
+        title_frame.pack(fill='x')
+        ttk.Label(title_frame, text='MIX ANALYZER',
+                  style='Title.TLabel').pack(side='left')
+        ttk.Label(title_frame, text='  v1.5 - Visual mix diagnostic',
+                  style='Dim.TLabel').pack(side='left', padx=(10, 0))
+
+        # Notebook
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.pack(fill='both', expand=True, padx=15, pady=10)
+
+        self.tab_setup = ttk.Frame(self.notebook)
+        self.tab_tracks = ttk.Frame(self.notebook)
+        self.tab_fullmix = ttk.Frame(self.notebook)
+        self.tab_analysis = ttk.Frame(self.notebook)
+
+        self.notebook.add(self.tab_setup, text='1. Setup')
+        self.notebook.add(self.tab_tracks, text='2. Track Identification')
+        self.notebook.add(self.tab_fullmix, text='3. Full Mix')
+        self.notebook.add(self.tab_analysis, text='4. Analysis')
+
+        self._build_setup_tab()
+        self._build_tracks_tab()
+        self._build_fullmix_tab()
+        self._build_analysis_tab()
+
+    # ------------------------------------------------------------------
+    # TAB 1 - SETUP
+    # ------------------------------------------------------------------
+    def _build_setup_tab(self):
+        frame = ttk.Frame(self.tab_setup, padding=25)
+        frame.pack(fill='both', expand=True)
+
+        ttk.Label(frame, text='Project Setup', style='SubTitle.TLabel').grid(
+            row=0, column=0, columnspan=4, sticky='w', pady=(0, 15))
+
+        # Input folder
+        ttk.Label(frame, text='Bounces folder (WAV/AIFF):').grid(
+            row=1, column=0, sticky='w', pady=8)
+        ttk.Entry(frame, textvariable=self.input_folder, width=70).grid(
+            row=1, column=1, sticky='we', pady=8, padx=(10, 5))
+        ttk.Button(frame, text='Browse...', command=self._browse_input).grid(
+            row=1, column=2, pady=8)
+
+        # Output folder
+        ttk.Label(frame, text='Output folder for reports:').grid(
+            row=2, column=0, sticky='w', pady=8)
+        ttk.Entry(frame, textvariable=self.output_folder, width=70).grid(
+            row=2, column=1, sticky='we', pady=8, padx=(10, 5))
+        ttk.Button(frame, text='Browse...', command=self._browse_output).grid(
+            row=2, column=2, pady=8)
+
+        # Style
+        style_row = ttk.Frame(frame)
+        style_row.grid(row=3, column=0, columnspan=4, sticky='we', pady=8)
+        ttk.Label(style_row, text='Musical style:').pack(side='left')
+        ttk.Combobox(style_row, textvariable=self.style,
+                     values=STYLES, state='readonly', width=35).pack(
+            side='left', padx=(10, 5))
+        HelpButton(style_row, 'style').pack(side='left', padx=(0, 5))
+
+        # Warning box for filename naming
+        warning_frame = tk.Frame(frame, bg=UI_THEME['panel'], bd=1,
+                                   highlightbackground=UI_THEME['warning'],
+                                   highlightthickness=1)
+        warning_frame.grid(row=4, column=0, columnspan=4, sticky='we', pady=(25, 10))
+
+        tk.Label(warning_frame, text='[!] TRACK NAMING IMPORTANT',
+                  bg=UI_THEME['panel'], fg=UI_THEME['warning'],
+                  font=('Calibri', 11, 'bold')).pack(anchor='w', padx=12, pady=(10, 4))
+
+        warning_text = (
+            "Before exporting from Ableton, make sure your tracks are clearly named. "
+            "Auto-detection of categories uses the track name.\n\n"
+            "Good naming examples:\n"
+            "  * Kick Main.wav, Kick Sub.wav, Snare.wav, Hi-Hat Closed.wav\n"
+            "  * Sub Bass.wav, Acid Bass 303.wav, Bass Reese.wav\n"
+            "  * Lead Synth.wav, Pad Evolving.wav, Arp Sequence.wav\n\n"
+            "Unnamed tracks (ElevenLabs_2026..., Splice_xyz..., Track 23...) will "
+            "require manual categorization in the next tab.\n\n"
+            "Ableton export settings:\n"
+            "  * Rendered Track: 'All Individual Tracks'\n"
+            "  * File Type: WAV, 24-bit, 44.1 or 48 kHz\n"
+            "  * Normalize: OFF (critical!)\n"
+            "  * Recommended: disable master bus plugins before bouncing"
+        )
+        tk.Label(warning_frame, text=warning_text,
+                  bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                  font=('Calibri', 10), justify='left',
+                  wraplength=900).pack(anchor='w', padx=12, pady=(0, 12))
+
+        # Status
+        self.setup_status = ttk.Label(frame, text='No folder selected yet.',
+                                        style='Dim.TLabel')
+        self.setup_status.grid(row=5, column=0, columnspan=4, sticky='w', pady=(15, 5))
+
+        # Load button
+        ttk.Button(frame, text='Load tracks from folder',
+                   style='Accent.TButton',
+                   command=self._load_tracks).grid(
+            row=6, column=0, columnspan=4, sticky='we', pady=(10, 0))
+
+        frame.columnconfigure(1, weight=1)
+
+    def _browse_input(self):
+        folder = filedialog.askdirectory(title='Select bounces folder')
+        if folder:
+            self.input_folder.set(folder)
+            if not self.output_folder.get():
+                self.output_folder.set(os.path.join(folder, 'reports'))
+
+    def _browse_output(self):
+        folder = filedialog.askdirectory(title='Select output folder')
+        if folder:
+            self.output_folder.set(folder)
+
+    def _load_tracks(self):
+        folder = self.input_folder.get()
+        if not folder or not os.path.isdir(folder):
+            messagebox.showerror('Error', 'Please select a valid input folder.')
+            return
+
+        exts = {'.wav', '.aiff', '.aif', '.flac', '.ogg'}
+        files = sorted([f for f in os.listdir(folder)
+                         if os.path.splitext(f)[1].lower() in exts])
+
+        if not files:
+            messagebox.showerror('Error', 'No audio files found in the selected folder.')
+            return
+
+        self.track_order = files
+
+        # Try to load existing config
+        config_path = os.path.join(folder, 'mix_analyzer_config.json')
+        existing_config = {}
+        if os.path.exists(config_path):
+            try:
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    existing_config = json.load(f)
+            except Exception:
+                existing_config = {}
+
+        # Build track configs (merge existing + auto-detect for new)
+        self.track_configs = {}
+        for fname in files:
+            if fname in existing_config.get('tracks', {}):
+                self.track_configs[fname] = existing_config['tracks'][fname]
+            else:
+                self.track_configs[fname] = {
+                    'include': True,
+                    'type': 'Individual',
+                    'category': auto_detect_category(fname),
+                    'parent_bus': 'None',
+                }
+
+        # Load existing full mix config
+        if 'full_mix' in existing_config:
+            fm = existing_config['full_mix']
+            self.mix_state.set(fm.get('state', MIX_STATES[0]))
+            self.mix_loudness_target.set(fm.get('loudness_target', LOUDNESS_TARGETS[0]))
+            self.mix_note.set(fm.get('note', ''))
+            for p, var in self.mix_plugins.items():
+                var.set(p in fm.get('plugins', []))
+
+        if 'style' in existing_config:
+            self.style.set(existing_config['style'])
+
+        self.setup_status.config(
+            text=f"Loaded {len(files)} audio files. "
+                 f"Auto-detected categories for "
+                 f"{sum(1 for c in self.track_configs.values() if c['category'] != '(not set)')} tracks."
+        )
+
+        self._refresh_tracks_list()
+        self._refresh_fullmix_tab()
+        self.notebook.select(self.tab_tracks)
+
+    # ------------------------------------------------------------------
+    # TAB 2 - TRACK IDENTIFICATION
+    # ------------------------------------------------------------------
+    def _build_tracks_tab(self):
+        # Split: left = list, right = details
+        paned = tk.PanedWindow(self.tab_tracks, orient='horizontal',
+                                bg=UI_THEME['bg'], sashwidth=6,
+                                sashrelief='flat', bd=0)
+        paned.pack(fill='both', expand=True, padx=10, pady=10)
+
+        # LEFT: List of tracks
+        left = tk.Frame(paned, bg=UI_THEME['bg'])
+        paned.add(left, minsize=350)
+
+        tk.Label(left, text='Tracks in folder',
+                  bg=UI_THEME['bg'], fg=UI_THEME['accent2'],
+                  font=('Calibri', 13, 'bold')).pack(anchor='w', pady=(0, 5))
+
+        # Action buttons
+        action_row = tk.Frame(left, bg=UI_THEME['bg'])
+        action_row.pack(fill='x', pady=(0, 5))
+        ttk.Button(action_row, text='Auto-detect all',
+                   command=self._auto_detect_all).pack(side='left', padx=(0, 5))
+        ttk.Button(action_row, text='Include all',
+                   command=lambda: self._set_all_include(True)).pack(side='left', padx=5)
+        ttk.Button(action_row, text='Exclude all',
+                   command=lambda: self._set_all_include(False)).pack(side='left', padx=5)
+
+        # Listbox with scrollbar
+        list_frame = tk.Frame(left, bg=UI_THEME['bg'])
+        list_frame.pack(fill='both', expand=True)
+
+        self.tracks_listbox = tk.Listbox(list_frame,
+                                           bg=UI_THEME['panel'],
+                                           fg=UI_THEME['fg'],
+                                           selectbackground=UI_THEME['select'],
+                                           selectforeground=UI_THEME['accent1'],
+                                           font=('Consolas', 9),
+                                           bd=0, highlightthickness=1,
+                                           highlightbackground=UI_THEME['border'],
+                                           highlightcolor=UI_THEME['accent1'],
+                                           activestyle='none')
+        self.tracks_listbox.pack(side='left', fill='both', expand=True)
+
+        scrollbar = ttk.Scrollbar(list_frame, orient='vertical',
+                                    command=self.tracks_listbox.yview)
+        scrollbar.pack(side='right', fill='y')
+        self.tracks_listbox.config(yscrollcommand=scrollbar.set)
+        self.tracks_listbox.bind('<<ListboxSelect>>', self._on_track_selected)
+
+        # Legend
+        legend_frame = tk.Frame(left, bg=UI_THEME['bg'])
+        legend_frame.pack(fill='x', pady=(5, 0))
+        tk.Label(legend_frame, text='Legend:',
+                  bg=UI_THEME['bg'], fg=UI_THEME['fg_dim'],
+                  font=('Calibri', 9)).pack(side='left')
+        for symbol, meaning, color in [
+            ('[X]', 'Included', UI_THEME['fg']),
+            ('[-]', 'Excluded', UI_THEME['fg_dim']),
+            ('[B]', 'BUS', UI_THEME['accent3']),
+            ('[M]', 'Full Mix', UI_THEME['accent2']),
+        ]:
+            tk.Label(legend_frame, text=f' {symbol}={meaning}',
+                      bg=UI_THEME['bg'], fg=color,
+                      font=('Calibri', 8)).pack(side='left', padx=2)
+
+        # RIGHT: Detail panel
+        right = tk.Frame(paned, bg=UI_THEME['panel'], padx=20, pady=15)
+        paned.add(right, minsize=500)
+
+        self.details_title = tk.Label(right, text='No track selected',
+                                        bg=UI_THEME['panel'], fg=UI_THEME['accent1'],
+                                        font=('Calibri', 14, 'bold'),
+                                        wraplength=500, justify='left')
+        self.details_title.pack(anchor='w', pady=(0, 15))
+
+        self.details_frame = tk.Frame(right, bg=UI_THEME['panel'])
+        self.details_frame.pack(fill='both', expand=True)
+
+        # Build the detail widgets (will be shown/hidden based on selection)
+        self._build_detail_widgets()
+
+    def _build_detail_widgets(self):
+        """Build the per-track detail widgets (hidden until a track is selected)."""
+        f = self.details_frame
+
+        # Include checkbox
+        self.detail_include = tk.BooleanVar()
+        tk.Checkbutton(f, text='Include this track in the analysis',
+                        variable=self.detail_include,
+                        bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                        selectcolor=UI_THEME['panel_light'],
+                        activebackground=UI_THEME['panel'],
+                        activeforeground=UI_THEME['fg'],
+                        font=('Calibri', 11),
+                        command=self._on_detail_change).grid(
+            row=0, column=0, columnspan=3, sticky='w', pady=8)
+
+        # Type
+        tk.Label(f, text='Track Type:',
+                  bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
+                  font=('Calibri', 11)).grid(row=1, column=0, sticky='w', pady=8)
+        self.detail_type = tk.StringVar()
+        self.detail_type_combo = ttk.Combobox(f, textvariable=self.detail_type,
+                                                 values=TRACK_TYPES, state='readonly', width=20)
+        self.detail_type_combo.grid(row=1, column=1, sticky='w', pady=8, padx=(10, 5))
+        self.detail_type_combo.bind('<<ComboboxSelected>>', self._on_type_change)
+        HelpButton(f, 'type').grid(row=1, column=2, sticky='w', pady=8)
+
+        # Category
+        tk.Label(f, text='Category:',
+                  bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
+                  font=('Calibri', 11)).grid(row=2, column=0, sticky='w', pady=8)
+        self.detail_category = tk.StringVar()
+        # Build hierarchical list
+        cat_values = []
+        for family, items in CATEGORIES.items():
+            for item in items:
+                cat_values.append(item)
+        cat_values.append('(not set)')
+        self.detail_category_combo = ttk.Combobox(f, textvariable=self.detail_category,
+                                                     values=cat_values, state='readonly', width=35)
+        self.detail_category_combo.grid(row=2, column=1, sticky='w', pady=8, padx=(10, 5))
+        self.detail_category_combo.bind('<<ComboboxSelected>>', self._on_detail_change)
+        HelpButton(f, 'category').grid(row=2, column=2, sticky='w', pady=8)
+
+        # Parent BUS
+        tk.Label(f, text='Parent BUS:',
+                  bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
+                  font=('Calibri', 11)).grid(row=3, column=0, sticky='w', pady=8)
+        self.detail_parent_bus = tk.StringVar()
+        self.detail_parent_bus_combo = ttk.Combobox(f, textvariable=self.detail_parent_bus,
+                                                       values=['None'], state='readonly', width=35)
+        self.detail_parent_bus_combo.grid(row=3, column=1, sticky='w', pady=8, padx=(10, 5))
+        self.detail_parent_bus_combo.bind('<<ComboboxSelected>>', self._on_detail_change)
+        HelpButton(f, 'parent_bus').grid(row=3, column=2, sticky='w', pady=8)
+
+        # Info box
+        info_sep = tk.Frame(f, bg=UI_THEME['border'], height=1)
+        info_sep.grid(row=4, column=0, columnspan=3, sticky='we', pady=(20, 15))
+
+        tk.Label(f, text='Quick notes:',
+                  bg=UI_THEME['panel'], fg=UI_THEME['accent2'],
+                  font=('Calibri', 11, 'bold')).grid(row=5, column=0, sticky='w')
+
+        quick_tips = (
+            "* Mark the bounce of your complete song as 'Full Mix' (only one allowed).\n"
+            "* Mark bus sum tracks (e.g. Drums bus) as 'BUS' to exclude them from masking.\n"
+            "* Individual tracks that belong to a bus should have their Parent BUS set.\n"
+            "* Exclude any track you don't want in the analysis (reference tracks, etc.)."
+        )
+        tk.Label(f, text=quick_tips,
+                  bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
+                  font=('Calibri', 10), justify='left', wraplength=500).grid(
+            row=6, column=0, columnspan=3, sticky='w', pady=(5, 0))
+
+        # Hide all detail widgets initially
+        for child in f.winfo_children():
+            pass  # Will be shown when a track is selected
+
+        self._detail_widgets_enabled(False)
+
+    def _detail_widgets_enabled(self, enabled):
+        state = 'normal' if enabled else 'disabled'
+        combo_state = 'readonly' if enabled else 'disabled'
+        try:
+            self.detail_type_combo.configure(state=combo_state)
+            self.detail_category_combo.configure(state=combo_state)
+            self.detail_parent_bus_combo.configure(state=combo_state)
+        except Exception:
+            pass
+
+    def _refresh_tracks_list(self):
+        self.tracks_listbox.delete(0, 'end')
+        for fname in self.track_order:
+            cfg = self.track_configs[fname]
+            # Build prefix
+            if not cfg['include']:
+                prefix = '[-]'
+            elif cfg['type'] == 'Full Mix':
+                prefix = '[M]'
+            elif cfg['type'] == 'BUS':
+                prefix = '[B]'
+            else:
+                prefix = '[X]'
+            cat = cfg['category']
+            if cat == '(not set)':
+                cat = '?'
+            display_name = fname if len(fname) <= 50 else fname[:47] + '...'
+            line = f"{prefix} {display_name}   ({cat})"
+            self.tracks_listbox.insert('end', line)
+
+            # Color the line via item config
+            idx = self.tracks_listbox.size() - 1
+            if cfg['type'] == 'Full Mix':
+                self.tracks_listbox.itemconfig(idx, foreground=UI_THEME['accent2'])
+            elif cfg['type'] == 'BUS':
+                self.tracks_listbox.itemconfig(idx, foreground=UI_THEME['accent3'])
+            elif not cfg['include']:
+                self.tracks_listbox.itemconfig(idx, foreground=UI_THEME['fg_dim'])
+            else:
+                self.tracks_listbox.itemconfig(idx, foreground=UI_THEME['fg'])
+
+        # Rebuild parent BUS dropdown options (only tracks marked as BUS)
+        bus_options = ['None'] + [f for f in self.track_order
+                                    if self.track_configs[f]['type'] == 'BUS']
+        self.detail_parent_bus_combo.configure(values=bus_options)
+
+    def _on_track_selected(self, event=None):
+        selection = self.tracks_listbox.curselection()
+        if not selection:
+            return
+        idx = selection[0]
+        fname = self.track_order[idx]
+        self.selected_track = fname
+        cfg = self.track_configs[fname]
+
+        self.details_title.config(text=fname)
+        self.detail_include.set(cfg['include'])
+        self.detail_type.set(cfg['type'])
+        self.detail_category.set(cfg['category'])
+        self.detail_parent_bus.set(cfg.get('parent_bus', 'None'))
+
+        self._detail_widgets_enabled(True)
+        # Disable category/parent_bus if Full Mix or BUS
+        self._apply_type_constraints()
+
+    def _apply_type_constraints(self):
+        t = self.detail_type.get()
+        if t == 'Full Mix':
+            self.detail_category_combo.configure(state='disabled')
+            self.detail_parent_bus_combo.configure(state='disabled')
+            self.detail_category.set('(not set)')
+            self.detail_parent_bus.set('None')
+        elif t == 'BUS':
+            self.detail_category_combo.configure(state='readonly')
+            self.detail_parent_bus_combo.configure(state='disabled')
+            self.detail_parent_bus.set('None')
+        else:  # Individual
+            self.detail_category_combo.configure(state='readonly')
+            self.detail_parent_bus_combo.configure(state='readonly')
+
+    def _on_type_change(self, event=None):
+        if not self.selected_track:
+            return
+        new_type = self.detail_type.get()
+        if new_type == 'Full Mix':
+            # Ensure only one Full Mix
+            for fname, cfg in self.track_configs.items():
+                if fname != self.selected_track and cfg['type'] == 'Full Mix':
+                    cfg['type'] = 'Individual'
+        self._apply_type_constraints()
+        self._on_detail_change()
+
+    def _on_detail_change(self, event=None):
+        if not self.selected_track:
+            return
+        cfg = self.track_configs[self.selected_track]
+        cfg['include'] = self.detail_include.get()
+        cfg['type'] = self.detail_type.get()
+        cfg['category'] = self.detail_category.get()
+        cfg['parent_bus'] = self.detail_parent_bus.get()
+        self._refresh_tracks_list()
+        self._refresh_fullmix_tab()
+        # Restore selection
+        try:
+            idx = self.track_order.index(self.selected_track)
+            self.tracks_listbox.selection_set(idx)
+        except Exception:
+            pass
+        self._save_config()
+
+    def _auto_detect_all(self):
+        if not messagebox.askokcancel(
+                'Auto-detect',
+                'Auto-detect will overwrite any category labels you have manually set.\n\n'
+                'Continue?'):
+            return
+        project_name = None
+        for fname, cfg in self.track_configs.items():
+            if cfg.get('type') == 'Full Mix':
+                project_name = os.path.splitext(fname)[0]
+                break
+        if not project_name and self.track_order:
+            names = [os.path.splitext(f)[0] for f in self.track_order]
+            prefix = os.path.commonprefix(names).strip(' -_')
+            if len(prefix) >= 3:
+                project_name = prefix
+        for fname in self.track_order:
+            self.track_configs[fname]['category'] = auto_detect_category(fname, project_name)
+        self._refresh_tracks_list()
+        if self.selected_track:
+            self._on_track_selected_refresh()
+        self._save_config()
+        messagebox.showinfo('Auto-detect',
+                             f"Auto-detection complete.\n"
+                             f"{sum(1 for c in self.track_configs.values() if c['category'] != '(not set)')}"
+                             f" of {len(self.track_configs)} tracks have a detected category.")
+
+    def _set_all_include(self, include):
+        for cfg in self.track_configs.values():
+            cfg['include'] = include
+        self._refresh_tracks_list()
+        self._save_config()
+
+    def _on_track_selected_refresh(self):
+        if self.selected_track:
+            cfg = self.track_configs[self.selected_track]
+            self.detail_include.set(cfg['include'])
+            self.detail_type.set(cfg['type'])
+            self.detail_category.set(cfg['category'])
+            self.detail_parent_bus.set(cfg.get('parent_bus', 'None'))
+
+    # ------------------------------------------------------------------
+    # TAB 3 - FULL MIX
+    # ------------------------------------------------------------------
+    def _build_fullmix_tab(self):
+        frame = ttk.Frame(self.tab_fullmix, padding=25)
+        frame.pack(fill='both', expand=True)
+
+        ttk.Label(frame, text='Full Mix Configuration',
+                  style='SubTitle.TLabel').grid(
+            row=0, column=0, columnspan=3, sticky='w', pady=(0, 15))
+
+        self.fullmix_status = ttk.Label(
+            frame,
+            text='No track marked as Full Mix yet. Go to the Track Identification tab '
+                 'and set Type = Full Mix for the bounce of your complete song.',
+            style='Dim.TLabel', wraplength=900)
+        self.fullmix_status.grid(row=1, column=0, columnspan=3, sticky='w', pady=(0, 20))
+
+        # Details frame (shown when a full mix is selected)
+        self.fullmix_details = tk.Frame(frame, bg=UI_THEME['bg'])
+        self.fullmix_details.grid(row=2, column=0, columnspan=3, sticky='nwe', pady=10)
+
+        # Mix state
+        row = 0
+        state_row = tk.Frame(self.fullmix_details, bg=UI_THEME['bg'])
+        state_row.grid(row=row, column=0, columnspan=3, sticky='w', pady=8)
+        tk.Label(state_row, text='Mix completion state:',
+                  bg=UI_THEME['bg'], fg=UI_THEME['fg'],
+                  font=('Calibri', 11)).pack(side='left')
+        ttk.Combobox(state_row, textvariable=self.mix_state,
+                     values=MIX_STATES, state='readonly', width=25).pack(
+            side='left', padx=(10, 5))
+        HelpButton(state_row, 'mix_state').pack(side='left')
+
+        # Plugins
+        row += 1
+        tk.Label(self.fullmix_details, text='Active master bus plugins:',
+                  bg=UI_THEME['bg'], fg=UI_THEME['fg'],
+                  font=('Calibri', 11)).grid(row=row, column=0, sticky='nw', pady=(15, 5))
+        HelpButton(self.fullmix_details, 'master_plugins').grid(
+            row=row, column=1, sticky='nw', pady=(15, 5), padx=5)
+
+        row += 1
+        plugins_frame = tk.Frame(self.fullmix_details, bg=UI_THEME['bg'])
+        plugins_frame.grid(row=row, column=0, columnspan=3, sticky='w', padx=20)
+        for i, plugin in enumerate(MASTER_PLUGINS):
+            tk.Checkbutton(plugins_frame, text=plugin,
+                            variable=self.mix_plugins[plugin],
+                            bg=UI_THEME['bg'], fg=UI_THEME['fg'],
+                            selectcolor=UI_THEME['panel_light'],
+                            activebackground=UI_THEME['bg'],
+                            activeforeground=UI_THEME['fg'],
+                            font=('Calibri', 11),
+                            command=self._save_config).grid(
+                row=0, column=i, sticky='w', padx=(0, 20))
+
+        # Loudness target
+        row += 1
+        target_row = tk.Frame(self.fullmix_details, bg=UI_THEME['bg'])
+        target_row.grid(row=row, column=0, columnspan=3, sticky='w', pady=(15, 8))
+        tk.Label(target_row, text='Loudness target:',
+                  bg=UI_THEME['bg'], fg=UI_THEME['fg'],
+                  font=('Calibri', 11)).pack(side='left')
+        ttk.Combobox(target_row, textvariable=self.mix_loudness_target,
+                     values=LOUDNESS_TARGETS, state='readonly', width=35).pack(
+            side='left', padx=(10, 5))
+        HelpButton(target_row, 'loudness_target').pack(side='left')
+
+        # Note
+        row += 1
+        tk.Label(self.fullmix_details, text='Note (optional):',
+                  bg=UI_THEME['bg'], fg=UI_THEME['fg'],
+                  font=('Calibri', 11)).grid(row=row, column=0, sticky='w', pady=(15, 5))
+        row += 1
+        ttk.Entry(self.fullmix_details, textvariable=self.mix_note,
+                   width=80).grid(row=row, column=0, columnspan=3, sticky='we', padx=0)
+
+        # Save changes on mix state/target/note updates
+        self.mix_state.trace_add('write', lambda *a: self._save_config())
+        self.mix_loudness_target.trace_add('write', lambda *a: self._save_config())
+        self.mix_note.trace_add('write', lambda *a: self._save_config())
+
+    def _refresh_fullmix_tab(self):
+        full_mix_files = [f for f in self.track_order
+                            if self.track_configs.get(f, {}).get('type') == 'Full Mix']
+        if full_mix_files:
+            self.fullmix_status.config(
+                text=f"Full Mix file: {full_mix_files[0]}",
+                foreground=UI_THEME['accent2'])
+        else:
+            self.fullmix_status.config(
+                text='No track marked as Full Mix yet. Go to the Track Identification tab '
+                     'and set Type = Full Mix for the bounce of your complete song.',
+                foreground=UI_THEME['fg_dim'])
+
+    # ------------------------------------------------------------------
+    # TAB 4 - ANALYSIS
+    # ------------------------------------------------------------------
+    def _build_analysis_tab(self):
+        frame = ttk.Frame(self.tab_analysis, padding=25)
+        frame.pack(fill='both', expand=True)
+
+        ttk.Label(frame, text='Run Analysis',
+                  style='SubTitle.TLabel').grid(
+            row=0, column=0, columnspan=3, sticky='w', pady=(0, 15))
+
+        # Summary
+        self.analysis_summary = tk.Text(frame, height=6, bg=UI_THEME['panel'],
+                                          fg=UI_THEME['fg'], font=('Calibri', 10),
+                                          bd=0, padx=15, pady=12, relief='flat',
+                                          state='disabled')
+        self.analysis_summary.grid(row=1, column=0, columnspan=3, sticky='we', pady=10)
+
+        ttk.Button(frame, text='Refresh summary',
+                    command=self._refresh_analysis_summary).grid(
+            row=2, column=0, sticky='w', pady=(5, 15))
+
+        self.run_button = ttk.Button(frame, text='>>> RUN ANALYSIS <<<',
+                                       style='Accent.TButton',
+                                       command=self._run_analysis)
+        self.run_button.grid(row=3, column=0, columnspan=3, sticky='we', pady=(5, 15))
+
+        self.ai_button = ttk.Button(frame, text='Generate AI Analysis Prompt',
+                                      command=self._show_ai_prompt,
+                                      state='disabled')
+        self.ai_button.grid(row=4, column=0, sticky='w', pady=(0, 15))
+
+        self.open_folder_button = ttk.Button(frame, text='Open output folder',
+                                                command=self._open_output_folder,
+                                                state='disabled')
+        self.open_folder_button.grid(row=4, column=1, sticky='w', padx=(10, 0))
+
+        # Log
+        ttk.Label(frame, text='Log:', style='Dim.TLabel').grid(
+            row=5, column=0, columnspan=3, sticky='w', pady=(10, 5))
+
+        log_frame = tk.Frame(frame, bg=UI_THEME['bg'])
+        log_frame.grid(row=6, column=0, columnspan=3, sticky='nsew', pady=5)
+
+        self.log_text = scrolledtext.ScrolledText(
+            log_frame, height=16, bg='#050508', fg=UI_THEME['accent4'],
+            font=('Consolas', 9), bd=0, padx=10, pady=8,
+            insertbackground=UI_THEME['fg'])
+        self.log_text.pack(fill='both', expand=True)
+
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=1)
+        frame.rowconfigure(6, weight=1)
+
+    def _refresh_analysis_summary(self):
+        if not self.track_configs:
+            text = "No tracks loaded. Go to Setup tab and load a folder."
+        else:
+            included = [f for f, c in self.track_configs.items() if c['include']]
+            full_mix = [f for f in included
+                         if self.track_configs[f]['type'] == 'Full Mix']
+            buses = [f for f in included
+                      if self.track_configs[f]['type'] == 'BUS']
+            individuals = [f for f in included
+                            if self.track_configs[f]['type'] == 'Individual']
+            not_set = [f for f in included
+                        if self.track_configs[f]['type'] == 'Individual'
+                        and self.track_configs[f]['category'] == '(not set)']
+
+            # Family breakdown
+            family_counts = {}
+            for f in individuals:
+                cat = self.track_configs[f]['category']
+                family = CATEGORY_FAMILY.get(cat, 'Unknown')
+                family_counts[family] = family_counts.get(family, 0) + 1
+
+            text = (
+                f"Style: {self.style.get()}\n"
+                f"Included tracks: {len(included)} "
+                f"({len(individuals)} individual | {len(buses)} BUS | {len(full_mix)} full mix)\n"
+                f"Excluded tracks: {len(self.track_configs) - len(included)}\n"
+                f"Individual tracks with no category set: {len(not_set)}\n"
+                f"Families: {', '.join(f'{k}={v}' for k, v in sorted(family_counts.items()))}"
+            )
+        self.analysis_summary.config(state='normal')
+        self.analysis_summary.delete('1.0', 'end')
+        self.analysis_summary.insert('1.0', text)
+        self.analysis_summary.config(state='disabled')
+
+    def log(self, msg):
+        self.log_text.insert('end', msg + '\n')
+        self.log_text.see('end')
+        self.root.update_idletasks()
+
+    def _run_analysis(self):
+        if not self.input_folder.get() or not self.output_folder.get():
+            messagebox.showerror('Error', 'Please set input and output folders in Setup tab.')
+            return
+        if not self.track_configs:
+            messagebox.showerror('Error', 'No tracks loaded. Load tracks in Setup tab first.')
+            return
+
+        self._save_config()
+        self.log_text.delete('1.0', 'end')
+        self.run_button.configure(state='disabled')
+        self.ai_button.configure(state='disabled')
+        self.open_folder_button.configure(state='disabled')
+
+        def worker():
+            try:
+                self._do_analysis()
+            except Exception as e:
+                self.log(f"ERROR: {e}")
+                traceback.print_exc()
+            finally:
+                self.run_button.configure(state='normal')
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _do_analysis(self):
+        input_folder = Path(self.input_folder.get())
+        output_folder = Path(self.output_folder.get())
+        output_folder.mkdir(parents=True, exist_ok=True)
+
+        # Determine project name from Full Mix track (fallback: folder name)
+        project_name = None
+        for fname, cfg in self.track_configs.items():
+            if cfg.get('type') == 'Full Mix':
+                project_name = os.path.splitext(fname)[0]
+                break
+        if not project_name:
+            project_name = input_folder.name
+        safe_project = "".join(c for c in project_name if c.isalnum() or c in ' _-').strip() or 'Project'
+        date_str = datetime.now().strftime('%Y-%m-%d')
+        report_prefix = f"{safe_project}_MixAnalyzer_{date_str}"
+
+        included_files = [f for f in self.track_order
+                           if self.track_configs[f]['include']]
+
+        self.log(f"Starting analysis: {len(included_files)} tracks")
+        self.log(f"Output folder: {output_folder}")
+        self.log("-" * 60)
+
+        analyses_with_info = []
+        for i, fname in enumerate(included_files, 1):
+            filepath = input_folder / fname
+            cfg = self.track_configs[fname]
+            self.log(f"[{i}/{len(included_files)}] Analyzing: {fname}")
+            try:
+                is_full_mix = (cfg['type'] == 'Full Mix')
+                analysis = analyze_track(str(filepath), compute_tempo=is_full_mix)
+                ti = {
+                    'type': cfg['type'],
+                    'category': cfg['category'],
+                    'parent_bus': cfg.get('parent_bus', 'None'),
+                    'name': fname,
+                }
+                analyses_with_info.append((analysis, ti))
+
+                pdf_name = f"{report_prefix}_{os.path.splitext(fname)[0]}.pdf"
+                pdf_path = output_folder / pdf_name
+                if pdf_path.exists():
+                    pdf_path.unlink()
+                self.log(f"    -> Generating PDF: {pdf_name}")
+                generate_track_pdf(analysis, str(pdf_path), ti, self.style.get())
+            except Exception as e:
+                self.log(f"    ERROR: {e}")
+                traceback.print_exc()
+
+        if analyses_with_info:
+            self.log("-" * 60)
+            self.log("Generating global report...")
+            try:
+                # Build full mix info
+                active_plugins = [p for p, v in self.mix_plugins.items() if v.get()]
+                full_mix_info = {
+                    'state': self.mix_state.get(),
+                    'plugins': active_plugins,
+                    'loudness_target': self.mix_loudness_target.get(),
+                    'note': self.mix_note.get(),
+                }
+                global_pdf = output_folder / f'{report_prefix}_GLOBAL.pdf'
+                if global_pdf.exists():
+                    global_pdf.unlink()
+                generate_global_pdf(analyses_with_info, str(global_pdf),
+                                     self.style.get(), full_mix_info)
+                self.log(f"Global report: {global_pdf.name}")
+            except Exception as e:
+                self.log(f"ERROR global report: {e}")
+                traceback.print_exc()
+
+        self.log("=" * 60)
+        self.log(f"DONE: {len(analyses_with_info)} reports generated")
+        self.log(f"Location: {output_folder}")
+
+        self.analysis_results = analyses_with_info
+        self.output_dir_after_run = output_folder
+        self.ai_button.configure(state='normal')
+        self.open_folder_button.configure(state='normal')
+
+    def _open_output_folder(self):
+        if self.output_dir_after_run and os.path.isdir(self.output_dir_after_run):
+            try:
+                if sys.platform == 'win32':
+                    os.startfile(str(self.output_dir_after_run))
+                elif sys.platform == 'darwin':
+                    subprocess.call(['open', str(self.output_dir_after_run)])
+                else:
+                    subprocess.call(['xdg-open', str(self.output_dir_after_run)])
+            except Exception as e:
+                messagebox.showerror('Error', f"Could not open folder: {e}")
+
+    # ------------------------------------------------------------------
+    # CONFIG SAVE/LOAD
+    # ------------------------------------------------------------------
+    def _save_config(self):
+        folder = self.input_folder.get()
+        if not folder or not os.path.isdir(folder):
+            return
+        config_path = os.path.join(folder, 'mix_analyzer_config.json')
+        try:
+            active_plugins = [p for p, v in self.mix_plugins.items() if v.get()]
+            config = {
+                'style': self.style.get(),
+                'tracks': self.track_configs,
+                'full_mix': {
+                    'state': self.mix_state.get(),
+                    'plugins': active_plugins,
+                    'loudness_target': self.mix_loudness_target.get(),
+                    'note': self.mix_note.get(),
+                }
+            }
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(config, f, indent=2)
+        except Exception:
+            pass
+
+    # ------------------------------------------------------------------
+    # AI PROMPT
+    # ------------------------------------------------------------------
+    def _show_ai_prompt(self):
+        if not self.analysis_results:
+            return
+
+        prompt = self._build_ai_prompt()
+
+        dialog = tk.Toplevel(self.root)
+        dialog.title('AI Analysis Prompt')
+        dialog.configure(bg=UI_THEME['bg'])
+        dialog.geometry('900x700')
+        dialog.transient(self.root)
+
+        frame = tk.Frame(dialog, bg=UI_THEME['bg'], padx=20, pady=20)
+        frame.pack(fill='both', expand=True)
+
+        tk.Label(frame, text='AI Analysis Prompt',
+                  bg=UI_THEME['bg'], fg=UI_THEME['accent1'],
+                  font=('Calibri', 16, 'bold')).pack(anchor='w', pady=(0, 5))
+
+        tk.Label(frame,
+                  text='1. Click "Copy to Clipboard" below\n'
+                       '2. Open a new conversation on Claude.ai (or similar AI)\n'
+                       '3. Attach all the PDF files from your output folder\n'
+                       '4. Paste this prompt in the message and send',
+                  bg=UI_THEME['bg'], fg=UI_THEME['fg_dim'],
+                  font=('Calibri', 10), justify='left').pack(anchor='w', pady=(0, 12))
+
+        text_widget = scrolledtext.ScrolledText(
+            frame, wrap='word', bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+            font=('Consolas', 9), bd=0, padx=12, pady=12, relief='flat',
+            insertbackground=UI_THEME['fg'])
+        text_widget.pack(fill='both', expand=True)
+        text_widget.insert('1.0', prompt)
+
+        def copy_to_clipboard():
+            dialog.clipboard_clear()
+            dialog.clipboard_append(prompt)
+            copy_btn.config(text='Copied!')
+            dialog.after(1500, lambda: copy_btn.config(text='Copy to Clipboard'))
+
+        btn_row = tk.Frame(frame, bg=UI_THEME['bg'])
+        btn_row.pack(fill='x', pady=(12, 0))
+
+        copy_btn = tk.Button(btn_row, text='Copy to Clipboard',
+                              command=copy_to_clipboard,
+                              bg=UI_THEME['accent1'], fg=UI_THEME['bg'],
+                              font=('Calibri', 11, 'bold'),
+                              activebackground=UI_THEME['accent2'],
+                              relief='flat', bd=0, padx=20, pady=8,
+                              cursor='hand2')
+        copy_btn.pack(side='left')
+
+        tk.Button(btn_row, text='Close',
+                   command=dialog.destroy,
+                   bg=UI_THEME['panel_light'], fg=UI_THEME['fg'],
+                   font=('Calibri', 11),
+                   activebackground=UI_THEME['panel'],
+                   relief='flat', bd=0, padx=20, pady=8,
+                   cursor='hand2').pack(side='left', padx=(10, 0))
+
+    def _build_ai_prompt(self):
+        """Generate the contextualized AI prompt."""
+        if not self.analysis_results:
+            return ""
+
+        # Count types
+        individuals = [a for a, ti in self.analysis_results if ti['type'] == 'Individual']
+        buses = [a for a, ti in self.analysis_results if ti['type'] == 'BUS']
+        full_mixes = [a for a, ti in self.analysis_results if ti['type'] == 'Full Mix']
+
+        # Track inventory by category
+        cat_inventory = {}
+        for a, ti in self.analysis_results:
+            if ti['type'] == 'Individual':
+                cat = ti.get('category', '(not set)')
+                cat_inventory.setdefault(cat, []).append(a['filename'])
+
+        cat_inventory_str = ""
+        for cat in sorted(cat_inventory.keys()):
+            files = cat_inventory[cat]
+            cat_inventory_str += f"\n- {cat}: {len(files)} track(s)"
+            for f in files[:3]:
+                cat_inventory_str += f"\n    * {f}"
+            if len(files) > 3:
+                cat_inventory_str += f"\n    * ... and {len(files) - 3} more"
+
+        # Full mix context
+        full_mix_context = ""
+        if full_mixes:
+            active_plugins = [p for p, v in self.mix_plugins.items() if v.get()]
+            plugins_str = ', '.join(active_plugins) if active_plugins else 'None'
+            full_mix_context = (
+                f"\n\nFULL MIX CONTEXT:\n"
+                f"- File: {full_mixes[0]['filename']}\n"
+                f"- Completion state: {self.mix_state.get()}\n"
+                f"- Active master bus plugins: {plugins_str}\n"
+                f"- Loudness target: {self.mix_loudness_target.get()}\n"
+                f"- Note: {self.mix_note.get() if self.mix_note.get() else 'None'}"
+            )
+
+        prompt = f"""You are a senior mixing and mastering engineer specialized in {self.style.get()} music. I am providing you with a complete set of PDF analysis reports generated by the Mix Analyzer tool for one of my music projects. I need your help diagnosing the mix and proposing concrete, actionable improvements.
+
+PROJECT CONTEXT:
+- Style: {self.style.get()}
+- Total tracks analyzed: {len(self.analysis_results)}
+- Individual tracks: {len(individuals)}
+- BUS tracks: {len(buses)}
+- Full Mix bounce: {len(full_mixes)}{full_mix_context}
+
+TRACK INVENTORY (Individual tracks by category):{cat_inventory_str}
+
+ATTACHED PDF REPORTS:
+- One PDF per analyzed track (7 pages each): Identity, Temporal, Spectral, Spectrograms, Musical, Stereo, Characteristics
+- One global report named 00_GLOBAL_REPORT.pdf with multi-track comparisons, masking matrix, spectral budget by category, rankings, BUS analysis, Full Mix analysis, and anomalies overview
+
+YOUR TASK:
+Please analyze the reports and provide:
+
+1. **Overall diagnosis**: What is the current state of the mix? What are the main issues you can see from the objective measurements across all tracks?
+
+2. **Per-category analysis**: For each track category (Drums, Bass, Synths, etc.), highlight specific tracks that stand out positively or negatively.
+
+3. **Masking and frequency conflicts**: Using the masking matrix in the global report, identify which tracks are competing for the same frequency ranges and suggest specific carving strategies.
+
+4. **Dynamic range and compression**: Look at crest factors across the project. Identify tracks that are over-compressed relative to their role, and tracks that could benefit from more control.
+
+5. **Stereo field coherence**: Review the stereo panorama of individual tracks. Identify stereo field issues, unexpected mono elements, or wide elements that may cause phase problems.
+
+6. **Full Mix coherence**: Compare the Full Mix measurements to what the individual tracks suggest should be achievable. Is the Full Mix a faithful sum, or does it suggest master bus processing is altering the balance significantly?
+
+7. **Concrete action items**: Provide a prioritized list of specific, non-generic actions I should take. Avoid boilerplate advice. Each recommendation should reference specific tracks or measurements from the reports.
+
+CRITICAL INSTRUCTIONS:
+- Base ALL your recommendations strictly on what is visible in the attached PDF reports. Do not make assumptions about content you cannot see.
+- Avoid generic mixing advice. Do not say things like "add a highpass at 80 Hz on bass tracks" unless you can point to a specific measurement in a specific report that justifies it.
+- When a recommendation is subjective or style-dependent, explicitly acknowledge it.
+- Consider the {self.style.get()} aesthetic. What would be a "problem" in another style may be intentional here.
+- Cross-reference observations across multiple tracks. The power of this analysis is the multi-track view, not individual assessments.
+- If certain measurements are affected by the master bus plugins listed above, factor that into your interpretation.
+
+Start your analysis with a concise executive summary (3-4 sentences) before diving into details."""
+
+        return prompt
+# ============================================================================
+# MAIN ENTRY POINT
+# ============================================================================
+
+
+def main():
+    root = tk.Tk()
+    app = MixAnalyzerApp(root)
+    root.mainloop()
+
+
+if __name__ == '__main__':
+    main()
