@@ -1859,8 +1859,8 @@ def _xl_write_header(ws, title, subtitle=''):
 def _xl_add_nav_row(ws, row, sheet_names_ordered, current_idx):
     """Add prev/next/Index/Anomalies navigation links to a track sheet."""
     from openpyxl.styles import Font, Alignment
-    nav_font = Font(name='Calibri', size=9, color='00D9FF', underline='single')
-    sep_font = Font(name='Calibri', size=9, color='8888A0')
+    nav_font = MA_FONT_LINK
+    sep_font = MA_FONT_SMALL
 
     col = 3  # Start in column C to leave A-B for metrics
     # Back to Index
@@ -1990,9 +1990,9 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     panel_fill = PatternFill('solid', fgColor='1A1A24')
     header_fill = PatternFill('solid', fgColor='1A3A5A')
     accent_font = MA_FONT_SUBHEADING
-    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    header_font = MA_FONT_TABLE_HEADER
     data_font = MA_FONT_BODY
-    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    dim_font = MA_FONT_DIM
     thin_border = Border(
         left=Side(style='thin', color='333344'),
         right=Side(style='thin', color='333344'),
@@ -2124,7 +2124,8 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
         status_range,
         FormulaRule(
             formula=[f'{get_column_letter(status_col)}{data_start_row}="OK"'],
-            fill=ok_fill))
+            fill=ok_fill,
+            font=Font(name='Calibri', size=10, bold=True, color='000000')))
 
     # 3. Data bars on conflict count column
     cc_range = f'{get_column_letter(conflict_count_col)}{data_start_row}:{get_column_letter(conflict_count_col)}{data_end_row}'
@@ -2263,9 +2264,9 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
     panel_fill = PatternFill('solid', fgColor='1A1A24')
     header_fill = PatternFill('solid', fgColor='1A3A5A')
     accent_font = MA_FONT_SUBHEADING
-    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    header_font = MA_FONT_TABLE_HEADER
     data_font = MA_FONT_BODY
-    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    dim_font = MA_FONT_DIM
     thin_border = Border(
         left=Side(style='thin', color='333344'),
         right=Side(style='thin', color='333344'),
@@ -2838,6 +2839,9 @@ MA_FONT_SUBHEADING = None
 MA_FONT_BODY = None
 MA_FONT_BODY_BOLD = None
 MA_FONT_SMALL = None
+MA_FONT_TABLE_HEADER = None
+MA_FONT_DIM = None
+MA_FONT_LINK = None
 
 
 def _init_ma_fonts():
@@ -2845,6 +2849,7 @@ def _init_ma_fonts():
     global _MA_FONTS_INITIALIZED
     global MA_FONT_TITLE, MA_FONT_HEADING, MA_FONT_SUBHEADING
     global MA_FONT_BODY, MA_FONT_BODY_BOLD, MA_FONT_SMALL
+    global MA_FONT_TABLE_HEADER, MA_FONT_DIM, MA_FONT_LINK
     if _MA_FONTS_INITIALIZED:
         return
     from openpyxl.styles import Font
@@ -2881,6 +2886,23 @@ def _init_ma_fonts():
         name=MA_THEME['font_family'],
         size=MA_THEME['font_size_small'],
         color=MA_THEME['text_secondary']
+    )
+    MA_FONT_TABLE_HEADER = Font(
+        name=MA_THEME['font_family'],
+        size=MA_THEME['font_size_subheading'],
+        bold=True,
+        color=MA_THEME['text_primary']
+    )
+    MA_FONT_DIM = Font(
+        name=MA_THEME['font_family'],
+        size=MA_THEME['font_size_body'],
+        color=MA_THEME['text_secondary']
+    )
+    MA_FONT_LINK = Font(
+        name=MA_THEME['font_family'],
+        size=MA_THEME['font_size_small'],
+        color=MA_THEME['text_heading'],
+        underline='single'
     )
     _MA_FONTS_INITIALIZED = True
 
@@ -2937,9 +2959,9 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     panel_fill = PatternFill('solid', fgColor='1A1A24')
     header_fill = PatternFill('solid', fgColor='1A3A5A')
     accent_font = MA_FONT_SUBHEADING
-    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    header_font = MA_FONT_TABLE_HEADER
     data_font = MA_FONT_BODY
-    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    dim_font = MA_FONT_DIM
     thin_border = Border(
         left=Side(style='thin', color='333344'),
         right=Side(style='thin', color='333344'),
@@ -3372,9 +3394,9 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
     panel_fill = PatternFill('solid', fgColor='1A1A24')
     header_fill = PatternFill('solid', fgColor='1A3A5A')
     accent_font = MA_FONT_SUBHEADING
-    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    header_font = MA_FONT_TABLE_HEADER
     data_font = MA_FONT_BODY
-    dim_font = Font(name='Calibri', size=10, color='8888A0')
+    dim_font = MA_FONT_DIM
     thin_border = Border(
         left=Side(style='thin', color='333344'),
         right=Side(style='thin', color='333344'),
@@ -3654,11 +3676,11 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     panel_fill = PatternFill('solid', fgColor='1A1A24')
     header_fill = PatternFill('solid', fgColor='1A3A5A')
     accent_font = MA_FONT_SUBHEADING
-    header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    header_font = MA_FONT_TABLE_HEADER
     data_font = MA_FONT_BODY
-    dim_font = Font(name='Calibri', size=10, color='8888A0')
-    warn_font = Font(name='Calibri', size=10, bold=True, color='FFAA00')
-    crit_font = Font(name='Calibri', size=10, bold=True, color='FF3333')
+    dim_font = MA_FONT_DIM
+    warn_font = Font(name='Calibri', size=10, bold=True, color=MA_THEME['status_warning'])
+    crit_font = Font(name='Calibri', size=10, bold=True, color=MA_THEME['status_error'])
     thin_border = Border(
         left=Side(style='thin', color='333344'),
         right=Side(style='thin', color='333344'),
