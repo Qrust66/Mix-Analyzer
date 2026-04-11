@@ -8,7 +8,7 @@ Usage:
     python mix_analyzer.py
 
 Dependencies:
-    pip install librosa pyloudnorm soundfile reportlab numpy scipy matplotlib
+    pip install librosa pyloudnorm soundfile numpy scipy matplotlib openpyxl
 """
 
 import os
@@ -4664,9 +4664,9 @@ class MixAnalyzerApp:
         sections = [
             ('heading', '1. INSTALLATION'),
             ('body', (
-                'Python 3.13 — download from https://www.python.org/downloads/\n\n'
+                'Python 3.13 or higher — download from https://www.python.org/downloads/\n\n'
                 'Install dependencies (open a terminal / command prompt):\n'
-                '  py -m pip install numpy scipy librosa matplotlib soundfile openpyxl reportlab\n\n'
+                '  py -m pip install numpy scipy librosa matplotlib soundfile openpyxl pyloudnorm\n\n'
                 'Troubleshooting (Windows):\n'
                 '  - If "py" is not recognized, make sure Python was added to PATH during '
                 'installation. Re-run the installer and check "Add Python to PATH".\n'
