@@ -8,7 +8,7 @@ Usage:
     python mix_analyzer.py
 
 Dependencies:
-    pip install librosa pyloudnorm soundfile reportlab numpy scipy matplotlib
+    pip install librosa pyloudnorm soundfile numpy scipy matplotlib openpyxl
 """
 
 import os
@@ -968,6 +968,7 @@ def analyze_structure_sections(mono, sr, n_sections_target=14):
             bt_chroma = np.array([])
 
         # --- Pass 2: Spectral flux novelty curve ---
+        novelty_sf = np.array([])  # M4.2: initialize before try for use in merge step
         try:
             S = np.abs(librosa.stft(mono, n_fft=2048, hop_length=hop_length))
             # Compute novelty from spectral flux
@@ -1005,16 +1006,41 @@ def analyze_structure_sections(mono, sr, n_sections_target=14):
         except Exception:
             bt_mfcc = np.array([])
 
-        # --- Merge all boundaries ---
+        # --- M4.2: Merge all boundaries with minimum spacing and section cap ---
+        MIN_DISTANCE_SECONDS = 10.0  # M4.2: minimum 10s between sections
+        MAX_SECTIONS_ABSOLUTE = 16   # M4.2: absolute cap on section count
+
         all_bounds = np.concatenate([bt_chroma, bt_novelty, bt_mfcc])
-        all_bounds = np.sort(all_bounds)
-        # Deduplicate: merge boundaries within 1.5s of each other
-        if len(all_bounds) > 0:
-            merged = [all_bounds[0]]
-            for b in all_bounds[1:]:
-                if b - merged[-1] > 1.5:
-                    merged.append(b)
-            all_bounds = np.array(merged)
+
+        # Compute salience for each boundary using spectral flux novelty curve
+        all_salience = np.ones(len(all_bounds))
+        if len(novelty_sf) > 0 and len(all_bounds) > 0:
+            for i, b in enumerate(all_bounds):
+                frame_idx = min(int(b * sr / hop_length), len(novelty_sf) - 1)
+                all_salience[i] = novelty_sf[max(0, frame_idx)]
+
+        # Sort by time
+        sort_idx = np.argsort(all_bounds)
+        all_bounds = all_bounds[sort_idx]
+        all_salience = all_salience[sort_idx]
+
+        # M4.2: Filter sections too close together (keep most salient)
+        if len(all_bounds) > 1:
+            keep = [0]
+            for i in range(1, len(all_bounds)):
+                if all_bounds[i] - all_bounds[keep[-1]] >= MIN_DISTANCE_SECONDS:
+                    keep.append(i)
+                else:
+                    # Two sections too close: keep the more salient one
+                    if all_salience[i] > all_salience[keep[-1]]:
+                        keep[-1] = i
+            all_bounds = all_bounds[keep]
+            all_salience = all_salience[keep]
+
+        # M4.2: Cap at MAX_SECTIONS_ABSOLUTE (keep most salient)
+        if len(all_bounds) > MAX_SECTIONS_ABSOLUTE:
+            top_idx = np.argsort(all_salience)[-MAX_SECTIONS_ABSOLUTE:]
+            all_bounds = np.sort(all_bounds[top_idx])
 
         result['boundaries'] = all_bounds.tolist() if len(all_bounds) > 0 else []
 
@@ -1894,6 +1920,18 @@ def _xl_add_comment(cell, text):
     cell.comment = Comment(text, 'Mix Analyzer')
 
 
+def _apply_clean_layout(ws):
+    """
+    M5.1: Apply clean layout to a worksheet.
+    Hides Excel gridlines and row/column headers for a clean,
+    dashboard-like appearance consistent with the cyberpunk theme.
+
+    Called on every worksheet created in Mix Analyzer reports.
+    """
+    ws.sheet_view.showGridLines = False
+    ws.sheet_view.showRowColHeaders = False
+
+
 def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0,
                                    default_min_tracks=2, log_fn=None):
     """
@@ -1914,8 +1952,10 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
     if not individuals:
         ws = wb.create_sheet('Freq Conflicts')
+        _apply_clean_layout(ws)
         ws.sheet_properties.tabColor = 'FF3333'
         _xl_write_header(ws, 'FREQUENCY CONFLICT DETECTOR', 'No individual tracks found.')
+        _apply_dark_background(ws)
         return
 
     # Compute hires band energies for each individual track
@@ -1962,6 +2002,7 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
 
     # Create sheet
     ws = wb.create_sheet('Freq Conflicts')
+    _apply_clean_layout(ws)
     ws.sheet_properties.tabColor = 'FF3D8B'
 
     # Row 1: Title
@@ -2105,6 +2146,7 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     ws.column_dimensions[get_column_letter(conflict_count_col)].width = 15
     ws.column_dimensions[get_column_letter(status_col)].width = 12
 
+    _apply_dark_background(ws)
     log_fn("    Excel: Freq Conflicts sheet done.")
 
 
@@ -2129,8 +2171,10 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
     individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
     if not individuals:
         ws = workbook.create_sheet('Track Comparison')
+        _apply_clean_layout(ws)
         ws.sheet_properties.tabColor = 'FF8B3D'
         _xl_write_header(ws, 'TRACK COMPARISON TOOL', 'No individual tracks found.')
+        _apply_dark_background(ws)
         return
 
     track_names = [a['filename'] for a, ti in individuals]
@@ -2162,6 +2206,7 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
 
     # --- Build hidden data sheet ---
     ws_data = workbook.create_sheet('_track_data')
+    _apply_clean_layout(ws_data)
     ws_data.sheet_state = 'hidden'
 
     # Header row
@@ -2227,6 +2272,7 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
 
     # --- Main sheet ---
     ws = workbook.create_sheet('Track Comparison')
+    _apply_clean_layout(ws)
     ws.sheet_properties.tabColor = 'FF8B3D'
 
     # Row 1: Title
@@ -2443,6 +2489,8 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
     for col_idx in range(2, 12):
         ws.column_dimensions[get_column_letter(col_idx)].width = 12
 
+    _apply_dark_background(ws_data)
+    _apply_dark_background(ws)
     log_fn("    Excel: Track Comparison sheet done.")
 
 
@@ -2698,6 +2746,48 @@ def _calc_anomalies_score(analyses_with_info):
     return round(score, 1), details, note
 
 
+# M5.2: Cyberpunk dark background
+_DARK_BG_FILL = None  # Lazy-initialized to avoid top-level openpyxl import
+
+def _apply_dark_background(ws, max_row=None, max_col=None):
+    """
+    M5.2: Apply cyberpunk dark background to unstyled cells.
+
+    Preserves existing fills (color scales, data bars, custom highlights).
+    Only applies dark background to cells that don't already have a
+    custom fill defined.
+
+    Args:
+        ws: openpyxl worksheet
+        max_row: max row to apply (default: ws.max_row)
+        max_col: max col to apply (default: ws.max_column)
+    """
+    global _DARK_BG_FILL
+    if _DARK_BG_FILL is None:
+        from openpyxl.styles import PatternFill
+        _DARK_BG_FILL = PatternFill(start_color='0A0A0F',
+                                     end_color='0A0A0F',
+                                     fill_type='solid')
+
+    if max_row is None:
+        max_row = ws.max_row
+    if max_col is None:
+        max_col = ws.max_column
+
+    for row in ws.iter_rows(min_row=1, max_row=max_row,
+                             min_col=1, max_col=max_col):
+        for cell in row:
+            existing_fill = cell.fill
+            has_custom_fill = (
+                existing_fill is not None
+                and existing_fill.fill_type == 'solid'
+                and existing_fill.fgColor is not None
+                and existing_fill.fgColor.value not in (None, '00000000', 'FFFFFFFF')
+            )
+            if not has_custom_fill:
+                cell.fill = _DARK_BG_FILL
+
+
 def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     """
     Génère le sheet 'Mix Health Score' (P3.3) dans le workbook donné.
@@ -2721,8 +2811,10 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
 
     if not individuals and not full_mix:
         ws = workbook.create_sheet('Mix Health Score')
+        _apply_clean_layout(ws)
         ws.sheet_properties.tabColor = '3DFFAA'
         _xl_write_header(ws, 'MIX HEALTH SCORE', 'No tracks available for scoring.')
+        _apply_dark_background(ws)
         return
 
     # Compute sub-scores
@@ -2771,6 +2863,7 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
 
     # Create sheet
     ws = workbook.create_sheet('Mix Health Score')
+    _apply_clean_layout(ws)
     ws.sheet_properties.tabColor = '3DFFAA'
 
     # --- Section 1: Global score (rows 1-8) ---
@@ -2926,6 +3019,7 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     ws.column_dimensions['C'].width = 12
     ws.column_dimensions['D'].width = 30
 
+    _apply_dark_background(ws)
     log_fn("    Excel: Mix Health Score sheet done.")
 
 
@@ -3190,6 +3284,7 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
     )
 
     ws = workbook.create_sheet('Version Tracking')
+    _apply_clean_layout(ws)
     ws.sheet_properties.tabColor = '3DAAFF'
 
     # --- Gather version data ---
@@ -3432,6 +3527,7 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
     ws.column_dimensions[get_column_letter(delta_pct_col)].width = 10
     ws.column_dimensions[get_column_letter(trend_col)].width = 8
 
+    _apply_dark_background(ws)
     log_fn("    Excel: Version Tracking sheet done.")
 
 
@@ -3478,6 +3574,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # ---- SHEET 1: Index ----
     log_fn("    Excel: writing Index sheet...")
     ws_index = wb.active
+    _apply_clean_layout(ws_index)
     ws_index.title = 'Index'
     ws_index.sheet_properties.tabColor = '00D9FF'
     row = _xl_write_header(ws_index, 'MIX ANALYZER — REPORT INDEX',
@@ -3535,6 +3632,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     log_fn("    Excel: writing Summary sheet...")
     from openpyxl.formatting.rule import ColorScaleRule, DataBarRule, IconSetRule
     ws_sum = wb.create_sheet('Summary')
+    _apply_clean_layout(ws_sum)
     ws_sum.sheet_properties.tabColor = 'B967FF'
     row = _xl_write_header(ws_sum, 'SUMMARY — GLOBAL METRICS', f'{len(analyses_with_info)} tracks analyzed')
 
@@ -3621,10 +3719,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     for col_idx in range(1, 11):
         ws_sum.column_dimensions[get_column_letter(col_idx)].width = 16
     ws_sum.column_dimensions['A'].width = 40
+    _apply_dark_background(ws_sum)
 
     # ---- SHEET 3: Anomalies ----
     log_fn("    Excel: writing Anomalies sheet...")
     ws_anom = wb.create_sheet('Anomalies')
+    _apply_clean_layout(ws_anom)
     ws_anom.sheet_properties.tabColor = 'FF3333'
     row = _xl_write_header(ws_anom, 'ANOMALIES')
 
@@ -3657,10 +3757,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_anom.column_dimensions['B'].width = 12
     ws_anom.column_dimensions['C'].width = 12
     ws_anom.column_dimensions['D'].width = 70
+    _apply_dark_background(ws_anom)
 
     # ---- SHEET 4: Full Mix Context ----
     log_fn("    Excel: writing Full Mix Context sheet...")
     ws_ctx = wb.create_sheet('Full Mix Context')
+    _apply_clean_layout(ws_ctx)
     ws_ctx.sheet_properties.tabColor = 'B967FF'
     row = _xl_write_header(ws_ctx, 'FULL MIX CONTEXT')
 
@@ -3684,6 +3786,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     ws_ctx.column_dimensions['A'].width = 20
     ws_ctx.column_dimensions['B'].width = 60
+    _apply_dark_background(ws_ctx)
 
     # ---- SHEET 5+: One sheet per track (Individual + BUS) ----
     track_sheets = [(a, ti) for a, ti in analyses_with_info
@@ -3707,6 +3810,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         sname = sheet_names.get(ti['name'], _safe_sheet_name(os.path.splitext(ti['name'])[0]))
         log_fn(f"    Excel: writing sheet {sheet_idx + 1}/{len(track_sheets)}: {sname}")
         ws_trk = wb.create_sheet(sname)
+        _apply_clean_layout(ws_trk)
         ws_trk.sheet_properties.tabColor = 'FF3D8B' if ti['type'] == 'BUS' else '00D9FF'
         row = _xl_write_header(ws_trk, ti['name'],
                                 f"Type: {ti['type']} | Category: {ti.get('category', '')}")
@@ -3799,10 +3903,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
         ws_trk.column_dimensions['A'].width = 25
         ws_trk.column_dimensions['B'].width = 40
+        _apply_dark_background(ws_trk)
 
     # ---- SHEET: Global Comparison ----
     log_fn("    Excel: writing Global Comparison sheet...")
     ws_global = wb.create_sheet('Global Comparison')
+    _apply_clean_layout(ws_global)
     ws_global.sheet_properties.tabColor = '00FF9F'
     row = _xl_write_header(ws_global, 'GLOBAL COMPARISON',
                             'Masking matrix, spectral balance, LUFS/Crest comparisons (excludes BUS)')
@@ -3922,9 +4028,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         except Exception:
             pass
 
+    _apply_dark_background(ws_global)
+
     # ---- SHEET: Full Mix Analysis ----
     log_fn("    Excel: writing Full Mix Analysis sheet...")
     ws_fm = wb.create_sheet('Full Mix Analysis')
+    _apply_clean_layout(ws_fm)
     ws_fm.sheet_properties.tabColor = 'B967FF'
 
     if full_mixes:
@@ -4010,10 +4119,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         ws_fm.column_dimensions['B'].width = 40
     else:
         _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', 'No Full Mix track detected.')
+    _apply_dark_background(ws_fm)
 
     # ---- SHEET 8: AI Prompt ----
     log_fn("    Excel: writing AI Prompt sheet...")
     ws_ai = wb.create_sheet('AI Prompt')
+    _apply_clean_layout(ws_ai)
     ws_ai.sheet_properties.tabColor = '00FF9F'
     row = _xl_write_header(ws_ai, 'AI ANALYSIS PROMPT',
                             'Copy this text and paste it into Claude along with this report file.')
@@ -4026,11 +4137,13 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         ws_ai.row_dimensions[row].height = 600
     else:
         ws_ai.cell(row=row, column=1, value='No AI prompt available.').font = dim_font
+    _apply_dark_background(ws_ai)
 
     # ---- SHEET: Dashboard (Phase 2) ----
     # Flat data table with all numeric metrics for filtering
     log_fn("    Excel: writing Dashboard sheet...")
     ws_dash = wb.create_sheet('Dashboard')
+    _apply_clean_layout(ws_dash)
     ws_dash.sheet_properties.tabColor = 'FFAA00'
     row = _xl_write_header(ws_dash, 'DASHBOARD — ALL METRICS',
                             'Use filters to slice by Category, Type, or value ranges')
@@ -4154,6 +4267,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     for col_idx in range(2, len(dash_headers) + 1):
         ws_dash.column_dimensions[get_column_letter(col_idx)].width = 14
     ws_dash.row_dimensions[dash_header_row].height = 30
+    _apply_dark_background(ws_dash)
 
     # Move Dashboard to be the 2nd sheet (after Index)
     wb.move_sheet(ws_dash, offset=-(len(wb.sheetnames) - 2))
@@ -4187,6 +4301,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             c = ws_index.cell(row=r, column=col)
             if c.fill == PatternFill():
                 c.fill = bg_fill
+    _apply_dark_background(ws_index)
 
     # Save workbook
     log_fn("    Excel: saving workbook...")
@@ -4638,9 +4753,9 @@ class MixAnalyzerApp:
         sections = [
             ('heading', '1. INSTALLATION'),
             ('body', (
-                'Python 3.13 — download from https://www.python.org/downloads/\n\n'
+                'Python 3.13 or higher — download from https://www.python.org/downloads/\n\n'
                 'Install dependencies (open a terminal / command prompt):\n'
-                '  py -m pip install numpy scipy librosa matplotlib soundfile openpyxl reportlab\n\n'
+                '  py -m pip install numpy scipy librosa matplotlib soundfile openpyxl pyloudnorm\n\n'
                 'Troubleshooting (Windows):\n'
                 '  - If "py" is not recognized, make sure Python was added to PATH during '
                 'installation. Re-run the installer and check "Add Python to PATH".\n'

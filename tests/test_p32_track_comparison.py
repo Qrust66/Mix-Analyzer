@@ -49,6 +49,10 @@ with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
                        'mix_analyzer.py')) as f:
     source = f.read()
 
+acl_start = source.find('def _apply_clean_layout(')
+acl_end = source.find('\n\ndef ', acl_start + 1)
+exec(source[acl_start:acl_end], globals())
+
 start = source.find('def generate_track_comparison_sheet(')
 end = source.find('\ndef generate_excel_report(')
 exec(source[start:end], globals())
