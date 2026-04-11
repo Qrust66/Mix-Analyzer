@@ -1812,6 +1812,26 @@ def page_dynamic_range_map(analysis, track_info):
 # EXCEL REPORT
 # ============================================================================
 
+METRIC_GLOSSARY = {
+    'LUFS': 'Loudness Units Full Scale (integrated). Target depends on style.\n-14 LUFS = streaming standard. -8 LUFS = very hot.',
+    'Peak (dB)': 'True peak level in dBFS. Should stay below 0 dBFS.\n-1 dBFS or lower is safe for mastering headroom.',
+    'Crest (dB)': 'Peak-to-RMS ratio. Measures dynamic range.\n<6 dB = very compressed, 6-12 = moderate, >12 = dynamic.',
+    'Stereo Width': 'Mid/Side energy ratio. 0 = mono, 0.5 = balanced, >0.7 = very wide.\nBass/kick should be narrow, pads/FX can be wide.',
+    'Dom. Band': 'Frequency band with highest energy concentration.\nReveals the spectral center of gravity for this track.',
+    'Centroid (Hz)': 'Spectral centroid — brightness indicator.\nLow = dark/warm, high = bright/harsh.',
+    'Duration (s)': 'Track length in seconds.',
+    'PLR': 'Peak-to-Loudness Ratio. Peak dBFS minus LUFS.\nHigher = more headroom. <6 dB may clip on normalization.',
+    'PSR': 'Peak-to-Short-term Loudness Ratio.\nMeasures instantaneous headroom. Lower = more compressed.',
+    'LRA': 'Loudness Range in LU. Measures macro-dynamic variation.\n<4 = very compressed, 4-8 = moderate, >8 = dynamic.',
+    'Phase Correlation': 'Stereo phase correlation. +1 = perfect mono compat.\n<0.3 = risky phase issues. <0 = phase problems.',
+    'Flatness': 'Spectral flatness (0-1). 0 = tonal, 1 = noise-like.\nUseful to distinguish pitched from noisy content.',
+    'RMS': 'Root Mean Square level. Average perceived loudness.',
+    'True Peak': 'Inter-sample peak level. Can exceed 0 dBFS due to reconstruction.\nCritical for broadcast/streaming compliance.',
+    'Track': 'Filename of the analyzed audio bounce.',
+    'Type': 'Track role: Individual (single instrument), BUS (submix), Full Mix (master bounce).',
+    'Category': 'Instrument category for grouping and masking analysis.',
+}
+
 
 def _safe_sheet_name(name, max_len=31):
     """Sanitize name for Excel sheet name rules."""
