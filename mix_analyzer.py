@@ -1955,6 +1955,7 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
         _apply_clean_layout(ws)
         ws.sheet_properties.tabColor = 'FF3333'
         _xl_write_header(ws, 'FREQUENCY CONFLICT DETECTOR', 'No individual tracks found.')
+        _apply_dark_background(ws)
         return
 
     # Compute hires band energies for each individual track
@@ -2145,6 +2146,7 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     ws.column_dimensions[get_column_letter(conflict_count_col)].width = 15
     ws.column_dimensions[get_column_letter(status_col)].width = 12
 
+    _apply_dark_background(ws)
     log_fn("    Excel: Freq Conflicts sheet done.")
 
 
@@ -2172,6 +2174,7 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
         _apply_clean_layout(ws)
         ws.sheet_properties.tabColor = 'FF8B3D'
         _xl_write_header(ws, 'TRACK COMPARISON TOOL', 'No individual tracks found.')
+        _apply_dark_background(ws)
         return
 
     track_names = [a['filename'] for a, ti in individuals]
@@ -2486,6 +2489,8 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
     for col_idx in range(2, 12):
         ws.column_dimensions[get_column_letter(col_idx)].width = 12
 
+    _apply_dark_background(ws_data)
+    _apply_dark_background(ws)
     log_fn("    Excel: Track Comparison sheet done.")
 
 
@@ -2741,6 +2746,48 @@ def _calc_anomalies_score(analyses_with_info):
     return round(score, 1), details, note
 
 
+# M5.2: Cyberpunk dark background
+_DARK_BG_FILL = None  # Lazy-initialized to avoid top-level openpyxl import
+
+def _apply_dark_background(ws, max_row=None, max_col=None):
+    """
+    M5.2: Apply cyberpunk dark background to unstyled cells.
+
+    Preserves existing fills (color scales, data bars, custom highlights).
+    Only applies dark background to cells that don't already have a
+    custom fill defined.
+
+    Args:
+        ws: openpyxl worksheet
+        max_row: max row to apply (default: ws.max_row)
+        max_col: max col to apply (default: ws.max_column)
+    """
+    global _DARK_BG_FILL
+    if _DARK_BG_FILL is None:
+        from openpyxl.styles import PatternFill
+        _DARK_BG_FILL = PatternFill(start_color='0A0A0F',
+                                     end_color='0A0A0F',
+                                     fill_type='solid')
+
+    if max_row is None:
+        max_row = ws.max_row
+    if max_col is None:
+        max_col = ws.max_column
+
+    for row in ws.iter_rows(min_row=1, max_row=max_row,
+                             min_col=1, max_col=max_col):
+        for cell in row:
+            existing_fill = cell.fill
+            has_custom_fill = (
+                existing_fill is not None
+                and existing_fill.fill_type == 'solid'
+                and existing_fill.fgColor is not None
+                and existing_fill.fgColor.value not in (None, '00000000', 'FFFFFFFF')
+            )
+            if not has_custom_fill:
+                cell.fill = _DARK_BG_FILL
+
+
 def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     """
     Génère le sheet 'Mix Health Score' (P3.3) dans le workbook donné.
@@ -2767,6 +2814,7 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
         _apply_clean_layout(ws)
         ws.sheet_properties.tabColor = '3DFFAA'
         _xl_write_header(ws, 'MIX HEALTH SCORE', 'No tracks available for scoring.')
+        _apply_dark_background(ws)
         return
 
     # Compute sub-scores
@@ -2971,6 +3019,7 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     ws.column_dimensions['C'].width = 12
     ws.column_dimensions['D'].width = 30
 
+    _apply_dark_background(ws)
     log_fn("    Excel: Mix Health Score sheet done.")
 
 
@@ -3478,6 +3527,7 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
     ws.column_dimensions[get_column_letter(delta_pct_col)].width = 10
     ws.column_dimensions[get_column_letter(trend_col)].width = 8
 
+    _apply_dark_background(ws)
     log_fn("    Excel: Version Tracking sheet done.")
 
 
@@ -3669,6 +3719,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     for col_idx in range(1, 11):
         ws_sum.column_dimensions[get_column_letter(col_idx)].width = 16
     ws_sum.column_dimensions['A'].width = 40
+    _apply_dark_background(ws_sum)
 
     # ---- SHEET 3: Anomalies ----
     log_fn("    Excel: writing Anomalies sheet...")
@@ -3706,6 +3757,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_anom.column_dimensions['B'].width = 12
     ws_anom.column_dimensions['C'].width = 12
     ws_anom.column_dimensions['D'].width = 70
+    _apply_dark_background(ws_anom)
 
     # ---- SHEET 4: Full Mix Context ----
     log_fn("    Excel: writing Full Mix Context sheet...")
@@ -3734,6 +3786,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     ws_ctx.column_dimensions['A'].width = 20
     ws_ctx.column_dimensions['B'].width = 60
+    _apply_dark_background(ws_ctx)
 
     # ---- SHEET 5+: One sheet per track (Individual + BUS) ----
     track_sheets = [(a, ti) for a, ti in analyses_with_info
@@ -3850,6 +3903,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
         ws_trk.column_dimensions['A'].width = 25
         ws_trk.column_dimensions['B'].width = 40
+        _apply_dark_background(ws_trk)
 
     # ---- SHEET: Global Comparison ----
     log_fn("    Excel: writing Global Comparison sheet...")
@@ -3974,6 +4028,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         except Exception:
             pass
 
+    _apply_dark_background(ws_global)
+
     # ---- SHEET: Full Mix Analysis ----
     log_fn("    Excel: writing Full Mix Analysis sheet...")
     ws_fm = wb.create_sheet('Full Mix Analysis')
@@ -4063,6 +4119,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         ws_fm.column_dimensions['B'].width = 40
     else:
         _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', 'No Full Mix track detected.')
+    _apply_dark_background(ws_fm)
 
     # ---- SHEET 8: AI Prompt ----
     log_fn("    Excel: writing AI Prompt sheet...")
@@ -4080,6 +4137,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         ws_ai.row_dimensions[row].height = 600
     else:
         ws_ai.cell(row=row, column=1, value='No AI prompt available.').font = dim_font
+    _apply_dark_background(ws_ai)
 
     # ---- SHEET: Dashboard (Phase 2) ----
     # Flat data table with all numeric metrics for filtering
@@ -4209,6 +4267,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     for col_idx in range(2, len(dash_headers) + 1):
         ws_dash.column_dimensions[get_column_letter(col_idx)].width = 14
     ws_dash.row_dimensions[dash_header_row].height = 30
+    _apply_dark_background(ws_dash)
 
     # Move Dashboard to be the 2nd sheet (after Index)
     wb.move_sheet(ws_dash, offset=-(len(wb.sheetnames) - 2))
@@ -4242,6 +4301,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             c = ws_index.cell(row=r, column=col)
             if c.fill == PatternFill():
                 c.fill = bg_fill
+    _apply_dark_background(ws_index)
 
     # Save workbook
     log_fn("    Excel: saving workbook...")
