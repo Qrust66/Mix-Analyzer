@@ -1920,6 +1920,18 @@ def _xl_add_comment(cell, text):
     cell.comment = Comment(text, 'Mix Analyzer')
 
 
+def _apply_clean_layout(ws):
+    """
+    M5.1: Apply clean layout to a worksheet.
+    Hides Excel gridlines and row/column headers for a clean,
+    dashboard-like appearance consistent with the cyberpunk theme.
+
+    Called on every worksheet created in Mix Analyzer reports.
+    """
+    ws.sheet_view.showGridLines = False
+    ws.sheet_view.showRowColHeaders = False
+
+
 def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0,
                                    default_min_tracks=2, log_fn=None):
     """
@@ -1940,6 +1952,7 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
     if not individuals:
         ws = wb.create_sheet('Freq Conflicts')
+        _apply_clean_layout(ws)
         ws.sheet_properties.tabColor = 'FF3333'
         _xl_write_header(ws, 'FREQUENCY CONFLICT DETECTOR', 'No individual tracks found.')
         return
@@ -1988,6 +2001,7 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
 
     # Create sheet
     ws = wb.create_sheet('Freq Conflicts')
+    _apply_clean_layout(ws)
     ws.sheet_properties.tabColor = 'FF3D8B'
 
     # Row 1: Title
@@ -2155,6 +2169,7 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
     individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
     if not individuals:
         ws = workbook.create_sheet('Track Comparison')
+        _apply_clean_layout(ws)
         ws.sheet_properties.tabColor = 'FF8B3D'
         _xl_write_header(ws, 'TRACK COMPARISON TOOL', 'No individual tracks found.')
         return
@@ -2188,6 +2203,7 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
 
     # --- Build hidden data sheet ---
     ws_data = workbook.create_sheet('_track_data')
+    _apply_clean_layout(ws_data)
     ws_data.sheet_state = 'hidden'
 
     # Header row
@@ -2253,6 +2269,7 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
 
     # --- Main sheet ---
     ws = workbook.create_sheet('Track Comparison')
+    _apply_clean_layout(ws)
     ws.sheet_properties.tabColor = 'FF8B3D'
 
     # Row 1: Title
@@ -2747,6 +2764,7 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
 
     if not individuals and not full_mix:
         ws = workbook.create_sheet('Mix Health Score')
+        _apply_clean_layout(ws)
         ws.sheet_properties.tabColor = '3DFFAA'
         _xl_write_header(ws, 'MIX HEALTH SCORE', 'No tracks available for scoring.')
         return
@@ -2797,6 +2815,7 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
 
     # Create sheet
     ws = workbook.create_sheet('Mix Health Score')
+    _apply_clean_layout(ws)
     ws.sheet_properties.tabColor = '3DFFAA'
 
     # --- Section 1: Global score (rows 1-8) ---
@@ -3216,6 +3235,7 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
     )
 
     ws = workbook.create_sheet('Version Tracking')
+    _apply_clean_layout(ws)
     ws.sheet_properties.tabColor = '3DAAFF'
 
     # --- Gather version data ---
@@ -3504,6 +3524,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # ---- SHEET 1: Index ----
     log_fn("    Excel: writing Index sheet...")
     ws_index = wb.active
+    _apply_clean_layout(ws_index)
     ws_index.title = 'Index'
     ws_index.sheet_properties.tabColor = '00D9FF'
     row = _xl_write_header(ws_index, 'MIX ANALYZER — REPORT INDEX',
@@ -3561,6 +3582,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     log_fn("    Excel: writing Summary sheet...")
     from openpyxl.formatting.rule import ColorScaleRule, DataBarRule, IconSetRule
     ws_sum = wb.create_sheet('Summary')
+    _apply_clean_layout(ws_sum)
     ws_sum.sheet_properties.tabColor = 'B967FF'
     row = _xl_write_header(ws_sum, 'SUMMARY — GLOBAL METRICS', f'{len(analyses_with_info)} tracks analyzed')
 
@@ -3651,6 +3673,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # ---- SHEET 3: Anomalies ----
     log_fn("    Excel: writing Anomalies sheet...")
     ws_anom = wb.create_sheet('Anomalies')
+    _apply_clean_layout(ws_anom)
     ws_anom.sheet_properties.tabColor = 'FF3333'
     row = _xl_write_header(ws_anom, 'ANOMALIES')
 
@@ -3687,6 +3710,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # ---- SHEET 4: Full Mix Context ----
     log_fn("    Excel: writing Full Mix Context sheet...")
     ws_ctx = wb.create_sheet('Full Mix Context')
+    _apply_clean_layout(ws_ctx)
     ws_ctx.sheet_properties.tabColor = 'B967FF'
     row = _xl_write_header(ws_ctx, 'FULL MIX CONTEXT')
 
@@ -3733,6 +3757,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         sname = sheet_names.get(ti['name'], _safe_sheet_name(os.path.splitext(ti['name'])[0]))
         log_fn(f"    Excel: writing sheet {sheet_idx + 1}/{len(track_sheets)}: {sname}")
         ws_trk = wb.create_sheet(sname)
+        _apply_clean_layout(ws_trk)
         ws_trk.sheet_properties.tabColor = 'FF3D8B' if ti['type'] == 'BUS' else '00D9FF'
         row = _xl_write_header(ws_trk, ti['name'],
                                 f"Type: {ti['type']} | Category: {ti.get('category', '')}")
@@ -3829,6 +3854,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # ---- SHEET: Global Comparison ----
     log_fn("    Excel: writing Global Comparison sheet...")
     ws_global = wb.create_sheet('Global Comparison')
+    _apply_clean_layout(ws_global)
     ws_global.sheet_properties.tabColor = '00FF9F'
     row = _xl_write_header(ws_global, 'GLOBAL COMPARISON',
                             'Masking matrix, spectral balance, LUFS/Crest comparisons (excludes BUS)')
@@ -3951,6 +3977,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # ---- SHEET: Full Mix Analysis ----
     log_fn("    Excel: writing Full Mix Analysis sheet...")
     ws_fm = wb.create_sheet('Full Mix Analysis')
+    _apply_clean_layout(ws_fm)
     ws_fm.sheet_properties.tabColor = 'B967FF'
 
     if full_mixes:
@@ -4040,6 +4067,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # ---- SHEET 8: AI Prompt ----
     log_fn("    Excel: writing AI Prompt sheet...")
     ws_ai = wb.create_sheet('AI Prompt')
+    _apply_clean_layout(ws_ai)
     ws_ai.sheet_properties.tabColor = '00FF9F'
     row = _xl_write_header(ws_ai, 'AI ANALYSIS PROMPT',
                             'Copy this text and paste it into Claude along with this report file.')
@@ -4057,6 +4085,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # Flat data table with all numeric metrics for filtering
     log_fn("    Excel: writing Dashboard sheet...")
     ws_dash = wb.create_sheet('Dashboard')
+    _apply_clean_layout(ws_dash)
     ws_dash.sheet_properties.tabColor = 'FFAA00'
     row = _xl_write_header(ws_dash, 'DASHBOARD — ALL METRICS',
                             'Use filters to slice by Category, Type, or value ranges')

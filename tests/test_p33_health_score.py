@@ -64,6 +64,11 @@ with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
                        'mix_analyzer.py')) as f:
     source = f.read()
 
+# Extract _apply_clean_layout helper (M5.1)
+acl_start = source.find('def _apply_clean_layout(')
+acl_end = source.find('\n\ndef ', acl_start + 1)
+exec(source[acl_start:acl_end], globals())
+
 # Extract the 5 helper functions + generate_health_score_sheet
 start = source.find('def _calc_loudness_score(')
 end = source.find('\ndef generate_excel_report(')
