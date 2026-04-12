@@ -5092,8 +5092,9 @@ class MixAnalyzerApp:
             try:
                 with open(config_path, 'r', encoding='utf-8') as f:
                     existing_config = json.load(f)
-            except Exception:
+            except Exception as e:
                 existing_config = {}
+                print(f"[Mix Analyzer] Warning: could not read config: {e}")
 
         # Build track configs (merge existing + auto-detect for new)
         self.track_configs = {}
@@ -5120,6 +5121,9 @@ class MixAnalyzerApp:
         if 'style' in existing_config:
             self.style.set(existing_config['style'])
 
+        if 'generate_individual_sheets' in existing_config:
+            self.generate_individual_sheets.set(existing_config['generate_individual_sheets'])
+
         self.setup_status.config(
             text=f"Loaded {len(files)} audio files. "
                  f"Auto-detected categories for "
@@ -5129,6 +5133,9 @@ class MixAnalyzerApp:
         self._refresh_tracks_list()
         self._refresh_fullmix_tab()
         self.notebook.select(self.tab_tracks)
+
+        # Persist config immediately so auto-detected defaults are saved
+        self._save_config()
 
     # ------------------------------------------------------------------
     # TAB 2 - TRACK IDENTIFICATION
@@ -5971,6 +5978,7 @@ class MixAnalyzerApp:
             config = {
                 'style': self.style.get(),
                 'tracks': self.track_configs,
+                'generate_individual_sheets': self.generate_individual_sheets.get(),
                 'full_mix': {
                     'state': self.mix_state.get(),
                     'plugins': active_plugins,
@@ -5980,8 +5988,8 @@ class MixAnalyzerApp:
             }
             with open(config_path, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=2)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f"[Mix Analyzer] Warning: could not save config: {e}")
 
     # ------------------------------------------------------------------
     # AI PROMPT
