@@ -3673,7 +3673,8 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
 
 
 def generate_excel_report(analyses_with_info, output_path, style_name,
-                           full_mix_info=None, ai_prompt='', log_fn=None):
+                           full_mix_info=None, ai_prompt='', log_fn=None,
+                           include_individual_sheets=True):
     """
     Generate complete Excel report with 8 sheets.
     analyses_with_info: list of (analysis, track_info) tuples
@@ -3742,16 +3743,24 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             counter += 1
         sheet_names[ti['name']] = sname
 
-        ws_index.cell(row=row, column=1, value=idx).font = data_font
-        ws_index.cell(row=row, column=2, value=ti['name']).font = data_font
-        ws_index.cell(row=row, column=3, value=ti['type']).font = accent_font if ti['type'] == 'Full Mix' else data_font
-        ws_index.cell(row=row, column=4, value=ti.get('category', '')).font = data_font
-        link_cell = ws_index.cell(row=row, column=5, value=sname)
-        link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
-        link_cell.hyperlink = f"#{sname}!A1"
-        for col in range(1, 6):
-            ws_index.cell(row=row, column=col).border = thin_border
-            ws_index.cell(row=row, column=col).fill = panel_fill
+    if include_individual_sheets:
+        for idx, (a, ti) in enumerate(analyses_with_info, 1):
+            sname = sheet_names[ti['name']]
+            ws_index.cell(row=row, column=1, value=idx).font = data_font
+            ws_index.cell(row=row, column=2, value=ti['name']).font = data_font
+            ws_index.cell(row=row, column=3, value=ti['type']).font = accent_font if ti['type'] == 'Full Mix' else data_font
+            ws_index.cell(row=row, column=4, value=ti.get('category', '')).font = data_font
+            link_cell = ws_index.cell(row=row, column=5, value=sname)
+            link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
+            link_cell.hyperlink = f"#{sname}!A1"
+            for col in range(1, 6):
+                ws_index.cell(row=row, column=col).border = thin_border
+                ws_index.cell(row=row, column=col).fill = panel_fill
+            row += 1
+    else:
+        c = ws_index.cell(row=row, column=2, value='Individual track sheets: disabled (compact mode)')
+        c.font = dim_font
+        c.fill = panel_fill
         row += 1
 
     # Also link to special sheets
@@ -3931,121 +3940,126 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_dark_background(ws_ctx)
 
     # ---- SHEET 5+: One sheet per track (Individual + BUS) ----
-    track_sheets = [(a, ti) for a, ti in analyses_with_info
-                    if ti['type'] in ('Individual', 'BUS')]
-    # Build ordered list of sheet names for navigation
-    track_sheet_names_ordered = []
-    for a_t, ti_t in track_sheets:
-        track_sheet_names_ordered.append(
-            sheet_names.get(ti_t['name'], _safe_sheet_name(os.path.splitext(ti_t['name'])[0])))
+    if include_individual_sheets:
+        track_sheets = [(a, ti) for a, ti in analyses_with_info
+                        if ti['type'] in ('Individual', 'BUS')]
+        # Build ordered list of sheet names for navigation
+        track_sheet_names_ordered = []
+        for a_t, ti_t in track_sheets:
+            track_sheet_names_ordered.append(
+                sheet_names.get(ti_t['name'], _safe_sheet_name(os.path.splitext(ti_t['name'])[0])))
 
-    # Metric glossary keys for per-track sheets
-    _trk_glossary = {
-        'Duration': 'Duration (s)', 'LUFS Integrated': 'LUFS', 'LUFS Short-term Max': 'LUFS',
-        'True Peak': 'True Peak', 'Peak': 'Peak (dB)', 'RMS': 'RMS',
-        'Crest Factor': 'Crest (dB)', 'PLR': 'PLR', 'PSR': 'PSR', 'LRA': 'LRA',
-        'Centroid': 'Centroid (Hz)', 'Flatness': 'Flatness',
-        'Phase Correlation': 'Phase Correlation', 'Stereo Width': 'Stereo Width',
-    }
+        # Metric glossary keys for per-track sheets
+        _trk_glossary = {
+            'Duration': 'Duration (s)', 'LUFS Integrated': 'LUFS', 'LUFS Short-term Max': 'LUFS',
+            'True Peak': 'True Peak', 'Peak': 'Peak (dB)', 'RMS': 'RMS',
+            'Crest Factor': 'Crest (dB)', 'PLR': 'PLR', 'PSR': 'PSR', 'LRA': 'LRA',
+            'Centroid': 'Centroid (Hz)', 'Flatness': 'Flatness',
+            'Phase Correlation': 'Phase Correlation', 'Stereo Width': 'Stereo Width',
+        }
 
-    for sheet_idx, (a, ti) in enumerate(track_sheets):
-        sname = sheet_names.get(ti['name'], _safe_sheet_name(os.path.splitext(ti['name'])[0]))
-        log_fn(f"    Excel: writing sheet {sheet_idx + 1}/{len(track_sheets)}: {sname}")
-        ws_trk = wb.create_sheet(sname)
-        _apply_clean_layout(ws_trk)
-        ws_trk.sheet_properties.tabColor = 'FF3D8B' if ti['type'] == 'BUS' else '00D9FF'
-        row = _xl_write_header(ws_trk, ti['name'],
-                                f"Type: {ti['type']} | Category: {ti.get('category', '')}")
+        for sheet_idx, (a, ti) in enumerate(track_sheets):
+            sname = sheet_names.get(ti['name'], _safe_sheet_name(os.path.splitext(ti['name'])[0]))
+            log_fn(f"    Excel: writing sheet {sheet_idx + 1}/{len(track_sheets)}: {sname}")
+            ws_trk = wb.create_sheet(sname)
+            _apply_clean_layout(ws_trk)
+            ws_trk.sheet_properties.tabColor = 'FF3D8B' if ti['type'] == 'BUS' else '00D9FF'
+            row = _xl_write_header(ws_trk, ti['name'],
+                                    f"Type: {ti['type']} | Category: {ti.get('category', '')}")
 
-        # Navigation links (Phase 2)
-        row = _xl_add_nav_row(ws_trk, row, track_sheet_names_ordered, sheet_idx)
-        row += 1
-
-        # Metrics table
-        L = a['loudness']
-        S = a['spectrum']
-        st = a['stereo']
-        metrics = [
-            ('Duration', f"{a['duration']:.1f} s"),
-            ('LUFS Integrated', f"{L['lufs_integrated']:+.2f}" if np.isfinite(L['lufs_integrated']) else '-'),
-            ('LUFS Short-term Max', f"{L['lufs_short_term_max']:+.2f}" if np.isfinite(L['lufs_short_term_max']) else '-'),
-            ('True Peak', f"{L['true_peak_db']:+.2f} dBFS"),
-            ('Peak', f"{L['peak_db']:+.2f} dB"),
-            ('RMS', f"{L['rms_db']:+.2f} dB"),
-            ('Crest Factor', f"{L['crest_factor']:.2f} dB"),
-            ('PLR', f"{L['plr']:.2f} dB"),
-            ('PSR', f"{L['psr']:.2f} dB"),
-            ('LRA', f"{L['lra']:.2f} LU"),
-            ('Dominant Band', BAND_LABELS.get(S['dominant_band'], S['dominant_band'])),
-            ('Centroid', f"{S['centroid']:.0f} Hz"),
-            ('Rolloff 85%', f"{S['rolloff']:.0f} Hz"),
-            ('Flatness', f"{S['flatness']:.4f}"),
-            ('Phase Correlation', f"{st['correlation']:+.3f}" if st['is_stereo'] else 'Mono'),
-            ('Stereo Width', f"{st['width_overall']:.3f}" if st['is_stereo'] else 'Mono'),
-        ]
-        for label, val in metrics:
-            c_label = ws_trk.cell(row=row, column=1, value=label)
-            c_label.font = accent_font
-            c_label.fill = panel_fill
-            c_label.border = thin_border
-            c_label.alignment = Alignment(horizontal='left', vertical='center')
-            # Add glossary comment (Phase 2)
-            glossary_key = _trk_glossary.get(label)
-            if glossary_key and glossary_key in METRIC_GLOSSARY:
-                _xl_add_comment(c_label, METRIC_GLOSSARY[glossary_key])
-
-            c_val = ws_trk.cell(row=row, column=2, value=val)
-            c_val.font = data_font
-            c_val.fill = panel_fill
-            c_val.border = thin_border
-            c_val.alignment = Alignment(horizontal='right', vertical='center')
+            # Navigation links (Phase 2)
+            row = _xl_add_nav_row(ws_trk, row, track_sheet_names_ordered, sheet_idx)
             row += 1
 
-        # Anomalies for this track
-        if a.get('anomalies'):
-            row += 1
-            ws_trk.cell(row=row, column=1, value='ANOMALIES').font = Font(
-                name='Calibri', size=12, bold=True, color='FFAA00')
-            row += 1
-            for sev, desc in a['anomalies']:
-                c_sev = ws_trk.cell(row=row, column=1, value=sev.upper())
-                c_sev.font = crit_font if sev == 'critical' else warn_font
-                c_sev.fill = panel_fill
-                c_sev.border = thin_border
-                c_desc = ws_trk.cell(row=row, column=2, value=desc)
-                c_desc.font = data_font
-                c_desc.fill = panel_fill
-                c_desc.border = thin_border
+            # Metrics table
+            L = a['loudness']
+            S = a['spectrum']
+            st = a['stereo']
+            metrics = [
+                ('Duration', f"{a['duration']:.1f} s"),
+                ('LUFS Integrated', f"{L['lufs_integrated']:+.2f}" if np.isfinite(L['lufs_integrated']) else '-'),
+                ('LUFS Short-term Max', f"{L['lufs_short_term_max']:+.2f}" if np.isfinite(L['lufs_short_term_max']) else '-'),
+                ('True Peak', f"{L['true_peak_db']:+.2f} dBFS"),
+                ('Peak', f"{L['peak_db']:+.2f} dB"),
+                ('RMS', f"{L['rms_db']:+.2f} dB"),
+                ('Crest Factor', f"{L['crest_factor']:.2f} dB"),
+                ('PLR', f"{L['plr']:.2f} dB"),
+                ('PSR', f"{L['psr']:.2f} dB"),
+                ('LRA', f"{L['lra']:.2f} LU"),
+                ('Dominant Band', BAND_LABELS.get(S['dominant_band'], S['dominant_band'])),
+                ('Centroid', f"{S['centroid']:.0f} Hz"),
+                ('Rolloff 85%', f"{S['rolloff']:.0f} Hz"),
+                ('Flatness', f"{S['flatness']:.4f}"),
+                ('Phase Correlation', f"{st['correlation']:+.3f}" if st['is_stereo'] else 'Mono'),
+                ('Stereo Width', f"{st['width_overall']:.3f}" if st['is_stereo'] else 'Mono'),
+            ]
+            for label, val in metrics:
+                c_label = ws_trk.cell(row=row, column=1, value=label)
+                c_label.font = accent_font
+                c_label.fill = panel_fill
+                c_label.border = thin_border
+                c_label.alignment = Alignment(horizontal='left', vertical='center')
+                # Add glossary comment (Phase 2)
+                glossary_key = _trk_glossary.get(label)
+                if glossary_key and glossary_key in METRIC_GLOSSARY:
+                    _xl_add_comment(c_label, METRIC_GLOSSARY[glossary_key])
+
+                c_val = ws_trk.cell(row=row, column=2, value=val)
+                c_val.font = data_font
+                c_val.fill = panel_fill
+                c_val.border = thin_border
+                c_val.alignment = Alignment(horizontal='right', vertical='center')
                 row += 1
 
-        # Embed matplotlib visualizations as images
-        row += 2
-        img_row = row
-        page_fns = [
-            ('Identity', lambda: page_identity(a, ti, style_name)),
-            ('Temporal', lambda: page_temporal(a, ti)),
-            ('Spectral', lambda: page_spectral(a, ti)),
-            ('Spectrogram', lambda: page_spectrogram(a, ti)),
-            ('Musical', lambda: page_musical(a, ti)),
-            ('Stereo', lambda: page_stereo(a, ti)),
-            ('Multiband Timeline', lambda: page_multiband_timeline(a, ti)),
-            ('Dynamic Range', lambda: page_dynamic_range_map(a, ti)),
-            ('Characteristics', lambda: page_characteristics(a, ti, style_name)),
-        ]
+            # Anomalies for this track
+            if a.get('anomalies'):
+                row += 1
+                ws_trk.cell(row=row, column=1, value='ANOMALIES').font = Font(
+                    name='Calibri', size=12, bold=True, color='FFAA00')
+                row += 1
+                for sev, desc in a['anomalies']:
+                    c_sev = ws_trk.cell(row=row, column=1, value=sev.upper())
+                    c_sev.font = crit_font if sev == 'critical' else warn_font
+                    c_sev.fill = panel_fill
+                    c_sev.border = thin_border
+                    c_desc = ws_trk.cell(row=row, column=2, value=desc)
+                    c_desc.font = data_font
+                    c_desc.fill = panel_fill
+                    c_desc.border = thin_border
+                    row += 1
 
-        for page_name, page_fn in page_fns:
-            try:
-                fig = page_fn()
-                img, tmp_path = _fig_to_image(fig)
-                tmp_files.append(tmp_path)
-                ws_trk.add_image(img, f'A{img_row}')
-                img_row += 48  # ~48 rows per image at default height
-            except Exception:
-                pass
+            # Embed matplotlib visualizations as images
+            row += 2
+            img_row = row
+            page_fns = [
+                ('Identity', lambda: page_identity(a, ti, style_name)),
+                ('Temporal', lambda: page_temporal(a, ti)),
+                ('Spectral', lambda: page_spectral(a, ti)),
+                ('Spectrogram', lambda: page_spectrogram(a, ti)),
+                ('Musical', lambda: page_musical(a, ti)),
+                ('Stereo', lambda: page_stereo(a, ti)),
+                ('Multiband Timeline', lambda: page_multiband_timeline(a, ti)),
+                ('Dynamic Range', lambda: page_dynamic_range_map(a, ti)),
+                ('Characteristics', lambda: page_characteristics(a, ti, style_name)),
+            ]
 
-        ws_trk.column_dimensions['A'].width = 25
-        ws_trk.column_dimensions['B'].width = 40
-        _apply_dark_background(ws_trk)
+            for page_name, page_fn in page_fns:
+                try:
+                    fig = page_fn()
+                    img, tmp_path = _fig_to_image(fig)
+                    tmp_files.append(tmp_path)
+                    ws_trk.add_image(img, f'A{img_row}')
+                    img_row += 48  # ~48 rows per image at default height
+                except Exception:
+                    pass
+
+            ws_trk.column_dimensions['A'].width = 25
+            ws_trk.column_dimensions['B'].width = 40
+            _apply_dark_background(ws_trk)
+
+        log_fn(f"    Excel: {len(track_sheets)} individual track sheets generated.")
+    else:
+        log_fn("    Excel: Individual track sheets skipped (AI-friendly mode).")
 
     # ---- SHEET: Global Comparison ----
     log_fn("    Excel: writing Global Comparison sheet...")
@@ -4816,6 +4830,9 @@ class MixAnalyzerApp:
         self.mix_note = tk.StringVar()
         self.mix_plugins = {p: tk.BooleanVar(value=False) for p in MASTER_PLUGINS}
 
+        # Report options
+        self.generate_individual_sheets = tk.BooleanVar(value=True)
+
         # Analysis results
         self.analysis_results = None
         self.output_dir_after_run = None
@@ -5584,9 +5601,22 @@ class MixAnalyzerApp:
         ttk.Button(controls_row, text='Refresh summary',
                     command=self._refresh_analysis_summary).pack(side='left')
 
+        # Report options
+        options_row = ttk.Frame(frame)
+        options_row.grid(row=3, column=0, columnspan=3, sticky='we', pady=(5, 5))
+
+        tk.Checkbutton(options_row,
+                        text='Generate individual track sheets (disable for smaller AI-friendly reports)',
+                        variable=self.generate_individual_sheets,
+                        bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                        selectcolor=UI_THEME['bg'],
+                        activebackground=UI_THEME['panel'],
+                        activeforeground=UI_THEME['fg'],
+                        font=('Calibri', 10)).pack(side='left')
+
         # Run + Cancel row
         run_row = ttk.Frame(frame)
-        run_row.grid(row=3, column=0, columnspan=3, sticky='we', pady=(5, 10))
+        run_row.grid(row=4, column=0, columnspan=3, sticky='we', pady=(5, 10))
 
         self.run_button = ttk.Button(run_row, text='>>> RUN ANALYSIS <<<',
                                        style='Accent.TButton',
@@ -5600,7 +5630,7 @@ class MixAnalyzerApp:
 
         # Multi-level progress display
         progress_frame = tk.Frame(frame, bg=UI_THEME['panel'], padx=12, pady=10)
-        progress_frame.grid(row=4, column=0, columnspan=3, sticky='we', pady=(0, 10))
+        progress_frame.grid(row=5, column=0, columnspan=3, sticky='we', pady=(0, 10))
 
         self.progress_bar = ttk.Progressbar(progress_frame, mode='determinate',
                                               maximum=100)
@@ -5631,7 +5661,7 @@ class MixAnalyzerApp:
 
         # Post-run buttons
         buttons_row = ttk.Frame(frame)
-        buttons_row.grid(row=5, column=0, columnspan=3, sticky='w', pady=(0, 10))
+        buttons_row.grid(row=6, column=0, columnspan=3, sticky='w', pady=(0, 10))
 
         self.ai_button = ttk.Button(buttons_row, text='Generate AI Analysis Prompt',
                                       command=self._show_ai_prompt,
@@ -5645,10 +5675,10 @@ class MixAnalyzerApp:
 
         # Log
         ttk.Label(frame, text='Log:', style='Dim.TLabel').grid(
-            row=6, column=0, columnspan=3, sticky='w', pady=(5, 3))
+            row=7, column=0, columnspan=3, sticky='w', pady=(5, 3))
 
         log_frame = tk.Frame(frame, bg=UI_THEME['bg'])
-        log_frame.grid(row=7, column=0, columnspan=3, sticky='nsew', pady=5)
+        log_frame.grid(row=8, column=0, columnspan=3, sticky='nsew', pady=5)
 
         self.log_text = scrolledtext.ScrolledText(
             log_frame, height=12, bg='#050508', fg=UI_THEME['accent4'],
@@ -5658,7 +5688,7 @@ class MixAnalyzerApp:
 
         frame.columnconfigure(0, weight=1)
         frame.columnconfigure(1, weight=1)
-        frame.rowconfigure(7, weight=1)
+        frame.rowconfigure(8, weight=1)
 
     def _refresh_analysis_summary(self):
         if not self.track_configs:
@@ -5873,11 +5903,13 @@ class MixAnalyzerApp:
                         pass
                 return
 
+            include_sheets = self.generate_individual_sheets.get()
+            mode_label = "full mode" if include_sheets else "compact mode, no individual sheets"
             self._update_progress(
                 int(completed_steps / total_steps * 100),
                 'Generating Excel report', '', '', '')
             self.log("-" * 60)
-            self.log("Generating Excel report...")
+            self.log(f"Generating Excel report ({mode_label})...")
             try:
                 # Temporarily store results so _build_ai_prompt can use them
                 old_results = self.analysis_results
@@ -5891,7 +5923,8 @@ class MixAnalyzerApp:
                 generate_excel_report(
                     analyses_with_info, str(xlsx_path), self.style.get(),
                     full_mix_info=full_mix_info, ai_prompt=ai_prompt,
-                    log_fn=self.log)
+                    log_fn=self.log,
+                    include_individual_sheets=include_sheets)
                 generated_files.append(xlsx_path)
                 self.log(f"Excel report: {xlsx_path.name}")
             except Exception as e:
