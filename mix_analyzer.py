@@ -3170,7 +3170,7 @@ def _find_previous_reports(output_folder, song_name):
     pattern = os.path.join(output_folder, f'{song_name}_MixAnalyzer_*.xlsx')
     files = glob.glob(pattern)
     results = []
-    date_re = re.compile(r'_MixAnalyzer_(\d{4}-\d{2}-\d{2})')
+    date_re = re.compile(r'_MixAnalyzer_(\d{4}-\d{2}-\d{2})(?:_\d{2}-\d{2})?')
     for f in files:
         m = date_re.search(os.path.basename(f))
         if m:
@@ -3672,6 +3672,131 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
     log_fn("    Excel: Version Tracking sheet done.")
 
 
+def _downsample_for_chart(times, values, target_points=600):
+    """Downsample arrays to target_points for Excel chart performance."""
+    if len(times) <= target_points:
+        return times, values
+    step = max(1, len(times) // target_points)
+    return times[::step], values[::step]
+
+
+def _write_peak_rms_chart_data(ws, analysis, start_row, track_label):
+    """Write downsampled Peak/RMS data to a hidden sheet for charting.
+    Returns (start_row, end_row) of written data."""
+    from openpyxl.styles import Font
+    drt = analysis['dynamic_range_timeline']
+    times_ds, peak_ds = _downsample_for_chart(drt['times'], drt['peak_db'])
+    _, rms_ds = _downsample_for_chart(drt['times'], drt['rms_db'])
+
+    # Header row
+    dim_font = Font(name='Calibri', size=9, color='888888')
+    ws.cell(row=start_row, column=1, value=f'Time (s) [{track_label}]').font = dim_font
+    ws.cell(row=start_row, column=2, value='Peak (dB)').font = dim_font
+    ws.cell(row=start_row, column=3, value='RMS (dB)').font = dim_font
+    data_start = start_row + 1
+
+    for i in range(len(times_ds)):
+        ws.cell(row=data_start + i, column=1, value=round(float(times_ds[i]), 3))
+        ws.cell(row=data_start + i, column=2, value=round(float(peak_ds[i]), 2))
+        ws.cell(row=data_start + i, column=3, value=round(float(rms_ds[i]), 2))
+
+    data_end = data_start + len(times_ds) - 1
+    return start_row, data_end
+
+
+def _create_peak_rms_linechart(ws_data, header_row, data_end, track_name):
+    """Create a native Excel LineChart for Peak vs RMS over time."""
+    from openpyxl.chart import LineChart, Reference
+
+    chart = LineChart()
+    chart.title = f"Peak vs RMS — {track_name}"
+    chart.style = 13
+    chart.y_axis.title = "Level (dB)"
+    chart.x_axis.title = "Time (s)"
+    chart.y_axis.scaling.min = -80
+    chart.y_axis.scaling.max = 0
+    chart.y_axis.delete = False
+    chart.x_axis.delete = False
+    chart.legend.position = 'b'
+
+    data_start = header_row + 1
+
+    # Category axis (time)
+    cats = Reference(ws_data, min_col=1, min_row=data_start, max_row=data_end)
+
+    # Peak series
+    peak_ref = Reference(ws_data, min_col=2, min_row=header_row, max_row=data_end)
+    chart.add_data(peak_ref, titles_from_data=True)
+
+    # RMS series
+    rms_ref = Reference(ws_data, min_col=3, min_row=header_row, max_row=data_end)
+    chart.add_data(rms_ref, titles_from_data=True)
+
+    chart.set_categories(cats)
+
+    # Styling
+    chart.series[0].graphicalProperties.line.solidFill = "FF3D8B"
+    chart.series[0].graphicalProperties.line.width = 12000  # EMU (~1pt)
+    chart.series[1].graphicalProperties.line.solidFill = "00FF9F"
+    chart.series[1].graphicalProperties.line.width = 12000
+
+    # No markers
+    for s in chart.series:
+        s.graphicalProperties.line.dashStyle = None
+        s.smooth = False
+
+    chart.width = 28
+    chart.height = 12
+
+    return chart
+
+
+def page_crest_factor(analysis, track_info):
+    """Generate crest factor subplot only (for use alongside native Peak/RMS chart)."""
+    fig = plt.figure(figsize=(11, 4.5))
+    fig.patch.set_facecolor(THEME['bg'])
+
+    drt = analysis['dynamic_range_timeline']
+    times = drt['times']
+    crest = drt['crest_instant']
+
+    ax = fig.add_subplot(1, 1, 1)
+    ax.fill_between(times, crest, 0,
+                     where=(crest >= 12), color=THEME['accent4'], alpha=0.3,
+                     label='High dynamic (>12 dB)', interpolate=True)
+    ax.fill_between(times, crest, 0,
+                     where=((crest >= 6) & (crest < 12)), color=THEME['warning'], alpha=0.3,
+                     label='Moderate (6-12 dB)', interpolate=True)
+    ax.fill_between(times, crest, 0,
+                     where=(crest < 6), color=THEME['critical'], alpha=0.3,
+                     label='Compressed (<6 dB)', interpolate=True)
+    ax.plot(times, crest, color=THEME['fg'], linewidth=1.2)
+    ax.axhline(12, color=THEME['accent4'], linewidth=0.6, alpha=0.5, linestyle='--')
+    ax.axhline(6, color=THEME['warning'], linewidth=0.6, alpha=0.5, linestyle='--')
+
+    global_crest = analysis['loudness']['crest_factor']
+    ax.axhline(global_crest, color=THEME['accent1'], linewidth=1.5, linestyle=':',
+               label=f'Global crest factor: {global_crest:.1f} dB')
+
+    ax.set_xlabel('Time (s)', fontsize=10, color=THEME['fg'])
+    ax.set_ylabel('Crest factor (dB)', fontsize=10, color=THEME['fg'])
+    ax.set_title('Instantaneous crest factor — compression vs dynamics',
+                  color=THEME['accent1'], fontsize=11, pad=10)
+    ax.legend(loc='upper right', fontsize=8,
+              framealpha=0.85, facecolor=THEME['panel'],
+              edgecolor=THEME['fg_dim'], labelcolor=THEME['fg'])
+    ax.set_facecolor(THEME['bg'])
+    ax.tick_params(colors=THEME['fg'])
+    ax.grid(True, alpha=0.3, color=THEME['grid'])
+    ax.set_ylim(-2, max(30, np.max(crest) + 3))
+
+    for spine in ax.spines.values():
+        spine.set_color(THEME['grid'])
+
+    plt.tight_layout()
+    return fig
+
+
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None,
                            include_individual_sheets=True):
@@ -3691,6 +3816,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     wb = Workbook()
     tmp_files = []
+
+    # Hidden sheet for native chart data (Peak/RMS timelines)
+    ws_chart_data = wb.create_sheet('_chart_data')
+    _apply_clean_layout(ws_chart_data)
+    ws_chart_data.sheet_state = 'hidden'
+    chart_data_row = 1  # tracks where to write next block of chart data
 
     # Theme colors for Excel
     bg_fill = PatternFill('solid', fgColor='0A0A12')
@@ -4039,7 +4170,6 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                 ('Musical', lambda: page_musical(a, ti)),
                 ('Stereo', lambda: page_stereo(a, ti)),
                 ('Multiband Timeline', lambda: page_multiband_timeline(a, ti)),
-                ('Dynamic Range', lambda: page_dynamic_range_map(a, ti)),
                 ('Characteristics', lambda: page_characteristics(a, ti, style_name)),
             ]
 
@@ -4052,6 +4182,28 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                     img_row += 48  # ~48 rows per image at default height
                 except Exception:
                     pass
+
+            # Native Excel LineChart for Peak vs RMS (M6.1)
+            try:
+                hdr_row, end_row = _write_peak_rms_chart_data(
+                    ws_chart_data, a, chart_data_row, sname)
+                peak_rms_chart = _create_peak_rms_linechart(
+                    ws_chart_data, hdr_row, end_row, a['filename'])
+                ws_trk.add_chart(peak_rms_chart, f'A{img_row}')
+                chart_data_row = end_row + 2
+                img_row += 24  # chart occupies ~24 rows
+            except Exception:
+                pass
+
+            # Crest factor image (separate from Peak/RMS which is now native)
+            try:
+                fig_crest = page_crest_factor(a, ti)
+                img_crest, tmp_crest = _fig_to_image(fig_crest)
+                tmp_files.append(tmp_crest)
+                ws_trk.add_image(img_crest, f'A{img_row}')
+                img_row += 30
+            except Exception:
+                pass
 
             ws_trk.column_dimensions['A'].width = 25
             ws_trk.column_dimensions['B'].width = 40
@@ -4259,7 +4411,6 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             ('Spectral', lambda: page_spectral(a_fm, ti_fm)),
             ('Spectrogram', lambda: page_spectrogram(a_fm, ti_fm)),
             ('Multiband', lambda: page_multiband_timeline(a_fm, ti_fm)),
-            ('Dynamic Range', lambda: page_dynamic_range_map(a_fm, ti_fm)),
         ]
         for page_name, page_fn in fm_pages:
             try:
@@ -4270,6 +4421,28 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                 row += 48
             except Exception:
                 pass
+
+        # Native Excel LineChart for Peak vs RMS (M6.1)
+        try:
+            hdr_row, end_row = _write_peak_rms_chart_data(
+                ws_chart_data, a_fm, chart_data_row, 'FullMix')
+            peak_rms_chart = _create_peak_rms_linechart(
+                ws_chart_data, hdr_row, end_row, a_fm['filename'])
+            ws_fm.add_chart(peak_rms_chart, f'A{row}')
+            chart_data_row = end_row + 2
+            row += 24
+        except Exception:
+            pass
+
+        # Crest factor image
+        try:
+            fig_crest = page_crest_factor(a_fm, ti_fm)
+            img_crest, tmp_crest = _fig_to_image(fig_crest)
+            tmp_files.append(tmp_crest)
+            ws_fm.add_image(img_crest, f'A{row}')
+            row += 30
+        except Exception:
+            pass
 
         ws_fm.column_dimensions['A'].width = 25
         ws_fm.column_dimensions['B'].width = 40
@@ -5831,7 +6004,8 @@ class MixAnalyzerApp:
             project_name = input_folder.name
         safe_project = "".join(c for c in project_name if c.isalnum() or c in ' _-').strip() or 'Project'
         date_str = datetime.now().strftime('%Y-%m-%d')
-        report_prefix = f"{safe_project}_MixAnalyzer_{date_str}"
+        time_str = datetime.now().strftime('%H-%M')
+        report_prefix = f"{safe_project}_MixAnalyzer_{date_str}_{time_str}"
 
         included_files = [f for f in self.track_order
                            if self.track_configs[f]['include']]
