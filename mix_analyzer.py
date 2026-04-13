@@ -5612,6 +5612,127 @@ UI_THEME = {
 }
 
 
+# M8.1: Neon logo configuration
+LOGO_CONFIG = {
+    'text': 'MIX ANALYZER',
+    'subtitle': 'v2.0 — Visual Mix Diagnostic',
+    'font_size': 42,
+    'subtitle_font_size': 14,
+    'glow_color': (0, 255, 159),      # Turquoise neon (#00FF9F)
+    'text_color': (220, 255, 245),     # Slightly tinted white
+    'subtitle_color': (136, 136, 160), # Dim (#8888A0)
+    'bg_color': (10, 10, 18),          # Dark bg (#0A0A12)
+    'glow_passes': [
+        (20, 0.25),   # (radius, opacity) - wide diffuse outer glow
+        (12, 0.4),
+        (6, 0.6),
+        (3, 0.85),    # tight bright inner glow
+    ],
+    'padding': 30,
+    'line_spacing': 8,
+}
+
+
+def _get_neon_font(size):
+    """Try to load a suitable font with fallback chain."""
+    from PIL import ImageFont
+    candidates = [
+        'Orbitron-Bold.ttf', 'Orbitron-Regular.ttf',
+        'Rajdhani-Bold.ttf', 'Exo2-Bold.ttf',
+        'Audiowide-Regular.ttf',
+        'arialbd.ttf', 'Arial Bold.ttf', 'Arial_Bold.ttf',
+        'LiberationSans-Bold.ttf', 'DejaVuSans-Bold.ttf',
+        'FreeSansBold.ttf',
+    ]
+    for name in candidates:
+        try:
+            return ImageFont.truetype(name, size)
+        except (OSError, IOError):
+            continue
+    # Fallback: try system default
+    try:
+        return ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', size)
+    except (OSError, IOError):
+        pass
+    return ImageFont.load_default()
+
+
+def create_neon_logo():
+    """Generate a PIL image with multi-layer neon glow effect.
+    Returns a PIL.Image in RGBA mode."""
+    from PIL import Image, ImageDraw, ImageFilter
+
+    cfg = LOGO_CONFIG
+    font = _get_neon_font(cfg['font_size'])
+    sub_font = _get_neon_font(cfg['subtitle_font_size'])
+
+    # Measure text dimensions
+    dummy = Image.new('RGBA', (1, 1))
+    draw = ImageDraw.Draw(dummy)
+    title_bbox = draw.textbbox((0, 0), cfg['text'], font=font)
+    title_w = title_bbox[2] - title_bbox[0]
+    title_h = title_bbox[3] - title_bbox[1]
+    sub_bbox = draw.textbbox((0, 0), cfg['subtitle'], font=sub_font)
+    sub_w = sub_bbox[2] - sub_bbox[0]
+    sub_h = sub_bbox[3] - sub_bbox[1]
+
+    pad = cfg['padding']
+    content_w = max(title_w, sub_w)
+    content_h = title_h + cfg['line_spacing'] + sub_h
+    img_w = content_w + pad * 2
+    img_h = content_h + pad * 2
+
+    # Title position (centered)
+    tx = (img_w - title_w) // 2
+    ty = pad
+    # Subtitle position (centered, below title)
+    sx = (img_w - sub_w) // 2
+    sy = pad + title_h + cfg['line_spacing']
+
+    # Start with dark background
+    final = Image.new('RGBA', (img_w, img_h), cfg['bg_color'] + (255,))
+
+    # Multi-layer glow for title text
+    for radius, opacity in cfg['glow_passes']:
+        layer = Image.new('RGBA', (img_w, img_h), (0, 0, 0, 0))
+        d = ImageDraw.Draw(layer)
+        alpha = int(255 * opacity)
+        d.text((tx, ty), cfg['text'], font=font, fill=cfg['glow_color'] + (alpha,))
+        layer = layer.filter(ImageFilter.GaussianBlur(radius=radius))
+        final = Image.alpha_composite(final, layer)
+
+    # Sharp title text on top
+    text_layer = Image.new('RGBA', (img_w, img_h), (0, 0, 0, 0))
+    d = ImageDraw.Draw(text_layer)
+    d.text((tx, ty), cfg['text'], font=font, fill=cfg['text_color'] + (255,))
+    # Subtitle (no glow, just dim text)
+    d.text((sx, sy), cfg['subtitle'], font=sub_font, fill=cfg['subtitle_color'] + (255,))
+    final = Image.alpha_composite(final, text_layer)
+
+    return final
+
+
+def _create_logo_widget(parent):
+    """Create the neon logo widget with fallback to styled text."""
+    try:
+        from PIL import ImageTk
+        pil_img = create_neon_logo()
+        photo = ImageTk.PhotoImage(pil_img)
+        label = tk.Label(parent, image=photo, bg=UI_THEME['bg'], bd=0)
+        label._logo_photo = photo  # prevent garbage collection
+        return label
+    except Exception:
+        # Fallback: styled text labels
+        frame = tk.Frame(parent, bg=UI_THEME['bg'])
+        tk.Label(frame, text='MIX ANALYZER',
+                 font=('Calibri', 20, 'bold'),
+                 fg=UI_THEME['accent4'], bg=UI_THEME['bg']).pack()
+        tk.Label(frame, text='v2.0 — Visual Mix Diagnostic',
+                 font=('Calibri', 10),
+                 fg=UI_THEME['fg_dim'], bg=UI_THEME['bg']).pack()
+        return frame
+
+
 # Help texts for the info buttons
 HELP_TEXTS = {
     'category': """CATEGORY - What kind of sound this track contains.
@@ -5895,7 +6016,7 @@ def setup_ttk_styles():
 class MixAnalyzerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title('Mix Analyzer v1.7')
+        self.root.title('Mix Analyzer v2.0')
         self.root.geometry('1280x820')
         self.root.configure(bg=UI_THEME['bg'])
         self.root.minsize(1100, 700)
@@ -5933,13 +6054,12 @@ class MixAnalyzerApp:
         self._build_ui()
 
     def _build_ui(self):
-        # Top title
-        title_frame = ttk.Frame(self.root, padding=(15, 12, 15, 0))
+        # Top title with neon logo (M8.1)
+        title_frame = ttk.Frame(self.root, padding=(15, 8, 15, 0))
         title_frame.pack(fill='x')
-        ttk.Label(title_frame, text='MIX ANALYZER',
-                  style='Title.TLabel').pack(side='left')
-        ttk.Label(title_frame, text='  v1.7 - Visual mix diagnostic',
-                  style='Dim.TLabel').pack(side='left', padx=(10, 0))
+
+        self._logo_widget = _create_logo_widget(title_frame)
+        self._logo_widget.pack(side='left')
 
         help_btn = tk.Button(title_frame, text='HELP',
                               bg=UI_THEME['accent1'], fg=UI_THEME['bg'],
