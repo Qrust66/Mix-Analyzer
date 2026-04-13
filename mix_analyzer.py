@@ -2300,7 +2300,8 @@ def _apply_clean_layout(ws):
 
 
 def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0,
-                                   default_min_tracks=2, log_fn=None):
+                                   default_min_tracks=2, log_fn=None,
+                                   project_name=''):
     """
     Génère le sheet 'Freq Conflicts' (P3.1) dans le workbook donné.
     Utilise FREQ_BANDS_HIRES pour les bandes de fréquence.
@@ -2330,7 +2331,7 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     track_names = []
     all_energies = []  # list of dicts {band_label: energy_value}
     for a, ti in individuals:
-        track_names.append(a['filename'])
+        track_names.append(strip_project_prefix(a['filename'], project_name))
         hires = compute_hires_band_energies(a['_mono'], a['sample_rate'])
         all_energies.append(hires)
 
@@ -2520,7 +2521,8 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     log_fn("    Excel: Freq Conflicts sheet done.")
 
 
-def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
+def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None,
+                                    project_name=''):
     """
     Génère le sheet 'Track Comparison' (P3.2) dans le workbook donné.
     Crée des sélecteurs de pistes (data validations) et un tableau
@@ -2548,7 +2550,7 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
         _apply_dark_background(ws)
         return
 
-    track_names = [a['filename'] for a, ti in individuals]
+    track_names = [strip_project_prefix(a['filename'], project_name) for a, ti in individuals]
 
     # --- Metrics definition ---
     # (display_name, key_path, is_numeric)
@@ -2591,7 +2593,7 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
         L = a['loudness']
         S = a['spectrum']
         st = a['stereo']
-        ws_data.cell(row=row, column=1, value=a['filename'])
+        ws_data.cell(row=row, column=1, value=strip_project_prefix(a['filename'], project_name))
         col = 2
         # LUFS
         ws_data.cell(row=row, column=col,
@@ -4054,7 +4056,7 @@ def _add_version_sparklines(ws, n_versions, tracked_metrics,
 
 def generate_version_tracking_sheet(workbook, analyses_with_info,
                                      output_folder=None, song_name=None,
-                                     log_fn=None):
+                                     log_fn=None, project_name=''):
     """
     Génère le sheet 'Version Tracking' (P3.4) dans le workbook donné.
     Détecte automatiquement les rapports Mix Analyzer précédents dans
@@ -4317,7 +4319,7 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
         c.fill = bg_fill
         c.border = thin_border
 
-        c = ws.cell(row=source_row, column=2, value=fname)
+        c = ws.cell(row=source_row, column=2, value=strip_project_prefix(fname, project_name))
         c.font = data_font
         c.fill = bg_fill
         c.border = thin_border
@@ -4629,7 +4631,7 @@ def _normalize_metric(value, min_val, max_val):
     return round(max(0.0, min(100.0, normalized * 100)), 1)
 
 
-def _write_comparison_chart_data(ws, analyses_with_info, start_row):
+def _write_comparison_chart_data(ws, analyses_with_info, start_row, project_name=''):
     """Write normalized multi-track comparison data to _chart_data.
     Layout: metrics as rows, tracks as columns (works for both Radar and GroupedBar).
     Returns (header_row, end_row, n_tracks)."""
@@ -4649,7 +4651,7 @@ def _write_comparison_chart_data(ws, analyses_with_info, start_row):
     ws.cell(row=start_row, column=1, value='Metric [Comparison]').font = dim_font
     for col_idx, (a, ti) in enumerate(selected):
         ws.cell(row=start_row, column=col_idx + 2,
-                value=a['filename'][:25]).font = dim_font
+                value=strip_project_prefix(a['filename'], project_name)[:25]).font = dim_font
 
     # Data rows: one per metric
     data_start = start_row + 1
@@ -4754,11 +4756,13 @@ def _create_comparison_chart(ws_data, header_row, data_end, n_tracks):
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None,
                            include_individual_sheets=True,
-                           image_quality='standard'):
+                           image_quality='standard',
+                           project_name=''):
     """
     Generate complete Excel report with 8 sheets.
     analyses_with_info: list of (analysis, track_info) tuples
     image_quality: 'standard' (200 DPI) or 'high' (400 DPI, sharper images)
+    project_name: project name used to strip prefixes from track names
     """
     import tempfile
     from openpyxl import Workbook
@@ -4836,7 +4840,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         for idx, (a, ti) in enumerate(analyses_with_info, 1):
             sname = sheet_names[ti['name']]
             ws_index.cell(row=row, column=1, value=idx).font = data_font
-            ws_index.cell(row=row, column=2, value=ti['name']).font = data_font
+            ws_index.cell(row=row, column=2, value=strip_project_prefix(ti['name'], project_name)).font = data_font
             ws_index.cell(row=row, column=3, value=ti['type']).font = accent_font if ti['type'] == 'Full Mix' else data_font
             ws_index.cell(row=row, column=4, value=ti.get('category', '')).font = data_font
             link_cell = ws_index.cell(row=row, column=5, value=sname)
@@ -4900,7 +4904,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         S = a['spectrum']
         st = a['stereo']
         vals = [
-            a['filename'],
+            strip_project_prefix(a['filename'], project_name),
             ti['type'],
             ti.get('category', ''),
             round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None,
@@ -5029,7 +5033,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         if a.get('anomalies'):
             for sev, desc in a['anomalies']:
                 row_fill = crit_fill if sev == 'critical' else (warn_fill if sev == 'warning' else panel_fill)
-                track_cell = ws_anom.cell(row=row, column=1, value=a['filename'])
+                track_cell = ws_anom.cell(row=row, column=1, value=strip_project_prefix(a['filename'], project_name))
                 track_cell.font = data_font
                 # M7.5: Link anomaly track name → individual sheet
                 if include_individual_sheets and ti['name'] in sheet_names:
@@ -5114,7 +5118,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             ws_trk = wb.create_sheet(sname)
             _apply_clean_layout(ws_trk)
             ws_trk.sheet_properties.tabColor = 'FF3D8B' if ti['type'] == 'BUS' else '00D9FF'
-            row = _xl_write_header(ws_trk, ti['name'],
+            row = _xl_write_header(ws_trk, strip_project_prefix(ti['name'], project_name),
                                     f"Type: {ti['type']} | Category: {ti.get('category', '')}")
 
             # Navigation links (Phase 2)
@@ -5208,11 +5212,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                     pass
 
             # Native Excel LineChart for Peak vs RMS (M6.1)
+            _stripped_fn = strip_project_prefix(a['filename'], project_name)
             try:
                 hdr_row, end_row = _write_peak_rms_chart_data(
                     ws_chart_data, a, chart_data_row, sname)
                 peak_rms_chart = _create_peak_rms_linechart(
-                    ws_chart_data, hdr_row, end_row, a['filename'])
+                    ws_chart_data, hdr_row, end_row, _stripped_fn)
                 ws_trk.add_chart(peak_rms_chart, f'A{img_row}')
                 chart_data_row = end_row + 2
                 img_row += 24  # chart occupies ~24 rows
@@ -5222,7 +5227,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             # Native Excel AreaChart for Crest Factor (M6.2)
             try:
                 crest_chart = _create_crest_areachart(
-                    ws_chart_data, hdr_row, end_row, a['filename'])
+                    ws_chart_data, hdr_row, end_row, _stripped_fn)
                 ws_trk.add_chart(crest_chart, f'A{img_row}')
                 img_row += 24
             except Exception:
@@ -5233,7 +5238,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                 spec_hdr, spec_end = _write_spectral_chart_data(
                     ws_chart_data, a, chart_data_row, sname)
                 spectral_chart = _create_spectral_barchart(
-                    ws_chart_data, spec_hdr, spec_end, a['filename'])
+                    ws_chart_data, spec_hdr, spec_end, _stripped_fn)
                 ws_trk.add_chart(spectral_chart, f'A{img_row}')
                 chart_data_row = spec_end + 2
                 img_row += 24
@@ -5376,7 +5381,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         # Native Excel chart for Multi-Track Comparison (M6.4)
         try:
             comp_hdr, comp_end, comp_n = _write_comparison_chart_data(
-                ws_chart_data, analyses_with_info, chart_data_row)
+                ws_chart_data, analyses_with_info, chart_data_row, project_name=project_name)
             if comp_hdr is not None and comp_n >= 2:
                 comparison_chart = _create_comparison_chart(
                     ws_chart_data, comp_hdr, comp_end, comp_n)
@@ -5399,7 +5404,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     if full_mixes:
         a_fm, ti_fm = full_mixes[0]
-        row = _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', a_fm['filename'])
+        _stripped_fm = strip_project_prefix(a_fm['filename'], project_name)
+        row = _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', _stripped_fm)
 
         L = a_fm['loudness']
         S = a_fm['spectrum']
@@ -5480,7 +5486,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             hdr_row, end_row = _write_peak_rms_chart_data(
                 ws_chart_data, a_fm, chart_data_row, 'FullMix')
             peak_rms_chart = _create_peak_rms_linechart(
-                ws_chart_data, hdr_row, end_row, a_fm['filename'])
+                ws_chart_data, hdr_row, end_row, _stripped_fm)
             ws_fm.add_chart(peak_rms_chart, f'A{row}')
             chart_data_row = end_row + 2
             row += 24
@@ -5490,7 +5496,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         # Native Excel AreaChart for Crest Factor (M6.2)
         try:
             crest_chart = _create_crest_areachart(
-                ws_chart_data, hdr_row, end_row, a_fm['filename'])
+                ws_chart_data, hdr_row, end_row, _stripped_fm)
             ws_fm.add_chart(crest_chart, f'A{row}')
             row += 24
         except Exception:
@@ -5501,7 +5507,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             spec_hdr, spec_end = _write_spectral_chart_data(
                 ws_chart_data, a_fm, chart_data_row, 'FullMix')
             spectral_chart = _create_spectral_barchart(
-                ws_chart_data, spec_hdr, spec_end, a_fm['filename'])
+                ws_chart_data, spec_hdr, spec_end, _stripped_fm)
             ws_fm.add_chart(spectral_chart, f'A{row}')
             chart_data_row = spec_end + 2
             row += 24
@@ -5570,7 +5576,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         cat = ti.get('category', '(not set)')
         family = CATEGORY_FAMILY.get(cat, 'Unknown')
         vals = [
-            a['filename'],
+            strip_project_prefix(a['filename'], project_name),
             ti['type'],
             cat,
             family,
@@ -5715,10 +5721,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     wb.move_sheet(ws_dash, offset=-(len(wb.sheetnames) - 2))
 
     # ---- P3.1: Frequency Conflict Detector ----
-    generate_freq_conflicts_sheet(wb, analyses_with_info, log_fn=log_fn)
+    generate_freq_conflicts_sheet(wb, analyses_with_info, log_fn=log_fn,
+                                   project_name=project_name)
 
     # ---- P3.2: Track Comparison Tool ----
-    generate_track_comparison_sheet(wb, analyses_with_info, log_fn=log_fn)
+    generate_track_comparison_sheet(wb, analyses_with_info, log_fn=log_fn,
+                                    project_name=project_name)
 
     # ---- P3.3: Mix Health Score ----
     generate_health_score_sheet(wb, analyses_with_info, log_fn=log_fn)
@@ -5734,7 +5742,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     generate_version_tracking_sheet(wb, analyses_with_info,
                                      output_folder=_output_dir,
                                      song_name=_song_name,
-                                     log_fn=log_fn)
+                                     log_fn=log_fn,
+                                     project_name=project_name)
 
     # ---- P2.5: Polish cyberpunk theme on Index and special sheets ----
     # Apply background fill to empty rows in Index
@@ -8298,7 +8307,8 @@ class MixAnalyzerApp:
                     full_mix_info=full_mix_info, ai_prompt=ai_prompt,
                     log_fn=self.log,
                     include_individual_sheets=include_sheets,
-                    image_quality=self.image_quality.get())
+                    image_quality=self.image_quality.get(),
+                    project_name=project_name)
                 generated_files.append(xlsx_path)
                 self.log(f"Excel report: {xlsx_path.name}")
             except Exception as e:
@@ -8427,6 +8437,15 @@ class MixAnalyzerApp:
         if not self.analysis_results:
             return ""
 
+        # Derive project_name for prefix stripping
+        _pn = ''
+        for _fname, _cfg in self.track_configs.items():
+            if _cfg.get('type') == 'Full Mix':
+                _pn = os.path.splitext(_fname)[0]
+                break
+        if not _pn:
+            _pn = Path(self.input_folder.get()).name if self.input_folder.get() else ''
+
         # Count types
         individuals = [a for a, ti in self.analysis_results if ti['type'] == 'Individual']
         buses = [a for a, ti in self.analysis_results if ti['type'] == 'BUS']
@@ -8437,7 +8456,7 @@ class MixAnalyzerApp:
         for a, ti in self.analysis_results:
             if ti['type'] == 'Individual':
                 cat = ti.get('category', '(not set)')
-                cat_inventory.setdefault(cat, []).append(a['filename'])
+                cat_inventory.setdefault(cat, []).append(strip_project_prefix(a['filename'], _pn))
 
         cat_inventory_str = ""
         for cat in sorted(cat_inventory.keys()):
@@ -8455,7 +8474,7 @@ class MixAnalyzerApp:
             plugins_str = ', '.join(active_plugins) if active_plugins else 'None'
             full_mix_context = (
                 f"\n\nFULL MIX CONTEXT:\n"
-                f"- File: {full_mixes[0]['filename']}\n"
+                f"- File: {strip_project_prefix(full_mixes[0]['filename'], _pn)}\n"
                 f"- Completion state: {self.mix_state.get()}\n"
                 f"- Active master bus plugins: {plugins_str}\n"
                 f"- Loudness target: {self.mix_loudness_target.get()}\n"
