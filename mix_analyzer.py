@@ -3681,24 +3681,39 @@ def _downsample_for_chart(times, values, target_points=600):
 
 
 def _write_peak_rms_chart_data(ws, analysis, start_row, track_label):
-    """Write downsampled Peak/RMS data to a hidden sheet for charting.
+    """Write downsampled Peak/RMS/Crest data to a hidden sheet for charting.
     Returns (start_row, end_row) of written data."""
     from openpyxl.styles import Font
     drt = analysis['dynamic_range_timeline']
     times_ds, peak_ds = _downsample_for_chart(drt['times'], drt['peak_db'])
     _, rms_ds = _downsample_for_chart(drt['times'], drt['rms_db'])
+    _, crest_ds = _downsample_for_chart(drt['times'], drt['crest_instant'])
+    global_crest = analysis['loudness']['crest_factor']
 
     # Header row
     dim_font = Font(name='Calibri', size=9, color='888888')
-    ws.cell(row=start_row, column=1, value=f'Time (s) [{track_label}]').font = dim_font
-    ws.cell(row=start_row, column=2, value='Peak (dB)').font = dim_font
-    ws.cell(row=start_row, column=3, value='RMS (dB)').font = dim_font
+    headers = [
+        f'Time (s) [{track_label}]', 'Peak (dB)', 'RMS (dB)',
+        'High (>12dB)', 'Moderate (6-12dB)', 'Compressed (<6dB)',
+        '12 dB threshold', '6 dB threshold', f'Global: {global_crest:.1f} dB',
+    ]
+    for col, h in enumerate(headers, 1):
+        ws.cell(row=start_row, column=col, value=h).font = dim_font
     data_start = start_row + 1
 
     for i in range(len(times_ds)):
+        c = float(crest_ds[i])
         ws.cell(row=data_start + i, column=1, value=round(float(times_ds[i]), 3))
         ws.cell(row=data_start + i, column=2, value=round(float(peak_ds[i]), 2))
         ws.cell(row=data_start + i, column=3, value=round(float(rms_ds[i]), 2))
+        # Crest zone columns (Option A: three series)
+        ws.cell(row=data_start + i, column=4, value=round(c, 2) if c >= 12 else None)
+        ws.cell(row=data_start + i, column=5, value=round(c, 2) if 6 <= c < 12 else None)
+        ws.cell(row=data_start + i, column=6, value=round(c, 2) if c < 6 else None)
+        # Threshold reference lines (constant)
+        ws.cell(row=data_start + i, column=7, value=12)
+        ws.cell(row=data_start + i, column=8, value=6)
+        ws.cell(row=data_start + i, column=9, value=round(global_crest, 1))
 
     data_end = data_start + len(times_ds) - 1
     return start_row, data_end
@@ -3751,50 +3766,95 @@ def _create_peak_rms_linechart(ws_data, header_row, data_end, track_name):
     return chart
 
 
-def page_crest_factor(analysis, track_info):
-    """Generate crest factor subplot only (for use alongside native Peak/RMS chart)."""
-    fig = plt.figure(figsize=(11, 4.5))
-    fig.patch.set_facecolor(THEME['bg'])
+def _create_crest_areachart(ws_data, header_row, data_end, track_name):
+    """Create a native Excel AreaChart for Crest Factor with color-coded zones."""
+    from openpyxl.chart import AreaChart, LineChart, Reference
+    from openpyxl.chart.series import DataPoint
+    from openpyxl.drawing.line import LineProperties, LineEndProperties
 
-    drt = analysis['dynamic_range_timeline']
-    times = drt['times']
-    crest = drt['crest_instant']
+    chart = AreaChart()
+    chart.title = f"Crest Factor — {track_name}"
+    chart.style = 13
+    chart.y_axis.title = "Crest (dB)"
+    chart.x_axis.title = "Time (s)"
+    chart.y_axis.scaling.min = 0
+    chart.y_axis.scaling.max = 30
+    chart.y_axis.delete = False
+    chart.x_axis.delete = False
+    chart.legend.position = 'b'
+    chart.grouping = "standard"
 
-    ax = fig.add_subplot(1, 1, 1)
-    ax.fill_between(times, crest, 0,
-                     where=(crest >= 12), color=THEME['accent4'], alpha=0.3,
-                     label='High dynamic (>12 dB)', interpolate=True)
-    ax.fill_between(times, crest, 0,
-                     where=((crest >= 6) & (crest < 12)), color=THEME['warning'], alpha=0.3,
-                     label='Moderate (6-12 dB)', interpolate=True)
-    ax.fill_between(times, crest, 0,
-                     where=(crest < 6), color=THEME['critical'], alpha=0.3,
-                     label='Compressed (<6 dB)', interpolate=True)
-    ax.plot(times, crest, color=THEME['fg'], linewidth=1.2)
-    ax.axhline(12, color=THEME['accent4'], linewidth=0.6, alpha=0.5, linestyle='--')
-    ax.axhline(6, color=THEME['warning'], linewidth=0.6, alpha=0.5, linestyle='--')
+    data_start = header_row + 1
 
-    global_crest = analysis['loudness']['crest_factor']
-    ax.axhline(global_crest, color=THEME['accent1'], linewidth=1.5, linestyle=':',
-               label=f'Global crest factor: {global_crest:.1f} dB')
+    # Category axis (time) — column 1
+    cats = Reference(ws_data, min_col=1, min_row=data_start, max_row=data_end)
 
-    ax.set_xlabel('Time (s)', fontsize=10, color=THEME['fg'])
-    ax.set_ylabel('Crest factor (dB)', fontsize=10, color=THEME['fg'])
-    ax.set_title('Instantaneous crest factor — compression vs dynamics',
-                  color=THEME['accent1'], fontsize=11, pad=10)
-    ax.legend(loc='upper right', fontsize=8,
-              framealpha=0.85, facecolor=THEME['panel'],
-              edgecolor=THEME['fg_dim'], labelcolor=THEME['fg'])
-    ax.set_facecolor(THEME['bg'])
-    ax.tick_params(colors=THEME['fg'])
-    ax.grid(True, alpha=0.3, color=THEME['grid'])
-    ax.set_ylim(-2, max(30, np.max(crest) + 3))
+    # Three zone series (columns 4, 5, 6)
+    # High (>12 dB) — green
+    high_ref = Reference(ws_data, min_col=4, min_row=header_row, max_row=data_end)
+    chart.add_data(high_ref, titles_from_data=True)
+    # Moderate (6-12 dB) — yellow/orange
+    mid_ref = Reference(ws_data, min_col=5, min_row=header_row, max_row=data_end)
+    chart.add_data(mid_ref, titles_from_data=True)
+    # Compressed (<6 dB) — red
+    low_ref = Reference(ws_data, min_col=6, min_row=header_row, max_row=data_end)
+    chart.add_data(low_ref, titles_from_data=True)
 
-    for spine in ax.spines.values():
-        spine.set_color(THEME['grid'])
+    chart.set_categories(cats)
 
-    plt.tight_layout()
-    return fig
+    # Style zone series
+    # High dynamic — green
+    chart.series[0].graphicalProperties.solidFill = "00FF9F"
+    chart.series[0].graphicalProperties.line.solidFill = "00FF9F"
+    chart.series[0].graphicalProperties.line.width = 8000
+    # Moderate — amber/yellow
+    chart.series[1].graphicalProperties.solidFill = "FFAA00"
+    chart.series[1].graphicalProperties.line.solidFill = "FFAA00"
+    chart.series[1].graphicalProperties.line.width = 8000
+    # Compressed — red
+    chart.series[2].graphicalProperties.solidFill = "FF3333"
+    chart.series[2].graphicalProperties.line.solidFill = "FF3333"
+    chart.series[2].graphicalProperties.line.width = 8000
+
+    # Overlay threshold and global crest lines via a secondary LineChart
+    line_overlay = LineChart()
+
+    # 12 dB threshold line (column 7)
+    thresh12_ref = Reference(ws_data, min_col=7, min_row=header_row, max_row=data_end)
+    line_overlay.add_data(thresh12_ref, titles_from_data=True)
+    line_overlay.series[0].graphicalProperties.line.solidFill = "00FF9F"
+    line_overlay.series[0].graphicalProperties.line.width = 10000
+    line_overlay.series[0].graphicalProperties.line.dashStyle = "dash"
+
+    # 6 dB threshold line (column 8)
+    thresh6_ref = Reference(ws_data, min_col=8, min_row=header_row, max_row=data_end)
+    line_overlay.add_data(thresh6_ref, titles_from_data=True)
+    line_overlay.series[1].graphicalProperties.line.solidFill = "FFAA00"
+    line_overlay.series[1].graphicalProperties.line.width = 10000
+    line_overlay.series[1].graphicalProperties.line.dashStyle = "dash"
+
+    # Global crest factor line (column 9)
+    global_ref = Reference(ws_data, min_col=9, min_row=header_row, max_row=data_end)
+    line_overlay.add_data(global_ref, titles_from_data=True)
+    line_overlay.series[2].graphicalProperties.line.solidFill = "00D9FF"
+    line_overlay.series[2].graphicalProperties.line.width = 15000
+    line_overlay.series[2].graphicalProperties.line.dashStyle = "sysDot"
+
+    # No markers on line overlay
+    for s in line_overlay.series:
+        s.smooth = False
+
+    line_overlay.y_axis.scaling.min = 0
+    line_overlay.y_axis.scaling.max = 30
+    line_overlay.y_axis.delete = True  # hide secondary axis
+
+    # Combine area + line charts
+    chart += line_overlay
+
+    chart.width = 28
+    chart.height = 12
+
+    return chart
 
 
 def generate_excel_report(analyses_with_info, output_path, style_name,
@@ -4195,13 +4255,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             except Exception:
                 pass
 
-            # Crest factor image (separate from Peak/RMS which is now native)
+            # Native Excel AreaChart for Crest Factor (M6.2)
             try:
-                fig_crest = page_crest_factor(a, ti)
-                img_crest, tmp_crest = _fig_to_image(fig_crest)
-                tmp_files.append(tmp_crest)
-                ws_trk.add_image(img_crest, f'A{img_row}')
-                img_row += 30
+                crest_chart = _create_crest_areachart(
+                    ws_chart_data, hdr_row, end_row, a['filename'])
+                ws_trk.add_chart(crest_chart, f'A{img_row}')
+                img_row += 24
             except Exception:
                 pass
 
@@ -4434,13 +4493,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         except Exception:
             pass
 
-        # Crest factor image
+        # Native Excel AreaChart for Crest Factor (M6.2)
         try:
-            fig_crest = page_crest_factor(a_fm, ti_fm)
-            img_crest, tmp_crest = _fig_to_image(fig_crest)
-            tmp_files.append(tmp_crest)
-            ws_fm.add_image(img_crest, f'A{row}')
-            row += 30
+            crest_chart = _create_crest_areachart(
+                ws_chart_data, hdr_row, end_row, a_fm['filename'])
+            ws_fm.add_chart(crest_chart, f'A{row}')
+            row += 24
         except Exception:
             pass
 
