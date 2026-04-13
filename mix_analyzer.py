@@ -1196,6 +1196,11 @@ IMAGE_PRESETS = {
     'high':     {'dpi': 400, 'width': 3200, 'height': 1800},
 }
 
+# Excel display sizing — consistent regardless of DPI
+EXCEL_IMAGE_MAX_WIDTH = 1400   # px, ~80% of Full HD usable width
+EXCEL_IMAGE_MAX_HEIGHT = 800   # px, avoids excessive vertical space
+EXCEL_ROW_HEIGHT_PX = 20       # default Excel row height in pixels
+
 
 def make_page_header(fig, title, track_name, track_info=None):
     """Uniform page header. track_info: dict with type, category, etc."""
@@ -1830,7 +1835,9 @@ def _safe_sheet_name(name, max_len=31):
 
 
 def _fig_to_image(fig, quality='standard'):
-    """Render matplotlib figure to openpyxl Image via temp PNG. Returns (Image, tmp_path).
+    """Render matplotlib figure to openpyxl Image via temp PNG.
+    Returns (Image, tmp_path, row_span) where row_span is the number of
+    Excel rows the image occupies at its display size.
     quality: 'standard' (200 DPI, 1600x900) or 'high' (400 DPI, 3200x1800)."""
     import tempfile
     from openpyxl.drawing.image import Image as XlImage
@@ -1847,7 +1854,15 @@ def _fig_to_image(fig, quality='standard'):
     fig.savefig(tmp_path, dpi=dpi, facecolor=fig.get_facecolor(), bbox_inches='tight')
     plt.close(fig)
     img = XlImage(tmp_path)
-    return img, tmp_path
+
+    # Scale display size to fit within Excel max bounds, preserving aspect ratio
+    orig_w, orig_h = img.width, img.height
+    scale = min(EXCEL_IMAGE_MAX_WIDTH / orig_w, EXCEL_IMAGE_MAX_HEIGHT / orig_h, 1.0)
+    img.width = int(orig_w * scale)
+    img.height = int(orig_h * scale)
+
+    row_span = int(img.height / EXCEL_ROW_HEIGHT_PX) + 2
+    return img, tmp_path, row_span
 
 
 def _xl_write_header(ws, title, subtitle=''):
@@ -4548,10 +4563,10 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             for page_name, page_fn in page_fns:
                 try:
                     fig = page_fn()
-                    img, tmp_path = _fig_to_image(fig, quality=image_quality)
+                    img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
                     tmp_files.append(tmp_path)
                     ws_trk.add_image(img, f'A{img_row}')
-                    img_row += 48  # ~48 rows per image at default height
+                    img_row += rspan
                 except Exception:
                     pass
 
@@ -4627,10 +4642,10 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             fig.colorbar(im, ax=ax, label='% of track energy', pad=0.01)
             plt.tight_layout(rect=[0, 0.02, 1, 0.90])
 
-            img, tmp_path = _fig_to_image(fig, quality=image_quality)
+            img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
             tmp_files.append(tmp_path)
             ws_global.add_image(img, f'A{row}')
-            row += 50
+            row += rspan
         except Exception:
             pass
 
@@ -4652,10 +4667,10 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             ax.grid(True, alpha=0.3, axis='x')
             plt.tight_layout(rect=[0, 0.02, 1, 0.90])
 
-            img, tmp_path = _fig_to_image(fig, quality=image_quality)
+            img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
             tmp_files.append(tmp_path)
             ws_global.add_image(img, f'A{row}')
-            row += 50
+            row += rspan
         except Exception:
             pass
 
@@ -4685,10 +4700,10 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             ax.grid(True, alpha=0.3, axis='x')
             plt.tight_layout(rect=[0, 0.02, 1, 0.90])
 
-            img, tmp_path = _fig_to_image(fig, quality=image_quality)
+            img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
             tmp_files.append(tmp_path)
             ws_global.add_image(img, f'A{row}')
-            row += 50
+            row += rspan
         except Exception:
             pass
 
@@ -4712,10 +4727,10 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             ax.grid(True, alpha=0.3, axis='y')
             plt.tight_layout(rect=[0, 0.02, 1, 0.90])
 
-            img, tmp_path = _fig_to_image(fig, quality=image_quality)
+            img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
             tmp_files.append(tmp_path)
             ws_global.add_image(img, f'A{row}')
-            row += 50
+            row += rspan
         except Exception:
             pass
 
@@ -4811,10 +4826,10 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         for page_name, page_fn in fm_pages:
             try:
                 fig = page_fn()
-                img, tmp_path = _fig_to_image(fig, quality=image_quality)
+                img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
                 tmp_files.append(tmp_path)
                 ws_fm.add_image(img, f'A{row}')
-                row += 48
+                row += rspan
             except Exception:
                 pass
 
