@@ -5652,6 +5652,14 @@ UI_THEME = {
     'active':       THEME_COLORS['active'],
 }
 
+# M8.6: Unicode icons for styled tabs
+TAB_ICONS = {
+    'Setup':                '◆',
+    'Track Identification': '◉',
+    'Full Mix':             '♪',
+    'Analysis':             '▶',
+}
+
 
 # M8.4: Modern typography with font fallback chain
 # Font candidate lists ordered by preference (futuristic → system fallbacks)
@@ -6262,23 +6270,55 @@ def setup_ttk_styles():
     style = ttk.Style()
     style.theme_use('clam')
 
-    # === NOTEBOOK (Tabs) — selected tab is bigger ===
+    # === NOTEBOOK (Tabs) — M8.6: styled tabs with hover & accent ===
     style.configure('TNotebook',
                     background=UI_THEME['bg'],
-                    borderwidth=0)
+                    borderwidth=0,
+                    tabmargins=[4, 4, 0, 0])
+
+    # Remove default notebook border — borderless modern look
+    style.layout('TNotebook', [
+        ('Notebook.client', {'sticky': 'nswe'})
+    ])
+
+    # Modern tab layout (no focus rectangle)
+    style.layout('TNotebook.Tab', [
+        ('Notebook.tab', {
+            'sticky': 'nswe',
+            'children': [
+                ('Notebook.padding', {
+                    'side': 'top',
+                    'sticky': 'nswe',
+                    'children': [
+                        ('Notebook.label', {'side': 'left', 'sticky': ''}),
+                    ]
+                })
+            ]
+        })
+    ])
+
     style.configure('TNotebook.Tab',
                     background=UI_THEME['panel'],
                     foreground=UI_THEME['fg_dim'],
-                    padding=[18, 8],
+                    padding=[20, 10],
                     font=get_font('tab'),
                     borderwidth=0)
     style.map('TNotebook.Tab',
-              background=[('selected', UI_THEME['panel_light'])],
-              foreground=[('selected', UI_THEME['accent1'])],
+              background=[
+                  ('selected', UI_THEME['bg']),
+                  ('active', UI_THEME['hover']),
+                  ('!selected', UI_THEME['panel']),
+              ],
+              foreground=[
+                  ('selected', UI_THEME['accent1']),
+                  ('active', UI_THEME['fg']),
+                  ('!selected', UI_THEME['fg_dim']),
+              ],
               font=[('selected', get_font('tab_selected')),
                     ('!selected', get_font('tab'))],
               padding=[('selected', [22, 12]),
-                       ('!selected', [18, 8])])
+                       ('!selected', [20, 10])],
+              expand=[('selected', [0, 0, 0, 2])])
 
     # === FRAMES ===
     style.configure('TFrame', background=UI_THEME['bg'])
@@ -6743,19 +6783,23 @@ class MixAnalyzerApp:
                                       padx=16, pady=4)
         help_btn.pack(side='right', padx=(10, 0))
 
-        # Notebook
-        self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill='both', expand=True, padx=15, pady=10)
+        # Notebook — M8.6: styled tabs with icons
+        self.notebook = ttk.Notebook(self.root, style='TNotebook')
+        self.notebook.pack(fill='both', expand=True, padx=15, pady=(4, 10))
 
-        self.tab_setup = ttk.Frame(self.notebook)
-        self.tab_tracks = ttk.Frame(self.notebook)
-        self.tab_fullmix = ttk.Frame(self.notebook)
-        self.tab_analysis = ttk.Frame(self.notebook)
+        self.tab_setup = ttk.Frame(self.notebook, style='TFrame')
+        self.tab_tracks = ttk.Frame(self.notebook, style='TFrame')
+        self.tab_fullmix = ttk.Frame(self.notebook, style='TFrame')
+        self.tab_analysis = ttk.Frame(self.notebook, style='TFrame')
 
-        self.notebook.add(self.tab_setup, text='1. Setup')
-        self.notebook.add(self.tab_tracks, text='2. Track Identification')
-        self.notebook.add(self.tab_fullmix, text='3. Full Mix')
-        self.notebook.add(self.tab_analysis, text='4. Analysis')
+        self.notebook.add(self.tab_setup,
+                          text=f"{TAB_ICONS.get('Setup', '')}  1. Setup")
+        self.notebook.add(self.tab_tracks,
+                          text=f"{TAB_ICONS.get('Track Identification', '')}  2. Track Identification")
+        self.notebook.add(self.tab_fullmix,
+                          text=f"{TAB_ICONS.get('Full Mix', '')}  3. Full Mix")
+        self.notebook.add(self.tab_analysis,
+                          text=f"{TAB_ICONS.get('Analysis', '')}  4. Analysis")
 
         self._build_setup_tab()
         self._build_tracks_tab()
