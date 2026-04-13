@@ -5594,21 +5594,62 @@ def _format_row(idx, type_tag, analysis, track_info):
 # TKINTER USER INTERFACE - Multi-tab with list+details pattern
 # ============================================================================
 
-# Tkinter theme colors (matching report theme)
+# M8.2: Centralized cyberpunk color palette
+THEME_COLORS = {
+    # Backgrounds
+    'bg_primary':       '#0D0D0D',      # Main window (near-black)
+    'bg_secondary':     '#1A1A2E',      # Cards / panels
+    'bg_tertiary':      '#252542',      # Hover / input highlight
+    'bg_input':         '#1E1E2E',      # Input field backgrounds
+
+    # Accent colors
+    'accent_primary':   '#00FF9F',      # Turquoise neon (main accent)
+    'accent_secondary': '#FF3D8B',      # Pink neon (alerts, emphasis)
+    'accent_tertiary':  '#00D4AA',      # Cyan (links, secondary)
+    'accent_cyan':      '#00D9FF',      # Bright cyan (log text, data)
+    'accent_violet':    '#B967FF',      # Violet (decorative)
+    'accent_warning':   '#FFD93D',      # Yellow (warnings)
+    'accent_error':     '#FF5252',      # Red (errors / critical)
+
+    # Text
+    'text_primary':     '#FFFFFF',      # Primary text (white)
+    'text_secondary':   '#B8B8B8',      # Secondary text (light grey)
+    'text_muted':       '#666666',      # Muted text (grey)
+    'text_disabled':    '#444444',      # Disabled text
+
+    # Borders & lines
+    'border_default':   '#333333',      # Standard borders
+    'border_focus':     '#00FF9F',      # Focused element border
+    'border_subtle':    '#222222',      # Subtle dividers
+
+    # Interactive states
+    'hover':            '#2A2A4A',      # Hover background
+    'active':           '#353560',      # Active / pressed
+    'selected':         '#1A3A3A',      # Selected item background
+}
+
+# Tkinter theme colors — derived from THEME_COLORS for UI widgets
 UI_THEME = {
-    'bg':           '#0a0a12',
-    'panel':        '#1a1a24',
-    'panel_light':  '#242438',
-    'fg':           '#e8e8f0',
-    'fg_dim':       '#8888a0',
-    'accent1':      '#00d9ff',
-    'accent2':      '#b967ff',
-    'accent3':      '#ff3d8b',
-    'accent4':      '#00ff9f',
-    'warning':      '#ffaa00',
-    'critical':     '#ff3333',
-    'border':       '#333344',
-    'select':       '#2a2a4a',
+    'bg':           THEME_COLORS['bg_primary'],
+    'panel':        THEME_COLORS['bg_secondary'],
+    'panel_light':  THEME_COLORS['bg_tertiary'],
+    'bg_input':     THEME_COLORS['bg_input'],
+    'fg':           THEME_COLORS['text_primary'],
+    'fg_dim':       THEME_COLORS['text_secondary'],
+    'fg_muted':     THEME_COLORS['text_muted'],
+    'fg_disabled':  THEME_COLORS['text_disabled'],
+    'accent1':      THEME_COLORS['accent_primary'],
+    'accent2':      THEME_COLORS['accent_secondary'],
+    'accent3':      THEME_COLORS['accent_tertiary'],
+    'accent4':      THEME_COLORS['accent_cyan'],
+    'warning':      THEME_COLORS['accent_warning'],
+    'critical':     THEME_COLORS['accent_error'],
+    'border':       THEME_COLORS['border_default'],
+    'border_focus': THEME_COLORS['border_focus'],
+    'border_subtle':THEME_COLORS['border_subtle'],
+    'select':       THEME_COLORS['selected'],
+    'hover':        THEME_COLORS['hover'],
+    'active':       THEME_COLORS['active'],
 }
 
 
@@ -5620,8 +5661,8 @@ LOGO_CONFIG = {
     'subtitle_font_size': 14,
     'glow_color': (0, 255, 159),      # Turquoise neon (#00FF9F)
     'text_color': (220, 255, 245),     # Slightly tinted white
-    'subtitle_color': (136, 136, 160), # Dim (#8888A0)
-    'bg_color': (10, 10, 18),          # Dark bg (#0A0A12)
+    'subtitle_color': (184, 184, 184), # Secondary (#B8B8B8) — matches text_secondary
+    'bg_color': (13, 13, 13),          # Dark bg (#0D0D0D) — matches THEME_COLORS
     'glow_passes': [
         (20, 0.25),   # (radius, opacity) - wide diffuse outer glow
         (12, 0.4),
@@ -5888,11 +5929,11 @@ class HelpButton(tk.Button):
 
 
 def setup_ttk_styles():
-    """Configure ttk styles to match our cyberpunk theme."""
+    """Configure ttk styles for the cyberpunk dark theme (M8.2)."""
     style = ttk.Style()
     style.theme_use('clam')
 
-    # Notebook (tabs) — selected tab is bigger
+    # === NOTEBOOK (Tabs) — selected tab is bigger ===
     style.configure('TNotebook',
                     background=UI_THEME['bg'],
                     borderwidth=0)
@@ -5910,11 +5951,12 @@ def setup_ttk_styles():
               padding=[('selected', [22, 12]),
                        ('!selected', [18, 8])])
 
-    # Frames
+    # === FRAMES ===
     style.configure('TFrame', background=UI_THEME['bg'])
     style.configure('Panel.TFrame', background=UI_THEME['panel'])
+    style.configure('Card.TFrame', background=UI_THEME['panel'])
 
-    # Labels
+    # === LABELS ===
     style.configure('TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['fg'],
@@ -5943,19 +5985,31 @@ def setup_ttk_styles():
                     background=UI_THEME['panel'],
                     foreground=UI_THEME['fg_dim'],
                     font=('Calibri', 10))
+    style.configure('Accent.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=UI_THEME['accent1'])
+    style.configure('Header.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=UI_THEME['fg'],
+                    font=('Calibri', 14, 'bold'))
 
-    # Entries
+    # === ENTRIES ===
     style.configure('TEntry',
-                    fieldbackground=UI_THEME['panel'],
+                    fieldbackground=UI_THEME['bg_input'],
                     foreground=UI_THEME['fg'],
                     bordercolor=UI_THEME['border'],
                     lightcolor=UI_THEME['border'],
                     darkcolor=UI_THEME['border'],
-                    insertcolor=UI_THEME['fg'])
+                    insertcolor=UI_THEME['accent1'])
+    style.map('TEntry',
+              fieldbackground=[
+                  ('focus', UI_THEME['panel_light']),
+                  ('disabled', UI_THEME['panel'])
+              ])
 
-    # Combobox
+    # === COMBOBOX ===
     style.configure('TCombobox',
-                    fieldbackground=UI_THEME['panel'],
+                    fieldbackground=UI_THEME['bg_input'],
                     background=UI_THEME['panel'],
                     foreground=UI_THEME['fg'],
                     bordercolor=UI_THEME['border'],
@@ -5963,10 +6017,16 @@ def setup_ttk_styles():
                     selectbackground=UI_THEME['select'],
                     selectforeground=UI_THEME['fg'])
     style.map('TCombobox',
-              fieldbackground=[('readonly', UI_THEME['panel'])],
-              foreground=[('readonly', UI_THEME['fg'])])
+              fieldbackground=[
+                  ('readonly', UI_THEME['bg_input']),
+                  ('disabled', UI_THEME['panel'])
+              ],
+              foreground=[
+                  ('readonly', UI_THEME['fg']),
+                  ('disabled', UI_THEME['fg_disabled'])
+              ])
 
-    # Buttons
+    # === BUTTONS ===
     style.configure('TButton',
                     background=UI_THEME['panel_light'],
                     foreground=UI_THEME['fg'],
@@ -5975,8 +6035,15 @@ def setup_ttk_styles():
                     font=('Calibri', 11),
                     padding=8)
     style.map('TButton',
-              background=[('active', UI_THEME['accent1']), ('pressed', UI_THEME['accent2'])],
-              foreground=[('active', UI_THEME['bg'])])
+              background=[
+                  ('active', UI_THEME['accent1']),
+                  ('pressed', UI_THEME['accent2']),
+                  ('disabled', UI_THEME['panel_light'])
+              ],
+              foreground=[
+                  ('active', UI_THEME['bg']),
+                  ('disabled', UI_THEME['fg_disabled'])
+              ])
 
     style.configure('Accent.TButton',
                     background=UI_THEME['accent1'],
@@ -5987,25 +6054,121 @@ def setup_ttk_styles():
               background=[('active', UI_THEME['accent2'])],
               foreground=[('active', UI_THEME['fg'])])
 
-    # Checkbutton
+    # === CHECKBUTTON ===
     style.configure('TCheckbutton',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['fg'],
                     font=('Calibri', 11),
                     focuscolor=UI_THEME['accent1'])
+    style.map('TCheckbutton',
+              background=[('active', UI_THEME['bg'])])
     style.configure('Panel.TCheckbutton',
                     background=UI_THEME['panel'],
                     foreground=UI_THEME['fg'],
                     font=('Calibri', 11))
+    style.map('Panel.TCheckbutton',
+              background=[('active', UI_THEME['panel'])])
 
-    # Scrollbar
+    # === RADIOBUTTON ===
+    style.configure('TRadiobutton',
+                    background=UI_THEME['bg'],
+                    foreground=UI_THEME['fg'],
+                    font=('Calibri', 11),
+                    focuscolor=UI_THEME['accent1'])
+    style.map('TRadiobutton',
+              background=[('active', UI_THEME['bg'])])
+
+    # === PROGRESSBAR ===
+    style.configure('TProgressbar',
+                    background=UI_THEME['accent1'],
+                    troughcolor=UI_THEME['panel'],
+                    borderwidth=0,
+                    thickness=20)
+    style.configure('Horizontal.TProgressbar',
+                    background=UI_THEME['accent1'],
+                    troughcolor=UI_THEME['panel'],
+                    borderwidth=0)
+
+    # === SCROLLBAR ===
     style.configure('Vertical.TScrollbar',
                     background=UI_THEME['panel'],
                     troughcolor=UI_THEME['bg'],
                     bordercolor=UI_THEME['border'],
                     arrowcolor=UI_THEME['accent1'])
+    style.map('Vertical.TScrollbar',
+              background=[
+                  ('active', UI_THEME['hover']),
+                  ('pressed', UI_THEME['active'])
+              ])
+    style.configure('Horizontal.TScrollbar',
+                    background=UI_THEME['panel'],
+                    troughcolor=UI_THEME['bg'],
+                    bordercolor=UI_THEME['border'],
+                    arrowcolor=UI_THEME['accent1'])
+
+    # === LABELFRAME ===
+    style.configure('TLabelframe',
+                    background=UI_THEME['bg'],
+                    bordercolor=UI_THEME['border'])
+    style.configure('TLabelframe.Label',
+                    background=UI_THEME['bg'],
+                    foreground=UI_THEME['fg'])
+
+    # === SEPARATOR ===
+    style.configure('TSeparator',
+                    background=UI_THEME['border'])
+
+    # === TREEVIEW ===
+    style.configure('Treeview',
+                    background=UI_THEME['panel'],
+                    foreground=UI_THEME['fg'],
+                    fieldbackground=UI_THEME['panel'],
+                    borderwidth=0)
+    style.configure('Treeview.Heading',
+                    background=UI_THEME['panel_light'],
+                    foreground=UI_THEME['fg'])
+    style.map('Treeview',
+              background=[('selected', UI_THEME['select'])],
+              foreground=[('selected', UI_THEME['accent1'])])
+
+    # === SCALE ===
+    style.configure('TScale',
+                    background=UI_THEME['bg'],
+                    troughcolor=UI_THEME['panel'],
+                    borderwidth=0)
 
     return style
+
+
+def apply_dark_theme_to_tk_widget(widget, widget_type='default'):
+    """Apply the cyberpunk dark theme to native tk widgets (non-ttk)."""
+    common = {
+        'bg': UI_THEME['bg_input'],
+        'fg': UI_THEME['fg'],
+        'relief': 'flat',
+        'highlightbackground': UI_THEME['border'],
+        'highlightcolor': UI_THEME['border_focus'],
+        'highlightthickness': 1,
+    }
+
+    if widget_type == 'text':
+        common.update({
+            'insertbackground': UI_THEME['accent1'],
+            'selectbackground': UI_THEME['select'],
+            'selectforeground': UI_THEME['fg'],
+        })
+    elif widget_type == 'listbox':
+        common.update({
+            'selectbackground': UI_THEME['select'],
+            'selectforeground': UI_THEME['accent1'],
+        })
+    elif widget_type == 'canvas':
+        common = {
+            'bg': UI_THEME['bg'],
+            'highlightthickness': 0,
+        }
+
+    widget.configure(**common)
 
 
 # ============================================================================
@@ -6020,6 +6183,10 @@ class MixAnalyzerApp:
         self.root.geometry('1280x820')
         self.root.configure(bg=UI_THEME['bg'])
         self.root.minsize(1100, 700)
+
+        # Set default colors for all native tk widgets
+        self.root.option_add('*Background', UI_THEME['bg'])
+        self.root.option_add('*Foreground', UI_THEME['fg'])
 
         setup_ttk_styles()
 
@@ -6911,9 +7078,11 @@ class MixAnalyzerApp:
         log_frame.grid(row=8, column=0, columnspan=3, sticky='nsew', pady=5)
 
         self.log_text = scrolledtext.ScrolledText(
-            log_frame, height=12, bg='#050508', fg=UI_THEME['accent4'],
+            log_frame, height=12, bg=UI_THEME['bg_input'], fg=UI_THEME['accent4'],
             font=('Consolas', 9), bd=0, padx=10, pady=8,
-            insertbackground=UI_THEME['fg'])
+            insertbackground=UI_THEME['accent1'],
+            selectbackground=UI_THEME['select'],
+            selectforeground=UI_THEME['fg'])
         self.log_text.pack(fill='both', expand=True)
 
         frame.columnconfigure(0, weight=1)
