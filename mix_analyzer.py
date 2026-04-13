@@ -5918,13 +5918,7 @@ class HelpButton(tk.Button):
         text_widget.insert('1.0', text)
         text_widget.config(state='disabled')
 
-        close_btn = tk.Button(frame, text='Close',
-                               command=dialog.destroy,
-                               bg=UI_THEME['accent1'], fg=UI_THEME['bg'],
-                               font=('Calibri', 11, 'bold'),
-                               activebackground=UI_THEME['accent2'],
-                               relief='flat', bd=0, padx=20, pady=6,
-                               cursor='hand2')
+        close_btn = create_neon_button(frame, 'Close', dialog.destroy, preset='primary')
         close_btn.pack(pady=(12, 0))
 
 
@@ -6054,6 +6048,48 @@ def setup_ttk_styles():
               background=[('active', UI_THEME['accent2'])],
               foreground=[('active', UI_THEME['fg'])])
 
+    # M8.3: Additional button style variants
+    style.configure('Secondary.TButton',
+                    background=UI_THEME['panel_light'],
+                    foreground=UI_THEME['fg'],
+                    bordercolor=UI_THEME['border'],
+                    font=('Calibri', 11),
+                    padding=8)
+    style.map('Secondary.TButton',
+              background=[
+                  ('active', UI_THEME['hover']),
+                  ('pressed', UI_THEME['active']),
+                  ('disabled', UI_THEME['panel_light'])
+              ],
+              foreground=[
+                  ('disabled', UI_THEME['fg_disabled'])
+              ])
+
+    style.configure('Small.TButton',
+                    background=UI_THEME['panel_light'],
+                    foreground=UI_THEME['fg'],
+                    bordercolor=UI_THEME['accent1'],
+                    focuscolor=UI_THEME['accent1'],
+                    font=('Calibri', 10),
+                    padding=[8, 4])
+    style.map('Small.TButton',
+              background=[
+                  ('active', UI_THEME['accent1']),
+                  ('pressed', UI_THEME['accent2'])
+              ],
+              foreground=[
+                  ('active', UI_THEME['bg'])
+              ])
+
+    style.configure('Danger.TButton',
+                    background=UI_THEME['critical'],
+                    foreground=UI_THEME['fg'],
+                    font=('Calibri', 11, 'bold'),
+                    padding=8)
+    style.map('Danger.TButton',
+              background=[('active', '#DD4444')],
+              foreground=[('active', UI_THEME['fg'])])
+
     # === CHECKBUTTON ===
     style.configure('TCheckbutton',
                     background=UI_THEME['bg'],
@@ -6171,12 +6207,104 @@ def apply_dark_theme_to_tk_widget(widget, widget_type='default'):
     widget.configure(**common)
 
 
-# ============================================================================
-# MAIN APPLICATION CLASS
-# ============================================================================
+# M8.3: Custom neon button presets and factory
+
+BUTTON_PRESETS = {
+    'primary': {
+        'bg': UI_THEME['accent1'],
+        'fg': UI_THEME['bg'],
+        'activebackground': UI_THEME['accent2'],
+        'activeforeground': UI_THEME['fg'],
+        'font': ('Calibri', 11, 'bold'),
+        'padx': 20,
+        'pady': 6,
+        '_hover_bg': UI_THEME['accent3'],
+    },
+    'primary_large': {
+        'bg': UI_THEME['accent1'],
+        'fg': UI_THEME['bg'],
+        'activebackground': UI_THEME['accent2'],
+        'activeforeground': UI_THEME['fg'],
+        'font': ('Calibri', 13, 'bold'),
+        'padx': 28,
+        'pady': 10,
+        '_hover_bg': UI_THEME['accent3'],
+    },
+    'secondary': {
+        'bg': UI_THEME['panel_light'],
+        'fg': UI_THEME['fg'],
+        'activebackground': UI_THEME['hover'],
+        'activeforeground': UI_THEME['fg'],
+        'font': ('Calibri', 11),
+        'padx': 20,
+        'pady': 6,
+        '_hover_bg': UI_THEME['active'],
+    },
+    'ghost': {
+        'bg': UI_THEME['bg'],
+        'fg': UI_THEME['accent1'],
+        'activebackground': UI_THEME['panel'],
+        'activeforeground': UI_THEME['accent1'],
+        'font': ('Calibri', 11),
+        'padx': 16,
+        'pady': 6,
+        '_hover_bg': UI_THEME['panel'],
+    },
+    'danger': {
+        'bg': UI_THEME['critical'],
+        'fg': UI_THEME['fg'],
+        'activebackground': '#CC3333',
+        'activeforeground': UI_THEME['fg'],
+        'font': ('Calibri', 11, 'bold'),
+        'padx': 20,
+        'pady': 6,
+        '_hover_bg': '#DD4444',
+    },
+    'small': {
+        'bg': UI_THEME['panel_light'],
+        'fg': UI_THEME['fg'],
+        'activebackground': UI_THEME['hover'],
+        'activeforeground': UI_THEME['fg'],
+        'font': ('Calibri', 10),
+        'padx': 12,
+        'pady': 3,
+        '_hover_bg': UI_THEME['active'],
+    },
+}
 
 
-class MixAnalyzerApp:
+def create_neon_button(parent, text, command, preset='primary', **overrides):
+    """Create a styled button with hover effects.
+
+    Args:
+        parent: Parent widget
+        text: Button text
+        command: Click callback
+        preset: Key from BUTTON_PRESETS ('primary', 'secondary', 'ghost', etc.)
+        **overrides: Any tk.Button config to override the preset
+    Returns:
+        tk.Button with hover bindings attached
+    """
+    cfg = dict(BUTTON_PRESETS.get(preset, BUTTON_PRESETS['primary']))
+    hover_bg = cfg.pop('_hover_bg')
+    cfg.update(overrides)
+    # Remove any remaining private keys from overrides
+    cfg = {k: v for k, v in cfg.items() if not k.startswith('_')}
+
+    btn = tk.Button(parent, text=text, command=command,
+                    relief='flat', bd=0, cursor='hand2', **cfg)
+
+    normal_bg = cfg['bg']
+
+    def on_enter(e):
+        btn.configure(bg=hover_bg)
+
+    def on_leave(e):
+        btn.configure(bg=normal_bg)
+
+    btn.bind('<Enter>', on_enter)
+    btn.bind('<Leave>', on_leave)
+    return btn
     def __init__(self, root):
         self.root = root
         self.root.title('Mix Analyzer v2.0')
@@ -6228,13 +6356,9 @@ class MixAnalyzerApp:
         self._logo_widget = _create_logo_widget(title_frame)
         self._logo_widget.pack(side='left')
 
-        help_btn = tk.Button(title_frame, text='HELP',
-                              bg=UI_THEME['accent1'], fg=UI_THEME['bg'],
-                              font=('Calibri', 11, 'bold'),
-                              activebackground=UI_THEME['accent2'],
-                              relief='flat', bd=0, padx=16, pady=4,
-                              cursor='hand2',
-                              command=self._show_main_help)
+        help_btn = create_neon_button(title_frame, 'HELP',
+                                      self._show_main_help, preset='primary',
+                                      padx=16, pady=4)
         help_btn.pack(side='right', padx=(10, 0))
 
         # Notebook
@@ -6350,12 +6474,8 @@ class MixAnalyzerApp:
 
         text_widget.config(state='disabled')
 
-        tk.Button(frame, text='Close', command=dialog.destroy,
-                   bg=UI_THEME['accent1'], fg=UI_THEME['bg'],
-                   font=('Calibri', 11, 'bold'),
-                   activebackground=UI_THEME['accent2'],
-                   relief='flat', bd=0, padx=20, pady=6,
-                   cursor='hand2').pack(pady=(12, 0))
+        create_neon_button(frame, 'Close', dialog.destroy,
+                          preset='primary').pack(pady=(12, 0))
 
     # ------------------------------------------------------------------
     # TAB 1 - SETUP
@@ -6538,11 +6658,11 @@ class MixAnalyzerApp:
         # Action buttons
         action_row = tk.Frame(left, bg=UI_THEME['bg'])
         action_row.pack(fill='x', pady=(0, 5))
-        ttk.Button(action_row, text='Auto-detect all',
+        ttk.Button(action_row, text='Auto-detect all', style='Small.TButton',
                    command=self._auto_detect_all).pack(side='left', padx=(0, 5))
-        ttk.Button(action_row, text='Include all',
+        ttk.Button(action_row, text='Include all', style='Small.TButton',
                    command=lambda: self._set_all_include(True)).pack(side='left', padx=5)
-        ttk.Button(action_row, text='Exclude all',
+        ttk.Button(action_row, text='Exclude all', style='Small.TButton',
                    command=lambda: self._set_all_include(False)).pack(side='left', padx=5)
 
         # Listbox with scrollbar
@@ -7021,6 +7141,7 @@ class MixAnalyzerApp:
         self.run_button.pack(side='left', fill='x', expand=True)
 
         self.cancel_button = ttk.Button(run_row, text='Cancel',
+                                          style='Secondary.TButton',
                                           command=self._request_cancel,
                                           state='disabled')
         self.cancel_button.pack(side='left', padx=(10, 0))
@@ -7061,11 +7182,13 @@ class MixAnalyzerApp:
         buttons_row.grid(row=6, column=0, columnspan=3, sticky='w', pady=(0, 10))
 
         self.ai_button = ttk.Button(buttons_row, text='Generate AI Analysis Prompt',
+                                      style='Secondary.TButton',
                                       command=self._show_ai_prompt,
                                       state='disabled')
         self.ai_button.pack(side='left')
 
         self.open_folder_button = ttk.Button(buttons_row, text='Open output folder',
+                                                style='Secondary.TButton',
                                                 command=self._open_output_folder,
                                                 state='disabled')
         self.open_folder_button.pack(side='left', padx=(10, 0))
@@ -7432,22 +7555,13 @@ class MixAnalyzerApp:
         btn_row = tk.Frame(frame, bg=UI_THEME['bg'])
         btn_row.pack(fill='x', pady=(12, 0))
 
-        copy_btn = tk.Button(btn_row, text='Copy to Clipboard',
-                              command=copy_to_clipboard,
-                              bg=UI_THEME['accent1'], fg=UI_THEME['bg'],
-                              font=('Calibri', 11, 'bold'),
-                              activebackground=UI_THEME['accent2'],
-                              relief='flat', bd=0, padx=20, pady=8,
-                              cursor='hand2')
+        copy_btn = create_neon_button(btn_row, 'Copy to Clipboard',
+                                      copy_to_clipboard, preset='primary',
+                                      pady=8)
         copy_btn.pack(side='left')
 
-        tk.Button(btn_row, text='Close',
-                   command=dialog.destroy,
-                   bg=UI_THEME['panel_light'], fg=UI_THEME['fg'],
-                   font=('Calibri', 11),
-                   activebackground=UI_THEME['panel'],
-                   relief='flat', bd=0, padx=20, pady=8,
-                   cursor='hand2').pack(side='left', padx=(10, 0))
+        create_neon_button(btn_row, 'Close', dialog.destroy,
+                          preset='secondary', pady=8).pack(side='left', padx=(10, 0))
 
     def _build_ai_prompt(self):
         """Generate the contextualized AI prompt."""
