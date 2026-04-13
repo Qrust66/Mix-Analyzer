@@ -1330,7 +1330,7 @@ def page_spectral(analysis, track_info):
 
     S = analysis['spectrum']
 
-    ax1 = fig.add_subplot(2, 1, 1)
+    ax1 = fig.add_subplot(1, 1, 1)
     freqs = S['freqs']
     spec_db = S['spectrum_db_normalized']
     mask = freqs > 0
@@ -1352,23 +1352,6 @@ def page_spectral(analysis, track_info):
     band_colors = ['#2a1a4a', '#1a3a2a', '#4a3a1a', '#4a1a2a', '#4a1a3a', '#2a1a4a', '#1a3a4a']
     for i, (name, flow, fhigh) in enumerate(FREQ_BANDS):
         ax1.axvspan(flow, fhigh, alpha=0.15, color=band_colors[i % len(band_colors)])
-
-    ax2 = fig.add_subplot(2, 1, 2)
-    band_names = [BAND_LABELS[name] for name, _, _ in FREQ_BANDS]
-    band_values = [S['band_energies'][name] for name, _, _ in FREQ_BANDS]
-    bars = ax2.bar(range(len(band_names)), band_values, color=band_colors[:len(band_names)],
-                    edgecolor=THEME['fg_dim'], linewidth=0.5)
-    dominant_idx = [i for i, (n, _, _) in enumerate(FREQ_BANDS) if n == S['dominant_band']]
-    if dominant_idx:
-        bars[dominant_idx[0]].set_edgecolor(THEME['accent1'])
-        bars[dominant_idx[0]].set_linewidth(2.5)
-
-    ax2.set_xticks(range(len(band_names)))
-    ax2.set_xticklabels(band_names, rotation=25, ha='right', fontsize=8)
-    ax2.set_ylabel('% of total energy')
-    ax2.set_title('Spectral balance by band', color=THEME['accent1'], fontsize=10)
-    for i, v in enumerate(band_values):
-        ax2.text(i, v + 0.5, f'{v:.1f}%', ha='center', fontsize=8, color=THEME['fg'])
 
     plt.tight_layout(rect=[0, 0.03, 1, 0.90])
     return fig
@@ -3857,6 +3840,74 @@ def _create_crest_areachart(ws_data, header_row, data_end, track_name):
     return chart
 
 
+def _write_spectral_chart_data(ws, analysis, start_row, track_label):
+    """Write spectral band energy data to a hidden sheet for charting.
+    Returns (header_row, end_row) of written data."""
+    from openpyxl.styles import Font
+    dim_font = Font(name='Calibri', size=9, color='888888')
+
+    S = analysis['spectrum']
+    headers = [f'Band [{track_label}]', 'Energy (%)']
+    for col, h in enumerate(headers, 1):
+        ws.cell(row=start_row, column=col, value=h).font = dim_font
+
+    data_start = start_row + 1
+    for i, (name, _, _) in enumerate(FREQ_BANDS):
+        ws.cell(row=data_start + i, column=1, value=BAND_LABELS[name])
+        ws.cell(row=data_start + i, column=2,
+                value=round(S['band_energies'].get(name, 0.0), 2))
+
+    data_end = data_start + len(FREQ_BANDS) - 1
+    return start_row, data_end
+
+
+def _create_spectral_barchart(ws_data, header_row, data_end, track_name):
+    """Create a native Excel BarChart for spectral distribution by frequency band."""
+    from openpyxl.chart import BarChart, Reference
+    from openpyxl.chart.series import DataPoint
+
+    chart = BarChart()
+    chart.type = "col"
+    chart.style = 10
+    chart.title = f"Spectral Balance — {track_name}"
+    chart.y_axis.title = "% of total energy"
+    chart.x_axis.title = "Frequency Band"
+    chart.y_axis.scaling.min = 0
+    chart.y_axis.delete = False
+    chart.x_axis.delete = False
+    chart.legend = None
+
+    data_start = header_row + 1
+
+    # Data reference (Energy column = col 2)
+    data_ref = Reference(ws_data, min_col=2, min_row=header_row, max_row=data_end)
+    chart.add_data(data_ref, titles_from_data=True)
+
+    # Category labels (Band names = col 1)
+    cats = Reference(ws_data, min_col=1, min_row=data_start, max_row=data_end)
+    chart.set_categories(cats)
+
+    # Per-band colors: warm (low freq) -> cool (high freq)
+    band_colors = [
+        "FF3D8B",  # Sub — magenta/pink
+        "FF6B35",  # Bass — orange
+        "FFD93D",  # Low-Mid — yellow
+        "00FF9F",  # Mid — green (theme accent)
+        "00D4AA",  # High-Mid — teal
+        "00B4D8",  # Presence — cyan
+        "7B68EE",  # Air — medium slate blue
+    ]
+    for i, color in enumerate(band_colors):
+        pt = DataPoint(idx=i)
+        pt.graphicalProperties.solidFill = color
+        chart.series[0].data_points.append(pt)
+
+    chart.width = 20
+    chart.height = 12
+
+    return chart
+
+
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None,
                            include_individual_sheets=True):
@@ -4264,6 +4315,18 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             except Exception:
                 pass
 
+            # Native Excel BarChart for Spectral Distribution (M6.3)
+            try:
+                spec_hdr, spec_end = _write_spectral_chart_data(
+                    ws_chart_data, a, chart_data_row, sname)
+                spectral_chart = _create_spectral_barchart(
+                    ws_chart_data, spec_hdr, spec_end, a['filename'])
+                ws_trk.add_chart(spectral_chart, f'A{img_row}')
+                chart_data_row = spec_end + 2
+                img_row += 24
+            except Exception:
+                pass
+
             ws_trk.column_dimensions['A'].width = 25
             ws_trk.column_dimensions['B'].width = 40
             _apply_dark_background(ws_trk)
@@ -4498,6 +4561,18 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             crest_chart = _create_crest_areachart(
                 ws_chart_data, hdr_row, end_row, a_fm['filename'])
             ws_fm.add_chart(crest_chart, f'A{row}')
+            row += 24
+        except Exception:
+            pass
+
+        # Native Excel BarChart for Spectral Distribution (M6.3)
+        try:
+            spec_hdr, spec_end = _write_spectral_chart_data(
+                ws_chart_data, a_fm, chart_data_row, 'FullMix')
+            spectral_chart = _create_spectral_barchart(
+                ws_chart_data, spec_hdr, spec_end, a_fm['filename'])
+            ws_fm.add_chart(spectral_chart, f'A{row}')
+            chart_data_row = spec_end + 2
             row += 24
         except Exception:
             pass
