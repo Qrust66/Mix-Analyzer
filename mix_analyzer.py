@@ -5653,6 +5653,136 @@ UI_THEME = {
 }
 
 
+# M8.4: Modern typography with font fallback chain
+# Font candidate lists ordered by preference (futuristic → system fallbacks)
+
+DISPLAY_FONTS = [
+    'Orbitron', 'Rajdhani', 'Exo 2', 'Audiowide', 'Michroma',
+    'Aldrich', 'Electrolize', 'Share Tech', 'Titillium Web',
+    'Segoe UI', 'Helvetica Neue', 'Arial Black', 'Arial',
+]
+
+BODY_FONTS = [
+    'Rajdhani', 'Exo 2', 'Titillium Web',
+    'Segoe UI', 'Helvetica Neue', 'Calibri', 'Arial',
+]
+
+MONO_FONTS = [
+    'JetBrains Mono', 'Fira Code', 'Source Code Pro', 'Cascadia Code',
+    'Consolas', 'Monaco', 'Courier New',
+]
+
+# Global typography state (populated by setup_typography() after Tk root exists)
+TYPOGRAPHY = None
+_RESOLVED_FONTS = {'display': 'Arial', 'body': 'Arial', 'mono': 'Courier New'}
+
+
+def _get_available_tk_fonts():
+    """Return the set of font families available on the current system."""
+    try:
+        import tkinter.font as tkfont
+        return set(tkfont.families())
+    except Exception:
+        return set()
+
+
+def find_best_font(candidates, fallback='Arial'):
+    """Find the first available font from a prioritized candidates list."""
+    available = _get_available_tk_fonts()
+    for name in candidates:
+        if name in available:
+            return name
+    return fallback
+
+
+def setup_typography():
+    """Build the TYPOGRAPHY config with the best available fonts.
+
+    Must be called after tk.Tk() is created so font detection works.
+    Returns (TYPOGRAPHY dict, resolved_fonts dict).
+    """
+    global TYPOGRAPHY, _RESOLVED_FONTS
+
+    display = find_best_font(DISPLAY_FONTS, 'Arial')
+    body = find_best_font(BODY_FONTS, 'Arial')
+    mono = find_best_font(MONO_FONTS, 'Courier New')
+
+    _RESOLVED_FONTS = {'display': display, 'body': body, 'mono': mono}
+
+    TYPOGRAPHY = {
+        # Display / Headers
+        'h1':              {'family': display, 'size': 20, 'weight': 'bold'},
+        'h2':              {'family': display, 'size': 15, 'weight': 'bold'},
+        'h3':              {'family': display, 'size': 13, 'weight': 'bold'},
+        'header':          {'family': display, 'size': 14, 'weight': 'bold'},
+        'heading_dialog':  {'family': display, 'size': 18, 'weight': 'bold'},
+        'heading_help':    {'family': display, 'size': 16, 'weight': 'bold'},
+        'subheading':      {'family': display, 'size': 12, 'weight': 'bold'},
+
+        # Body text
+        'body':            {'family': body, 'size': 11, 'weight': 'normal'},
+        'body_bold':       {'family': body, 'size': 11, 'weight': 'bold'},
+        'body_small':      {'family': body, 'size': 10, 'weight': 'normal'},
+        'body_small_bold': {'family': body, 'size': 10, 'weight': 'bold'},
+
+        # Captions
+        'caption':         {'family': body, 'size': 9,  'weight': 'normal'},
+        'caption_tiny':    {'family': body, 'size': 8,  'weight': 'normal'},
+
+        # Buttons
+        'button':          {'family': body, 'size': 11, 'weight': 'normal'},
+        'button_bold':     {'family': body, 'size': 11, 'weight': 'bold'},
+        'button_large':    {'family': body, 'size': 13, 'weight': 'bold'},
+        'button_accent':   {'family': body, 'size': 12, 'weight': 'bold'},
+        'button_small':    {'family': body, 'size': 10, 'weight': 'normal'},
+
+        # Tabs
+        'tab':             {'family': body, 'size': 11, 'weight': 'normal'},
+        'tab_selected':    {'family': body, 'size': 14, 'weight': 'bold'},
+
+        # Monospace (log, code, data values)
+        'mono':            {'family': mono, 'size': 9,  'weight': 'normal'},
+        'mono_large':      {'family': mono, 'size': 14, 'weight': 'bold'},
+    }
+
+    # Update BUTTON_PRESETS with resolved fonts (if already defined)
+    try:
+        _update_button_preset_fonts()
+    except NameError:
+        pass  # BUTTON_PRESETS not yet defined at import time
+
+    return TYPOGRAPHY, _RESOLVED_FONTS
+
+
+def get_font(style_name):
+    """Return a Tkinter font tuple (family, size, weight) for the given style.
+
+    Falls back to a safe default if typography hasn't been set up yet.
+    """
+    if TYPOGRAPHY is None:
+        return ('Arial', 11, 'normal')
+    style = TYPOGRAPHY.get(style_name, TYPOGRAPHY['body'])
+    return (style['family'], style['size'], style['weight'])
+
+
+def _update_button_preset_fonts():
+    """Update BUTTON_PRESETS with the resolved typography fonts."""
+    BUTTON_PRESETS['primary']['font'] = get_font('button_bold')
+    BUTTON_PRESETS['primary_large']['font'] = get_font('button_large')
+    BUTTON_PRESETS['secondary']['font'] = get_font('button')
+    BUTTON_PRESETS['ghost']['font'] = get_font('button')
+    BUTTON_PRESETS['danger']['font'] = get_font('button_bold')
+    BUTTON_PRESETS['small']['font'] = get_font('button_small')
+
+
+def log_typography_info():
+    """Print resolved font information for debugging."""
+    print(f"[Mix Analyzer] Typography:")
+    print(f"  Display font: {_RESOLVED_FONTS['display']}")
+    print(f"  Body font:    {_RESOLVED_FONTS['body']}")
+    print(f"  Mono font:    {_RESOLVED_FONTS['mono']}")
+
+
 # M8.1: Neon logo configuration
 LOGO_CONFIG = {
     'text': 'MIX ANALYZER',
@@ -5766,10 +5896,10 @@ def _create_logo_widget(parent):
         # Fallback: styled text labels
         frame = tk.Frame(parent, bg=UI_THEME['bg'])
         tk.Label(frame, text='MIX ANALYZER',
-                 font=('Calibri', 20, 'bold'),
+                 font=get_font('h1'),
                  fg=UI_THEME['accent4'], bg=UI_THEME['bg']).pack()
         tk.Label(frame, text='v2.0 — Visual Mix Diagnostic',
-                 font=('Calibri', 10),
+                 font=get_font('body_small'),
                  fg=UI_THEME['fg_dim'], bg=UI_THEME['bg']).pack()
         return frame
 
@@ -5890,7 +6020,7 @@ class HelpButton(tk.Button):
                           activebackground=UI_THEME['panel_light'],
                           activeforeground=UI_THEME['accent1'],
                           relief='flat', bd=0, cursor='hand2',
-                          font=('Segoe UI', 11, 'bold'),
+                          font=get_font('body_bold'),
                           command=lambda: self._show_help(help_key),
                           **kwargs)
         self.help_key = help_key
@@ -5908,11 +6038,11 @@ class HelpButton(tk.Button):
 
         title_lbl = tk.Label(frame, text='ⓘ  Help',
                               bg=UI_THEME['bg'], fg=UI_THEME['accent1'],
-                              font=('Calibri', 16, 'bold'))
+                              font=get_font('heading_help'))
         title_lbl.pack(anchor='w', pady=(0, 10))
 
         text_widget = tk.Text(frame, wrap='word', bg=UI_THEME['panel'],
-                               fg=UI_THEME['fg'], font=('Calibri', 11),
+                               fg=UI_THEME['fg'], font=get_font('body'),
                                bd=0, padx=12, pady=12, relief='flat')
         text_widget.pack(fill='both', expand=True)
         text_widget.insert('1.0', text)
@@ -5923,7 +6053,7 @@ class HelpButton(tk.Button):
 
 
 def setup_ttk_styles():
-    """Configure ttk styles for the cyberpunk dark theme (M8.2)."""
+    """Configure ttk styles for the cyberpunk dark theme (M8.2 + M8.4 typography)."""
     style = ttk.Style()
     style.theme_use('clam')
 
@@ -5935,13 +6065,13 @@ def setup_ttk_styles():
                     background=UI_THEME['panel'],
                     foreground=UI_THEME['fg_dim'],
                     padding=[18, 8],
-                    font=('Calibri', 11),
+                    font=get_font('tab'),
                     borderwidth=0)
     style.map('TNotebook.Tab',
               background=[('selected', UI_THEME['panel_light'])],
               foreground=[('selected', UI_THEME['accent1'])],
-              font=[('selected', ('Calibri', 14, 'bold')),
-                    ('!selected', ('Calibri', 11))],
+              font=[('selected', get_font('tab_selected')),
+                    ('!selected', get_font('tab'))],
               padding=[('selected', [22, 12]),
                        ('!selected', [18, 8])])
 
@@ -5954,38 +6084,78 @@ def setup_ttk_styles():
     style.configure('TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['fg'],
-                    font=('Calibri', 11))
+                    font=get_font('body'))
     style.configure('Title.TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['accent1'],
-                    font=('Calibri', 20, 'bold'))
+                    font=get_font('h1'))
     style.configure('SubTitle.TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['accent2'],
-                    font=('Calibri', 15, 'bold'))
+                    font=get_font('h2'))
     style.configure('Section.TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['fg'],
-                    font=('Calibri', 13, 'bold'))
+                    font=get_font('h3'))
     style.configure('Dim.TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['fg_dim'],
-                    font=('Calibri', 10))
+                    font=get_font('body_small'))
     style.configure('Panel.TLabel',
                     background=UI_THEME['panel'],
                     foreground=UI_THEME['fg'],
-                    font=('Calibri', 11))
+                    font=get_font('body'))
     style.configure('PanelDim.TLabel',
                     background=UI_THEME['panel'],
                     foreground=UI_THEME['fg_dim'],
-                    font=('Calibri', 10))
+                    font=get_font('body_small'))
     style.configure('Accent.TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['accent1'])
     style.configure('Header.TLabel',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['fg'],
-                    font=('Calibri', 14, 'bold'))
+                    font=get_font('header'))
+
+    # M8.4: Hierarchical heading styles
+    style.configure('H1.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=THEME_COLORS['text_primary'],
+                    font=get_font('h1'))
+    style.configure('H2.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=THEME_COLORS['text_primary'],
+                    font=get_font('h2'))
+    style.configure('H3.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=THEME_COLORS['text_primary'],
+                    font=get_font('h3'))
+    style.configure('Body.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=THEME_COLORS['text_primary'],
+                    font=get_font('body'))
+    style.configure('Caption.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=THEME_COLORS['text_secondary'],
+                    font=get_font('caption'))
+    style.configure('Mono.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=THEME_COLORS['accent_primary'],
+                    font=get_font('mono'))
+
+    # M8.4: Value display styles with accent colors
+    style.configure('Value.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=THEME_COLORS['accent_primary'],
+                    font=get_font('mono_large'))
+    style.configure('ValueWarning.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=THEME_COLORS['accent_warning'],
+                    font=get_font('mono_large'))
+    style.configure('ValueDanger.TLabel',
+                    background=UI_THEME['bg'],
+                    foreground=THEME_COLORS['accent_error'],
+                    font=get_font('mono_large'))
 
     # === ENTRIES ===
     style.configure('TEntry',
@@ -6026,7 +6196,7 @@ def setup_ttk_styles():
                     foreground=UI_THEME['fg'],
                     bordercolor=UI_THEME['accent1'],
                     focuscolor=UI_THEME['accent1'],
-                    font=('Calibri', 11),
+                    font=get_font('button'),
                     padding=8)
     style.map('TButton',
               background=[
@@ -6042,7 +6212,7 @@ def setup_ttk_styles():
     style.configure('Accent.TButton',
                     background=UI_THEME['accent1'],
                     foreground=UI_THEME['bg'],
-                    font=('Calibri', 12, 'bold'),
+                    font=get_font('button_accent'),
                     padding=12)
     style.map('Accent.TButton',
               background=[('active', UI_THEME['accent2'])],
@@ -6053,7 +6223,7 @@ def setup_ttk_styles():
                     background=UI_THEME['panel_light'],
                     foreground=UI_THEME['fg'],
                     bordercolor=UI_THEME['border'],
-                    font=('Calibri', 11),
+                    font=get_font('button'),
                     padding=8)
     style.map('Secondary.TButton',
               background=[
@@ -6070,7 +6240,7 @@ def setup_ttk_styles():
                     foreground=UI_THEME['fg'],
                     bordercolor=UI_THEME['accent1'],
                     focuscolor=UI_THEME['accent1'],
-                    font=('Calibri', 10),
+                    font=get_font('button_small'),
                     padding=[8, 4])
     style.map('Small.TButton',
               background=[
@@ -6084,7 +6254,7 @@ def setup_ttk_styles():
     style.configure('Danger.TButton',
                     background=UI_THEME['critical'],
                     foreground=UI_THEME['fg'],
-                    font=('Calibri', 11, 'bold'),
+                    font=get_font('button_bold'),
                     padding=8)
     style.map('Danger.TButton',
               background=[('active', '#DD4444')],
@@ -6094,14 +6264,14 @@ def setup_ttk_styles():
     style.configure('TCheckbutton',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['fg'],
-                    font=('Calibri', 11),
+                    font=get_font('body'),
                     focuscolor=UI_THEME['accent1'])
     style.map('TCheckbutton',
               background=[('active', UI_THEME['bg'])])
     style.configure('Panel.TCheckbutton',
                     background=UI_THEME['panel'],
                     foreground=UI_THEME['fg'],
-                    font=('Calibri', 11))
+                    font=get_font('body'))
     style.map('Panel.TCheckbutton',
               background=[('active', UI_THEME['panel'])])
 
@@ -6109,7 +6279,7 @@ def setup_ttk_styles():
     style.configure('TRadiobutton',
                     background=UI_THEME['bg'],
                     foreground=UI_THEME['fg'],
-                    font=('Calibri', 11),
+                    font=get_font('body'),
                     focuscolor=UI_THEME['accent1'])
     style.map('TRadiobutton',
               background=[('active', UI_THEME['bg'])])
@@ -6305,6 +6475,9 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
     btn.bind('<Enter>', on_enter)
     btn.bind('<Leave>', on_leave)
     return btn
+
+
+class MixAnalyzerApp:
     def __init__(self, root):
         self.root = root
         self.root.title('Mix Analyzer v2.0')
@@ -6315,6 +6488,10 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
         # Set default colors for all native tk widgets
         self.root.option_add('*Background', UI_THEME['bg'])
         self.root.option_add('*Foreground', UI_THEME['fg'])
+
+        # M8.4: Initialize typography (must happen before styles and UI)
+        setup_typography()
+        log_typography_info()
 
         setup_ttk_styles()
 
@@ -6395,19 +6572,19 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
 
         tk.Label(frame, text='Mix Analyzer — Help',
                   bg=UI_THEME['bg'], fg=UI_THEME['accent1'],
-                  font=('Calibri', 18, 'bold')).pack(anchor='w', pady=(0, 12))
+                  font=get_font('heading_dialog')).pack(anchor='w', pady=(0, 12))
 
         text_widget = tk.Text(frame, wrap='word', bg=UI_THEME['panel'],
-                               fg=UI_THEME['fg'], font=('Calibri', 11),
+                               fg=UI_THEME['fg'], font=get_font('body'),
                                bd=0, padx=16, pady=16, relief='flat',
                                spacing1=2, spacing3=2)
         text_widget.pack(fill='both', expand=True)
 
         # Configure heading tag
-        text_widget.tag_configure('heading', font=('Calibri', 14, 'bold'),
+        text_widget.tag_configure('heading', font=get_font('header'),
                                    foreground=UI_THEME['accent2'],
                                    spacing1=14, spacing3=6)
-        text_widget.tag_configure('subheading', font=('Calibri', 12, 'bold'),
+        text_widget.tag_configure('subheading', font=get_font('subheading'),
                                    foreground=UI_THEME['accent1'],
                                    spacing1=10, spacing3=4)
 
@@ -6520,7 +6697,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
 
         tk.Label(warning_frame, text='[!] TRACK NAMING IMPORTANT',
                   bg=UI_THEME['panel'], fg=UI_THEME['warning'],
-                  font=('Calibri', 11, 'bold')).pack(anchor='w', padx=12, pady=(10, 4))
+                  font=get_font('body_bold')).pack(anchor='w', padx=12, pady=(10, 4))
 
         warning_text = (
             "Before exporting from Ableton, make sure your tracks are clearly named. "
@@ -6539,7 +6716,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
         )
         tk.Label(warning_frame, text=warning_text,
                   bg=UI_THEME['panel'], fg=UI_THEME['fg'],
-                  font=('Calibri', 10), justify='left',
+                  font=get_font('body_small'), justify='left',
                   wraplength=900).pack(anchor='w', padx=12, pady=(0, 12))
 
         # Status
@@ -6674,7 +6851,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
                                            fg=UI_THEME['fg'],
                                            selectbackground=UI_THEME['select'],
                                            selectforeground=UI_THEME['accent1'],
-                                           font=('Consolas', 9),
+                                           font=get_font('mono'),
                                            bd=0, highlightthickness=1,
                                            highlightbackground=UI_THEME['border'],
                                            highlightcolor=UI_THEME['accent1'],
@@ -6696,7 +6873,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
         legend_frame.pack(fill='x', pady=(5, 0))
         tk.Label(legend_frame, text='Legend:',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg_dim'],
-                  font=('Calibri', 9)).pack(side='left')
+                  font=get_font('caption')).pack(side='left')
         for symbol, meaning, color in [
             ('[X]', 'Included', UI_THEME['fg']),
             ('[-]', 'Excluded', UI_THEME['fg_dim']),
@@ -6705,7 +6882,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
         ]:
             tk.Label(legend_frame, text=f' {symbol}={meaning}',
                       bg=UI_THEME['bg'], fg=color,
-                      font=('Calibri', 8)).pack(side='left', padx=2)
+                      font=get_font('caption_tiny')).pack(side='left', padx=2)
 
         # RIGHT: Detail panel
         right = tk.Frame(paned, bg=UI_THEME['panel'], padx=20, pady=15)
@@ -6713,7 +6890,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
 
         self.details_title = tk.Label(right, text='No track selected',
                                         bg=UI_THEME['panel'], fg=UI_THEME['accent1'],
-                                        font=('Calibri', 14, 'bold'),
+                                        font=get_font('header'),
                                         wraplength=500, justify='left')
         self.details_title.pack(anchor='w', pady=(0, 15))
 
@@ -6735,14 +6912,14 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
                         selectcolor=UI_THEME['panel_light'],
                         activebackground=UI_THEME['panel'],
                         activeforeground=UI_THEME['fg'],
-                        font=('Calibri', 11),
+                        font=get_font('body'),
                         command=self._on_detail_change).grid(
             row=0, column=0, columnspan=3, sticky='w', pady=8)
 
         # Type
         tk.Label(f, text='Track Type:',
                   bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
-                  font=('Calibri', 11)).grid(row=1, column=0, sticky='w', pady=8)
+                  font=get_font('body')).grid(row=1, column=0, sticky='w', pady=8)
         self.detail_type = tk.StringVar()
         self.detail_type_combo = ttk.Combobox(f, textvariable=self.detail_type,
                                                  values=TRACK_TYPES, state='readonly', width=20, height=50)
@@ -6753,7 +6930,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
         # Category
         tk.Label(f, text='Category:',
                   bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
-                  font=('Calibri', 11)).grid(row=2, column=0, sticky='w', pady=8)
+                  font=get_font('body')).grid(row=2, column=0, sticky='w', pady=8)
         self.detail_category = tk.StringVar()
         # Build hierarchical list
         cat_values = []
@@ -6770,7 +6947,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
         # Parent BUS
         tk.Label(f, text='Parent BUS:',
                   bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
-                  font=('Calibri', 11)).grid(row=3, column=0, sticky='w', pady=8)
+                  font=get_font('body')).grid(row=3, column=0, sticky='w', pady=8)
         self.detail_parent_bus = tk.StringVar()
         self.detail_parent_bus_combo = ttk.Combobox(f, textvariable=self.detail_parent_bus,
                                                        values=['None'], state='readonly', width=35, height=50)
@@ -6784,7 +6961,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
 
         tk.Label(f, text='Quick notes:',
                   bg=UI_THEME['panel'], fg=UI_THEME['accent2'],
-                  font=('Calibri', 11, 'bold')).grid(row=5, column=0, sticky='w')
+                  font=get_font('body_bold')).grid(row=5, column=0, sticky='w')
 
         quick_tips = (
             "* Mark the bounce of your complete song as 'Full Mix' (only one allowed).\n"
@@ -6794,7 +6971,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
         )
         tk.Label(f, text=quick_tips,
                   bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
-                  font=('Calibri', 10), justify='left', wraplength=500).grid(
+                  font=get_font('body_small'), justify='left', wraplength=500).grid(
             row=6, column=0, columnspan=3, sticky='w', pady=(5, 0))
 
         # Hide all detail widgets initially
@@ -7017,7 +7194,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
         state_row.grid(row=row, column=0, columnspan=3, sticky='w', pady=8)
         tk.Label(state_row, text='Mix completion state:',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
-                  font=('Calibri', 11)).pack(side='left')
+                  font=get_font('body')).pack(side='left')
         ttk.Combobox(state_row, textvariable=self.mix_state,
                      values=MIX_STATES, state='readonly', width=25, height=50).pack(
             side='left', padx=(10, 5))
@@ -7027,7 +7204,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
         row += 1
         tk.Label(self.fullmix_details, text='Active master bus plugins:',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
-                  font=('Calibri', 11)).grid(row=row, column=0, sticky='nw', pady=(15, 5))
+                  font=get_font('body')).grid(row=row, column=0, sticky='nw', pady=(15, 5))
         HelpButton(self.fullmix_details, 'master_plugins').grid(
             row=row, column=1, sticky='nw', pady=(15, 5), padx=5)
 
@@ -7041,7 +7218,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
                             selectcolor=UI_THEME['panel_light'],
                             activebackground=UI_THEME['bg'],
                             activeforeground=UI_THEME['fg'],
-                            font=('Calibri', 11),
+                            font=get_font('body'),
                             command=self._save_config).grid(
                 row=0, column=i, sticky='w', padx=(0, 20))
 
@@ -7051,7 +7228,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
         target_row.grid(row=row, column=0, columnspan=3, sticky='w', pady=(15, 8))
         tk.Label(target_row, text='Loudness target:',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
-                  font=('Calibri', 11)).pack(side='left')
+                  font=get_font('body')).pack(side='left')
         ttk.Combobox(target_row, textvariable=self.mix_loudness_target,
                      values=LOUDNESS_TARGETS, state='readonly', width=35, height=50).pack(
             side='left', padx=(10, 5))
@@ -7061,7 +7238,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
         row += 1
         tk.Label(self.fullmix_details, text='Note (optional):',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
-                  font=('Calibri', 11)).grid(row=row, column=0, sticky='w', pady=(15, 5))
+                  font=get_font('body')).grid(row=row, column=0, sticky='w', pady=(15, 5))
         row += 1
         ttk.Entry(self.fullmix_details, textvariable=self.mix_note,
                    width=80).grid(row=row, column=0, columnspan=3, sticky='we', padx=0)
@@ -7097,7 +7274,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
 
         # Summary
         self.analysis_summary = tk.Text(frame, height=5, bg=UI_THEME['panel'],
-                                          fg=UI_THEME['fg'], font=('Calibri', 10),
+                                          fg=UI_THEME['fg'], font=get_font('body_small'),
                                           bd=0, padx=15, pady=12, relief='flat',
                                           state='disabled')
         self.analysis_summary.grid(row=1, column=0, columnspan=3, sticky='we', pady=10)
@@ -7120,15 +7297,15 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
                         selectcolor=UI_THEME['bg'],
                         activebackground=UI_THEME['panel'],
                         activeforeground=UI_THEME['fg'],
-                        font=('Calibri', 10)).pack(side='left')
+                        font=get_font('body_small')).pack(side='left')
 
         tk.Label(options_row, text='  Image quality:',
                  bg=UI_THEME['panel'], fg=UI_THEME['fg'],
-                 font=('Calibri', 10)).pack(side='left', padx=(15, 2))
+                 font=get_font('body_small')).pack(side='left', padx=(15, 2))
         quality_menu = tk.OptionMenu(options_row, self.image_quality,
                                       'standard', 'high')
         quality_menu.config(bg=UI_THEME['panel'], fg=UI_THEME['fg'],
-                            font=('Calibri', 10), highlightthickness=0)
+                            font=get_font('body_small'), highlightthickness=0)
         quality_menu.pack(side='left')
 
         # Run + Cancel row
@@ -7156,12 +7333,12 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
 
         self.progress_step = tk.Label(progress_frame, text='Step: Idle',
                                         bg=UI_THEME['panel'], fg=UI_THEME['accent1'],
-                                        font=('Calibri', 10, 'bold'), anchor='w')
+                                        font=get_font('body_small_bold'), anchor='w')
         self.progress_step.pack(fill='x')
 
         self.progress_substep = tk.Label(progress_frame, text='Substep: —',
                                            bg=UI_THEME['panel'], fg=UI_THEME['fg'],
-                                           font=('Calibri', 10), anchor='w')
+                                           font=get_font('body_small'), anchor='w')
         self.progress_substep.pack(fill='x')
 
         progress_bottom = tk.Frame(progress_frame, bg=UI_THEME['panel'])
@@ -7169,12 +7346,12 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
 
         self.progress_counter = tk.Label(progress_bottom, text='',
                                            bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
-                                           font=('Calibri', 10), anchor='w')
+                                           font=get_font('body_small'), anchor='w')
         self.progress_counter.pack(side='left')
 
         self.progress_eta = tk.Label(progress_bottom, text='',
                                        bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
-                                       font=('Calibri', 10), anchor='e')
+                                       font=get_font('body_small'), anchor='e')
         self.progress_eta.pack(side='right')
 
         # Post-run buttons
@@ -7202,7 +7379,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
 
         self.log_text = scrolledtext.ScrolledText(
             log_frame, height=12, bg=UI_THEME['bg_input'], fg=UI_THEME['accent4'],
-            font=('Consolas', 9), bd=0, padx=10, pady=8,
+            font=get_font('mono'), bd=0, padx=10, pady=8,
             insertbackground=UI_THEME['accent1'],
             selectbackground=UI_THEME['select'],
             selectforeground=UI_THEME['fg'])
@@ -7529,7 +7706,7 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
 
         tk.Label(frame, text='AI Analysis Prompt',
                   bg=UI_THEME['bg'], fg=UI_THEME['accent1'],
-                  font=('Calibri', 16, 'bold')).pack(anchor='w', pady=(0, 5))
+                  font=get_font('heading_help')).pack(anchor='w', pady=(0, 5))
 
         tk.Label(frame,
                   text='1. Click "Copy to Clipboard" below\n'
@@ -7537,11 +7714,11 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
                        '3. Attach the XLSX report file from your output folder\n'
                        '4. Paste this prompt in the message and send',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg_dim'],
-                  font=('Calibri', 10), justify='left').pack(anchor='w', pady=(0, 12))
+                  font=get_font('body_small'), justify='left').pack(anchor='w', pady=(0, 12))
 
         text_widget = scrolledtext.ScrolledText(
             frame, wrap='word', bg=UI_THEME['panel'], fg=UI_THEME['fg'],
-            font=('Consolas', 9), bd=0, padx=12, pady=12, relief='flat',
+            font=get_font('mono'), bd=0, padx=12, pady=12, relief='flat',
             insertbackground=UI_THEME['fg'])
         text_widget.pack(fill='both', expand=True)
         text_widget.insert('1.0', prompt)
