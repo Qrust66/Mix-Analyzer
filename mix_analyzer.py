@@ -3371,6 +3371,103 @@ def _compute_trend(first_val, last_val, metric_name):
         return '→'
 
 
+def _text_sparkline(values):
+    """Generate a Unicode text sparkline from a list of numeric values."""
+    blocks = " ▁▂▃▄▅▆▇█"
+    nums = []
+    for v in values:
+        try:
+            f = float(v)
+            import math
+            if math.isfinite(f):
+                nums.append(f)
+        except (ValueError, TypeError):
+            pass
+    if len(nums) < 2:
+        return "—"
+    min_v, max_v = min(nums), max(nums)
+    if max_v == min_v:
+        return "▅" * len(nums)
+    return "".join(blocks[min(8, int((n - min_v) / (max_v - min_v) * 8))] for n in nums)
+
+
+def _add_version_sparklines(ws, n_versions, tracked_metrics,
+                             header_row, data_start_row, sparkline_col):
+    """Add sparklines to the Version Tracking sheet (M6.5).
+    Tries native Excel SparklineGroup first, falls back to Unicode text."""
+    from openpyxl.utils import get_column_letter
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+
+    # Color per metric group
+    metric_colors = {
+        'Full Mix LUFS': '00FF9F',
+        'Full Mix True Peak (dBFS)': 'FF3D8B',
+        'Full Mix Crest (dB)': 'FFD93D',
+        'Full Mix PLR': '00D4AA',
+        'Full Mix Width': '7B68EE',
+        'Avg Individual Crest (dB)': 'FF6B35',
+        'Anomaly count': 'FF5252',
+        'Mix Health Score': '00D9FF',
+        'Track count': '8888A0',
+    }
+
+    # Data range: columns 2 through n_versions+1, rows data_start_row onward
+    first_data_col = get_column_letter(2)
+    last_data_col = get_column_letter(n_versions + 1)
+    spark_col_letter = get_column_letter(sparkline_col)
+
+    # Try native Excel sparklines
+    native_ok = False
+    try:
+        from openpyxl.worksheet.sparkline import SparklineGroup, Sparkline
+        from openpyxl.styles.colors import Color
+
+        for m_idx, metric_name in enumerate(tracked_metrics):
+            row = data_start_row + m_idx
+            data_range = f'{first_data_col}{row}:{last_data_col}{row}'
+            sqref = f'{spark_col_letter}{row}'
+
+            color_hex = metric_colors.get(metric_name, '00FF9F')
+            group = SparklineGroup(
+                type='line',
+                sparklines=[Sparkline(sqref=sqref, dataRange=data_range)],
+                colorSeries=Color(rgb=f'FF{color_hex}'),
+                displayEmptyCellsAs='gap',
+                high=True,
+                low=True,
+                last=True,
+            )
+            ws.sparkline_groups.append(group)
+
+        native_ok = True
+    except Exception:
+        pass
+
+    # Fallback: Unicode text sparklines
+    if not native_ok:
+        for m_idx, metric_name in enumerate(tracked_metrics):
+            row = data_start_row + m_idx
+            values = []
+            for v_idx in range(n_versions):
+                cell_val = ws.cell(row=row, column=v_idx + 2).value
+                values.append(cell_val)
+            text = _text_sparkline(values)
+            color_hex = metric_colors.get(metric_name, '00FF9F')
+            c = ws.cell(row=row, column=sparkline_col, value=text)
+            c.font = Font(name='Consolas', size=11, color=color_hex)
+            c.fill = bg_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+
+
 def generate_version_tracking_sheet(workbook, analyses_with_info,
                                      output_folder=None, song_name=None,
                                      log_fn=None):
@@ -3500,10 +3597,12 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
     delta_abs_col = n_versions + 2
     delta_pct_col = n_versions + 3
     trend_col = n_versions + 4
+    sparkline_col = n_versions + 5
 
     for col, label in [(delta_abs_col, 'Δ first→last'),
                        (delta_pct_col, 'Δ %'),
-                       (trend_col, 'Trend')]:
+                       (trend_col, 'Trend'),
+                       (sparkline_col, 'Sparkline')]:
         c = ws.cell(row=header_row, column=col, value=label)
         c.font = header_font
         c.fill = header_fill
@@ -3634,11 +3733,10 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
         c.border = thin_border
         source_row += 1
 
-    # Sparkline note
-    source_row += 1
-    ws.cell(row=source_row, column=1,
-            value='Sparkline visualization can be added in a future version.').font = dim_font
-    ws.cell(row=source_row, column=1).fill = bg_fill
+    # --- Sparklines for version evolution (M6.5) ---
+    if n_versions >= 2:
+        _add_version_sparklines(ws, n_versions, tracked_metrics,
+                                header_row, data_start_row, sparkline_col)
 
     # --- Freeze panes (row 9) ---
     ws.freeze_panes = 'A9'
@@ -3650,6 +3748,7 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
     ws.column_dimensions[get_column_letter(delta_abs_col)].width = 14
     ws.column_dimensions[get_column_letter(delta_pct_col)].width = 10
     ws.column_dimensions[get_column_letter(trend_col)].width = 8
+    ws.column_dimensions[get_column_letter(sparkline_col)].width = 14
 
     _apply_dark_background(ws)
     log_fn("    Excel: Version Tracking sheet done.")
