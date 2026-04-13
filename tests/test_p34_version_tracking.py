@@ -63,10 +63,20 @@ with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
                        'mix_analyzer.py')) as f:
     source = f.read()
 
+# Extract METRIC_GLOSSARY and ANOMALY_COMMENTS dictionaries
+mg_start = source.find('METRIC_GLOSSARY = {')
+mg_end = source.find('\n\ndef ', mg_start + 1)
+exec(source[mg_start:mg_end], globals())
+
 # Extract _apply_clean_layout helper (M5.1)
 acl_start = source.find('def _apply_clean_layout(')
 acl_end = source.find('\n\ndef ', acl_start + 1)
 exec(source[acl_start:acl_end], globals())
+
+# Extract _xl_add_comment helper
+xac_start = source.find('def _xl_add_comment(')
+xac_end = source.find('\n\ndef ', xac_start + 1)
+exec(source[xac_start:xac_end], globals())
 
 # Extract from _calc_loudness_score through generate_excel_report
 start = source.find('def _calc_loudness_score(')
