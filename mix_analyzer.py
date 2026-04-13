@@ -3108,6 +3108,12 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
             start_type='num', start_value=0, start_color='FF3333',
             mid_type='num', mid_value=50, mid_color='FFAA00',
             end_type='num', end_value=100, end_color='00FF9F'))
+    # M7.3: Data bars for sub-scores (0-100 scale)
+    from openpyxl.formatting.rule import DataBarRule
+    ws.conditional_formatting.add(
+        f'B{score_start}:B{score_end}',
+        DataBarRule(start_type='num', start_value=0,
+                    end_type='num', end_value=100, color='00D9FF'))
 
     # --- Section 3: Details per category (from row 20) ---
     detail_row = 20
@@ -4382,6 +4388,34 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             ColorScaleRule(start_type='min', start_color='B967FF',
                            end_type='max', end_color='FF3D8B'))
 
+        # M7.3: Icon sets for instant visual status
+        # Crest Factor (col F): traffic lights — red <6, yellow 6-12, green >12
+        ws_sum.conditional_formatting.add(
+            f'F{data_start}:F{data_end}',
+            IconSetRule(icon_style='3TrafficLights1', type='num',
+                        values=[0, 6, 12], showValue=True, reverse=False))
+        # Peak (col E): 3Symbols — ✓ safe <-1.5, ! caution -1.5 to -0.5, ✗ risk >-0.5
+        ws_sum.conditional_formatting.add(
+            f'E{data_start}:E{data_end}',
+            IconSetRule(icon_style='3Symbols2', type='num',
+                        values=[-100, -1.5, -0.5], showValue=True, reverse=True))
+
+        # M7.3: Multi-criteria formula alerts on Summary rows
+        from openpyxl.formatting.rule import FormulaRule
+        # Streaming risk: LUFS > -10 AND Peak > -1 → red highlight
+        ws_sum.conditional_formatting.add(
+            f'A{data_start}:J{data_end}',
+            FormulaRule(
+                formula=[f'AND($D{data_start}>-10,$E{data_start}>-1)'],
+                fill=PatternFill(start_color='FF5252', end_color='FF5252', fill_type='solid'),
+                font=Font(color='FFFFFF', bold=True)))
+        # Over-compressed + quiet: Crest < 6 AND LUFS < -16 → yellow highlight
+        ws_sum.conditional_formatting.add(
+            f'A{data_start}:J{data_end}',
+            FormulaRule(
+                formula=[f'AND($F{data_start}<6,$D{data_start}<-16)'],
+                fill=PatternFill(start_color='FFD93D', end_color='FFD93D', fill_type='solid')))
+
     # Auto-filter on Summary
     ws_sum.auto_filter.ref = f'A{sum_header_row}:J{max(row - 1, sum_header_row + 1)}'
 
@@ -5012,6 +5046,45 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             f'O{ds}:O{de}',
             ColorScaleRule(start_type='min', start_color='B967FF',
                            end_type='max', end_color='FF3D8B'))
+
+        # M7.3: Icon sets on Dashboard
+        # Crest Factor (col I): traffic lights — red <6, yellow 6-12, green >12
+        ws_dash.conditional_formatting.add(
+            f'I{ds}:I{de}',
+            IconSetRule(icon_style='3TrafficLights1', type='num',
+                        values=[0, 6, 12], showValue=True, reverse=False))
+        # True Peak (col G): 3Symbols — ✓ safe <-1.5, ! caution, ✗ risk >-0.5
+        ws_dash.conditional_formatting.add(
+            f'G{ds}:G{de}',
+            IconSetRule(icon_style='3Symbols2', type='num',
+                        values=[-100, -1.5, -0.5], showValue=True, reverse=True))
+        # Correlation (col N): traffic lights — red <0, yellow 0-0.5, green >0.5
+        ws_dash.conditional_formatting.add(
+            f'N{ds}:N{de}',
+            IconSetRule(icon_style='3TrafficLights1', type='num',
+                        values=[-1, 0, 0.5], showValue=True, reverse=False))
+
+        # M7.3: Multi-criteria formula alerts on Dashboard rows
+        from openpyxl.formatting.rule import FormulaRule
+        # Streaming risk: LUFS > -10 AND True Peak > -1 → red row
+        ws_dash.conditional_formatting.add(
+            f'A{ds}:S{de}',
+            FormulaRule(
+                formula=[f'AND($E{ds}>-10,$G{ds}>-1)'],
+                fill=PatternFill(start_color='FF5252', end_color='FF5252', fill_type='solid'),
+                font=Font(color='FFFFFF', bold=True)))
+        # Over-compressed + quiet: Crest < 6 AND LUFS < -16 → yellow row
+        ws_dash.conditional_formatting.add(
+            f'A{ds}:S{de}',
+            FormulaRule(
+                formula=[f'AND($I{ds}<6,$E{ds}<-16)'],
+                fill=PatternFill(start_color='FFD93D', end_color='FFD93D', fill_type='solid')))
+        # Near-clipping: True Peak > -0.3 → orange row
+        ws_dash.conditional_formatting.add(
+            f'A{ds}:S{de}',
+            FormulaRule(
+                formula=[f'$G{ds}>-0.3'],
+                fill=PatternFill(start_color='FF8B3D', end_color='FF8B3D', fill_type='solid')))
 
     # Column widths for Dashboard
     ws_dash.column_dimensions['A'].width = 40
