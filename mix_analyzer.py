@@ -6263,23 +6263,27 @@ class HelpButton(tk.Button):
         dialog.geometry('560x480')
         dialog.transient(self.winfo_toplevel())
 
-        frame = tk.Frame(dialog, bg=UI_THEME['bg'], padx=20, pady=20)
+        frame = tk.Frame(dialog, bg=UI_THEME['bg'],
+                         padx=SPACING['xl'], pady=SPACING['xl'])
         frame.pack(fill='both', expand=True)
 
         title_lbl = tk.Label(frame, text='ⓘ  Help',
                               bg=UI_THEME['bg'], fg=UI_THEME['accent1'],
                               font=get_font('heading_help'))
-        title_lbl.pack(anchor='w', pady=(0, 10))
+        title_lbl.pack(anchor='w', pady=(0, SPACING['md']))
 
         text_widget = tk.Text(frame, wrap='word', bg=UI_THEME['panel'],
                                fg=UI_THEME['fg'], font=get_font('body'),
-                               bd=0, padx=12, pady=12, relief='flat')
+                               bd=0, padx=SPACING['md'], pady=SPACING['md'],
+                               relief='flat',
+                               highlightbackground=BORDERS['subtle']['color'],
+                               highlightthickness=BORDERS['subtle']['width'])
         text_widget.pack(fill='both', expand=True)
         text_widget.insert('1.0', text)
         text_widget.config(state='disabled')
 
         close_btn = create_neon_button(frame, 'Close', dialog.destroy, preset='primary')
-        close_btn.pack(pady=(12, 0))
+        close_btn.pack(pady=(SPACING['md'], 0))
 
 
 def setup_ttk_styles():
@@ -7382,7 +7386,8 @@ class MixAnalyzerApp:
         tk.Label(f, text=quick_tips,
                   bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
                   font=get_font('body_small'), justify='left', wraplength=500).grid(
-            row=6, column=0, columnspan=3, sticky='w', pady=(5, 0))
+            row=6, column=0, columnspan=3, sticky='w',
+            pady=(SPACING['xs'], 0))
 
         # Hide all detail widgets initially
         for child in f.winfo_children():
