@@ -1190,6 +1190,12 @@ plt.rcParams.update({
     'font.family':      'sans-serif',
 })
 
+# Image quality presets for matplotlib renders
+IMAGE_PRESETS = {
+    'standard': {'dpi': 200, 'width': 1600, 'height': 900},
+    'high':     {'dpi': 400, 'width': 3200, 'height': 1800},
+}
+
 
 def make_page_header(fig, title, track_name, track_info=None):
     """Uniform page header. track_info: dict with type, category, etc."""
@@ -1823,10 +1829,16 @@ def _safe_sheet_name(name, max_len=31):
     return name[:max_len] if len(name) > max_len else name
 
 
-def _fig_to_image(fig, dpi=200, target_width=1600, target_height=900):
-    """Render matplotlib figure to openpyxl Image via temp PNG. Returns (Image, tmp_path)."""
+def _fig_to_image(fig, quality='standard'):
+    """Render matplotlib figure to openpyxl Image via temp PNG. Returns (Image, tmp_path).
+    quality: 'standard' (200 DPI, 1600x900) or 'high' (400 DPI, 3200x1800)."""
     import tempfile
     from openpyxl.drawing.image import Image as XlImage
+
+    preset = IMAGE_PRESETS.get(quality, IMAGE_PRESETS['standard'])
+    dpi = preset['dpi']
+    target_width = preset['width']
+    target_height = preset['height']
 
     fig.set_size_inches(target_width / dpi, target_height / dpi)
     tmp = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
@@ -4157,10 +4169,12 @@ def _create_comparison_chart(ws_data, header_row, data_end, n_tracks):
 
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None,
-                           include_individual_sheets=True):
+                           include_individual_sheets=True,
+                           image_quality='standard'):
     """
     Generate complete Excel report with 8 sheets.
     analyses_with_info: list of (analysis, track_info) tuples
+    image_quality: 'standard' (200 DPI) or 'high' (400 DPI, sharper images)
     """
     import tempfile
     from openpyxl import Workbook
@@ -4534,7 +4548,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             for page_name, page_fn in page_fns:
                 try:
                     fig = page_fn()
-                    img, tmp_path = _fig_to_image(fig)
+                    img, tmp_path = _fig_to_image(fig, quality=image_quality)
                     tmp_files.append(tmp_path)
                     ws_trk.add_image(img, f'A{img_row}')
                     img_row += 48  # ~48 rows per image at default height
@@ -4613,7 +4627,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             fig.colorbar(im, ax=ax, label='% of track energy', pad=0.01)
             plt.tight_layout(rect=[0, 0.02, 1, 0.90])
 
-            img, tmp_path = _fig_to_image(fig)
+            img, tmp_path = _fig_to_image(fig, quality=image_quality)
             tmp_files.append(tmp_path)
             ws_global.add_image(img, f'A{row}')
             row += 50
@@ -4638,7 +4652,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             ax.grid(True, alpha=0.3, axis='x')
             plt.tight_layout(rect=[0, 0.02, 1, 0.90])
 
-            img, tmp_path = _fig_to_image(fig)
+            img, tmp_path = _fig_to_image(fig, quality=image_quality)
             tmp_files.append(tmp_path)
             ws_global.add_image(img, f'A{row}')
             row += 50
@@ -4671,7 +4685,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             ax.grid(True, alpha=0.3, axis='x')
             plt.tight_layout(rect=[0, 0.02, 1, 0.90])
 
-            img, tmp_path = _fig_to_image(fig)
+            img, tmp_path = _fig_to_image(fig, quality=image_quality)
             tmp_files.append(tmp_path)
             ws_global.add_image(img, f'A{row}')
             row += 50
@@ -4698,7 +4712,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             ax.grid(True, alpha=0.3, axis='y')
             plt.tight_layout(rect=[0, 0.02, 1, 0.90])
 
-            img, tmp_path = _fig_to_image(fig)
+            img, tmp_path = _fig_to_image(fig, quality=image_quality)
             tmp_files.append(tmp_path)
             ws_global.add_image(img, f'A{row}')
             row += 50
@@ -4797,7 +4811,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         for page_name, page_fn in fm_pages:
             try:
                 fig = page_fn()
-                img, tmp_path = _fig_to_image(fig)
+                img, tmp_path = _fig_to_image(fig, quality=image_quality)
                 tmp_files.append(tmp_path)
                 ws_fm.add_image(img, f'A{row}')
                 row += 48
@@ -5398,6 +5412,7 @@ class MixAnalyzerApp:
 
         # Report options
         self.generate_individual_sheets = tk.BooleanVar(value=True)
+        self.image_quality = tk.StringVar(value='standard')
 
         # Analysis results
         self.analysis_results = None
@@ -5689,6 +5704,9 @@ class MixAnalyzerApp:
 
         if 'generate_individual_sheets' in existing_config:
             self.generate_individual_sheets.set(existing_config['generate_individual_sheets'])
+
+        if 'image_quality' in existing_config:
+            self.image_quality.set(existing_config['image_quality'])
 
         self.setup_status.config(
             text=f"Loaded {len(files)} audio files. "
@@ -6187,6 +6205,15 @@ class MixAnalyzerApp:
                         activeforeground=UI_THEME['fg'],
                         font=('Calibri', 10)).pack(side='left')
 
+        tk.Label(options_row, text='  Image quality:',
+                 bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                 font=('Calibri', 10)).pack(side='left', padx=(15, 2))
+        quality_menu = tk.OptionMenu(options_row, self.image_quality,
+                                      'standard', 'high')
+        quality_menu.config(bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                            font=('Calibri', 10), highlightthickness=0)
+        quality_menu.pack(side='left')
+
         # Run + Cancel row
         run_row = ttk.Frame(frame)
         run_row.grid(row=4, column=0, columnspan=3, sticky='we', pady=(5, 10))
@@ -6498,7 +6525,8 @@ class MixAnalyzerApp:
                     analyses_with_info, str(xlsx_path), self.style.get(),
                     full_mix_info=full_mix_info, ai_prompt=ai_prompt,
                     log_fn=self.log,
-                    include_individual_sheets=include_sheets)
+                    include_individual_sheets=include_sheets,
+                    image_quality=self.image_quality.get())
                 generated_files.append(xlsx_path)
                 self.log(f"Excel report: {xlsx_path.name}")
             except Exception as e:
@@ -6546,6 +6574,7 @@ class MixAnalyzerApp:
                 'style': self.style.get(),
                 'tracks': self.track_configs,
                 'generate_individual_sheets': self.generate_individual_sheets.get(),
+                'image_quality': self.image_quality.get(),
                 'full_mix': {
                     'state': self.mix_state.get(),
                     'plugins': active_plugins,
