@@ -1807,23 +1807,325 @@ def page_dynamic_range_map(analysis, track_info):
 # ============================================================================
 
 METRIC_GLOSSARY = {
-    'LUFS': 'Loudness Units Full Scale (integrated). Target depends on style.\n-14 LUFS = streaming standard. -8 LUFS = very hot.',
-    'Peak (dB)': 'True peak level in dBFS. Should stay below 0 dBFS.\n-1 dBFS or lower is safe for mastering headroom.',
-    'Crest (dB)': 'Peak-to-RMS ratio. Measures dynamic range.\n<6 dB = very compressed, 6-12 = moderate, >12 = dynamic.',
-    'Stereo Width': 'Mid/Side energy ratio. 0 = mono, 0.5 = balanced, >0.7 = very wide.\nBass/kick should be narrow, pads/FX can be wide.',
-    'Dom. Band': 'Frequency band with highest energy concentration.\nReveals the spectral center of gravity for this track.',
-    'Centroid (Hz)': 'Spectral centroid — brightness indicator.\nLow = dark/warm, high = bright/harsh.',
-    'Duration (s)': 'Track length in seconds.',
-    'PLR': 'Peak-to-Loudness Ratio. Peak dBFS minus LUFS.\nHigher = more headroom. <6 dB may clip on normalization.',
-    'PSR': 'Peak-to-Short-term Loudness Ratio.\nMeasures instantaneous headroom. Lower = more compressed.',
-    'LRA': 'Loudness Range in LU. Measures macro-dynamic variation.\n<4 = very compressed, 4-8 = moderate, >8 = dynamic.',
-    'Phase Correlation': 'Stereo phase correlation. +1 = perfect mono compat.\n<0.3 = risky phase issues. <0 = phase problems.',
-    'Flatness': 'Spectral flatness (0-1). 0 = tonal, 1 = noise-like.\nUseful to distinguish pitched from noisy content.',
-    'RMS': 'Root Mean Square level. Average perceived loudness.',
-    'True Peak': 'Inter-sample peak level. Can exceed 0 dBFS due to reconstruction.\nCritical for broadcast/streaming compliance.',
-    'Track': 'Filename of the analyzed audio bounce.',
-    'Type': 'Track role: Individual (single instrument), BUS (submix), Full Mix (master bounce).',
-    'Category': 'Instrument category for grouping and masking analysis.',
+    'LUFS': (
+        "Integrated loudness in LUFS (Loudness Units Full Scale).\n"
+        "Target: -14 LUFS for Spotify, YouTube, Apple Music.\n\n"
+        "Interpretation:\n"
+        "\u2022 -14 to -12: Ideal streaming range\n"
+        "\u2022 -16 to -14: Slightly quiet, acceptable\n"
+        "\u2022 Below -16: May sound quiet vs other tracks\n"
+        "\u2022 Above -10: Will be turned down by streaming platforms"
+    ),
+    'Peak (dB)': (
+        "Maximum inter-sample peak level in dBTP (True Peak).\n"
+        "Target: Below -1.0 dBTP for safe streaming.\n\n"
+        "Interpretation:\n"
+        "\u2022 Below -1.5 dBTP: Safe for all codecs\n"
+        "\u2022 -1.5 to -1.0 dBTP: Acceptable\n"
+        "\u2022 -1.0 to -0.5 dBTP: Risk of clipping on lossy codecs\n"
+        "\u2022 Above -0.5 dBTP: Likely to clip on MP3/AAC/Ogg"
+    ),
+    'Crest (dB)': (
+        "Dynamic range indicator (Peak - RMS in dB).\n"
+        "Higher = more dynamic, lower = more compressed.\n\n"
+        "Interpretation:\n"
+        "\u2022 Above 12 dB: High dynamics (acoustic, classical)\n"
+        "\u2022 8-12 dB: Moderate dynamics (typical mix)\n"
+        "\u2022 6-8 dB: Compressed (modern pop/rock)\n"
+        "\u2022 Below 6 dB: Heavily compressed (loudness war)"
+    ),
+    'Stereo Width': (
+        "Stereo image width (Mid/Side energy ratio).\n"
+        "0 = Mono, 0.5 = balanced, >0.7 = very wide.\n\n"
+        "Interpretation:\n"
+        "\u2022 0-0.2: Essentially mono (bass, kick)\n"
+        "\u2022 0.2-0.5: Narrow stereo (vocals, snare)\n"
+        "\u2022 0.5-0.8: Normal stereo (guitars, keys)\n"
+        "\u2022 0.8-1.0: Wide stereo (pads, ambience)\n"
+        "\u2022 Above 1.0: Out-of-phase content detected"
+    ),
+    'Dom. Band': (
+        "Frequency band with highest energy concentration.\n"
+        "Reveals the spectral center of gravity for this track.\n"
+        "Useful for identifying masking conflicts between tracks."
+    ),
+    'Centroid (Hz)': (
+        "Spectral centroid \u2014 brightness indicator in Hz.\n"
+        "Low values = dark/warm, high values = bright/harsh.\n\n"
+        "Typical ranges:\n"
+        "\u2022 Below 1500 Hz: Dark/warm mix\n"
+        "\u2022 1500-3000 Hz: Balanced\n"
+        "\u2022 Above 3000 Hz: Bright/aggressive"
+    ),
+    'Duration (s)': "Track length in seconds.",
+    'PLR': (
+        "Peak-to-Loudness Ratio (Peak dBFS minus LUFS).\n"
+        "Measures available headroom.\n\n"
+        "Interpretation:\n"
+        "\u2022 Above 12 dB: Very dynamic\n"
+        "\u2022 8-12 dB: Healthy headroom\n"
+        "\u2022 6-8 dB: Moderate\n"
+        "\u2022 Below 6 dB: May clip on normalization"
+    ),
+    'PSR': (
+        "Peak-to-Short-term Loudness Ratio.\n"
+        "Measures instantaneous headroom.\n\n"
+        "Interpretation:\n"
+        "\u2022 Above 10 dB: Very dynamic transients\n"
+        "\u2022 6-10 dB: Healthy transient headroom\n"
+        "\u2022 Below 6 dB: Heavily limited/compressed"
+    ),
+    'LRA': (
+        "Loudness Range in LU (Loudness Units).\n"
+        "Measures variation in loudness over time.\n\n"
+        "Interpretation:\n"
+        "\u2022 Above 10 LU: High variation (classical, film)\n"
+        "\u2022 6-10 LU: Moderate variation (typical music)\n"
+        "\u2022 3-6 LU: Low variation (pop, EDM)\n"
+        "\u2022 Below 3 LU: Very consistent (heavily processed)"
+    ),
+    'Phase Correlation': (
+        "Phase correlation between L and R channels.\n"
+        "+1 = Mono (identical), 0 = Unrelated, -1 = Out of phase.\n\n"
+        "Interpretation:\n"
+        "\u2022 0.8 to 1.0: Mono-compatible, safe\n"
+        "\u2022 0.5 to 0.8: Good stereo, mono-compatible\n"
+        "\u2022 0.0 to 0.5: Wide stereo, check mono\n"
+        "\u2022 Below 0.0: Phase issues, will cancel in mono"
+    ),
+    'Flatness': (
+        "Spectral flatness (0 to 1).\n"
+        "0 = purely tonal, 1 = noise-like.\n\n"
+        "Interpretation:\n"
+        "\u2022 Below 0.05: Tonal/pitched content\n"
+        "\u2022 0.05-0.2: Mixed content\n"
+        "\u2022 Above 0.2: Noisy/percussive content"
+    ),
+    'RMS': (
+        "Root Mean Square level in dBFS.\n"
+        "Represents average perceived loudness.\n"
+        "Lower than LUFS due to different weighting."
+    ),
+    'True Peak': (
+        "Maximum inter-sample peak level in dBTP.\n"
+        "Can exceed 0 dBFS due to reconstruction.\n"
+        "Critical for broadcast/streaming compliance.\n\n"
+        "Target: Below -1.0 dBTP for safe delivery."
+    ),
+    'Track': "Filename of the analyzed audio bounce.",
+    'Type': "Track role: Individual (single instrument), BUS (submix), Full Mix (master bounce).",
+    'Category': "Instrument category for grouping and masking analysis.",
+    # Dashboard alternate header names
+    'True Peak (dBFS)': (
+        "Maximum inter-sample peak level in dBTP.\n"
+        "Target: Below -1.0 dBTP for safe streaming.\n\n"
+        "\u2022 Below -1.5: Safe for all codecs\n"
+        "\u2022 -1.0 to -0.5: Risk of clipping on lossy codecs\n"
+        "\u2022 Above -0.5: Likely to clip on MP3/AAC/Ogg"
+    ),
+    'RMS (dB)': (
+        "Root Mean Square level in dBFS.\n"
+        "Represents average perceived loudness.\n"
+        "Compare with LUFS for loudness context."
+    ),
+    'PLR (dB)': (
+        "Peak-to-Loudness Ratio (Peak dBFS minus LUFS).\n"
+        "Higher = more headroom.\n"
+        "\u2022 Above 8 dB: Healthy  \u2022 Below 6 dB: Risk of clipping"
+    ),
+    'PSR (dB)': (
+        "Peak-to-Short-term Loudness Ratio.\n"
+        "Measures instantaneous headroom.\n"
+        "\u2022 Above 6 dB: Healthy  \u2022 Below 6 dB: Heavily limited"
+    ),
+    'LRA (LU)': (
+        "Loudness Range in LU (Loudness Units).\n"
+        "Measures loudness variation over time.\n"
+        "\u2022 Above 10: Dynamic  \u2022 3-6: Consistent  \u2022 Below 3: Flat"
+    ),
+    'Width': (
+        "Stereo image width (Mid/Side energy ratio).\n"
+        "0 = Mono, 0.5 = balanced, >0.7 = very wide.\n"
+        "Bass/kick should be narrow, pads/FX can be wide."
+    ),
+    'Correlation': (
+        "Phase correlation between L and R channels.\n"
+        "+1 = Mono, 0 = Unrelated, -1 = Out of phase.\n"
+        "\u2022 Above 0.5: Mono-safe  \u2022 Below 0.0: Phase problems"
+    ),
+    'Rolloff (Hz)': (
+        "Spectral rolloff at 85% energy threshold.\n"
+        "Frequency below which 85% of spectral energy lies.\n"
+        "Lower = darker mix, higher = brighter mix."
+    ),
+    'Family': "Instrument family grouping (e.g. Rhythmic, Tonal, FX).\nUsed for category-level analysis.",
+    # Health Score
+    'Health Score': (
+        "Overall mix health indicator (0-100).\n"
+        "Combines multiple metrics weighted by importance.\n\n"
+        "Interpretation:\n"
+        "\u2022 90-100: Excellent, ready for release\n"
+        "\u2022 75-89: Good, minor issues possible\n"
+        "\u2022 50-74: Fair, review flagged areas\n"
+        "\u2022 Below 50: Needs attention, check anomalies"
+    ),
+    'Mix Health Score': (
+        "Overall mix health indicator (0-100).\n"
+        "Combines Loudness, Dynamics, Spectral, Stereo,\n"
+        "and Anomaly sub-scores. Tracks improvement over versions."
+    ),
+    # Spectral bands
+    'Sub Energy %': (
+        "Sub band energy (20-60 Hz).\n"
+        "Contains sub-bass fundamentals.\n"
+        "Excessive sub energy causes muddiness on small speakers."
+    ),
+    'Bass Energy %': (
+        "Bass band energy (60-250 Hz).\n"
+        "Contains fundamentals of bass and kick.\n"
+        "\u2022 High: Strong bass presence\n"
+        "\u2022 Low: Thin or bright mix"
+    ),
+    'Low-Mid Energy %': (
+        "Low-Mid band energy (250-500 Hz).\n"
+        "Contains warmth and body of instruments.\n"
+        "Excess causes muddiness and boominess."
+    ),
+    'Mid Energy %': (
+        "Mid band energy (500-2000 Hz).\n"
+        "Contains presence of vocals and melodic instruments.\n"
+        "Critical for clarity and definition."
+    ),
+    'High-Mid Energy %': (
+        "High-Mid band energy (2-6 kHz).\n"
+        "Contains attack and presence.\n"
+        "Excess causes harshness and listening fatigue."
+    ),
+    'Presence Energy %': (
+        "Presence band energy (6-12 kHz).\n"
+        "Contains sibilance and air.\n"
+        "Important for clarity and detail."
+    ),
+    'Air Energy %': (
+        "Air band energy (12-20 kHz).\n"
+        "Contains highest harmonics and air.\n"
+        "Adds sparkle and openness to the mix."
+    ),
+    # Version Tracking specific metrics
+    'Full Mix LUFS': (
+        "Integrated loudness of the full mix bounce.\n"
+        "Track this across versions to monitor loudness changes.\n"
+        "Target: -14 LUFS for streaming platforms."
+    ),
+    'Full Mix True Peak (dBFS)': (
+        "True peak level of the full mix bounce.\n"
+        "Should decrease or stay below -1.0 dBTP across versions.\n"
+        "Rising peaks may indicate over-processing."
+    ),
+    'Full Mix Crest (dB)': (
+        "Crest factor of the full mix bounce.\n"
+        "Track dynamic range across mix iterations.\n"
+        "Decreasing values suggest increasing compression."
+    ),
+    'Full Mix PLR': (
+        "Peak-to-Loudness Ratio of the full mix.\n"
+        "Monitors headroom across versions.\n"
+        "Should remain above 6 dB for safe normalization."
+    ),
+    'Full Mix Width': (
+        "Stereo width of the full mix bounce.\n"
+        "Track stereo image consistency across versions.\n"
+        "Large changes may indicate stereo processing shifts."
+    ),
+    'Avg Individual Crest (dB)': (
+        "Average crest factor across individual tracks.\n"
+        "Monitors overall dynamic range of the session.\n"
+        "Decreasing trend may indicate over-compression."
+    ),
+    'Anomaly count': (
+        "Total number of detected anomalies.\n"
+        "Should decrease across mix iterations.\n"
+        "Rising count suggests new issues introduced."
+    ),
+    'Track count': (
+        "Number of tracks analyzed.\n"
+        "Track changes in session composition across versions."
+    ),
+    # Track Comparison specific
+    'LUFS': (
+        "Integrated loudness in LUFS (Loudness Units Full Scale).\n"
+        "Target: -14 LUFS for Spotify, YouTube, Apple Music.\n\n"
+        "Interpretation:\n"
+        "\u2022 -14 to -12: Ideal streaming range\n"
+        "\u2022 -16 to -14: Slightly quiet, acceptable\n"
+        "\u2022 Below -16: May sound quiet vs other tracks\n"
+        "\u2022 Above -10: Will be turned down by streaming platforms"
+    ),
+    'Peak (dBFS)': (
+        "Peak level in dBFS (decibels Full Scale).\n"
+        "Should stay below 0 dBFS to avoid clipping.\n"
+        "\u2022 Below -1.0: Safe headroom\n"
+        "\u2022 Above -0.5: Clipping risk"
+    ),
+    'Crest Factor (dB)': (
+        "Dynamic range indicator (Peak - RMS in dB).\n"
+        "Higher = more dynamic, lower = more compressed.\n"
+        "\u2022 Above 12: Dynamic  \u2022 6-8: Compressed  \u2022 Below 6: Over-compressed"
+    ),
+    'Dominant Band': (
+        "Frequency band with highest energy concentration.\n"
+        "Reveals the spectral center of gravity.\n"
+        "Compare across tracks to identify masking conflicts."
+    ),
+}
+
+# M7.4: Anomaly explanations for contextual comments
+ANOMALY_COMMENTS = {
+    'clipping risk': (
+        "Peak level is at or near 0 dBFS.\n"
+        "Impact: Audible distortion, inter-sample clipping.\n"
+        "Suggestion: Reduce gain or add a limiter with -1 dB ceiling."
+    ),
+    'very little headroom': (
+        "Peak level is close to 0 dBFS with minimal margin.\n"
+        "Impact: Risk of clipping on lossy codec conversion.\n"
+        "Suggestion: Pull back the master fader or reduce gain by 1-2 dB."
+    ),
+    'inter-sample clipping': (
+        "True Peak exceeds 0 dBFS between samples.\n"
+        "Impact: Distortion on D/A conversion and lossy encoding.\n"
+        "Suggestion: Use a True Peak limiter set to -1.0 dBTP ceiling."
+    ),
+    'serious mono compatibility': (
+        "Phase correlation is strongly negative.\n"
+        "Impact: Severe signal cancellation when summed to mono.\n"
+        "Suggestion: Check for inverted polarity or excessive stereo widening."
+    ),
+    'mono compatibility concern': (
+        "Phase correlation is low (below 0.3).\n"
+        "Impact: May sound thin or hollow in mono playback.\n"
+        "Suggestion: Check stereo widening plugins and verify phase alignment."
+    ),
+    'nearly silent': (
+        "RMS level is extremely low.\n"
+        "Impact: Track may be inaudible in the mix.\n"
+        "Suggestion: Verify this is intentional, or increase gain."
+    ),
+    'resonance peaks': (
+        "Strong narrow-band energy buildup detected.\n"
+        "Impact: Fatiguing frequencies, uneven tonal balance.\n"
+        "Suggestion: Apply a narrow EQ cut at the flagged frequencies."
+    ),
+    'heavy compression': (
+        "Crest factor indicates very low dynamic range.\n"
+        "Impact: Flat, lifeless sound lacking punch and transients.\n"
+        "Suggestion: Ease compression ratio/threshold or use parallel compression."
+    ),
+    'wide stereo image': (
+        "Stereo width is very high.\n"
+        "Impact: May collapse or phase-cancel in mono playback.\n"
+        "Suggestion: Check mono compatibility and reduce widening if needed."
+    ),
 }
 
 
@@ -1945,10 +2247,13 @@ def _xl_add_nav_row(ws, row, sheet_names_ordered, current_idx):
     return row + 1
 
 
-def _xl_add_comment(cell, text):
-    """Add a comment (tooltip) to a cell."""
+def _xl_add_comment(cell, text, width=300, height=150):
+    """Add a comment (tooltip) to a cell with optional dimensions."""
     from openpyxl.comments import Comment
-    cell.comment = Comment(text, 'Mix Analyzer')
+    comment = Comment(text, 'Mix Analyzer')
+    comment.width = width
+    comment.height = height
+    cell.comment = comment
 
 
 def _apply_clean_layout(ws):
@@ -2389,6 +2694,8 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
         c.font = data_font
         c.fill = bg_fill
         c.border = thin_border
+        if metric_name in METRIC_GLOSSARY:
+            _xl_add_comment(c, METRIC_GLOSSARY[metric_name])
 
         # Track A value (col B) - always shown
         match_a = f'MATCH($B$2,{name_col_ref},0)'
@@ -3028,6 +3335,7 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     ws['A3'].fill = bg_fill
     ws['A3'].alignment = Alignment(horizontal='center', vertical='center')
     ws['A3'].number_format = '0.0"/100"'
+    _xl_add_comment(ws['A3'], METRIC_GLOSSARY['Health Score'])
 
     ws['A5'] = f'Calculated on: {datetime.date.today().isoformat()}'
     ws['A5'].font = dim_font
@@ -3051,12 +3359,22 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
         c.border = thin_border
         c.alignment = Alignment(horizontal='center', vertical='center')
 
+    _health_cat_comments = {
+        'Loudness': "Evaluates LUFS targets, peak levels, and headroom.\nWeight: 20% of total score.",
+        'Dynamics': "Evaluates crest factor, PLR, and LRA.\nWeight: 20% of total score.",
+        'Spectral Balance': "Evaluates frequency distribution and centroid.\nWeight: 25% of total score.",
+        'Stereo Image': "Evaluates stereo width and phase correlation.\nWeight: 15% of total score.",
+        'Anomalies': "Penalty based on detected issues.\nWeight: 20% of total score.",
+    }
+
     for i, (name, score, weight, note, _) in enumerate(categories):
         row = cat_header_row + 1 + i
         c = ws.cell(row=row, column=1, value=name)
         c.font = data_font
         c.fill = bg_fill
         c.border = thin_border
+        if name in _health_cat_comments:
+            _xl_add_comment(c, _health_cat_comments[name])
 
         c = ws.cell(row=row, column=2, value=score)
         c.font = accent_font
@@ -3632,6 +3950,12 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
     trend_col = n_versions + 4
     sparkline_col = n_versions + 5
 
+    _vt_header_comments = {
+        'Δ first→last': "Absolute change from first to most recent version.\nPositive = increased, negative = decreased.",
+        'Δ %': "Percentage change from first to most recent version.\nUseful for comparing relative magnitude of changes.",
+        'Trend': "Direction indicator: ↑ increasing, ↓ decreasing, → stable.\nBased on overall trajectory across versions.",
+        'Sparkline': "Visual trend line across all versions.\nShows the evolution pattern at a glance.",
+    }
     for col, label in [(delta_abs_col, 'Δ first→last'),
                        (delta_pct_col, 'Δ %'),
                        (trend_col, 'Trend'),
@@ -3641,6 +3965,8 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
         c.fill = header_fill
         c.border = thin_border
         c.alignment = Alignment(horizontal='center')
+        if label in _vt_header_comments:
+            _xl_add_comment(c, _vt_header_comments[label])
 
     # Data rows
     data_start_row = 9
@@ -3652,6 +3978,8 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
         c.font = data_font
         c.fill = bg_fill
         c.border = thin_border
+        if metric_name in METRIC_GLOSSARY:
+            _xl_add_comment(c, METRIC_GLOSSARY[metric_name])
 
         # Version values
         first_val = None
@@ -4432,11 +4760,17 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     row = _xl_write_header(ws_anom, 'ANOMALIES')
 
     anom_headers = ['Track', 'Type', 'Severity', 'Description']
+    _anom_header_comments = {
+        'Severity': "CRITICAL: Likely audible issue requiring fix.\nWARNING: Potential issue, verify by listening.\nINFO: Informational, may be intentional.",
+        'Description': "Hover over individual descriptions for\nexplanation, impact, and suggestions.",
+    }
     for col, h in enumerate(anom_headers, 1):
         c = ws_anom.cell(row=row, column=col, value=h)
         c.font = header_font
         c.fill = header_fill
         c.border = thin_border
+        if h in _anom_header_comments:
+            _xl_add_comment(c, _anom_header_comments[h])
     row += 1
 
     crit_fill = PatternFill('solid', fgColor='2A0A0A')
@@ -4449,7 +4783,13 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                 ws_anom.cell(row=row, column=2, value=ti['type']).font = data_font
                 sev_cell = ws_anom.cell(row=row, column=3, value=sev.upper())
                 sev_cell.font = crit_font if sev == 'critical' else warn_font
-                ws_anom.cell(row=row, column=4, value=desc).font = data_font
+                desc_cell = ws_anom.cell(row=row, column=4, value=desc)
+                desc_cell.font = data_font
+                # M7.4: Add contextual comment for known anomaly types
+                for anom_key, anom_text in ANOMALY_COMMENTS.items():
+                    if anom_key in desc.lower():
+                        _xl_add_comment(desc_cell, anom_text)
+                        break
                 for col in range(1, 5):
                     ws_anom.cell(row=row, column=col).border = thin_border
                     ws_anom.cell(row=row, column=col).fill = row_fill
@@ -4578,6 +4918,11 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                     c_desc.font = data_font
                     c_desc.fill = panel_fill
                     c_desc.border = thin_border
+                    # M7.4: Contextual comment for anomaly
+                    for anom_key, anom_text in ANOMALY_COMMENTS.items():
+                        if anom_key in desc.lower():
+                            _xl_add_comment(c_desc, anom_text)
+                            break
                     row += 1
 
             # Embed matplotlib visualizations as images
