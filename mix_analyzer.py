@@ -2927,6 +2927,202 @@ def _init_ma_fonts():
     _MA_FONTS_INITIALIZED = True
 
 
+# ══════════════════════════════════════════════════════════════════
+# EXCEL POLISH UTILITIES
+# Infrastructure for E2-E8 Excel polish phases.
+# These constants and functions are NOT yet applied to any sheet.
+# ══════════════════════════════════════════════════════════════════
+
+EXCEL_COLORS = {
+    # Backgrounds
+    'bg_primary': '0D0D0D',      # Main background (near-black)
+    'bg_secondary': '1A1A2E',    # Secondary background (sections)
+    'bg_header': '252542',       # Header background
+    'bg_alt_row': '151520',      # Zebra striping (alternate row)
+
+    # Text
+    'text_primary': 'FFFFFF',    # Primary text (white)
+    'text_secondary': 'B8B8B8',  # Secondary text (light grey)
+    'text_muted': '666666',      # Muted text
+
+    # Accents
+    'accent_cyan': '00FFFF',     # Titles, links
+    'accent_neon': '00FF9F',     # Highlights
+    'accent_warning': 'FFD93D',  # Warnings (yellow)
+    'accent_error': 'FF5252',    # Errors (red)
+    'accent_pink': 'FF3D8B',    # Secondary accent
+
+    # Borders
+    'border_subtle': '222222',   # Subtle border
+    'border_default': '333333',  # Standard border
+
+    # Charts (for reference)
+    'chart_bg': '0D0D0D',        # Chart background
+    'chart_grid': '333333',      # Chart gridlines
+}
+
+# Lazy-initialized style objects (avoid top-level openpyxl import)
+_EXCEL_POLISH_INITIALIZED = False
+EXCEL_FILLS = {}
+EXCEL_FONTS = {}
+
+
+def _init_excel_polish_styles():
+    """Initialize EXCEL_FILLS and EXCEL_FONTS on first use."""
+    global _EXCEL_POLISH_INITIALIZED, EXCEL_FILLS, EXCEL_FONTS
+    if _EXCEL_POLISH_INITIALIZED:
+        return
+    from openpyxl.styles import PatternFill, Font
+
+    EXCEL_FILLS.update({
+        'bg_primary': PatternFill(start_color='0D0D0D', end_color='0D0D0D', fill_type='solid'),
+        'bg_secondary': PatternFill(start_color='1A1A2E', end_color='1A1A2E', fill_type='solid'),
+        'bg_header': PatternFill(start_color='252542', end_color='252542', fill_type='solid'),
+        'bg_alt_row': PatternFill(start_color='151520', end_color='151520', fill_type='solid'),
+    })
+
+    EXCEL_FONTS.update({
+        'title': Font(name='Calibri', size=16, bold=True, color='00FFFF'),
+        'header': Font(name='Calibri', size=11, bold=True, color='FFFFFF'),
+        'body': Font(name='Calibri', size=11, color='FFFFFF'),
+        'link': Font(name='Calibri', size=11, color='00FFFF', underline='single'),
+        'muted': Font(name='Calibri', size=10, color='666666'),
+    })
+
+    _EXCEL_POLISH_INITIALIZED = True
+
+
+def strip_project_prefix(track_name: str, project_name: str) -> str:
+    """
+    Remove project name prefix from track names.
+
+    Args:
+        track_name: Full name (e.g. "Acid_drops_Kick 1.wav")
+        project_name: Project name (e.g. "Acid_drops")
+
+    Returns:
+        Cleaned name (e.g. "Kick 1.wav")
+
+    Examples:
+        >>> strip_project_prefix("Acid_drops_Kick 1.wav", "Acid_drops")
+        'Kick 1.wav'
+        >>> strip_project_prefix("Kick 1.wav", "Acid_drops")
+        'Kick 1.wav'
+        >>> strip_project_prefix("Acid_drops_BUS_Drums.wav", "Acid_drops")
+        'BUS_Drums.wav'
+    """
+    if not track_name or not project_name:
+        return track_name
+
+    prefixes_to_try = [
+        f"{project_name}_",
+        f"{project_name} ",
+        f"{project_name}-",
+    ]
+
+    for prefix in prefixes_to_try:
+        if track_name.startswith(prefix):
+            return track_name[len(prefix):]
+
+    return track_name
+
+
+def apply_vertical_navigation(ws, current_sheet: str, start_row: int = 2, start_col: int = 1):
+    """
+    Add vertical navigation links on the left side of a worksheet.
+
+    Args:
+        ws: openpyxl Worksheet
+        current_sheet: Name of the current tab (displayed without link)
+        start_row: Starting row (default: 2)
+        start_col: Starting column (default: 1 = A)
+
+    Returns:
+        int: Next available row after the navigation block
+    """
+    _init_excel_polish_styles()
+    from openpyxl.styles import Font
+
+    nav_items = [
+        ('Index', 'Index'),
+        ('Dashboard', 'Dashboard'),
+        ('Summary', 'Summary'),
+        ('Anomalies', 'Anomalies'),
+        ('Health Score', 'Mix Health Score'),
+    ]
+
+    row = start_row
+    col = start_col
+
+    for display_name, sheet_name in nav_items:
+        cell = ws.cell(row=row, column=col)
+
+        if sheet_name == current_sheet:
+            cell.value = f"● {display_name}"
+            cell.font = EXCEL_FONTS.get('body', Font(color='FFFFFF'))
+        else:
+            cell.value = display_name
+            cell.hyperlink = f"#'{sheet_name}'!A1"
+            cell.font = EXCEL_FONTS.get('link', Font(color='00FFFF', underline='single'))
+
+        row += 1
+
+    return row
+
+
+def hide_unused_cells(ws, content_last_row: int, content_last_col: int,
+                      visible_rows: int = 50, visible_cols: int = 15):
+    """
+    Hide cells beyond content area and extend the dark background.
+
+    Args:
+        ws: openpyxl Worksheet
+        content_last_row: Last row with content
+        content_last_col: Last column with content
+        visible_rows: Number of visible rows to keep (default: 50)
+        visible_cols: Number of visible columns to keep (default: 15)
+    """
+    _init_excel_polish_styles()
+    from openpyxl.styles import PatternFill
+    from openpyxl.utils import get_column_letter
+
+    bg_fill = EXCEL_FILLS.get('bg_primary',
+                               PatternFill(start_color='0D0D0D', end_color='0D0D0D', fill_type='solid'))
+
+    # 1. Extend dark background on empty rows up to visible_rows
+    for row in range(content_last_row + 1, visible_rows + 1):
+        for col in range(1, content_last_col + 1):
+            ws.cell(row=row, column=col).fill = bg_fill
+
+    # 2. Extend dark background on columns up to visible_cols
+    for row in range(1, visible_rows + 1):
+        for col in range(content_last_col + 1, visible_cols + 1):
+            ws.cell(row=row, column=col).fill = bg_fill
+
+    # 3. Hide columns beyond visible_cols (reasonable block, not all 16384)
+    for col_idx in range(visible_cols + 1, min(visible_cols + 50, 100)):
+        col_letter = get_column_letter(col_idx)
+        ws.column_dimensions[col_letter].hidden = True
+
+    # 4. Hide rows beyond visible_rows (reasonable block, not all 1M)
+    for row_idx in range(visible_rows + 1, min(visible_rows + 100, 200)):
+        ws.row_dimensions[row_idx].hidden = True
+
+
+def apply_freeze_panes(ws, freeze_cell: str = 'A2'):
+    """
+    Freeze panes at the given cell position.
+
+    Args:
+        ws: openpyxl Worksheet
+        freeze_cell: Cell reference to freeze at (default: 'A2')
+                     'A2' = freeze row 1 (header)
+                     'B2' = freeze row 1 AND column A
+                     'A1' = no freeze (deactivates)
+    """
+    ws.freeze_panes = freeze_cell
+
+
 def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     """
     Génère le sheet 'Mix Health Score' (P3.3) dans le workbook donné.
