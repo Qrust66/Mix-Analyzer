@@ -5652,6 +5652,23 @@ UI_THEME = {
     'active':       THEME_COLORS['active'],
 }
 
+# M8.7: Consistent spacing scale for UI polish
+SPACING = {
+    'xs': 4,       # Between tightly related elements (label ↔ input)
+    'sm': 8,       # Compact internal padding
+    'md': 12,      # Standard internal padding
+    'lg': 16,      # Between groups / sections
+    'xl': 24,      # Between major sections
+    'xxl': 32,     # Header / footer padding
+}
+
+# M8.7: Border configuration for subtle visual separation
+BORDERS = {
+    'subtle': {'color': '#222222', 'width': 1},
+    'default': {'color': '#333333', 'width': 1},
+    'accent': {'color': THEME_COLORS['accent_primary'], 'width': 2},
+}
+
 # M8.6: Unicode icons for styled tabs
 TAB_ICONS = {
     'Setup':                '◆',
@@ -6722,6 +6739,95 @@ def create_neon_button(parent, text, command, preset='primary', **overrides):
     return btn
 
 
+# M8.7: UI polish helper functions — cards, separators, section headers
+
+def create_card(parent, title=None, padding='md', bg=None):
+    """Create a card with subtle border and distinct background.
+
+    Args:
+        parent: Parent widget
+        title: Optional card title
+        padding: Key from SPACING for internal padding
+        bg: Override background color
+
+    Returns:
+        tuple: (outer_frame, content_frame)
+    """
+    pad = SPACING.get(padding, SPACING['md'])
+    card_bg = bg or UI_THEME['panel']
+
+    outer = tk.Frame(
+        parent, bg=card_bg,
+        highlightbackground=BORDERS['subtle']['color'],
+        highlightthickness=BORDERS['subtle']['width'],
+    )
+
+    if title:
+        title_frame = tk.Frame(outer, bg=card_bg)
+        title_frame.pack(fill='x', padx=pad, pady=(pad, SPACING['xs']))
+        tk.Label(
+            title_frame, text=title, bg=card_bg,
+            fg=UI_THEME['accent1'], font=get_font('h3'),
+        ).pack(anchor='w')
+        sep = tk.Frame(outer, bg=BORDERS['default']['color'], height=1)
+        sep.pack(fill='x', padx=pad)
+
+    content = tk.Frame(outer, bg=card_bg)
+    content.pack(fill='both', expand=True, padx=pad, pady=pad)
+
+    return outer, content
+
+
+def create_separator(parent, orientation='horizontal', color=None):
+    """Create a thin visual separator line.
+
+    Args:
+        parent: Parent widget
+        orientation: 'horizontal' or 'vertical'
+        color: Line color (default: border_default)
+
+    Returns:
+        tk.Frame: The separator widget (caller must pack/grid it)
+    """
+    color = color or BORDERS['default']['color']
+    if orientation == 'horizontal':
+        sep = tk.Frame(parent, bg=color, height=1)
+    else:
+        sep = tk.Frame(parent, bg=color, width=1)
+    return sep
+
+
+def create_section_header(parent, title, subtitle=None, bg=None):
+    """Create a section header with an accent bar on the left.
+
+    Args:
+        parent: Parent widget
+        title: Section title text
+        subtitle: Optional subtitle text
+        bg: Background color override
+
+    Returns:
+        tk.Frame: The header widget (caller must pack/grid it)
+    """
+    bg = bg or UI_THEME['bg']
+    header = tk.Frame(parent, bg=bg)
+
+    accent_bar = tk.Frame(header, bg=UI_THEME['accent1'], width=4)
+    accent_bar.pack(side='left', fill='y', padx=(0, SPACING['md']))
+
+    text_frame = tk.Frame(header, bg=bg)
+    text_frame.pack(side='left', fill='both', expand=True)
+
+    tk.Label(text_frame, text=title, bg=bg,
+             fg=UI_THEME['accent2'], font=get_font('h2')).pack(anchor='w')
+
+    if subtitle:
+        tk.Label(text_frame, text=subtitle, bg=bg,
+                 fg=UI_THEME['fg_dim'], font=get_font('caption')).pack(anchor='w')
+
+    return header
+
+
 class MixAnalyzerApp:
     def __init__(self, root):
         self.root = root
@@ -6771,8 +6877,10 @@ class MixAnalyzerApp:
         self._build_ui()
 
     def _build_ui(self):
-        # Top title with neon logo (M8.1)
-        title_frame = ttk.Frame(self.root, padding=(15, 8, 15, 0))
+        # Top title with neon logo (M8.1) — M8.7: consistent header spacing
+        title_frame = ttk.Frame(self.root,
+                                padding=(SPACING['xl'], SPACING['md'],
+                                         SPACING['xl'], SPACING['sm']))
         title_frame.pack(fill='x')
 
         self._logo_widget = _create_logo_widget(title_frame)
@@ -6780,12 +6888,17 @@ class MixAnalyzerApp:
 
         help_btn = create_neon_button(title_frame, 'HELP',
                                       self._show_main_help, preset='primary',
-                                      padx=16, pady=4)
-        help_btn.pack(side='right', padx=(10, 0))
+                                      padx=SPACING['lg'], pady=SPACING['xs'])
+        help_btn.pack(side='right', padx=(SPACING['md'], 0))
+
+        # M8.7: Separator between header and tabs
+        header_sep = create_separator(self.root, color=BORDERS['subtle']['color'])
+        header_sep.pack(fill='x', padx=SPACING['xl'])
 
         # Notebook — M8.6: styled tabs with icons
         self.notebook = ttk.Notebook(self.root, style='TNotebook')
-        self.notebook.pack(fill='both', expand=True, padx=15, pady=(4, 10))
+        self.notebook.pack(fill='both', expand=True,
+                           padx=SPACING['lg'], pady=(SPACING['sm'], SPACING['md']))
 
         self.tab_setup = ttk.Frame(self.notebook, style='TFrame')
         self.tab_tracks = ttk.Frame(self.notebook, style='TFrame')
@@ -6816,17 +6929,23 @@ class MixAnalyzerApp:
         dialog.geometry('780x680')
         dialog.transient(self.root)
 
-        frame = tk.Frame(dialog, bg=UI_THEME['bg'], padx=20, pady=20)
+        # M8.7: consistent dialog padding
+        frame = tk.Frame(dialog, bg=UI_THEME['bg'],
+                         padx=SPACING['xl'], pady=SPACING['xl'])
         frame.pack(fill='both', expand=True)
 
         tk.Label(frame, text='Mix Analyzer — Help',
                   bg=UI_THEME['bg'], fg=UI_THEME['accent1'],
-                  font=get_font('heading_dialog')).pack(anchor='w', pady=(0, 12))
+                  font=get_font('heading_dialog')).pack(
+            anchor='w', pady=(0, SPACING['md']))
 
+        # M8.7: subtle border around text area
         text_widget = tk.Text(frame, wrap='word', bg=UI_THEME['panel'],
                                fg=UI_THEME['fg'], font=get_font('body'),
-                               bd=0, padx=16, pady=16, relief='flat',
-                               spacing1=2, spacing3=2)
+                               bd=0, padx=SPACING['lg'], pady=SPACING['lg'],
+                               relief='flat', spacing1=2, spacing3=2,
+                               highlightbackground=BORDERS['subtle']['color'],
+                               highlightthickness=BORDERS['subtle']['width'])
         text_widget.pack(fill='both', expand=True)
 
         # Configure heading tag
@@ -6901,52 +7020,65 @@ class MixAnalyzerApp:
         text_widget.config(state='disabled')
 
         create_neon_button(frame, 'Close', dialog.destroy,
-                          preset='primary').pack(pady=(12, 0))
+                          preset='primary').pack(pady=(SPACING['md'], 0))
 
     # ------------------------------------------------------------------
     # TAB 1 - SETUP
     # ------------------------------------------------------------------
     def _build_setup_tab(self):
-        frame = ttk.Frame(self.tab_setup, padding=25)
+        frame = ttk.Frame(self.tab_setup, padding=SPACING['xl'])
         frame.pack(fill='both', expand=True)
 
-        ttk.Label(frame, text='Project Setup', style='SubTitle.TLabel').grid(
-            row=0, column=0, columnspan=4, sticky='w', pady=(0, 15))
+        # M8.7: Section header with accent bar
+        header = create_section_header(frame, 'Project Setup',
+                                       subtitle='Configure input/output folders and style')
+        header.grid(row=0, column=0, columnspan=4, sticky='we',
+                    pady=(0, SPACING['lg']))
 
         # Input folder
         ttk.Label(frame, text='Bounces folder (WAV/AIFF):').grid(
-            row=1, column=0, sticky='w', pady=8)
+            row=1, column=0, sticky='w', pady=SPACING['sm'])
         ttk.Entry(frame, textvariable=self.input_folder, width=70).grid(
-            row=1, column=1, sticky='we', pady=8, padx=(10, 5))
+            row=1, column=1, sticky='we', pady=SPACING['sm'],
+            padx=(SPACING['md'], SPACING['xs']))
         ttk.Button(frame, text='Browse...', command=self._browse_input).grid(
-            row=1, column=2, pady=8)
+            row=1, column=2, pady=SPACING['sm'])
 
         # Output folder
         ttk.Label(frame, text='Output folder for reports:').grid(
-            row=2, column=0, sticky='w', pady=8)
+            row=2, column=0, sticky='w', pady=SPACING['sm'])
         ttk.Entry(frame, textvariable=self.output_folder, width=70).grid(
-            row=2, column=1, sticky='we', pady=8, padx=(10, 5))
+            row=2, column=1, sticky='we', pady=SPACING['sm'],
+            padx=(SPACING['md'], SPACING['xs']))
         ttk.Button(frame, text='Browse...', command=self._browse_output).grid(
-            row=2, column=2, pady=8)
+            row=2, column=2, pady=SPACING['sm'])
 
         # Style
         style_row = ttk.Frame(frame)
-        style_row.grid(row=3, column=0, columnspan=4, sticky='we', pady=8)
+        style_row.grid(row=3, column=0, columnspan=4, sticky='we',
+                       pady=SPACING['sm'])
         ttk.Label(style_row, text='Musical style:').pack(side='left')
         ttk.Combobox(style_row, textvariable=self.style,
                      values=STYLES, state='readonly', width=35, height=50).pack(
-            side='left', padx=(10, 5))
-        HelpButton(style_row, 'style').pack(side='left', padx=(0, 5))
+            side='left', padx=(SPACING['md'], SPACING['xs']))
+        HelpButton(style_row, 'style').pack(side='left', padx=(0, SPACING['xs']))
 
-        # Warning box for filename naming
-        warning_frame = tk.Frame(frame, bg=UI_THEME['panel'], bd=1,
+        # M8.7: Separator before warning
+        sep1 = create_separator(frame)
+        sep1.grid(row=4, column=0, columnspan=4, sticky='we',
+                  pady=(SPACING['lg'], SPACING['sm']))
+
+        # Warning box for filename naming — M8.7: refined padding
+        warning_frame = tk.Frame(frame, bg=UI_THEME['panel'], bd=0,
                                    highlightbackground=UI_THEME['warning'],
                                    highlightthickness=1)
-        warning_frame.grid(row=4, column=0, columnspan=4, sticky='we', pady=(25, 10))
+        warning_frame.grid(row=5, column=0, columnspan=4, sticky='we',
+                          pady=(SPACING['sm'], SPACING['md']))
 
         tk.Label(warning_frame, text='[!] TRACK NAMING IMPORTANT',
                   bg=UI_THEME['panel'], fg=UI_THEME['warning'],
-                  font=get_font('body_bold')).pack(anchor='w', padx=12, pady=(10, 4))
+                  font=get_font('body_bold')).pack(
+            anchor='w', padx=SPACING['lg'], pady=(SPACING['md'], SPACING['xs']))
 
         warning_text = (
             "Before exporting from Ableton, make sure your tracks are clearly named. "
@@ -6966,18 +7098,21 @@ class MixAnalyzerApp:
         tk.Label(warning_frame, text=warning_text,
                   bg=UI_THEME['panel'], fg=UI_THEME['fg'],
                   font=get_font('body_small'), justify='left',
-                  wraplength=900).pack(anchor='w', padx=12, pady=(0, 12))
+                  wraplength=900).pack(
+            anchor='w', padx=SPACING['lg'], pady=(0, SPACING['md']))
 
         # Status
         self.setup_status = ttk.Label(frame, text='No folder selected yet.',
                                         style='Dim.TLabel')
-        self.setup_status.grid(row=5, column=0, columnspan=4, sticky='w', pady=(15, 5))
+        self.setup_status.grid(row=6, column=0, columnspan=4, sticky='w',
+                              pady=(SPACING['lg'], SPACING['xs']))
 
         # Load button
         ttk.Button(frame, text='Load tracks from folder',
                    style='Accent.TButton',
                    command=self._load_tracks).grid(
-            row=6, column=0, columnspan=4, sticky='we', pady=(10, 0))
+            row=7, column=0, columnspan=4, sticky='we',
+            pady=(SPACING['sm'], 0))
 
         frame.columnconfigure(1, weight=1)
 
@@ -7068,28 +7203,33 @@ class MixAnalyzerApp:
     # TAB 2 - TRACK IDENTIFICATION
     # ------------------------------------------------------------------
     def _build_tracks_tab(self):
-        # Split: left = list, right = details
+        # Split: left = list, right = details — M8.7: uniform spacing
         paned = tk.PanedWindow(self.tab_tracks, orient='horizontal',
                                 bg=UI_THEME['bg'], sashwidth=6,
                                 sashrelief='flat', bd=0)
-        paned.pack(fill='both', expand=True, padx=10, pady=10)
+        paned.pack(fill='both', expand=True,
+                   padx=SPACING['lg'], pady=SPACING['lg'])
 
         # LEFT: List of tracks
         left = tk.Frame(paned, bg=UI_THEME['bg'])
         paned.add(left, minsize=350)
 
         ttk.Label(left, text='Tracks in folder',
-                  style='SubTitle.TLabel').pack(anchor='w', pady=(0, 5))
+                  style='SubTitle.TLabel').pack(
+            anchor='w', pady=(0, SPACING['sm']))
 
         # Action buttons
         action_row = tk.Frame(left, bg=UI_THEME['bg'])
-        action_row.pack(fill='x', pady=(0, 5))
+        action_row.pack(fill='x', pady=(0, SPACING['sm']))
         ttk.Button(action_row, text='Auto-detect all', style='Small.TButton',
-                   command=self._auto_detect_all).pack(side='left', padx=(0, 5))
+                   command=self._auto_detect_all).pack(
+            side='left', padx=(0, SPACING['xs']))
         ttk.Button(action_row, text='Include all', style='Small.TButton',
-                   command=lambda: self._set_all_include(True)).pack(side='left', padx=5)
+                   command=lambda: self._set_all_include(True)).pack(
+            side='left', padx=SPACING['xs'])
         ttk.Button(action_row, text='Exclude all', style='Small.TButton',
-                   command=lambda: self._set_all_include(False)).pack(side='left', padx=5)
+                   command=lambda: self._set_all_include(False)).pack(
+            side='left', padx=SPACING['xs'])
 
         # Listbox with scrollbar
         list_frame = tk.Frame(left, bg=UI_THEME['bg'])
@@ -7117,9 +7257,9 @@ class MixAnalyzerApp:
             self.root.after(50, self._check_scrollbar_visibility)
         list_frame.bind('<Configure>', _update_scrollbar)
 
-        # Legend
+        # Legend — M8.7: consistent spacing
         legend_frame = tk.Frame(left, bg=UI_THEME['bg'])
-        legend_frame.pack(fill='x', pady=(5, 0))
+        legend_frame.pack(fill='x', pady=(SPACING['sm'], 0))
         tk.Label(legend_frame, text='Legend:',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg_dim'],
                   font=get_font('caption')).pack(side='left')
@@ -7133,15 +7273,22 @@ class MixAnalyzerApp:
                       bg=UI_THEME['bg'], fg=color,
                       font=get_font('caption_tiny')).pack(side='left', padx=2)
 
-        # RIGHT: Detail panel
-        right = tk.Frame(paned, bg=UI_THEME['panel'], padx=20, pady=15)
+        # RIGHT: Detail panel — M8.7: card-style with border + uniform padding
+        right = tk.Frame(paned, bg=UI_THEME['panel'],
+                         padx=SPACING['xl'], pady=SPACING['lg'],
+                         highlightbackground=BORDERS['subtle']['color'],
+                         highlightthickness=BORDERS['subtle']['width'])
         paned.add(right, minsize=500)
 
         self.details_title = tk.Label(right, text='No track selected',
                                         bg=UI_THEME['panel'], fg=UI_THEME['accent1'],
                                         font=get_font('header'),
                                         wraplength=500, justify='left')
-        self.details_title.pack(anchor='w', pady=(0, 15))
+        self.details_title.pack(anchor='w', pady=(0, SPACING['sm']))
+
+        # M8.7: Separator under title
+        title_sep = create_separator(right, color=BORDERS['default']['color'])
+        title_sep.pack(fill='x', pady=(0, SPACING['lg']))
 
         self.details_frame = tk.Frame(right, bg=UI_THEME['panel'])
         self.details_frame.pack(fill='both', expand=True)
@@ -7152,6 +7299,8 @@ class MixAnalyzerApp:
     def _build_detail_widgets(self):
         """Build the per-track detail widgets (hidden until a track is selected)."""
         f = self.details_frame
+        _field_pady = SPACING['sm']  # M8.7: uniform vertical spacing for fields
+        _field_padx = (SPACING['md'], SPACING['xs'])
 
         # Include checkbox
         self.detail_include = tk.BooleanVar()
@@ -7163,23 +7312,27 @@ class MixAnalyzerApp:
                         activeforeground=UI_THEME['fg'],
                         font=get_font('body'),
                         command=self._on_detail_change).grid(
-            row=0, column=0, columnspan=3, sticky='w', pady=8)
+            row=0, column=0, columnspan=3, sticky='w', pady=_field_pady)
 
         # Type
         tk.Label(f, text='Track Type:',
                   bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
-                  font=get_font('body')).grid(row=1, column=0, sticky='w', pady=8)
+                  font=get_font('body')).grid(
+            row=1, column=0, sticky='w', pady=_field_pady)
         self.detail_type = tk.StringVar()
         self.detail_type_combo = ttk.Combobox(f, textvariable=self.detail_type,
-                                                 values=TRACK_TYPES, state='readonly', width=20, height=50)
-        self.detail_type_combo.grid(row=1, column=1, sticky='w', pady=8, padx=(10, 5))
+                                                 values=TRACK_TYPES, state='readonly',
+                                                 width=20, height=50)
+        self.detail_type_combo.grid(row=1, column=1, sticky='w',
+                                    pady=_field_pady, padx=_field_padx)
         self.detail_type_combo.bind('<<ComboboxSelected>>', self._on_type_change)
-        HelpButton(f, 'type').grid(row=1, column=2, sticky='w', pady=8)
+        HelpButton(f, 'type').grid(row=1, column=2, sticky='w', pady=_field_pady)
 
         # Category
         tk.Label(f, text='Category:',
                   bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
-                  font=get_font('body')).grid(row=2, column=0, sticky='w', pady=8)
+                  font=get_font('body')).grid(
+            row=2, column=0, sticky='w', pady=_field_pady)
         self.detail_category = tk.StringVar()
         # Build hierarchical list
         cat_values = []
@@ -7188,25 +7341,33 @@ class MixAnalyzerApp:
                 cat_values.append(item)
         cat_values.append('(not set)')
         self.detail_category_combo = ttk.Combobox(f, textvariable=self.detail_category,
-                                                     values=cat_values, state='readonly', width=35, height=50)
-        self.detail_category_combo.grid(row=2, column=1, sticky='w', pady=8, padx=(10, 5))
+                                                     values=cat_values, state='readonly',
+                                                     width=35, height=50)
+        self.detail_category_combo.grid(row=2, column=1, sticky='w',
+                                        pady=_field_pady, padx=_field_padx)
         self.detail_category_combo.bind('<<ComboboxSelected>>', self._on_detail_change)
-        HelpButton(f, 'category').grid(row=2, column=2, sticky='w', pady=8)
+        HelpButton(f, 'category').grid(row=2, column=2, sticky='w',
+                                       pady=_field_pady)
 
         # Parent BUS
         tk.Label(f, text='Parent BUS:',
                   bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
-                  font=get_font('body')).grid(row=3, column=0, sticky='w', pady=8)
+                  font=get_font('body')).grid(
+            row=3, column=0, sticky='w', pady=_field_pady)
         self.detail_parent_bus = tk.StringVar()
         self.detail_parent_bus_combo = ttk.Combobox(f, textvariable=self.detail_parent_bus,
-                                                       values=['None'], state='readonly', width=35, height=50)
-        self.detail_parent_bus_combo.grid(row=3, column=1, sticky='w', pady=8, padx=(10, 5))
+                                                       values=['None'], state='readonly',
+                                                       width=35, height=50)
+        self.detail_parent_bus_combo.grid(row=3, column=1, sticky='w',
+                                          pady=_field_pady, padx=_field_padx)
         self.detail_parent_bus_combo.bind('<<ComboboxSelected>>', self._on_detail_change)
-        HelpButton(f, 'parent_bus').grid(row=3, column=2, sticky='w', pady=8)
+        HelpButton(f, 'parent_bus').grid(row=3, column=2, sticky='w',
+                                         pady=_field_pady)
 
-        # Info box
+        # M8.7: Info box — separator with consistent spacing
         info_sep = tk.Frame(f, bg=UI_THEME['border'], height=1)
-        info_sep.grid(row=4, column=0, columnspan=3, sticky='we', pady=(20, 15))
+        info_sep.grid(row=4, column=0, columnspan=3, sticky='we',
+                      pady=(SPACING['xl'], SPACING['lg']))
 
         tk.Label(f, text='Quick notes:',
                   bg=UI_THEME['panel'], fg=UI_THEME['accent2'],
@@ -7419,47 +7580,61 @@ class MixAnalyzerApp:
     # TAB 3 - FULL MIX
     # ------------------------------------------------------------------
     def _build_fullmix_tab(self):
-        frame = ttk.Frame(self.tab_fullmix, padding=25)
+        frame = ttk.Frame(self.tab_fullmix, padding=SPACING['xl'])
         frame.pack(fill='both', expand=True)
 
-        ttk.Label(frame, text='Full Mix Configuration',
-                  style='SubTitle.TLabel').grid(
-            row=0, column=0, columnspan=3, sticky='w', pady=(0, 15))
+        # M8.7: Section header with accent bar
+        header = create_section_header(frame, 'Full Mix Configuration',
+                                       subtitle='Master bus settings and mix context')
+        header.grid(row=0, column=0, columnspan=3, sticky='we',
+                    pady=(0, SPACING['lg']))
 
         self.fullmix_status = ttk.Label(
             frame,
             text='No track marked as Full Mix yet. Go to the Track Identification tab '
                  'and set Type = Full Mix for the bounce of your complete song.',
             style='Dim.TLabel', wraplength=900)
-        self.fullmix_status.grid(row=1, column=0, columnspan=3, sticky='w', pady=(0, 20))
+        self.fullmix_status.grid(row=1, column=0, columnspan=3, sticky='w',
+                                 pady=(0, SPACING['lg']))
 
         # Details frame (shown when a full mix is selected)
         self.fullmix_details = tk.Frame(frame, bg=UI_THEME['bg'])
-        self.fullmix_details.grid(row=2, column=0, columnspan=3, sticky='nwe', pady=10)
+        self.fullmix_details.grid(row=2, column=0, columnspan=3, sticky='nwe',
+                                  pady=SPACING['sm'])
 
         # Mix state
         row = 0
         state_row = tk.Frame(self.fullmix_details, bg=UI_THEME['bg'])
-        state_row.grid(row=row, column=0, columnspan=3, sticky='w', pady=8)
+        state_row.grid(row=row, column=0, columnspan=3, sticky='w',
+                       pady=SPACING['sm'])
         tk.Label(state_row, text='Mix completion state:',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
                   font=get_font('body')).pack(side='left')
         ttk.Combobox(state_row, textvariable=self.mix_state,
                      values=MIX_STATES, state='readonly', width=25, height=50).pack(
-            side='left', padx=(10, 5))
+            side='left', padx=(SPACING['md'], SPACING['xs']))
         HelpButton(state_row, 'mix_state').pack(side='left')
+
+        # M8.7: Separator before plugins
+        row += 1
+        sep_plugins = create_separator(self.fullmix_details)
+        sep_plugins.grid(row=row, column=0, columnspan=3, sticky='we',
+                         pady=SPACING['md'])
 
         # Plugins
         row += 1
         tk.Label(self.fullmix_details, text='Active master bus plugins:',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
-                  font=get_font('body')).grid(row=row, column=0, sticky='nw', pady=(15, 5))
+                  font=get_font('body')).grid(
+            row=row, column=0, sticky='nw', pady=(SPACING['sm'], SPACING['xs']))
         HelpButton(self.fullmix_details, 'master_plugins').grid(
-            row=row, column=1, sticky='nw', pady=(15, 5), padx=5)
+            row=row, column=1, sticky='nw',
+            pady=(SPACING['sm'], SPACING['xs']), padx=SPACING['xs'])
 
         row += 1
         plugins_frame = tk.Frame(self.fullmix_details, bg=UI_THEME['bg'])
-        plugins_frame.grid(row=row, column=0, columnspan=3, sticky='w', padx=20)
+        plugins_frame.grid(row=row, column=0, columnspan=3, sticky='w',
+                          padx=SPACING['xl'])
         for i, plugin in enumerate(MASTER_PLUGINS):
             tk.Checkbutton(plugins_frame, text=plugin,
                             variable=self.mix_plugins[plugin],
@@ -7469,28 +7644,36 @@ class MixAnalyzerApp:
                             activeforeground=UI_THEME['fg'],
                             font=get_font('body'),
                             command=self._save_config).grid(
-                row=0, column=i, sticky='w', padx=(0, 20))
+                row=0, column=i, sticky='w', padx=(0, SPACING['xl']))
+
+        # M8.7: Separator before loudness
+        row += 1
+        sep_loudness = create_separator(self.fullmix_details)
+        sep_loudness.grid(row=row, column=0, columnspan=3, sticky='we',
+                          pady=SPACING['md'])
 
         # Loudness target
         row += 1
         target_row = tk.Frame(self.fullmix_details, bg=UI_THEME['bg'])
-        target_row.grid(row=row, column=0, columnspan=3, sticky='w', pady=(15, 8))
+        target_row.grid(row=row, column=0, columnspan=3, sticky='w',
+                        pady=SPACING['sm'])
         tk.Label(target_row, text='Loudness target:',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
                   font=get_font('body')).pack(side='left')
         ttk.Combobox(target_row, textvariable=self.mix_loudness_target,
                      values=LOUDNESS_TARGETS, state='readonly', width=35, height=50).pack(
-            side='left', padx=(10, 5))
+            side='left', padx=(SPACING['md'], SPACING['xs']))
         HelpButton(target_row, 'loudness_target').pack(side='left')
 
         # Note
         row += 1
         tk.Label(self.fullmix_details, text='Note (optional):',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg'],
-                  font=get_font('body')).grid(row=row, column=0, sticky='w', pady=(15, 5))
+                  font=get_font('body')).grid(
+            row=row, column=0, sticky='w', pady=(SPACING['lg'], SPACING['xs']))
         row += 1
         ttk.Entry(self.fullmix_details, textvariable=self.mix_note,
-                   width=80).grid(row=row, column=0, columnspan=3, sticky='we', padx=0)
+                   width=80).grid(row=row, column=0, columnspan=3, sticky='we')
 
         # Save changes on mix state/target/note updates
         self.mix_state.trace_add('write', lambda *a: self._save_config())
@@ -7514,32 +7697,55 @@ class MixAnalyzerApp:
     # TAB 4 - ANALYSIS
     # ------------------------------------------------------------------
     def _build_analysis_tab(self):
-        frame = ttk.Frame(self.tab_analysis, padding=25)
+        frame = ttk.Frame(self.tab_analysis, padding=SPACING['xl'])
         frame.pack(fill='both', expand=True)
 
-        ttk.Label(frame, text='Run Analysis',
-                  style='SubTitle.TLabel').grid(
-            row=0, column=0, columnspan=3, sticky='w', pady=(0, 15))
+        # M8.7: Section header with accent bar
+        header = create_section_header(frame, 'Run Analysis',
+                                       subtitle='Analyze tracks and generate Excel report')
+        header.grid(row=0, column=0, columnspan=3, sticky='we',
+                    pady=(0, SPACING['lg']))
 
-        # Summary
-        self.analysis_summary = tk.Text(frame, height=5, bg=UI_THEME['panel'],
-                                          fg=UI_THEME['fg'], font=get_font('body_small'),
-                                          bd=0, padx=15, pady=12, relief='flat',
+        # Summary — M8.7: card-style with border
+        summary_card = tk.Frame(frame, bg=UI_THEME['panel'],
+                                highlightbackground=BORDERS['subtle']['color'],
+                                highlightthickness=BORDERS['subtle']['width'])
+        summary_card.grid(row=1, column=0, columnspan=3, sticky='we',
+                         pady=(0, SPACING['sm']))
+
+        self.analysis_summary = tk.Text(summary_card, height=5,
+                                          bg=UI_THEME['panel'],
+                                          fg=UI_THEME['fg'],
+                                          font=get_font('body_small'),
+                                          bd=0, padx=SPACING['lg'],
+                                          pady=SPACING['md'], relief='flat',
                                           state='disabled')
-        self.analysis_summary.grid(row=1, column=0, columnspan=3, sticky='we', pady=10)
+        self.analysis_summary.pack(fill='x')
 
         # Controls row: Refresh
         controls_row = ttk.Frame(frame)
-        controls_row.grid(row=2, column=0, columnspan=3, sticky='we', pady=(5, 15))
+        controls_row.grid(row=2, column=0, columnspan=3, sticky='we',
+                         pady=(SPACING['xs'], SPACING['md']))
 
         ttk.Button(controls_row, text='Refresh summary',
                     command=self._refresh_analysis_summary).pack(side='left')
 
-        # Report options
-        options_row = ttk.Frame(frame)
-        options_row.grid(row=3, column=0, columnspan=3, sticky='we', pady=(5, 5))
+        # M8.7: Separator before options
+        sep_opts = create_separator(frame)
+        sep_opts.grid(row=3, column=0, columnspan=3, sticky='we',
+                      pady=(0, SPACING['md']))
 
-        tk.Checkbutton(options_row,
+        # Report options — M8.7: card-style
+        options_card = tk.Frame(frame, bg=UI_THEME['panel'],
+                                highlightbackground=BORDERS['subtle']['color'],
+                                highlightthickness=BORDERS['subtle']['width'])
+        options_card.grid(row=4, column=0, columnspan=3, sticky='we',
+                         pady=(0, SPACING['md']))
+
+        options_inner = tk.Frame(options_card, bg=UI_THEME['panel'])
+        options_inner.pack(fill='x', padx=SPACING['md'], pady=SPACING['sm'])
+
+        tk.Checkbutton(options_inner,
                         text='Generate individual track sheets (disable for smaller AI-friendly reports)',
                         variable=self.generate_individual_sheets,
                         bg=UI_THEME['panel'], fg=UI_THEME['fg'],
@@ -7548,10 +7754,11 @@ class MixAnalyzerApp:
                         activeforeground=UI_THEME['fg'],
                         font=get_font('body_small')).pack(side='left')
 
-        tk.Label(options_row, text='  Image quality:',
+        tk.Label(options_inner, text='  Image quality:',
                  bg=UI_THEME['panel'], fg=UI_THEME['fg'],
-                 font=get_font('body_small')).pack(side='left', padx=(15, 2))
-        quality_menu = tk.OptionMenu(options_row, self.image_quality,
+                 font=get_font('body_small')).pack(
+            side='left', padx=(SPACING['lg'], 2))
+        quality_menu = tk.OptionMenu(options_inner, self.image_quality,
                                       'standard', 'high')
         quality_menu.config(bg=UI_THEME['panel'], fg=UI_THEME['fg'],
                             font=get_font('body_small'), highlightthickness=0)
@@ -7559,7 +7766,8 @@ class MixAnalyzerApp:
 
         # Run + Cancel row
         run_row = ttk.Frame(frame)
-        run_row.grid(row=4, column=0, columnspan=3, sticky='we', pady=(5, 10))
+        run_row.grid(row=5, column=0, columnspan=3, sticky='we',
+                     pady=(SPACING['xs'], SPACING['md']))
 
         self.run_button = ttk.Button(run_row, text='>>> RUN ANALYSIS <<<',
                                        style='Accent.TButton',
@@ -7570,16 +7778,20 @@ class MixAnalyzerApp:
                                           style='Secondary.TButton',
                                           command=self._request_cancel,
                                           state='disabled')
-        self.cancel_button.pack(side='left', padx=(10, 0))
+        self.cancel_button.pack(side='left', padx=(SPACING['md'], 0))
 
-        # Multi-level progress display
-        progress_frame = tk.Frame(frame, bg=UI_THEME['panel'], padx=12, pady=10)
-        progress_frame.grid(row=5, column=0, columnspan=3, sticky='we', pady=(0, 10))
+        # Multi-level progress display — M8.7: card-style with border
+        progress_frame = tk.Frame(frame, bg=UI_THEME['panel'],
+                                  padx=SPACING['md'], pady=SPACING['md'],
+                                  highlightbackground=BORDERS['subtle']['color'],
+                                  highlightthickness=BORDERS['subtle']['width'])
+        progress_frame.grid(row=6, column=0, columnspan=3, sticky='we',
+                           pady=(0, SPACING['md']))
 
         self.progress_bar = NeonProgressBar(progress_frame, height=24,
                                               maximum=100, glow=True,
                                               show_percent=True)
-        self.progress_bar.pack(fill='x', pady=(0, 6))
+        self.progress_bar.pack(fill='x', pady=(0, SPACING['sm']))
 
         self.progress_step = tk.Label(progress_frame, text='Step: Idle',
                                         bg=UI_THEME['panel'], fg=UI_THEME['accent1'],
@@ -7592,7 +7804,7 @@ class MixAnalyzerApp:
         self.progress_substep.pack(fill='x')
 
         progress_bottom = tk.Frame(progress_frame, bg=UI_THEME['panel'])
-        progress_bottom.pack(fill='x')
+        progress_bottom.pack(fill='x', pady=(SPACING['xs'], 0))
 
         self.progress_counter = tk.Label(progress_bottom, text='',
                                            bg=UI_THEME['panel'], fg=UI_THEME['fg_dim'],
@@ -7606,7 +7818,8 @@ class MixAnalyzerApp:
 
         # Post-run buttons
         buttons_row = ttk.Frame(frame)
-        buttons_row.grid(row=6, column=0, columnspan=3, sticky='w', pady=(0, 10))
+        buttons_row.grid(row=7, column=0, columnspan=3, sticky='w',
+                        pady=(0, SPACING['md']))
 
         self.ai_button = ttk.Button(buttons_row, text='Generate AI Analysis Prompt',
                                       style='Secondary.TButton',
@@ -7618,18 +7831,27 @@ class MixAnalyzerApp:
                                                 style='Secondary.TButton',
                                                 command=self._open_output_folder,
                                                 state='disabled')
-        self.open_folder_button.pack(side='left', padx=(10, 0))
+        self.open_folder_button.pack(side='left', padx=(SPACING['md'], 0))
+
+        # M8.7: Separator before log
+        sep_log = create_separator(frame)
+        sep_log.grid(row=8, column=0, columnspan=3, sticky='we',
+                     pady=(0, SPACING['sm']))
 
         # Log
         ttk.Label(frame, text='Log:', style='Dim.TLabel').grid(
-            row=7, column=0, columnspan=3, sticky='w', pady=(5, 3))
+            row=9, column=0, columnspan=3, sticky='w',
+            pady=(SPACING['xs'], SPACING['xs']))
 
-        log_frame = tk.Frame(frame, bg=UI_THEME['bg'])
-        log_frame.grid(row=8, column=0, columnspan=3, sticky='nsew', pady=5)
+        log_frame = tk.Frame(frame, bg=UI_THEME['bg'],
+                             highlightbackground=BORDERS['subtle']['color'],
+                             highlightthickness=BORDERS['subtle']['width'])
+        log_frame.grid(row=10, column=0, columnspan=3, sticky='nsew',
+                      pady=(0, SPACING['xs']))
 
         self.log_text = scrolledtext.ScrolledText(
             log_frame, height=12, bg=UI_THEME['bg_input'], fg=UI_THEME['accent4'],
-            font=get_font('mono'), bd=0, padx=10, pady=8,
+            font=get_font('mono'), bd=0, padx=SPACING['md'], pady=SPACING['sm'],
             insertbackground=UI_THEME['accent1'],
             selectbackground=UI_THEME['select'],
             selectforeground=UI_THEME['fg'])
@@ -7637,7 +7859,7 @@ class MixAnalyzerApp:
 
         frame.columnconfigure(0, weight=1)
         frame.columnconfigure(1, weight=1)
-        frame.rowconfigure(8, weight=1)
+        frame.rowconfigure(10, weight=1)
 
     def _refresh_analysis_summary(self):
         if not self.track_configs:
@@ -7951,12 +8173,15 @@ class MixAnalyzerApp:
         dialog.geometry('900x700')
         dialog.transient(self.root)
 
-        frame = tk.Frame(dialog, bg=UI_THEME['bg'], padx=20, pady=20)
+        # M8.7: consistent dialog padding
+        frame = tk.Frame(dialog, bg=UI_THEME['bg'],
+                         padx=SPACING['xl'], pady=SPACING['xl'])
         frame.pack(fill='both', expand=True)
 
         tk.Label(frame, text='AI Analysis Prompt',
                   bg=UI_THEME['bg'], fg=UI_THEME['accent1'],
-                  font=get_font('heading_help')).pack(anchor='w', pady=(0, 5))
+                  font=get_font('heading_help')).pack(
+            anchor='w', pady=(0, SPACING['xs']))
 
         tk.Label(frame,
                   text='1. Click "Copy to Clipboard" below\n'
@@ -7964,12 +8189,17 @@ class MixAnalyzerApp:
                        '3. Attach the XLSX report file from your output folder\n'
                        '4. Paste this prompt in the message and send',
                   bg=UI_THEME['bg'], fg=UI_THEME['fg_dim'],
-                  font=get_font('body_small'), justify='left').pack(anchor='w', pady=(0, 12))
+                  font=get_font('body_small'), justify='left').pack(
+            anchor='w', pady=(0, SPACING['md']))
 
+        # M8.7: subtle border around text area
         text_widget = scrolledtext.ScrolledText(
             frame, wrap='word', bg=UI_THEME['panel'], fg=UI_THEME['fg'],
-            font=get_font('mono'), bd=0, padx=12, pady=12, relief='flat',
-            insertbackground=UI_THEME['fg'])
+            font=get_font('mono'), bd=0, padx=SPACING['md'],
+            pady=SPACING['md'], relief='flat',
+            insertbackground=UI_THEME['fg'],
+            highlightbackground=BORDERS['subtle']['color'],
+            highlightthickness=BORDERS['subtle']['width'])
         text_widget.pack(fill='both', expand=True)
         text_widget.insert('1.0', prompt)
 
@@ -7980,15 +8210,16 @@ class MixAnalyzerApp:
             dialog.after(1500, lambda: copy_btn.config(text='Copy to Clipboard'))
 
         btn_row = tk.Frame(frame, bg=UI_THEME['bg'])
-        btn_row.pack(fill='x', pady=(12, 0))
+        btn_row.pack(fill='x', pady=(SPACING['md'], 0))
 
         copy_btn = create_neon_button(btn_row, 'Copy to Clipboard',
                                       copy_to_clipboard, preset='primary',
-                                      pady=8)
+                                      pady=SPACING['sm'])
         copy_btn.pack(side='left')
 
         create_neon_button(btn_row, 'Close', dialog.destroy,
-                          preset='secondary', pady=8).pack(side='left', padx=(10, 0))
+                          preset='secondary', pady=SPACING['sm']).pack(
+            side='left', padx=(SPACING['md'], 0))
 
     def _build_ai_prompt(self):
         """Generate the contextualized AI prompt."""
