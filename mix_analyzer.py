@@ -5904,6 +5904,211 @@ def _create_logo_widget(parent):
         return frame
 
 
+# M8.5: Neon progress bar with glow effect
+class NeonProgressBar(tk.Canvas):
+    """Custom Canvas-based progress bar with neon glow effect.
+
+    Replaces ttk.Progressbar with a cyberpunk-themed bar featuring:
+    - Rounded rectangle trough and bar
+    - Multi-layer glow effect around the filled portion
+    - Highlight shine on top of the bar
+    - Percentage text overlay
+    - Subtle pulse animation when active
+    """
+
+    _GLOW_LAYERS = [
+        ('#003322', 3),  # outermost — wide, dark
+        ('#005533', 2),  # mid
+        ('#007744', 1),  # innermost — tight, brighter
+    ]
+
+    _PULSE_COLORS = [
+        '#00FF9F',  # base
+        '#22FFAE',
+        '#44FFBD',
+        '#22FFAE',
+    ]
+
+    def __init__(self, parent, width=400, height=24, maximum=100,
+                 bar_color=None, trough_color=None, glow=True,
+                 show_percent=True):
+        self._bar_color = bar_color or THEME_COLORS['accent_primary']
+        self._trough_color = trough_color or THEME_COLORS['bg_tertiary']
+        bg = THEME_COLORS['bg_secondary']
+
+        super().__init__(parent, width=width, height=height,
+                         bg=bg, highlightthickness=0, bd=0)
+
+        self._width = width
+        self._height = height
+        self._maximum = maximum
+        self._value = 0
+        self._glow = glow
+        self._show_percent = show_percent
+
+        # Pulse animation state
+        self._animating = False
+        self._pulse_idx = 0
+        self._after_id = None
+
+        self._draw()
+
+        # Redraw on resize
+        self.bind('<Configure>', self._on_resize)
+
+    def _on_resize(self, event):
+        """Handle resize events for fill='x' packing."""
+        if event.width != self._width:
+            self._width = event.width
+            self._draw()
+
+    # --- Drawing ----------------------------------------------------------
+
+    def _draw(self):
+        """Redraw the entire progress bar."""
+        self.delete('all')
+        w, h = self._width, self._height
+        r = h // 2  # corner radius = half height for pill shape
+
+        # Trough (background)
+        self._rounded_rect(1, 1, w - 1, h - 1, r, fill=self._trough_color,
+                           outline=THEME_COLORS['border_subtle'])
+
+        frac = self._value / self._maximum if self._maximum else 0
+        frac = max(0.0, min(1.0, frac))
+        bar_w = int((w - 2) * frac)
+
+        if bar_w > 4:
+            # Glow layers (drawn behind the bar)
+            if self._glow:
+                for color, pad in self._GLOW_LAYERS:
+                    self.create_rectangle(
+                        1 - pad, 1 - pad,
+                        bar_w + 1 + pad, h - 1 + pad,
+                        fill='', outline=color, width=1,
+                    )
+
+            # Main bar
+            self._rounded_rect(1, 1, bar_w + 1, h - 1, r,
+                               fill=self._bar_color, outline='')
+
+            # Highlight shine (top quarter of the bar)
+            shine_h = max(3, h // 4)
+            shine_color = self._lighten(self._bar_color, 0.45)
+            self._rounded_rect(3, 3, bar_w - 1, 3 + shine_h, max(2, r // 2),
+                               fill=shine_color, outline='')
+
+        # Percentage text overlay
+        if self._show_percent:
+            pct = int(frac * 100)
+            text_color = THEME_COLORS['bg_primary'] if frac > 0.15 else THEME_COLORS['text_primary']
+            self.create_text(
+                w // 2, h // 2,
+                text=f'{pct}%',
+                fill=text_color,
+                font=get_font('body_small_bold'),
+                anchor='center',
+            )
+
+    def _rounded_rect(self, x1, y1, x2, y2, radius, **kwargs):
+        """Draw a rounded rectangle using a smooth polygon."""
+        r = min(radius, (x2 - x1) // 2, (y2 - y1) // 2)
+        if r < 1:
+            return self.create_rectangle(x1, y1, x2, y2, **kwargs)
+        points = [
+            x1 + r, y1,
+            x2 - r, y1,
+            x2, y1,
+            x2, y1 + r,
+            x2, y2 - r,
+            x2, y2,
+            x2 - r, y2,
+            x1 + r, y2,
+            x1, y2,
+            x1, y2 - r,
+            x1, y1 + r,
+            x1, y1,
+        ]
+        return self.create_polygon(points, smooth=True, **kwargs)
+
+    @staticmethod
+    def _lighten(hex_color, amount):
+        """Lighten a hex color by blending toward white."""
+        r = int(hex_color[1:3], 16)
+        g = int(hex_color[3:5], 16)
+        b = int(hex_color[5:7], 16)
+        r = int(r + (255 - r) * amount)
+        g = int(g + (255 - g) * amount)
+        b = int(b + (255 - b) * amount)
+        return f'#{r:02x}{g:02x}{b:02x}'
+
+    # --- Public API (compatible with ttk.Progressbar) ---------------------
+
+    def __setitem__(self, key, value):
+        """Support progress_bar['value'] = pct syntax."""
+        if key == 'value':
+            self.set_value(value)
+        elif key == 'maximum':
+            self._maximum = value
+            self._draw()
+        else:
+            super().__setitem__(key, value)
+
+    def __getitem__(self, key):
+        """Support progress_bar['value'] syntax."""
+        if key == 'value':
+            return self._value
+        if key == 'maximum':
+            return self._maximum
+        return super().__getitem__(key)
+
+    def set_value(self, value):
+        """Set current progress value (0 to maximum)."""
+        value = max(0, min(self._maximum, float(value)))
+        if value != self._value:
+            self._value = value
+            self._draw()
+            # Auto-manage pulse animation
+            if 0 < value < self._maximum and not self._animating:
+                self.start_pulse()
+            elif value >= self._maximum or value <= 0:
+                self.stop_pulse()
+
+    # --- Pulse animation --------------------------------------------------
+
+    def start_pulse(self):
+        """Start subtle pulse animation."""
+        if self._animating:
+            return
+        self._animating = True
+        self._pulse_tick()
+
+    def stop_pulse(self):
+        """Stop pulse animation and restore base color."""
+        self._animating = False
+        if self._after_id is not None:
+            self.after_cancel(self._after_id)
+            self._after_id = None
+        self._bar_color = THEME_COLORS.get('accent_primary', '#00FF9F')
+        # Only redraw if the widget still exists
+        try:
+            self._draw()
+        except tk.TclError:
+            pass
+
+    def _pulse_tick(self):
+        """Single animation frame."""
+        if not self._animating:
+            return
+        self._pulse_idx = (self._pulse_idx + 1) % len(self._PULSE_COLORS)
+        self._bar_color = self._PULSE_COLORS[self._pulse_idx]
+        try:
+            self._draw()
+            self._after_id = self.after(180, self._pulse_tick)
+        except tk.TclError:
+            self._animating = False
+
+
 # Help texts for the info buttons
 HELP_TEXTS = {
     'category': """CATEGORY - What kind of sound this track contains.
@@ -6284,7 +6489,7 @@ def setup_ttk_styles():
     style.map('TRadiobutton',
               background=[('active', UI_THEME['bg'])])
 
-    # === PROGRESSBAR ===
+    # === PROGRESSBAR (ttk fallback — main bar uses NeonProgressBar Canvas) ===
     style.configure('TProgressbar',
                     background=UI_THEME['accent1'],
                     troughcolor=UI_THEME['panel'],
@@ -7327,8 +7532,9 @@ class MixAnalyzerApp:
         progress_frame = tk.Frame(frame, bg=UI_THEME['panel'], padx=12, pady=10)
         progress_frame.grid(row=5, column=0, columnspan=3, sticky='we', pady=(0, 10))
 
-        self.progress_bar = ttk.Progressbar(progress_frame, mode='determinate',
-                                              maximum=100)
+        self.progress_bar = NeonProgressBar(progress_frame, height=24,
+                                              maximum=100, glow=True,
+                                              show_percent=True)
         self.progress_bar.pack(fill='x', pady=(0, 6))
 
         self.progress_step = tk.Label(progress_frame, text='Step: Idle',
