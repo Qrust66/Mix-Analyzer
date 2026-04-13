@@ -335,9 +335,11 @@ def test_sparkline_note():
     wb = Workbook()
     generate_version_tracking_sheet(wb, make_tracks(), log_fn=lambda m: None)
     ws = wb['Version Tracking']
+    # Sparkline header is in header row 8, in the sparkline column (n_versions + 5)
     found = False
-    for row in range(18, 40):
-        val = ws.cell(row=row, column=1).value
+    header_row = 8
+    for col in range(1, ws.max_column + 1):
+        val = ws.cell(row=header_row, column=col).value
         if val and 'Sparkline' in str(val):
             found = True
             break
