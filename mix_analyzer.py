@@ -3908,6 +3908,154 @@ def _create_spectral_barchart(ws_data, header_row, data_end, track_name):
     return chart
 
 
+# -- M6.4: Multi-Track Comparison Chart helpers --
+
+_COMPARISON_METRICS = [
+    ('Loudness',      lambda a: a['loudness']['lufs_integrated'], -60, 0, False),
+    ('Dynamic Range', lambda a: a['loudness']['crest_factor'],      0, 20, False),
+    ('Bass',          lambda a: a['spectrum']['band_energies'].get('sub', 0) +
+                                a['spectrum']['band_energies'].get('bass', 0), 0, 100, False),
+    ('Mid',           lambda a: a['spectrum']['band_energies'].get('low_mid', 0) +
+                                a['spectrum']['band_energies'].get('mid', 0) +
+                                a['spectrum']['band_energies'].get('high_mid', 0), 0, 100, False),
+    ('High',          lambda a: a['spectrum']['band_energies'].get('presence', 0) +
+                                a['spectrum']['band_energies'].get('air', 0), 0, 100, False),
+    ('Stereo Width',  lambda a: a['stereo']['width_overall'] * 100 if a['stereo']['is_stereo'] else 0,
+                      0, 100, False),
+]
+
+
+def _normalize_metric(value, min_val, max_val):
+    """Clamp and normalize a metric to 0-100 scale."""
+    import math
+    if not math.isfinite(value):
+        return 0.0
+    normalized = (value - min_val) / (max_val - min_val) if max_val != min_val else 0.0
+    return round(max(0.0, min(100.0, normalized * 100)), 1)
+
+
+def _write_comparison_chart_data(ws, analyses_with_info, start_row):
+    """Write normalized multi-track comparison data to _chart_data.
+    Layout: metrics as rows, tracks as columns (works for both Radar and GroupedBar).
+    Returns (header_row, end_row, n_tracks)."""
+    from openpyxl.styles import Font
+    dim_font = Font(name='Calibri', size=9, color='888888')
+
+    # Select tracks: Full Mix first, then BUS, then individuals, max 12
+    full_mixes = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Full Mix']
+    buses = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'BUS']
+    indivs = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    selected = (full_mixes + buses + indivs)[:12]
+
+    if len(selected) < 2:
+        return None, None, 0
+
+    # Header row: "Metric" + track names
+    ws.cell(row=start_row, column=1, value='Metric [Comparison]').font = dim_font
+    for col_idx, (a, ti) in enumerate(selected):
+        ws.cell(row=start_row, column=col_idx + 2,
+                value=a['filename'][:25]).font = dim_font
+
+    # Data rows: one per metric
+    data_start = start_row + 1
+    for m_idx, (metric_name, extractor, m_min, m_max, _) in enumerate(_COMPARISON_METRICS):
+        row = data_start + m_idx
+        ws.cell(row=row, column=1, value=metric_name)
+        for col_idx, (a, ti) in enumerate(selected):
+            try:
+                raw = extractor(a)
+                val = _normalize_metric(raw, m_min, m_max)
+            except Exception:
+                val = 0.0
+            ws.cell(row=row, column=col_idx + 2, value=val)
+
+    data_end = data_start + len(_COMPARISON_METRICS) - 1
+    return start_row, data_end, len(selected)
+
+
+def _create_comparison_radarchart(ws_data, header_row, data_end, n_tracks):
+    """Create a RadarChart for multi-track comparison (best for ≤6 tracks)."""
+    from openpyxl.chart import RadarChart, Reference
+
+    chart = RadarChart()
+    chart.type = "filled"
+    chart.style = 10
+    chart.title = "Track Profiles — Multi-Dimensional Comparison"
+    chart.y_axis.scaling.min = 0
+    chart.y_axis.scaling.max = 100
+    chart.y_axis.delete = False
+
+    data_start = header_row + 1
+
+    # Categories = metric names (column 1)
+    cats = Reference(ws_data, min_col=1, min_row=data_start, max_row=data_end)
+    chart.set_categories(cats)
+
+    # One series per track (columns 2, 3, ...)
+    track_colors = [
+        "FF3D8B", "00FF9F", "00D4AA", "FFD93D", "7B68EE", "FF6B35",
+        "00B4D8", "E040FB", "76FF03", "FF5252", "18FFFF", "FFAB40",
+    ]
+    for i in range(n_tracks):
+        ref = Reference(ws_data, min_col=i + 2, min_row=header_row, max_row=data_end)
+        chart.add_data(ref, titles_from_data=True)
+        chart.series[i].graphicalProperties.solidFill = track_colors[i % len(track_colors)]
+        chart.series[i].graphicalProperties.line.solidFill = track_colors[i % len(track_colors)]
+        chart.series[i].graphicalProperties.line.width = 15000
+
+    chart.legend.position = 'b'
+    chart.width = 22
+    chart.height = 16
+
+    return chart
+
+
+def _create_comparison_grouped_barchart(ws_data, header_row, data_end, n_tracks):
+    """Create a GroupedBarChart for multi-track comparison (>6 tracks)."""
+    from openpyxl.chart import BarChart, Reference
+
+    chart = BarChart()
+    chart.type = "col"
+    chart.grouping = "clustered"
+    chart.style = 10
+    chart.title = "Track Profiles — Multi-Dimensional Comparison"
+    chart.y_axis.title = "Normalized Score (0-100)"
+    chart.x_axis.title = "Metric"
+    chart.y_axis.scaling.min = 0
+    chart.y_axis.scaling.max = 100
+    chart.y_axis.delete = False
+    chart.x_axis.delete = False
+
+    data_start = header_row + 1
+
+    # Categories = metric names (column 1)
+    cats = Reference(ws_data, min_col=1, min_row=data_start, max_row=data_end)
+    chart.set_categories(cats)
+
+    # One series per track
+    track_colors = [
+        "FF3D8B", "00FF9F", "00D4AA", "FFD93D", "7B68EE", "FF6B35",
+        "00B4D8", "E040FB", "76FF03", "FF5252", "18FFFF", "FFAB40",
+    ]
+    for i in range(n_tracks):
+        ref = Reference(ws_data, min_col=i + 2, min_row=header_row, max_row=data_end)
+        chart.add_data(ref, titles_from_data=True)
+        chart.series[i].graphicalProperties.solidFill = track_colors[i % len(track_colors)]
+
+    chart.legend.position = 'b'
+    chart.width = 28
+    chart.height = 14
+
+    return chart
+
+
+def _create_comparison_chart(ws_data, header_row, data_end, n_tracks):
+    """Auto-select RadarChart (≤6 tracks) or GroupedBarChart (>6 tracks)."""
+    if n_tracks <= 6:
+        return _create_comparison_radarchart(ws_data, header_row, data_end, n_tracks)
+    return _create_comparison_grouped_barchart(ws_data, header_row, data_end, n_tracks)
+
+
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None,
                            include_individual_sheets=True):
@@ -4455,6 +4603,19 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             tmp_files.append(tmp_path)
             ws_global.add_image(img, f'A{row}')
             row += 50
+        except Exception:
+            pass
+
+        # Native Excel chart for Multi-Track Comparison (M6.4)
+        try:
+            comp_hdr, comp_end, comp_n = _write_comparison_chart_data(
+                ws_chart_data, analyses_with_info, chart_data_row)
+            if comp_hdr is not None and comp_n >= 2:
+                comparison_chart = _create_comparison_chart(
+                    ws_chart_data, comp_hdr, comp_end, comp_n)
+                ws_global.add_chart(comparison_chart, f'A{row}')
+                chart_data_row = comp_end + 2
+                row += 30
         except Exception:
             pass
 
