@@ -2247,6 +2247,37 @@ def _xl_add_nav_row(ws, row, sheet_names_ordered, current_idx):
     return row + 1
 
 
+def _xl_add_sheet_nav(ws, row, current_sheet=None):
+    """M7.5: Add a navigation bar to non-track sheets.
+    Provides links to Index, Summary, Dashboard, and Anomalies."""
+    from openpyxl.styles import Font
+    _init_ma_fonts()
+    nav_font = Font(name='Calibri', size=9, color='00D9FF', underline='single')
+    sep_font = MA_FONT_SMALL
+    dim_font = Font(name='Calibri', size=9, color='333344')
+
+    targets = [
+        ('Index', 'Index'),
+        ('Summary', 'Summary'),
+        ('Dashboard', 'Dashboard'),
+        ('Anomalies', 'Anomalies'),
+        ('Health Score', 'Mix Health Score'),
+    ]
+    col = 1
+    for i, (label, sheet_name) in enumerate(targets):
+        if i > 0:
+            ws.cell(row=row, column=col, value=' | ').font = sep_font
+            col += 1
+        c = ws.cell(row=row, column=col, value=label)
+        if current_sheet and sheet_name == current_sheet:
+            c.font = dim_font  # current sheet not clickable
+        else:
+            c.font = nav_font
+            c.hyperlink = f'#{sheet_name}!A1'
+        col += 1
+    return row
+
+
 def _xl_add_comment(cell, text, width=300, height=150):
     """Add a comment (tooltip) to a cell with optional dimensions."""
     from openpyxl.comments import Comment
@@ -2366,7 +2397,8 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     ws['B3'].fill = panel_fill
     ws['B3'].border = thin_border
 
-    # Row 4: empty separator
+    # Row 4: M7.5 Navigation bar
+    _xl_add_sheet_nav(ws, 4)
     # Row 5: Headers
     header_row = 5
     ws.cell(row=header_row, column=1, value='Frequency Band').font = header_font
@@ -2659,6 +2691,9 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None):
     # Row 7: empty separator
 
     # Row 8: empty separator
+
+    # Row 8: M7.5 Navigation bar
+    _xl_add_sheet_nav(ws, 8)
 
     # --- Section 3: Comparison table (row 9 = headers, row 10+ = data) ---
     header_row = 9
@@ -3327,6 +3362,8 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     ws['A1'] = 'MIX HEALTH SCORE'
     ws['A1'].font = Font(name='Calibri', size=18, bold=True, color='00D9FF')
     ws['A1'].fill = bg_fill
+    # M7.5: Navigation bar
+    _xl_add_sheet_nav(ws, 2, current_sheet='Mix Health Score')
 
     # Score display
     ws.merge_cells('A3:D3')
@@ -3900,6 +3937,8 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
     ws['A1'] = 'VERSION TRACKING'
     ws['A1'].font = Font(name='Calibri', size=18, bold=True, color='00D9FF')
     ws['A1'].fill = bg_fill
+    # M7.5: Navigation bar
+    _xl_add_sheet_nav(ws, 2)
 
     subtitle = f'Mix evolution over time for: {song_name}' if song_name else 'Mix evolution over time'
     ws['A3'] = subtitle
@@ -4574,6 +4613,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_index.sheet_properties.tabColor = '00D9FF'
     row = _xl_write_header(ws_index, 'MIX ANALYZER — REPORT INDEX',
                             f'Style: {style_name} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+    # M7.5: Navigation bar
+    _xl_add_sheet_nav(ws_index, row - 1, current_sheet='Index')
 
     # Track list with hyperlinks
     headers = ['#', 'Track Name', 'Type', 'Category', 'Sheet Link']
@@ -4638,6 +4679,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_clean_layout(ws_sum)
     ws_sum.sheet_properties.tabColor = 'B967FF'
     row = _xl_write_header(ws_sum, 'SUMMARY — GLOBAL METRICS', f'{len(analyses_with_info)} tracks analyzed')
+    # M7.5: Navigation bar
+    _xl_add_sheet_nav(ws_sum, row - 1, current_sheet='Summary')
 
     sum_headers = ['Track', 'Type', 'Category', 'LUFS', 'Peak (dB)', 'Crest (dB)',
                    'Stereo Width', 'Dom. Band', 'Centroid (Hz)', 'Duration (s)']
@@ -4652,6 +4695,9 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             _xl_add_comment(c, METRIC_GLOSSARY[h])
     sum_header_row = row
     row += 1
+
+    # M7.5: link font for track names
+    _link_font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
 
     for a, ti in analyses_with_info:
         L = a['loudness']
@@ -4676,6 +4722,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             c.fill = panel_fill
             if col >= 4:
                 c.alignment = Alignment(horizontal='center')
+        # M7.5: Make track name clickable → individual sheet
+        if include_individual_sheets and ti['name'] in sheet_names:
+            sname = sheet_names[ti['name']]
+            track_cell = ws_sum.cell(row=row, column=1)
+            track_cell.hyperlink = f"#{sname}!A1"
+            track_cell.font = _link_font
         row += 1
 
     # Enriched conditional formatting (Phase 2)
@@ -4758,6 +4810,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_clean_layout(ws_anom)
     ws_anom.sheet_properties.tabColor = 'FF3333'
     row = _xl_write_header(ws_anom, 'ANOMALIES')
+    # M7.5: Navigation bar
+    _xl_add_sheet_nav(ws_anom, row - 1, current_sheet='Anomalies')
 
     anom_headers = ['Track', 'Type', 'Severity', 'Description']
     _anom_header_comments = {
@@ -4779,7 +4833,13 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         if a.get('anomalies'):
             for sev, desc in a['anomalies']:
                 row_fill = crit_fill if sev == 'critical' else (warn_fill if sev == 'warning' else panel_fill)
-                ws_anom.cell(row=row, column=1, value=a['filename']).font = data_font
+                track_cell = ws_anom.cell(row=row, column=1, value=a['filename'])
+                track_cell.font = data_font
+                # M7.5: Link anomaly track name → individual sheet
+                if include_individual_sheets and ti['name'] in sheet_names:
+                    sname = sheet_names[ti['name']]
+                    track_cell.hyperlink = f"#{sname}!A1"
+                    track_cell.font = _link_font
                 ws_anom.cell(row=row, column=2, value=ti['type']).font = data_font
                 sev_cell = ws_anom.cell(row=row, column=3, value=sev.upper())
                 sev_cell.font = crit_font if sev == 'critical' else warn_font
@@ -4808,6 +4868,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_clean_layout(ws_ctx)
     ws_ctx.sheet_properties.tabColor = 'B967FF'
     row = _xl_write_header(ws_ctx, 'FULL MIX CONTEXT')
+    # M7.5: Navigation bar
+    _xl_add_sheet_nav(ws_ctx, row - 1)
 
     if full_mix_info:
         ctx_items = [
@@ -4997,6 +5059,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_global.sheet_properties.tabColor = '00FF9F'
     row = _xl_write_header(ws_global, 'GLOBAL COMPARISON',
                             'Masking matrix, spectral balance, LUFS/Crest comparisons (excludes BUS)')
+    # M7.5: Navigation bar
+    _xl_add_sheet_nav(ws_global, row - 1)
 
     if individuals:
         # Masking matrix as image
@@ -5134,6 +5198,9 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_clean_layout(ws_fm)
     ws_fm.sheet_properties.tabColor = 'B967FF'
 
+    # M7.5: Navigation bar
+    _xl_add_sheet_nav(ws_fm, 3)
+
     if full_mixes:
         a_fm, ti_fm = full_mixes[0]
         row = _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', a_fm['filename'])
@@ -5258,6 +5325,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_ai.sheet_properties.tabColor = '00FF9F'
     row = _xl_write_header(ws_ai, 'AI ANALYSIS PROMPT',
                             'Copy this text and paste it into Claude along with this report file.')
+    # M7.5: Navigation bar
+    _xl_add_sheet_nav(ws_ai, row - 1)
     row += 1
 
     if ai_prompt:
@@ -5277,6 +5346,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_dash.sheet_properties.tabColor = 'FFAA00'
     row = _xl_write_header(ws_dash, 'DASHBOARD — ALL METRICS',
                             'Use filters to slice by Category, Type, or value ranges')
+    # M7.5: Navigation bar
+    _xl_add_sheet_nav(ws_dash, row - 1, current_sheet='Dashboard')
 
     dash_headers = [
         'Track', 'Type', 'Category', 'Family',
@@ -5330,6 +5401,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             c.fill = panel_fill
             if col >= 5:
                 c.alignment = Alignment(horizontal='center')
+        # M7.5: Make track name clickable → individual sheet
+        if include_individual_sheets and ti['name'] in sheet_names:
+            sname = sheet_names[ti['name']]
+            dash_track_cell = ws_dash.cell(row=row, column=1)
+            dash_track_cell.hyperlink = f"#{sname}!A1"
+            dash_track_cell.font = _link_font
         row += 1
 
     # Apply auto-filter on the Dashboard table

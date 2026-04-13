@@ -71,6 +71,11 @@ acl_start = source.find('def _apply_clean_layout(')
 acl_end = source.find('\n\ndef ', acl_start + 1)
 exec(source[acl_start:acl_end], globals())
 
+# Extract _xl_add_sheet_nav helper (M7.5)
+xsn_start = source.find('def _xl_add_sheet_nav(')
+xsn_end = source.find('\n\ndef ', xsn_start + 1)
+exec(source[xsn_start:xsn_end], globals())
+
 start = source.find('def generate_freq_conflicts_sheet(')
 end = source.find('\ndef generate_excel_report(')
 exec(source[start:end], globals())

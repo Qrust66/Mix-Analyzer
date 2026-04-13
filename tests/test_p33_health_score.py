@@ -74,6 +74,11 @@ acl_start = source.find('def _apply_clean_layout(')
 acl_end = source.find('\n\ndef ', acl_start + 1)
 exec(source[acl_start:acl_end], globals())
 
+# Extract _xl_add_sheet_nav helper (M7.5)
+xsn_start = source.find('def _xl_add_sheet_nav(')
+xsn_end = source.find('\n\ndef ', xsn_start + 1)
+exec(source[xsn_start:xsn_end], globals())
+
 # Extract _xl_add_comment helper
 xac_start = source.find('def _xl_add_comment(')
 xac_end = source.find('\n\ndef ', xac_start + 1)
