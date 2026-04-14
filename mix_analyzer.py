@@ -3453,6 +3453,99 @@ def apply_vertical_navigation(ws, current_sheet: str, start_row: int = 2, start_
     return row
 
 
+def apply_dark_chart_theme(chart):
+    """
+    Apply cyberpunk dark theme to a native Excel chart.
+
+    Sets dark background, white/cyan text, subtle gridlines, and
+    repositions the legend below the chart.
+    """
+    from openpyxl.chart.shapes import GraphicalProperties
+    from openpyxl.chart.text import RichText
+    from openpyxl.drawing.text import (
+        Paragraph, ParagraphProperties, CharacterProperties, RegularTextRun,
+    )
+    from openpyxl.drawing.line import LineProperties
+
+    # ── 1. Plot area background ──
+    if chart.plot_area is not None:
+        props = GraphicalProperties()
+        props.solidFill = '0D0D0D'
+        chart.plot_area.graphicalProperties = props
+
+    # ── 2. Axes text + gridlines ──
+    for axis in (chart.x_axis, chart.y_axis):
+        if axis is None or getattr(axis, 'delete', False):
+            continue
+        # Label text color
+        cp = CharacterProperties(sz=900, solidFill='CCCCCC')
+        pp = ParagraphProperties(defRPr=cp)
+        axis.txPr = RichText(p=[Paragraph(pPr=pp, endParaRPr=cp)])
+        # Gridlines
+        if axis.majorGridlines is not None:
+            gl_props = GraphicalProperties()
+            gl_props.ln = LineProperties(solidFill='333333', w=9525)
+            axis.majorGridlines.spPr = gl_props
+        # Axis title
+        if axis.title is not None:
+            _set_chart_text_style(axis, 'CCCCCC', 1000)
+
+    # ── 3. Chart title ──
+    if chart.title is not None:
+        _set_chart_text_style(chart, '00FFFF', 1200, bold=True)
+
+    # ── 4. Legend ──
+    if chart.legend is not None:
+        chart.legend.position = 'b'
+        chart.legend.overlay = False
+        lcp = CharacterProperties(sz=800, solidFill='CCCCCC')
+        lpp = ParagraphProperties(defRPr=lcp)
+        chart.legend.txPr = RichText(p=[Paragraph(pPr=lpp, endParaRPr=lcp)])
+
+
+def _set_chart_text_style(obj, color, size, bold=False):
+    """Set the title text style on a chart or axis object."""
+    from openpyxl.chart.text import RichText
+    from openpyxl.drawing.text import (
+        Paragraph, ParagraphProperties, CharacterProperties, RegularTextRun,
+    )
+
+    title_obj = obj.title if hasattr(obj, 'title') else obj
+    if title_obj is None:
+        return
+
+    # Extract current title text
+    title_text = ''
+    if isinstance(title_obj, str):
+        title_text = title_obj
+    else:
+        tx = getattr(title_obj, 'tx', None)
+        if tx is not None:
+            rich = getattr(tx, 'rich', None)
+            if rich is not None:
+                for p in rich.p:
+                    for r in getattr(p, 'r', []):
+                        if r.t:
+                            title_text += r.t
+    if not title_text:
+        return
+
+    cp = CharacterProperties(sz=size, b=bold, solidFill=color)
+    rtr = RegularTextRun(t=title_text)
+    rtr.rPr = cp
+    pp = ParagraphProperties(defRPr=cp)
+    p = Paragraph(pPr=pp, r=[rtr])
+    rich = RichText(p=[p])
+
+    # Apply to the title object
+    if hasattr(obj, 'title') and obj.title is not None:
+        if hasattr(obj.title, 'tx'):
+            obj.title.tx = rich
+        elif isinstance(obj.title, str):
+            # For chart.title = "string", we need to set it via the title sub-object
+            pass
+
+
 def _detect_content_bounds(ws):
     """Detect the actual content boundaries of a worksheet, including charts/images.
 
@@ -4575,6 +4668,7 @@ def _create_peak_rms_linechart(ws_data, header_row, data_end, track_name):
     chart.width = 28
     chart.height = 12
 
+    apply_dark_chart_theme(chart)
     return chart
 
 
@@ -4666,6 +4760,7 @@ def _create_crest_areachart(ws_data, header_row, data_end, track_name):
     chart.width = 28
     chart.height = 12
 
+    apply_dark_chart_theme(chart)
     return chart
 
 
@@ -4734,6 +4829,7 @@ def _create_spectral_barchart(ws_data, header_row, data_end, track_name):
     chart.width = 20
     chart.height = 12
 
+    apply_dark_chart_theme(chart)
     return chart
 
 
@@ -4836,6 +4932,7 @@ def _create_comparison_radarchart(ws_data, header_row, data_end, n_tracks):
     chart.width = 22
     chart.height = 16
 
+    apply_dark_chart_theme(chart)
     return chart
 
 
@@ -4875,6 +4972,7 @@ def _create_comparison_grouped_barchart(ws_data, header_row, data_end, n_tracks)
     chart.width = 28
     chart.height = 14
 
+    apply_dark_chart_theme(chart)
     return chart
 
 
