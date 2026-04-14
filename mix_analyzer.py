@@ -3306,6 +3306,16 @@ SHEET_FREEZE_CONFIG = {
 # Default for individual track sheets and any unlisted sheet
 SHEET_FREEZE_DEFAULT = 'B5'
 
+# Margin and hiding limits for hide_unused_cells (E5)
+EXCEL_MARGINS = {
+    'right': 5,             # columns of dark margin right of content
+    'bottom': 15,           # rows of dark margin below content
+    'min_visible_cols': 20, # minimum visible columns (content + margin)
+    'min_visible_rows': 50, # minimum visible rows (content + margin)
+    'hide_cols': 500,       # how many columns to hide beyond margin
+    'hide_rows': 2000,      # how many rows to hide beyond margin
+}
+
 
 EXCEL_COLORS = {
     # Backgrounds
@@ -3444,42 +3454,105 @@ def apply_vertical_navigation(ws, current_sheet: str, start_row: int = 2, start_
     return row
 
 
-def hide_unused_cells(ws, content_last_row: int, content_last_col: int,
-                      visible_rows: int = 50, visible_cols: int = 15):
+def _detect_content_bounds(ws):
+    """Detect the actual content boundaries of a worksheet, including charts/images.
+
+    Returns:
+        (last_row, last_col) covering all real content.
     """
-    Hide cells beyond content area and extend the dark background.
+    last_row = max(ws.max_row, 1)
+    last_col = max(ws.max_column, 1)
+
+    # Account for charts — each chart occupies roughly 24 rows x 10 cols from anchor
+    if hasattr(ws, '_charts') and ws._charts:
+        for chart in ws._charts:
+            anchor = getattr(chart, 'anchor', None)
+            if anchor is not None:
+                # anchor is a TwoCellAnchor or similar; _from has row/col attrs
+                _from = getattr(anchor, '_from', None)
+                if _from is not None:
+                    chart_row = getattr(_from, 'row', 0) + 30
+                    chart_col = getattr(_from, 'col', 0) + 12
+                    last_row = max(last_row, chart_row)
+                    last_col = max(last_col, chart_col)
+                else:
+                    # Fallback: just extend generously
+                    last_row = max(last_row, last_row + 30)
+                    last_col = max(last_col, 12)
+
+    # Account for images
+    if hasattr(ws, '_images') and ws._images:
+        for img in ws._images:
+            anchor = getattr(img, 'anchor', None)
+            if anchor is not None:
+                _from = getattr(anchor, '_from', None)
+                if _from is not None:
+                    img_row = getattr(_from, 'row', 0) + 25
+                    img_col = getattr(_from, 'col', 0) + 8
+                    last_row = max(last_row, img_row)
+                    last_col = max(last_col, img_col)
+                else:
+                    last_row = max(last_row, last_row + 25)
+                    last_col = max(last_col, 8)
+
+    return last_row, last_col
+
+
+def hide_unused_cells(ws, content_last_row=None, content_last_col=None):
+    """
+    Extend the dark background with a margin buffer, then hide ALL
+    remaining columns and rows beyond the visible zone.
 
     Args:
         ws: openpyxl Worksheet
-        content_last_row: Last row with content
-        content_last_col: Last column with content
-        visible_rows: Number of visible rows to keep (default: 50)
-        visible_cols: Number of visible columns to keep (default: 15)
+        content_last_row: Last row with content (auto-detected if None)
+        content_last_col: Last column with content (auto-detected if None)
     """
     _init_excel_polish_styles()
     from openpyxl.styles import PatternFill
     from openpyxl.utils import get_column_letter
 
+    # 1. Auto-detect content bounds if not provided
+    if content_last_row is None or content_last_col is None:
+        det_row, det_col = _detect_content_bounds(ws)
+        if content_last_row is None:
+            content_last_row = det_row
+        if content_last_col is None:
+            content_last_col = det_col
+
+    # 2. Compute visible zone (content + margin, with minimums)
+    margin_r = EXCEL_MARGINS['right']
+    margin_b = EXCEL_MARGINS['bottom']
+    visible_last_col = max(content_last_col + margin_r, EXCEL_MARGINS['min_visible_cols'])
+    visible_last_row = max(content_last_row + margin_b, EXCEL_MARGINS['min_visible_rows'])
+
     bg_fill = EXCEL_FILLS.get('bg_primary',
                                PatternFill(start_color='0D0D0D', end_color='0D0D0D', fill_type='solid'))
 
-    # 1. Extend dark background on empty rows up to visible_rows
-    for row in range(content_last_row + 1, visible_rows + 1):
-        for col in range(1, content_last_col + 1):
-            ws.cell(row=row, column=col).fill = bg_fill
+    # 3. Fill dark background on the entire visible zone (preserve existing fills)
+    for row in range(1, visible_last_row + 1):
+        for col in range(1, visible_last_col + 1):
+            cell = ws.cell(row=row, column=col)
+            cf = cell.fill
+            has_custom = (
+                cf is not None
+                and cf.fill_type == 'solid'
+                and cf.fgColor is not None
+                and cf.fgColor.rgb not in (None, '00000000')
+            )
+            if not has_custom:
+                cell.fill = bg_fill
 
-    # 2. Extend dark background on columns up to visible_cols
-    for row in range(1, visible_rows + 1):
-        for col in range(content_last_col + 1, visible_cols + 1):
-            ws.cell(row=row, column=col).fill = bg_fill
+    # 4. Hide ALL columns beyond the visible zone
+    hide_cols = EXCEL_MARGINS['hide_cols']
+    end_col = min(visible_last_col + 1 + hide_cols, 16385)
+    for col_idx in range(visible_last_col + 1, end_col):
+        ws.column_dimensions[get_column_letter(col_idx)].hidden = True
 
-    # 3. Hide columns beyond visible_cols (reasonable block, not all 16384)
-    for col_idx in range(visible_cols + 1, min(visible_cols + 50, 100)):
-        col_letter = get_column_letter(col_idx)
-        ws.column_dimensions[col_letter].hidden = True
-
-    # 4. Hide rows beyond visible_rows (reasonable block, not all 1M)
-    for row_idx in range(visible_rows + 1, min(visible_rows + 100, 200)):
+    # 5. Hide ALL rows beyond the visible zone
+    hide_rows = EXCEL_MARGINS['hide_rows']
+    end_row = min(visible_last_row + 1 + hide_rows, 1048577)
+    for row_idx in range(visible_last_row + 1, end_row):
         ws.row_dimensions[row_idx].hidden = True
 
 
@@ -5805,14 +5878,14 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                 c.fill = bg_fill
     _apply_dark_background(ws_index)
 
-    # ---- E3: Apply vertical navigation to all visible sheets ----
-    # ---- E4: Apply freeze panes after nav insertion ----
-    log_fn("    Excel: applying vertical navigation and freeze panes...")
+    # ---- E3/E4/E5: Vertical nav, freeze panes, hide unused cells ----
+    log_fn("    Excel: applying vertical nav, freeze panes, hiding unused cells...")
     for _ws in wb.worksheets:
         if _ws.sheet_state != 'hidden':
             apply_vertical_nav_to_sheet(_ws, _ws.title)
             _freeze = SHEET_FREEZE_CONFIG.get(_ws.title, SHEET_FREEZE_DEFAULT)
             apply_freeze_panes(_ws, _freeze)
+            hide_unused_cells(_ws)
 
     # Save workbook
     log_fn("    Excel: saving workbook...")
