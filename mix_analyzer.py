@@ -837,10 +837,12 @@ def detect_anomalies(analysis):
     if L['rms_db'] < -60:
         anomalies.append(('warning', f"RMS level very low ({L['rms_db']:.1f} dBFS) - track may be nearly silent"))
 
-    # Strong resonance peaks
-    strong_peaks = [p for p in S['peaks'] if p[1] > -3 and p[0] > 100]
-    if len(strong_peaks) >= 2:
-        freqs_str = ', '.join(f"{p[0]:.0f}Hz" for p in strong_peaks[:3])
+    # Strong resonance peaks (v1.6.1: local-contour-based detection)
+    resonance_peaks = detect_resonance_anomalies(
+        S['spectrum_mean'], S['freqs'], S['sr']
+    )
+    if len(resonance_peaks) >= RESONANCE_MIN_PEAKS_FOR_WARNING:
+        freqs_str = ', '.join(f"{p[0]:.0f}Hz" for p in resonance_peaks)
         anomalies.append(('warning', f"Strong resonance peaks detected at: {freqs_str}"))
 
     # Extreme compression
