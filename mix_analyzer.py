@@ -268,6 +268,55 @@ AUTO_DETECT_PATTERNS = [
 ]
 
 
+# ============================================================================
+# Resonance anomaly detection (v1.6.1)
+# ============================================================================
+# These constants control the detection of abnormal resonance peaks in the
+# anomaly report. They do NOT affect the descriptive spectral peak list shown
+# in the PDF reports — that uses a separate algorithm in analyze_spectrum().
+#
+# Tune these if the resonance warnings in your reports are too sensitive
+# (too many false positives) or too lax (missing obvious ringing).
+
+# Width of the local spectral contour window, in octaves on each side of the
+# target frequency. A peak is compared to the spectral average over
+# [f / 2^W, f * 2^W]. Smaller = more sensitive to narrow spikes, larger = only
+# flags isolated peaks.
+#   Recommended: 1/3 octave (matches audio engineering conventions and
+#   roughly corresponds to a parametric EQ with Q=4-6).
+RESONANCE_LOCAL_WINDOW_OCTAVES = 1.0 / 3.0
+
+# Minimum dB by which a peak must rise above its local contour to be flagged
+# as a resonance anomaly. +9 dB corresponds to "clearly audible and typically
+# problematic". +6 dB is the threshold of musical/natural emphasis. +12 dB is
+# conservative (only extreme ringing).
+RESONANCE_MIN_EXCESS_DB = 9.0
+
+# Minimum absolute level (in dB relative to the spectrum's peak) for a bin
+# to be eligible as a resonance candidate. This filters out noise-floor
+# artifacts and near-silent regions where small excess values are not
+# audibly meaningful.
+RESONANCE_MIN_ABSOLUTE_DBFS = -50.0
+
+# Lower frequency floor for resonance detection. Below this, peaks are
+# considered either sub-bass rumble or fundamental frequencies of bass
+# instruments (not anomalies). 60 Hz matches the lower boundary of the
+# "Bass" band in FREQ_BANDS.
+RESONANCE_MIN_FREQ_HZ = 60.0
+
+# Maximum number of anomalous peaks reported per track. If more peaks are
+# detected, only the top N (highest excess_db) are reported. If a track has
+# more than this many true resonances, it has a structural problem that
+# requires manual inspection rather than band-by-band EQ surgery.
+RESONANCE_MAX_REPORTED_PEAKS = 3
+
+# Minimum number of anomalous peaks required to raise a warning. With 1
+# isolated peak, a track usually just has one corrective cut to make. The
+# warning is meant to signal tracks with multiple concurrent issues.
+RESONANCE_MIN_PEAKS_FOR_WARNING = 2
+# ============================================================================
+
+
 def auto_detect_category(filename, project_name=None):
     """Attempt to detect category from filename. Returns '(not set)' if no match.
     If project_name is provided, it is stripped from the filename before matching
