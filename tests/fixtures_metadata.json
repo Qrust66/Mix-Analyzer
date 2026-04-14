@@ -1,0 +1,87 @@
+{
+  "sample_rate": 44100,
+  "duration_seconds": 10.0,
+  "channels": "stereo (mono summed to L/R)",
+  "bit_depth": 24,
+  "fixtures": [
+    {
+      "file": "01_flat_wideband.wav",
+      "description": "Bandlimited white noise 100 Hz - 18 kHz. Near-flat spectrum with no peaks above contour.",
+      "expected_anomalies_hz": [],
+      "expected_count": 0,
+      "notes": "Negative control. No algorithm should flag anomalies here."
+    },
+    {
+      "file": "02_wideband_one_resonance_500hz.wav",
+      "description": "Bandlimited noise + single +18 dB peaking EQ at 500 Hz (Q=8).",
+      "expected_anomalies_hz": [
+        500
+      ],
+      "expected_count": 1,
+      "notes": "True anomaly. Current algo will likely miss it (500 Hz is not within 3 dB of spectral global max for wideband source). New algo should catch it via local-contour comparison."
+    },
+    {
+      "file": "03_wideband_three_resonances.wav",
+      "description": "Bandlimited noise + three true resonances at 500, 1500, 4000 Hz (+18/+16/+14 dB, Q=8).",
+      "expected_anomalies_hz": [
+        500,
+        1500,
+        4000
+      ],
+      "expected_count": 3,
+      "notes": "Three clearly isolated true resonances. New algo should catch all three."
+    },
+    {
+      "file": "04_spoon_percussion_no_anomaly.wav",
+      "description": "Percussive hits with three inharmonic tonal modes at 2500, 3800, 6200 Hz. These are the instrument's natural timbre, NOT resonance anomalies.",
+      "expected_anomalies_hz": [],
+      "expected_count": 0,
+      "notes": "CANONICAL FALSE-POSITIVE CASE. Current algorithm flags the tonal modes because they sit at/near the global max of the narrow spectrum. New algorithm must NOT flag them: in the local-contour view they ARE the contour, not spikes above it. Success criterion: new algo reports 0 anomalies here."
+    },
+    {
+      "file": "05_spoon_percussion_with_real_anomaly.wav",
+      "description": "Same spoon percussion as 04, with an ADDITIONAL +20 dB narrow resonance at 1200 Hz (Q=12) \u2014 a real anomaly below the natural content.",
+      "expected_anomalies_hz": [
+        1200
+      ],
+      "expected_count": 1,
+      "notes": "Tests that new algo distinguishes natural tonal content (2500/3800/6200 Hz modes) from a genuine narrow resonance (1200 Hz) added below them. The 1200 Hz peak is isolated, sharp, and well above its local contour. New algo should flag ONLY 1200 Hz."
+    },
+    {
+      "file": "06_sub_bass_80hz_resonance.wav",
+      "description": "Bandlimited noise 30 Hz - 18 kHz + strong +18 dB peaking EQ at 80 Hz (Q=8).",
+      "expected_anomalies_hz": [
+        80
+      ],
+      "expected_count": 1,
+      "notes": "Tests the frequency floor. Old algo uses 100 Hz floor (misses this). New algo uses 60 Hz floor (catches this)."
+    },
+    {
+      "file": "07_mild_resonance_below_threshold.wav",
+      "description": "Bandlimited noise + mild peaking EQ at 800 Hz, only +6 dB (below +9 dB detection threshold).",
+      "expected_anomalies_hz": [],
+      "expected_count": 0,
+      "notes": "A +6 dB bump is in the 'musical' range, not a problematic resonance. New algo should NOT flag it (below +9 dB threshold)."
+    },
+    {
+      "file": "08_cluster_close_resonances.wav",
+      "description": "Bandlimited noise + three narrow resonances at 800, 900, 1000 Hz (+16 dB each, Q=15).",
+      "expected_anomalies_hz": [
+        800,
+        900,
+        1000
+      ],
+      "expected_count": 3,
+      "notes": "Tests the moving-average window size. If window is too wide (e.g. \u00b11 octave), the 3 close peaks collectively raise the local average and none of them reads as 'peak above neighborhood' \u2192 test fails. With \u00b11/3 octave window, each should still exceed its own immediate neighborhood by enough to be flagged."
+    },
+    {
+      "file": "09_realistic_mix_one_anomaly.wav",
+      "description": "Realistic mix: kick (pitch-glide 100-50 Hz), bass tone 80 Hz, synth with +18 dB resonance at 2500 Hz, hi-hat bursts.",
+      "expected_anomalies_hz": [
+        2500
+      ],
+      "expected_count": 1,
+      "notes": "Realistic scenario. Kick fundamental and bass fundamental are NOT anomalies (natural musical content). The 2500 Hz synth resonance IS an anomaly. New algo should flag ONLY 2500 Hz."
+    }
+  ]
+}
