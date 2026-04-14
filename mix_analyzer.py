@@ -2398,8 +2398,7 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     ws['B3'].fill = panel_fill
     ws['B3'].border = thin_border
 
-    # Row 4: M7.5 Navigation bar
-    _xl_add_sheet_nav(ws, 4)
+    # Row 4: spacer (vertical nav applied post-generation)
     # Row 5: Headers
     header_row = 5
     ws.cell(row=header_row, column=1, value='Frequency Band').font = header_font
@@ -2694,8 +2693,7 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None,
 
     # Row 8: empty separator
 
-    # Row 8: M7.5 Navigation bar
-    _xl_add_sheet_nav(ws, 8)
+    # Row 8: spacer (vertical nav applied post-generation)
 
     # --- Section 3: Comparison table (row 9 = headers, row 10+ = data) ---
     header_row = 9
@@ -3477,6 +3475,50 @@ def apply_freeze_panes(ws, freeze_cell: str = 'A2'):
     ws.freeze_panes = freeze_cell
 
 
+def apply_vertical_nav_to_sheet(ws, sheet_name):
+    """
+    Insert a dedicated column A for vertical navigation and apply nav links.
+
+    Shifts all existing content right by one column, preserves column widths,
+    then writes vertical navigation links in the new column A.
+
+    Args:
+        ws: openpyxl Worksheet (must already contain content)
+        sheet_name: Display name of the sheet (used to mark current tab)
+    """
+    from openpyxl.utils import get_column_letter
+    from openpyxl.utils.cell import column_index_from_string
+    _init_excel_polish_styles()
+
+    # 1. Save existing column widths before insert
+    saved_widths = {}
+    saved_hidden = {}
+    for col_letter, dim in list(ws.column_dimensions.items()):
+        if dim.width is not None:
+            saved_widths[col_letter] = dim.width
+        if dim.hidden:
+            saved_hidden[col_letter] = True
+
+    # 2. Insert new column A (shifts all content right by 1)
+    ws.insert_cols(1)
+
+    # 3. Restore column widths shifted right by 1
+    for old_letter, width in saved_widths.items():
+        old_idx = column_index_from_string(old_letter)
+        new_letter = get_column_letter(old_idx + 1)
+        ws.column_dimensions[new_letter].width = width
+    for old_letter in saved_hidden:
+        old_idx = column_index_from_string(old_letter)
+        new_letter = get_column_letter(old_idx + 1)
+        ws.column_dimensions[new_letter].hidden = True
+
+    # 4. Set nav column width
+    ws.column_dimensions['A'].width = 15
+
+    # 5. Apply vertical navigation links
+    apply_vertical_navigation(ws, sheet_name, start_row=2, start_col=1)
+
+
 def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     """
     Génère le sheet 'Mix Health Score' (P3.3) dans le workbook donné.
@@ -3560,8 +3602,7 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     ws['A1'] = 'MIX HEALTH SCORE'
     ws['A1'].font = Font(name='Calibri', size=18, bold=True, color='00D9FF')
     ws['A1'].fill = bg_fill
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws, 2, current_sheet='Mix Health Score')
+    # Vertical nav applied post-generation
 
     # Score display
     ws.merge_cells('A3:D3')
@@ -4135,8 +4176,7 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
     ws['A1'] = 'VERSION TRACKING'
     ws['A1'].font = Font(name='Calibri', size=18, bold=True, color='00D9FF')
     ws['A1'].fill = bg_fill
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws, 2)
+    # Vertical nav applied post-generation
 
     subtitle = f'Mix evolution over time for: {song_name}' if song_name else 'Mix evolution over time'
     ws['A3'] = subtitle
@@ -4813,8 +4853,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_index.sheet_properties.tabColor = '00D9FF'
     row = _xl_write_header(ws_index, 'MIX ANALYZER — REPORT INDEX',
                             f'Style: {style_name} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_index, row - 1, current_sheet='Index')
+    # Vertical nav applied post-generation
 
     # Track list with hyperlinks
     headers = ['#', 'Track Name', 'Type', 'Category', 'Sheet Link']
@@ -4879,8 +4918,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_clean_layout(ws_sum)
     ws_sum.sheet_properties.tabColor = 'B967FF'
     row = _xl_write_header(ws_sum, 'SUMMARY — GLOBAL METRICS', f'{len(analyses_with_info)} tracks analyzed')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_sum, row - 1, current_sheet='Summary')
+    # Vertical nav applied post-generation
 
     sum_headers = ['Track', 'Type', 'Category', 'LUFS', 'Peak (dB)', 'Crest (dB)',
                    'Stereo Width', 'Dom. Band', 'Centroid (Hz)', 'Duration (s)']
@@ -5010,8 +5048,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_clean_layout(ws_anom)
     ws_anom.sheet_properties.tabColor = 'FF3333'
     row = _xl_write_header(ws_anom, 'ANOMALIES')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_anom, row - 1, current_sheet='Anomalies')
+    # Vertical nav applied post-generation
 
     anom_headers = ['Track', 'Type', 'Severity', 'Description']
     _anom_header_comments = {
@@ -5068,8 +5105,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_clean_layout(ws_ctx)
     ws_ctx.sheet_properties.tabColor = 'B967FF'
     row = _xl_write_header(ws_ctx, 'FULL MIX CONTEXT')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_ctx, row - 1)
+    # Vertical nav applied post-generation
 
     if full_mix_info:
         ctx_items = [
@@ -5121,9 +5157,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             row = _xl_write_header(ws_trk, strip_project_prefix(ti['name'], project_name),
                                     f"Type: {ti['type']} | Category: {ti.get('category', '')}")
 
-            # Navigation links (Phase 2)
-            row = _xl_add_nav_row(ws_trk, row, track_sheet_names_ordered, sheet_idx)
-            row += 1
+            # Vertical nav applied post-generation
+            row += 2
 
             # Metrics table
             L = a['loudness']
@@ -5260,8 +5295,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_global.sheet_properties.tabColor = '00FF9F'
     row = _xl_write_header(ws_global, 'GLOBAL COMPARISON',
                             'Masking matrix, spectral balance, LUFS/Crest comparisons (excludes BUS)')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_global, row - 1)
+    # Vertical nav applied post-generation
 
     if individuals:
         # Masking matrix as image
@@ -5399,8 +5433,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_clean_layout(ws_fm)
     ws_fm.sheet_properties.tabColor = 'B967FF'
 
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_fm, 3)
+    # Vertical nav applied post-generation
 
     if full_mixes:
         a_fm, ti_fm = full_mixes[0]
@@ -5527,8 +5560,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_ai.sheet_properties.tabColor = '00FF9F'
     row = _xl_write_header(ws_ai, 'AI ANALYSIS PROMPT',
                             'Copy this text and paste it into Claude along with this report file.')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_ai, row - 1)
+    # Vertical nav applied post-generation
     row += 1
 
     if ai_prompt:
@@ -5548,8 +5580,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_dash.sheet_properties.tabColor = 'FFAA00'
     row = _xl_write_header(ws_dash, 'DASHBOARD — ALL METRICS',
                             'Use filters to slice by Category, Type, or value ranges')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_dash, row - 1, current_sheet='Dashboard')
+    # Vertical nav applied post-generation
 
     dash_headers = [
         'Track', 'Type', 'Category', 'Family',
@@ -5753,6 +5784,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             if c.fill == PatternFill():
                 c.fill = bg_fill
     _apply_dark_background(ws_index)
+
+    # ---- E3: Apply vertical navigation to all visible sheets ----
+    log_fn("    Excel: applying vertical navigation...")
+    for _ws in wb.worksheets:
+        if _ws.sheet_state != 'hidden':
+            apply_vertical_nav_to_sheet(_ws, _ws.title)
 
     # Save workbook
     log_fn("    Excel: saving workbook...")
