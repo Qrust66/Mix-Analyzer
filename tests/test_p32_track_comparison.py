@@ -351,12 +351,13 @@ def test_dominant_band_text_delta():
 
 
 def test_freeze_panes():
-    """Freeze panes at A10."""
+    """Freeze panes delegated to centralized post-generation (E4)."""
     from openpyxl import Workbook
     wb = Workbook()
     generate_track_comparison_sheet(wb, make_mock_tracks(), log_fn=lambda m: None)
     ws = wb['Track Comparison']
-    assert ws.freeze_panes == 'A10'
+    # Freeze panes now applied centrally in generate_excel_report, not by sub-function
+    assert ws.freeze_panes is None
 
 
 def test_tab_color():
@@ -427,7 +428,8 @@ def test_excel_save_roundtrip():
         assert '_track_data' in wb2.sheetnames
         ws2 = wb2['Track Comparison']
         assert ws2['B2'].value == 'Track_1'
-        assert ws2.freeze_panes == 'A10'
+        # Freeze panes applied centrally in generate_excel_report (E4)
+        assert ws2.freeze_panes is None
     finally:
         os.unlink(tmp)
 

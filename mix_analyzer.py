@@ -2506,8 +2506,7 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     last_col_letter = get_column_letter(status_col)
     ws.auto_filter.ref = f'A{header_row}:{last_col_letter}{data_end_row}'
 
-    # --- Freeze panes (row 6, col B = headers + band labels visible) ---
-    ws.freeze_panes = 'B6'
+    # Freeze panes applied post-generation (E4)
 
     # --- Column widths ---
     ws.column_dimensions['A'].width = 20
@@ -2857,8 +2856,7 @@ def generate_track_comparison_sheet(workbook, analyses_with_info, log_fn=None,
                 mid_type='num', mid_value=50, mid_color='FFFF00',
                 end_type='num', end_value=100, end_color='FF3333'))
 
-    # --- Freeze panes (row 10, col A = headers visible) ---
-    ws.freeze_panes = 'A10'
+    # Freeze panes applied post-generation (E4)
 
     # --- Column widths ---
     ws.column_dimensions['A'].width = 20
@@ -3284,6 +3282,30 @@ def _init_ma_fonts():
 # Infrastructure for E2-E8 Excel polish phases.
 # These constants and functions are NOT yet applied to any sheet.
 # ══════════════════════════════════════════════════════════════════
+
+# Freeze pane positions per sheet (applied AFTER insert_cols for vertical nav).
+# 'B{N}' = freeze nav column A + rows 1 to N-1.
+# 'C{N}' = freeze nav column A + first data column B + rows 1 to N-1.
+SHEET_FREEZE_CONFIG = {
+    # Sheets using _xl_write_header (title=1, subtitle=2, spacer=3, headers=4)
+    'Index': 'B5',
+    'Dashboard': 'B5',
+    'Summary': 'B5',
+    'Anomalies': 'B5',
+    # Sheets with custom header layouts
+    'Freq Conflicts': 'C6',       # freeze nav + band labels col + rows 1-5
+    'Track Comparison': 'B10',    # freeze nav + rows 1-9
+    'Mix Health Score': 'B11',    # freeze nav + rows 1-10
+    'Version Tracking': 'B9',    # freeze nav + rows 1-8
+    # Sheets with minimal tabular data (freeze title + nav)
+    'Full Mix Context': 'B4',
+    'Global Comparison': 'B4',
+    'Full Mix Analysis': 'B4',
+    'AI Prompt': 'B4',
+}
+# Default for individual track sheets and any unlisted sheet
+SHEET_FREEZE_DEFAULT = 'B5'
+
 
 EXCEL_COLORS = {
     # Backgrounds
@@ -3760,8 +3782,7 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
 
         detail_row += 1  # blank row between sections
 
-    # --- Freeze panes (row 11) ---
-    ws.freeze_panes = 'A11'
+    # Freeze panes applied post-generation (E4)
 
     # --- Column widths ---
     ws.column_dimensions['A'].width = 25
@@ -4376,8 +4397,7 @@ def generate_version_tracking_sheet(workbook, analyses_with_info,
         _add_version_sparklines(ws, n_versions, tracked_metrics,
                                 header_row, data_start_row, sparkline_col)
 
-    # --- Freeze panes (row 9) ---
-    ws.freeze_panes = 'A9'
+    # Freeze panes applied post-generation (E4)
 
     # --- Column widths ---
     ws.column_dimensions['A'].width = 30
@@ -5786,10 +5806,13 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_dark_background(ws_index)
 
     # ---- E3: Apply vertical navigation to all visible sheets ----
-    log_fn("    Excel: applying vertical navigation...")
+    # ---- E4: Apply freeze panes after nav insertion ----
+    log_fn("    Excel: applying vertical navigation and freeze panes...")
     for _ws in wb.worksheets:
         if _ws.sheet_state != 'hidden':
             apply_vertical_nav_to_sheet(_ws, _ws.title)
+            _freeze = SHEET_FREEZE_CONFIG.get(_ws.title, SHEET_FREEZE_DEFAULT)
+            apply_freeze_panes(_ws, _freeze)
 
     # Save workbook
     log_fn("    Excel: saving workbook...")

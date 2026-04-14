@@ -224,12 +224,13 @@ def test_status_formula():
 
 
 def test_freeze_panes():
-    """Freeze panes set at B6."""
+    """Freeze panes delegated to centralized post-generation (E4)."""
     from openpyxl import Workbook
     wb = Workbook()
     generate_freq_conflicts_sheet(wb, make_mock_tracks(), log_fn=lambda m: None)
     ws = wb['Freq Conflicts']
-    assert ws.freeze_panes == 'B6'
+    # Freeze panes now applied centrally in generate_excel_report, not by sub-function
+    assert ws.freeze_panes is None
 
 
 def test_autofilter():
@@ -268,7 +269,8 @@ def test_excel_save_roundtrip():
         ws2 = wb2['Freq Conflicts']
         assert ws2['B2'].value == 15
         assert ws2.cell(row=6, column=7).value is not None
-        assert ws2.freeze_panes == 'B6'
+        # Freeze panes applied centrally in generate_excel_report (E4)
+        assert ws2.freeze_panes is None
     finally:
         os.unlink(tmp)
 

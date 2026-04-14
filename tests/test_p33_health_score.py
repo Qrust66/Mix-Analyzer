@@ -338,12 +338,13 @@ def test_detail_columns():
 
 
 def test_freeze_panes():
-    """Freeze panes at A11."""
+    """Freeze panes delegated to centralized post-generation (E4)."""
     from openpyxl import Workbook
     wb = Workbook()
     generate_health_score_sheet(wb, make_good_mix(), log_fn=lambda m: None)
     ws = wb['Mix Health Score']
-    assert ws.freeze_panes == 'A11'
+    # Freeze panes now applied centrally in generate_excel_report, not by sub-function
+    assert ws.freeze_panes is None
 
 
 def test_conditional_formatting():
@@ -507,7 +508,8 @@ def test_excel_save_roundtrip():
         assert 'Mix Health Score' in wb2.sheetnames
         ws2 = wb2['Mix Health Score']
         assert ws2['A1'].value == 'MIX HEALTH SCORE'
-        assert ws2.freeze_panes == 'A11'
+        # Freeze panes applied centrally in generate_excel_report (E4)
+        assert ws2.freeze_panes is None
     finally:
         os.unlink(tmp)
 
