@@ -512,7 +512,21 @@ def analyze_spectrum(mono, sr):
         'rolloff': rolloff,
         'flatness': flatness,
         'peaks': peak_list,
+        'sr': sr,
     }
+
+
+def detect_resonance_anomalies(spectrum_mean, freqs, sr):
+    """
+    Detect peaks in the spectrum that rise significantly above their LOCAL
+    spectral contour.
+
+    Returns a list of (freq_hz, excess_db) tuples, sorted by excess_db
+    descending, truncated to RESONANCE_MAX_REPORTED_PEAKS entries. Empty
+    list if no anomalous peaks found.
+    """
+    # Phase 1 placeholder — algorithm will be implemented in Phase 2.
+    return []
 
 
 def compute_hires_band_energies(mono, sr):
