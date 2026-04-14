@@ -296,12 +296,13 @@ def test_single_version_deltas_are_dashes():
 
 
 def test_freeze_panes():
-    """Freeze panes at A9."""
+    """Freeze panes delegated to centralized post-generation (E4)."""
     from openpyxl import Workbook
     wb = Workbook()
     generate_version_tracking_sheet(wb, make_tracks(), log_fn=lambda m: None)
     ws = wb['Version Tracking']
-    assert ws.freeze_panes == 'A9'
+    # Freeze panes now applied centrally in generate_excel_report, not by sub-function
+    assert ws.freeze_panes is None
 
 
 def test_column_widths():
@@ -559,7 +560,8 @@ def test_excel_save_roundtrip():
         assert 'Version Tracking' in wb2.sheetnames
         ws2 = wb2['Version Tracking']
         assert ws2['A1'].value == 'VERSION TRACKING'
-        assert ws2.freeze_panes == 'A9'
+        # Freeze panes applied centrally in generate_excel_report (E4)
+        assert ws2.freeze_panes is None
     finally:
         os.unlink(tmp)
 
