@@ -5770,7 +5770,6 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             c = ws_dash.cell(row=row, column=col, value=v)
             c.font = data_font
             c.border = thin_border
-            c.fill = panel_fill
             if col >= 5:
                 c.alignment = Alignment(horizontal='center')
         # M7.5: Make track name clickable → individual sheet
@@ -5786,104 +5785,137 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     last_col = get_column_letter(len(dash_headers))
     ws_dash.auto_filter.ref = f'A{dash_header_row}:{last_col}{dash_data_end}'
 
-    # Enriched conditional formatting on Dashboard
+    # ── E7: Zebra striping on data rows ──
+    ds = dash_header_row + 1
+    de = dash_data_end
+    _zebra_even = PatternFill(start_color='0D0D0D', end_color='0D0D0D', fill_type='solid')
+    _zebra_odd = PatternFill(start_color='151520', end_color='151520', fill_type='solid')
+    for _r in range(ds, de + 1):
+        _zfill = _zebra_odd if (_r - ds) % 2 == 1 else _zebra_even
+        for _c in range(1, len(dash_headers) + 1):
+            ws_dash.cell(row=_r, column=_c).fill = _zfill
+
+    # ── E7: Enhanced header row ──
+    _dash_hdr_fill = PatternFill(start_color='252542', end_color='252542', fill_type='solid')
+    _dash_hdr_font = Font(name='Calibri', size=11, bold=True, color='00FFFF')
+    _dash_hdr_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='medium', color='00FFFF'),
+    )
+    for _c in range(1, len(dash_headers) + 1):
+        c = ws_dash.cell(row=dash_header_row, column=_c)
+        c.fill = _dash_hdr_fill
+        c.font = _dash_hdr_font
+        c.border = _dash_hdr_border
+
+    # ── E7: Conditional formatting (dark palette, data bars without text) ──
     if len(analyses_with_info) > 0:
-        ds = dash_header_row + 1
-        de = dash_data_end
-        # LUFS (E): data bars + color scale
+        # Data bars — showValue=False so values are readable in cells
         ws_dash.conditional_formatting.add(
             f'E{ds}:E{de}',
-            DataBarRule(start_type='min', end_type='max', color='00D9FF'))
-        ws_dash.conditional_formatting.add(
-            f'E{ds}:E{de}',
-            ColorScaleRule(start_type='min', start_color='FF3333',
-                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
-                           end_type='max', end_color='00FF9F'))
-        # Peak (F): color scale
-        ws_dash.conditional_formatting.add(
-            f'F{ds}:F{de}',
-            ColorScaleRule(start_type='max', start_color='FF3333',
-                           end_type='min', end_color='00FF9F'))
-        # Crest (I): data bars + color scale
+            DataBarRule(start_type='min', end_type='max', color='006666',
+                        showValue=False))
         ws_dash.conditional_formatting.add(
             f'I{ds}:I{de}',
-            DataBarRule(start_type='min', end_type='max', color='B967FF'))
-        ws_dash.conditional_formatting.add(
-            f'I{ds}:I{de}',
-            ColorScaleRule(start_type='min', start_color='FF3333',
-                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
-                           end_type='max', end_color='00D9FF'))
-        # PLR (J): data bars
+            DataBarRule(start_type='min', end_type='max', color='4A148C',
+                        showValue=False))
         ws_dash.conditional_formatting.add(
             f'J{ds}:J{de}',
-            DataBarRule(start_type='min', end_type='max', color='00FF9F'))
-        # PSR (K): data bars
+            DataBarRule(start_type='min', end_type='max', color='1B5E20',
+                        showValue=False))
         ws_dash.conditional_formatting.add(
             f'K{ds}:K{de}',
-            DataBarRule(start_type='min', end_type='max', color='00D9FF'))
-        # LRA (L): data bars
+            DataBarRule(start_type='min', end_type='max', color='004D40',
+                        showValue=False))
         ws_dash.conditional_formatting.add(
             f'L{ds}:L{de}',
-            DataBarRule(start_type='min', end_type='max', color='FFAA00'))
-        # Width (M): data bars
+            DataBarRule(start_type='min', end_type='max', color='4A4A00',
+                        showValue=False))
         ws_dash.conditional_formatting.add(
             f'M{ds}:M{de}',
-            DataBarRule(start_type='min', end_type='max', color='00FF9F'))
-        # Correlation (N): color scale (low=red -> high=green)
+            DataBarRule(start_type='min', end_type='max', color='1B5E20',
+                        showValue=False))
+
+        # Color scales — dark palettes for contrast with white text
+        # LUFS (E): dark red → dark olive → dark green
+        ws_dash.conditional_formatting.add(
+            f'E{ds}:E{de}',
+            ColorScaleRule(start_type='min', start_color='4A0000',
+                           mid_type='percentile', mid_value=50, mid_color='4A4A00',
+                           end_type='max', end_color='1B5E20'))
+        # Peak (F): dark green (safe) → dark red (hot)
+        ws_dash.conditional_formatting.add(
+            f'F{ds}:F{de}',
+            ColorScaleRule(start_type='max', start_color='4A0000',
+                           end_type='min', end_color='1B5E20'))
+        # Crest (I): dark red → dark olive → dark teal
+        ws_dash.conditional_formatting.add(
+            f'I{ds}:I{de}',
+            ColorScaleRule(start_type='min', start_color='4A0000',
+                           mid_type='percentile', mid_value=50, mid_color='4A4A00',
+                           end_type='max', end_color='004D40'))
+        # Correlation (N): dark red → dark olive → dark green
         ws_dash.conditional_formatting.add(
             f'N{ds}:N{de}',
-            ColorScaleRule(start_type='min', start_color='FF3333',
-                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
-                           end_type='max', end_color='00FF9F'))
-        # Centroid (O): color scale
+            ColorScaleRule(start_type='min', start_color='4A0000',
+                           mid_type='percentile', mid_value=50, mid_color='4A4A00',
+                           end_type='max', end_color='1B5E20'))
+        # Centroid (O): dark purple → dark pink
         ws_dash.conditional_formatting.add(
             f'O{ds}:O{de}',
-            ColorScaleRule(start_type='min', start_color='B967FF',
-                           end_type='max', end_color='FF3D8B'))
+            ColorScaleRule(start_type='min', start_color='1A237E',
+                           end_type='max', end_color='4A0028'))
 
-        # M7.3: Icon sets on Dashboard
-        # Crest Factor (col I): traffic lights — red <6, yellow 6-12, green >12
+        # Icon sets (unchanged from M7.3)
+        # Crest Factor (col I): traffic lights
         ws_dash.conditional_formatting.add(
             f'I{ds}:I{de}',
             IconSetRule(icon_style='3TrafficLights1', type='num',
                         values=[0, 6, 12], showValue=True, reverse=False))
-        # True Peak (col G): 3Symbols — ✓ safe <-1.5, ! caution, ✗ risk >-0.5
+        # True Peak (col G): 3Symbols
         ws_dash.conditional_formatting.add(
             f'G{ds}:G{de}',
             IconSetRule(icon_style='3Symbols2', type='num',
                         values=[-100, -1.5, -0.5], showValue=True, reverse=True))
-        # Correlation (col N): traffic lights — red <0, yellow 0-0.5, green >0.5
+        # Correlation (col N): traffic lights
         ws_dash.conditional_formatting.add(
             f'N{ds}:N{de}',
             IconSetRule(icon_style='3TrafficLights1', type='num',
                         values=[-1, 0, 0.5], showValue=True, reverse=False))
 
-        # M7.3: Multi-criteria formula alerts on Dashboard rows
+        # Multi-criteria formula alerts (unchanged from M7.3)
         from openpyxl.formatting.rule import FormulaRule
-        # Streaming risk: LUFS > -10 AND True Peak > -1 → red row
+        # Streaming risk: LUFS > -10 AND True Peak > -1 → dark red row
         ws_dash.conditional_formatting.add(
             f'A{ds}:S{de}',
             FormulaRule(
                 formula=[f'AND($E{ds}>-10,$G{ds}>-1)'],
-                fill=PatternFill(start_color='FF5252', end_color='FF5252', fill_type='solid'),
-                font=Font(color='FFFFFF', bold=True)))
-        # Over-compressed + quiet: Crest < 6 AND LUFS < -16 → yellow row
+                fill=PatternFill(start_color='4A0000', end_color='4A0000', fill_type='solid'),
+                font=Font(color='FF5252', bold=True)))
+        # Over-compressed + quiet: Crest < 6 AND LUFS < -16 → dark yellow row
         ws_dash.conditional_formatting.add(
             f'A{ds}:S{de}',
             FormulaRule(
                 formula=[f'AND($I{ds}<6,$E{ds}<-16)'],
-                fill=PatternFill(start_color='FFD93D', end_color='FFD93D', fill_type='solid')))
-        # Near-clipping: True Peak > -0.3 → orange row
+                fill=PatternFill(start_color='4A4A00', end_color='4A4A00', fill_type='solid'),
+                font=Font(color='FFD93D', bold=True)))
+        # Near-clipping: True Peak > -0.3 → dark orange row
         ws_dash.conditional_formatting.add(
             f'A{ds}:S{de}',
             FormulaRule(
                 formula=[f'$G{ds}>-0.3'],
-                fill=PatternFill(start_color='FF8B3D', end_color='FF8B3D', fill_type='solid')))
+                fill=PatternFill(start_color='4A2800', end_color='4A2800', fill_type='solid'),
+                font=Font(color='FF8B3D', bold=True)))
 
     # Column widths for Dashboard
-    ws_dash.column_dimensions['A'].width = 40
-    for col_idx in range(2, len(dash_headers) + 1):
-        ws_dash.column_dimensions[get_column_letter(col_idx)].width = 14
+    ws_dash.column_dimensions['A'].width = 30
+    ws_dash.column_dimensions['B'].width = 10
+    ws_dash.column_dimensions['C'].width = 16
+    ws_dash.column_dimensions['D'].width = 12
+    for col_idx in range(5, len(dash_headers) + 1):
+        ws_dash.column_dimensions[get_column_letter(col_idx)].width = 12
     ws_dash.row_dimensions[dash_header_row].height = 30
     _apply_dark_background(ws_dash)
 
