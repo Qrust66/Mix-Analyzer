@@ -3288,7 +3288,7 @@ def _init_ma_fonts():
 # 'C{N}' = freeze nav column A + first data column B + rows 1 to N-1.
 SHEET_FREEZE_CONFIG = {
     # Sheets using _xl_write_header (title=1, subtitle=2, spacer=3, headers=4)
-    'Index': 'B5',
+    'Index': 'B11',  # freeze nav + title/context/sheet-headers (rows 1-10)
     'Dashboard': 'B5',
     'Summary': 'B5',
     'Anomalies': 'B5',
@@ -3298,7 +3298,6 @@ SHEET_FREEZE_CONFIG = {
     'Mix Health Score': 'B11',    # freeze nav + rows 1-10
     'Version Tracking': 'B9',    # freeze nav + rows 1-8
     # Sheets with minimal tabular data (freeze title + nav)
-    'Full Mix Context': 'B4',
     'Global Comparison': 'B4',
     'Full Mix Analysis': 'B4',
     'AI Prompt': 'B4',
@@ -4944,23 +4943,82 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_clean_layout(ws_index)
     ws_index.title = 'Index'
     ws_index.sheet_properties.tabColor = '00D9FF'
-    row = _xl_write_header(ws_index, 'MIX ANALYZER — REPORT INDEX',
-                            f'Style: {style_name} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
-    # Vertical nav applied post-generation
 
-    # Track list with hyperlinks
-    headers = ['#', 'Track Name', 'Type', 'Category', 'Sheet Link']
-    for col, h in enumerate(headers, 1):
+    # ── SECTION: HEADER (rows 1-2) ──
+    _idx_title_font = Font(name='Calibri', size=16, bold=True, color='00FFFF')
+    _idx_subtitle_font = Font(name='Calibri', size=10, color='808080')
+    _idx_section_font = Font(name='Calibri', size=13, bold=True, color='00FFFF')
+    _idx_label_font = Font(name='Calibri', size=12, bold=True, color='FFFFFF')
+    _idx_value_font = Font(name='Calibri', size=12, color='FFFFFF')
+    _idx_link_font = Font(name='Calibri', size=12, color='00FFFF', underline='single')
+
+    ws_index.merge_cells('A1:E1')
+    ws_index['A1'] = 'MIX ANALYZER — REPORT INDEX'
+    ws_index['A1'].font = _idx_title_font
+    ws_index['A1'].fill = bg_fill
+
+    ws_index.merge_cells('A2:E2')
+    ws_index['A2'] = f'Style: {style_name} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}'
+    ws_index['A2'].font = _idx_subtitle_font
+    ws_index['A2'].fill = bg_fill
+
+    # ── SECTION: PROJECT CONTEXT (rows 3-7) ──
+    ws_index.merge_cells('A3:E3')
+    ws_index['A3'] = 'PROJECT CONTEXT'
+    ws_index['A3'].font = _idx_section_font
+    ws_index['A3'].fill = bg_fill
+
+    ctx_items = []
+    if full_mix_info:
+        ctx_items = [
+            ('Mix State', full_mix_info.get('state', 'Not specified')),
+            ('Active Plugins', ', '.join(full_mix_info.get('plugins', [])) or 'None'),
+            ('Loudness Target', full_mix_info.get('loudness_target', 'Not specified')),
+            ('Note', full_mix_info.get('note', '') or 'None'),
+        ]
+    else:
+        ctx_items = [
+            ('Mix State', 'Not configured'),
+            ('Active Plugins', 'None'),
+            ('Loudness Target', 'Not specified'),
+            ('Note', ''),
+        ]
+
+    row = 4
+    for label, val in ctx_items:
+        ws_index.cell(row=row, column=1, value=label).font = _idx_label_font
+        ws_index.cell(row=row, column=1).fill = panel_fill
+        ws_index.cell(row=row, column=1).border = thin_border
+        ws_index.cell(row=row, column=2, value=val).font = _idx_value_font
+        ws_index.cell(row=row, column=2).fill = panel_fill
+        ws_index.cell(row=row, column=2).border = thin_border
+        ws_index.merge_cells(start_row=row, start_column=2, end_row=row, end_column=5)
+        row += 1
+    # row is now 8
+
+    # ── Spacer row 8 ──
+    row += 1  # row = 9
+
+    # ── SECTION: SHEET INDEX (rows 9+) ──
+    ws_index.merge_cells(f'A{row}:E{row}')
+    ws_index.cell(row=row, column=1, value='SHEET INDEX').font = _idx_section_font
+    ws_index.cell(row=row, column=1).fill = bg_fill
+    row += 1  # row = 10
+
+    # Headers
+    idx_headers = ['#', 'Sheet Name', 'Link']
+    idx_header_cols = [1, 2, 4]
+    for col, h in zip(idx_header_cols, idx_headers):
         c = ws_index.cell(row=row, column=col, value=h)
         c.font = header_font
         c.fill = header_fill
         c.border = thin_border
-    row += 1
+    row += 1  # row = 11
 
-    sheet_names = {}  # track_name -> sheet_name
+    # Build sheet_names mapping (needed by downstream sheets)
+    sheet_names = {}
     for idx, (a, ti) in enumerate(analyses_with_info, 1):
         sname = _safe_sheet_name(os.path.splitext(ti['name'])[0])
-        # Avoid duplicate sheet names
         base = sname
         counter = 1
         while sname in sheet_names.values():
@@ -4968,41 +5026,57 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             counter += 1
         sheet_names[ti['name']] = sname
 
+    # List special sheets first
+    _special_sheets = [
+        'Dashboard', 'Summary', 'Anomalies', 'Global Comparison',
+        'Full Mix Analysis', 'AI Prompt', 'Freq Conflicts', 'Track Comparison',
+        'Mix Health Score', 'Version Tracking',
+    ]
+    _sheet_num = 1
+    for special_name in _special_sheets:
+        ws_index.cell(row=row, column=1, value=_sheet_num).font = data_font
+        ws_index.cell(row=row, column=1).fill = panel_fill
+        ws_index.cell(row=row, column=1).border = thin_border
+        ws_index.cell(row=row, column=2, value=special_name).font = data_font
+        ws_index.cell(row=row, column=2).fill = panel_fill
+        ws_index.cell(row=row, column=2).border = thin_border
+        ws_index.merge_cells(start_row=row, start_column=2, end_row=row, end_column=3)
+        link_cell = ws_index.cell(row=row, column=4, value=f'{special_name} \u2192')
+        link_cell.font = _idx_link_font
+        link_cell.hyperlink = f"#'{special_name}'!A1"
+        link_cell.fill = panel_fill
+        link_cell.border = thin_border
+        _sheet_num += 1
+        row += 1
+
+    # List individual track sheets (if enabled)
     if include_individual_sheets:
         for idx, (a, ti) in enumerate(analyses_with_info, 1):
             sname = sheet_names[ti['name']]
-            ws_index.cell(row=row, column=1, value=idx).font = data_font
-            ws_index.cell(row=row, column=2, value=strip_project_prefix(ti['name'], project_name)).font = data_font
-            ws_index.cell(row=row, column=3, value=ti['type']).font = accent_font if ti['type'] == 'Full Mix' else data_font
-            ws_index.cell(row=row, column=4, value=ti.get('category', '')).font = data_font
-            link_cell = ws_index.cell(row=row, column=5, value=sname)
-            link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
+            ws_index.cell(row=row, column=1, value=_sheet_num).font = data_font
+            ws_index.cell(row=row, column=1).fill = panel_fill
+            ws_index.cell(row=row, column=1).border = thin_border
+            display = strip_project_prefix(ti['name'], project_name)
+            ws_index.cell(row=row, column=2, value=display).font = data_font
+            ws_index.cell(row=row, column=2).fill = panel_fill
+            ws_index.cell(row=row, column=2).border = thin_border
+            ws_index.merge_cells(start_row=row, start_column=2, end_row=row, end_column=3)
+            link_cell = ws_index.cell(row=row, column=4, value=f'{sname} \u2192')
+            link_cell.font = _idx_link_font
             link_cell.hyperlink = f"#{sname}!A1"
-            for col in range(1, 6):
-                ws_index.cell(row=row, column=col).border = thin_border
-                ws_index.cell(row=row, column=col).fill = panel_fill
+            link_cell.fill = panel_fill
+            link_cell.border = thin_border
+            _sheet_num += 1
             row += 1
-    else:
-        c = ws_index.cell(row=row, column=2, value='Individual track sheets: disabled (compact mode)')
-        c.font = dim_font
-        c.fill = panel_fill
-        row += 1
 
-    # Also link to special sheets
-    row += 1
-    for special_name in ['Dashboard', 'Summary', 'Anomalies', 'Full Mix Context', 'Global Comparison',
-                             'Full Mix Analysis', 'AI Prompt', 'Freq Conflicts', 'Track Comparison',
-                             'Mix Health Score', 'Version History']:
-        ws_index.cell(row=row, column=2, value=special_name).font = data_font
-        link_cell = ws_index.cell(row=row, column=5, value=special_name)
-        link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
-        link_cell.hyperlink = f"#{special_name}!A1"
-        row += 1
-
-    ws_index.column_dimensions['B'].width = 45
-    ws_index.column_dimensions['C'].width = 12
-    ws_index.column_dimensions['D'].width = 20
-    ws_index.column_dimensions['E'].width = 25
+    ws_index.column_dimensions['A'].width = 18
+    ws_index.column_dimensions['B'].width = 30
+    ws_index.column_dimensions['C'].width = 10
+    ws_index.column_dimensions['D'].width = 25
+    ws_index.column_dimensions['E'].width = 15
+    ws_index.row_dimensions[1].height = 28
+    ws_index.row_dimensions[3].height = 22
+    ws_index.row_dimensions[9].height = 22
 
     # ---- SHEET 2: Summary ----
     log_fn("    Excel: writing Summary sheet...")
@@ -5192,35 +5266,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_anom.column_dimensions['D'].width = 70
     _apply_dark_background(ws_anom)
 
-    # ---- SHEET 4: Full Mix Context ----
-    log_fn("    Excel: writing Full Mix Context sheet...")
-    ws_ctx = wb.create_sheet('Full Mix Context')
-    _apply_clean_layout(ws_ctx)
-    ws_ctx.sheet_properties.tabColor = 'B967FF'
-    row = _xl_write_header(ws_ctx, 'FULL MIX CONTEXT')
-    # Vertical nav applied post-generation
-
-    if full_mix_info:
-        ctx_items = [
-            ('Mix State', full_mix_info.get('state', 'Not specified')),
-            ('Active Plugins', ', '.join(full_mix_info.get('plugins', [])) or 'None'),
-            ('Loudness Target', full_mix_info.get('loudness_target', 'Not specified')),
-            ('Note', full_mix_info.get('note', '') or 'None'),
-        ]
-        for label, val in ctx_items:
-            ws_ctx.cell(row=row, column=1, value=label).font = accent_font
-            ws_ctx.cell(row=row, column=2, value=val).font = data_font
-            ws_ctx.cell(row=row, column=1).fill = panel_fill
-            ws_ctx.cell(row=row, column=2).fill = panel_fill
-            ws_ctx.cell(row=row, column=1).border = thin_border
-            ws_ctx.cell(row=row, column=2).border = thin_border
-            row += 1
-    else:
-        ws_ctx.cell(row=row, column=1, value='No Full Mix context configured.').font = dim_font
-
-    ws_ctx.column_dimensions['A'].width = 20
-    ws_ctx.column_dimensions['B'].width = 60
-    _apply_dark_background(ws_ctx)
+    # (Full Mix Context merged into Index — E6)
 
     # ---- SHEET 5+: One sheet per track (Individual + BUS) ----
     if include_individual_sheets:
