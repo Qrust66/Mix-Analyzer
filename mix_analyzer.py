@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Mix Analyzer v2.3 - Visual audio mix analysis tool
+Mix Analyzer v2.3.1 - Visual audio mix analysis tool
 Generates detailed Excel reports for audio tracks to aid mixing and mastering decisions.
 
 Usage:
@@ -673,7 +673,7 @@ def analyze_musical(mono, sr):
         'chroma': chroma,
         'dominant_note': dominant_note,
         'tonal_strength': tonal_strength,
-        'is_tonal': tonal_strength > 1.8,
+        'is_tonal': tonal_strength > 1.3,
     }
 
 
@@ -2663,10 +2663,10 @@ def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None
             round(S['band_energies'].get('air', 0.0), 2),
             round(st['width_overall'], 4) if st['is_stereo'] else 0.0,
             round(st['correlation'], 4) if st['is_stereo'] else 1.0,
-            'TRUE' if st['is_stereo'] else 'FALSE',
+            'FALSE (mono content)' if (st['is_stereo'] and st['correlation'] >= 0.9999 and st['width_overall'] < 0.001) else ('TRUE' if st['is_stereo'] else 'FALSE'),
             M['dominant_note'], round(M['tonal_strength'], 2),
             'TRUE' if M['is_tonal'] else 'FALSE',
-            round(tempo.get('tempo_median', 0.0), 1),
+            'N/A' if tempo.get('confidence_label') == 'not computed (individual track)' else (f"unreliable (was: {round(tempo.get('tempo_median', 0.0), 1)})" if not tempo.get('reliable', False) else round(tempo.get('tempo_median', 0.0), 1)),
             tempo.get('confidence_label', ''),
             'TRUE' if tempo.get('reliable', False) else 'FALSE',
             a['temporal']['num_onsets'],
