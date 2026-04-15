@@ -1,5 +1,34 @@
 # Changelog
 
+## [2.2.0] - 2026-04-15
+
+### Added
+- New **AI-optimized** Excel export mode — generates the smallest possible
+  report containing only AI Context sheet and complementary global sheets
+  (Anomalies, Full Mix Context, Mix Health Score, Freq Conflicts, AI Prompt).
+  Excludes redundant or purely visual sheets to minimize token consumption
+  during AI analysis.
+- 3-way radio group selector in Analysis tab replaces the old checkbox:
+  - `full`: all global sheets + one per track (complete report)
+  - `globals`: all global sheets only, no individual tracks
+  - `ai_optimized`: AI Context + essential data sheets only
+- Coverage analysis documented in `_tmp/ai_context_coverage.md`
+
+### Changed
+- `generate_individual_sheets` BooleanVar replaced by `excel_export_mode`
+  StringVar with values 'full' / 'globals' / 'ai_optimized'
+- Backward compatibility property preserved for any code referencing
+  `generate_individual_sheets`
+- Old saved configs with `generate_individual_sheets` boolean are
+  automatically migrated to the new `excel_export_mode` string
+- Index sheet now only lists special sheets that are actually generated
+  in the current export mode
+- Navigation bar (`_xl_add_sheet_nav`) now accepts `nav_targets` parameter
+  and adapts links per mode (excludes absent sheets)
+- Excel report logging now includes export mode, sheets generated/skipped,
+  and final file size
+- Version bump to v2.2
+
 ## [2.1.0] - 2026-04-15
 
 ### Added

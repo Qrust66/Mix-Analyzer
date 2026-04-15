@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Mix Analyzer v2.1 - Visual audio mix analysis tool
+Mix Analyzer v2.2 - Visual audio mix analysis tool
 Generates detailed Excel reports for audio tracks to aid mixing and mastering decisions.
 
 Usage:
@@ -2247,25 +2247,27 @@ def _xl_add_nav_row(ws, row, sheet_names_ordered, current_idx):
     return row + 1
 
 
-def _xl_add_sheet_nav(ws, row, current_sheet=None):
+def _xl_add_sheet_nav(ws, row, current_sheet=None, nav_targets=None):
     """M7.5: Add a navigation bar to non-track sheets.
-    Provides links to Index, Summary, Dashboard, and Anomalies."""
+    Provides links to Index, Summary, Dashboard, Anomalies, etc.
+    nav_targets: optional list of (label, sheet_name) to override defaults."""
     from openpyxl.styles import Font
     _init_ma_fonts()
     nav_font = Font(name='Calibri', size=9, color='00D9FF', underline='single')
     sep_font = MA_FONT_SMALL
     dim_font = Font(name='Calibri', size=9, color='333344')
 
-    targets = [
-        ('Index', 'Index'),
-        ('Summary', 'Summary'),
-        ('Dashboard', 'Dashboard'),
-        ('Anomalies', 'Anomalies'),
-        ('Health Score', 'Mix Health Score'),
-        ('AI Context', 'AI Context'),
-    ]
+    if nav_targets is None:
+        nav_targets = [
+            ('Index', 'Index'),
+            ('Summary', 'Summary'),
+            ('Dashboard', 'Dashboard'),
+            ('Anomalies', 'Anomalies'),
+            ('Health Score', 'Mix Health Score'),
+            ('AI Context', 'AI Context'),
+        ]
     col = 1
-    for i, (label, sheet_name) in enumerate(targets):
+    for i, (label, sheet_name) in enumerate(nav_targets):
         if i > 0:
             ws.cell(row=row, column=col, value=' | ').font = sep_font
             col += 1
@@ -2357,7 +2359,8 @@ def encode_anomalies(anomaly_list):
     return ' | '.join(codes) if codes else 'OK'
 
 
-def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None):
+def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None,
+                           nav_targets=None):
     """Build the AI Context sheet — dense consolidated metrics for AI ingestion."""
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from openpyxl.utils import get_column_letter
@@ -2420,7 +2423,7 @@ def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None
 
     # M7.5: Navigation bar
     row += 1
-    _xl_add_sheet_nav(ws, row, current_sheet='AI Context')
+    _xl_add_sheet_nav(ws, row, current_sheet='AI Context', nav_targets=nav_targets)
     row += 1
 
     # ---- Anomaly codes legend ----
@@ -2712,7 +2715,8 @@ def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None
 
 
 def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0,
-                                   default_min_tracks=2, log_fn=None):
+                                   default_min_tracks=2, log_fn=None,
+                                   nav_targets=None):
     """
     Génère le sheet 'Freq Conflicts' (P3.1) dans le workbook donné.
     Utilise FREQ_BANDS_HIRES pour les bandes de fréquence.
@@ -2810,7 +2814,7 @@ def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0
     ws['B3'].border = thin_border
 
     # Row 4: M7.5 Navigation bar
-    _xl_add_sheet_nav(ws, 4)
+    _xl_add_sheet_nav(ws, 4, nav_targets=nav_targets)
     # Row 5: Headers
     header_row = 5
     ws.cell(row=header_row, column=1, value='Frequency Band').font = header_font
@@ -3691,7 +3695,8 @@ def _init_ma_fonts():
     _MA_FONTS_INITIALIZED = True
 
 
-def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
+def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None,
+                                nav_targets=None):
     """
     Génère le sheet 'Mix Health Score' (P3.3) dans le workbook donné.
     Calcule un score global de santé du mix sur 100, décomposé en
@@ -3775,7 +3780,7 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None):
     ws['A1'].font = Font(name='Calibri', size=18, bold=True, color='00D9FF')
     ws['A1'].fill = bg_fill
     # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws, 2, current_sheet='Mix Health Score')
+    _xl_add_sheet_nav(ws, 2, current_sheet='Mix Health Score', nav_targets=nav_targets)
 
     # Score display
     ws.merge_cells('A3:D3')
@@ -4969,11 +4974,14 @@ def _create_comparison_chart(ws_data, header_row, data_end, n_tracks):
 
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None,
-                           include_individual_sheets=True,
+                           export_mode='full',
                            image_quality='standard'):
     """
-    Generate complete Excel report with 8 sheets.
+    Generate complete Excel report.
     analyses_with_info: list of (analysis, track_info) tuples
+    export_mode: 'full' (all sheets + individual tracks),
+                 'globals' (all global sheets, no individual tracks),
+                 'ai_optimized' (AI Context + complementary globals only)
     image_quality: 'standard' (200 DPI) or 'high' (400 DPI, sharper images)
     """
     import tempfile
@@ -4985,6 +4993,67 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     if log_fn is None:
         log_fn = lambda msg: None
+
+    # --- Export mode: determine which sheets to generate ---
+    # Sheets always generated regardless of mode
+    ALWAYS_SHEETS = {'Index', 'AI Context'}
+
+    # Additional global sheets per mode
+    ALL_GLOBAL_SHEETS = [
+        'Dashboard', 'Summary', 'Anomalies', 'Full Mix Context',
+        'Global Comparison', 'Full Mix Analysis', 'AI Prompt',
+        'Freq Conflicts', 'Track Comparison', 'Mix Health Score',
+        'Version History',
+    ]
+
+    # AI-optimized: only sheets with data NOT covered by AI Context
+    AI_OPT_SHEETS = [
+        'Anomalies',           # Full descriptions vs compact codes in AI Context
+        'Full Mix Context',    # User context (state, plugins, target, note) not in AI Context
+        'Mix Health Score',    # Detailed breakdown beyond the 6 scores in AI Context
+        'Freq Conflicts',      # Structured conflict data not in AI Context
+        'AI Prompt',           # Pure text, negligible weight, essential for AI workflow
+        # EXCLUDED from AI-optimized mode:
+        # Dashboard       — 19-col metrics, strict subset of AI Context 38 columns (redundant)
+        # Summary         — 10-col metrics, strict subset of AI Context (redundant)
+        # Global Comparison — 100% visual (heavy images), data in AI Context
+        # Full Mix Analysis — mostly visual (5 images + 3 charts), metrics in AI Context row
+        # Track Comparison  — interactive Excel tool, raw data already in AI Context
+        # Version History   — historical evolution, not current analysis, heavy visual
+    ]
+
+    if export_mode == 'full':
+        sheets_to_generate = ALWAYS_SHEETS | set(ALL_GLOBAL_SHEETS)
+        generate_individual = True
+    elif export_mode == 'globals':
+        sheets_to_generate = ALWAYS_SHEETS | set(ALL_GLOBAL_SHEETS)
+        generate_individual = False
+    elif export_mode == 'ai_optimized':
+        sheets_to_generate = ALWAYS_SHEETS | set(AI_OPT_SHEETS)
+        generate_individual = False
+    else:
+        raise ValueError(f"Unknown export mode: {export_mode}")
+
+    skipped_sheets = (set(ALL_GLOBAL_SHEETS) | ALWAYS_SHEETS) - sheets_to_generate
+    if not generate_individual:
+        skipped_sheets.add('Individual track sheets')
+
+    log_fn(f"    Excel: export mode = {export_mode}")
+    log_fn(f"    Excel: sheets to generate = {sorted(sheets_to_generate)}")
+    if skipped_sheets:
+        log_fn(f"    Excel: sheets skipped = {sorted(skipped_sheets)}")
+    log_fn(f"    Excel: individual track sheets = {generate_individual}")
+
+    # Navigation targets adapted per mode
+    if export_mode == 'ai_optimized':
+        nav_targets = [
+            ('Index', 'Index'),
+            ('Anomalies', 'Anomalies'),
+            ('Health Score', 'Mix Health Score'),
+            ('AI Context', 'AI Context'),
+        ]
+    else:
+        nav_targets = None  # use default (Index|Summary|Dashboard|Anomalies|Health|AI Context)
 
     wb = Workbook()
     tmp_files = []
@@ -5023,10 +5092,15 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_clean_layout(ws_index)
     ws_index.title = 'Index'
     ws_index.sheet_properties.tabColor = '00D9FF'
-    row = _xl_write_header(ws_index, 'MIX ANALYZER — REPORT INDEX',
-                            f'Style: {style_name} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+    mode_suffix = {
+        'full': '',
+        'globals': ' | Globals only',
+        'ai_optimized': ' | AI-optimized export',
+    }.get(export_mode, '')
+    row = _xl_write_header(ws_index, 'MIX ANALYZER \u2014 REPORT INDEX',
+                            f'Style: {style_name}{mode_suffix} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
     # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_index, row - 1, current_sheet='Index')
+    _xl_add_sheet_nav(ws_index, row - 1, current_sheet='Index', nav_targets=nav_targets)
 
     # Track list with hyperlinks
     headers = ['#', 'Track Name', 'Type', 'Category', 'Sheet Link']
@@ -5048,7 +5122,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             counter += 1
         sheet_names[ti['name']] = sname
 
-    if include_individual_sheets:
+    if generate_individual:
         for idx, (a, ti) in enumerate(analyses_with_info, 1):
             sname = sheet_names[ti['name']]
             ws_index.cell(row=row, column=1, value=idx).font = data_font
@@ -5063,17 +5137,21 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                 ws_index.cell(row=row, column=col).fill = panel_fill
             row += 1
     else:
-        c = ws_index.cell(row=row, column=2, value='Individual track sheets: disabled (compact mode)')
+        mode_desc = 'AI-optimized mode' if export_mode == 'ai_optimized' else 'compact mode'
+        c = ws_index.cell(row=row, column=2, value=f'Individual track sheets: disabled ({mode_desc})')
         c.font = dim_font
         c.fill = panel_fill
         row += 1
 
-    # Also link to special sheets
+    # Link to special sheets — only list sheets actually generated
     row += 1
-    for special_name in ['Dashboard', 'AI Context', 'Summary', 'Anomalies', 'Full Mix Context',
-                             'Global Comparison', 'Full Mix Analysis', 'AI Prompt',
-                             'Freq Conflicts', 'Track Comparison', 'Mix Health Score',
-                             'Version History']:
+    special_sheet_order = ['Dashboard', 'AI Context', 'Summary', 'Anomalies', 'Full Mix Context',
+                           'Global Comparison', 'Full Mix Analysis', 'AI Prompt',
+                           'Freq Conflicts', 'Track Comparison', 'Mix Health Score',
+                           'Version History']
+    for special_name in special_sheet_order:
+        if special_name not in sheets_to_generate:
+            continue
         ws_index.cell(row=row, column=2, value=special_name).font = data_font
         link_cell = ws_index.cell(row=row, column=5, value=special_name)
         link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
@@ -5085,137 +5163,139 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_index.column_dimensions['D'].width = 20
     ws_index.column_dimensions['E'].width = 25
 
-    # ---- SHEET 2: Summary ----
-    log_fn("    Excel: writing Summary sheet...")
-    from openpyxl.formatting.rule import ColorScaleRule, DataBarRule, IconSetRule
-    ws_sum = wb.create_sheet('Summary')
-    _apply_clean_layout(ws_sum)
-    ws_sum.sheet_properties.tabColor = 'B967FF'
-    row = _xl_write_header(ws_sum, 'SUMMARY — GLOBAL METRICS', f'{len(analyses_with_info)} tracks analyzed')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_sum, row - 1, current_sheet='Summary')
-
-    sum_headers = ['Track', 'Type', 'Category', 'LUFS', 'Peak (dB)', 'Crest (dB)',
-                   'Stereo Width', 'Dom. Band', 'Centroid (Hz)', 'Duration (s)']
-    for col, h in enumerate(sum_headers, 1):
-        c = ws_sum.cell(row=row, column=col, value=h)
-        c.font = header_font
-        c.fill = header_fill
-        c.border = thin_border
-        c.alignment = Alignment(horizontal='center', vertical='center')
-        # Add glossary comment
-        if h in METRIC_GLOSSARY:
-            _xl_add_comment(c, METRIC_GLOSSARY[h])
-    sum_header_row = row
-    row += 1
-
-    # M7.5: link font for track names
+    # M7.5: link font for track names (used by multiple sheets)
     _link_font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
+    from openpyxl.formatting.rule import ColorScaleRule, DataBarRule, IconSetRule
 
-    for a, ti in analyses_with_info:
-        L = a['loudness']
-        S = a['spectrum']
-        st = a['stereo']
-        vals = [
-            a['filename'],
-            ti['type'],
-            ti.get('category', ''),
-            round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None,
-            round(L['peak_db'], 2),
-            round(L['crest_factor'], 2),
-            round(st['width_overall'], 3) if st['is_stereo'] else 'mono',
-            BAND_LABELS.get(S['dominant_band'], S['dominant_band']),
-            round(S['centroid'], 0),
-            round(a['duration'], 1),
-        ]
-        for col, v in enumerate(vals, 1):
-            c = ws_sum.cell(row=row, column=col, value=v)
-            c.font = data_font
+    # ---- SHEET 2: Summary ----
+    # Mode ai_optimized: EXCLUDED (10-col metrics, strict subset of AI Context)
+    if 'Summary' in sheets_to_generate:
+        log_fn("    Excel: writing Summary sheet...")
+        ws_sum = wb.create_sheet('Summary')
+        _apply_clean_layout(ws_sum)
+        ws_sum.sheet_properties.tabColor = 'B967FF'
+        row = _xl_write_header(ws_sum, 'SUMMARY — GLOBAL METRICS', f'{len(analyses_with_info)} tracks analyzed')
+        # M7.5: Navigation bar
+        _xl_add_sheet_nav(ws_sum, row - 1, current_sheet='Summary', nav_targets=nav_targets)
+
+        sum_headers = ['Track', 'Type', 'Category', 'LUFS', 'Peak (dB)', 'Crest (dB)',
+                       'Stereo Width', 'Dom. Band', 'Centroid (Hz)', 'Duration (s)']
+        for col, h in enumerate(sum_headers, 1):
+            c = ws_sum.cell(row=row, column=col, value=h)
+            c.font = header_font
+            c.fill = header_fill
             c.border = thin_border
-            c.fill = panel_fill
-            if col >= 4:
-                c.alignment = Alignment(horizontal='center')
-        # M7.5: Make track name clickable → individual sheet
-        if include_individual_sheets and ti['name'] in sheet_names:
-            sname = sheet_names[ti['name']]
-            track_cell = ws_sum.cell(row=row, column=1)
-            track_cell.hyperlink = f"#{sname}!A1"
-            track_cell.font = _link_font
+            c.alignment = Alignment(horizontal='center', vertical='center')
+            # Add glossary comment
+            if h in METRIC_GLOSSARY:
+                _xl_add_comment(c, METRIC_GLOSSARY[h])
+        sum_header_row = row
         row += 1
 
-    # Enriched conditional formatting (Phase 2)
-    if len(analyses_with_info) > 0:
-        data_start = sum_header_row + 1
-        data_end = data_start + len(analyses_with_info) - 1
-        # LUFS: color scale (red=quiet -> yellow -> green=loud)
-        ws_sum.conditional_formatting.add(
-            f'D{data_start}:D{data_end}',
-            ColorScaleRule(start_type='min', start_color='FF3333',
-                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
-                           end_type='max', end_color='00FF9F'))
-        # LUFS: data bars
-        ws_sum.conditional_formatting.add(
-            f'D{data_start}:D{data_end}',
-            DataBarRule(start_type='min', end_type='max', color='00D9FF'))
-        # Peak: color scale (red=hot -> green=safe)
-        ws_sum.conditional_formatting.add(
-            f'E{data_start}:E{data_end}',
-            ColorScaleRule(start_type='max', start_color='FF3333',
-                           end_type='min', end_color='00FF9F'))
-        # Crest factor: color scale + data bars
-        ws_sum.conditional_formatting.add(
-            f'F{data_start}:F{data_end}',
-            ColorScaleRule(start_type='min', start_color='FF3333',
-                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
-                           end_type='max', end_color='00D9FF'))
-        ws_sum.conditional_formatting.add(
-            f'F{data_start}:F{data_end}',
-            DataBarRule(start_type='min', end_type='max', color='B967FF'))
-        # Stereo Width: data bars
-        ws_sum.conditional_formatting.add(
-            f'G{data_start}:G{data_end}',
-            DataBarRule(start_type='min', end_type='max', color='00FF9F'))
-        # Centroid: color scale (low=warm -> high=bright)
-        ws_sum.conditional_formatting.add(
-            f'I{data_start}:I{data_end}',
-            ColorScaleRule(start_type='min', start_color='B967FF',
-                           end_type='max', end_color='FF3D8B'))
+        for a, ti in analyses_with_info:
+            L = a['loudness']
+            S = a['spectrum']
+            st = a['stereo']
+            vals = [
+                a['filename'],
+                ti['type'],
+                ti.get('category', ''),
+                round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None,
+                round(L['peak_db'], 2),
+                round(L['crest_factor'], 2),
+                round(st['width_overall'], 3) if st['is_stereo'] else 'mono',
+                BAND_LABELS.get(S['dominant_band'], S['dominant_band']),
+                round(S['centroid'], 0),
+                round(a['duration'], 1),
+            ]
+            for col, v in enumerate(vals, 1):
+                c = ws_sum.cell(row=row, column=col, value=v)
+                c.font = data_font
+                c.border = thin_border
+                c.fill = panel_fill
+                if col >= 4:
+                    c.alignment = Alignment(horizontal='center')
+            # M7.5: Make track name clickable → individual sheet
+            if generate_individual and ti['name'] in sheet_names:
+                sname = sheet_names[ti['name']]
+                track_cell = ws_sum.cell(row=row, column=1)
+                track_cell.hyperlink = f"#{sname}!A1"
+                track_cell.font = _link_font
+            row += 1
 
-        # M7.3: Icon sets for instant visual status
-        # Crest Factor (col F): traffic lights — red <6, yellow 6-12, green >12
-        ws_sum.conditional_formatting.add(
-            f'F{data_start}:F{data_end}',
-            IconSetRule(icon_style='3TrafficLights1', type='num',
-                        values=[0, 6, 12], showValue=True, reverse=False))
-        # Peak (col E): 3Symbols — ✓ safe <-1.5, ! caution -1.5 to -0.5, ✗ risk >-0.5
-        ws_sum.conditional_formatting.add(
-            f'E{data_start}:E{data_end}',
-            IconSetRule(icon_style='3Symbols2', type='num',
-                        values=[-100, -1.5, -0.5], showValue=True, reverse=True))
+        # Enriched conditional formatting (Phase 2)
+        if len(analyses_with_info) > 0:
+            data_start = sum_header_row + 1
+            data_end = data_start + len(analyses_with_info) - 1
+            # LUFS: color scale (red=quiet -> yellow -> green=loud)
+            ws_sum.conditional_formatting.add(
+                f'D{data_start}:D{data_end}',
+                ColorScaleRule(start_type='min', start_color='FF3333',
+                               mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                               end_type='max', end_color='00FF9F'))
+            # LUFS: data bars
+            ws_sum.conditional_formatting.add(
+                f'D{data_start}:D{data_end}',
+                DataBarRule(start_type='min', end_type='max', color='00D9FF'))
+            # Peak: color scale (red=hot -> green=safe)
+            ws_sum.conditional_formatting.add(
+                f'E{data_start}:E{data_end}',
+                ColorScaleRule(start_type='max', start_color='FF3333',
+                               end_type='min', end_color='00FF9F'))
+            # Crest factor: color scale + data bars
+            ws_sum.conditional_formatting.add(
+                f'F{data_start}:F{data_end}',
+                ColorScaleRule(start_type='min', start_color='FF3333',
+                               mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                               end_type='max', end_color='00D9FF'))
+            ws_sum.conditional_formatting.add(
+                f'F{data_start}:F{data_end}',
+                DataBarRule(start_type='min', end_type='max', color='B967FF'))
+            # Stereo Width: data bars
+            ws_sum.conditional_formatting.add(
+                f'G{data_start}:G{data_end}',
+                DataBarRule(start_type='min', end_type='max', color='00FF9F'))
+            # Centroid: color scale (low=warm -> high=bright)
+            ws_sum.conditional_formatting.add(
+                f'I{data_start}:I{data_end}',
+                ColorScaleRule(start_type='min', start_color='B967FF',
+                               end_type='max', end_color='FF3D8B'))
 
-        # M7.3: Multi-criteria formula alerts on Summary rows
-        from openpyxl.formatting.rule import FormulaRule
-        # Streaming risk: LUFS > -10 AND Peak > -1 → red highlight
-        ws_sum.conditional_formatting.add(
-            f'A{data_start}:J{data_end}',
-            FormulaRule(
-                formula=[f'AND($D{data_start}>-10,$E{data_start}>-1)'],
-                fill=PatternFill(start_color='FF5252', end_color='FF5252', fill_type='solid'),
-                font=Font(color='FFFFFF', bold=True)))
-        # Over-compressed + quiet: Crest < 6 AND LUFS < -16 → yellow highlight
-        ws_sum.conditional_formatting.add(
-            f'A{data_start}:J{data_end}',
-            FormulaRule(
-                formula=[f'AND($F{data_start}<6,$D{data_start}<-16)'],
-                fill=PatternFill(start_color='FFD93D', end_color='FFD93D', fill_type='solid')))
+            # M7.3: Icon sets for instant visual status
+            # Crest Factor (col F): traffic lights — red <6, yellow 6-12, green >12
+            ws_sum.conditional_formatting.add(
+                f'F{data_start}:F{data_end}',
+                IconSetRule(icon_style='3TrafficLights1', type='num',
+                            values=[0, 6, 12], showValue=True, reverse=False))
+            # Peak (col E): 3Symbols — ✓ safe <-1.5, ! caution -1.5 to -0.5, ✗ risk >-0.5
+            ws_sum.conditional_formatting.add(
+                f'E{data_start}:E{data_end}',
+                IconSetRule(icon_style='3Symbols2', type='num',
+                            values=[-100, -1.5, -0.5], showValue=True, reverse=True))
 
-    # Auto-filter on Summary
-    ws_sum.auto_filter.ref = f'A{sum_header_row}:J{max(row - 1, sum_header_row + 1)}'
+            # M7.3: Multi-criteria formula alerts on Summary rows
+            from openpyxl.formatting.rule import FormulaRule
+            # Streaming risk: LUFS > -10 AND Peak > -1 → red highlight
+            ws_sum.conditional_formatting.add(
+                f'A{data_start}:J{data_end}',
+                FormulaRule(
+                    formula=[f'AND($D{data_start}>-10,$E{data_start}>-1)'],
+                    fill=PatternFill(start_color='FF5252', end_color='FF5252', fill_type='solid'),
+                    font=Font(color='FFFFFF', bold=True)))
+            # Over-compressed + quiet: Crest < 6 AND LUFS < -16 → yellow highlight
+            ws_sum.conditional_formatting.add(
+                f'A{data_start}:J{data_end}',
+                FormulaRule(
+                    formula=[f'AND($F{data_start}<6,$D{data_start}<-16)'],
+                    fill=PatternFill(start_color='FFD93D', end_color='FFD93D', fill_type='solid')))
 
-    for col_idx in range(1, 11):
-        ws_sum.column_dimensions[get_column_letter(col_idx)].width = 16
-    ws_sum.column_dimensions['A'].width = 40
-    _apply_dark_background(ws_sum)
+        # Auto-filter on Summary
+        ws_sum.auto_filter.ref = f'A{sum_header_row}:J{max(row - 1, sum_header_row + 1)}'
+
+        for col_idx in range(1, 11):
+            ws_sum.column_dimensions[get_column_letter(col_idx)].width = 16
+        ws_sum.column_dimensions['A'].width = 40
+        _apply_dark_background(ws_sum)
 
     # ---- SHEET 3: Anomalies ----
     log_fn("    Excel: writing Anomalies sheet...")
@@ -5224,7 +5304,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_anom.sheet_properties.tabColor = 'FF3333'
     row = _xl_write_header(ws_anom, 'ANOMALIES')
     # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_anom, row - 1, current_sheet='Anomalies')
+    _xl_add_sheet_nav(ws_anom, row - 1, current_sheet='Anomalies', nav_targets=nav_targets)
 
     anom_headers = ['Track', 'Type', 'Severity', 'Description']
     _anom_header_comments = {
@@ -5249,7 +5329,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                 track_cell = ws_anom.cell(row=row, column=1, value=a['filename'])
                 track_cell.font = data_font
                 # M7.5: Link anomaly track name → individual sheet
-                if include_individual_sheets and ti['name'] in sheet_names:
+                if generate_individual and ti['name'] in sheet_names:
                     sname = sheet_names[ti['name']]
                     track_cell.hyperlink = f"#{sname}!A1"
                     track_cell.font = _link_font
@@ -5282,7 +5362,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_ctx.sheet_properties.tabColor = 'B967FF'
     row = _xl_write_header(ws_ctx, 'FULL MIX CONTEXT')
     # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_ctx, row - 1)
+    _xl_add_sheet_nav(ws_ctx, row - 1, nav_targets=nav_targets)
 
     if full_mix_info:
         ctx_items = [
@@ -5307,7 +5387,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _apply_dark_background(ws_ctx)
 
     # ---- SHEET 5+: One sheet per track (Individual + BUS) ----
-    if include_individual_sheets:
+    if generate_individual:
         track_sheets = [(a, ti) for a, ti in analyses_with_info
                         if ti['type'] in ('Individual', 'BUS')]
         # Build ordered list of sheet names for navigation
@@ -5463,500 +5543,539 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
         log_fn(f"    Excel: {len(track_sheets)} individual track sheets generated.")
     else:
-        log_fn("    Excel: Individual track sheets skipped (AI-friendly mode).")
+        log_fn(f"    Excel: Individual track sheets skipped ({export_mode} mode).")
 
     # ---- SHEET: Global Comparison ----
-    log_fn("    Excel: writing Global Comparison sheet...")
-    ws_global = wb.create_sheet('Global Comparison')
-    _apply_clean_layout(ws_global)
-    ws_global.sheet_properties.tabColor = '00FF9F'
-    row = _xl_write_header(ws_global, 'GLOBAL COMPARISON',
-                            'Masking matrix, spectral balance, LUFS/Crest comparisons (excludes BUS)')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_global, row - 1)
+    # Mode ai_optimized: EXCLUDED (100% visual, heavy images, data in AI Context)
+    if 'Global Comparison' not in sheets_to_generate:
+        log_fn("    Excel: Global Comparison skipped (not in export mode).")
+    else:
+        log_fn("    Excel: writing Global Comparison sheet...")
+        ws_global = wb.create_sheet('Global Comparison')
+        _apply_clean_layout(ws_global)
+        ws_global.sheet_properties.tabColor = '00FF9F'
+        row = _xl_write_header(ws_global, 'GLOBAL COMPARISON',
+                                'Masking matrix, spectral balance, LUFS/Crest comparisons (excludes BUS)')
+        # M7.5: Navigation bar
+        _xl_add_sheet_nav(ws_global, row - 1, nav_targets=nav_targets)
 
-    if individuals:
-        # Masking matrix as image
-        try:
-            fig = plt.figure(figsize=(16, 9))
-            fig.suptitle('FREQUENCY MASKING MATRIX (High Resolution)', fontsize=14,
-                         color=THEME['accent1'], fontweight='bold', y=0.97)
-            ax = fig.add_subplot(111)
-            hires_labels = [label for label, _, _ in FREQ_BANDS_HIRES]
-            n_bands = len(FREQ_BANDS_HIRES)
-            matrix = np.zeros((len(individuals), n_bands))
-            for i, (a_i, ti_i) in enumerate(individuals):
-                hires = compute_hires_band_energies(a_i['_mono'], a_i['sample_rate'])
-                for j, (label, _, _) in enumerate(FREQ_BANDS_HIRES):
-                    matrix[i, j] = hires[label]
-            im = ax.imshow(matrix, aspect='auto', cmap='magma', interpolation='nearest')
-            track_labels = [a_i['filename'][:35] for a_i, _ in individuals]
-            ax.set_yticks(range(len(individuals)))
-            ax.set_yticklabels(track_labels, fontsize=6)
-            ax.set_xticks(range(n_bands))
-            ax.set_xticklabels(hires_labels, rotation=45, ha='right', fontsize=7)
-            fig.colorbar(im, ax=ax, label='% of track energy', pad=0.01)
-            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
-
-            img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
-            tmp_files.append(tmp_path)
-            ws_global.add_image(img, f'A{row}')
-            row += rspan
-        except Exception:
-            pass
-
-        # LUFS comparison bar chart
-        try:
-            fig = plt.figure(figsize=(16, 9))
-            fig.suptitle('LUFS COMPARISON', fontsize=14, color=THEME['accent1'],
-                         fontweight='bold', y=0.97)
-            ax = fig.add_subplot(111)
-            names = [a_i['filename'][:30] for a_i, _ in individuals]
-            lufs_vals = [a_i['loudness']['lufs_integrated'] for a_i, _ in individuals]
-            lufs_vals = [v if np.isfinite(v) else -70 for v in lufs_vals]
-            colors = [THEME['accent1'] if v > -20 else THEME['accent4'] for v in lufs_vals]
-            ax.barh(range(len(names)), lufs_vals, color=colors, edgecolor=THEME['fg_dim'], linewidth=0.3)
-            ax.set_yticks(range(len(names)))
-            ax.set_yticklabels(names, fontsize=7)
-            ax.set_xlabel('Integrated LUFS', fontsize=11)
-            ax.invert_yaxis()
-            ax.grid(True, alpha=0.3, axis='x')
-            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
-
-            img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
-            tmp_files.append(tmp_path)
-            ws_global.add_image(img, f'A{row}')
-            row += rspan
-        except Exception:
-            pass
-
-        # Crest factor comparison
-        try:
-            fig = plt.figure(figsize=(16, 9))
-            fig.suptitle('CREST FACTOR COMPARISON', fontsize=14, color=THEME['accent1'],
-                         fontweight='bold', y=0.97)
-            ax = fig.add_subplot(111)
-            crest_vals = [a_i['loudness']['crest_factor'] for a_i, _ in individuals]
-            bar_colors = []
-            for v in crest_vals:
-                if v < 6:
-                    bar_colors.append(THEME['critical'])
-                elif v < 12:
-                    bar_colors.append(THEME['warning'])
-                else:
-                    bar_colors.append(THEME['accent4'])
-            ax.barh(range(len(names)), crest_vals, color=bar_colors,
-                     edgecolor=THEME['fg_dim'], linewidth=0.3)
-            ax.set_yticks(range(len(names)))
-            ax.set_yticklabels(names, fontsize=7)
-            ax.set_xlabel('Crest Factor (dB)', fontsize=11)
-            ax.axvline(6, color=THEME['critical'], linewidth=1, linestyle='--', alpha=0.7)
-            ax.axvline(12, color=THEME['accent4'], linewidth=1, linestyle='--', alpha=0.7)
-            ax.invert_yaxis()
-            ax.grid(True, alpha=0.3, axis='x')
-            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
-
-            img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
-            tmp_files.append(tmp_path)
-            ws_global.add_image(img, f'A{row}')
-            row += rspan
-        except Exception:
-            pass
-
-        # Spectral balance comparison
-        try:
-            fig = plt.figure(figsize=(16, 9))
-            fig.suptitle('SPECTRAL BALANCE COMPARISON', fontsize=14, color=THEME['accent1'],
-                         fontweight='bold', y=0.97)
-            ax = fig.add_subplot(111)
-            band_names_7 = [BAND_LABELS[name] for name, _, _ in FREQ_BANDS]
-            band_x = np.arange(len(FREQ_BANDS))
-            bar_width = 0.8 / max(len(individuals), 1)
-            for idx_t, (a_i, ti_i) in enumerate(individuals[:12]):
-                offsets = band_x + idx_t * bar_width - 0.4
-                vals = [a_i['spectrum']['band_energies'][name] for name, _, _ in FREQ_BANDS]
-                ax.bar(offsets, vals, width=bar_width, label=a_i['filename'][:20], alpha=0.8)
-            ax.set_xticks(band_x)
-            ax.set_xticklabels(band_names_7, rotation=25, ha='right', fontsize=9)
-            ax.set_ylabel('% energy')
-            ax.legend(fontsize=6, ncol=3, loc='upper right')
-            ax.grid(True, alpha=0.3, axis='y')
-            plt.tight_layout(rect=[0, 0.02, 1, 0.90])
-
-            img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
-            tmp_files.append(tmp_path)
-            ws_global.add_image(img, f'A{row}')
-            row += rspan
-        except Exception:
-            pass
-
-        # Native Excel chart for Multi-Track Comparison (M6.4)
-        try:
-            comp_hdr, comp_end, comp_n = _write_comparison_chart_data(
-                ws_chart_data, analyses_with_info, chart_data_row)
-            if comp_hdr is not None and comp_n >= 2:
-                comparison_chart = _create_comparison_chart(
-                    ws_chart_data, comp_hdr, comp_end, comp_n)
-                ws_global.add_chart(comparison_chart, f'A{row}')
-                chart_data_row = comp_end + 2
-                row += 30
-        except Exception:
-            pass
-
-    _apply_dark_background(ws_global)
-
-    # ---- SHEET: Full Mix Analysis ----
-    log_fn("    Excel: writing Full Mix Analysis sheet...")
-    ws_fm = wb.create_sheet('Full Mix Analysis')
-    _apply_clean_layout(ws_fm)
-    ws_fm.sheet_properties.tabColor = 'B967FF'
-
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_fm, 3)
-
-    if full_mixes:
-        a_fm, ti_fm = full_mixes[0]
-        row = _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', a_fm['filename'])
-
-        L = a_fm['loudness']
-        S = a_fm['spectrum']
-        st = a_fm['stereo']
-        tempo = a_fm.get('tempo', {})
-
-        fm_metrics = [
-            ('LUFS Integrated', f"{L['lufs_integrated']:+.2f}" if np.isfinite(L['lufs_integrated']) else '-'),
-            ('LUFS Short-term Max', f"{L['lufs_short_term_max']:+.2f}" if np.isfinite(L['lufs_short_term_max']) else '-'),
-            ('True Peak', f"{L['true_peak_db']:+.2f} dBFS"),
-            ('Crest Factor', f"{L['crest_factor']:.2f} dB"),
-            ('PLR', f"{L['plr']:.2f} dB"),
-            ('LRA', f"{L['lra']:.2f} LU"),
-            ('Dominant Band', BAND_LABELS.get(S['dominant_band'], S['dominant_band'])),
-            ('Centroid', f"{S['centroid']:.0f} Hz"),
-            ('Phase Correlation', f"{st['correlation']:+.3f}" if st['is_stereo'] else 'Mono'),
-            ('Stereo Width', f"{st['width_overall']:.3f}" if st['is_stereo'] else 'Mono'),
-            ('Tempo (median)', f"{tempo.get('tempo_median', 0):.1f} BPM"),
-            ('Tempo range', f"{tempo.get('tempo_min', 0):.0f}-{tempo.get('tempo_max', 0):.0f} BPM"),
-        ]
-        for label, val in fm_metrics:
-            c1 = ws_fm.cell(row=row, column=1, value=label)
-            c1.font = accent_font
-            c1.fill = panel_fill
-            c1.border = thin_border
-            c1.alignment = Alignment(horizontal='left', vertical='center')
-            glossary_key_fm = {'LUFS Integrated': 'LUFS', 'Crest Factor': 'Crest (dB)',
-                               'PLR': 'PLR', 'LRA': 'LRA', 'Centroid': 'Centroid (Hz)',
-                               'Phase Correlation': 'Phase Correlation',
-                               'Stereo Width': 'Stereo Width', 'True Peak': 'True Peak'}.get(label)
-            if glossary_key_fm and glossary_key_fm in METRIC_GLOSSARY:
-                _xl_add_comment(c1, METRIC_GLOSSARY[glossary_key_fm])
-            c2 = ws_fm.cell(row=row, column=2, value=val)
-            c2.font = data_font
-            c2.fill = panel_fill
-            c2.border = thin_border
-            c2.alignment = Alignment(horizontal='right', vertical='center')
-            row += 1
-
-        # Structure detection
-        row += 1
-        try:
-            full_mix_structure = analyze_structure_sections(a_fm['_mono'], a_fm['sample_rate'])
-            if full_mix_structure and full_mix_structure.get('success'):
-                ws_fm.cell(row=row, column=1, value='SECTION BOUNDARIES').font = Font(
-                    name='Calibri', size=12, bold=True, color='B967FF')
-                row += 1
-                bounds = full_mix_structure.get('boundaries', [])
-                valid_bounds = [b for b in bounds if b > 0.5]
-                for i, b in enumerate(valid_bounds):
-                    ws_fm.cell(row=row, column=1, value=f'Section {i + 1}').font = data_font
-                    ws_fm.cell(row=row, column=2, value=f'{b:.1f} s').font = data_font
-                    row += 1
-        except Exception:
-            pass
-
-        # Full Mix visualizations
-        row += 2
-        fm_pages = [
-            ('Identity', lambda: page_identity(a_fm, ti_fm, style_name)),
-            ('Temporal', lambda: page_temporal(a_fm, ti_fm)),
-            ('Spectral', lambda: page_spectral(a_fm, ti_fm)),
-            ('Spectrogram', lambda: page_spectrogram(a_fm, ti_fm)),
-            ('Multiband', lambda: page_multiband_timeline(a_fm, ti_fm)),
-        ]
-        for page_name, page_fn in fm_pages:
+        if individuals:
+            # Masking matrix as image
             try:
-                fig = page_fn()
+                fig = plt.figure(figsize=(16, 9))
+                fig.suptitle('FREQUENCY MASKING MATRIX (High Resolution)', fontsize=14,
+                             color=THEME['accent1'], fontweight='bold', y=0.97)
+                ax = fig.add_subplot(111)
+                hires_labels = [label for label, _, _ in FREQ_BANDS_HIRES]
+                n_bands = len(FREQ_BANDS_HIRES)
+                matrix = np.zeros((len(individuals), n_bands))
+                for i, (a_i, ti_i) in enumerate(individuals):
+                    hires = compute_hires_band_energies(a_i['_mono'], a_i['sample_rate'])
+                    for j, (label, _, _) in enumerate(FREQ_BANDS_HIRES):
+                        matrix[i, j] = hires[label]
+                im = ax.imshow(matrix, aspect='auto', cmap='magma', interpolation='nearest')
+                track_labels = [a_i['filename'][:35] for a_i, _ in individuals]
+                ax.set_yticks(range(len(individuals)))
+                ax.set_yticklabels(track_labels, fontsize=6)
+                ax.set_xticks(range(n_bands))
+                ax.set_xticklabels(hires_labels, rotation=45, ha='right', fontsize=7)
+                fig.colorbar(im, ax=ax, label='% of track energy', pad=0.01)
+                plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+
                 img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
                 tmp_files.append(tmp_path)
-                ws_fm.add_image(img, f'A{row}')
+                ws_global.add_image(img, f'A{row}')
                 row += rspan
             except Exception:
                 pass
 
-        # Native Excel LineChart for Peak vs RMS (M6.1)
-        try:
-            hdr_row, end_row = _write_peak_rms_chart_data(
-                ws_chart_data, a_fm, chart_data_row, 'FullMix')
-            peak_rms_chart = _create_peak_rms_linechart(
-                ws_chart_data, hdr_row, end_row, a_fm['filename'])
-            ws_fm.add_chart(peak_rms_chart, f'A{row}')
-            chart_data_row = end_row + 2
-            row += 24
-        except Exception:
-            pass
+            # LUFS comparison bar chart
+            try:
+                fig = plt.figure(figsize=(16, 9))
+                fig.suptitle('LUFS COMPARISON', fontsize=14, color=THEME['accent1'],
+                             fontweight='bold', y=0.97)
+                ax = fig.add_subplot(111)
+                names = [a_i['filename'][:30] for a_i, _ in individuals]
+                lufs_vals = [a_i['loudness']['lufs_integrated'] for a_i, _ in individuals]
+                lufs_vals = [v if np.isfinite(v) else -70 for v in lufs_vals]
+                colors = [THEME['accent1'] if v > -20 else THEME['accent4'] for v in lufs_vals]
+                ax.barh(range(len(names)), lufs_vals, color=colors, edgecolor=THEME['fg_dim'], linewidth=0.3)
+                ax.set_yticks(range(len(names)))
+                ax.set_yticklabels(names, fontsize=7)
+                ax.set_xlabel('Integrated LUFS', fontsize=11)
+                ax.invert_yaxis()
+                ax.grid(True, alpha=0.3, axis='x')
+                plt.tight_layout(rect=[0, 0.02, 1, 0.90])
 
-        # Native Excel AreaChart for Crest Factor (M6.2)
-        try:
-            crest_chart = _create_crest_areachart(
-                ws_chart_data, hdr_row, end_row, a_fm['filename'])
-            ws_fm.add_chart(crest_chart, f'A{row}')
-            row += 24
-        except Exception:
-            pass
+                img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
+                tmp_files.append(tmp_path)
+                ws_global.add_image(img, f'A{row}')
+                row += rspan
+            except Exception:
+                pass
 
-        # Native Excel BarChart for Spectral Distribution (M6.3)
-        try:
-            spec_hdr, spec_end = _write_spectral_chart_data(
-                ws_chart_data, a_fm, chart_data_row, 'FullMix')
-            spectral_chart = _create_spectral_barchart(
-                ws_chart_data, spec_hdr, spec_end, a_fm['filename'])
-            ws_fm.add_chart(spectral_chart, f'A{row}')
-            chart_data_row = spec_end + 2
-            row += 24
-        except Exception:
-            pass
+            # Crest factor comparison
+            try:
+                fig = plt.figure(figsize=(16, 9))
+                fig.suptitle('CREST FACTOR COMPARISON', fontsize=14, color=THEME['accent1'],
+                             fontweight='bold', y=0.97)
+                ax = fig.add_subplot(111)
+                crest_vals = [a_i['loudness']['crest_factor'] for a_i, _ in individuals]
+                bar_colors = []
+                for v in crest_vals:
+                    if v < 6:
+                        bar_colors.append(THEME['critical'])
+                    elif v < 12:
+                        bar_colors.append(THEME['warning'])
+                    else:
+                        bar_colors.append(THEME['accent4'])
+                ax.barh(range(len(names)), crest_vals, color=bar_colors,
+                         edgecolor=THEME['fg_dim'], linewidth=0.3)
+                ax.set_yticks(range(len(names)))
+                ax.set_yticklabels(names, fontsize=7)
+                ax.set_xlabel('Crest Factor (dB)', fontsize=11)
+                ax.axvline(6, color=THEME['critical'], linewidth=1, linestyle='--', alpha=0.7)
+                ax.axvline(12, color=THEME['accent4'], linewidth=1, linestyle='--', alpha=0.7)
+                ax.invert_yaxis()
+                ax.grid(True, alpha=0.3, axis='x')
+                plt.tight_layout(rect=[0, 0.02, 1, 0.90])
 
-        ws_fm.column_dimensions['A'].width = 25
-        ws_fm.column_dimensions['B'].width = 40
+                img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
+                tmp_files.append(tmp_path)
+                ws_global.add_image(img, f'A{row}')
+                row += rspan
+            except Exception:
+                pass
+
+            # Spectral balance comparison
+            try:
+                fig = plt.figure(figsize=(16, 9))
+                fig.suptitle('SPECTRAL BALANCE COMPARISON', fontsize=14, color=THEME['accent1'],
+                             fontweight='bold', y=0.97)
+                ax = fig.add_subplot(111)
+                band_names_7 = [BAND_LABELS[name] for name, _, _ in FREQ_BANDS]
+                band_x = np.arange(len(FREQ_BANDS))
+                bar_width = 0.8 / max(len(individuals), 1)
+                for idx_t, (a_i, ti_i) in enumerate(individuals[:12]):
+                    offsets = band_x + idx_t * bar_width - 0.4
+                    vals = [a_i['spectrum']['band_energies'][name] for name, _, _ in FREQ_BANDS]
+                    ax.bar(offsets, vals, width=bar_width, label=a_i['filename'][:20], alpha=0.8)
+                ax.set_xticks(band_x)
+                ax.set_xticklabels(band_names_7, rotation=25, ha='right', fontsize=9)
+                ax.set_ylabel('% energy')
+                ax.legend(fontsize=6, ncol=3, loc='upper right')
+                ax.grid(True, alpha=0.3, axis='y')
+                plt.tight_layout(rect=[0, 0.02, 1, 0.90])
+
+                img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
+                tmp_files.append(tmp_path)
+                ws_global.add_image(img, f'A{row}')
+                row += rspan
+            except Exception:
+                pass
+
+            # Native Excel chart for Multi-Track Comparison (M6.4)
+            try:
+                comp_hdr, comp_end, comp_n = _write_comparison_chart_data(
+                    ws_chart_data, analyses_with_info, chart_data_row)
+                if comp_hdr is not None and comp_n >= 2:
+                    comparison_chart = _create_comparison_chart(
+                        ws_chart_data, comp_hdr, comp_end, comp_n)
+                    ws_global.add_chart(comparison_chart, f'A{row}')
+                    chart_data_row = comp_end + 2
+                    row += 30
+            except Exception:
+                pass
+
+        _apply_dark_background(ws_global)
+
+    # ---- SHEET: Full Mix Analysis ----
+    # Mode ai_optimized: EXCLUDED (mostly visual, metrics in AI Context row)
+    if 'Full Mix Analysis' not in sheets_to_generate:
+        log_fn("    Excel: Full Mix Analysis skipped (not in export mode).")
     else:
-        _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', 'No Full Mix track detected.')
-    _apply_dark_background(ws_fm)
+        log_fn("    Excel: writing Full Mix Analysis sheet...")
+        ws_fm = wb.create_sheet('Full Mix Analysis')
+        _apply_clean_layout(ws_fm)
+        ws_fm.sheet_properties.tabColor = 'B967FF'
+
+        # M7.5: Navigation bar
+        _xl_add_sheet_nav(ws_fm, 3, nav_targets=nav_targets)
+
+        if full_mixes:
+            a_fm, ti_fm = full_mixes[0]
+            row = _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', a_fm['filename'])
+
+            L = a_fm['loudness']
+            S = a_fm['spectrum']
+            st = a_fm['stereo']
+            tempo = a_fm.get('tempo', {})
+
+            fm_metrics = [
+                ('LUFS Integrated', f"{L['lufs_integrated']:+.2f}" if np.isfinite(L['lufs_integrated']) else '-'),
+                ('LUFS Short-term Max', f"{L['lufs_short_term_max']:+.2f}" if np.isfinite(L['lufs_short_term_max']) else '-'),
+                ('True Peak', f"{L['true_peak_db']:+.2f} dBFS"),
+                ('Crest Factor', f"{L['crest_factor']:.2f} dB"),
+                ('PLR', f"{L['plr']:.2f} dB"),
+                ('LRA', f"{L['lra']:.2f} LU"),
+                ('Dominant Band', BAND_LABELS.get(S['dominant_band'], S['dominant_band'])),
+                ('Centroid', f"{S['centroid']:.0f} Hz"),
+                ('Phase Correlation', f"{st['correlation']:+.3f}" if st['is_stereo'] else 'Mono'),
+                ('Stereo Width', f"{st['width_overall']:.3f}" if st['is_stereo'] else 'Mono'),
+                ('Tempo (median)', f"{tempo.get('tempo_median', 0):.1f} BPM"),
+                ('Tempo range', f"{tempo.get('tempo_min', 0):.0f}-{tempo.get('tempo_max', 0):.0f} BPM"),
+            ]
+            for label, val in fm_metrics:
+                c1 = ws_fm.cell(row=row, column=1, value=label)
+                c1.font = accent_font
+                c1.fill = panel_fill
+                c1.border = thin_border
+                c1.alignment = Alignment(horizontal='left', vertical='center')
+                glossary_key_fm = {'LUFS Integrated': 'LUFS', 'Crest Factor': 'Crest (dB)',
+                                   'PLR': 'PLR', 'LRA': 'LRA', 'Centroid': 'Centroid (Hz)',
+                                   'Phase Correlation': 'Phase Correlation',
+                                   'Stereo Width': 'Stereo Width', 'True Peak': 'True Peak'}.get(label)
+                if glossary_key_fm and glossary_key_fm in METRIC_GLOSSARY:
+                    _xl_add_comment(c1, METRIC_GLOSSARY[glossary_key_fm])
+                c2 = ws_fm.cell(row=row, column=2, value=val)
+                c2.font = data_font
+                c2.fill = panel_fill
+                c2.border = thin_border
+                c2.alignment = Alignment(horizontal='right', vertical='center')
+                row += 1
+
+            # Structure detection
+            row += 1
+            try:
+                full_mix_structure = analyze_structure_sections(a_fm['_mono'], a_fm['sample_rate'])
+                if full_mix_structure and full_mix_structure.get('success'):
+                    ws_fm.cell(row=row, column=1, value='SECTION BOUNDARIES').font = Font(
+                        name='Calibri', size=12, bold=True, color='B967FF')
+                    row += 1
+                    bounds = full_mix_structure.get('boundaries', [])
+                    valid_bounds = [b for b in bounds if b > 0.5]
+                    for i, b in enumerate(valid_bounds):
+                        ws_fm.cell(row=row, column=1, value=f'Section {i + 1}').font = data_font
+                        ws_fm.cell(row=row, column=2, value=f'{b:.1f} s').font = data_font
+                        row += 1
+            except Exception:
+                pass
+
+            # Full Mix visualizations
+            row += 2
+            fm_pages = [
+                ('Identity', lambda: page_identity(a_fm, ti_fm, style_name)),
+                ('Temporal', lambda: page_temporal(a_fm, ti_fm)),
+                ('Spectral', lambda: page_spectral(a_fm, ti_fm)),
+                ('Spectrogram', lambda: page_spectrogram(a_fm, ti_fm)),
+                ('Multiband', lambda: page_multiband_timeline(a_fm, ti_fm)),
+            ]
+            for page_name, page_fn in fm_pages:
+                try:
+                    fig = page_fn()
+                    img, tmp_path, rspan = _fig_to_image(fig, quality=image_quality)
+                    tmp_files.append(tmp_path)
+                    ws_fm.add_image(img, f'A{row}')
+                    row += rspan
+                except Exception:
+                    pass
+
+            # Native Excel LineChart for Peak vs RMS (M6.1)
+            try:
+                hdr_row, end_row = _write_peak_rms_chart_data(
+                    ws_chart_data, a_fm, chart_data_row, 'FullMix')
+                peak_rms_chart = _create_peak_rms_linechart(
+                    ws_chart_data, hdr_row, end_row, a_fm['filename'])
+                ws_fm.add_chart(peak_rms_chart, f'A{row}')
+                chart_data_row = end_row + 2
+                row += 24
+            except Exception:
+                pass
+
+            # Native Excel AreaChart for Crest Factor (M6.2)
+            try:
+                crest_chart = _create_crest_areachart(
+                    ws_chart_data, hdr_row, end_row, a_fm['filename'])
+                ws_fm.add_chart(crest_chart, f'A{row}')
+                row += 24
+            except Exception:
+                pass
+
+            # Native Excel BarChart for Spectral Distribution (M6.3)
+            try:
+                spec_hdr, spec_end = _write_spectral_chart_data(
+                    ws_chart_data, a_fm, chart_data_row, 'FullMix')
+                spectral_chart = _create_spectral_barchart(
+                    ws_chart_data, spec_hdr, spec_end, a_fm['filename'])
+                ws_fm.add_chart(spectral_chart, f'A{row}')
+                chart_data_row = spec_end + 2
+                row += 24
+            except Exception:
+                pass
+
+            ws_fm.column_dimensions['A'].width = 25
+            ws_fm.column_dimensions['B'].width = 40
+        else:
+            _xl_write_header(ws_fm, 'FULL MIX ANALYSIS', 'No Full Mix track detected.')
+        _apply_dark_background(ws_fm)
 
     # ---- SHEET 8: AI Prompt ----
-    log_fn("    Excel: writing AI Prompt sheet...")
-    ws_ai = wb.create_sheet('AI Prompt')
-    _apply_clean_layout(ws_ai)
-    ws_ai.sheet_properties.tabColor = '00FF9F'
-    row = _xl_write_header(ws_ai, 'AI ANALYSIS PROMPT',
-                            'Copy this text and paste it into Claude along with this report file.')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_ai, row - 1)
-    row += 1
-
-    if ai_prompt:
-        ws_ai.cell(row=row, column=1, value=ai_prompt).font = data_font
-        ws_ai.cell(row=row, column=1).alignment = Alignment(wrap_text=True, vertical='top')
-        ws_ai.column_dimensions['A'].width = 120
-        ws_ai.row_dimensions[row].height = 600
+    # Included in all modes (text only, negligible weight)
+    if 'AI Prompt' not in sheets_to_generate:
+        log_fn("    Excel: AI Prompt skipped (not in export mode).")
     else:
-        ws_ai.cell(row=row, column=1, value='No AI prompt available.').font = dim_font
-    _apply_dark_background(ws_ai)
-
-    # ---- SHEET: Dashboard (Phase 2) ----
-    # Flat data table with all numeric metrics for filtering
-    log_fn("    Excel: writing Dashboard sheet...")
-    ws_dash = wb.create_sheet('Dashboard')
-    _apply_clean_layout(ws_dash)
-    ws_dash.sheet_properties.tabColor = 'FFAA00'
-    row = _xl_write_header(ws_dash, 'DASHBOARD — ALL METRICS',
-                            'Use filters to slice by Category, Type, or value ranges')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_dash, row - 1, current_sheet='Dashboard')
-
-    dash_headers = [
-        'Track', 'Type', 'Category', 'Family',
-        'LUFS', 'Peak (dB)', 'True Peak (dBFS)', 'RMS (dB)',
-        'Crest (dB)', 'PLR (dB)', 'PSR (dB)', 'LRA (LU)',
-        'Width', 'Correlation', 'Centroid (Hz)', 'Rolloff (Hz)',
-        'Flatness', 'Dom. Band', 'Duration (s)',
-    ]
-    for col, h in enumerate(dash_headers, 1):
-        c = ws_dash.cell(row=row, column=col, value=h)
-        c.font = header_font
-        c.fill = header_fill
-        c.border = thin_border
-        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-        if h in METRIC_GLOSSARY:
-            _xl_add_comment(c, METRIC_GLOSSARY[h])
-    dash_header_row = row
-    row += 1
-
-    for a, ti in analyses_with_info:
-        L = a['loudness']
-        S = a['spectrum']
-        st = a['stereo']
-        cat = ti.get('category', '(not set)')
-        family = CATEGORY_FAMILY.get(cat, 'Unknown')
-        vals = [
-            a['filename'],
-            ti['type'],
-            cat,
-            family,
-            round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None,
-            round(L['peak_db'], 2),
-            round(L['true_peak_db'], 2),
-            round(L['rms_db'], 2),
-            round(L['crest_factor'], 2),
-            round(L['plr'], 2),
-            round(L['psr'], 2),
-            round(L['lra'], 2),
-            round(st['width_overall'], 3) if st['is_stereo'] else None,
-            round(st['correlation'], 3) if st['is_stereo'] else None,
-            round(S['centroid'], 0),
-            round(S['rolloff'], 0),
-            round(S['flatness'], 4),
-            BAND_LABELS.get(S['dominant_band'], S['dominant_band']),
-            round(a['duration'], 1),
-        ]
-        for col, v in enumerate(vals, 1):
-            c = ws_dash.cell(row=row, column=col, value=v)
-            c.font = data_font
-            c.border = thin_border
-            c.fill = panel_fill
-            if col >= 5:
-                c.alignment = Alignment(horizontal='center')
-        # M7.5: Make track name clickable → individual sheet
-        if include_individual_sheets and ti['name'] in sheet_names:
-            sname = sheet_names[ti['name']]
-            dash_track_cell = ws_dash.cell(row=row, column=1)
-            dash_track_cell.hyperlink = f"#{sname}!A1"
-            dash_track_cell.font = _link_font
+        log_fn("    Excel: writing AI Prompt sheet...")
+        ws_ai = wb.create_sheet('AI Prompt')
+        _apply_clean_layout(ws_ai)
+        ws_ai.sheet_properties.tabColor = '00FF9F'
+        row = _xl_write_header(ws_ai, 'AI ANALYSIS PROMPT',
+                                'Copy this text and paste it into Claude along with this report file.')
+        # M7.5: Navigation bar
+        _xl_add_sheet_nav(ws_ai, row - 1, nav_targets=nav_targets)
         row += 1
 
-    # Apply auto-filter on the Dashboard table
-    dash_data_end = max(row - 1, dash_header_row + 1)
-    last_col = get_column_letter(len(dash_headers))
-    ws_dash.auto_filter.ref = f'A{dash_header_row}:{last_col}{dash_data_end}'
+        if ai_prompt:
+            ws_ai.cell(row=row, column=1, value=ai_prompt).font = data_font
+            ws_ai.cell(row=row, column=1).alignment = Alignment(wrap_text=True, vertical='top')
+            ws_ai.column_dimensions['A'].width = 120
+            ws_ai.row_dimensions[row].height = 600
+        else:
+            ws_ai.cell(row=row, column=1, value='No AI prompt available.').font = dim_font
+        _apply_dark_background(ws_ai)
 
-    # Enriched conditional formatting on Dashboard
-    if len(analyses_with_info) > 0:
-        ds = dash_header_row + 1
-        de = dash_data_end
-        # LUFS (E): data bars + color scale
-        ws_dash.conditional_formatting.add(
-            f'E{ds}:E{de}',
-            DataBarRule(start_type='min', end_type='max', color='00D9FF'))
-        ws_dash.conditional_formatting.add(
-            f'E{ds}:E{de}',
-            ColorScaleRule(start_type='min', start_color='FF3333',
-                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
-                           end_type='max', end_color='00FF9F'))
-        # Peak (F): color scale
-        ws_dash.conditional_formatting.add(
-            f'F{ds}:F{de}',
-            ColorScaleRule(start_type='max', start_color='FF3333',
-                           end_type='min', end_color='00FF9F'))
-        # Crest (I): data bars + color scale
-        ws_dash.conditional_formatting.add(
-            f'I{ds}:I{de}',
-            DataBarRule(start_type='min', end_type='max', color='B967FF'))
-        ws_dash.conditional_formatting.add(
-            f'I{ds}:I{de}',
-            ColorScaleRule(start_type='min', start_color='FF3333',
-                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
-                           end_type='max', end_color='00D9FF'))
-        # PLR (J): data bars
-        ws_dash.conditional_formatting.add(
-            f'J{ds}:J{de}',
-            DataBarRule(start_type='min', end_type='max', color='00FF9F'))
-        # PSR (K): data bars
-        ws_dash.conditional_formatting.add(
-            f'K{ds}:K{de}',
-            DataBarRule(start_type='min', end_type='max', color='00D9FF'))
-        # LRA (L): data bars
-        ws_dash.conditional_formatting.add(
-            f'L{ds}:L{de}',
-            DataBarRule(start_type='min', end_type='max', color='FFAA00'))
-        # Width (M): data bars
-        ws_dash.conditional_formatting.add(
-            f'M{ds}:M{de}',
-            DataBarRule(start_type='min', end_type='max', color='00FF9F'))
-        # Correlation (N): color scale (low=red -> high=green)
-        ws_dash.conditional_formatting.add(
-            f'N{ds}:N{de}',
-            ColorScaleRule(start_type='min', start_color='FF3333',
-                           mid_type='percentile', mid_value=50, mid_color='FFAA00',
-                           end_type='max', end_color='00FF9F'))
-        # Centroid (O): color scale
-        ws_dash.conditional_formatting.add(
-            f'O{ds}:O{de}',
-            ColorScaleRule(start_type='min', start_color='B967FF',
-                           end_type='max', end_color='FF3D8B'))
+    # ---- SHEET: Dashboard (Phase 2) ----
+    # Mode ai_optimized: EXCLUDED (19-col metrics, strict subset of AI Context 38 columns)
+    if 'Dashboard' not in sheets_to_generate:
+        log_fn("    Excel: Dashboard skipped (not in export mode).")
+    else:
+        # Flat data table with all numeric metrics for filtering
+        log_fn("    Excel: writing Dashboard sheet...")
+        ws_dash = wb.create_sheet('Dashboard')
+        _apply_clean_layout(ws_dash)
+        ws_dash.sheet_properties.tabColor = 'FFAA00'
+        row = _xl_write_header(ws_dash, 'DASHBOARD \u2014 ALL METRICS',
+                                'Use filters to slice by Category, Type, or value ranges')
+        # M7.5: Navigation bar
+        _xl_add_sheet_nav(ws_dash, row - 1, current_sheet='Dashboard', nav_targets=nav_targets)
 
-        # M7.3: Icon sets on Dashboard
-        # Crest Factor (col I): traffic lights — red <6, yellow 6-12, green >12
-        ws_dash.conditional_formatting.add(
-            f'I{ds}:I{de}',
-            IconSetRule(icon_style='3TrafficLights1', type='num',
-                        values=[0, 6, 12], showValue=True, reverse=False))
-        # True Peak (col G): 3Symbols — ✓ safe <-1.5, ! caution, ✗ risk >-0.5
-        ws_dash.conditional_formatting.add(
-            f'G{ds}:G{de}',
-            IconSetRule(icon_style='3Symbols2', type='num',
-                        values=[-100, -1.5, -0.5], showValue=True, reverse=True))
-        # Correlation (col N): traffic lights — red <0, yellow 0-0.5, green >0.5
-        ws_dash.conditional_formatting.add(
-            f'N{ds}:N{de}',
-            IconSetRule(icon_style='3TrafficLights1', type='num',
-                        values=[-1, 0, 0.5], showValue=True, reverse=False))
+        dash_headers = [
+            'Track', 'Type', 'Category', 'Family',
+            'LUFS', 'Peak (dB)', 'True Peak (dBFS)', 'RMS (dB)',
+            'Crest (dB)', 'PLR (dB)', 'PSR (dB)', 'LRA (LU)',
+            'Width', 'Correlation', 'Centroid (Hz)', 'Rolloff (Hz)',
+            'Flatness', 'Dom. Band', 'Duration (s)',
+        ]
+        for col, h in enumerate(dash_headers, 1):
+            c = ws_dash.cell(row=row, column=col, value=h)
+            c.font = header_font
+            c.fill = header_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            if h in METRIC_GLOSSARY:
+                _xl_add_comment(c, METRIC_GLOSSARY[h])
+        dash_header_row = row
+        row += 1
 
-        # M7.3: Multi-criteria formula alerts on Dashboard rows
-        from openpyxl.formatting.rule import FormulaRule
-        # Streaming risk: LUFS > -10 AND True Peak > -1 → red row
-        ws_dash.conditional_formatting.add(
-            f'A{ds}:S{de}',
-            FormulaRule(
-                formula=[f'AND($E{ds}>-10,$G{ds}>-1)'],
-                fill=PatternFill(start_color='FF5252', end_color='FF5252', fill_type='solid'),
-                font=Font(color='FFFFFF', bold=True)))
-        # Over-compressed + quiet: Crest < 6 AND LUFS < -16 → yellow row
-        ws_dash.conditional_formatting.add(
-            f'A{ds}:S{de}',
-            FormulaRule(
-                formula=[f'AND($I{ds}<6,$E{ds}<-16)'],
-                fill=PatternFill(start_color='FFD93D', end_color='FFD93D', fill_type='solid')))
-        # Near-clipping: True Peak > -0.3 → orange row
-        ws_dash.conditional_formatting.add(
-            f'A{ds}:S{de}',
-            FormulaRule(
-                formula=[f'$G{ds}>-0.3'],
-                fill=PatternFill(start_color='FF8B3D', end_color='FF8B3D', fill_type='solid')))
+        for a, ti in analyses_with_info:
+            L = a['loudness']
+            S = a['spectrum']
+            st = a['stereo']
+            cat = ti.get('category', '(not set)')
+            family = CATEGORY_FAMILY.get(cat, 'Unknown')
+            vals = [
+                a['filename'],
+                ti['type'],
+                cat,
+                family,
+                round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None,
+                round(L['peak_db'], 2),
+                round(L['true_peak_db'], 2),
+                round(L['rms_db'], 2),
+                round(L['crest_factor'], 2),
+                round(L['plr'], 2),
+                round(L['psr'], 2),
+                round(L['lra'], 2),
+                round(st['width_overall'], 3) if st['is_stereo'] else None,
+                round(st['correlation'], 3) if st['is_stereo'] else None,
+                round(S['centroid'], 0),
+                round(S['rolloff'], 0),
+                round(S['flatness'], 4),
+                BAND_LABELS.get(S['dominant_band'], S['dominant_band']),
+                round(a['duration'], 1),
+            ]
+            for col, v in enumerate(vals, 1):
+                c = ws_dash.cell(row=row, column=col, value=v)
+                c.font = data_font
+                c.border = thin_border
+                c.fill = panel_fill
+                if col >= 5:
+                    c.alignment = Alignment(horizontal='center')
+            # M7.5: Make track name clickable → individual sheet
+            if generate_individual and ti['name'] in sheet_names:
+                sname = sheet_names[ti['name']]
+                dash_track_cell = ws_dash.cell(row=row, column=1)
+                dash_track_cell.hyperlink = f"#{sname}!A1"
+                dash_track_cell.font = _link_font
+            row += 1
 
-    # Column widths for Dashboard
-    ws_dash.column_dimensions['A'].width = 40
-    for col_idx in range(2, len(dash_headers) + 1):
-        ws_dash.column_dimensions[get_column_letter(col_idx)].width = 14
-    ws_dash.row_dimensions[dash_header_row].height = 30
-    _apply_dark_background(ws_dash)
+        # Apply auto-filter on the Dashboard table
+        dash_data_end = max(row - 1, dash_header_row + 1)
+        last_col = get_column_letter(len(dash_headers))
+        ws_dash.auto_filter.ref = f'A{dash_header_row}:{last_col}{dash_data_end}'
 
-    # Move Dashboard to be the 2nd sheet (after Index)
-    wb.move_sheet(ws_dash, offset=-(len(wb.sheetnames) - 2))
+        # Enriched conditional formatting on Dashboard
+        if len(analyses_with_info) > 0:
+            ds = dash_header_row + 1
+            de = dash_data_end
+            # LUFS (E): data bars + color scale
+            ws_dash.conditional_formatting.add(
+                f'E{ds}:E{de}',
+                DataBarRule(start_type='min', end_type='max', color='00D9FF'))
+            ws_dash.conditional_formatting.add(
+                f'E{ds}:E{de}',
+                ColorScaleRule(start_type='min', start_color='FF3333',
+                               mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                               end_type='max', end_color='00FF9F'))
+            # Peak (F): color scale
+            ws_dash.conditional_formatting.add(
+                f'F{ds}:F{de}',
+                ColorScaleRule(start_type='max', start_color='FF3333',
+                               end_type='min', end_color='00FF9F'))
+            # Crest (I): data bars + color scale
+            ws_dash.conditional_formatting.add(
+                f'I{ds}:I{de}',
+                DataBarRule(start_type='min', end_type='max', color='B967FF'))
+            ws_dash.conditional_formatting.add(
+                f'I{ds}:I{de}',
+                ColorScaleRule(start_type='min', start_color='FF3333',
+                               mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                               end_type='max', end_color='00D9FF'))
+            # PLR (J): data bars
+            ws_dash.conditional_formatting.add(
+                f'J{ds}:J{de}',
+                DataBarRule(start_type='min', end_type='max', color='00FF9F'))
+            # PSR (K): data bars
+            ws_dash.conditional_formatting.add(
+                f'K{ds}:K{de}',
+                DataBarRule(start_type='min', end_type='max', color='00D9FF'))
+            # LRA (L): data bars
+            ws_dash.conditional_formatting.add(
+                f'L{ds}:L{de}',
+                DataBarRule(start_type='min', end_type='max', color='FFAA00'))
+            # Width (M): data bars
+            ws_dash.conditional_formatting.add(
+                f'M{ds}:M{de}',
+                DataBarRule(start_type='min', end_type='max', color='00FF9F'))
+            # Correlation (N): color scale (low=red -> high=green)
+            ws_dash.conditional_formatting.add(
+                f'N{ds}:N{de}',
+                ColorScaleRule(start_type='min', start_color='FF3333',
+                               mid_type='percentile', mid_value=50, mid_color='FFAA00',
+                               end_type='max', end_color='00FF9F'))
+            # Centroid (O): color scale
+            ws_dash.conditional_formatting.add(
+                f'O{ds}:O{de}',
+                ColorScaleRule(start_type='min', start_color='B967FF',
+                               end_type='max', end_color='FF3D8B'))
 
-    # ---- AI Context Sheet (v1.8) ----
-    build_ai_context_sheet(wb, analyses_with_info, style_name, log_fn=log_fn)
+            # M7.3: Icon sets on Dashboard
+            # Crest Factor (col I): traffic lights — red <6, yellow 6-12, green >12
+            ws_dash.conditional_formatting.add(
+                f'I{ds}:I{de}',
+                IconSetRule(icon_style='3TrafficLights1', type='num',
+                            values=[0, 6, 12], showValue=True, reverse=False))
+            # True Peak (col G): 3Symbols — safe <-1.5, caution, risk >-0.5
+            ws_dash.conditional_formatting.add(
+                f'G{ds}:G{de}',
+                IconSetRule(icon_style='3Symbols2', type='num',
+                            values=[-100, -1.5, -0.5], showValue=True, reverse=True))
+            # Correlation (col N): traffic lights — red <0, yellow 0-0.5, green >0.5
+            ws_dash.conditional_formatting.add(
+                f'N{ds}:N{de}',
+                IconSetRule(icon_style='3TrafficLights1', type='num',
+                            values=[-1, 0, 0.5], showValue=True, reverse=False))
+
+            # M7.3: Multi-criteria formula alerts on Dashboard rows
+            from openpyxl.formatting.rule import FormulaRule
+            # Streaming risk: LUFS > -10 AND True Peak > -1 → red row
+            ws_dash.conditional_formatting.add(
+                f'A{ds}:S{de}',
+                FormulaRule(
+                    formula=[f'AND($E{ds}>-10,$G{ds}>-1)'],
+                    fill=PatternFill(start_color='FF5252', end_color='FF5252', fill_type='solid'),
+                    font=Font(color='FFFFFF', bold=True)))
+            # Over-compressed + quiet: Crest < 6 AND LUFS < -16 → yellow row
+            ws_dash.conditional_formatting.add(
+                f'A{ds}:S{de}',
+                FormulaRule(
+                    formula=[f'AND($I{ds}<6,$E{ds}<-16)'],
+                    fill=PatternFill(start_color='FFD93D', end_color='FFD93D', fill_type='solid')))
+            # Near-clipping: True Peak > -0.3 → orange row
+            ws_dash.conditional_formatting.add(
+                f'A{ds}:S{de}',
+                FormulaRule(
+                    formula=[f'$G{ds}>-0.3'],
+                    fill=PatternFill(start_color='FF8B3D', end_color='FF8B3D', fill_type='solid')))
+
+        # Column widths for Dashboard
+        ws_dash.column_dimensions['A'].width = 40
+        for col_idx in range(2, len(dash_headers) + 1):
+            ws_dash.column_dimensions[get_column_letter(col_idx)].width = 14
+        ws_dash.row_dimensions[dash_header_row].height = 30
+        _apply_dark_background(ws_dash)
+
+        # Move Dashboard to be the 2nd sheet (after Index)
+        wb.move_sheet(ws_dash, offset=-(len(wb.sheetnames) - 2))
+
+    # ---- AI Context Sheet (v1.8) — always included ----
+    build_ai_context_sheet(wb, analyses_with_info, style_name, log_fn=log_fn,
+                           nav_targets=nav_targets)
     ws_ai_ctx = wb['AI Context']
-    wb.move_sheet(ws_ai_ctx, offset=-(len(wb.sheetnames) - 3))
+    # Position AI Context: 3rd if Dashboard present, 2nd otherwise
+    if 'Dashboard' in sheets_to_generate:
+        wb.move_sheet(ws_ai_ctx, offset=-(len(wb.sheetnames) - 3))
+    else:
+        wb.move_sheet(ws_ai_ctx, offset=-(len(wb.sheetnames) - 2))
 
     # ---- P3.1: Frequency Conflict Detector ----
-    generate_freq_conflicts_sheet(wb, analyses_with_info, log_fn=log_fn)
+    # Mode ai_optimized: INCLUDED (structured conflict data not in AI Context)
+    if 'Freq Conflicts' in sheets_to_generate:
+        generate_freq_conflicts_sheet(wb, analyses_with_info, log_fn=log_fn,
+                                       nav_targets=nav_targets)
+    else:
+        log_fn("    Excel: Freq Conflicts skipped (not in export mode).")
 
     # ---- P3.2: Track Comparison Tool ----
-    generate_track_comparison_sheet(wb, analyses_with_info, log_fn=log_fn)
+    # Mode ai_optimized: EXCLUDED (interactive Excel, raw data in AI Context)
+    if 'Track Comparison' in sheets_to_generate:
+        generate_track_comparison_sheet(wb, analyses_with_info, log_fn=log_fn)
+    else:
+        log_fn("    Excel: Track Comparison skipped (not in export mode).")
 
     # ---- P3.3: Mix Health Score ----
-    generate_health_score_sheet(wb, analyses_with_info, log_fn=log_fn)
+    # Mode ai_optimized: INCLUDED (detailed breakdown beyond scores in AI Context)
+    if 'Mix Health Score' in sheets_to_generate:
+        generate_health_score_sheet(wb, analyses_with_info, log_fn=log_fn,
+                                     nav_targets=nav_targets)
+    else:
+        log_fn("    Excel: Mix Health Score skipped (not in export mode).")
 
     # ---- P3.4: Version Tracking ----
-    import re as _re
-    _output_dir = os.path.dirname(output_path) if output_path else None
-    _song_name = None
-    _base = os.path.basename(output_path) if output_path else ''
-    _m = _re.match(r'^(.+?)_MixAnalyzer_', _base)
-    if _m:
-        _song_name = _m.group(1)
-    generate_version_tracking_sheet(wb, analyses_with_info,
-                                     output_folder=_output_dir,
-                                     song_name=_song_name,
-                                     log_fn=log_fn)
+    # Mode ai_optimized: EXCLUDED (historical, not current analysis, heavy visual)
+    if 'Version History' in sheets_to_generate:
+        import re as _re
+        _output_dir = os.path.dirname(output_path) if output_path else None
+        _song_name = None
+        _base = os.path.basename(output_path) if output_path else ''
+        _m = _re.match(r'^(.+?)_MixAnalyzer_', _base)
+        if _m:
+            _song_name = _m.group(1)
+        generate_version_tracking_sheet(wb, analyses_with_info,
+                                         output_folder=_output_dir,
+                                         song_name=_song_name,
+                                         log_fn=log_fn)
+    else:
+        log_fn("    Excel: Version Tracking skipped (not in export mode).")
 
     # ---- P2.5: Polish cyberpunk theme on Index and special sheets ----
     # Apply background fill to empty rows in Index
@@ -5978,7 +6097,14 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         except Exception:
             pass
 
-    log_fn(f"    Excel: saved to {os.path.basename(output_path)}")
+    # Log final report stats
+    try:
+        file_size = os.path.getsize(output_path)
+        sheet_count = len([s for s in wb.sheetnames if not s.startswith('_')])
+        size_str = f"{file_size / 1024:.0f} KB" if file_size < 1024 * 1024 else f"{file_size / (1024*1024):.1f} MB"
+        log_fn(f"    Excel: saved to {os.path.basename(output_path)} ({size_str}, {sheet_count} visible sheets)")
+    except Exception:
+        log_fn(f"    Excel: saved to {os.path.basename(output_path)}")
 
 
 def _format_row(idx, type_tag, analysis, track_info):
@@ -7287,7 +7413,10 @@ class MixAnalyzerApp:
         self.mix_plugins = {p: tk.BooleanVar(value=False) for p in MASTER_PLUGINS}
 
         # Report options
-        self.generate_individual_sheets = tk.BooleanVar(value=True)
+        # Excel export mode: 'full' (all sheets + individual tracks),
+        #   'globals' (all global sheets, no individual tracks),
+        #   'ai_optimized' (AI Context + complementary globals only)
+        self.excel_export_mode = tk.StringVar(value='full')
         self.image_quality = tk.StringVar(value='standard')
 
         # Analysis results
@@ -7297,6 +7426,11 @@ class MixAnalyzerApp:
         self._analysis_start_time = None
 
         self._build_ui()
+
+    @property
+    def generate_individual_sheets(self):
+        """Backward compatibility: True when export mode is 'full'."""
+        return self.excel_export_mode.get() == 'full'
 
     def _build_ui(self):
         # Top title with neon logo (M8.1) — M8.7: consistent header spacing
@@ -7602,8 +7736,12 @@ class MixAnalyzerApp:
         if 'style' in existing_config:
             self.style.set(existing_config['style'])
 
-        if 'generate_individual_sheets' in existing_config:
-            self.generate_individual_sheets.set(existing_config['generate_individual_sheets'])
+        if 'excel_export_mode' in existing_config:
+            self.excel_export_mode.set(existing_config['excel_export_mode'])
+        elif 'generate_individual_sheets' in existing_config:
+            # Migrate old boolean config to new 3-way mode
+            self.excel_export_mode.set(
+                'full' if existing_config['generate_individual_sheets'] else 'globals')
 
         if 'image_quality' in existing_config:
             self.image_quality.set(existing_config['image_quality'])
@@ -8168,14 +8306,39 @@ class MixAnalyzerApp:
         options_inner = tk.Frame(options_card, bg=UI_THEME['panel'])
         options_inner.pack(fill='x', padx=SPACING['md'], pady=SPACING['sm'])
 
-        tk.Checkbutton(options_inner,
-                        text='Generate individual track sheets (disable for smaller AI-friendly reports)',
-                        variable=self.generate_individual_sheets,
-                        bg=UI_THEME['panel'], fg=UI_THEME['fg'],
-                        selectcolor=UI_THEME['bg'],
-                        activebackground=UI_THEME['panel'],
-                        activeforeground=UI_THEME['fg'],
-                        font=get_font('body_small')).pack(side='left')
+        # Excel export mode — 3-way radio group
+        export_frame = tk.LabelFrame(options_inner, text='Excel Export Mode',
+                                      bg=UI_THEME['panel'],
+                                      fg=UI_THEME['fg'],
+                                      font=get_font('body_small'))
+        export_frame.pack(side='left', fill='x', expand=True)
+
+        export_options = [
+            ('full',
+             'Full report \u2014 global sheets + one per track',
+             'Complete report with all global and individual track sheets.\n'
+             'Largest file, best for human deep-dive review.'),
+            ('globals',
+             'Globals only \u2014 no individual track sheets',
+             'All global sheets but skips per-track analyses.\n'
+             'Medium file size, good for quick overview.'),
+            ('ai_optimized',
+             'AI-optimized \u2014 AI Context + essentials only',
+             'Smallest file: AI Context + Anomalies, Full Mix Context,\n'
+             'Freq Conflicts, Mix Health Score, AI Prompt.\n'
+             'Excludes visual/redundant sheets. Best for AI analysis\n'
+             'with minimal token cost.'),
+        ]
+        for value, label, tooltip_text in export_options:
+            rb = tk.Radiobutton(export_frame, text=label,
+                                 variable=self.excel_export_mode,
+                                 value=value,
+                                 bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                                 selectcolor=UI_THEME['bg'],
+                                 activebackground=UI_THEME['panel'],
+                                 activeforeground=UI_THEME['fg'],
+                                 font=get_font('body_small'))
+            rb.pack(anchor='w', padx=SPACING['sm'], pady=2)
 
         tk.Label(options_inner, text='  Image quality:',
                  bg=UI_THEME['panel'], fg=UI_THEME['fg'],
@@ -8498,8 +8661,13 @@ class MixAnalyzerApp:
                         pass
                 return
 
-            include_sheets = self.generate_individual_sheets.get()
-            mode_label = "full mode" if include_sheets else "compact mode, no individual sheets"
+            export_mode = self.excel_export_mode.get()
+            mode_labels = {
+                'full': 'full mode (all sheets + individual tracks)',
+                'globals': 'globals only (no individual track sheets)',
+                'ai_optimized': 'AI-optimized (AI Context + essentials)',
+            }
+            mode_label = mode_labels.get(export_mode, export_mode)
             self._update_progress(
                 int(completed_steps / total_steps * 100),
                 'Generating Excel report', '', '', '')
@@ -8519,7 +8687,7 @@ class MixAnalyzerApp:
                     analyses_with_info, str(xlsx_path), self.style.get(),
                     full_mix_info=full_mix_info, ai_prompt=ai_prompt,
                     log_fn=self.log,
-                    include_individual_sheets=include_sheets,
+                    export_mode=export_mode,
                     image_quality=self.image_quality.get())
                 generated_files.append(xlsx_path)
                 self.log(f"Excel report: {xlsx_path.name}")
@@ -8567,7 +8735,7 @@ class MixAnalyzerApp:
             config = {
                 'style': self.style.get(),
                 'tracks': self.track_configs,
-                'generate_individual_sheets': self.generate_individual_sheets.get(),
+                'excel_export_mode': self.excel_export_mode.get(),
                 'image_quality': self.image_quality.get(),
                 'full_mix': {
                     'state': self.mix_state.get(),
