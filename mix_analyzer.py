@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Mix Analyzer v2.2 - Visual audio mix analysis tool
+Mix Analyzer v2.3 - Visual audio mix analysis tool
 Generates detailed Excel reports for audio tracks to aid mixing and mastering decisions.
 
 Usage:
@@ -2360,7 +2360,7 @@ def encode_anomalies(anomaly_list):
 
 
 def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None,
-                           nav_targets=None):
+                           nav_targets=None, full_mix_info=None):
     """Build the AI Context sheet — dense consolidated metrics for AI ingestion."""
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from openpyxl.utils import get_column_letter
@@ -2425,6 +2425,121 @@ def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None
     row += 1
     _xl_add_sheet_nav(ws, row, current_sheet='AI Context', nav_targets=nav_targets)
     row += 1
+
+    # ---- PROJECT CONTEXT (merged from former Full Mix Context sheet) ----
+    row += 1
+    block_header_fill = PatternFill('solid', fgColor='1A3A5A')
+    block_header_font = Font(name='Calibri', size=11, bold=True, color='E8E8F0')
+    block_value_font = data_font
+    block_border_right = Border(
+        right=Side(style='thin', color='808080'),
+        bottom=Side(style='thin', color='333344'),
+    )
+    block_border_normal = Border(
+        bottom=Side(style='thin', color='333344'),
+    )
+
+    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=8)
+    title_cell = ws.cell(row=row, column=1, value='\u2550\u2550\u2550 PROJECT CONTEXT \u2550\u2550\u2550')
+    title_cell.font = accent_font
+    title_cell.fill = bg_fill
+    title_cell.alignment = Alignment(horizontal='center')
+    row += 2  # skip a blank row
+
+    # Block headers row
+    block_headers = [
+        (1, 'MIX STATE'),
+        (3, 'MASTER PLUGINS'),
+        (5, 'LOUDNESS TARGET'),
+        (7, 'STYLE & NOTE'),
+    ]
+    for col, label in block_headers:
+        c = ws.cell(row=row, column=col, value=label)
+        c.font = block_header_font
+        c.fill = block_header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+        # Also fill the adjacent column for the block width
+        c2 = ws.cell(row=row, column=col + 1)
+        c2.fill = block_header_fill
+        c2.border = thin_border
+    ws.row_dimensions[row].height = 20
+    block_header_row = row
+    row += 1
+
+    # Extract context data
+    ctx_state = full_mix_info.get('state', 'Not specified') if full_mix_info else 'Not specified'
+    ctx_plugins = full_mix_info.get('plugins', []) if full_mix_info else []
+    ctx_loudness = full_mix_info.get('loudness_target', 'Not specified') if full_mix_info else 'Not specified'
+    ctx_note = full_mix_info.get('note', '') if full_mix_info else ''
+    ctx_style = style_name
+
+    # Determine how many rows the blocks need (driven by plugins list)
+    max_block_rows = max(len(ctx_plugins) if ctx_plugins else 1, 2)  # at least 2 for Style + Note
+
+    # BLOC 1 — MIX STATE (col A-B)
+    c = ws.cell(row=row, column=1, value=ctx_state)
+    c.font = block_value_font
+    c.fill = panel_fill
+    c.border = block_border_normal
+    ws.cell(row=row, column=2).fill = panel_fill
+    ws.cell(row=row, column=2).border = block_border_right
+
+    # BLOC 2 — MASTER PLUGINS (col C-D)
+    if ctx_plugins:
+        for p_idx, plugin in enumerate(ctx_plugins):
+            r = row + p_idx
+            c = ws.cell(row=r, column=3, value=plugin)
+            c.font = block_value_font
+            c.fill = panel_fill
+            c.border = block_border_normal
+            ws.cell(row=r, column=4).fill = panel_fill
+            ws.cell(row=r, column=4).border = block_border_right
+    else:
+        c = ws.cell(row=row, column=3, value='None')
+        c.font = dim_font
+        c.fill = panel_fill
+        c.border = block_border_normal
+        ws.cell(row=row, column=4).fill = panel_fill
+        ws.cell(row=row, column=4).border = block_border_right
+
+    # BLOC 3 — LOUDNESS TARGET (col E-F)
+    c = ws.cell(row=row, column=5, value=ctx_loudness)
+    c.font = block_value_font
+    c.fill = panel_fill
+    c.border = block_border_normal
+    ws.cell(row=row, column=6).fill = panel_fill
+    ws.cell(row=row, column=6).border = block_border_right
+
+    # BLOC 4 — STYLE & NOTE (col G-H)
+    c = ws.cell(row=row, column=7, value=ctx_style)
+    c.font = block_value_font
+    c.fill = panel_fill
+    c.border = block_border_normal
+    ws.cell(row=row, column=8).fill = panel_fill
+    ws.cell(row=row, column=8).border = block_border_normal
+
+    note_row = row + 1
+    note_text = ctx_note if ctx_note else '(no note)'
+    c = ws.cell(row=note_row, column=7, value=note_text)
+    c.font = dim_font if not ctx_note else block_value_font
+    c.fill = panel_fill
+    c.border = block_border_normal
+    c.alignment = Alignment(wrap_text=True, vertical='top')
+    ws.cell(row=note_row, column=8).fill = panel_fill
+    ws.cell(row=note_row, column=8).border = block_border_normal
+
+    # Fill empty cells in shorter blocks so panel_fill is consistent
+    for fill_r in range(row, row + max_block_rows):
+        for fill_c in [1, 2, 3, 4, 5, 6, 7, 8]:
+            cell = ws.cell(row=fill_r, column=fill_c)
+            if cell.value is None:
+                cell.fill = panel_fill
+            # Right-border on block separators (col B, D, F)
+            if fill_c in (2, 4, 6):
+                cell.border = block_border_right
+
+    row += max_block_rows + 1  # skip past block data + blank separator row
 
     # ---- Anomaly codes legend ----
     row += 1
@@ -5000,7 +5115,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # Additional global sheets per mode
     ALL_GLOBAL_SHEETS = [
-        'Dashboard', 'Summary', 'Anomalies', 'Full Mix Context',
+        'Dashboard', 'Summary', 'Anomalies',
         'Global Comparison', 'Full Mix Analysis', 'AI Prompt',
         'Freq Conflicts', 'Track Comparison', 'Mix Health Score',
         'Version History',
@@ -5009,7 +5124,6 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # AI-optimized: only sheets with data NOT covered by AI Context
     AI_OPT_SHEETS = [
         'Anomalies',           # Full descriptions vs compact codes in AI Context
-        'Full Mix Context',    # User context (state, plugins, target, note) not in AI Context
         'Mix Health Score',    # Detailed breakdown beyond the 6 scores in AI Context
         'Freq Conflicts',      # Structured conflict data not in AI Context
         'AI Prompt',           # Pure text, negligible weight, essential for AI workflow
@@ -5145,7 +5259,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # Link to special sheets — only list sheets actually generated
     row += 1
-    special_sheet_order = ['Dashboard', 'AI Context', 'Summary', 'Anomalies', 'Full Mix Context',
+    special_sheet_order = ['Dashboard', 'AI Context', 'Summary', 'Anomalies',
                            'Global Comparison', 'Full Mix Analysis', 'AI Prompt',
                            'Freq Conflicts', 'Track Comparison', 'Mix Health Score',
                            'Version History']
@@ -5354,37 +5468,6 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     ws_anom.column_dimensions['C'].width = 12
     ws_anom.column_dimensions['D'].width = 70
     _apply_dark_background(ws_anom)
-
-    # ---- SHEET 4: Full Mix Context ----
-    log_fn("    Excel: writing Full Mix Context sheet...")
-    ws_ctx = wb.create_sheet('Full Mix Context')
-    _apply_clean_layout(ws_ctx)
-    ws_ctx.sheet_properties.tabColor = 'B967FF'
-    row = _xl_write_header(ws_ctx, 'FULL MIX CONTEXT')
-    # M7.5: Navigation bar
-    _xl_add_sheet_nav(ws_ctx, row - 1, nav_targets=nav_targets)
-
-    if full_mix_info:
-        ctx_items = [
-            ('Mix State', full_mix_info.get('state', 'Not specified')),
-            ('Active Plugins', ', '.join(full_mix_info.get('plugins', [])) or 'None'),
-            ('Loudness Target', full_mix_info.get('loudness_target', 'Not specified')),
-            ('Note', full_mix_info.get('note', '') or 'None'),
-        ]
-        for label, val in ctx_items:
-            ws_ctx.cell(row=row, column=1, value=label).font = accent_font
-            ws_ctx.cell(row=row, column=2, value=val).font = data_font
-            ws_ctx.cell(row=row, column=1).fill = panel_fill
-            ws_ctx.cell(row=row, column=2).fill = panel_fill
-            ws_ctx.cell(row=row, column=1).border = thin_border
-            ws_ctx.cell(row=row, column=2).border = thin_border
-            row += 1
-    else:
-        ws_ctx.cell(row=row, column=1, value='No Full Mix context configured.').font = dim_font
-
-    ws_ctx.column_dimensions['A'].width = 20
-    ws_ctx.column_dimensions['B'].width = 60
-    _apply_dark_background(ws_ctx)
 
     # ---- SHEET 5+: One sheet per track (Individual + BUS) ----
     if generate_individual:
@@ -6029,7 +6112,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # ---- AI Context Sheet (v1.8) — always included ----
     build_ai_context_sheet(wb, analyses_with_info, style_name, log_fn=log_fn,
-                           nav_targets=nav_targets)
+                           nav_targets=nav_targets, full_mix_info=full_mix_info)
     ws_ai_ctx = wb['AI Context']
     # Position AI Context: 3rd if Dashboard present, 2nd otherwise
     if 'Dashboard' in sheets_to_generate:
@@ -8324,8 +8407,9 @@ class MixAnalyzerApp:
              'Medium file size, good for quick overview.'),
             ('ai_optimized',
              'AI-optimized \u2014 AI Context + essentials only',
-             'Smallest file: AI Context + Anomalies, Full Mix Context,\n'
+             'Smallest file: AI Context + Anomalies,\n'
              'Freq Conflicts, Mix Health Score, AI Prompt.\n'
+             'Project Context now integrated in AI Context.\n'
              'Excludes visual/redundant sheets. Best for AI analysis\n'
              'with minimal token cost.'),
         ]

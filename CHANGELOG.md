@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.3.0] - 2026-04-15
+
+### Added
+- **PROJECT CONTEXT** section integrated at the top of AI Context sheet,
+  organized as 4 horizontal blocks for visual separation:
+    * Mix State (Rough/Final/etc.)
+    * Master Plugins (active plugins on master bus)
+    * Loudness Target (target LUFS for the release)
+    * Style & Note (genre + free-form notes)
+
+### Removed
+- **Full Mix Context** sheet removed entirely. Its content is now part of
+  AI Context sheet, eliminating redundancy and reducing sheet count by 1
+  across all export modes.
+
+### Changed
+- `full` mode: 14 global sheets (was 15)
+- `globals` mode: 14 global sheets (was 15)
+- `ai_optimized` mode: 6 sheets (was 7), with Project Context data now
+  in AI Context
+- `build_ai_context_sheet()` now accepts `full_mix_info` parameter
+- Index sheet: Full Mix Context no longer listed
+- AI-optimized tooltip updated to reflect new sheet composition
+- Version bump to v2.3
+
 ## [2.2.0] - 2026-04-15
 
 ### Added
