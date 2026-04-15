@@ -1,2 +1,7 @@
 __pycache__/
 _tmp/
+
+# Ableton Live
+*.asd
+Backup/
+ableton/projects/*/Samples/
