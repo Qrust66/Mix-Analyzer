@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.3.1] - 2026-04-15
+
+### Fixed
+- **tempo_bpm**: Individual tracks now show `N/A` instead of misleading `0.0`
+  (tempo is not computed for individual tracks by design)
+- **is_tonal**: Lowered tonal detection threshold from 1.8 to 1.3 so that
+  bass, lead, pad, and vocal tracks are correctly marked `TRUE`
+- **is_stereo**: Tracks with identical L/R channels (correlation >= 0.9999,
+  width < 0.001) now show `FALSE (mono content)` instead of `TRUE`
+- **tempo_bpm (Full Mix)**: Unreliable tempo values now display as
+  `unreliable (was: X.X)` instead of raw number that could mislead AI
+
 ## [2.3.0] - 2026-04-15
 
 ### Added
