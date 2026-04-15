@@ -1953,6 +1953,475 @@ def _apply_clean_layout(ws):
     ws.sheet_view.showRowColHeaders = False
 
 
+# ============================================================================
+# AI CONTEXT SHEET (v1.8) — Dense consolidated metrics for AI ingestion
+# ============================================================================
+
+def encode_anomalies(anomaly_list):
+    """Encode a list of (severity, description) anomaly tuples into compact codes.
+    Returns 'OK' if no anomalies, otherwise codes joined with ' | '.
+    """
+    import re
+    if not anomaly_list:
+        return 'OK'
+
+    codes = []
+    for sev, desc in anomaly_list:
+        # Peak clipping risk (critical)
+        m = re.search(r'Peak level at ([+\-\d.]+) dBFS.*clipping risk', desc)
+        if m:
+            codes.append(f'PEAK_CLIP:{m.group(1)}')
+            continue
+        # Peak little headroom (warning)
+        m = re.search(r'Peak level at ([+\-\d.]+) dBFS.*little headroom', desc)
+        if m:
+            codes.append(f'PEAK_HOT:{m.group(1)}')
+            continue
+        # True peak over 0
+        m = re.search(r'True Peak at ([+\-\d.]+) dBFS', desc)
+        if m:
+            codes.append(f'TP_OVER:{m.group(1)}')
+            continue
+        # Phase critical
+        m = re.search(r'Phase correlation ([+\-\d.]+).*serious', desc)
+        if m:
+            codes.append(f'PHASE_CRIT:{m.group(1)}')
+            continue
+        # Phase warning
+        m = re.search(r'Phase correlation ([+\-\d.]+).*mono compatibility', desc)
+        if m:
+            codes.append(f'PHASE:{m.group(1)}')
+            continue
+        # RMS very low
+        m = re.search(r'RMS level very low \(([+\-\d.]+) dBFS\)', desc)
+        if m:
+            codes.append(f'RMS_LOW:{m.group(1)}')
+            continue
+        # Strong resonance peaks
+        m = re.search(r'Strong resonance peaks detected at: (.+)', desc)
+        if m:
+            freqs_raw = m.group(1)
+            freq_nums = re.findall(r'(\d+)', freqs_raw)
+            codes.append(f'RES:{",".join(freq_nums)}')
+            continue
+        # Very low crest factor
+        m = re.search(r'Very low crest factor \(([+\-\d.]+) dB\)', desc)
+        if m:
+            codes.append(f'CREST_LOW:{m.group(1)}')
+            continue
+        # Very wide stereo
+        m = re.search(r'Very wide stereo image \(([+\-\d.]+)\)', desc)
+        if m:
+            codes.append(f'WIDTH_HIGH:{m.group(1)}')
+            continue
+        # Fallback
+        short = desc[:40].replace('|', '/').strip()
+        codes.append(f'WARN:{short}')
+
+    return ' | '.join(codes) if codes else 'OK'
+
+
+def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None):
+    """Build the AI Context sheet — dense consolidated metrics for AI ingestion."""
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    _init_ma_fonts()
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    log_fn("    Excel: writing AI Context sheet...")
+
+    ws = workbook.create_sheet('AI Context')
+    _apply_clean_layout(ws)
+    ws.sheet_properties.tabColor = '00D9FF'
+
+    # Theme styles (matching existing codebase style)
+    bg_fill = PatternFill('solid', fgColor='0A0A12')
+    panel_fill = PatternFill('solid', fgColor='1A1A24')
+    header_fill = PatternFill('solid', fgColor='1A3A5A')
+    fullmix_fill = PatternFill('solid', fgColor='2A1A3A')
+    section_fill = PatternFill('solid', fgColor='1A2A1A')
+    thin_border = Border(
+        left=Side(style='thin', color='333344'),
+        right=Side(style='thin', color='333344'),
+        top=Side(style='thin', color='333344'),
+        bottom=Side(style='thin', color='333344'),
+    )
+
+    accent_font = MA_FONT_SUBHEADING
+    header_font = MA_FONT_TABLE_HEADER
+    data_font = MA_FONT_BODY
+    dim_font = MA_FONT_DIM
+
+    # Separate tracks
+    individuals = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Individual']
+    buses = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'BUS']
+    full_mixes = [(a, ti) for a, ti in analyses_with_info if ti.get('type') == 'Full Mix']
+
+    n_ind = len(individuals)
+    n_bus = len(buses)
+    n_fm = len(full_mixes)
+    track_count_str = f'{n_ind} Individual'
+    if n_bus:
+        track_count_str += f' + {n_bus} BUS'
+    if n_fm:
+        track_count_str += f' + {n_fm} Full Mix'
+
+    # ---- Section: Header block (rows 1-4) ----
+    ws.merge_cells('A1:Z1')
+    ws['A1'] = 'AI CONTEXT \u2014 CONSOLIDATED TRACK METRICS'
+    ws['A1'].font = MA_FONT_TITLE
+    ws['A1'].fill = bg_fill
+
+    row = 2
+    header_kv = [
+        ('Generated:', datetime.now().strftime('%Y-%m-%d %H:%M')),
+        ('Tracks:', track_count_str),
+        ('Style:', style_name),
+    ]
+    for label, val in header_kv:
+        ws.cell(row=row, column=1, value=label).font = dim_font
+        ws.cell(row=row, column=2, value=val).font = dim_font
+        ws.cell(row=row, column=1).fill = bg_fill
+        ws.cell(row=row, column=2).fill = bg_fill
+        row += 1
+
+    # ---- Section: Anomaly codes legend ----
+    row += 1
+    ws.cell(row=row, column=1, value='ANOMALY CODES LEGEND').font = accent_font
+    ws.cell(row=row, column=1).fill = bg_fill
+    row += 1
+
+    anomaly_legend = [
+        ('OK', 'No anomalies detected'),
+        ('RES:f1,f2,f3', 'Resonance peaks at listed frequencies (Hz)'),
+        ('PHASE:val', 'Phase correlation concern (mono compat warning, val = correlation)'),
+        ('PHASE_CRIT:val', 'Phase correlation critical (serious mono compat issue, val = correlation)'),
+        ('RMS_LOW:val', 'RMS level very low \u2014 track nearly silent (val = RMS in dBFS)'),
+        ('PEAK_HOT:val', 'Peak level close to clipping (val = peak in dBFS)'),
+        ('PEAK_CLIP:val', 'Peak level at/above clipping threshold (val = peak in dBFS)'),
+        ('TP_OVER:val', 'True peak exceeds 0 dBFS \u2014 inter-sample clipping (val = TP in dBFS)'),
+        ('CREST_LOW:val', 'Very low crest factor \u2014 heavy compression (val = crest in dB)'),
+        ('WIDTH_HIGH:val', 'Very wide stereo image \u2014 verify mono compat (val = width 0-1)'),
+        ('WARN:text', 'Generic warning (fallback for unrecognized anomaly types)'),
+    ]
+    for code, desc in anomaly_legend:
+        ws.cell(row=row, column=1, value=code).font = Font(
+            name='Calibri', size=10, bold=True, color='FFAA00')
+        ws.cell(row=row, column=2, value=desc).font = dim_font
+        ws.cell(row=row, column=1).fill = bg_fill
+        ws.cell(row=row, column=2).fill = bg_fill
+        row += 1
+
+    # ---- Section: Column legend ----
+    row += 1
+    ws.cell(row=row, column=1, value='COLUMN LEGEND').font = accent_font
+    ws.cell(row=row, column=1).fill = bg_fill
+    row += 1
+
+    column_schema = [
+        ('track_name',     'Audio file name'),
+        ('type',           'Individual / BUS / Full Mix'),
+        ('category',       'Instrument category (e.g. Kick, Pad / Drone)'),
+        ('family',         'Category family (e.g. Drums, Synth)'),
+        ('lufs_int',       'Integrated LUFS (loudness units full scale)'),
+        ('lufs_st_max',    'Maximum short-term LUFS (3s window)'),
+        ('peak_db',        'Sample peak level (dBFS)'),
+        ('true_peak_db',   'Inter-sample true peak level (dBFS, 4x oversampled)'),
+        ('rms_db',         'RMS level (dBFS, average energy)'),
+        ('crest_db',       'Crest factor: peak minus RMS (dB)'),
+        ('plr_db',         'Peak-to-Loudness Ratio: peak minus LUFS (dB)'),
+        ('psr_db',         'Peak-to-Short-term Ratio (dB)'),
+        ('lra_lu',         'Loudness Range — macro dynamics (LU)'),
+        ('dom_band',       'Frequency band with highest energy'),
+        ('centroid_hz',    'Spectral centroid — brightness indicator (Hz)'),
+        ('rolloff_hz',     '85% spectral rolloff frequency (Hz)'),
+        ('flatness',       'Spectral flatness (0=tonal, 1=noise)'),
+        ('pct_sub',        'Energy % in Sub band (20-60 Hz)'),
+        ('pct_bass',       'Energy % in Bass band (60-250 Hz)'),
+        ('pct_low_mid',    'Energy % in Low-Mid band (250-500 Hz)'),
+        ('pct_mid',        'Energy % in Mid band (500-2000 Hz)'),
+        ('pct_high_mid',   'Energy % in High-Mid band (2-4 kHz)'),
+        ('pct_presence',   'Energy % in Presence band (4-8 kHz)'),
+        ('pct_air',        'Energy % in Air band (8-20 kHz)'),
+        ('stereo_width',   'Mid/Side energy ratio (0=mono, 1=full side)'),
+        ('phase_corr',     'L/R phase correlation (+1=perfect mono compat)'),
+        ('is_stereo',      'TRUE or FALSE'),
+        ('dom_note',       'Dominant pitch class (e.g. C#, A)'),
+        ('tonal_strength', 'Tonal peak-to-mean ratio (>1.8 = tonal)'),
+        ('is_tonal',       'TRUE or FALSE'),
+        ('tempo_bpm',      'Median detected tempo (BPM)'),
+        ('tempo_conf',     'Tempo confidence label'),
+        ('tempo_reliable', 'TRUE if tempo is reliable'),
+        ('num_onsets',     'Number of detected transients'),
+        ('duration_s',     'Track duration (seconds)'),
+        ('sample_rate_hz', 'Audio sample rate (Hz)'),
+        ('num_channels',   'Number of audio channels'),
+        ('anomaly_codes',  'Compact anomaly codes joined with |'),
+    ]
+
+    for col_name, col_desc in column_schema:
+        ws.cell(row=row, column=1, value=col_name).font = Font(
+            name='Calibri', size=10, bold=True, color='00D9FF')
+        ws.cell(row=row, column=2, value=col_desc).font = dim_font
+        ws.cell(row=row, column=1).fill = bg_fill
+        ws.cell(row=row, column=2).fill = bg_fill
+        row += 1
+
+    # ---- Section 1+2: Track table ----
+    row += 1
+    table_header_row = row
+    col_names = [c[0] for c in column_schema]
+
+    for col_idx, col_name in enumerate(col_names, 1):
+        c = ws.cell(row=row, column=col_idx, value=col_name)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    row += 1
+
+    def _extract_row_values(a, ti):
+        """Extract one row of values from an analysis + track_info pair."""
+        L = a['loudness']
+        S = a['spectrum']
+        st = a['stereo']
+        M = a['musical']
+        tempo = a.get('tempo', {})
+        cat = ti.get('category', '(not set)')
+        family = CATEGORY_FAMILY.get(cat, 'Unknown')
+
+        lufs_int = round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None
+        lufs_st = round(L['lufs_short_term_max'], 2) if np.isfinite(L['lufs_short_term_max']) else None
+
+        return [
+            a['filename'],                                          # track_name
+            ti['type'],                                             # type
+            cat,                                                    # category
+            family,                                                 # family
+            lufs_int,                                               # lufs_int
+            lufs_st,                                                # lufs_st_max
+            round(L['peak_db'], 2),                                 # peak_db
+            round(L['true_peak_db'], 2),                            # true_peak_db
+            round(L['rms_db'], 2),                                  # rms_db
+            round(L['crest_factor'], 2),                            # crest_db
+            round(L['plr'], 2),                                     # plr_db
+            round(L['psr'], 2),                                     # psr_db
+            round(L['lra'], 2),                                     # lra_lu
+            BAND_LABELS.get(S['dominant_band'], S['dominant_band']),# dom_band
+            round(S['centroid'], 1),                                # centroid_hz
+            round(S['rolloff'], 1),                                 # rolloff_hz
+            round(S['flatness'], 6),                                # flatness
+            round(S['band_energies'].get('sub', 0.0), 2),          # pct_sub
+            round(S['band_energies'].get('bass', 0.0), 2),         # pct_bass
+            round(S['band_energies'].get('low_mid', 0.0), 2),      # pct_low_mid
+            round(S['band_energies'].get('mid', 0.0), 2),          # pct_mid
+            round(S['band_energies'].get('high_mid', 0.0), 2),     # pct_high_mid
+            round(S['band_energies'].get('presence', 0.0), 2),     # pct_presence
+            round(S['band_energies'].get('air', 0.0), 2),          # pct_air
+            round(st['width_overall'], 4) if st['is_stereo'] else 0.0,  # stereo_width
+            round(st['correlation'], 4) if st['is_stereo'] else 1.0,    # phase_corr
+            'TRUE' if st['is_stereo'] else 'FALSE',                # is_stereo
+            M['dominant_note'],                                     # dom_note
+            round(M['tonal_strength'], 2),                          # tonal_strength
+            'TRUE' if M['is_tonal'] else 'FALSE',                  # is_tonal
+            round(tempo.get('tempo_median', 0.0), 1),              # tempo_bpm
+            tempo.get('confidence_label', ''),                      # tempo_conf
+            'TRUE' if tempo.get('reliable', False) else 'FALSE',   # tempo_reliable
+            a['temporal']['num_onsets'],                             # num_onsets
+            round(a['duration'], 2),                                # duration_s
+            a['sample_rate'],                                       # sample_rate_hz
+            a['num_channels'],                                      # num_channels
+            encode_anomalies(a.get('anomalies', [])),               # anomaly_codes
+        ]
+
+    # Write Individual tracks
+    for a, ti in individuals:
+        vals = _extract_row_values(a, ti)
+        for col_idx, v in enumerate(vals, 1):
+            c = ws.cell(row=row, column=col_idx, value=v)
+            c.font = data_font
+            c.border = thin_border
+            c.fill = panel_fill
+            if col_idx >= 5 and col_idx <= 37:
+                c.alignment = Alignment(horizontal='center')
+        row += 1
+
+    # Write BUS tracks
+    for a, ti in buses:
+        vals = _extract_row_values(a, ti)
+        for col_idx, v in enumerate(vals, 1):
+            c = ws.cell(row=row, column=col_idx, value=v)
+            c.font = data_font
+            c.border = thin_border
+            c.fill = panel_fill
+            if col_idx >= 5 and col_idx <= 37:
+                c.alignment = Alignment(horizontal='center')
+        row += 1
+
+    # Write Full Mix row(s) — Section 2
+    for a, ti in full_mixes:
+        vals = _extract_row_values(a, ti)
+        vals[0] = '*** FULL MIX ***'  # Override track_name
+        for col_idx, v in enumerate(vals, 1):
+            c = ws.cell(row=row, column=col_idx, value=v)
+            c.font = Font(name='Calibri', size=10, bold=True, color='E8E8F0')
+            c.border = thin_border
+            c.fill = fullmix_fill
+            if col_idx >= 5 and col_idx <= 37:
+                c.alignment = Alignment(horizontal='center')
+        row += 1
+
+    # Enable auto-filter on the track table
+    last_col_letter = get_column_letter(len(col_names))
+    ws.auto_filter.ref = f'A{table_header_row}:{last_col_letter}{max(row - 1, table_header_row + 1)}'
+
+    # ---- Section 3: Health Score breakdown ----
+    row += 2
+    ws.cell(row=row, column=1, value='MIX HEALTH SCORE BREAKDOWN').font = accent_font
+    ws.cell(row=row, column=1).fill = bg_fill
+    row += 1
+
+    # Compute health scores (reusing existing _calc_*_score functions)
+    full_mix = full_mixes[0][0] if full_mixes else None
+    try:
+        loud_score, _, _ = _calc_loudness_score(individuals, full_mix)
+        dyn_score, _, _ = _calc_dynamics_score(individuals, full_mix)
+        spec_score, _, _ = _calc_spectral_balance_score(individuals, full_mix)
+        stereo_score, _, _ = _calc_stereo_image_score(individuals, full_mix)
+        anom_score, _, _ = _calc_anomalies_score(analyses_with_info)
+
+        categories_hs = [
+            ('SCORE_LOUDNESS', loud_score, 0.20),
+            ('SCORE_DYNAMICS', dyn_score, 0.20),
+            ('SCORE_SPECTRAL', spec_score, 0.25),
+            ('SCORE_STEREO', stereo_score, 0.15),
+            ('SCORE_ANOMALIES', anom_score, 0.20),
+        ]
+        global_score = round(sum(s * w for _, s, w in categories_hs), 1)
+
+        # Headers
+        for col_idx, h in enumerate(['Key', 'Value', 'Notes'], 1):
+            c = ws.cell(row=row, column=col_idx, value=h)
+            c.font = header_font
+            c.fill = header_fill
+            c.border = thin_border
+        row += 1
+
+        # Total score
+        ws.cell(row=row, column=1, value='SCORE_TOTAL').font = accent_font
+        ws.cell(row=row, column=2, value=global_score).font = Font(
+            name='Calibri', size=12, bold=True, color='00FF9F')
+        ws.cell(row=row, column=3, value='').font = dim_font
+        for col_idx in range(1, 4):
+            ws.cell(row=row, column=col_idx).fill = bg_fill
+            ws.cell(row=row, column=col_idx).border = thin_border
+        row += 1
+
+        # Sub-scores
+        for name, score, weight in categories_hs:
+            contrib = round(score * weight, 1)
+            ws.cell(row=row, column=1, value=name).font = data_font
+            ws.cell(row=row, column=2, value=round(score, 1)).font = data_font
+            ws.cell(row=row, column=2).alignment = Alignment(horizontal='center')
+            ws.cell(row=row, column=3, value=f'weight={weight:.2f}, contrib={contrib}').font = dim_font
+            for col_idx in range(1, 4):
+                ws.cell(row=row, column=col_idx).fill = bg_fill
+                ws.cell(row=row, column=col_idx).border = thin_border
+            row += 1
+    except Exception:
+        ws.cell(row=row, column=1, value='Health score computation unavailable.').font = dim_font
+        ws.cell(row=row, column=1).fill = bg_fill
+        row += 1
+
+    # ---- Section 4: Per-family aggregates ----
+    row += 2
+    ws.cell(row=row, column=1, value='PER-FAMILY AGGREGATES').font = accent_font
+    ws.cell(row=row, column=1).fill = bg_fill
+    row += 1
+
+    # Group Individual tracks by family
+    family_groups = {}
+    for a, ti in individuals:
+        cat = ti.get('category', '(not set)')
+        family = CATEGORY_FAMILY.get(cat, 'Unknown')
+        if family not in family_groups:
+            family_groups[family] = []
+        family_groups[family].append((a, ti))
+
+    for family_name, tracks in sorted(family_groups.items()):
+        n = len(tracks)
+        # Family header
+        ws.cell(row=row, column=1, value=f'FAMILY: {family_name} (n={n})').font = Font(
+            name='Calibri', size=11, bold=True, color='00D9FF')
+        ws.cell(row=row, column=1).fill = section_fill
+        ws.cell(row=row, column=1).border = thin_border
+        row += 1
+
+        # Compute aggregates
+        lufs_vals = [a['loudness']['lufs_integrated'] for a, _ in tracks
+                     if np.isfinite(a['loudness']['lufs_integrated'])]
+        crest_vals = [a['loudness']['crest_factor'] for a, _ in tracks]
+        width_vals = [a['stereo']['width_overall'] for a, _ in tracks if a['stereo']['is_stereo']]
+
+        lufs_mean = round(float(np.mean(lufs_vals)), 2) if lufs_vals else None
+        lufs_std = round(float(np.std(lufs_vals)), 2) if len(lufs_vals) >= 2 else 0.0
+        crest_mean = round(float(np.mean(crest_vals)), 2) if crest_vals else None
+        width_mean = round(float(np.mean(width_vals)), 3) if width_vals else None
+
+        # Dominant band consensus (mode)
+        dom_bands = [a['spectrum']['dominant_band'] for a, _ in tracks]
+        if dom_bands:
+            from collections import Counter
+            band_counts = Counter(dom_bands)
+            consensus_band = band_counts.most_common(1)[0][0]
+            consensus_label = BAND_LABELS.get(consensus_band, consensus_band)
+        else:
+            consensus_label = 'N/A'
+
+        # Aggregate data row headers
+        agg_headers = ['lufs_mean', 'lufs_std', 'crest_mean', 'width_mean', 'dom_band_consensus']
+        for col_idx, h in enumerate(agg_headers, 1):
+            c = ws.cell(row=row, column=col_idx, value=h)
+            c.font = Font(name='Calibri', size=9, bold=True, color='8888A0')
+            c.fill = bg_fill
+            c.border = thin_border
+        row += 1
+
+        # Aggregate values
+        agg_vals = [lufs_mean, lufs_std, crest_mean, width_mean, consensus_label]
+        for col_idx, v in enumerate(agg_vals, 1):
+            c = ws.cell(row=row, column=col_idx, value=v)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+            c.alignment = Alignment(horizontal='center')
+        row += 1
+
+        # Track names in this family
+        track_names = ', '.join(a['filename'] for a, _ in tracks)
+        ws.cell(row=row, column=1, value='Tracks:').font = dim_font
+        ws.cell(row=row, column=1).fill = bg_fill
+        c = ws.cell(row=row, column=2, value=track_names)
+        c.font = dim_font
+        c.fill = bg_fill
+        c.alignment = Alignment(wrap_text=True)
+        row += 2
+
+    # ---- Column widths ----
+    ws.column_dimensions['A'].width = 45
+    ws.column_dimensions['B'].width = 18
+    for col_idx in range(3, len(col_names) + 1):
+        ws.column_dimensions[get_column_letter(col_idx)].width = 14
+
+    # Freeze panes at header row
+    ws.freeze_panes = f'A{table_header_row + 1}'
+
+    _apply_dark_background(ws)
+    log_fn("    Excel: AI Context sheet done.")
+
+
 def generate_freq_conflicts_sheet(wb, analyses_with_info, default_threshold=15.0,
                                    default_min_tracks=2, log_fn=None):
     """
@@ -3956,9 +4425,9 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # Also link to special sheets
     row += 1
-    for special_name in ['Dashboard', 'Summary', 'Anomalies', 'Full Mix Context', 'Global Comparison',
-                             'Full Mix Analysis', 'AI Prompt', 'Freq Conflicts', 'Track Comparison',
-                             'Mix Health Score', 'Version History']:
+    for special_name in ['Dashboard', 'AI Context', 'Summary', 'Anomalies', 'Full Mix Context',
+                             'Global Comparison', 'Full Mix Analysis', 'AI Prompt', 'Freq Conflicts',
+                             'Track Comparison', 'Mix Health Score', 'Version History']:
         ws_index.cell(row=row, column=2, value=special_name).font = data_font
         link_cell = ws_index.cell(row=row, column=5, value=special_name)
         link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
@@ -4658,6 +5127,12 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # Move Dashboard to be the 2nd sheet (after Index)
     wb.move_sheet(ws_dash, offset=-(len(wb.sheetnames) - 2))
+
+    # ---- AI Context Sheet (v1.8) ----
+    build_ai_context_sheet(wb, analyses_with_info, style_name, log_fn=log_fn)
+    # Move AI Context to be the 3rd sheet (after Index, Dashboard)
+    ws_ai_ctx = wb['AI Context']
+    wb.move_sheet(ws_ai_ctx, offset=-(len(wb.sheetnames) - 3))
 
     # ---- P3.1: Frequency Conflict Detector ----
     generate_freq_conflicts_sheet(wb, analyses_with_info, log_fn=log_fn)
