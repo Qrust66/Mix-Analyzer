@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Mix Analyzer v1.7 - Visual audio mix analysis tool
+Mix Analyzer v1.8 - Visual audio mix analysis tool
 Generates detailed Excel reports for audio tracks to aid mixing and mastering decisions.
 
 Usage:
@@ -5511,7 +5511,7 @@ def setup_ttk_styles():
 class MixAnalyzerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title('Mix Analyzer v1.7')
+        self.root.title('Mix Analyzer v1.8')
         self.root.geometry('1280x820')
         self.root.configure(bg=UI_THEME['bg'])
         self.root.minsize(1100, 700)
@@ -5553,7 +5553,7 @@ class MixAnalyzerApp:
         title_frame.pack(fill='x')
         ttk.Label(title_frame, text='MIX ANALYZER',
                   style='Title.TLabel').pack(side='left')
-        ttk.Label(title_frame, text='  v1.7 - Visual mix diagnostic',
+        ttk.Label(title_frame, text='  v1.8 - Visual mix diagnostic',
                   style='Dim.TLabel').pack(side='left', padx=(10, 0))
 
         help_btn = tk.Button(title_frame, text='HELP',
