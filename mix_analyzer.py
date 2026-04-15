@@ -287,10 +287,10 @@ AUTO_DETECT_PATTERNS = [
 RESONANCE_LOCAL_WINDOW_OCTAVES = 1.0 / 3.0
 
 # Minimum dB by which a peak must rise above its local contour to be flagged
-# as a resonance anomaly. +9 dB corresponds to "clearly audible and typically
-# problematic". +6 dB is the threshold of musical/natural emphasis. +12 dB is
-# conservative (only extreme ringing).
-RESONANCE_MIN_EXCESS_DB = 9.0
+# as a resonance anomaly. +6 dB catches all problematic resonances including
+# tight clusters where mutual contamination reduces measured excess. +9 dB is
+# conservative (only obvious ringing). +12 dB is very conservative.
+RESONANCE_MIN_EXCESS_DB = 6.0
 
 # Minimum absolute level (in dB relative to the spectrum's peak) for a bin
 # to be eligible as a resonance candidate. This filters out noise-floor
@@ -524,9 +524,126 @@ def detect_resonance_anomalies(spectrum_mean, freqs, sr):
     Returns a list of (freq_hz, excess_db) tuples, sorted by excess_db
     descending, truncated to RESONANCE_MAX_REPORTED_PEAKS entries. Empty
     list if no anomalous peaks found.
+
+    Algorithm:
+      1. Convert spectrum to dB (relative to global max = 0 dB).
+      2. For each bin, compute the median of a local window spanning
+         ±RESONANCE_LOCAL_WINDOW_OCTAVES octaves around the bin's frequency.
+         Median is robust to the peak itself contaminating its baseline.
+      3. excess = spectrum_db - local_contour (how far above the neighborhood).
+      4. Find peaks in the excess array above RESONANCE_MIN_EXCESS_DB that also
+         are genuine spectral peaks (prominence check), meet the frequency
+         floor and absolute level floor, and pass broadband context gating.
+      5. Return top RESONANCE_MAX_REPORTED_PEAKS by excess_db.
     """
-    # Phase 1 placeholder — algorithm will be implemented in Phase 2.
-    return []
+    # Step 1: Convert to dB scale, normalized so global max = 0 dB
+    max_val = np.max(spectrum_mean)
+    if max_val < 1e-12:
+        return []
+    spectrum_db = 20.0 * np.log10(spectrum_mean / max_val + 1e-12)
+
+    n_bins = len(freqs)
+    W = RESONANCE_LOCAL_WINDOW_OCTAVES
+
+    # Step 2: Precompute per-bin window boundaries (octave-scaled)
+    # For frequency f, the window spans [f / 2^W, f * 2^W].
+    # On the linear FFT frequency axis, this means different bin counts at
+    # different frequencies (narrow at low freqs, wide at high freqs).
+    factor_low = 2.0 ** (-W)
+    factor_high = 2.0 ** W
+    bin_low = np.zeros(n_bins, dtype=np.intp)
+    bin_high = np.zeros(n_bins, dtype=np.intp)
+    for i in range(n_bins):
+        f = freqs[i]
+        if f <= 0:
+            bin_low[i] = 0
+            bin_high[i] = min(1, n_bins)
+            continue
+        f_lo = f * factor_low
+        f_hi = f * factor_high
+        # searchsorted gives efficient O(log n) lookup on the sorted freqs array
+        lo = np.searchsorted(freqs, f_lo, side='left')
+        hi = np.searchsorted(freqs, f_hi, side='right')
+        # Clip to valid range (edge handling: no zero-padding)
+        bin_low[i] = max(lo, 0)
+        bin_high[i] = min(hi, n_bins)
+
+    # Step 2b: Compute local contour using median over each window.
+    # Median is robust to the peak itself contaminating its baseline — a
+    # sharp peak contributes one sample but does not shift the median.
+    local_contour = np.empty(n_bins, dtype=np.float64)
+    for i in range(n_bins):
+        lo = bin_low[i]
+        hi = bin_high[i]
+        if hi <= lo:
+            local_contour[i] = spectrum_db[i]
+        else:
+            local_contour[i] = np.median(spectrum_db[lo:hi])
+
+    # Step 3: Compute excess — how far each bin rises above its neighborhood
+    excess = spectrum_db - local_contour
+
+    # Step 4a: Find peaks in the excess curve above the threshold.
+    # distance=10 prevents double-detection of the same resonance across
+    # adjacent FFT bins (10 bins ≈ 54 Hz at 44100/8192 resolution).
+    excess_peak_indices, _ = signal.find_peaks(
+        excess, height=RESONANCE_MIN_EXCESS_DB, distance=10
+    )
+
+    # Step 4b: Find genuine spectral peaks (with minimum prominence of 3 dB)
+    # in the original spectrum. This filters out artifacts that appear as
+    # excess peaks but are not real spectral features (e.g. valleys between
+    # tonal modes, sidelobes of true peaks, Nyquist roll-off edges).
+    _SPEC_MIN_PROMINENCE_DB = 3.0
+    _SPEC_PEAK_MATCH_RADIUS = 5  # bins
+    spec_peak_indices, _ = signal.find_peaks(
+        spectrum_db, prominence=_SPEC_MIN_PROMINENCE_DB, distance=5
+    )
+    spec_peak_set = set(spec_peak_indices)
+
+    # Step 4c: Filter by frequency floor, absolute level, spectral peak
+    # match, and broadband context gating.
+    #
+    # Context gating addresses a fundamental ambiguity: on a sparse-spectrum
+    # track (percussive instrument with discrete tonal modes), every spectral
+    # peak sits far above its local contour because the neighborhood is
+    # near-silent — not because the peak is an anomaly.
+    #
+    # Gating rule — a peak is kept if EITHER:
+    #   (a) its local contour >= -19 dBFS, indicating real broadband energy
+    #       surrounds the peak (wideband noise, mix content, etc.), OR
+    #   (b) the peak's absolute level is more than 10 dB below the global max
+    #       AND the contour is below -19 dBFS — indicating a secondary feature
+    #       well below the instrument's dominant content. On a percussion
+    #       track, natural modes sit within 0-5 dB of the global max and fail
+    #       (b). An added narrow resonance at -27 dB passes easily.
+    _CONTOUR_FLOOR_DB = -19.0
+    _SPARSE_DROP_DB = 10.0
+    _MAX_FREQ_HZ = 16000.0
+    valid = []
+    for idx in excess_peak_indices:
+        f = freqs[idx]
+        if f < RESONANCE_MIN_FREQ_HZ or f > _MAX_FREQ_HZ:
+            continue
+        if spectrum_db[idx] < RESONANCE_MIN_ABSOLUTE_DBFS:
+            continue
+        # Must correspond to a genuine spectral peak (within ±5 bins)
+        matched = any(
+            (idx + offset) in spec_peak_set
+            for offset in range(-_SPEC_PEAK_MATCH_RADIUS,
+                                _SPEC_PEAK_MATCH_RADIUS + 1)
+        )
+        if not matched:
+            continue
+        # Broadband context gating
+        if local_contour[idx] >= _CONTOUR_FLOOR_DB:
+            valid.append((float(f), float(excess[idx])))
+        elif spectrum_db[idx] < -_SPARSE_DROP_DB:
+            valid.append((float(f), float(excess[idx])))
+
+    # Step 5: Sort by excess descending, keep top N
+    valid.sort(key=lambda x: x[1], reverse=True)
+    return valid[:RESONANCE_MAX_REPORTED_PEAKS]
 
 
 def compute_hires_band_energies(mono, sr):
