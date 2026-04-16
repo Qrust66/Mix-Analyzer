@@ -9411,6 +9411,27 @@ class MixAnalyzerApp:
         analyses_with_info = []
         generated_files = []
 
+        # v2.5.1 Phase C: extract automation maps ONCE before analysis loop
+        _auto_maps = {}
+        _als_path_for_maps = None
+        try:
+            _input_dir = Path(self.input_folder.get())
+            for search_dir in [_input_dir, _input_dir.parent,
+                               _input_dir.parent.parent,
+                               _input_dir.parent.parent.parent]:
+                if not search_dir.is_dir():
+                    break
+                als_files = list(search_dir.glob('*.als'))
+                if als_files:
+                    _als_path_for_maps = str(als_files[0])
+                    break
+            if _als_path_for_maps:
+                from automation_map import extract_all_track_automations
+                _auto_maps = extract_all_track_automations(_als_path_for_maps)
+                self.log(f"    ALS detected: {Path(_als_path_for_maps).name} ({len(_auto_maps)} tracks)")
+        except Exception as e:
+            self.log(f"    ALS automation map: {e}")
+
         for i, fname in enumerate(included_files, 1):
             if self.cancel_requested:
                 self.log("CANCELLED by user.")
@@ -9437,6 +9458,12 @@ class MixAnalyzerApp:
             try:
                 is_full_mix = (cfg['type'] == 'Full Mix')
                 analysis = analyze_track(str(filepath), compute_tempo=is_full_mix)
+
+                # v2.5.1 Phase C: mask inaudible frames in v2.5 features
+                feat = analysis.get('_v25_features')
+                if feat is not None and _auto_maps:
+                    self._mask_features_by_audibility(feat, fname, _auto_maps)
+
                 ti = {
                     'type': cfg['type'],
                     'category': cfg['category'],
@@ -9527,6 +9554,66 @@ class MixAnalyzerApp:
             self.ai_button.configure(state='normal')
             self.open_folder_button.configure(state='normal')
         self.root.after(0, _enable_buttons)
+
+    def _mask_features_by_audibility(self, feat, fname, auto_maps):
+        """Apply NaN to v2.5 features where the track is inaudible."""
+        import re
+        from automation_map import resample_audibility
+
+        stem = os.path.splitext(fname)[0]
+
+        # Try matching: exact stem, then strip project prefix, then strip group numbers
+        auto_map = auto_maps.get(stem)
+        if auto_map is None:
+            # Strip project prefix: "Acid_drops Toms Rack" → "Toms Rack"
+            parts = stem.split(' ', 1)
+            if len(parts) == 2:
+                auto_map = auto_maps.get(parts[1])
+        if auto_map is None:
+            # Try stripping group numbers from .als names: "5-Toms Rack" → "Toms Rack"
+            stripped_stem = re.sub(r'^\d+[\s._-]*', '', stem)
+            for als_name, am in auto_maps.items():
+                als_stripped = re.sub(r'^\d+[\s._-]*', '', als_name)
+                if als_stripped == stripped_stem or als_stripped == stem:
+                    auto_map = am
+                    break
+            # Also try with project prefix stripped + .als stripped
+            if auto_map is None and len(parts) == 2:
+                for als_name, am in auto_maps.items():
+                    als_stripped = re.sub(r'^\d+[\s._-]*', '', als_name)
+                    if als_stripped == parts[1]:
+                        auto_map = am
+                        break
+
+        if auto_map is None:
+            return
+
+        times = feat.zone_energy.times
+        if len(times) == 0:
+            return
+
+        audible = resample_audibility(auto_map, times)
+        inaudible = ~audible
+        n_inaudible = int(inaudible.sum())
+
+        if n_inaudible == 0:
+            return
+
+        for zone_data in feat.zone_energy.zones.values():
+            if len(zone_data) == len(inaudible):
+                zone_data[inaudible] = np.nan
+
+        for attr in ('centroid', 'spread', 'flatness', 'low_rolloff', 'high_rolloff'):
+            arr = getattr(feat.descriptors, attr, None)
+            if arr is not None and len(arr) == len(inaudible):
+                arr[inaudible] = np.nan
+
+        if feat.crest_by_zone:
+            for crest_data in feat.crest_by_zone.values():
+                if len(crest_data) == len(inaudible):
+                    crest_data[inaudible] = np.nan
+
+        self.log(f"    v2.5.1: {stem} — masked {n_inaudible}/{len(times)} frames as inaudible")
 
     def _open_output_folder(self):
         if self.output_dir_after_run and os.path.isdir(self.output_dir_after_run):
