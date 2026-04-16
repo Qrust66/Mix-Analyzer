@@ -42,6 +42,7 @@ from eq8_automation import (
     write_transient_aware_cut,
     write_section_aware_eq,
     write_dynamic_deesser,
+    write_spectral_match,
     MaskingReport,
 )
 from spectral_evolution import PeakTrajectory, TransientEvent
@@ -846,6 +847,72 @@ class TestDynamicDeesser:
                 vals = [float(e.get("Value")) for e in real]
                 assert vals[0] == 0.0, "No cut when sibilance is low"
                 assert vals[2] == -4.0, "Full cut when sibilance exceeds threshold"
+
+
+# ---------------------------------------------------------------------------
+# Tests — Phase 8: Reference matching
+# ---------------------------------------------------------------------------
+
+class TestSpectralMatch:
+    def test_boosts_deficit(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        times = np.linspace(0, 5, 10)
+        track_energy = {"mid": np.full(10, -30.0), "presence": np.full(10, -30.0)}
+        target_energy = {"mid": np.full(10, -20.0), "presence": np.full(10, -25.0)}
+
+        reports = write_spectral_match(
+            als_path, "Track1", track_energy, target_energy, times,
+            zones=["mid", "presence"], max_correction_db=6.0,
+        )
+        assert len(reports) == 2
+        for r in reports:
+            assert r.success
+            assert r.breakpoints_written > 0
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, reports[0].eq8_band_index)
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == gain_target_id:
+                events = env.findall(".//FloatEvent")
+                real = [e for e in events if float(e.get("Time")) >= 0]
+                vals = [float(e.get("Value")) for e in real]
+                assert all(v > 0 for v in vals), "Should boost when target > track"
+
+    def test_cuts_excess(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        times = np.linspace(0, 5, 10)
+        track_energy = {"mid": np.full(10, -10.0)}
+        target_energy = {"mid": np.full(10, -20.0)}
+
+        reports = write_spectral_match(
+            als_path, "Track1", track_energy, target_energy, times,
+            zones=["mid"], max_correction_db=6.0,
+        )
+        assert len(reports) == 1
+        assert reports[0].success
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, reports[0].eq8_band_index)
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == gain_target_id:
+                events = env.findall(".//FloatEvent")
+                real = [e for e in events if float(e.get("Time")) >= 0]
+                vals = [float(e.get("Value")) for e in real]
+                assert all(v < 0 for v in vals), "Should cut when track > target"
 
 
 class TestIdempotency:

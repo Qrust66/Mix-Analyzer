@@ -1240,3 +1240,103 @@ def write_dynamic_deesser(
         eq8_band_index=bi,
         warnings=[],
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase 8 — Reference matching (spec §5.G, optional)
+# ---------------------------------------------------------------------------
+
+def write_spectral_match(
+    als_path: Path | str,
+    track_id: str,
+    track_zone_energy: Dict[str, np.ndarray],
+    target_zone_energy: Dict[str, np.ndarray],
+    times: np.ndarray,
+    zones: list[str] | None = None,
+    max_correction_db: float = 6.0,
+) -> list[AutomationReport]:
+    """Match a track's spectral profile to a reference target.
+
+    For each zone, computes delta = target - track energy and writes
+    a bell EQ at the zone center to correct the difference (clamped
+    to +/- max_correction_db).
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name.
+        track_zone_energy: Zone energy dict for the track (zone -> dB array).
+        target_zone_energy: Zone energy dict for the reference (zone -> dB array).
+        times: Per-frame timestamps in seconds.
+        zones: Zones to match (default: body, mid, presence, air).
+        max_correction_db: Maximum correction per zone (dB, applied +/-).
+
+    Returns:
+        List of AutomationReport (one per zone corrected).
+    """
+    if zones is None:
+        zones = ["body", "mid", "presence", "air"]
+
+    als_path = Path(als_path)
+    backup_als(str(als_path))
+    tree = parse_als(str(als_path))
+
+    try:
+        track = find_track_by_name(tree, track_id)
+    except ValueError as e:
+        raise TrackNotFoundError(str(e)) from e
+
+    eq8 = find_or_create_eq8(track, tree)
+    tempo = _extract_tempo(tree)
+    next_id = [get_next_id(tree)]
+
+    reports: list[AutomationReport] = []
+    exclude: list[int] = []
+    n = len(times)
+
+    for zone in zones:
+        t_energy = track_zone_energy.get(zone, np.full(n, -60.0))
+        r_energy = target_zone_energy.get(zone, np.full(n, -60.0))
+        min_len = min(len(t_energy), len(r_energy), n)
+
+        delta = r_energy[:min_len] - t_energy[:min_len]
+        correction = np.clip(delta, -max_correction_db, max_correction_db)
+
+        padded = np.zeros(n)
+        padded[:min_len] = correction
+
+        try:
+            bi = _find_available_band(eq8, track, exclude=exclude)
+        except EQ8SlotFullError:
+            reports.append(AutomationReport(
+                success=False, breakpoints_written=0, eq8_band_index=-1,
+                warnings=[f"No band available for zone {zone}"],
+            ))
+            continue
+
+        exclude.append(bi)
+        band_param = get_eq8_band(eq8, bi)
+
+        center = _zone_center_freq(zone)
+        configure_eq8_band(
+            band_param, mode=3, freq=_freq_to_eq8_value(center), q=1.5,
+        )
+        ison = band_param.find("IsOn/Manual")
+        if ison is not None:
+            ison.set("Value", "true")
+
+        gain_curve = np.array([_gain_to_eq8_value(g) for g in padded])
+        gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+        _remove_existing_envelope(track, gain_target_id)
+        write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+
+        reports.append(AutomationReport(
+            success=True,
+            breakpoints_written=len(gain_bps),
+            eq8_band_index=bi,
+            warnings=[],
+        ))
+
+    save_als_from_tree(tree, str(als_path))
+    return reports
