@@ -2581,12 +2581,14 @@
       "rationale": "Live valide a l ouverture l unicite des \"list ids\" (AutomationTarget, ModulationTarget, Pointee, etc.) sur l ensemble du fichier. Erreur observee si non respecte: \"Non-unique list ids\" et refus d ouverture.",
       "algorithm": [
         "1. Scanner le fichier cible pour trouver max(Id) sur tous les attributs Id=\"N\"",
-        "2. Pour chaque Id unique present dans le bloc a inserer, allouer un nouveau Id sequentiel au-dessus du max",
-        "3. Substitution two-pass avec placeholders pour preserver les references internes au bloc",
-        "4. CRITIQUE: apres insertion, mettre a jour <NextPointeeId Value=\"N\"/> au niveau racine du LiveSet a (max global final + 1000) pour avoir une marge sur insertions futures. Sans cette etape, Live refuse l ouverture avec l erreur \"NextPointeeId is too low: X must be bigger than Y\"."
+        "2. Pour chaque Id >= 1 present dans le bloc a inserer, allouer un nouveau Id sequentiel au-dessus du max. SEUIL: >= 1 (pas >= 10). Seul Id=0 est structural et peut rester en doublon.",
+        "3. IMPORTANT: cela inclut le tag racine du device (ex. <StereoGain Id=\"5\"> doit devenir <StereoGain Id=\"335000\">). Ne pas le laisser en doublon avec un autre device de la meme chaine.",
+        "4. Substitution two-pass avec placeholders pour preserver les references internes au bloc",
+        "5. CRITIQUE: apres insertion, mettre a jour <NextPointeeId Value=\"N\"/> au niveau racine du LiveSet a (max global final + 1000) pour avoir une marge sur insertions futures. Sans cette etape, Live refuse l ouverture avec l erreur \"NextPointeeId is too low: X must be bigger than Y\"."
       ],
-      "exception": "Les petits Id structurels (0-4) sur tags comme LomId, DeviceId, indices de chaine semblent autorises en doublon car ils ne sont pas dans le contexte \"list ids\" d Ableton. Empirique, a confirmer.",
-      "validated": "Test JSON v0.8 -> Pluggin_Mapping_autofilter.als avec 10 instances AutoFilter2 sur 1 piste, ouvert sans erreur dans Live 12 apres ajout de l etape NextPointeeId."
+      "exception": "SEUL Id=0 est autorise en doublon (tags structurels: AbletonDefaultPresetRef, BranchSourceContext, SourceContext). Tous les autres Id >= 1 DOIVENT etre renumerotes, y compris le tag racine du device (ex. <StereoGain Id=\"5\">) et les AbletonDefaultPresetRef avec Id >= 1.",
+      "critical_bug_p14": "Round P14 (avril 2026): un seuil de renumerotation >= 10 laissait passer le tag racine <StereoGain Id=\"5\"> non renumerote. Resultat: deux devices avec le meme root Id dans la meme chaine Devices -> erreur \"Non-unique list ids\". Le seuil correct est >= 1 (ne garder que Id=0 comme structurel).",
+      "validated": "Test JSON v0.8 -> Pluggin_Mapping_autofilter.als avec 10 instances AutoFilter2 sur 1 piste, ouvert sans erreur dans Live 12 apres ajout de l etape NextPointeeId. Round P14: corrige avec seuil >= 1 apres echec initial avec seuil >= 10."
     },
     "template_purity": {
       "rule": "NE JAMAIS copier un device \"template\" depuis une instance modifiee du fichier en cours. Toujours utiliser un template VIERGE (defaut Ableton) ou reinitialiser explicitement tous les parametres aux defauts du JSON avant d appliquer les overrides.",
