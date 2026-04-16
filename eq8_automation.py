@@ -710,3 +710,127 @@ def write_resonance_suppression(
 
     save_als_from_tree(tree, str(als_path))
     return reports
+
+
+# ---------------------------------------------------------------------------
+# Phase 5 — Adaptive boosts (spec §5.C)
+# ---------------------------------------------------------------------------
+
+def write_adaptive_presence_boost(
+    als_path: Path | str,
+    track_id: str,
+    presence_energy: np.ndarray,
+    times: np.ndarray,
+    threshold_db: float = -18.0,
+    max_boost_db: float = 3.0,
+    band_index: int | None = None,
+) -> AutomationReport:
+    """Write an adaptive presence boost (2-4 kHz).
+
+    Boosts when presence zone energy is below threshold.
+    Bell at 3000 Hz, Q=1.0.
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name.
+        presence_energy: Per-frame presence zone energy in dB.
+        times: Per-frame timestamps in seconds.
+        threshold_db: Energy below which boost engages.
+        max_boost_db: Maximum boost in dB (positive).
+        band_index: Specific EQ8 band, or None for auto.
+
+    Returns:
+        AutomationReport.
+
+    Raises:
+        TrackNotFoundError: If track doesn't exist.
+        EQ8SlotFullError: If no band is available.
+    """
+    tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
+        als_path, track_id, band_index
+    )
+
+    configure_eq8_band(band_param, mode=3, freq=3000.0, q=1.0)
+    ison = band_param.find("IsOn/Manual")
+    if ison is not None:
+        ison.set("Value", "true")
+
+    deficit = np.maximum(threshold_db - presence_energy, 0.0)
+    gain_curve = np.minimum(deficit, max_boost_db)
+    gain_curve = np.array([_gain_to_eq8_value(g) for g in gain_curve])
+
+    gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+
+    gain_target_id = get_automation_target_id(band_param, "Gain")
+    _remove_existing_envelope(track, gain_target_id)
+    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+
+    save_als_from_tree(tree, str(als_path))
+
+    return AutomationReport(
+        success=True,
+        breakpoints_written=len(gain_bps),
+        eq8_band_index=bi,
+        warnings=[],
+    )
+
+
+def write_adaptive_air_boost(
+    als_path: Path | str,
+    track_id: str,
+    high_rolloff_curve: np.ndarray,
+    times: np.ndarray,
+    threshold_hz: float = 8000.0,
+    max_boost_db: float = 2.0,
+    band_index: int | None = None,
+) -> AutomationReport:
+    """Write an adaptive air boost (high shelf).
+
+    Boosts when high rolloff frequency is below threshold_hz,
+    indicating the track lacks high-frequency content.
+    HighShelf at 10000 Hz.
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name.
+        high_rolloff_curve: Per-frame high rolloff frequency in Hz.
+        times: Per-frame timestamps in seconds.
+        threshold_hz: Rolloff threshold below which boost engages.
+        max_boost_db: Maximum boost in dB (positive).
+        band_index: Specific EQ8 band, or None for auto.
+
+    Returns:
+        AutomationReport.
+
+    Raises:
+        TrackNotFoundError: If track doesn't exist.
+        EQ8SlotFullError: If no band is available.
+    """
+    tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
+        als_path, track_id, band_index
+    )
+
+    configure_eq8_band(band_param, mode=5, freq=10000.0, q=0.71)
+    ison = band_param.find("IsOn/Manual")
+    if ison is not None:
+        ison.set("Value", "true")
+
+    deficit = np.maximum(threshold_hz - high_rolloff_curve, 0.0)
+    scaling = max_boost_db / max(threshold_hz, 1.0)
+    gain_curve = np.minimum(deficit * scaling, max_boost_db)
+    gain_curve = np.array([_gain_to_eq8_value(g) for g in gain_curve])
+
+    gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+
+    gain_target_id = get_automation_target_id(band_param, "Gain")
+    _remove_existing_envelope(track, gain_target_id)
+    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+
+    save_als_from_tree(tree, str(als_path))
+
+    return AutomationReport(
+        success=True,
+        breakpoints_written=len(gain_bps),
+        eq8_band_index=bi,
+        warnings=[],
+    )

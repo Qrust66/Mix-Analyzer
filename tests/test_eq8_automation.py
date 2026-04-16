@@ -34,6 +34,8 @@ from eq8_automation import (
     write_dynamic_notch,
     write_dynamic_bell_cut,
     write_resonance_suppression,
+    write_adaptive_presence_boost,
+    write_adaptive_air_boost,
 )
 from spectral_evolution import PeakTrajectory
 from als_utils import (
@@ -582,6 +584,97 @@ class TestResonanceSuppression:
         assert len(reports) == 1
         assert reports[0].breakpoints_written == 0
         assert "No resonant peaks found" in reports[0].warnings
+
+
+# ---------------------------------------------------------------------------
+# Tests — Phase 5: Adaptive boosts
+# ---------------------------------------------------------------------------
+
+class TestAdaptivePresenceBoost:
+    def test_engages_when_low(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        energy = np.array([-25.0, -25.0, -10.0, -10.0, -25.0])
+        times = np.linspace(0, 2, 5)
+
+        report = write_adaptive_presence_boost(
+            als_path, "Track1", energy, times,
+            threshold_db=-18.0, max_boost_db=3.0, band_index=4,
+        )
+        assert report.success
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 4)
+        assert band_param.find("Mode/Manual").get("Value") == "3"
+
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == gain_target_id:
+                events = env.findall(".//FloatEvent")
+                real = [e for e in events if float(e.get("Time")) >= 0]
+                vals = [float(e.get("Value")) for e in real]
+                assert vals[0] > 0, "Should boost when energy is low"
+                assert vals[2] == 0.0, "No boost when energy is high"
+
+    def test_respects_max_boost(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        energy = np.full(5, -50.0)
+        times = np.linspace(0, 2, 5)
+
+        write_adaptive_presence_boost(
+            als_path, "Track1", energy, times,
+            threshold_db=-18.0, max_boost_db=3.0, band_index=4,
+        )
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 4)
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == gain_target_id:
+                events = env.findall(".//FloatEvent")
+                for e in events:
+                    assert float(e.get("Value")) <= 3.0
+
+
+class TestAdaptiveAirBoost:
+    def test_follows_rolloff(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        rolloff = np.array([12000.0, 6000.0, 4000.0, 10000.0, 12000.0])
+        times = np.linspace(0, 2, 5)
+
+        report = write_adaptive_air_boost(
+            als_path, "Track1", rolloff, times,
+            threshold_hz=8000.0, max_boost_db=2.0, band_index=5,
+        )
+        assert report.success
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 5)
+        assert band_param.find("Mode/Manual").get("Value") == "5"
+
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == gain_target_id:
+                events = env.findall(".//FloatEvent")
+                real = [e for e in events if float(e.get("Time")) >= 0]
+                vals = [float(e.get("Value")) for e in real]
+                assert vals[0] == 0.0, "No boost when rolloff is high"
+                assert vals[1] > 0, "Should boost when rolloff is low"
 
 
 class TestIdempotency:
