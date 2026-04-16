@@ -5685,6 +5685,60 @@ def _create_comparison_chart(ws_data, header_row, data_end, n_tracks):
     return _create_comparison_grouped_barchart(ws_data, header_row, data_end, n_tracks)
 
 
+def _apply_audibility_mask(v25_features_with_info, auto_maps, log_fn=None):
+    """Apply NaN mask to v2.5 features where track is inaudible.
+
+    Modifies features in-place: zone_energy, spectral_descriptors, and
+    crest_by_zone arrays get NaN where the track's effective gain is below
+    the audibility threshold.
+    """
+    import numpy as np
+    from automation_map import resample_audibility
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    masked_count = 0
+    for feat, ti in v25_features_with_info:
+        track_stem = os.path.splitext(ti['name'])[0]
+        auto_map = auto_maps.get(track_stem)
+        if auto_map is None:
+            continue
+
+        times = feat.zone_energy.times
+        if len(times) == 0:
+            continue
+
+        audible = resample_audibility(auto_map, times)
+        inaudible = ~audible
+
+        if not inaudible.any():
+            continue
+
+        n_masked = int(inaudible.sum())
+        masked_count += 1
+
+        # Mask zone_energy
+        for zone_name, zone_data in feat.zone_energy.zones.items():
+            if len(zone_data) == len(inaudible):
+                zone_data[inaudible] = np.nan
+
+        # Mask spectral descriptors
+        for attr in ('centroid', 'spread', 'flatness', 'low_rolloff', 'high_rolloff'):
+            arr = getattr(feat.descriptors, attr, None)
+            if arr is not None and len(arr) == len(inaudible):
+                arr[inaudible] = np.nan
+
+        # Mask crest_by_zone
+        if feat.crest_by_zone:
+            for zone_name, crest_data in feat.crest_by_zone.items():
+                if len(crest_data) == len(inaudible):
+                    crest_data[inaudible] = np.nan
+
+    if masked_count > 0:
+        log_fn(f"    v2.5.1: Audibility mask applied to {masked_count} tracks")
+
+
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None,
                            export_mode='full',
@@ -6727,6 +6781,16 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _build_track_chroma_sheet(wb, analyses_with_info, log_fn=log_fn)
     _build_track_onsets_sheet(wb, analyses_with_info, log_fn=log_fn, n_buckets=32)
 
+    # ---- v2.5.1: Extract automation maps BEFORE v2.5 sheets ----
+    auto_maps = {}
+    if als_path:
+        try:
+            from automation_map import extract_all_track_automations
+            auto_maps = extract_all_track_automations(als_path)
+            log_fn(f"    v2.5.1: Automation maps extracted for {len(auto_maps)} tracks")
+        except Exception as e:
+            log_fn(f"    v2.5.1: Automation map extraction failed: {e}")
+
     # ---- v2.5: Spectral evolution hidden sheets (always generated) ----
     try:
         from feature_storage import build_all_v25_sheets
@@ -6735,6 +6799,11 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             feat = a.get('_v25_features')
             if feat is not None:
                 v25_features_with_info.append((feat, ti))
+
+        # v2.5.1: Mask inaudible frames with NaN before building sheets
+        if auto_maps and v25_features_with_info:
+            _apply_audibility_mask(v25_features_with_info, auto_maps, log_fn)
+
         if v25_features_with_info:
             build_all_v25_sheets(wb, v25_features_with_info, log_fn=log_fn, n_buckets=64)
             log_fn(f"    v2.5: {len(v25_features_with_info)} tracks written to spectral evolution sheets")
@@ -6743,18 +6812,16 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     except Exception as e:
         log_fn(f"    v2.5: Spectral evolution sheets failed: {e}")
 
-    # ---- v2.5.1: Automation Map (requires .als path) ----
-    if als_path:
+    # ---- v2.5.1: Automation Map sheet ----
+    if auto_maps:
         try:
-            from automation_map import extract_all_track_automations
             from feature_storage import build_automation_map_sheet
-            auto_maps = extract_all_track_automations(als_path)
             ref_duration = max((a.get('duration', 0) for a, _ in analyses_with_info), default=0)
             build_automation_map_sheet(wb, auto_maps, n_buckets=64,
                                        duration=ref_duration, log_fn=log_fn)
-            log_fn(f"    v2.5.1: Automation map written for {len(auto_maps)} tracks")
+            log_fn(f"    v2.5.1: Automation map sheet written for {len(auto_maps)} tracks")
         except Exception as e:
-            log_fn(f"    v2.5.1: Automation map failed: {e}")
+            log_fn(f"    v2.5.1: Automation map sheet failed: {e}")
 
     # ---- P3.1: Frequency Conflict Detector ----
     # Mode ai_optimized: INCLUDED (structured conflict data not in AI Context)
@@ -9403,12 +9470,25 @@ class MixAnalyzerApp:
                 xlsx_path = output_folder / f'{report_prefix}.xlsx'
                 if xlsx_path.exists():
                     xlsx_path.unlink()
+
+                # Auto-detect .als file in input folder for automation map
+                _als_path = None
+                _input_dir = Path(self.input_folder.get())
+                if _input_dir.is_dir():
+                    als_files = list(_input_dir.glob('*.als'))
+                    if not als_files:
+                        als_files = list(_input_dir.parent.glob('*.als'))
+                    if als_files:
+                        _als_path = str(als_files[0])
+                        self.log(f"    ALS detected: {Path(_als_path).name}")
+
                 generate_excel_report(
                     analyses_with_info, str(xlsx_path), self.style.get(),
                     full_mix_info=full_mix_info, ai_prompt=ai_prompt,
                     log_fn=self.log,
                     export_mode=export_mode,
-                    image_quality=self.image_quality.get())
+                    image_quality=self.image_quality.get(),
+                    als_path=_als_path)
                 generated_files.append(xlsx_path)
                 self.log(f"Excel report: {xlsx_path.name}")
             except Exception as e:
