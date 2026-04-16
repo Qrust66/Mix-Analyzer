@@ -433,3 +433,148 @@ def build_all_v25_sheets(wb: 'Workbook',
     build_v25_transients_sheet(wb, features_with_info, log_fn)
 
     log_fn("  v2.5: All spectral evolution sheets written.")
+
+
+# ---------------------------------------------------------------------------
+# Automation Map sheet (v2.5.1)
+# ---------------------------------------------------------------------------
+
+def build_automation_map_sheet(
+    wb: 'Workbook',
+    automation_maps: dict,
+    n_buckets: int = 64,
+    duration: float = 0.0,
+    log_fn=None,
+) -> None:
+    """Build hidden _track_automation_map sheet.
+
+    Layout per track:
+      - One row per automation curve (Volume, Utility.Gain, Speaker, ...)
+      - One row for effective_gain (combined)
+      - One row for is_audible (TRUE/FALSE)
+    Columns: track_name | param_name | device_name | t0 | t1 | ... | t(n-1)
+
+    Args:
+        wb: openpyxl Workbook.
+        automation_maps: Dict[str, TrackAutomationMap].
+        n_buckets: Number of time buckets.
+        duration: Total song duration in seconds (for bucket labels).
+        log_fn: Logging function.
+    """
+    from automation_map import resample_effective_gain, resample_audibility, AUDIBILITY_THRESHOLD
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+    log_fn("    Excel: writing _track_automation_map sheet (v2.5.1)...")
+
+    ws = wb.create_sheet('_track_automation_map')
+    ws.sheet_state = 'hidden'
+    sty = _v25_sheet_style()
+
+    # Time bucket labels
+    if duration > 0:
+        step = duration / n_buckets
+        time_labels = [f'{i * step:.1f}-{(i + 1) * step:.1f}s' for i in range(n_buckets)]
+    else:
+        time_labels = [f'T{i + 1}' for i in range(n_buckets)]
+
+    # Bucket center times for resampling
+    if duration > 0:
+        step = duration / n_buckets
+        bucket_centers = np.array([(i + 0.5) * step for i in range(n_buckets)])
+    else:
+        bucket_centers = np.linspace(0, 1, n_buckets)
+
+    # Header row
+    row = 1
+    headers = ['Track', 'Parameter', 'Device'] + time_labels
+    for col_idx, header in enumerate(headers, 1):
+        _styled_cell(ws, row, col_idx, header,
+                     sty['header_font'], sty['header_fill'], sty['border'])
+    row += 1
+
+    for track_name, auto_map in automation_maps.items():
+        # Individual curves — resample each to bucket resolution
+        for curve in auto_map.curves:
+            _styled_cell(ws, row, 1, track_name,
+                         sty['data_font'], sty['bg_fill'], sty['border'])
+            _styled_cell(ws, row, 2, curve.param_name,
+                         sty['data_font'], sty['bg_fill'], sty['border'])
+            _styled_cell(ws, row, 3, curve.device_name,
+                         sty['data_font'], sty['bg_fill'], sty['border'])
+
+            # Resample this curve's values onto bucket centers
+            if len(curve.times_beats) > 0 and len(auto_map.effective_gain_times) > 0:
+                # Use the automation map's time grid to interpolate
+                curve_resampled = _downsample_frames(
+                    _resample_curve_to_buckets(curve, auto_map, bucket_centers),
+                    n_buckets
+                )
+            else:
+                curve_resampled = [None] * n_buckets
+
+            for col_idx, val in enumerate(curve_resampled, 4):
+                _styled_cell(ws, row, col_idx, val,
+                             sty['data_font'], sty['bg_fill'], sty['border'])
+            row += 1
+
+        # effective_gain row
+        _styled_cell(ws, row, 1, track_name,
+                     sty['header_font'], sty['header_fill'], sty['border'])
+        _styled_cell(ws, row, 2, 'effective_gain',
+                     sty['header_font'], sty['header_fill'], sty['border'])
+        _styled_cell(ws, row, 3, '—',
+                     sty['header_font'], sty['header_fill'], sty['border'])
+
+        gain_resampled = resample_effective_gain(auto_map, bucket_centers)
+        for col_idx, val in enumerate(gain_resampled, 4):
+            _styled_cell(ws, row, col_idx, round(float(val), 4),
+                         sty['data_font'], sty['bg_fill'], sty['border'])
+        row += 1
+
+        # is_audible row
+        _styled_cell(ws, row, 1, track_name,
+                     sty['header_font'], sty['header_fill'], sty['border'])
+        _styled_cell(ws, row, 2, 'is_audible',
+                     sty['header_font'], sty['header_fill'], sty['border'])
+        _styled_cell(ws, row, 3, '—',
+                     sty['header_font'], sty['header_fill'], sty['border'])
+
+        audible_resampled = resample_audibility(auto_map, bucket_centers)
+        for col_idx, val in enumerate(audible_resampled, 4):
+            _styled_cell(ws, row, col_idx, bool(val),
+                         sty['data_font'], sty['bg_fill'], sty['border'])
+        row += 1
+
+    log_fn(f"    Excel: _track_automation_map done — {row - 1} rows x {n_buckets} time buckets")
+
+
+def _resample_curve_to_buckets(
+    curve,
+    auto_map,
+    bucket_centers: np.ndarray,
+) -> np.ndarray:
+    """Resample a single AutomationCurve onto bucket center times."""
+    from automation_map import _interpolate_at
+
+    src_times = auto_map.effective_gain_times
+    if len(src_times) == 0:
+        return np.full(len(bucket_centers), curve.values[0] if len(curve.values) > 0 else 0.0)
+
+    # The curve stores times in beats; the auto_map has a seconds grid.
+    # We need to interpolate the curve values at the bucket times.
+    # Use the curve's beat-time values interpolated at beat equivalents of bucket_centers.
+    tempo_ratio = src_times[-1] / (auto_map.effective_gain.shape[0] - 1) if len(src_times) > 1 else 1.0
+
+    # Convert bucket_centers (seconds) back to beats for interpolation
+    if len(src_times) > 1:
+        total_seconds = src_times[-1]
+        total_beats_est = auto_map.effective_gain.shape[0]  # grid length ~ beats
+        if total_seconds > 0:
+            bucket_beats = bucket_centers * (total_beats_est / total_seconds)
+        else:
+            bucket_beats = bucket_centers
+    else:
+        bucket_beats = bucket_centers
+
+    return _interpolate_at(curve.times_beats, curve.values, bucket_beats)

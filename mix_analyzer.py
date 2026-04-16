@@ -5688,7 +5688,8 @@ def _create_comparison_chart(ws_data, header_row, data_end, n_tracks):
 def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None,
                            export_mode='full',
-                           image_quality='standard'):
+                           image_quality='standard',
+                           als_path=None):
     """
     Generate complete Excel report.
     analyses_with_info: list of (analysis, track_info) tuples
@@ -6735,12 +6736,25 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             if feat is not None:
                 v25_features_with_info.append((feat, ti))
         if v25_features_with_info:
-            build_all_v25_sheets(wb, v25_features_with_info, log_fn=log_fn, n_buckets=32)
+            build_all_v25_sheets(wb, v25_features_with_info, log_fn=log_fn, n_buckets=64)
             log_fn(f"    v2.5: {len(v25_features_with_info)} tracks written to spectral evolution sheets")
         else:
             log_fn("    v2.5: No spectral evolution features available (skipped)")
     except Exception as e:
         log_fn(f"    v2.5: Spectral evolution sheets failed: {e}")
+
+    # ---- v2.5.1: Automation Map (requires .als path) ----
+    if als_path:
+        try:
+            from automation_map import extract_all_track_automations
+            from feature_storage import build_automation_map_sheet
+            auto_maps = extract_all_track_automations(als_path)
+            ref_duration = max((a.get('duration', 0) for a, _ in analyses_with_info), default=0)
+            build_automation_map_sheet(wb, auto_maps, n_buckets=64,
+                                       duration=ref_duration, log_fn=log_fn)
+            log_fn(f"    v2.5.1: Automation map written for {len(auto_maps)} tracks")
+        except Exception as e:
+            log_fn(f"    v2.5.1: Automation map failed: {e}")
 
     # ---- P3.1: Frequency Conflict Detector ----
     # Mode ai_optimized: INCLUDED (structured conflict data not in AI Context)

@@ -271,6 +271,40 @@ def _prepare_track_eq8(
 
 
 # ---------------------------------------------------------------------------
+# Audibility masking (v2.5.1)
+# ---------------------------------------------------------------------------
+
+def _mask_by_audibility(
+    breakpoints: list[tuple[float, float]],
+    automation_map,
+    tempo: float,
+) -> list[tuple[float, float]]:
+    """Remove breakpoints where the track is inaudible.
+
+    Uses the TrackAutomationMap to check if the track is audible at each
+    breakpoint's timestamp. Breakpoints in muted sections are dropped.
+
+    Args:
+        breakpoints: List of (time_beats, value) tuples.
+        automation_map: TrackAutomationMap for the track (or None to skip).
+        tempo: Project tempo in BPM.
+
+    Returns:
+        Filtered list of breakpoints.
+    """
+    if automation_map is None or len(breakpoints) == 0:
+        return breakpoints
+
+    from als_utils import beats_to_seconds
+    from automation_map import resample_audibility
+
+    times_sec = np.array([beats_to_seconds(t, tempo) for t, _ in breakpoints])
+    audible = resample_audibility(automation_map, times_sec)
+
+    return [bp for bp, is_aud in zip(breakpoints, audible) if is_aud]
+
+
+# ---------------------------------------------------------------------------
 # Phase 3 — Adaptive filters (spec §5.A)
 # ---------------------------------------------------------------------------
 
@@ -282,6 +316,7 @@ def write_adaptive_hpf(
     valley_trajectories: list[PeakTrajectory] | None = None,
     safety_hz: float = 10.0,
     band_index: int | None = None,
+    automation_map=None,
 ) -> AutomationReport:
     """Write an adaptive high-pass filter automation.
 
@@ -296,6 +331,7 @@ def write_adaptive_hpf(
         valley_trajectories: Optional valley trajectories for safety.
         safety_hz: Safety margin below rolloff (Hz).
         band_index: Specific EQ8 band to use, or None for auto.
+        automation_map: Optional TrackAutomationMap to mask muted sections.
 
     Returns:
         AutomationReport.
@@ -325,6 +361,7 @@ def write_adaptive_hpf(
     cutoff = np.array([_freq_to_eq8_value(f) for f in cutoff])
 
     breakpoints = _feature_to_breakpoints(cutoff, times, tempo)
+    breakpoints = _mask_by_audibility(breakpoints, automation_map, tempo)
 
     freq_target_id = get_automation_target_id(band_param, "Freq")
     _remove_existing_envelope(track, freq_target_id)
@@ -347,6 +384,7 @@ def write_adaptive_lpf(
     times: np.ndarray,
     safety_hz: float = 500.0,
     band_index: int | None = None,
+    automation_map=None,
 ) -> AutomationReport:
     """Write an adaptive low-pass filter automation.
 
@@ -381,6 +419,7 @@ def write_adaptive_lpf(
     ])
 
     breakpoints = _feature_to_breakpoints(cutoff, times, tempo)
+    breakpoints = _mask_by_audibility(breakpoints, automation_map, tempo)
 
     freq_target_id = get_automation_target_id(band_param, "Freq")
     _remove_existing_envelope(track, freq_target_id)
@@ -403,6 +442,7 @@ def write_safety_hpf(
     times: np.ndarray,
     threshold_db: float = -30.0,
     band_index: int | None = None,
+    automation_map=None,
 ) -> AutomationReport:
     """Write a safety HPF that engages only when sub energy is rumble.
 
@@ -437,6 +477,7 @@ def write_safety_hpf(
     is_on_values = np.where(sub_energy < threshold_db, 1.0, 0.0)
 
     breakpoints = _feature_to_breakpoints(is_on_values, times, tempo)
+    breakpoints = _mask_by_audibility(breakpoints, automation_map, tempo)
 
     ison_target_id = get_automation_target_id(band_param, "IsOn")
     _remove_existing_envelope(track, ison_target_id)
@@ -463,6 +504,7 @@ def write_dynamic_notch(
     times: np.ndarray,
     reduction_db: float = -4.0,
     band_index: int | None = None,
+    automation_map=None,
 ) -> AutomationReport:
     """Write a dynamic notch that tracks a peak trajectory.
 
@@ -517,6 +559,8 @@ def write_dynamic_notch(
 
     freq_bps = _feature_to_breakpoints(freq_curve, times, tempo)
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+    freq_bps = _mask_by_audibility(freq_bps, automation_map, tempo)
+    gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
     freq_target_id = get_automation_target_id(band_param, "Freq")
     gain_target_id = get_automation_target_id(band_param, "Gain")
@@ -545,6 +589,7 @@ def write_dynamic_bell_cut(
     threshold_db: float,
     max_cut_db: float = -6.0,
     band_index: int | None = None,
+    automation_map=None,
 ) -> AutomationReport:
     """Write a bell cut proportional to zone energy above a threshold.
 
@@ -580,6 +625,7 @@ def write_dynamic_bell_cut(
     gain_curve = np.array([_gain_to_eq8_value(g) for g in gain_curve])
 
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+    gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
     gain_target_id = get_automation_target_id(band_param, "Gain")
     _remove_existing_envelope(track, gain_target_id)
@@ -603,6 +649,7 @@ def write_resonance_suppression(
     sensitivity: float = 0.5,
     max_bands: int = 3,
     band_index_start: int | None = None,
+    automation_map=None,
 ) -> list[AutomationReport]:
     """Soothe-style resonance suppression using multiple dynamic notches.
 
@@ -692,6 +739,8 @@ def write_resonance_suppression(
 
         freq_bps = _feature_to_breakpoints(freq_curve, times, tempo)
         gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+        freq_bps = _mask_by_audibility(freq_bps, automation_map, tempo)
+        gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
         freq_target_id = get_automation_target_id(band_param, "Freq")
         gain_target_id = get_automation_target_id(band_param, "Gain")
@@ -724,6 +773,7 @@ def write_adaptive_presence_boost(
     threshold_db: float = -18.0,
     max_boost_db: float = 3.0,
     band_index: int | None = None,
+    automation_map=None,
 ) -> AutomationReport:
     """Write an adaptive presence boost (2-4 kHz).
 
@@ -760,6 +810,7 @@ def write_adaptive_presence_boost(
     gain_curve = np.array([_gain_to_eq8_value(g) for g in gain_curve])
 
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+    gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
     gain_target_id = get_automation_target_id(band_param, "Gain")
     _remove_existing_envelope(track, gain_target_id)
@@ -783,6 +834,7 @@ def write_adaptive_air_boost(
     threshold_hz: float = 8000.0,
     max_boost_db: float = 2.0,
     band_index: int | None = None,
+    automation_map=None,
 ) -> AutomationReport:
     """Write an adaptive air boost (high shelf).
 
@@ -821,6 +873,7 @@ def write_adaptive_air_boost(
     gain_curve = np.array([_gain_to_eq8_value(g) for g in gain_curve])
 
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+    gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
     gain_target_id = get_automation_target_id(band_param, "Gain")
     _remove_existing_envelope(track, gain_target_id)
@@ -908,6 +961,8 @@ def write_masking_reciprocal_cuts(
     reduction_db: float = -3.0,
     band_index_a: int | None = None,
     band_index_b: int | None = None,
+    automation_map_a=None,
+    automation_map_b=None,
 ) -> tuple[AutomationReport, AutomationReport]:
     """Write reciprocal bell cuts on two tracks to reduce masking.
 
@@ -942,8 +997,9 @@ def write_masking_reciprocal_cuts(
     next_id = [get_next_id(tree)]
 
     reports: list[AutomationReport] = []
-    for track_id, band_idx in [(track_a_id, band_index_a),
-                                (track_b_id, band_index_b)]:
+    auto_maps = [automation_map_a, automation_map_b]
+    for idx_pair, (track_id, band_idx) in enumerate([(track_a_id, band_index_a),
+                                                      (track_b_id, band_index_b)]):
         try:
             track = find_track_by_name(tree, track_id)
         except ValueError as e:
@@ -967,6 +1023,7 @@ def write_masking_reciprocal_cuts(
             _gain_to_eq8_value(reduction_db * s) for s in combined_score
         ])
         gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+        gain_bps = _mask_by_audibility(gain_bps, auto_maps[idx_pair], tempo)
 
         gain_target_id = get_automation_target_id(band_param, "Gain")
         _remove_existing_envelope(track, gain_target_id)
@@ -992,6 +1049,7 @@ def write_targeted_sidechain_eq(
     reduction_db: float = -6.0,
     threshold_db: float = -20.0,
     band_index: int | None = None,
+    automation_map=None,
 ) -> AutomationReport:
     """Write a sidechain-style bell cut triggered by another track's energy.
 
@@ -1027,6 +1085,7 @@ def write_targeted_sidechain_eq(
     gain_curve = np.array([_gain_to_eq8_value(g) for g in gain_curve])
 
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+    gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
     gain_target_id = get_automation_target_id(band_param, "Gain")
     _remove_existing_envelope(track, gain_target_id)
@@ -1055,6 +1114,7 @@ def write_transient_aware_cut(
     times: np.ndarray,
     release_ms: float = 50.0,
     band_index: int | None = None,
+    automation_map=None,
 ) -> AutomationReport:
     """Write a bell cut that backs off during transients.
 
@@ -1104,6 +1164,7 @@ def write_transient_aware_cut(
                     gain_curve[idx] = min(gain_curve[idx], decay)
 
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+    gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
     gain_target_id = get_automation_target_id(band_param, "Gain")
     _remove_existing_envelope(track, gain_target_id)
@@ -1126,6 +1187,7 @@ def write_section_aware_eq(
     times: np.ndarray,
     threshold: float = 0.3,
     band_index: int | None = None,
+    automation_map=None,
 ) -> AutomationReport:
     """Write staircase EQ automation based on section transitions.
 
@@ -1168,6 +1230,7 @@ def write_section_aware_eq(
         gain_curve[start:end] = _gain_to_eq8_value(-seg_mean * 2)
 
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+    gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
     gain_target_id = get_automation_target_id(band_param, "Gain")
     _remove_existing_envelope(track, gain_target_id)
@@ -1191,6 +1254,7 @@ def write_dynamic_deesser(
     threshold_db: float = -18.0,
     reduction_db: float = -4.0,
     band_index: int | None = None,
+    automation_map=None,
 ) -> AutomationReport:
     """Write a dynamic de-esser automation.
 
@@ -1227,6 +1291,7 @@ def write_dynamic_deesser(
     )
 
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+    gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
     gain_target_id = get_automation_target_id(band_param, "Gain")
     _remove_existing_envelope(track, gain_target_id)
@@ -1254,6 +1319,7 @@ def write_spectral_match(
     times: np.ndarray,
     zones: list[str] | None = None,
     max_correction_db: float = 6.0,
+    automation_map=None,
 ) -> list[AutomationReport]:
     """Match a track's spectral profile to a reference target.
 
@@ -1326,6 +1392,7 @@ def write_spectral_match(
 
         gain_curve = np.array([_gain_to_eq8_value(g) for g in padded])
         gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+        gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
         gain_target_id = get_automation_target_id(band_param, "Gain")
         _remove_existing_envelope(track, gain_target_id)
