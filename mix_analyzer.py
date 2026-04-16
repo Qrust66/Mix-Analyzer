@@ -1151,6 +1151,13 @@ def analyze_track(filepath, compute_tempo=False):
     result['anomalies'] = detect_anomalies(result)
     result['characteristics'] = describe_characteristics(result)
 
+    # v2.5 — Spectral evolution features (CQT-based)
+    try:
+        from spectral_evolution import extract_all_features as _v25_extract
+        result['_v25_features'] = _v25_extract(mono, sr)
+    except Exception:
+        result['_v25_features'] = None
+
     result['_mono'] = mono
     result['_data'] = data
 
@@ -6715,6 +6722,22 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _build_track_dynamics_time_sheet(wb, analyses_with_info, log_fn=log_fn, n_buckets=32)
     _build_track_chroma_sheet(wb, analyses_with_info, log_fn=log_fn)
     _build_track_onsets_sheet(wb, analyses_with_info, log_fn=log_fn, n_buckets=32)
+
+    # ---- v2.5: Spectral evolution hidden sheets (always generated) ----
+    try:
+        from feature_storage import build_all_v25_sheets
+        v25_features_with_info = []
+        for a, ti in analyses_with_info:
+            feat = a.get('_v25_features')
+            if feat is not None:
+                v25_features_with_info.append((feat, ti))
+        if v25_features_with_info:
+            build_all_v25_sheets(wb, v25_features_with_info, log_fn=log_fn, n_buckets=32)
+            log_fn(f"    v2.5: {len(v25_features_with_info)} tracks written to spectral evolution sheets")
+        else:
+            log_fn("    v2.5: No spectral evolution features available (skipped)")
+    except Exception as e:
+        log_fn(f"    v2.5: Spectral evolution sheets failed: {e}")
 
     # ---- P3.1: Frequency Conflict Detector ----
     # Mode ai_optimized: INCLUDED (structured conflict data not in AI Context)
