@@ -24,12 +24,15 @@ Ne jamais laisser des versions désynchronisées entre fichiers.
 ## Communication avec l'utilisateur
 
 - **Toujours indiquer si les changements sont disponibles sur `main`** après un commit/push.
-  L'utilisateur n'est pas familier avec git — dire explicitement :
-  "C'est pushé sur main, tu peux télécharger les fichiers mis à jour depuis GitHub."
+  L'utilisateur utilise **GitHub Desktop** pour synchroniser. Dire explicitement :
+  "C'est pushé sur main, tu peux faire **Pull** dans GitHub Desktop."
 - Si le travail est sur une branche feature, le préciser : "C'est sur la branche X,
-  pas encore sur main."
-- Guider l'utilisateur sur comment récupérer les fichiers (téléchargement GitHub,
-  git pull, etc.) quand pertinent.
+  pas encore sur main. Je te dirai quand merger."
+- L'utilisateur n'est pas familier avec git/GitHub — toujours guider simplement,
+  pas de jargon inutile. Le workflow est :
+  1. On travaille ici dans Claude Code
+  2. Je push sur GitHub quand c'est prêt
+  3. L'utilisateur fait **Pull** dans GitHub Desktop → fichiers locaux à jour
 
 ## Fichiers de production (5 fichiers, même dossier)
 
