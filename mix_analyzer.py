@@ -9471,16 +9471,20 @@ class MixAnalyzerApp:
                 if xlsx_path.exists():
                     xlsx_path.unlink()
 
-                # Auto-detect .als file in input folder for automation map
+                # Auto-detect .als file in input folder or ancestor dirs
                 _als_path = None
                 _input_dir = Path(self.input_folder.get())
                 if _input_dir.is_dir():
-                    als_files = list(_input_dir.glob('*.als'))
-                    if not als_files:
-                        als_files = list(_input_dir.parent.glob('*.als'))
-                    if als_files:
-                        _als_path = str(als_files[0])
-                        self.log(f"    ALS detected: {Path(_als_path).name}")
+                    for search_dir in [_input_dir, _input_dir.parent,
+                                       _input_dir.parent.parent,
+                                       _input_dir.parent.parent.parent]:
+                        if not search_dir.is_dir():
+                            break
+                        als_files = list(search_dir.glob('*.als'))
+                        if als_files:
+                            _als_path = str(als_files[0])
+                            self.log(f"    ALS detected: {Path(_als_path).name}")
+                            break
 
                 generate_excel_report(
                     analyses_with_info, str(xlsx_path), self.style.get(),
