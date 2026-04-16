@@ -80,7 +80,9 @@ def _downsample_frames(values: np.ndarray, n_buckets: int = 32) -> List[Optional
     if len(values) == 0:
         return [None] * n_buckets
     if len(values) <= n_buckets:
-        out = [round(float(v), 1) for v in values]
+        out = []
+        for v in values:
+            out.append(None if np.isnan(v) else round(float(v), 1))
         out.extend([None] * (n_buckets - len(out)))
         return out
     edges = np.linspace(0, len(values), n_buckets + 1, dtype=int)
@@ -88,7 +90,9 @@ def _downsample_frames(values: np.ndarray, n_buckets: int = 32) -> List[Optional
     for i in range(n_buckets):
         chunk = values[edges[i]:edges[i + 1]]
         if len(chunk) > 0:
-            result.append(round(float(np.mean(chunk)), 1))
+            with np.errstate(all='ignore'):
+                val = float(np.nanmean(chunk))
+            result.append(None if np.isnan(val) else round(val, 1))
         else:
             result.append(None)
     return result
