@@ -28,9 +28,13 @@ from eq8_automation import (
     TrackNotFoundError,
     EQ8SlotFullError,
     AutomationReport,
+    write_adaptive_hpf,
+    write_adaptive_lpf,
+    write_safety_hpf,
 )
 from als_utils import (
     parse_als,
+    find_track_by_name,
     get_eq8_band,
     get_automation_target_id,
 )
@@ -325,6 +329,169 @@ class TestRemoveExistingEnvelope:
         assert "11111" in remaining_ids
         assert "33333" in remaining_ids
         assert "22222" not in remaining_ids
+
+
+# ---------------------------------------------------------------------------
+# Tests — Phase 3: Adaptive filters
+# ---------------------------------------------------------------------------
+
+class TestAdaptiveHPF:
+    def test_writes_envelope(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        rolloff = np.full(10, 80.0)
+        times = np.linspace(0, 5, 10)
+
+        report = write_adaptive_hpf(als_path, "Track1", rolloff, times, band_index=1)
+        assert report.success
+        assert report.breakpoints_written == 10
+        assert report.eq8_band_index == 1
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 1)
+
+        mode_val = band_param.find("Mode/Manual").get("Value")
+        assert mode_val == "0"
+
+        freq_target_id = get_automation_target_id(band_param, "Freq")
+        env_count = sum(
+            1 for env in track.iter("AutomationEnvelope")
+            if env.find("EnvelopeTarget/PointeeId") is not None
+            and env.find("EnvelopeTarget/PointeeId").get("Value") == freq_target_id
+        )
+        assert env_count == 1
+
+    def test_safety_margin_applied(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        rolloff = np.full(5, 100.0)
+        times = np.linspace(0, 2, 5)
+
+        write_adaptive_hpf(als_path, "Track1", rolloff, times,
+                           safety_hz=20.0, band_index=1)
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 1)
+        freq_target_id = get_automation_target_id(band_param, "Freq")
+
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == freq_target_id:
+                events = env.findall(".//FloatEvent")
+                for ev in events:
+                    t = float(ev.get("Time"))
+                    if t > 0:
+                        assert float(ev.get("Value")) == pytest.approx(80.0, abs=1.0)
+
+    def test_track_not_found_raises(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+        with pytest.raises(TrackNotFoundError):
+            write_adaptive_hpf(als_path, "NonExistent",
+                               np.ones(5), np.linspace(0, 2, 5))
+
+
+class TestAdaptiveLPF:
+    def test_writes_envelope(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        rolloff = np.full(10, 12000.0)
+        times = np.linspace(0, 5, 10)
+
+        report = write_adaptive_lpf(als_path, "Track1", rolloff, times, band_index=2)
+        assert report.success
+        assert report.breakpoints_written == 10
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 2)
+
+        mode_val = band_param.find("Mode/Manual").get("Value")
+        assert mode_val == "7"
+
+    def test_safety_margin_applied(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        rolloff = np.full(5, 10000.0)
+        times = np.linspace(0, 2, 5)
+
+        write_adaptive_lpf(als_path, "Track1", rolloff, times,
+                           safety_hz=1000.0, band_index=2)
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 2)
+        freq_target_id = get_automation_target_id(band_param, "Freq")
+
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == freq_target_id:
+                events = env.findall(".//FloatEvent")
+                for ev in events:
+                    if float(ev.get("Time")) > 0:
+                        assert float(ev.get("Value")) == pytest.approx(11000.0, abs=1.0)
+
+
+class TestSafetyHPF:
+    def test_toggles_on_low_energy(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        sub_energy = np.array([-40.0, -40.0, -20.0, -20.0, -40.0])
+        times = np.linspace(0, 2, 5)
+
+        report = write_safety_hpf(als_path, "Track1", sub_energy, times,
+                                  threshold_db=-30.0, band_index=3)
+        assert report.success
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 3)
+        ison_target_id = get_automation_target_id(band_param, "IsOn")
+
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == ison_target_id:
+                events = env.findall(".//FloatEvent")
+                real_events = [e for e in events if float(e.get("Time")) >= 0]
+                values = [float(e.get("Value")) for e in real_events]
+                assert values == [1.0, 1.0, 0.0, 0.0, 1.0]
+
+
+class TestIdempotency:
+    def test_hpf_does_not_duplicate(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        rolloff = np.full(10, 80.0)
+        times = np.linspace(0, 5, 10)
+
+        write_adaptive_hpf(als_path, "Track1", rolloff, times, band_index=1)
+        write_adaptive_hpf(als_path, "Track1", rolloff, times, band_index=1)
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 1)
+        freq_target_id = get_automation_target_id(band_param, "Freq")
+
+        count = sum(
+            1 for env in track.iter("AutomationEnvelope")
+            if env.find("EnvelopeTarget/PointeeId") is not None
+            and env.find("EnvelopeTarget/PointeeId").get("Value") == freq_target_id
+        )
+        assert count == 1
 
 
 if __name__ == "__main__":

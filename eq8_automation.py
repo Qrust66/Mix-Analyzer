@@ -233,3 +233,220 @@ def _zone_center_freq(zone: str) -> float:
         raise ValueError(f"Unknown zone: {zone}")
     lo, hi = ZONE_RANGES[zone]
     return float(np.sqrt(lo * hi))
+
+
+def _prepare_track_eq8(
+    als_path: Path | str,
+    track_id: str,
+    band_index: int | None = None,
+    exclude_bands: list[int] | None = None,
+) -> tuple:
+    """Backup, parse, find track/EQ8, allocate band.
+
+    Returns:
+        (tree, track, eq8, band_idx, band_param, tempo, next_id_counter)
+        where next_id_counter is a mutable [int] list.
+    """
+    als_path = Path(als_path)
+    backup_als(str(als_path))
+    tree = parse_als(str(als_path))
+
+    try:
+        track = find_track_by_name(tree, track_id)
+    except ValueError as e:
+        raise TrackNotFoundError(str(e)) from e
+
+    eq8 = find_or_create_eq8(track, tree)
+
+    if band_index is not None:
+        bi = band_index
+    else:
+        bi = _find_available_band(eq8, track, exclude=exclude_bands)
+
+    band_param = get_eq8_band(eq8, bi)
+    tempo = _extract_tempo(tree)
+    next_id = [get_next_id(tree)]
+
+    return tree, track, eq8, bi, band_param, tempo, next_id
+
+
+# ---------------------------------------------------------------------------
+# Phase 3 — Adaptive filters (spec §5.A)
+# ---------------------------------------------------------------------------
+
+def write_adaptive_hpf(
+    als_path: Path | str,
+    track_id: str,
+    low_rolloff_curve: np.ndarray,
+    times: np.ndarray,
+    valley_trajectories: list[PeakTrajectory] | None = None,
+    safety_hz: float = 10.0,
+    band_index: int | None = None,
+) -> AutomationReport:
+    """Write an adaptive high-pass filter automation.
+
+    The HPF cutoff follows low_rolloff_curve minus safety_hz.
+    Valley trajectories prevent cutting content above spectral gaps.
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name in the Ableton project.
+        low_rolloff_curve: Per-frame low rolloff frequency in Hz.
+        times: Per-frame timestamps in seconds.
+        valley_trajectories: Optional valley trajectories for safety.
+        safety_hz: Safety margin below rolloff (Hz).
+        band_index: Specific EQ8 band to use, or None for auto.
+
+    Returns:
+        AutomationReport.
+
+    Raises:
+        TrackNotFoundError: If track doesn't exist.
+        EQ8SlotFullError: If no band is available.
+    """
+    tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
+        als_path, track_id, band_index
+    )
+    warnings: list[str] = []
+
+    configure_eq8_band(band_param, mode=0, freq=80.0, q=0.71)
+    ison = band_param.find("IsOn/Manual")
+    if ison is not None:
+        ison.set("Value", "true")
+
+    cutoff = np.maximum(low_rolloff_curve - safety_hz, 20.0)
+
+    if valley_trajectories:
+        for traj in valley_trajectories:
+            for frame_idx, freq, amp in traj.points:
+                if 0 <= frame_idx < len(cutoff) and freq < cutoff[frame_idx]:
+                    cutoff[frame_idx] = max(freq - safety_hz, 20.0)
+
+    cutoff = np.array([_freq_to_eq8_value(f) for f in cutoff])
+
+    breakpoints = _feature_to_breakpoints(cutoff, times, tempo)
+
+    freq_target_id = get_automation_target_id(band_param, "Freq")
+    _remove_existing_envelope(track, freq_target_id)
+    write_automation_envelope(track, freq_target_id, breakpoints, next_id)
+
+    save_als_from_tree(tree, str(als_path))
+
+    return AutomationReport(
+        success=True,
+        breakpoints_written=len(breakpoints),
+        eq8_band_index=bi,
+        warnings=warnings,
+    )
+
+
+def write_adaptive_lpf(
+    als_path: Path | str,
+    track_id: str,
+    high_rolloff_curve: np.ndarray,
+    times: np.ndarray,
+    safety_hz: float = 500.0,
+    band_index: int | None = None,
+) -> AutomationReport:
+    """Write an adaptive low-pass filter automation.
+
+    The LPF cutoff follows high_rolloff_curve plus safety_hz.
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name.
+        high_rolloff_curve: Per-frame high rolloff frequency in Hz.
+        times: Per-frame timestamps in seconds.
+        safety_hz: Safety margin above rolloff (Hz).
+        band_index: Specific EQ8 band, or None for auto.
+
+    Returns:
+        AutomationReport.
+
+    Raises:
+        TrackNotFoundError: If track doesn't exist.
+        EQ8SlotFullError: If no band is available.
+    """
+    tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
+        als_path, track_id, band_index
+    )
+
+    configure_eq8_band(band_param, mode=7, freq=16000.0, q=0.71)
+    ison = band_param.find("IsOn/Manual")
+    if ison is not None:
+        ison.set("Value", "true")
+
+    cutoff = np.array([
+        _freq_to_eq8_value(f + safety_hz) for f in high_rolloff_curve
+    ])
+
+    breakpoints = _feature_to_breakpoints(cutoff, times, tempo)
+
+    freq_target_id = get_automation_target_id(band_param, "Freq")
+    _remove_existing_envelope(track, freq_target_id)
+    write_automation_envelope(track, freq_target_id, breakpoints, next_id)
+
+    save_als_from_tree(tree, str(als_path))
+
+    return AutomationReport(
+        success=True,
+        breakpoints_written=len(breakpoints),
+        eq8_band_index=bi,
+        warnings=[],
+    )
+
+
+def write_safety_hpf(
+    als_path: Path | str,
+    track_id: str,
+    sub_energy: np.ndarray,
+    times: np.ndarray,
+    threshold_db: float = -30.0,
+    band_index: int | None = None,
+) -> AutomationReport:
+    """Write a safety HPF that engages only when sub energy is rumble.
+
+    Fixed cutoff at 30 Hz.  Automates IsOn: active (1.0) when sub
+    energy is below threshold (= rumble, not content), bypassed (0.0)
+    when energy indicates real bass.
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name.
+        sub_energy: Per-frame sub zone energy in dB.
+        times: Per-frame timestamps in seconds.
+        threshold_db: Energy threshold below which HPF engages.
+        band_index: Specific EQ8 band, or None for auto.
+
+    Returns:
+        AutomationReport.
+
+    Raises:
+        TrackNotFoundError: If track doesn't exist.
+        EQ8SlotFullError: If no band is available.
+    """
+    tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
+        als_path, track_id, band_index
+    )
+
+    configure_eq8_band(band_param, mode=0, freq=30.0, q=0.71)
+    ison_elem = band_param.find("IsOn/Manual")
+    if ison_elem is not None:
+        ison_elem.set("Value", "true")
+
+    is_on_values = np.where(sub_energy < threshold_db, 1.0, 0.0)
+
+    breakpoints = _feature_to_breakpoints(is_on_values, times, tempo)
+
+    ison_target_id = get_automation_target_id(band_param, "IsOn")
+    _remove_existing_envelope(track, ison_target_id)
+    write_automation_envelope(track, ison_target_id, breakpoints, next_id)
+
+    save_als_from_tree(tree, str(als_path))
+
+    return AutomationReport(
+        success=True,
+        breakpoints_written=len(breakpoints),
+        eq8_band_index=bi,
+        warnings=[],
+    )
