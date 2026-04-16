@@ -505,33 +505,39 @@ def write_dynamic_notch(
     reduction_db: float = -4.0,
     band_index: int | None = None,
     automation_map=None,
+    proportional: bool = True,
+    threshold_db: float = -40.0,
+    q: float = 8.0,
 ) -> AutomationReport:
     """Write a dynamic notch that tracks a peak trajectory.
 
-    Automates both Freq (following the peak frequency) and Gain
-    (reduction_db when the peak is present, 0 dB otherwise).
-    Q is fixed at 8.0 for a narrow notch.
+    Automates both Freq (following the peak frequency) and Gain.
+
+    When proportional=True (default), the cut depth scales with the peak's
+    amplitude at each frame: louder peaks are cut more, up to reduction_db.
+    When proportional=False, a flat reduction_db is applied whenever the
+    peak is active.
 
     Args:
         als_path: Path to the .als file.
         track_id: Track name.
         peak_trajectory: A single PeakTrajectory to follow.
         times: Per-frame timestamps in seconds.
-        reduction_db: Notch depth in dB (negative).
+        reduction_db: Maximum notch depth in dB (negative).
         band_index: Specific EQ8 band, or None for auto.
+        automation_map: Optional TrackAutomationMap to mask muted sections.
+        proportional: Scale reduction with peak amplitude (default True).
+        threshold_db: Amplitude floor below which no reduction is applied.
+        q: Notch Q factor (default 8.0, narrow).
 
     Returns:
         AutomationReport (breakpoints_written counts both Freq + Gain).
-
-    Raises:
-        TrackNotFoundError: If track doesn't exist.
-        EQ8SlotFullError: If no band is available.
     """
     tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
         als_path, track_id, band_index
     )
 
-    configure_eq8_band(band_param, mode=4, q=8.0)
+    configure_eq8_band(band_param, mode=4, q=_q_to_eq8_value(q))
     ison = band_param.find("IsOn/Manual")
     if ison is not None:
         ison.set("Value", "true")
@@ -544,7 +550,12 @@ def write_dynamic_notch(
     for frame_idx, freq_hz, amp_db in peak_trajectory.points:
         if 0 <= frame_idx < n_frames:
             freq_curve[frame_idx] = freq_hz
-            gain_curve[frame_idx] = reduction_db
+            if proportional:
+                excess = max(amp_db - threshold_db, 0.0)
+                scale = min(excess / max(-threshold_db, 1.0), 1.0)
+                gain_curve[frame_idx] = reduction_db * scale
+            else:
+                gain_curve[frame_idx] = reduction_db
             active_frames.add(frame_idx)
 
     last_freq = peak_trajectory.mean_freq
@@ -650,11 +661,14 @@ def write_resonance_suppression(
     max_bands: int = 3,
     band_index_start: int | None = None,
     automation_map=None,
+    threshold_db: float = -40.0,
+    q: float = 8.0,
 ) -> list[AutomationReport]:
     """Soothe-style resonance suppression using multiple dynamic notches.
 
-    Identifies the most resonant peaks (high amplitude, long duration)
-    and creates one notch per peak, each on a separate EQ8 band.
+    Identifies the most resonant peaks and creates one notch per peak.
+    Reduction is proportional to each frame's amplitude: louder frames
+    get cut more aggressively, scaled by sensitivity.
 
     Args:
         als_path: Path to the .als file.
@@ -664,6 +678,9 @@ def write_resonance_suppression(
         sensitivity: Reduction aggressiveness (0.0 - 1.0).
         max_bands: Maximum number of EQ8 bands to use.
         band_index_start: First band index if specified, or None for auto.
+        automation_map: Optional TrackAutomationMap to mask muted sections.
+        threshold_db: Amplitude floor below which no reduction is applied.
+        q: Notch Q factor (default 8.0).
 
     Returns:
         List of AutomationReport (one per band used).
@@ -710,14 +727,14 @@ def write_resonance_suppression(
         exclude.append(bi)
 
         band_param = get_eq8_band(eq8, bi)
-        configure_eq8_band(band_param, mode=4, q=8.0)
+        configure_eq8_band(band_param, mode=4, q=_q_to_eq8_value(q))
         ison = band_param.find("IsOn/Manual")
         if ison is not None:
             ison.set("Value", "true")
 
         freq_curve = np.full(n_frames, peak.mean_freq)
         gain_curve = np.zeros(n_frames)
-        reduction = _gain_to_eq8_value(
+        max_reduction = _gain_to_eq8_value(
             -sensitivity * max(peak.mean_amplitude + 60, 2)
         )
 
@@ -725,7 +742,9 @@ def write_resonance_suppression(
         for frame_idx, freq_hz, amp_db in peak.points:
             if 0 <= frame_idx < n_frames:
                 freq_curve[frame_idx] = freq_hz
-                gain_curve[frame_idx] = reduction
+                excess = max(amp_db - threshold_db, 0.0)
+                scale = min(excess / max(-threshold_db, 1.0), 1.0)
+                gain_curve[frame_idx] = max_reduction * scale
                 active_frames.add(frame_idx)
 
         last_freq = peak.mean_freq
