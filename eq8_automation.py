@@ -450,3 +450,263 @@ def write_safety_hpf(
         eq8_band_index=bi,
         warnings=[],
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 — Dynamic notches/bells (spec §5.B)
+# ---------------------------------------------------------------------------
+
+def write_dynamic_notch(
+    als_path: Path | str,
+    track_id: str,
+    peak_trajectory: PeakTrajectory,
+    times: np.ndarray,
+    reduction_db: float = -4.0,
+    band_index: int | None = None,
+) -> AutomationReport:
+    """Write a dynamic notch that tracks a peak trajectory.
+
+    Automates both Freq (following the peak frequency) and Gain
+    (reduction_db when the peak is present, 0 dB otherwise).
+    Q is fixed at 8.0 for a narrow notch.
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name.
+        peak_trajectory: A single PeakTrajectory to follow.
+        times: Per-frame timestamps in seconds.
+        reduction_db: Notch depth in dB (negative).
+        band_index: Specific EQ8 band, or None for auto.
+
+    Returns:
+        AutomationReport (breakpoints_written counts both Freq + Gain).
+
+    Raises:
+        TrackNotFoundError: If track doesn't exist.
+        EQ8SlotFullError: If no band is available.
+    """
+    tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
+        als_path, track_id, band_index
+    )
+
+    configure_eq8_band(band_param, mode=4, q=8.0)
+    ison = band_param.find("IsOn/Manual")
+    if ison is not None:
+        ison.set("Value", "true")
+
+    n_frames = len(times)
+    freq_curve = np.full(n_frames, peak_trajectory.mean_freq)
+    gain_curve = np.zeros(n_frames)
+
+    active_frames: set[int] = set()
+    for frame_idx, freq_hz, amp_db in peak_trajectory.points:
+        if 0 <= frame_idx < n_frames:
+            freq_curve[frame_idx] = freq_hz
+            gain_curve[frame_idx] = reduction_db
+            active_frames.add(frame_idx)
+
+    last_freq = peak_trajectory.mean_freq
+    for i in range(n_frames):
+        if i in active_frames:
+            last_freq = freq_curve[i]
+        else:
+            freq_curve[i] = last_freq
+
+    freq_curve = np.array([_freq_to_eq8_value(f) for f in freq_curve])
+    gain_curve = np.array([_gain_to_eq8_value(g) for g in gain_curve])
+
+    freq_bps = _feature_to_breakpoints(freq_curve, times, tempo)
+    gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+
+    freq_target_id = get_automation_target_id(band_param, "Freq")
+    gain_target_id = get_automation_target_id(band_param, "Gain")
+    _remove_existing_envelope(track, freq_target_id)
+    _remove_existing_envelope(track, gain_target_id)
+
+    write_automation_envelope(track, freq_target_id, freq_bps, next_id)
+    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+
+    save_als_from_tree(tree, str(als_path))
+
+    return AutomationReport(
+        success=True,
+        breakpoints_written=len(freq_bps) + len(gain_bps),
+        eq8_band_index=bi,
+        warnings=[],
+    )
+
+
+def write_dynamic_bell_cut(
+    als_path: Path | str,
+    track_id: str,
+    zone_energy: np.ndarray,
+    times: np.ndarray,
+    zone_center_hz: float,
+    threshold_db: float,
+    max_cut_db: float = -6.0,
+    band_index: int | None = None,
+) -> AutomationReport:
+    """Write a bell cut proportional to zone energy above a threshold.
+
+    Freq is fixed at zone_center_hz.  Gain = 0 when energy is below
+    threshold, proportional negative cut (up to max_cut_db) when above.
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name.
+        zone_energy: Per-frame zone energy in dB.
+        times: Per-frame timestamps in seconds.
+        zone_center_hz: Center frequency of the bell.
+        threshold_db: Energy threshold above which cutting begins.
+        max_cut_db: Maximum cut depth in dB (negative).
+        band_index: Specific EQ8 band, or None for auto.
+
+    Returns:
+        AutomationReport.
+    """
+    tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
+        als_path, track_id, band_index
+    )
+
+    configure_eq8_band(
+        band_param, mode=3, freq=_freq_to_eq8_value(zone_center_hz), q=2.0,
+    )
+    ison = band_param.find("IsOn/Manual")
+    if ison is not None:
+        ison.set("Value", "true")
+
+    excess = np.maximum(zone_energy - threshold_db, 0.0)
+    gain_curve = np.clip(-excess, max_cut_db, 0.0)
+    gain_curve = np.array([_gain_to_eq8_value(g) for g in gain_curve])
+
+    gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+
+    gain_target_id = get_automation_target_id(band_param, "Gain")
+    _remove_existing_envelope(track, gain_target_id)
+    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+
+    save_als_from_tree(tree, str(als_path))
+
+    return AutomationReport(
+        success=True,
+        breakpoints_written=len(gain_bps),
+        eq8_band_index=bi,
+        warnings=[],
+    )
+
+
+def write_resonance_suppression(
+    als_path: Path | str,
+    track_id: str,
+    peak_trajectories: list[PeakTrajectory],
+    times: np.ndarray,
+    sensitivity: float = 0.5,
+    max_bands: int = 3,
+    band_index_start: int | None = None,
+) -> list[AutomationReport]:
+    """Soothe-style resonance suppression using multiple dynamic notches.
+
+    Identifies the most resonant peaks (high amplitude, long duration)
+    and creates one notch per peak, each on a separate EQ8 band.
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name.
+        peak_trajectories: All detected peak trajectories.
+        times: Per-frame timestamps in seconds.
+        sensitivity: Reduction aggressiveness (0.0 - 1.0).
+        max_bands: Maximum number of EQ8 bands to use.
+        band_index_start: First band index if specified, or None for auto.
+
+    Returns:
+        List of AutomationReport (one per band used).
+    """
+    scored: list[tuple[float, PeakTrajectory]] = []
+    for peak in peak_trajectories:
+        if peak.duration_frames < 5:
+            continue
+        strength = max(peak.mean_amplitude + 60, 0)
+        score = strength * peak.duration_frames * sensitivity
+        scored.append((score, peak))
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    selected = scored[:max_bands]
+
+    if not selected:
+        return [AutomationReport(
+            success=True, breakpoints_written=0, eq8_band_index=-1,
+            warnings=["No resonant peaks found"],
+        )]
+
+    als_path = Path(als_path)
+    backup_als(str(als_path))
+    tree = parse_als(str(als_path))
+
+    try:
+        track = find_track_by_name(tree, track_id)
+    except ValueError as e:
+        raise TrackNotFoundError(str(e)) from e
+
+    eq8 = find_or_create_eq8(track, tree)
+    tempo = _extract_tempo(tree)
+    next_id = [get_next_id(tree)]
+
+    reports: list[AutomationReport] = []
+    exclude: list[int] = []
+    n_frames = len(times)
+
+    for i, (_score, peak) in enumerate(selected):
+        if band_index_start is not None:
+            bi = band_index_start + i
+        else:
+            bi = _find_available_band(eq8, track, exclude=exclude)
+        exclude.append(bi)
+
+        band_param = get_eq8_band(eq8, bi)
+        configure_eq8_band(band_param, mode=4, q=8.0)
+        ison = band_param.find("IsOn/Manual")
+        if ison is not None:
+            ison.set("Value", "true")
+
+        freq_curve = np.full(n_frames, peak.mean_freq)
+        gain_curve = np.zeros(n_frames)
+        reduction = _gain_to_eq8_value(
+            -sensitivity * max(peak.mean_amplitude + 60, 2)
+        )
+
+        active_frames: set[int] = set()
+        for frame_idx, freq_hz, amp_db in peak.points:
+            if 0 <= frame_idx < n_frames:
+                freq_curve[frame_idx] = freq_hz
+                gain_curve[frame_idx] = reduction
+                active_frames.add(frame_idx)
+
+        last_freq = peak.mean_freq
+        for j in range(n_frames):
+            if j in active_frames:
+                last_freq = freq_curve[j]
+            else:
+                freq_curve[j] = last_freq
+
+        freq_curve = np.array([_freq_to_eq8_value(f) for f in freq_curve])
+
+        freq_bps = _feature_to_breakpoints(freq_curve, times, tempo)
+        gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+
+        freq_target_id = get_automation_target_id(band_param, "Freq")
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+        _remove_existing_envelope(track, freq_target_id)
+        _remove_existing_envelope(track, gain_target_id)
+
+        write_automation_envelope(track, freq_target_id, freq_bps, next_id)
+        write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+
+        reports.append(AutomationReport(
+            success=True,
+            breakpoints_written=len(freq_bps) + len(gain_bps),
+            eq8_band_index=bi,
+            warnings=[],
+        ))
+
+    save_als_from_tree(tree, str(als_path))
+    return reports

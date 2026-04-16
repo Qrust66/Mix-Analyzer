@@ -31,7 +31,11 @@ from eq8_automation import (
     write_adaptive_hpf,
     write_adaptive_lpf,
     write_safety_hpf,
+    write_dynamic_notch,
+    write_dynamic_bell_cut,
+    write_resonance_suppression,
 )
+from spectral_evolution import PeakTrajectory
 from als_utils import (
     parse_als,
     find_track_by_name,
@@ -467,6 +471,117 @@ class TestSafetyHPF:
                 real_events = [e for e in events if float(e.get("Time")) >= 0]
                 values = [float(e.get("Value")) for e in real_events]
                 assert values == [1.0, 1.0, 0.0, 0.0, 1.0]
+
+
+# ---------------------------------------------------------------------------
+# Tests — Phase 4: Dynamic notches/bells
+# ---------------------------------------------------------------------------
+
+class TestDynamicNotch:
+    def test_tracks_frequency(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        points = [(i, 500.0 + i * 10, -30.0) for i in range(20)]
+        traj = PeakTrajectory(points=points)
+        times = np.linspace(0, 10, 20)
+
+        report = write_dynamic_notch(als_path, "Track1", traj, times,
+                                     reduction_db=-4.0, band_index=1)
+        assert report.success
+        assert report.breakpoints_written > 0
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 1)
+        assert band_param.find("Mode/Manual").get("Value") == "4"
+
+        freq_target_id = get_automation_target_id(band_param, "Freq")
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+
+        freq_envs = sum(
+            1 for env in track.iter("AutomationEnvelope")
+            if env.find("EnvelopeTarget/PointeeId") is not None
+            and env.find("EnvelopeTarget/PointeeId").get("Value") == freq_target_id
+        )
+        gain_envs = sum(
+            1 for env in track.iter("AutomationEnvelope")
+            if env.find("EnvelopeTarget/PointeeId") is not None
+            and env.find("EnvelopeTarget/PointeeId").get("Value") == gain_target_id
+        )
+        assert freq_envs == 1
+        assert gain_envs == 1
+
+
+class TestDynamicBellCut:
+    def test_proportional_cut(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        energy = np.array([-10.0, -15.0, -25.0, -30.0, -10.0])
+        times = np.linspace(0, 2, 5)
+
+        report = write_dynamic_bell_cut(
+            als_path, "Track1", energy, times,
+            zone_center_hz=1000.0, threshold_db=-20.0,
+            max_cut_db=-6.0, band_index=2,
+        )
+        assert report.success
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 2)
+        assert band_param.find("Mode/Manual").get("Value") == "3"
+
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == gain_target_id:
+                events = env.findall(".//FloatEvent")
+                real = [e for e in events if float(e.get("Time")) >= 0]
+                vals = [float(e.get("Value")) for e in real]
+                assert vals[0] < 0, "Should cut when energy > threshold"
+                assert vals[2] == 0.0, "No cut when energy < threshold"
+
+
+class TestResonanceSuppression:
+    def test_multi_band(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        trajs = []
+        for base_freq in [500.0, 1500.0, 4000.0]:
+            points = [(i, base_freq, -20.0) for i in range(20)]
+            trajs.append(PeakTrajectory(points=points))
+
+        times = np.linspace(0, 10, 20)
+
+        reports = write_resonance_suppression(
+            als_path, "Track1", trajs, times,
+            sensitivity=0.5, max_bands=3,
+        )
+        assert len(reports) == 3
+        bands_used = {r.eq8_band_index for r in reports}
+        assert len(bands_used) == 3
+        for r in reports:
+            assert r.success
+            assert r.breakpoints_written > 0
+
+    def test_no_peaks_returns_empty_report(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        short_traj = PeakTrajectory(points=[(0, 500.0, -20.0)])
+        times = np.linspace(0, 5, 10)
+
+        reports = write_resonance_suppression(
+            als_path, "Track1", [short_traj], times,
+        )
+        assert len(reports) == 1
+        assert reports[0].breakpoints_written == 0
+        assert "No resonant peaks found" in reports[0].warnings
 
 
 class TestIdempotency:
