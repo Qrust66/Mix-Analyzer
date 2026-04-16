@@ -5698,11 +5698,23 @@ def _apply_audibility_mask(v25_features_with_info, auto_maps, log_fn=None):
     if log_fn is None:
         log_fn = lambda msg: None
 
+    # Build a lookup: normalize names for matching
+    als_names = set(auto_maps.keys())
+
     masked_count = 0
     for feat, ti in v25_features_with_info:
         track_stem = os.path.splitext(ti['name'])[0]
+
+        # Try exact match first, then stripped of leading track numbers
         auto_map = auto_maps.get(track_stem)
         if auto_map is None:
+            # Ableton sometimes exports as "01 Toms Rack" — strip leading digits
+            import re
+            stripped = re.sub(r'^\d+[\s._-]*', '', track_stem)
+            auto_map = auto_maps.get(stripped)
+
+        if auto_map is None:
+            log_fn(f"    v2.5.1: no automation map for '{track_stem}' (skipped)")
             continue
 
         times = feat.zone_energy.times
@@ -5711,32 +5723,30 @@ def _apply_audibility_mask(v25_features_with_info, auto_maps, log_fn=None):
 
         audible = resample_audibility(auto_map, times)
         inaudible = ~audible
+        n_inaudible = int(inaudible.sum())
 
         if not inaudible.any():
             continue
 
-        n_masked = int(inaudible.sum())
         masked_count += 1
+        log_fn(f"    v2.5.1: masking '{track_stem}' — {n_inaudible}/{len(times)} frames inaudible")
 
-        # Mask zone_energy
         for zone_name, zone_data in feat.zone_energy.zones.items():
             if len(zone_data) == len(inaudible):
                 zone_data[inaudible] = np.nan
 
-        # Mask spectral descriptors
         for attr in ('centroid', 'spread', 'flatness', 'low_rolloff', 'high_rolloff'):
             arr = getattr(feat.descriptors, attr, None)
             if arr is not None and len(arr) == len(inaudible):
                 arr[inaudible] = np.nan
 
-        # Mask crest_by_zone
         if feat.crest_by_zone:
             for zone_name, crest_data in feat.crest_by_zone.items():
                 if len(crest_data) == len(inaudible):
                     crest_data[inaudible] = np.nan
 
-    if masked_count > 0:
-        log_fn(f"    v2.5.1: Audibility mask applied to {masked_count} tracks")
+    log_fn(f"    v2.5.1: Audibility mask — {masked_count} tracks masked, "
+           f"{len(v25_features_with_info) - masked_count} fully audible")
 
 
 def generate_excel_report(analyses_with_info, output_path, style_name,
@@ -6792,18 +6802,22 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
             log_fn(f"    v2.5.1: Automation map extraction failed: {e}")
 
     # ---- v2.5: Spectral evolution hidden sheets (always generated) ----
+    v25_features_with_info = []
+    for a, ti in analyses_with_info:
+        feat = a.get('_v25_features')
+        if feat is not None:
+            v25_features_with_info.append((feat, ti))
+
+    # v2.5.1 Phase C: mask inaudible frames with NaN BEFORE building sheets
+    if auto_maps and v25_features_with_info:
+        try:
+            _apply_audibility_mask(v25_features_with_info, auto_maps, log_fn)
+        except Exception as e:
+            log_fn(f"    v2.5.1: Audibility masking failed: {e}")
+            import traceback; traceback.print_exc()
+
     try:
         from feature_storage import build_all_v25_sheets
-        v25_features_with_info = []
-        for a, ti in analyses_with_info:
-            feat = a.get('_v25_features')
-            if feat is not None:
-                v25_features_with_info.append((feat, ti))
-
-        # v2.5.1: Mask inaudible frames with NaN before building sheets
-        if auto_maps and v25_features_with_info:
-            _apply_audibility_mask(v25_features_with_info, auto_maps, log_fn)
-
         if v25_features_with_info:
             build_all_v25_sheets(wb, v25_features_with_info, log_fn=log_fn, n_buckets=64)
             log_fn(f"    v2.5: {len(v25_features_with_info)} tracks written to spectral evolution sheets")
