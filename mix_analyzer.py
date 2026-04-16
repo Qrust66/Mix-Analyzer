@@ -2615,7 +2615,7 @@ def _build_track_multiband_time_sheet(wb, analyses_with_info, log_fn=None, n_buc
     for a, ti in analyses_with_info:
         label = _get_track_label(a, ti)
         # Header row for this track
-        c = ws.cell(row=row, column=1, value=f'=== {label} ===')
+        c = ws.cell(row=row, column=1, value=f'▸ {label}')
         c.font = sty['header_font']
         c.fill = sty['header_fill']
         c.border = sty['border']
@@ -2677,7 +2677,7 @@ def _build_track_dynamics_time_sheet(wb, analyses_with_info, log_fn=None, n_buck
     row = 2
     for a, ti in analyses_with_info:
         label = _get_track_label(a, ti)
-        c = ws.cell(row=row, column=1, value=f'=== {label} ===')
+        c = ws.cell(row=row, column=1, value=f'▸ {label}')
         c.font = sty['header_font']
         c.fill = sty['header_fill']
         c.border = sty['border']
