@@ -9403,12 +9403,25 @@ class MixAnalyzerApp:
                 xlsx_path = output_folder / f'{report_prefix}.xlsx'
                 if xlsx_path.exists():
                     xlsx_path.unlink()
+
+                # Auto-detect .als file in input folder for automation map
+                _als_path = None
+                _input_dir = Path(self.input_folder.get())
+                if _input_dir.is_dir():
+                    als_files = list(_input_dir.glob('*.als'))
+                    if not als_files:
+                        als_files = list(_input_dir.parent.glob('*.als'))
+                    if als_files:
+                        _als_path = str(als_files[0])
+                        self.log(f"    ALS detected: {Path(_als_path).name}")
+
                 generate_excel_report(
                     analyses_with_info, str(xlsx_path), self.style.get(),
                     full_mix_info=full_mix_info, ai_prompt=ai_prompt,
                     log_fn=self.log,
                     export_mode=export_mode,
-                    image_quality=self.image_quality.get())
+                    image_quality=self.image_quality.get(),
+                    als_path=_als_path)
                 generated_files.append(xlsx_path)
                 self.log(f"Excel report: {xlsx_path.name}")
             except Exception as e:
