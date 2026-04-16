@@ -2359,6 +2359,452 @@ def encode_anomalies(anomaly_list):
     return ' | '.join(codes) if codes else 'OK'
 
 
+# ---------------------------------------------------------------------------
+# v2.4 — Downsample helpers + hidden per-track sheet builders
+# ---------------------------------------------------------------------------
+
+def _downsample_log_freq(freqs, values, n_buckets=32, f_min=20.0, f_max=20000.0):
+    """Downsample a frequency spectrum into n_buckets log-spaced frequency buckets.
+
+    Returns (bucket_labels, bucket_values) where bucket_values are the mean
+    of *values* within each bucket.  Values are assumed dB (averaged linearly
+    in dB domain since they represent a single spectrum, not energy sums).
+    """
+    freqs = np.asarray(freqs, dtype=np.float64)
+    values = np.asarray(values, dtype=np.float64)
+    # Filter to audible range first
+    audible_mask = (freqs >= f_min) & (freqs <= f_max)
+    freqs_a = freqs[audible_mask]
+    values_a = values[audible_mask]
+    edges = np.logspace(np.log10(f_min), np.log10(f_max), n_buckets + 1)
+    labels = []
+    bucket_vals = []
+    for i in range(n_buckets):
+        lo, hi = edges[i], edges[i + 1]
+        if hi < 1000:
+            labels.append(f'{lo:.0f}-{hi:.0f} Hz')
+        elif lo < 1000:
+            labels.append(f'{lo:.0f}-{hi / 1000:.2g}k Hz')
+        else:
+            labels.append(f'{lo / 1000:.2g}k-{hi / 1000:.2g}k Hz')
+        # Use inclusive lower bound on first bucket to catch the exact edge
+        if i == 0:
+            mask = (freqs_a >= lo) & (freqs_a <= hi)
+        elif i < n_buckets - 1:
+            mask = (freqs_a > lo) & (freqs_a <= hi)
+        else:
+            mask = (freqs_a > lo) & (freqs_a <= hi)
+        if np.any(mask):
+            bucket_vals.append(round(float(np.mean(values_a[mask])), 2))
+        else:
+            bucket_vals.append(None)
+    return labels, bucket_vals
+
+
+def _downsample_time(values, n_buckets=32):
+    """Downsample a 1-D time-series into n_buckets evenly-spaced buckets.
+
+    Each bucket value is the mean of the samples falling within it.
+    Returns a list of n_buckets floats (or None if the input is empty).
+    """
+    values = np.asarray(values, dtype=np.float64)
+    if len(values) == 0:
+        return [None] * n_buckets
+    if len(values) <= n_buckets:
+        out = [round(float(v), 2) for v in values]
+        out.extend([None] * (n_buckets - len(out)))
+        return out
+    edges = np.linspace(0, len(values), n_buckets + 1, dtype=int)
+    result = []
+    for i in range(n_buckets):
+        chunk = values[edges[i]:edges[i + 1]]
+        if len(chunk) > 0:
+            result.append(round(float(np.mean(chunk)), 2))
+        else:
+            result.append(None)
+    return result
+
+
+def _time_bucket_labels(duration, n_buckets=32):
+    """Generate human-readable time bucket labels for a given duration."""
+    if duration <= 0:
+        return [f'T{i + 1}' for i in range(n_buckets)]
+    step = duration / n_buckets
+    labels = []
+    for i in range(n_buckets):
+        t_start = i * step
+        t_end = (i + 1) * step
+        labels.append(f'{t_start:.1f}-{t_end:.1f}s')
+    return labels
+
+
+def _hidden_sheet_style():
+    """Return common style objects for hidden per-track sheets."""
+    from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
+    return {
+        'bg_fill': PatternFill('solid', fgColor='0A0A12'),
+        'header_fill': PatternFill('solid', fgColor='1A3A5A'),
+        'header_font': Font(name='Calibri', size=9, bold=True, color='E8E8F0'),
+        'data_font': Font(name='Calibri', size=9, color='C0C0D0'),
+        'dim_font': Font(name='Calibri', size=8, color='888888'),
+        'border': Border(
+            left=Side(style='thin', color='333344'),
+            right=Side(style='thin', color='333344'),
+            top=Side(style='thin', color='333344'),
+            bottom=Side(style='thin', color='333344'),
+        ),
+    }
+
+
+def _get_track_label(a, ti):
+    """Return a short label for a track column header."""
+    if ti.get('type') == 'Full Mix':
+        return '*** FULL MIX ***'
+    return a['filename']
+
+
+def _build_track_spectra_sheet(wb, analyses_with_info, log_fn=None):
+    """Build hidden _track_spectra sheet: 32 log-freq buckets (rows) x N tracks (cols).
+    Catégorie C1."""
+    if log_fn is None:
+        log_fn = lambda msg: None
+    log_fn("    Excel: writing _track_spectra sheet...")
+
+    ws = wb.create_sheet('_track_spectra')
+    ws.sheet_state = 'hidden'
+    sty = _hidden_sheet_style()
+
+    # Compute bucket labels once from first track with data
+    bucket_labels = None
+    track_data = []  # list of (label, bucket_values)
+    for a, ti in analyses_with_info:
+        label = _get_track_label(a, ti)
+        S = a.get('spectrum', {})
+        freqs = S.get('freqs')
+        spec_db = S.get('spectrum_db_normalized')
+        if freqs is not None and spec_db is not None and len(freqs) > 0:
+            labels, vals = _downsample_log_freq(freqs, spec_db, n_buckets=32)
+            if bucket_labels is None:
+                bucket_labels = labels
+            track_data.append((label, vals))
+        else:
+            track_data.append((label, [None] * 32))
+
+    if bucket_labels is None:
+        bucket_labels = [f'Bucket {i + 1}' for i in range(32)]
+
+    # Write header row: col A = "Freq Bucket", then one col per track
+    row = 1
+    c = ws.cell(row=row, column=1, value='Freq Bucket')
+    c.font = sty['header_font']
+    c.fill = sty['header_fill']
+    c.border = sty['border']
+    for col_idx, (track_label, _) in enumerate(track_data, 2):
+        c = ws.cell(row=row, column=col_idx, value=track_label)
+        c.font = sty['header_font']
+        c.fill = sty['header_fill']
+        c.border = sty['border']
+
+    # Write data: 32 rows (one per bucket)
+    for bucket_idx in range(32):
+        row = bucket_idx + 2
+        c = ws.cell(row=row, column=1, value=bucket_labels[bucket_idx])
+        c.font = sty['dim_font']
+        c.fill = sty['bg_fill']
+        c.border = sty['border']
+        for col_idx, (_, vals) in enumerate(track_data, 2):
+            c = ws.cell(row=row, column=col_idx, value=vals[bucket_idx])
+            c.font = sty['data_font']
+            c.fill = sty['bg_fill']
+            c.border = sty['border']
+
+    log_fn(f"    Excel: _track_spectra done — 32 rows x {len(track_data)} tracks")
+
+
+def _build_track_stereo_bands_sheet(wb, analyses_with_info, log_fn=None):
+    """Build hidden _track_stereo_bands sheet: 7 freq bands (rows) x N tracks (cols).
+    Catégorie C2. Uses existing width_per_band (7 FREQ_BANDS)."""
+    if log_fn is None:
+        log_fn = lambda msg: None
+    log_fn("    Excel: writing _track_stereo_bands sheet...")
+
+    ws = wb.create_sheet('_track_stereo_bands')
+    ws.sheet_state = 'hidden'
+    sty = _hidden_sheet_style()
+
+    band_names = [name for name, _, _ in FREQ_BANDS]
+    band_labels_list = [BAND_LABELS.get(name, name) for name in band_names]
+
+    # Header row
+    row = 1
+    c = ws.cell(row=row, column=1, value='Freq Band')
+    c.font = sty['header_font']
+    c.fill = sty['header_fill']
+    c.border = sty['border']
+    for col_idx, (a, ti) in enumerate(analyses_with_info, 2):
+        label = _get_track_label(a, ti)
+        c = ws.cell(row=row, column=col_idx, value=label)
+        c.font = sty['header_font']
+        c.fill = sty['header_fill']
+        c.border = sty['border']
+
+    # Data rows: 7 bands
+    for band_idx, band_name in enumerate(band_names):
+        row = band_idx + 2
+        c = ws.cell(row=row, column=1, value=band_labels_list[band_idx])
+        c.font = sty['dim_font']
+        c.fill = sty['bg_fill']
+        c.border = sty['border']
+        for col_idx, (a, ti) in enumerate(analyses_with_info, 2):
+            st = a.get('stereo', {})
+            wpb = st.get('width_per_band', {})
+            val = round(float(wpb.get(band_name, 0.0)), 4) if wpb else 0.0
+            c = ws.cell(row=row, column=col_idx, value=val)
+            c.font = sty['data_font']
+            c.fill = sty['bg_fill']
+            c.border = sty['border']
+
+    log_fn(f"    Excel: _track_stereo_bands done — 7 rows x {len(analyses_with_info)} tracks")
+
+
+def _build_track_multiband_time_sheet(wb, analyses_with_info, log_fn=None, n_buckets=32):
+    """Build hidden _track_multiband_time sheet: stacked blocks of 8 rows per track x n_buckets cols.
+    Catégorie D1. Each track block = 1 header row + 7 band rows."""
+    if log_fn is None:
+        log_fn = lambda msg: None
+    log_fn("    Excel: writing _track_multiband_time sheet...")
+
+    ws = wb.create_sheet('_track_multiband_time')
+    ws.sheet_state = 'hidden'
+    sty = _hidden_sheet_style()
+
+    band_names = [name for name, _, _ in FREQ_BANDS]
+    band_labels_list = [BAND_LABELS.get(name, name) for name in band_names]
+
+    # Time bucket header labels in row 1 (col B onwards)
+    # Use first track with multiband data to compute representative time bucket labels
+    ref_duration = 0
+    for a, ti in analyses_with_info:
+        d = a.get('duration', 0)
+        if d > ref_duration:
+            ref_duration = d
+    time_labels = _time_bucket_labels(ref_duration, n_buckets)
+
+    row = 1
+    c = ws.cell(row=row, column=1, value='Track / Band')
+    c.font = sty['header_font']
+    c.fill = sty['header_fill']
+    c.border = sty['border']
+    for col_idx, tl in enumerate(time_labels, 2):
+        c = ws.cell(row=row, column=col_idx, value=tl)
+        c.font = sty['header_font']
+        c.fill = sty['header_fill']
+        c.border = sty['border']
+
+    row = 2
+    for a, ti in analyses_with_info:
+        label = _get_track_label(a, ti)
+        # Header row for this track
+        c = ws.cell(row=row, column=1, value=f'=== {label} ===')
+        c.font = sty['header_font']
+        c.fill = sty['header_fill']
+        c.border = sty['border']
+        row += 1
+
+        mbt = a.get('multiband_timeline', {})
+        bands_data = mbt.get('bands', {})
+
+        for band_idx, band_name in enumerate(band_names):
+            c = ws.cell(row=row, column=1, value=band_labels_list[band_idx])
+            c.font = sty['dim_font']
+            c.fill = sty['bg_fill']
+            c.border = sty['border']
+
+            band_values = bands_data.get(band_name)
+            if band_values is not None and len(band_values) > 0:
+                ds = _downsample_time(band_values, n_buckets)
+            else:
+                ds = [None] * n_buckets
+
+            for col_idx, val in enumerate(ds, 2):
+                c = ws.cell(row=row, column=col_idx, value=val)
+                c.font = sty['data_font']
+                c.fill = sty['bg_fill']
+                c.border = sty['border']
+            row += 1
+
+    log_fn(f"    Excel: _track_multiband_time done — {row - 1} rows x {n_buckets} time buckets")
+
+
+def _build_track_dynamics_time_sheet(wb, analyses_with_info, log_fn=None, n_buckets=32):
+    """Build hidden _track_dynamics_time sheet: stacked blocks of 4 rows per track x n_buckets cols.
+    Catégorie D2. Each track block = 1 header row + 3 series (peak_db, rms_db, crest_instant)."""
+    if log_fn is None:
+        log_fn = lambda msg: None
+    log_fn("    Excel: writing _track_dynamics_time sheet...")
+
+    ws = wb.create_sheet('_track_dynamics_time')
+    ws.sheet_state = 'hidden'
+    sty = _hidden_sheet_style()
+
+    series_names = ['Peak (dB)', 'RMS (dB)', 'Crest (dB)']
+    series_keys = ['peak_db', 'rms_db', 'crest_instant']
+
+    ref_duration = max((a.get('duration', 0) for a, _ in analyses_with_info), default=0)
+    time_labels = _time_bucket_labels(ref_duration, n_buckets)
+
+    row = 1
+    c = ws.cell(row=row, column=1, value='Track / Series')
+    c.font = sty['header_font']
+    c.fill = sty['header_fill']
+    c.border = sty['border']
+    for col_idx, tl in enumerate(time_labels, 2):
+        c = ws.cell(row=row, column=col_idx, value=tl)
+        c.font = sty['header_font']
+        c.fill = sty['header_fill']
+        c.border = sty['border']
+
+    row = 2
+    for a, ti in analyses_with_info:
+        label = _get_track_label(a, ti)
+        c = ws.cell(row=row, column=1, value=f'=== {label} ===')
+        c.font = sty['header_font']
+        c.fill = sty['header_fill']
+        c.border = sty['border']
+        row += 1
+
+        drt = a.get('dynamic_range_timeline', {})
+        for s_idx, (s_name, s_key) in enumerate(zip(series_names, series_keys)):
+            c = ws.cell(row=row, column=1, value=s_name)
+            c.font = sty['dim_font']
+            c.fill = sty['bg_fill']
+            c.border = sty['border']
+
+            series_data = drt.get(s_key)
+            if series_data is not None and len(series_data) > 0:
+                ds = _downsample_time(np.asarray(series_data), n_buckets)
+            else:
+                ds = [None] * n_buckets
+
+            for col_idx, val in enumerate(ds, 2):
+                c = ws.cell(row=row, column=col_idx, value=val)
+                c.font = sty['data_font']
+                c.fill = sty['bg_fill']
+                c.border = sty['border']
+            row += 1
+
+    log_fn(f"    Excel: _track_dynamics_time done — {row - 1} rows x {n_buckets} time buckets")
+
+
+def _build_track_chroma_sheet(wb, analyses_with_info, log_fn=None):
+    """Build hidden _track_chroma sheet: 12 notes (rows) x N tracks (cols).
+    Catégorie E1. Average chroma over time per track."""
+    if log_fn is None:
+        log_fn = lambda msg: None
+    log_fn("    Excel: writing _track_chroma sheet...")
+
+    ws = wb.create_sheet('_track_chroma')
+    ws.sheet_state = 'hidden'
+    sty = _hidden_sheet_style()
+
+    note_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+    # Header row
+    row = 1
+    c = ws.cell(row=row, column=1, value='Note')
+    c.font = sty['header_font']
+    c.fill = sty['header_fill']
+    c.border = sty['border']
+    for col_idx, (a, ti) in enumerate(analyses_with_info, 2):
+        label = _get_track_label(a, ti)
+        c = ws.cell(row=row, column=col_idx, value=label)
+        c.font = sty['header_font']
+        c.fill = sty['header_fill']
+        c.border = sty['border']
+
+    # Data: 12 rows (one per note)
+    for note_idx, note_name in enumerate(note_names):
+        row = note_idx + 2
+        c = ws.cell(row=row, column=1, value=note_name)
+        c.font = sty['dim_font']
+        c.fill = sty['bg_fill']
+        c.border = sty['border']
+        for col_idx, (a, ti) in enumerate(analyses_with_info, 2):
+            chroma = a.get('musical', {}).get('chroma')
+            if chroma is not None and len(chroma) > 0:
+                chroma_arr = np.asarray(chroma)
+                if chroma_arr.ndim == 2 and chroma_arr.shape[0] == 12:
+                    val = round(float(np.mean(chroma_arr[note_idx, :])), 4)
+                else:
+                    val = None
+            else:
+                val = None
+            c = ws.cell(row=row, column=col_idx, value=val)
+            c.font = sty['data_font']
+            c.fill = sty['bg_fill']
+            c.border = sty['border']
+
+    log_fn(f"    Excel: _track_chroma done — 12 rows x {len(analyses_with_info)} tracks")
+
+
+def _build_track_onsets_sheet(wb, analyses_with_info, log_fn=None, n_buckets=32):
+    """Build hidden _track_onsets sheet: N tracks (rows) x n_buckets time cols.
+    Catégorie F. Onset histogram per track."""
+    if log_fn is None:
+        log_fn = lambda msg: None
+    log_fn("    Excel: writing _track_onsets sheet...")
+
+    ws = wb.create_sheet('_track_onsets')
+    ws.sheet_state = 'hidden'
+    sty = _hidden_sheet_style()
+
+    ref_duration = max((a.get('duration', 0) for a, _ in analyses_with_info), default=0)
+    time_labels = _time_bucket_labels(ref_duration, n_buckets)
+
+    # Header row
+    row = 1
+    c = ws.cell(row=row, column=1, value='Track')
+    c.font = sty['header_font']
+    c.fill = sty['header_fill']
+    c.border = sty['border']
+    for col_idx, tl in enumerate(time_labels, 2):
+        c = ws.cell(row=row, column=col_idx, value=tl)
+        c.font = sty['header_font']
+        c.fill = sty['header_fill']
+        c.border = sty['border']
+
+    # Data: 1 row per track
+    row = 2
+    for a, ti in analyses_with_info:
+        label = _get_track_label(a, ti)
+        c = ws.cell(row=row, column=1, value=label)
+        c.font = sty['dim_font']
+        c.fill = sty['bg_fill']
+        c.border = sty['border']
+
+        onset_times = a.get('temporal', {}).get('onset_times')
+        duration = a.get('duration', 0)
+
+        if onset_times is not None and len(onset_times) > 0 and duration > 0:
+            onset_times = np.asarray(onset_times)
+            edges = np.linspace(0, duration, n_buckets + 1)
+            hist, _ = np.histogram(onset_times, bins=edges)
+            for col_idx, count in enumerate(hist, 2):
+                c = ws.cell(row=row, column=col_idx, value=int(count))
+                c.font = sty['data_font']
+                c.fill = sty['bg_fill']
+                c.border = sty['border']
+        else:
+            for col_idx in range(2, n_buckets + 2):
+                c = ws.cell(row=row, column=col_idx, value=0)
+                c.font = sty['data_font']
+                c.fill = sty['bg_fill']
+                c.border = sty['border']
+        row += 1
+
+    log_fn(f"    Excel: _track_onsets done — {len(analyses_with_info)} tracks x {n_buckets} buckets")
+
+
 def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None,
                            nav_targets=None, full_mix_info=None):
     """Build the AI Context sheet — dense consolidated metrics for AI ingestion."""
@@ -2612,6 +3058,25 @@ def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None
         ('sample_rate_hz', 'Audio sample rate (Hz)'),
         ('num_channels',   'Number of audio channels'),
         ('anomaly_codes',  'Compact anomaly codes joined with |'),
+        # --- v2.4 additions (Catégorie B) ---
+        ('peak1_hz',       'Resonance peak #1 frequency (Hz)'),
+        ('peak1_db',       'Resonance peak #1 magnitude (dB)'),
+        ('peak2_hz',       'Resonance peak #2 frequency (Hz)'),
+        ('peak2_db',       'Resonance peak #2 magnitude (dB)'),
+        ('peak3_hz',       'Resonance peak #3 frequency (Hz)'),
+        ('peak3_db',       'Resonance peak #3 magnitude (dB)'),
+        ('peak4_hz',       'Resonance peak #4 frequency (Hz)'),
+        ('peak4_db',       'Resonance peak #4 magnitude (dB)'),
+        ('peak5_hz',       'Resonance peak #5 frequency (Hz)'),
+        ('peak5_db',       'Resonance peak #5 magnitude (dB)'),
+        ('peak6_hz',       'Resonance peak #6 frequency (Hz)'),
+        ('peak6_db',       'Resonance peak #6 magnitude (dB)'),
+        ('onsets_per_sec', 'Onset density (transients per second)'),
+        ('tempo_std',      'Tempo standard deviation (BPM, Full Mix only)'),
+        ('tempo_min',      'Tempo 5th percentile (BPM, Full Mix only)'),
+        ('tempo_max',      'Tempo 95th percentile (BPM, Full Mix only)'),
+        # --- v2.4 addition (Catégorie G) ---
+        ('description',    'Objective characteristics summary (semicolon-separated)'),
     ]
 
     for col_name, col_desc in column_schema:
@@ -2645,6 +3110,40 @@ def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None
         family = CATEGORY_FAMILY.get(cat, 'Unknown')
         lufs_int = round(L['lufs_integrated'], 2) if np.isfinite(L['lufs_integrated']) else None
         lufs_st = round(L['lufs_short_term_max'], 2) if np.isfinite(L['lufs_short_term_max']) else None
+
+        # v2.4: extract top-6 spectral peaks (freq, magnitude_db)
+        peaks = S.get('peaks', [])
+        peak_vals = []
+        for i in range(6):
+            if i < len(peaks):
+                p = peaks[i]
+                if isinstance(p, (tuple, list)) and len(p) >= 2:
+                    peak_vals.extend([round(float(p[0]), 1), round(float(p[1]), 1)])
+                else:
+                    peak_vals.extend([None, None])
+            else:
+                peak_vals.extend([None, None])
+
+        # v2.4: onset density
+        duration = a.get('duration', 0)
+        n_onsets = a['temporal']['num_onsets']
+        onsets_per_sec = round(n_onsets / duration, 2) if duration > 0 else 0.0
+
+        # v2.4: tempo std/min/max
+        t_std = round(tempo.get('tempo_std', 0.0), 2) if tempo.get('reliable', False) else None
+        t_min = round(tempo.get('tempo_min', 0.0), 1) if tempo.get('reliable', False) else None
+        t_max = round(tempo.get('tempo_max', 0.0), 1) if tempo.get('reliable', False) else None
+
+        # v2.4: description from characteristics
+        chars = a.get('characteristics', [])
+        if chars:
+            desc_parts = [desc for _, desc in chars]
+            description = ' ; '.join(desc_parts)
+            if len(description) > 300:
+                description = description[:297] + '...'
+        else:
+            description = None
+
         return [
             a['filename'], ti['type'], cat, family,
             lufs_int, lufs_st,
@@ -2669,9 +3168,15 @@ def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None
             'N/A' if tempo.get('confidence_label') == 'not computed (individual track)' else (f"unreliable (was: {round(tempo.get('tempo_median', 0.0), 1)})" if not tempo.get('reliable', False) else round(tempo.get('tempo_median', 0.0), 1)),
             tempo.get('confidence_label', ''),
             'TRUE' if tempo.get('reliable', False) else 'FALSE',
-            a['temporal']['num_onsets'],
+            n_onsets,
             round(a['duration'], 2), a['sample_rate'], a['num_channels'],
             encode_anomalies(a.get('anomalies', [])),
+            # v2.4 additions (Catégorie B)
+            *peak_vals,        # peak1_hz, peak1_db, ..., peak6_hz, peak6_db (12 values)
+            onsets_per_sec,    # onsets_per_sec
+            t_std, t_min, t_max,  # tempo_std, tempo_min, tempo_max
+            # v2.4 addition (Catégorie G)
+            description,       # description
         ]
 
     def _write_track_row(ws, row, vals, fill, font=None):
@@ -2682,8 +3187,10 @@ def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None
             c.font = font
             c.border = thin_border
             c.fill = fill
-            if col_idx >= 5 and col_idx <= 37:
+            if col_idx >= 5 and col_idx <= len(vals) - 1:
                 c.alignment = Alignment(horizontal='center')
+            if col_idx == len(vals):  # description column: wrap text
+                c.alignment = Alignment(wrap_text=True)
 
     for a, ti in individuals:
         _write_track_row(ws, row, _extract_row_values(a, ti), panel_fill)
@@ -2700,6 +3207,87 @@ def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None
 
     last_col_letter = get_column_letter(len(col_names))
     ws.auto_filter.ref = f'A{table_header_row}:{last_col_letter}{max(row - 1, table_header_row + 1)}'
+
+    # ---- v2.4: REFERENCE sections for hidden per-track sheets ----
+    ref_sections = [
+        ('TRACK SPECTRA REFERENCE',
+         '_track_spectra',
+         '32 log-frequency buckets (20 Hz \u2013 20 kHz) \u00d7 N tracks. Values: dB normalized (-80 to 0). Layout: rows=freq buckets, cols=tracks.'),
+        ('TRACK MULTIBAND TIMELINE REFERENCE',
+         '_track_multiband_time',
+         '7 freq bands \u00d7 32 time buckets per track (stacked blocks). Values: energy dB. Layout: rows=track header + 7 bands, cols=time buckets.'),
+        ('TRACK DYNAMICS TIMELINE REFERENCE',
+         '_track_dynamics_time',
+         '3 series (Peak dB, RMS dB, Crest dB) \u00d7 32 time buckets per track (stacked blocks). Layout: rows=track header + 3 series, cols=time buckets.'),
+        ('TRACK CHROMA REFERENCE',
+         '_track_chroma',
+         '12 pitch classes (C through B) \u00d7 N tracks. Values: mean chroma energy 0\u20131 (time-averaged). Layout: rows=notes, cols=tracks.'),
+        ('TRACK STEREO BANDS REFERENCE',
+         '_track_stereo_bands',
+         '7 freq bands \u00d7 N tracks. Values: stereo width 0\u20131 (0=mono). Mono tracks have 0.0 in all bands. Layout: rows=freq bands, cols=tracks.'),
+        ('TRACK ONSET HISTOGRAM REFERENCE',
+         '_track_onsets',
+         'N tracks \u00d7 32 time buckets. Values: onset count per bucket. Layout: rows=tracks, cols=time buckets.'),
+    ]
+
+    for ref_title, sheet_name, ref_desc in ref_sections:
+        row += 2
+        ws.cell(row=row, column=1, value=f'\u2550\u2550\u2550 {ref_title} \u2550\u2550\u2550').font = accent_font
+        ws.cell(row=row, column=1).fill = bg_fill
+        row += 1
+        ws.cell(row=row, column=1, value=f'Sheet: {sheet_name}').font = Font(
+            name='Calibri', size=10, bold=True, color='00D9FF')
+        ws.cell(row=row, column=1).fill = bg_fill
+        row += 1
+        ws.cell(row=row, column=1, value=ref_desc).font = dim_font
+        ws.cell(row=row, column=1).fill = bg_fill
+        row += 1
+
+    # ---- v2.4: FULL MIX TEMPO TIMELINE (E2) — inline, 32 values ----
+    row += 2
+    ws.cell(row=row, column=1, value='\u2550\u2550\u2550 FULL MIX TEMPO TIMELINE \u2550\u2550\u2550').font = accent_font
+    ws.cell(row=row, column=1).fill = bg_fill
+    row += 1
+
+    fm_tempo = None
+    for a, ti in full_mixes:
+        tempo_data = a.get('tempo', {})
+        tot = tempo_data.get('tempo_over_time')
+        if tot is not None and len(tot) > 0:
+            fm_tempo = tot
+            fm_duration = a.get('duration', 0)
+            break
+
+    if fm_tempo is not None:
+        n_tempo_buckets = 32
+        tempo_ds = _downsample_time(fm_tempo, n_tempo_buckets)
+        t_labels = _time_bucket_labels(fm_duration, n_tempo_buckets)
+
+        # Header row with time labels
+        for col_idx, tl in enumerate(t_labels, 2):
+            c = ws.cell(row=row, column=col_idx, value=tl)
+            c.font = Font(name='Calibri', size=8, bold=True, color='8888A0')
+            c.fill = bg_fill
+            c.border = thin_border
+        ws.cell(row=row, column=1, value='Time bucket').font = Font(
+            name='Calibri', size=8, bold=True, color='8888A0')
+        ws.cell(row=row, column=1).fill = bg_fill
+        row += 1
+
+        # Tempo values row
+        ws.cell(row=row, column=1, value='Tempo (BPM)').font = data_font
+        ws.cell(row=row, column=1).fill = bg_fill
+        for col_idx, val in enumerate(tempo_ds, 2):
+            c = ws.cell(row=row, column=col_idx, value=val)
+            c.font = data_font
+            c.fill = bg_fill
+            c.border = thin_border
+        row += 1
+    else:
+        ws.cell(row=row, column=1,
+                value='Tempo timeline not available (Full Mix tempo not computed or unreliable).').font = dim_font
+        ws.cell(row=row, column=1).fill = bg_fill
+        row += 1
 
     # ---- Health Score breakdown ----
     row += 2
@@ -6119,6 +6707,14 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         wb.move_sheet(ws_ai_ctx, offset=-(len(wb.sheetnames) - 3))
     else:
         wb.move_sheet(ws_ai_ctx, offset=-(len(wb.sheetnames) - 2))
+
+    # ---- v2.4: Hidden per-track data sheets (always generated, all 3 modes) ----
+    _build_track_spectra_sheet(wb, analyses_with_info, log_fn=log_fn)
+    _build_track_stereo_bands_sheet(wb, analyses_with_info, log_fn=log_fn)
+    _build_track_multiband_time_sheet(wb, analyses_with_info, log_fn=log_fn, n_buckets=32)
+    _build_track_dynamics_time_sheet(wb, analyses_with_info, log_fn=log_fn, n_buckets=32)
+    _build_track_chroma_sheet(wb, analyses_with_info, log_fn=log_fn)
+    _build_track_onsets_sheet(wb, analyses_with_info, log_fn=log_fn, n_buckets=32)
 
     # ---- P3.1: Frequency Conflict Detector ----
     # Mode ai_optimized: INCLUDED (structured conflict data not in AI Context)
