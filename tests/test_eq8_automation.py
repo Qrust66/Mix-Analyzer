@@ -39,9 +39,12 @@ from eq8_automation import (
     detect_masking,
     write_masking_reciprocal_cuts,
     write_targeted_sidechain_eq,
+    write_transient_aware_cut,
+    write_section_aware_eq,
+    write_dynamic_deesser,
     MaskingReport,
 )
-from spectral_evolution import PeakTrajectory
+from spectral_evolution import PeakTrajectory, TransientEvent
 from als_utils import (
     parse_als,
     find_track_by_name,
@@ -759,6 +762,90 @@ class TestSidechainEQ:
                 vals = [float(e.get("Value")) for e in real]
                 assert vals[0] == 0.0, "No cut when trigger is low"
                 assert vals[2] < 0, "Should cut when trigger is high"
+
+
+# ---------------------------------------------------------------------------
+# Tests — Phase 7: Events / vocal
+# ---------------------------------------------------------------------------
+
+class TestTransientAwareCut:
+    def test_releases_on_attack(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        times = np.linspace(0, 5, 30)
+        transients = [
+            TransientEvent(frame_idx=10, time_sec=1.67,
+                           dominant_zone="mid", magnitude_db=5.0),
+        ]
+
+        report = write_transient_aware_cut(
+            als_path, "Track1", base_cut_db=-4.0, freq_hz=1000.0,
+            transient_events=transients, times=times,
+            release_ms=100.0, band_index=1,
+        )
+        assert report.success
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 1)
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == gain_target_id:
+                events = env.findall(".//FloatEvent")
+                real = [e for e in events if float(e.get("Time")) >= 0]
+                vals = [float(e.get("Value")) for e in real]
+                assert vals[10] == 0.0, "Gain should be 0 at transient"
+                assert vals[0] < 0, "Base cut should be active elsewhere"
+
+
+class TestSectionAwareEQ:
+    def test_creates_steps(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        delta = np.array([0.0, 0.1, 0.1, 0.5, 0.1, 0.1, 0.1, 0.6, 0.1, 0.1])
+        times = np.linspace(0, 5, 10)
+
+        report = write_section_aware_eq(
+            als_path, "Track1", delta, times,
+            threshold=0.3, band_index=2,
+        )
+        assert report.success
+        assert report.breakpoints_written > 0
+
+
+class TestDynamicDeesser:
+    def test_activates_on_sibilance(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        sibilance = np.array([-25.0, -25.0, -10.0, -10.0, -25.0])
+        times = np.linspace(0, 2, 5)
+
+        report = write_dynamic_deesser(
+            als_path, "Track1", sibilance, times,
+            threshold_db=-18.0, reduction_db=-4.0, band_index=4,
+        )
+        assert report.success
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 4)
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == gain_target_id:
+                events = env.findall(".//FloatEvent")
+                real = [e for e in events if float(e.get("Time")) >= 0]
+                vals = [float(e.get("Value")) for e in real]
+                assert vals[0] == 0.0, "No cut when sibilance is low"
+                assert vals[2] == -4.0, "Full cut when sibilance exceeds threshold"
 
 
 class TestIdempotency:

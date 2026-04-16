@@ -1040,3 +1040,203 @@ def write_targeted_sidechain_eq(
         eq8_band_index=bi,
         warnings=[],
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase 7 — Events / vocal (spec §5.E-F)
+# ---------------------------------------------------------------------------
+
+def write_transient_aware_cut(
+    als_path: Path | str,
+    track_id: str,
+    base_cut_db: float,
+    freq_hz: float,
+    transient_events: list[TransientEvent],
+    times: np.ndarray,
+    release_ms: float = 50.0,
+    band_index: int | None = None,
+) -> AutomationReport:
+    """Write a bell cut that backs off during transients.
+
+    A constant base_cut_db is applied, except during transient events
+    where gain ramps to 0 (letting the transient through) then decays
+    back to base_cut_db over release_ms.
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name.
+        base_cut_db: Steady-state cut depth (negative dB).
+        freq_hz: Bell center frequency.
+        transient_events: Detected transient events.
+        times: Per-frame timestamps in seconds.
+        release_ms: Release time after transient (ms).
+        band_index: Specific EQ8 band, or None for auto.
+
+    Returns:
+        AutomationReport.
+    """
+    tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
+        als_path, track_id, band_index
+    )
+
+    configure_eq8_band(
+        band_param, mode=3, freq=_freq_to_eq8_value(freq_hz), q=2.0,
+    )
+    ison = band_param.find("IsOn/Manual")
+    if ison is not None:
+        ison.set("Value", "true")
+
+    n_frames = len(times)
+    gain_curve = np.full(n_frames, _gain_to_eq8_value(base_cut_db))
+
+    frame_duration = float(times[1] - times[0]) if n_frames > 1 else 0.167
+    release_sec = release_ms / 1000.0
+    release_frames = max(1, int(release_sec / frame_duration))
+
+    for ev in transient_events:
+        fi = ev.frame_idx
+        if 0 <= fi < n_frames:
+            gain_curve[fi] = 0.0
+            for r in range(1, release_frames + 1):
+                idx = fi + r
+                if idx < n_frames:
+                    decay = _gain_to_eq8_value(base_cut_db) * (r / release_frames)
+                    gain_curve[idx] = min(gain_curve[idx], decay)
+
+    gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+
+    gain_target_id = get_automation_target_id(band_param, "Gain")
+    _remove_existing_envelope(track, gain_target_id)
+    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+
+    save_als_from_tree(tree, str(als_path))
+
+    return AutomationReport(
+        success=True,
+        breakpoints_written=len(gain_bps),
+        eq8_band_index=bi,
+        warnings=[],
+    )
+
+
+def write_section_aware_eq(
+    als_path: Path | str,
+    track_id: str,
+    delta_spectrum: np.ndarray,
+    times: np.ndarray,
+    threshold: float = 0.3,
+    band_index: int | None = None,
+) -> AutomationReport:
+    """Write staircase EQ automation based on section transitions.
+
+    Detects section boundaries from delta_spectrum exceeding threshold,
+    then generates step-wise gain automation (one constant value per
+    section) rather than continuous modulation.
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name.
+        delta_spectrum: Per-frame spectral change magnitude.
+        times: Per-frame timestamps in seconds.
+        threshold: Delta threshold for section boundary detection.
+        band_index: Specific EQ8 band, or None for auto.
+
+    Returns:
+        AutomationReport.
+    """
+    tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
+        als_path, track_id, band_index
+    )
+
+    configure_eq8_band(band_param, mode=3, freq=1000.0, q=1.0)
+    ison = band_param.find("IsOn/Manual")
+    if ison is not None:
+        ison.set("Value", "true")
+
+    n_frames = len(delta_spectrum)
+    boundaries = [0]
+    for i in range(1, n_frames):
+        if delta_spectrum[i] > threshold:
+            boundaries.append(i)
+    boundaries.append(n_frames)
+
+    gain_curve = np.zeros(n_frames)
+    for seg_idx in range(len(boundaries) - 1):
+        start = boundaries[seg_idx]
+        end = boundaries[seg_idx + 1]
+        seg_mean = float(np.mean(delta_spectrum[start:end]))
+        gain_curve[start:end] = _gain_to_eq8_value(-seg_mean * 2)
+
+    gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+
+    gain_target_id = get_automation_target_id(band_param, "Gain")
+    _remove_existing_envelope(track, gain_target_id)
+    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+
+    save_als_from_tree(tree, str(als_path))
+
+    return AutomationReport(
+        success=True,
+        breakpoints_written=len(gain_bps),
+        eq8_band_index=bi,
+        warnings=[],
+    )
+
+
+def write_dynamic_deesser(
+    als_path: Path | str,
+    track_id: str,
+    sibilance_energy: np.ndarray,
+    times: np.ndarray,
+    threshold_db: float = -18.0,
+    reduction_db: float = -4.0,
+    band_index: int | None = None,
+) -> AutomationReport:
+    """Write a dynamic de-esser automation.
+
+    Bell at 6500 Hz, Q=4.0.  Applies reduction when sibilance zone
+    energy exceeds threshold, 0 dB otherwise.
+
+    Args:
+        als_path: Path to the .als file.
+        track_id: Track name.
+        sibilance_energy: Per-frame sibilance zone energy in dB.
+        times: Per-frame timestamps in seconds.
+        threshold_db: Sibilance threshold above which de-essing engages.
+        reduction_db: Cut depth when active (negative).
+        band_index: Specific EQ8 band, or None for auto.
+
+    Returns:
+        AutomationReport.
+    """
+    tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
+        als_path, track_id, band_index
+    )
+
+    configure_eq8_band(
+        band_param, mode=3, freq=6500.0, q=_q_to_eq8_value(4.0),
+    )
+    ison = band_param.find("IsOn/Manual")
+    if ison is not None:
+        ison.set("Value", "true")
+
+    gain_curve = np.where(
+        sibilance_energy > threshold_db,
+        _gain_to_eq8_value(reduction_db),
+        0.0,
+    )
+
+    gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+
+    gain_target_id = get_automation_target_id(band_param, "Gain")
+    _remove_existing_envelope(track, gain_target_id)
+    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+
+    save_als_from_tree(tree, str(als_path))
+
+    return AutomationReport(
+        success=True,
+        breakpoints_written=len(gain_bps),
+        eq8_band_index=bi,
+        warnings=[],
+    )
