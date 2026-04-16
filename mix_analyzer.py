@@ -1155,7 +1155,10 @@ def analyze_track(filepath, compute_tempo=False):
     try:
         from spectral_evolution import extract_all_features as _v25_extract
         result['_v25_features'] = _v25_extract(mono, sr)
-    except Exception:
+    except Exception as e:
+        print(f"[v2.5] spectral evolution extraction FAILED: {type(e).__name__}: {e}")
+        import traceback as _tb
+        _tb.print_exc()
         result['_v25_features'] = None
 
     result['_mono'] = mono

@@ -580,12 +580,23 @@ def extract_all_features(mono: np.ndarray, sr: int) -> TrackFeatures:
     Generates CQT matrix, extracts all features, then discards the matrix.
 
     Args:
-        mono: 1-D mono audio signal.
+        mono: 1-D mono audio signal (must be at least 0.1 s long).
         sr: Sample rate in Hz.
 
     Returns:
         TrackFeatures with all extracted features.
+
+    Raises:
+        ValueError: If the signal is too short for CQT analysis.
     """
+    min_samples = max(sr // 10, 4096)
+    if len(mono) < min_samples:
+        raise ValueError(
+            f"Audio too short for CQT analysis: {len(mono)} samples "
+            f"(need >= {min_samples} at sr={sr})"
+        )
+
+    mono = np.asarray(mono, dtype=np.float32)
     matrix = generate_matrix(mono, sr)
 
     zone_energy = extract_zone_energy(matrix)
