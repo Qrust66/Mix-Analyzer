@@ -834,3 +834,209 @@ def write_adaptive_air_boost(
         eq8_band_index=bi,
         warnings=[],
     )
+
+
+# ---------------------------------------------------------------------------
+# Phase 6 — Cross-track masking (spec §5.D)
+# ---------------------------------------------------------------------------
+
+def detect_masking(
+    track_a_zone_energy: Dict[str, np.ndarray],
+    track_b_zone_energy: Dict[str, np.ndarray],
+    times: np.ndarray,
+    zones: list[str] | None = None,
+    threshold_db: float = -60.0,
+) -> MaskingReport:
+    """Detect frequency masking between two tracks.
+
+    Pure analysis — no ALS modification.  For each zone, computes a
+    per-frame masking score based on the overlap of energy from both
+    tracks (both must be above threshold_db).
+
+    Args:
+        track_a_zone_energy: Zone energy dict for track A (zone -> dB array).
+        track_b_zone_energy: Zone energy dict for track B (zone -> dB array).
+        times: Per-frame timestamps in seconds.
+        zones: Zones to analyse (default: low, mud, low_mid).
+        threshold_db: Minimum energy for a zone to count as "active".
+
+    Returns:
+        MaskingReport with per-zone scores and overall severity.
+    """
+    if zones is None:
+        zones = ["low", "mud", "low_mid"]
+
+    scores: Dict[str, np.ndarray] = {}
+    n = len(times)
+
+    for zone in zones:
+        a = track_a_zone_energy.get(zone, np.full(n, -120.0))
+        b = track_b_zone_energy.get(zone, np.full(n, -120.0))
+        min_len = min(len(a), len(b), n)
+        a, b = a[:min_len], b[:min_len]
+
+        gate = ((a > threshold_db) & (b > threshold_db)).astype(float)
+        a_lin = np.power(10, a / 20.0)
+        b_lin = np.power(10, b / 20.0)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            ratio = np.minimum(a_lin, b_lin) / (np.maximum(a_lin, b_lin) + 1e-12)
+        score = ratio * gate
+
+        padded = np.zeros(n)
+        padded[:min_len] = score
+        scores[zone] = np.round(padded, 3)
+
+    zone_means = [float(np.mean(s)) for s in scores.values()]
+    severity = float(max(zone_means)) if zone_means else 0.0
+    zones_affected = [z for z in zones if float(np.mean(scores[z])) > 0.05]
+
+    return MaskingReport(
+        zones=zones_affected,
+        scores=scores,
+        severity=round(severity, 3),
+        times=times,
+    )
+
+
+def write_masking_reciprocal_cuts(
+    als_path: Path | str,
+    track_a_id: str,
+    track_b_id: str,
+    masking_report: MaskingReport,
+    zone_center_hz: float,
+    times: np.ndarray,
+    reduction_db: float = -3.0,
+    band_index_a: int | None = None,
+    band_index_b: int | None = None,
+) -> tuple[AutomationReport, AutomationReport]:
+    """Write reciprocal bell cuts on two tracks to reduce masking.
+
+    Both tracks get a bell cut at zone_center_hz with gain proportional
+    to the masking score from the MaskingReport.
+
+    Args:
+        als_path: Path to the .als file.
+        track_a_id: First track name.
+        track_b_id: Second track name.
+        masking_report: Result of detect_masking().
+        zone_center_hz: Center frequency for the bell cuts.
+        times: Per-frame timestamps in seconds.
+        reduction_db: Maximum cut depth per track (negative).
+        band_index_a: EQ8 band for track A, or None for auto.
+        band_index_b: EQ8 band for track B, or None for auto.
+
+    Returns:
+        Tuple of (report_a, report_b).
+    """
+    combined_score = np.zeros(len(times))
+    for zone_score in masking_report.scores.values():
+        min_len = min(len(zone_score), len(combined_score))
+        combined_score[:min_len] += zone_score[:min_len]
+    if masking_report.scores:
+        combined_score /= len(masking_report.scores)
+
+    als_path = Path(als_path)
+    backup_als(str(als_path))
+    tree = parse_als(str(als_path))
+    tempo = _extract_tempo(tree)
+    next_id = [get_next_id(tree)]
+
+    reports: list[AutomationReport] = []
+    for track_id, band_idx in [(track_a_id, band_index_a),
+                                (track_b_id, band_index_b)]:
+        try:
+            track = find_track_by_name(tree, track_id)
+        except ValueError as e:
+            raise TrackNotFoundError(str(e)) from e
+
+        eq8 = find_or_create_eq8(track, tree)
+        if band_idx is not None:
+            bi = band_idx
+        else:
+            bi = _find_available_band(eq8, track)
+
+        band_param = get_eq8_band(eq8, bi)
+        configure_eq8_band(
+            band_param, mode=3, freq=_freq_to_eq8_value(zone_center_hz), q=2.0,
+        )
+        ison = band_param.find("IsOn/Manual")
+        if ison is not None:
+            ison.set("Value", "true")
+
+        gain_curve = np.array([
+            _gain_to_eq8_value(reduction_db * s) for s in combined_score
+        ])
+        gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+        _remove_existing_envelope(track, gain_target_id)
+        write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+
+        reports.append(AutomationReport(
+            success=True,
+            breakpoints_written=len(gain_bps),
+            eq8_band_index=bi,
+            warnings=[],
+        ))
+
+    save_als_from_tree(tree, str(als_path))
+    return (reports[0], reports[1])
+
+
+def write_targeted_sidechain_eq(
+    als_path: Path | str,
+    ducking_track_id: str,
+    trigger_zone_energy: np.ndarray,
+    times: np.ndarray,
+    zone_center_hz: float,
+    reduction_db: float = -6.0,
+    threshold_db: float = -20.0,
+    band_index: int | None = None,
+) -> AutomationReport:
+    """Write a sidechain-style bell cut triggered by another track's energy.
+
+    When trigger_zone_energy exceeds threshold, the ducking track
+    gets a proportional bell cut at zone_center_hz.
+
+    Args:
+        als_path: Path to the .als file.
+        ducking_track_id: Track to apply the cut on.
+        trigger_zone_energy: Per-frame zone energy from the trigger track (dB).
+        times: Per-frame timestamps in seconds.
+        zone_center_hz: Center frequency for the bell cut.
+        reduction_db: Maximum cut depth (negative).
+        threshold_db: Trigger energy threshold.
+        band_index: Specific EQ8 band, or None for auto.
+
+    Returns:
+        AutomationReport.
+    """
+    tree, track, eq8, bi, band_param, tempo, next_id = _prepare_track_eq8(
+        als_path, ducking_track_id, band_index
+    )
+
+    configure_eq8_band(
+        band_param, mode=3, freq=_freq_to_eq8_value(zone_center_hz), q=2.0,
+    )
+    ison = band_param.find("IsOn/Manual")
+    if ison is not None:
+        ison.set("Value", "true")
+
+    excess = np.maximum(trigger_zone_energy - threshold_db, 0.0)
+    gain_curve = np.clip(-excess, reduction_db, 0.0)
+    gain_curve = np.array([_gain_to_eq8_value(g) for g in gain_curve])
+
+    gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
+
+    gain_target_id = get_automation_target_id(band_param, "Gain")
+    _remove_existing_envelope(track, gain_target_id)
+    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+
+    save_als_from_tree(tree, str(als_path))
+
+    return AutomationReport(
+        success=True,
+        breakpoints_written=len(gain_bps),
+        eq8_band_index=bi,
+        warnings=[],
+    )

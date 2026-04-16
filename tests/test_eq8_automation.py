@@ -36,6 +36,10 @@ from eq8_automation import (
     write_resonance_suppression,
     write_adaptive_presence_boost,
     write_adaptive_air_boost,
+    detect_masking,
+    write_masking_reciprocal_cuts,
+    write_targeted_sidechain_eq,
+    MaskingReport,
 )
 from spectral_evolution import PeakTrajectory
 from als_utils import (
@@ -675,6 +679,86 @@ class TestAdaptiveAirBoost:
                 vals = [float(e.get("Value")) for e in real]
                 assert vals[0] == 0.0, "No boost when rolloff is high"
                 assert vals[1] > 0, "Should boost when rolloff is low"
+
+
+# ---------------------------------------------------------------------------
+# Tests — Phase 6: Cross-track masking
+# ---------------------------------------------------------------------------
+
+class TestDetectMasking:
+    def test_identifies_overlap(self):
+        times = np.linspace(0, 5, 10)
+        a_energy = {"low": np.full(10, -10.0), "mud": np.full(10, -10.0)}
+        b_energy = {"low": np.full(10, -10.0), "mud": np.full(10, -50.0)}
+
+        report = detect_masking(a_energy, b_energy, times,
+                                zones=["low", "mud"])
+
+        assert "low" in report.scores
+        assert "mud" in report.scores
+        assert float(np.mean(report.scores["low"])) > 0.5
+        assert float(np.mean(report.scores["mud"])) < 0.1
+        assert report.severity > 0
+
+    def test_no_masking_when_one_silent(self):
+        times = np.linspace(0, 5, 10)
+        a = {"low": np.full(10, -10.0)}
+        b = {"low": np.full(10, -100.0)}
+
+        report = detect_masking(a, b, times, zones=["low"])
+        assert float(np.mean(report.scores["low"])) < 0.01
+
+
+class TestMaskingReciprocalCuts:
+    def test_both_tracks_get_cuts(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        times = np.linspace(0, 5, 10)
+        scores = {"low": np.full(10, 0.8)}
+        masking = MaskingReport(
+            zones=["low"], scores=scores, severity=0.8, times=times,
+        )
+
+        ra, rb = write_masking_reciprocal_cuts(
+            als_path, "Track1", "Track2", masking,
+            zone_center_hz=200.0, times=times, reduction_db=-3.0,
+            band_index_a=1, band_index_b=1,
+        )
+        assert ra.success and rb.success
+        assert ra.breakpoints_written > 0
+        assert rb.breakpoints_written > 0
+
+
+class TestSidechainEQ:
+    def test_follows_trigger(self, tmp_path):
+        als_path = tmp_path / "test.als"
+        _create_minimal_als(als_path)
+
+        trigger = np.array([-30.0, -10.0, -5.0, -30.0, -30.0])
+        times = np.linspace(0, 2, 5)
+
+        report = write_targeted_sidechain_eq(
+            als_path, "Track1", trigger, times,
+            zone_center_hz=200.0, reduction_db=-6.0,
+            threshold_db=-20.0, band_index=3,
+        )
+        assert report.success
+
+        tree = parse_als(str(als_path))
+        track = find_track_by_name(tree, "Track1")
+        eq8 = track.find(".//Eq8")
+        band_param = get_eq8_band(eq8, 3)
+        gain_target_id = get_automation_target_id(band_param, "Gain")
+
+        for env in track.iter("AutomationEnvelope"):
+            pointee = env.find("EnvelopeTarget/PointeeId")
+            if pointee is not None and pointee.get("Value") == gain_target_id:
+                events = env.findall(".//FloatEvent")
+                real = [e for e in events if float(e.get("Time")) >= 0]
+                vals = [float(e.get("Value")) for e in real]
+                assert vals[0] == 0.0, "No cut when trigger is low"
+                assert vals[2] < 0, "Should cut when trigger is high"
 
 
 class TestIdempotency:
