@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Mix Analyzer v2.5 - Visual audio mix analysis tool
+Mix Analyzer v2.5.2 - Visual audio mix analysis tool
 Generates detailed Excel reports for audio tracks to aid mixing and mastering decisions.
 
 Usage:
@@ -34,6 +34,8 @@ from scipy import signal
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 
+
+VERSION = '2.5.2'
 
 # ============================================================================
 # CATEGORIES - 25 options organized hierarchically
@@ -2869,6 +2871,7 @@ def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None
 
     row = 2
     for label, val in [('Generated:', datetime.now().strftime('%Y-%m-%d %H:%M')),
+                        ('Version:', f'v{VERSION}'),
                         ('Tracks:', track_count_str),
                         ('Style:', style_name)]:
         ws.cell(row=row, column=1, value=label).font = dim_font
@@ -5875,7 +5878,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         'ai_optimized': ' | AI-optimized export',
     }.get(export_mode, '')
     row = _xl_write_header(ws_index, 'MIX ANALYZER \u2014 REPORT INDEX',
-                            f'Style: {style_name}{mode_suffix} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}')
+                            f'Style: {style_name}{mode_suffix} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")} | v{VERSION}')
     # M7.5: Navigation bar
     _xl_add_sheet_nav(ws_index, row - 1, current_sheet='Index', nav_targets=nav_targets)
 
@@ -7155,7 +7158,7 @@ def log_typography_info():
 # M8.1: Neon logo configuration
 LOGO_CONFIG = {
     'text': 'MIX ANALYZER',
-    'subtitle': 'v2.5 — Visual Mix Diagnostic',
+    'subtitle': f'v{VERSION} — Visual Mix Diagnostic',
     'font_size': 42,
     'subtitle_font_size': 14,
     'glow_color': (0, 255, 159),      # Turquoise neon (#00FF9F)
@@ -7267,7 +7270,7 @@ def _create_logo_widget(parent):
         tk.Label(frame, text='MIX ANALYZER',
                  font=get_font('h1'),
                  fg=UI_THEME['accent4'], bg=UI_THEME['bg']).pack()
-        tk.Label(frame, text='v2.5 — Visual Mix Diagnostic',
+        tk.Label(frame, text=f'v{VERSION} — Visual Mix Diagnostic',
                  font=get_font('body_small'),
                  fg=UI_THEME['fg_dim'], bg=UI_THEME['bg']).pack()
         return frame
@@ -8179,7 +8182,7 @@ def create_section_header(parent, title, subtitle=None, bg=None):
 class MixAnalyzerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title('Mix Analyzer v2.5')
+        self.root.title(f'Mix Analyzer v{VERSION}')
         self.root.geometry('1280x820')
         self.root.configure(bg=UI_THEME['bg'])
         self.root.minsize(1100, 700)
@@ -8280,7 +8283,7 @@ class MixAnalyzerApp:
     # ------------------------------------------------------------------
     def _show_main_help(self):
         dialog = tk.Toplevel(self.root)
-        dialog.title('Mix Analyzer v2.5 — Help')
+        dialog.title(f'Mix Analyzer v{VERSION} — Help')
         dialog.configure(bg=UI_THEME['bg'])
         dialog.geometry('780x680')
         dialog.transient(self.root)
