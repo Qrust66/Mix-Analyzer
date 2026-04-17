@@ -554,6 +554,13 @@ def write_automation_envelope(
         float_event.set("Value", str(float(value)))
         next_id_counter[0] += 1
 
+    # Required Ableton metadata — without this block Live silently ignores
+    # the envelope (observed: Gain envelopes near 0 dB would stay flat).
+    view_state = ET.SubElement(automation, "AutomationTransformViewState")
+    is_pending = ET.SubElement(view_state, "IsTransformPending")
+    is_pending.set("Value", "false")
+    ET.SubElement(view_state, "TimeAndValueTransforms")
+
     return envelope
 
 
