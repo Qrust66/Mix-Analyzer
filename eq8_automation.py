@@ -18,6 +18,7 @@ Each write_* function follows the pattern:
 
 from __future__ import annotations
 
+import json
 import numpy as np
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -46,6 +47,40 @@ from spectral_evolution import (
 
 
 # ---------------------------------------------------------------------------
+# Ableton EQ8 mapping — single source of truth for validation
+# ---------------------------------------------------------------------------
+
+_MAPPING_PATH = Path(__file__).resolve().parent / "ableton" / "ableton_devices_mapping_v1.7.json"
+
+
+def _load_eq8_mapping() -> dict:
+    """Load the EQ8 section of ableton_devices_mapping.json at module init.
+
+    Raises:
+        RuntimeError: If the mapping file is missing or malformed — we
+            refuse to run without the ground truth since every write_*
+            function validates against it.
+    """
+    try:
+        with open(_MAPPING_PATH, encoding="utf-8") as f:
+            data = json.load(f)
+        return data["devices"]["Eq8"]
+    except (OSError, json.JSONDecodeError, KeyError) as e:
+        raise RuntimeError(
+            f"Cannot load EQ8 mapping from {_MAPPING_PATH}: {e}. "
+            "eq8_automation.py requires this file to validate automation "
+            "parameters against the Live device spec."
+        ) from e
+
+
+_EQ8_MAPPING = _load_eq8_mapping()
+_EQ8_AUTOMATION_SPEC = _EQ8_MAPPING["automation_values"]
+_GAIN_INOPERATIVE_MODES: set[int] = set(
+    _EQ8_MAPPING["band_params"]["Mode"]["gain_inoperative_modes"]
+)
+
+
+# ---------------------------------------------------------------------------
 # Exceptions
 # ---------------------------------------------------------------------------
 
@@ -55,6 +90,113 @@ class TrackNotFoundError(Exception):
 
 class EQ8SlotFullError(Exception):
     """Raised when no EQ8 band is available for automation."""
+
+
+class EQ8ValidationError(Exception):
+    """Raised when an automation parameter violates the EQ8 device spec.
+
+    The spec is loaded from ableton_devices_mapping.json — see
+    ``automation_values`` and ``band_params.Mode.gain_inoperative_modes``.
+    """
+
+
+# ---------------------------------------------------------------------------
+# Validation helpers — run before every write_automation_envelope() call
+# ---------------------------------------------------------------------------
+
+
+def _band_mode(band_param) -> int:
+    """Read the Mode/Manual integer value from an EQ8 band ParameterA."""
+    manual = band_param.find("Mode/Manual")
+    if manual is None or manual.get("Value") is None:
+        raise EQ8ValidationError("Band ParameterA has no Mode/Manual value.")
+    return int(manual.get("Value"))
+
+
+def _validate_eq8_automation(
+    band_param,
+    param_name: str,
+    breakpoints: list[tuple[float, float]],
+) -> None:
+    """Validate an automation envelope before writing it to the .als.
+
+    Enforces three invariants from the Live device spec:
+      1. ``param_name`` is a known EQ8 automatable parameter.
+      2. All breakpoint values fall within the parameter's declared range.
+      3. Gain automation is refused on modes listed in
+         ``gain_inoperative_modes`` ([0, 1, 4, 6, 7] — LowCut, Notch, HighCut).
+
+    Args:
+        band_param: The ``ParameterA`` Element the automation targets.
+        param_name: One of ``"Freq"``, ``"Gain"``, ``"Q"``, ``"IsOn"``.
+        breakpoints: The ``[(time_beats, value), ...]`` list about to be
+            written (the pre-song default event is NOT included here).
+
+    Raises:
+        EQ8ValidationError: If any invariant is violated.
+    """
+    if param_name not in _EQ8_AUTOMATION_SPEC:
+        raise EQ8ValidationError(
+            f"Unknown EQ8 automation parameter '{param_name}'. "
+            f"Known: {sorted(_EQ8_AUTOMATION_SPEC)}"
+        )
+
+    spec = _EQ8_AUTOMATION_SPEC[param_name]
+
+    if param_name == "Gain":
+        mode = _band_mode(band_param)
+        if mode in _GAIN_INOPERATIVE_MODES:
+            raise EQ8ValidationError(
+                f"Cannot write Gain automation on Mode {mode} "
+                f"(gain_inoperative_modes = {sorted(_GAIN_INOPERATIVE_MODES)}). "
+                "Use Bell (3), Low Shelf (2) or High Shelf (5) instead."
+            )
+
+    if not breakpoints:
+        return  # nothing to validate
+
+    values = [v for _, v in breakpoints]
+    vmin, vmax = float(min(values)), float(max(values))
+
+    if spec["encoding"] == "bool":
+        allowed = set(spec["values"])
+        bad = [v for v in values if v not in allowed]
+        if bad:
+            raise EQ8ValidationError(
+                f"{param_name} envelope contains non-boolean values "
+                f"(allowed {sorted(allowed)}): first offending = {bad[0]}"
+            )
+        return
+
+    rmin = float(spec["min"])
+    rmax = float(spec["max"])
+    if vmin < rmin or vmax > rmax:
+        raise EQ8ValidationError(
+            f"{param_name} envelope values {vmin:.3f}..{vmax:.3f} "
+            f"outside declared range [{rmin}, {rmax}] {spec['unit']}."
+        )
+
+
+def _write_validated_env(
+    track,
+    band_param,
+    param_name: str,
+    breakpoints: list[tuple[float, float]],
+    next_id_counter: list[int],
+) -> None:
+    """Validate an envelope against the EQ8 spec, then write it.
+
+    Wraps the "remove existing + write new" pattern behind a single
+    validation gate so every automation write in this module is
+    guaranteed to have passed ``_validate_eq8_automation()``.
+
+    Raises:
+        EQ8ValidationError: If the envelope violates the spec.
+    """
+    _validate_eq8_automation(band_param, param_name, breakpoints)
+    target_id = get_automation_target_id(band_param, param_name)
+    _remove_existing_envelope(track, target_id)
+    write_automation_envelope(track, target_id, breakpoints, next_id_counter)
 
 
 # ---------------------------------------------------------------------------
@@ -363,9 +505,7 @@ def write_adaptive_hpf(
     breakpoints = _feature_to_breakpoints(cutoff, times, tempo)
     breakpoints = _mask_by_audibility(breakpoints, automation_map, tempo)
 
-    freq_target_id = get_automation_target_id(band_param, "Freq")
-    _remove_existing_envelope(track, freq_target_id)
-    write_automation_envelope(track, freq_target_id, breakpoints, next_id)
+    _write_validated_env(track, band_param, "Freq", breakpoints, next_id)
 
     save_als_from_tree(tree, str(als_path))
 
@@ -421,9 +561,7 @@ def write_adaptive_lpf(
     breakpoints = _feature_to_breakpoints(cutoff, times, tempo)
     breakpoints = _mask_by_audibility(breakpoints, automation_map, tempo)
 
-    freq_target_id = get_automation_target_id(band_param, "Freq")
-    _remove_existing_envelope(track, freq_target_id)
-    write_automation_envelope(track, freq_target_id, breakpoints, next_id)
+    _write_validated_env(track, band_param, "Freq", breakpoints, next_id)
 
     save_als_from_tree(tree, str(als_path))
 
@@ -479,9 +617,7 @@ def write_safety_hpf(
     breakpoints = _feature_to_breakpoints(is_on_values, times, tempo)
     breakpoints = _mask_by_audibility(breakpoints, automation_map, tempo)
 
-    ison_target_id = get_automation_target_id(band_param, "IsOn")
-    _remove_existing_envelope(track, ison_target_id)
-    write_automation_envelope(track, ison_target_id, breakpoints, next_id)
+    _write_validated_env(track, band_param, "IsOn", breakpoints, next_id)
 
     save_als_from_tree(tree, str(als_path))
 
@@ -582,13 +718,8 @@ def write_dynamic_notch(
     freq_bps = _mask_by_audibility(freq_bps, automation_map, tempo)
     gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
-    freq_target_id = get_automation_target_id(band_param, "Freq")
-    gain_target_id = get_automation_target_id(band_param, "Gain")
-    _remove_existing_envelope(track, freq_target_id)
-    _remove_existing_envelope(track, gain_target_id)
-
-    write_automation_envelope(track, freq_target_id, freq_bps, next_id)
-    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+    _write_validated_env(track, band_param, "Freq", freq_bps, next_id)
+    _write_validated_env(track, band_param, "Gain", gain_bps, next_id)
 
     save_als_from_tree(tree, str(als_path))
 
@@ -647,9 +778,7 @@ def write_dynamic_bell_cut(
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
     gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
-    gain_target_id = get_automation_target_id(band_param, "Gain")
-    _remove_existing_envelope(track, gain_target_id)
-    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+    _write_validated_env(track, band_param, "Gain", gain_bps, next_id)
 
     save_als_from_tree(tree, str(als_path))
 
@@ -774,13 +903,8 @@ def write_resonance_suppression(
         freq_bps = _mask_by_audibility(freq_bps, automation_map, tempo)
         gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
-        freq_target_id = get_automation_target_id(band_param, "Freq")
-        gain_target_id = get_automation_target_id(band_param, "Gain")
-        _remove_existing_envelope(track, freq_target_id)
-        _remove_existing_envelope(track, gain_target_id)
-
-        write_automation_envelope(track, freq_target_id, freq_bps, next_id)
-        write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+        _write_validated_env(track, band_param, "Freq", freq_bps, next_id)
+        _write_validated_env(track, band_param, "Gain", gain_bps, next_id)
 
         reports.append(AutomationReport(
             success=True,
@@ -844,9 +968,7 @@ def write_adaptive_presence_boost(
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
     gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
-    gain_target_id = get_automation_target_id(band_param, "Gain")
-    _remove_existing_envelope(track, gain_target_id)
-    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+    _write_validated_env(track, band_param, "Gain", gain_bps, next_id)
 
     save_als_from_tree(tree, str(als_path))
 
@@ -907,9 +1029,7 @@ def write_adaptive_air_boost(
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
     gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
-    gain_target_id = get_automation_target_id(band_param, "Gain")
-    _remove_existing_envelope(track, gain_target_id)
-    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+    _write_validated_env(track, band_param, "Gain", gain_bps, next_id)
 
     save_als_from_tree(tree, str(als_path))
 
@@ -1057,9 +1177,7 @@ def write_masking_reciprocal_cuts(
         gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
         gain_bps = _mask_by_audibility(gain_bps, auto_maps[idx_pair], tempo)
 
-        gain_target_id = get_automation_target_id(band_param, "Gain")
-        _remove_existing_envelope(track, gain_target_id)
-        write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+        _write_validated_env(track, band_param, "Gain", gain_bps, next_id)
 
         reports.append(AutomationReport(
             success=True,
@@ -1119,9 +1237,7 @@ def write_targeted_sidechain_eq(
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
     gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
-    gain_target_id = get_automation_target_id(band_param, "Gain")
-    _remove_existing_envelope(track, gain_target_id)
-    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+    _write_validated_env(track, band_param, "Gain", gain_bps, next_id)
 
     save_als_from_tree(tree, str(als_path))
 
@@ -1198,9 +1314,7 @@ def write_transient_aware_cut(
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
     gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
-    gain_target_id = get_automation_target_id(band_param, "Gain")
-    _remove_existing_envelope(track, gain_target_id)
-    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+    _write_validated_env(track, band_param, "Gain", gain_bps, next_id)
 
     save_als_from_tree(tree, str(als_path))
 
@@ -1264,9 +1378,7 @@ def write_section_aware_eq(
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
     gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
-    gain_target_id = get_automation_target_id(band_param, "Gain")
-    _remove_existing_envelope(track, gain_target_id)
-    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+    _write_validated_env(track, band_param, "Gain", gain_bps, next_id)
 
     save_als_from_tree(tree, str(als_path))
 
@@ -1325,9 +1437,7 @@ def write_dynamic_deesser(
     gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
     gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
-    gain_target_id = get_automation_target_id(band_param, "Gain")
-    _remove_existing_envelope(track, gain_target_id)
-    write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+    _write_validated_env(track, band_param, "Gain", gain_bps, next_id)
 
     save_als_from_tree(tree, str(als_path))
 
@@ -1426,9 +1536,7 @@ def write_spectral_match(
         gain_bps = _feature_to_breakpoints(gain_curve, times, tempo)
         gain_bps = _mask_by_audibility(gain_bps, automation_map, tempo)
 
-        gain_target_id = get_automation_target_id(band_param, "Gain")
-        _remove_existing_envelope(track, gain_target_id)
-        write_automation_envelope(track, gain_target_id, gain_bps, next_id)
+        _write_validated_env(track, band_param, "Gain", gain_bps, next_id)
 
         reports.append(AutomationReport(
             success=True,

@@ -25,8 +25,11 @@ from eq8_automation import (
     _remove_existing_envelope,
     _feature_to_breakpoints,
     _extract_tempo,
+    _validate_eq8_automation,
+    _write_validated_env,
     TrackNotFoundError,
     EQ8SlotFullError,
+    EQ8ValidationError,
     AutomationReport,
     write_adaptive_hpf,
     write_adaptive_lpf,
@@ -940,6 +943,56 @@ class TestIdempotency:
             and env.find("EnvelopeTarget/PointeeId").get("Value") == freq_target_id
         )
         assert count == 1
+
+
+# ---------------------------------------------------------------------------
+# Tests — Validation against ableton_devices_mapping_v1.7.json
+# ---------------------------------------------------------------------------
+
+class TestAutomationValidation:
+    def _band(self, mode=3):
+        """Build a minimal EQ8 band ParameterA with a Mode/Manual child."""
+        import xml.etree.ElementTree as ET
+        band = ET.Element("ParameterA")
+        mode_el = ET.SubElement(band, "Mode")
+        ET.SubElement(mode_el, "Manual").set("Value", str(mode))
+        return band
+
+    def test_gain_refused_on_inoperative_modes(self):
+        # Mode 4 (Notch) → gain inoperative per mapping.
+        band = self._band(mode=4)
+        with pytest.raises(EQ8ValidationError, match="gain_inoperative_modes"):
+            _validate_eq8_automation(band, "Gain", [(0.0, -3.0)])
+
+    def test_gain_allowed_on_bell_mode(self):
+        band = self._band(mode=3)
+        # Should not raise.
+        _validate_eq8_automation(band, "Gain", [(0.0, -6.0), (1.0, -2.0)])
+
+    def test_gain_out_of_range_rejected(self):
+        band = self._band(mode=3)
+        with pytest.raises(EQ8ValidationError, match=r"outside declared range"):
+            _validate_eq8_automation(band, "Gain", [(0.0, -20.0)])  # < -15
+
+    def test_freq_out_of_range_rejected(self):
+        band = self._band(mode=3)
+        with pytest.raises(EQ8ValidationError, match=r"outside declared range"):
+            _validate_eq8_automation(band, "Freq", [(0.0, 25000.0)])  # > 22000
+
+    def test_q_out_of_range_rejected(self):
+        band = self._band(mode=3)
+        with pytest.raises(EQ8ValidationError, match=r"outside declared range"):
+            _validate_eq8_automation(band, "Q", [(0.0, 20.0)])  # > 18
+
+    def test_ison_rejects_non_boolean(self):
+        band = self._band(mode=3)
+        with pytest.raises(EQ8ValidationError, match="non-boolean"):
+            _validate_eq8_automation(band, "IsOn", [(0.0, 0.5)])
+
+    def test_unknown_param_rejected(self):
+        band = self._band(mode=3)
+        with pytest.raises(EQ8ValidationError, match="Unknown EQ8"):
+            _validate_eq8_automation(band, "Bogus", [(0.0, 1.0)])
 
 
 if __name__ == "__main__":
