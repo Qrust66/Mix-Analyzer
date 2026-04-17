@@ -1,0 +1,680 @@
+{
+  "_version": "1.0",
+  "_description": "Profils de calibration par genre musical et type de track pour l'orchestrateur Mix Analyzer. Les valeurs représentent les réglages à 100% d'intensité (standard pour le genre).",
+
+  "_track_types_reference": {
+    "drums": ["Kick", "Snare/Clap", "Hi-Hat/Cymbal", "Tom", "Percussion", "Drum Loop/Bus"],
+    "bass": ["Sub Bass", "Bass", "Acid Bass", "808/Pitched Bass"],
+    "synth": ["Lead Synth", "Pluck/Stab", "Pad/Drone", "Arpeggio/Sequence", "Texture/Atmosphere"],
+    "guitar": ["Guitar Clean", "Guitar Distorted", "Guitar Acoustic"],
+    "vocal": ["Lead Vocal", "Backing/Harmony Vocal", "Vocal FX/Chop"],
+    "fx": ["FX/Riser/Impact", "Noise/Ambience", "Sample/Loop", "Other"]
+  },
+
+  "_spectrum_poles": {
+    "description": "Certains genres couvrent un spectre esthétique large. Le paramètre 'character' (0.0–1.0) positionne le projet sur ce spectre.",
+    "0.0": "Abrasif — mud voulu, saturation = le son, résonances = agressivité, chaos stéréo",
+    "0.5": "Équilibré — propre mais texturé, définition sans stérilisation",
+    "1.0": "Atmosphérique — clarté, espace, subtilité, résonances = émotion"
+  },
+
+  "families": {
+
+    "electronic_aggressive": {
+      "description": "Industrial, Bass Music (Dubstep, DnB), Synthwave/Retrowave",
+      "default_character": 0.3,
+      "styles": {
+
+        "Industrial": {
+          "description": "NIN, Ministry, KMFDM, Author & Punisher. Sub saturé, transients durs, distortion structurelle.",
+          "default_character": 0.2,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.7,
+            "resonances": 0.5,
+            "masking": 0.5,
+            "dynamics": 0.4,
+            "polish": 0.3
+          },
+          "track_profiles": {
+            "Kick": {
+              "hpf_max_hz": 30,
+              "lpf_min_hz": 12000,
+              "resonance_reduction_max_db": -3.0,
+              "masking_tolerance": 0.7,
+              "transient_preserve": true,
+              "notes": "Kick industriel = gras, claqué, sale. Le transient 2-5 kHz est sacré. Ne pas aseptiser."
+            },
+            "Snare/Clap": {
+              "hpf_max_hz": 80,
+              "resonance_reduction_max_db": -4.0,
+              "masking_tolerance": 0.5,
+              "transient_preserve": true,
+              "notes": "Snare peut être bruité, layered, saturé. Nettoyer le sub inutile, préserver l'agression."
+            },
+            "Hi-Hat/Cymbal": {
+              "hpf_max_hz": 200,
+              "lpf_min_hz": 18000,
+              "resonance_reduction_max_db": -4.0,
+              "masking_tolerance": 0.4,
+              "notes": "HPF agressif OK. Résonances métalliques souvent voulues mais pas le mud."
+            },
+            "Tom": {
+              "hpf_max_hz": 60,
+              "resonance_reduction_max_db": -4.0,
+              "masking_tolerance": 0.5,
+              "transient_preserve": true,
+              "notes": "Toms industriels = body + attaque. Nettoyer les résonances de fût sans tuer le sustain."
+            },
+            "Percussion": {
+              "hpf_max_hz": 100,
+              "resonance_reduction_max_db": -5.0,
+              "masking_tolerance": 0.4,
+              "notes": "Percussion texturale. Nettoyage plus agressif acceptable."
+            },
+            "Drum Loop/Bus": {
+              "skip_corrections": true,
+              "notes": "Corriger les sources, pas les bus."
+            },
+            "Sub Bass": {
+              "hpf_max_hz": 20,
+              "lpf_min_hz": 200,
+              "resonance_reduction_max_db": -2.0,
+              "masking_tolerance": 0.8,
+              "notes": "Fondation. Toucher avec extrême précaution. Le sub distordu EST le son."
+            },
+            "Bass": {
+              "hpf_max_hz": 30,
+              "lpf_min_hz": 5000,
+              "resonance_reduction_max_db": -2.5,
+              "masking_tolerance": 0.7,
+              "notes": "Harmoniques basses sont critiques. Résonances peuvent être voulues pour l'agression."
+            },
+            "Acid Bass": {
+              "hpf_max_hz": 25,
+              "lpf_min_hz": 8000,
+              "resonance_reduction_max_db": -2.0,
+              "masking_tolerance": 0.7,
+              "notes": "Le filtre résonant EST le son. Ne pas tuer les peaks de résonance du 303/acid — c'est l'âme du patch."
+            },
+            "808/Pitched Bass": {
+              "hpf_max_hz": 20,
+              "lpf_min_hz": 3000,
+              "resonance_reduction_max_db": -2.0,
+              "masking_tolerance": 0.8,
+              "notes": "Fondamentale + harmoniques basses. Structure similaire à Sub Bass mais avec plus de mid content."
+            },
+            "Lead Synth": {
+              "hpf_max_hz": 80,
+              "resonance_reduction_max_db": -3.0,
+              "masking_tolerance": 0.5,
+              "presence_boost_max_db": 2.5,
+              "notes": "Présence 2-5 kHz critique. Ne pas castrer le mid-range. Résonances peuvent être du character."
+            },
+            "Pluck/Stab": {
+              "hpf_max_hz": 100,
+              "resonance_reduction_max_db": -3.5,
+              "masking_tolerance": 0.5,
+              "transient_preserve": true,
+              "notes": "Transient d'attaque important. Decay peut accumuler du mud — nettoyable."
+            },
+            "Pad/Drone": {
+              "hpf_max_hz": 100,
+              "resonance_reduction_max_db": -4.0,
+              "masking_tolerance": 0.3,
+              "notes": "Background. Nettoyage agressif OK. Le pad doit remplir sans dominer."
+            },
+            "Arpeggio/Sequence": {
+              "hpf_max_hz": 80,
+              "resonance_reduction_max_db": -3.5,
+              "masking_tolerance": 0.4,
+              "notes": "Mouvement répétitif = accumulation fréquentielle. Notch dynamique très pertinent."
+            },
+            "Texture/Atmosphere": {
+              "hpf_max_hz": 120,
+              "resonance_reduction_max_db": -5.0,
+              "masking_tolerance": 0.3,
+              "notes": "Rôle = espace et profondeur. Nettoyage agressif OK, ne doit pas masquer les éléments principaux."
+            },
+            "Guitar Distorted": {
+              "hpf_max_hz": 80,
+              "lpf_min_hz": 10000,
+              "resonance_reduction_max_db": -3.0,
+              "masking_tolerance": 0.5,
+              "notes": "Guitare industrielle = saturée, mid-heavy. Couper le sub mais préserver l'agression 1-4 kHz."
+            },
+            "Guitar Clean": {
+              "hpf_max_hz": 100,
+              "resonance_reduction_max_db": -3.5,
+              "masking_tolerance": 0.4,
+              "notes": "Rare en industrial mais possible. Nettoyer normalement."
+            },
+            "Guitar Acoustic": {
+              "hpf_max_hz": 80,
+              "resonance_reduction_max_db": -3.0,
+              "masking_tolerance": 0.5,
+              "notes": "Body 200-400 Hz important. Ne pas over-HPF."
+            },
+            "Lead Vocal": {
+              "hpf_max_hz": 80,
+              "resonance_reduction_max_db": -2.5,
+              "deess_threshold_db": -22,
+              "deess_reduction_db": -3.0,
+              "presence_boost_max_db": 2.0,
+              "masking_tolerance": 0.6,
+              "notes": "Voix dark/industrial = souvent traitée, distordue. Ne pas overcleaner les sibilances. La rugosité est voulue."
+            },
+            "Backing/Harmony Vocal": {
+              "hpf_max_hz": 120,
+              "resonance_reduction_max_db": -3.0,
+              "deess_threshold_db": -20,
+              "masking_tolerance": 0.4,
+              "notes": "Support. Peut être nettoyé plus agressivement que le lead."
+            },
+            "Vocal FX/Chop": {
+              "hpf_max_hz": 150,
+              "resonance_reduction_max_db": -4.0,
+              "masking_tolerance": 0.3,
+              "notes": "Texturale. Nettoyage agressif OK."
+            },
+            "FX/Riser/Impact": {
+              "hpf_max_hz": 30,
+              "resonance_reduction_max_db": -3.0,
+              "masking_tolerance": 0.5,
+              "notes": "Transitoire par nature. Le sub dans un impact/riser est souvent voulu. Attention au HPF."
+            },
+            "Noise/Ambience": {
+              "hpf_max_hz": 150,
+              "resonance_reduction_max_db": -6.0,
+              "masking_tolerance": 0.2,
+              "notes": "Pur background. Nettoyage très agressif. Ne doit jamais masquer quoi que ce soit."
+            },
+            "Sample/Loop": {
+              "hpf_max_hz": 80,
+              "resonance_reduction_max_db": -3.5,
+              "masking_tolerance": 0.5,
+              "notes": "Dépend du contenu. Réglages moyens par défaut."
+            },
+            "Other": {
+              "hpf_max_hz": 80,
+              "resonance_reduction_max_db": -3.0,
+              "masking_tolerance": 0.5,
+              "notes": "Non catégorisé. Réglages conservateurs."
+            }
+          }
+        },
+
+        "Bass Music": {
+          "description": "Dubstep, DnB, Bass House. Sub dominant, mid-bass heavy, transients précis.",
+          "default_character": 0.3,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.8,
+            "resonances": 0.6,
+            "masking": 0.6,
+            "dynamics": 0.5,
+            "polish": 0.3
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 25, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.5, "transient_preserve": true },
+            "Sub Bass": { "hpf_max_hz": 20, "resonance_reduction_max_db": -1.5, "masking_tolerance": 0.9 },
+            "Bass": { "hpf_max_hz": 25, "resonance_reduction_max_db": -2.0, "masking_tolerance": 0.8 },
+            "Lead Synth": { "hpf_max_hz": 100, "resonance_reduction_max_db": -3.5, "masking_tolerance": 0.5 },
+            "Pad/Drone": { "hpf_max_hz": 150, "resonance_reduction_max_db": -5.0, "masking_tolerance": 0.3 },
+            "Noise/Ambience": { "hpf_max_hz": 200, "resonance_reduction_max_db": -6.0, "masking_tolerance": 0.2 }
+          }
+        },
+
+        "Synthwave/Retrowave": {
+          "description": "Perturbator, Carpenter Brut, Kavinsky. Rétro, analogique, mid-centric.",
+          "default_character": 0.5,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.7,
+            "resonances": 0.5,
+            "masking": 0.5,
+            "dynamics": 0.4,
+            "polish": 0.5
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 35, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.6 },
+            "Bass": { "hpf_max_hz": 30, "resonance_reduction_max_db": -2.5, "masking_tolerance": 0.7 },
+            "Lead Synth": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.5, "masking_tolerance": 0.5, "presence_boost_max_db": 3.0 },
+            "Pad/Drone": { "hpf_max_hz": 80, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.4 }
+          }
+        }
+      }
+    },
+
+    "electronic_dance": {
+      "description": "Dance/EDM, House/Deep House, Techno, Trance, Electronic (General)",
+      "default_character": 0.5,
+      "styles": {
+
+        "Techno": {
+          "description": "Kick dominant, sub contrôlé, hypnotique, propre.",
+          "default_character": 0.4,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.9,
+            "resonances": 0.6,
+            "masking": 0.6,
+            "dynamics": 0.5,
+            "polish": 0.4
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 25, "resonance_reduction_max_db": -3.5, "masking_tolerance": 0.4, "transient_preserve": true },
+            "Sub Bass": { "hpf_max_hz": 20, "resonance_reduction_max_db": -2.5, "masking_tolerance": 0.7 },
+            "Bass": { "hpf_max_hz": 30, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.6 },
+            "Hi-Hat/Cymbal": { "hpf_max_hz": 300, "resonance_reduction_max_db": -4.0, "masking_tolerance": 0.3 },
+            "Pad/Drone": { "hpf_max_hz": 120, "resonance_reduction_max_db": -4.0, "masking_tolerance": 0.3 }
+          }
+        },
+
+        "House/Deep House": {
+          "description": "Groove, chaleur, sub rond, mid propre.",
+          "default_character": 0.6,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.8,
+            "resonances": 0.6,
+            "masking": 0.5,
+            "dynamics": 0.5,
+            "polish": 0.5
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 30, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.5 },
+            "Bass": { "hpf_max_hz": 30, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.6 },
+            "Lead Vocal": { "hpf_max_hz": 100, "resonance_reduction_max_db": -2.5, "deess_threshold_db": -18, "presence_boost_max_db": 3.0 }
+          }
+        },
+
+        "Trance": {
+          "description": "Énergie, couches, build-ups, clarté.",
+          "default_character": 0.6,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.8,
+            "resonances": 0.7,
+            "masking": 0.6,
+            "dynamics": 0.5,
+            "polish": 0.6
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 30, "resonance_reduction_max_db": -3.5, "masking_tolerance": 0.4 },
+            "Lead Synth": { "hpf_max_hz": 100, "resonance_reduction_max_db": -3.0, "presence_boost_max_db": 3.5 },
+            "Pad/Drone": { "hpf_max_hz": 100, "resonance_reduction_max_db": -3.5, "masking_tolerance": 0.3 }
+          }
+        },
+
+        "Dance/EDM": {
+          "description": "Pop-electronic, loud, polish maximal.",
+          "default_character": 0.7,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.9,
+            "resonances": 0.7,
+            "masking": 0.7,
+            "dynamics": 0.6,
+            "polish": 0.7
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 30, "resonance_reduction_max_db": -4.0, "masking_tolerance": 0.4 },
+            "Bass": { "hpf_max_hz": 35, "resonance_reduction_max_db": -3.5, "masking_tolerance": 0.5 },
+            "Lead Vocal": { "hpf_max_hz": 100, "resonance_reduction_max_db": -3.0, "deess_threshold_db": -16, "presence_boost_max_db": 4.0 }
+          }
+        },
+
+        "Electronic (General)": {
+          "description": "Défaut pour électronique non catégorisé.",
+          "default_character": 0.5,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.8,
+            "resonances": 0.6,
+            "masking": 0.5,
+            "dynamics": 0.5,
+            "polish": 0.5
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 30, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.5 },
+            "Bass": { "hpf_max_hz": 30, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.6 },
+            "Lead Synth": { "hpf_max_hz": 80, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.5 }
+          }
+        }
+      }
+    },
+
+    "electronic_soft": {
+      "description": "Ambient/Drone, Lo-Fi, Experimental, Film Score/Cinematic",
+      "default_character": 0.8,
+      "styles": {
+
+        "Ambient/Drone": {
+          "description": "Éthéré, espace, dynamique lente, résonances = beauté.",
+          "default_character": 0.9,
+          "default_intensity": {
+            "gain_staging": 0.8,
+            "hpf_lpf": 0.5,
+            "resonances": 0.3,
+            "masking": 0.3,
+            "dynamics": 0.2,
+            "polish": 0.3
+          },
+          "track_profiles": {
+            "Pad/Drone": { "hpf_max_hz": 40, "resonance_reduction_max_db": -1.5, "masking_tolerance": 0.8 },
+            "Texture/Atmosphere": { "hpf_max_hz": 30, "resonance_reduction_max_db": -1.5, "masking_tolerance": 0.7 },
+            "Sub Bass": { "hpf_max_hz": 20, "resonance_reduction_max_db": -1.0, "masking_tolerance": 0.9 }
+          }
+        },
+
+        "Lo-Fi": {
+          "description": "Charme de l'imperfection. Mud = chaleur. Bruit = texture.",
+          "default_character": 0.6,
+          "default_intensity": {
+            "gain_staging": 0.8,
+            "hpf_lpf": 0.4,
+            "resonances": 0.3,
+            "masking": 0.4,
+            "dynamics": 0.3,
+            "polish": 0.2
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 30, "resonance_reduction_max_db": -2.0, "masking_tolerance": 0.7 },
+            "Bass": { "hpf_max_hz": 30, "resonance_reduction_max_db": -2.0, "masking_tolerance": 0.7 }
+          }
+        },
+
+        "Experimental": {
+          "description": "Pas de règles. Corrections minimales, préserver l'intention.",
+          "default_character": 0.5,
+          "default_intensity": {
+            "gain_staging": 0.7,
+            "hpf_lpf": 0.4,
+            "resonances": 0.3,
+            "masking": 0.3,
+            "dynamics": 0.2,
+            "polish": 0.2
+          },
+          "track_profiles": {}
+        },
+
+        "Film Score/Cinematic": {
+          "description": "Large, dynamique, orchestral, espace. Clarté pour la narration.",
+          "default_character": 0.7,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.7,
+            "resonances": 0.5,
+            "masking": 0.6,
+            "dynamics": 0.5,
+            "polish": 0.6
+          },
+          "track_profiles": {
+            "Sub Bass": { "hpf_max_hz": 25, "resonance_reduction_max_db": -2.0, "masking_tolerance": 0.7 },
+            "Pad/Drone": { "hpf_max_hz": 60, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.4 },
+            "Lead Vocal": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.0, "deess_threshold_db": -16, "presence_boost_max_db": 3.0 }
+          }
+        }
+      }
+    },
+
+    "rock": {
+      "description": "Rock, Indie/Alternative, Punk, Metal",
+      "default_character": 0.4,
+      "styles": {
+
+        "Rock": {
+          "description": "Guitares dominantes, drums live, énergie. Séparation propre.",
+          "default_character": 0.5,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.8,
+            "resonances": 0.6,
+            "masking": 0.6,
+            "dynamics": 0.5,
+            "polish": 0.5
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 40, "resonance_reduction_max_db": -3.5, "masking_tolerance": 0.5, "transient_preserve": true },
+            "Snare/Clap": { "hpf_max_hz": 80, "resonance_reduction_max_db": -3.5, "transient_preserve": true },
+            "Bass": { "hpf_max_hz": 35, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.6 },
+            "Guitar Distorted": { "hpf_max_hz": 80, "lpf_min_hz": 12000, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.5 },
+            "Guitar Clean": { "hpf_max_hz": 80, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.5 },
+            "Lead Vocal": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.5, "deess_threshold_db": -18, "presence_boost_max_db": 3.0 }
+          }
+        },
+
+        "Indie/Alternative": {
+          "description": "Radiohead, Deerhunter, Beach House. Textures, atmosphère, espace > punch.",
+          "default_character": 0.7,
+          "default_intensity": {
+            "gain_staging": 0.9,
+            "hpf_lpf": 0.7,
+            "resonances": 0.5,
+            "masking": 0.5,
+            "dynamics": 0.4,
+            "polish": 0.5
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 35, "resonance_reduction_max_db": -2.5, "masking_tolerance": 0.6 },
+            "Bass": { "hpf_max_hz": 35, "resonance_reduction_max_db": -2.5, "masking_tolerance": 0.7 },
+            "Guitar Distorted": { "hpf_max_hz": 60, "resonance_reduction_max_db": -2.5, "masking_tolerance": 0.6 },
+            "Guitar Clean": { "hpf_max_hz": 60, "resonance_reduction_max_db": -2.0, "masking_tolerance": 0.6 },
+            "Pad/Drone": { "hpf_max_hz": 60, "resonance_reduction_max_db": -2.0, "masking_tolerance": 0.6 },
+            "Lead Vocal": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.0, "deess_threshold_db": -20, "presence_boost_max_db": 2.0 }
+          }
+        },
+
+        "Punk": {
+          "description": "Rapide, agressif, lo-fi par esthétique. Peu de corrections.",
+          "default_character": 0.3,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.7,
+            "resonances": 0.4,
+            "masking": 0.4,
+            "dynamics": 0.3,
+            "polish": 0.2
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 40, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.6 },
+            "Guitar Distorted": { "hpf_max_hz": 80, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.6 },
+            "Lead Vocal": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.5, "deess_threshold_db": -24 }
+          }
+        },
+
+        "Metal": {
+          "description": "Guitares lourdes, double kick, tight. Séparation chirurgicale du low-mid.",
+          "default_character": 0.3,
+          "default_intensity": {
+            "gain_staging": 1.0,
+            "hpf_lpf": 0.9,
+            "resonances": 0.7,
+            "masking": 0.7,
+            "dynamics": 0.6,
+            "polish": 0.4
+          },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 40, "resonance_reduction_max_db": -4.0, "masking_tolerance": 0.4, "transient_preserve": true },
+            "Bass": { "hpf_max_hz": 35, "resonance_reduction_max_db": -3.5, "masking_tolerance": 0.5 },
+            "Guitar Distorted": { "hpf_max_hz": 100, "lpf_min_hz": 10000, "resonance_reduction_max_db": -4.0, "masking_tolerance": 0.4 },
+            "Lead Vocal": { "hpf_max_hz": 100, "resonance_reduction_max_db": -3.0, "deess_threshold_db": -18, "presence_boost_max_db": 3.5 }
+          }
+        }
+      }
+    },
+
+    "acoustic": {
+      "description": "Acoustic/Folk, Blues, Country, Singer-Songwriter, Jazz, Classical/Orchestral",
+      "default_character": 0.7,
+      "styles": {
+
+        "Acoustic/Folk": {
+          "default_character": 0.7,
+          "default_intensity": {
+            "gain_staging": 0.9,
+            "hpf_lpf": 0.7,
+            "resonances": 0.5,
+            "masking": 0.5,
+            "dynamics": 0.4,
+            "polish": 0.5
+          },
+          "track_profiles": {
+            "Guitar Acoustic": { "hpf_max_hz": 60, "resonance_reduction_max_db": -2.5, "masking_tolerance": 0.6 },
+            "Lead Vocal": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.0, "deess_threshold_db": -18, "presence_boost_max_db": 2.5 }
+          }
+        },
+
+        "Blues": {
+          "default_character": 0.6,
+          "default_intensity": { "gain_staging": 0.9, "hpf_lpf": 0.7, "resonances": 0.5, "masking": 0.5, "dynamics": 0.4, "polish": 0.5 },
+          "track_profiles": {
+            "Guitar Distorted": { "hpf_max_hz": 60, "resonance_reduction_max_db": -2.5, "masking_tolerance": 0.6 },
+            "Bass": { "hpf_max_hz": 35, "resonance_reduction_max_db": -2.5, "masking_tolerance": 0.7 }
+          }
+        },
+
+        "Country": {
+          "default_character": 0.7,
+          "default_intensity": { "gain_staging": 1.0, "hpf_lpf": 0.8, "resonances": 0.6, "masking": 0.6, "dynamics": 0.5, "polish": 0.6 },
+          "track_profiles": {
+            "Guitar Acoustic": { "hpf_max_hz": 60, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.5 },
+            "Lead Vocal": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.5, "deess_threshold_db": -16, "presence_boost_max_db": 3.0 }
+          }
+        },
+
+        "Singer-Songwriter": {
+          "default_character": 0.7,
+          "default_intensity": { "gain_staging": 0.9, "hpf_lpf": 0.7, "resonances": 0.5, "masking": 0.5, "dynamics": 0.4, "polish": 0.5 },
+          "track_profiles": {
+            "Lead Vocal": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.0, "deess_threshold_db": -18, "presence_boost_max_db": 2.5 }
+          }
+        },
+
+        "Jazz": {
+          "description": "Dynamique naturelle, espace, chaleur. Corrections minimales.",
+          "default_character": 0.8,
+          "default_intensity": { "gain_staging": 0.7, "hpf_lpf": 0.5, "resonances": 0.3, "masking": 0.3, "dynamics": 0.2, "polish": 0.3 },
+          "track_profiles": {
+            "Bass": { "hpf_max_hz": 30, "resonance_reduction_max_db": -1.5, "masking_tolerance": 0.8 },
+            "Kick": { "hpf_max_hz": 30, "resonance_reduction_max_db": -2.0, "masking_tolerance": 0.7 }
+          }
+        },
+
+        "Classical/Orchestral": {
+          "description": "Dynamique large, résonances naturelles de salle. Toucher à peine.",
+          "default_character": 0.9,
+          "default_intensity": { "gain_staging": 0.6, "hpf_lpf": 0.4, "resonances": 0.2, "masking": 0.2, "dynamics": 0.1, "polish": 0.2 },
+          "track_profiles": {}
+        }
+      }
+    },
+
+    "urban": {
+      "description": "Hip-Hop/Rap, Trap, R&B, Funk/Soul, Reggae/Dub",
+      "default_character": 0.5,
+      "styles": {
+
+        "Hip-Hop/Rap": {
+          "default_character": 0.5,
+          "default_intensity": { "gain_staging": 1.0, "hpf_lpf": 0.8, "resonances": 0.6, "masking": 0.6, "dynamics": 0.6, "polish": 0.6 },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 25, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.5 },
+            "808/Pitched Bass": { "hpf_max_hz": 20, "resonance_reduction_max_db": -2.0, "masking_tolerance": 0.8 },
+            "Lead Vocal": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.5, "deess_threshold_db": -16, "presence_boost_max_db": 3.5 }
+          }
+        },
+
+        "Trap": {
+          "default_character": 0.4,
+          "default_intensity": { "gain_staging": 1.0, "hpf_lpf": 0.8, "resonances": 0.6, "masking": 0.5, "dynamics": 0.6, "polish": 0.5 },
+          "track_profiles": {
+            "808/Pitched Bass": { "hpf_max_hz": 20, "resonance_reduction_max_db": -1.5, "masking_tolerance": 0.9 },
+            "Hi-Hat/Cymbal": { "hpf_max_hz": 400, "resonance_reduction_max_db": -4.0, "masking_tolerance": 0.3 }
+          }
+        },
+
+        "R&B": {
+          "default_character": 0.6,
+          "default_intensity": { "gain_staging": 1.0, "hpf_lpf": 0.8, "resonances": 0.6, "masking": 0.6, "dynamics": 0.5, "polish": 0.6 },
+          "track_profiles": {
+            "Lead Vocal": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.0, "deess_threshold_db": -16, "presence_boost_max_db": 3.0 },
+            "Bass": { "hpf_max_hz": 30, "resonance_reduction_max_db": -2.5, "masking_tolerance": 0.7 }
+          }
+        },
+
+        "Funk/Soul": {
+          "default_character": 0.6,
+          "default_intensity": { "gain_staging": 1.0, "hpf_lpf": 0.7, "resonances": 0.5, "masking": 0.5, "dynamics": 0.4, "polish": 0.5 },
+          "track_profiles": {
+            "Bass": { "hpf_max_hz": 30, "resonance_reduction_max_db": -2.0, "masking_tolerance": 0.7 },
+            "Guitar Clean": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.5, "masking_tolerance": 0.5 }
+          }
+        },
+
+        "Reggae/Dub": {
+          "description": "Sub dominant, mid scooped, effets = identité.",
+          "default_character": 0.5,
+          "default_intensity": { "gain_staging": 1.0, "hpf_lpf": 0.6, "resonances": 0.4, "masking": 0.4, "dynamics": 0.3, "polish": 0.4 },
+          "track_profiles": {
+            "Bass": { "hpf_max_hz": 25, "resonance_reduction_max_db": -1.5, "masking_tolerance": 0.9 },
+            "Kick": { "hpf_max_hz": 25, "resonance_reduction_max_db": -2.0, "masking_tolerance": 0.7 }
+          }
+        }
+      }
+    },
+
+    "pop": {
+      "description": "Pop, Latin, World Music",
+      "default_character": 0.7,
+      "styles": {
+
+        "Pop": {
+          "description": "Clarté maximale, séparation, loud, polish.",
+          "default_character": 0.8,
+          "default_intensity": { "gain_staging": 1.0, "hpf_lpf": 0.9, "resonances": 0.8, "masking": 0.8, "dynamics": 0.7, "polish": 0.8 },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 40, "resonance_reduction_max_db": -4.0, "masking_tolerance": 0.3 },
+            "Bass": { "hpf_max_hz": 35, "resonance_reduction_max_db": -4.0, "masking_tolerance": 0.4 },
+            "Lead Vocal": { "hpf_max_hz": 80, "resonance_reduction_max_db": -3.0, "deess_threshold_db": -14, "presence_boost_max_db": 4.0 }
+          }
+        },
+
+        "Latin": {
+          "default_character": 0.6,
+          "default_intensity": { "gain_staging": 1.0, "hpf_lpf": 0.8, "resonances": 0.6, "masking": 0.6, "dynamics": 0.5, "polish": 0.6 },
+          "track_profiles": {
+            "Percussion": { "hpf_max_hz": 80, "resonance_reduction_max_db": -3.0, "transient_preserve": true },
+            "Bass": { "hpf_max_hz": 30, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.6 }
+          }
+        },
+
+        "World Music": {
+          "default_character": 0.6,
+          "default_intensity": { "gain_staging": 0.9, "hpf_lpf": 0.7, "resonances": 0.5, "masking": 0.5, "dynamics": 0.4, "polish": 0.5 },
+          "track_profiles": {}
+        }
+      }
+    },
+
+    "generic": {
+      "description": "Profil par défaut quand aucun genre n'est spécifié.",
+      "default_character": 0.5,
+      "styles": {
+        "Generic": {
+          "default_character": 0.5,
+          "default_intensity": { "gain_staging": 1.0, "hpf_lpf": 0.7, "resonances": 0.5, "masking": 0.5, "dynamics": 0.4, "polish": 0.4 },
+          "track_profiles": {
+            "Kick": { "hpf_max_hz": 35, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.5, "transient_preserve": true },
+            "Bass": { "hpf_max_hz": 30, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.6 },
+            "Lead Synth": { "hpf_max_hz": 80, "resonance_reduction_max_db": -3.0, "masking_tolerance": 0.5 },
+            "Lead Vocal": { "hpf_max_hz": 80, "resonance_reduction_max_db": -2.5, "deess_threshold_db": -18, "presence_boost_max_db": 2.5 },
+            "Pad/Drone": { "hpf_max_hz": 100, "resonance_reduction_max_db": -4.0, "masking_tolerance": 0.4 },
+            "Noise/Ambience": { "hpf_max_hz": 150, "resonance_reduction_max_db": -5.0, "masking_tolerance": 0.2 }
+          }
+        }
+      }
+    }
+  }
+}
