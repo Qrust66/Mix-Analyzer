@@ -430,6 +430,111 @@ class TestInterpolateAt:
         assert result[2] == 0.0   # after 8 → holds 0.0
 
 
+class TestBucketLevelMasking:
+    """Round-trip: is_audible=0 on N buckets → zone_energy has N None per zone."""
+
+    def test_muted_buckets_produce_none(self):
+        """Muted bucket centers → all frames in that bucket NaN → None after nanmean."""
+        from feature_storage import _downsample_frames
+
+        n_frames = 721
+        duration = 120.0
+        n_buckets = 64
+
+        # Simulate automation map: buckets 10,11,12 are inaudible
+        auto_map = TrackAutomationMap(
+            track_name="Test",
+            effective_gain=np.ones(200),
+            effective_gain_times=np.linspace(0, duration, 200),
+            is_audible=np.ones(200, dtype=bool),
+        )
+        # Mute the time range covering buckets 10-12 (center times ~19.7-23.4s)
+        bucket_step = duration / n_buckets
+        for i in range(200):
+            t = auto_map.effective_gain_times[i]
+            if 10 * bucket_step <= t < 13 * bucket_step:
+                auto_map.effective_gain[i] = 0.0
+                auto_map.is_audible[i] = False
+
+        # Compute bucket-level audibility
+        bucket_centers = np.array([(i + 0.5) * bucket_step for i in range(n_buckets)])
+        bucket_audible = resample_audibility(auto_map, bucket_centers)
+        n_muted_buckets = int((~bucket_audible).sum())
+        assert n_muted_buckets == 3
+
+        # Apply bucket-level mask to frames
+        edges = np.linspace(0, n_frames, n_buckets + 1, dtype=int)
+        zone_data = np.ones(n_frames) * -25.0
+        for b in range(n_buckets):
+            if not bucket_audible[b]:
+                zone_data[edges[b]:edges[b + 1]] = np.nan
+
+        # Downsample and verify: 3 muted buckets → 3 None
+        ds = _downsample_frames(zone_data, n_buckets)
+        none_count = sum(1 for v in ds if v is None)
+        assert none_count == n_muted_buckets, f"Expected {n_muted_buckets} None, got {none_count}"
+
+    def test_fully_audible_no_none(self):
+        """Fully audible track has zero None buckets."""
+        from feature_storage import _downsample_frames
+
+        zone_data = np.ones(721) * -20.0
+        ds = _downsample_frames(zone_data, 64)
+        none_count = sum(1 for v in ds if v is None)
+        assert none_count == 0
+
+
+class TestNameMatching:
+    """Test the _match_auto_map static method logic."""
+
+    def test_exact_match(self):
+        maps = {"Kick 1": TrackAutomationMap(track_name="Kick 1")}
+        assert _match("Kick 1", maps) is not None
+
+    def test_strip_prefix(self):
+        maps = {"Toms Rack": TrackAutomationMap(track_name="Toms Rack")}
+        assert _match("Acid_drops Toms Rack", maps) is not None
+
+    def test_strip_group_number(self):
+        maps = {"5-Toms Rack": TrackAutomationMap(track_name="5-Toms Rack")}
+        assert _match("Acid_drops Toms Rack", maps) is not None
+
+    def test_substring_match(self):
+        maps = {"7-OverHead": TrackAutomationMap(track_name="7-OverHead")}
+        assert _match("Acid_drops Toms Overhead", maps) is not None
+
+    def test_no_match(self):
+        maps = {"Kick 1": TrackAutomationMap(track_name="Kick 1")}
+        assert _match("Acid_drops Completely Different", maps) is None
+
+
+def _match(stem, auto_maps):
+    """Standalone copy of MixAnalyzerApp._match_auto_map for testing."""
+    import re
+    if stem in auto_maps:
+        return auto_maps[stem]
+    parts = stem.split(' ', 1)
+    wav_clean = parts[1] if len(parts) == 2 else stem
+    if wav_clean in auto_maps:
+        return auto_maps[wav_clean]
+    for als_name, am in auto_maps.items():
+        als_clean = re.sub(r'^\d+[\s._-]+', '', als_name)
+        if als_clean == wav_clean or als_clean == stem:
+            return am
+    wav_lower = wav_clean.lower()
+    best_match = None
+    best_len = 0
+    for als_name, am in auto_maps.items():
+        als_clean = re.sub(r'^\d+[\s._-]+', '', als_name).lower()
+        if len(als_clean) < 3:
+            continue
+        if als_clean in wav_lower or wav_lower in als_clean:
+            if len(als_clean) > best_len:
+                best_len = len(als_clean)
+                best_match = am
+    return best_match
+
+
 class TestSpeakerAutomation:
     def test_speaker_mute_unmute(self, tmp_path):
         """Speaker automation toggles audibility."""
