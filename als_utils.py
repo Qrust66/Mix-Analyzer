@@ -116,7 +116,11 @@ def save_als_from_tree(tree: ET.ElementTree, output_path: str) -> str:
         Path to the saved file.
     """
     output_path = Path(output_path)
-    xml_bytes = ET.tostring(tree.getroot(), encoding="unicode", xml_declaration=True)
+    # Manually prepend the XML declaration that matches Ableton's native format
+    # (double-quoted attributes, uppercase UTF-8) so Live's parser sees the same
+    # header it produces itself.
+    xml_body = ET.tostring(tree.getroot(), encoding="unicode")
+    xml_bytes = '<?xml version="1.0" encoding="UTF-8"?>\n' + xml_body
 
     with gzip.open(output_path, "wb") as f:
         f.write(xml_bytes.encode("utf-8"))
@@ -314,18 +318,22 @@ def _load_eq8_template() -> ET.Element:
 
 
 def _clone_eq8_with_unique_ids(tree: ET.ElementTree) -> ET.Element:
-    """Deep-copy the EQ8 template and renumber every Id attribute.
+    """Deep-copy the EQ8 template and renumber non-zero Id attributes.
 
     The cloned subtree is returned detached; the caller appends it to the
-    target Devices container. All ``Id`` attributes (on Eq8 itself, on every
-    AutomationTarget, ModulationTarget, Pointee, etc.) are rewritten to
-    values above ``get_next_id(tree)`` so they never collide with Ids
-    already present in the destination .als.
+    target Devices container. Only ``Id`` attributes with values > 0 are
+    rewritten to values above ``get_next_id(tree)`` to avoid collisions.
+    ``Id="0"`` is a special placeholder value in Ableton's format (used on
+    ``BranchSourceContext`` and ``AbletonDefaultPresetRef`` inside
+    ``SourceContext``/``LastPresetRef``) and must be preserved as 0 so Live
+    recognises the device as a default browser instance rather than an
+    unknown reference.
     """
     eq8 = copy.deepcopy(_load_eq8_template())
     next_id = get_next_id(tree)
     for elem in eq8.iter():
-        if elem.get("Id") is not None:
+        raw = elem.get("Id")
+        if raw is not None and raw != "0":
             elem.set("Id", str(next_id))
             next_id += 1
     return eq8
