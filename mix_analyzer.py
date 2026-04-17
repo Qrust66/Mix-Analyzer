@@ -9559,64 +9559,103 @@ class MixAnalyzerApp:
         self.root.after(0, _enable_buttons)
 
     def _mask_features_by_audibility(self, feat, fname, auto_maps):
-        """Apply NaN to v2.5 features where the track is inaudible."""
+        """Apply NaN to v2.5 features where the track is inaudible.
+
+        Masking is done at bucket granularity: if the bucket center time
+        is inaudible, ALL frames in that bucket are set to NaN. This ensures
+        exact correspondence with _track_automation_map is_audible.
+        """
         import re
         from automation_map import resample_audibility
 
         stem = os.path.splitext(fname)[0]
-
-        # Try matching: exact stem, then strip project prefix, then strip group numbers
-        auto_map = auto_maps.get(stem)
-        if auto_map is None:
-            # Strip project prefix: "Acid_drops Toms Rack" → "Toms Rack"
-            parts = stem.split(' ', 1)
-            if len(parts) == 2:
-                auto_map = auto_maps.get(parts[1])
-        if auto_map is None:
-            # Try stripping group numbers from .als names: "5-Toms Rack" → "Toms Rack"
-            stripped_stem = re.sub(r'^\d+[\s._-]*', '', stem)
-            for als_name, am in auto_maps.items():
-                als_stripped = re.sub(r'^\d+[\s._-]*', '', als_name)
-                if als_stripped == stripped_stem or als_stripped == stem:
-                    auto_map = am
-                    break
-            # Also try with project prefix stripped + .als stripped
-            if auto_map is None and len(parts) == 2:
-                for als_name, am in auto_maps.items():
-                    als_stripped = re.sub(r'^\d+[\s._-]*', '', als_name)
-                    if als_stripped == parts[1]:
-                        auto_map = am
-                        break
+        auto_map = self._match_auto_map(stem, auto_maps)
 
         if auto_map is None:
+            self.log(f"    v2.5.2: '{stem}' — no matching automation map")
             return
 
         times = feat.zone_energy.times
-        if len(times) == 0:
+        n_frames = len(times)
+        if n_frames == 0:
             return
 
-        audible = resample_audibility(auto_map, times)
-        inaudible = ~audible
-        n_inaudible = int(inaudible.sum())
+        duration = float(times[-1]) if n_frames > 0 else 0.0
+        n_buckets = 64
+        if duration <= 0:
+            return
 
-        if n_inaudible == 0:
+        bucket_step = duration / n_buckets
+        bucket_centers = np.array([(i + 0.5) * bucket_step for i in range(n_buckets)])
+        bucket_audible = resample_audibility(auto_map, bucket_centers)
+
+        edges = np.linspace(0, n_frames, n_buckets + 1, dtype=int)
+        inaudible_mask = np.zeros(n_frames, dtype=bool)
+        for b in range(n_buckets):
+            if not bucket_audible[b]:
+                inaudible_mask[edges[b]:edges[b + 1]] = True
+
+        n_inaudible_buckets = int((~bucket_audible).sum())
+        n_inaudible_frames = int(inaudible_mask.sum())
+
+        if n_inaudible_frames == 0:
             return
 
         for zone_data in feat.zone_energy.zones.values():
-            if len(zone_data) == len(inaudible):
-                zone_data[inaudible] = np.nan
+            if len(zone_data) == n_frames:
+                zone_data[inaudible_mask] = np.nan
 
         for attr in ('centroid', 'spread', 'flatness', 'low_rolloff', 'high_rolloff'):
             arr = getattr(feat.descriptors, attr, None)
-            if arr is not None and len(arr) == len(inaudible):
-                arr[inaudible] = np.nan
+            if arr is not None and len(arr) == n_frames:
+                arr[inaudible_mask] = np.nan
 
         if feat.crest_by_zone:
             for crest_data in feat.crest_by_zone.values():
-                if len(crest_data) == len(inaudible):
-                    crest_data[inaudible] = np.nan
+                if len(crest_data) == n_frames:
+                    crest_data[inaudible_mask] = np.nan
 
-        self.log(f"    v2.5.1: {stem} — masked {n_inaudible}/{len(times)} frames as inaudible")
+        self.log(f"    v2.5.2: '{stem}' — masked {n_inaudible_buckets}/64 buckets ({n_inaudible_frames} frames)")
+
+    @staticmethod
+    def _match_auto_map(stem, auto_maps):
+        """Match an audio filename stem to an automation map key.
+
+        Cascade: exact → strip prefix → strip group numbers → substring.
+        """
+        import re
+
+        # 1. Exact match
+        if stem in auto_maps:
+            return auto_maps[stem]
+
+        # 2. Strip project prefix ("Acid_drops Toms Rack" → "Toms Rack")
+        parts = stem.split(' ', 1)
+        wav_clean = parts[1] if len(parts) == 2 else stem
+
+        if wav_clean in auto_maps:
+            return auto_maps[wav_clean]
+
+        # 3. Strip group numbers from .als names ("5-Toms Rack" → "Toms Rack")
+        for als_name, am in auto_maps.items():
+            als_clean = re.sub(r'^\d+[\s._-]+', '', als_name)
+            if als_clean == wav_clean or als_clean == stem:
+                return am
+
+        # 4. Substring match (handles "OverHead" ⊂ "Toms Overhead")
+        wav_lower = wav_clean.lower()
+        best_match = None
+        best_len = 0
+        for als_name, am in auto_maps.items():
+            als_clean = re.sub(r'^\d+[\s._-]+', '', als_name).lower()
+            if len(als_clean) < 3:
+                continue
+            if als_clean in wav_lower or wav_lower in als_clean:
+                if len(als_clean) > best_len:
+                    best_len = len(als_clean)
+                    best_match = am
+
+        return best_match
 
     def _open_output_folder(self):
         if self.output_dir_after_run and os.path.isdir(self.output_dir_after_run):
