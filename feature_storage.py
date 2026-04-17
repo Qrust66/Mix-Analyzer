@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Feature Storage — v2.5
+Feature Storage — v2.5.2
 
 Writes and reads v2.5 spectral evolution features into hidden Excel sheets.
 Follows the same conventions as the v2.4 hidden sheets in mix_analyzer.py:
