@@ -25,7 +25,6 @@ from automation_map import (
     resample_effective_gain,
     resample_audibility,
     _interpolate_at,
-    _utility_gain_to_linear,
 )
 
 
@@ -159,18 +158,18 @@ def _add_envelope(envelopes_node, target_id, events, start_id):
 
 class TestExtractUtilityGain:
     def test_utility_mute_mid_track(self, tmp_path):
-        """Utility gain drops to -60 dB at beat 32 → effective gain drops in second half."""
+        """Utility gain drops to 0.0 (muted) at beat 32."""
         als_path = tmp_path / "test.als"
         _create_als_with_automations(als_path, [
             {
                 "name": "Toms Rack",
                 "volume_static": 0.5,
                 "utility_gains": [{
-                    "static": 0.0,
+                    "static": 1.0,
                     "automation": [
-                        (0.0, 0.0),     # 0 dB → linear 1.0
-                        (32.0, -60.0),  # -60 dB → linear 0.001 at beat 32
-                        (64.0, -60.0),  # stays muted
+                        (0.0, 1.0),     # unity gain
+                        (32.0, 0.0),    # muted at beat 32
+                        (64.0, 0.0),    # stays muted
                     ],
                 }],
             }
@@ -182,7 +181,7 @@ class TestExtractUtilityGain:
 
         # At beat 0: volume=0.5, utility=1.0 → effective ~0.5
         assert auto_map.effective_gain[0] > 0.3
-        # After beat 32 (midpoint): utility ~ 0.001 → effective < 0.01
+        # After beat 32: utility=0.0 → effective ~0
         three_quarter_idx = int(len(auto_map.effective_gain) * 0.75)
         assert auto_map.effective_gain[three_quarter_idx] < 0.01
 
@@ -194,8 +193,8 @@ class TestExtractUtilityGain:
                 "name": "Track1",
                 "volume_static": 1.0,
                 "utility_gains": [
-                    {"static": -6.0},   # ~0.5 linear
-                    {"static": -6.0},   # ~0.5 linear
+                    {"static": 0.5},   # 0.5 linear
+                    {"static": 0.5},   # 0.5 linear
                 ],
             }
         ], tempo=120.0)
@@ -204,8 +203,7 @@ class TestExtractUtilityGain:
         auto_map = result["Track1"]
 
         # 0.5 * 0.5 = 0.25
-        expected = _utility_gain_to_linear(-6.0) ** 2
-        assert abs(auto_map.effective_gain[0] - expected) < 0.05
+        assert abs(auto_map.effective_gain[0] - 0.25) < 0.05
 
 
 # ---------------------------------------------------------------------------
@@ -248,15 +246,14 @@ class TestEffectiveGainCombines:
             {
                 "name": "Bass",
                 "volume_static": 0.5,
-                "utility_gains": [{"static": -6.0}],  # ~0.5 linear
+                "utility_gains": [{"static": 0.5}],  # 0.5 linear
             }
         ], tempo=120.0)
 
         result = extract_all_track_automations(als_path)
         auto_map = result["Bass"]
 
-        utility_linear = _utility_gain_to_linear(-6.0)
-        expected = 0.5 * utility_linear
+        expected = 0.5 * 0.5  # volume * utility
         assert auto_map.effective_gain[0] == pytest.approx(expected, abs=0.05)
 
 

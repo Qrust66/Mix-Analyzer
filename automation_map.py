@@ -219,7 +219,7 @@ def extract_track_automations(
                 continue
             util_gain = _extract_param_curve(
                 track_element, gain_param, "Utility.Gain", dev_name,
-                curves, grid_beats, default_scale=_utility_gain_to_linear
+                curves, grid_beats,
             )
             if util_gain is not None:
                 combined_gain *= util_gain
