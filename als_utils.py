@@ -14,6 +14,7 @@ Usage (CLI):
     python als_utils.py info project.als                    # show project summary
 """
 
+import copy
 import gzip
 import sys
 import os
@@ -271,13 +272,72 @@ def find_track_by_name(tree: ET.ElementTree, track_name: str) -> ET.Element:
     raise ValueError(f"No track named '{track_name}' found in the project.")
 
 
+_EQ8_TEMPLATE_PATH = (
+    Path(__file__).resolve().parent / "ableton" / "projects" / "Pluggin Mapping.als"
+)
+_EQ8_TEMPLATE_CACHE: ET.Element | None = None
+
+
+def _load_eq8_template() -> ET.Element:
+    """Load and cache a real EQ8 element from Pluggin Mapping.als.
+
+    A hand-rolled EQ8 is missing too many Ableton-private fields
+    (ParameterB, MidiControllerRange, ModulationTarget, SpectrumAnalyzer,
+    AdaptiveQ, GlobalGain, Scale, ...) for Live to recognise it as a
+    functional device — the resulting XML parses but its AutomationTargets
+    receive no audio, so envelopes end up connected to nothing.
+
+    The canonical fix is to clone a real EQ8 from a reference project.
+
+    Raises:
+        RuntimeError: If the reference .als is missing or contains no EQ8.
+    """
+    global _EQ8_TEMPLATE_CACHE
+    if _EQ8_TEMPLATE_CACHE is not None:
+        return _EQ8_TEMPLATE_CACHE
+
+    if not _EQ8_TEMPLATE_PATH.exists():
+        raise RuntimeError(
+            f"EQ8 template file not found: {_EQ8_TEMPLATE_PATH}. "
+            "This .als ships an EQ8 instance that find_or_create_eq8() "
+            "clones when a track has no EQ8 yet."
+        )
+    with gzip.open(_EQ8_TEMPLATE_PATH, "rt", encoding="utf-8") as f:
+        ref_tree = ET.parse(f)
+    eq8 = ref_tree.getroot().find(".//Eq8")
+    if eq8 is None:
+        raise RuntimeError(
+            f"No <Eq8> element found in reference file {_EQ8_TEMPLATE_PATH}."
+        )
+    _EQ8_TEMPLATE_CACHE = eq8
+    return eq8
+
+
+def _clone_eq8_with_unique_ids(tree: ET.ElementTree) -> ET.Element:
+    """Deep-copy the EQ8 template and renumber every Id attribute.
+
+    The cloned subtree is returned detached; the caller appends it to the
+    target Devices container. All ``Id`` attributes (on Eq8 itself, on every
+    AutomationTarget, ModulationTarget, Pointee, etc.) are rewritten to
+    values above ``get_next_id(tree)`` so they never collide with Ids
+    already present in the destination .als.
+    """
+    eq8 = copy.deepcopy(_load_eq8_template())
+    next_id = get_next_id(tree)
+    for elem in eq8.iter():
+        if elem.get("Id") is not None:
+            elem.set("Id", str(next_id))
+            next_id += 1
+    return eq8
+
+
 def find_or_create_eq8(track_element: ET.Element, tree: ET.ElementTree) -> ET.Element:
     """Find the first EQ8 device in a track's DeviceChain, or create one.
 
     Searches for an existing ``Eq8`` element inside the track's
     ``DeviceChain/DeviceChain/Devices`` subtree.  If none is found, a new
-    EQ8 with eight fully-wired bands is built and appended, using IDs
-    allocated via :func:`get_next_id`.
+    EQ8 is cloned from the reference device in Pluggin Mapping.als and
+    appended with fresh, collision-free ``Id`` attributes.
 
     Args:
         track_element: The track Element (e.g. from :func:`find_track_by_name`).
@@ -285,15 +345,17 @@ def find_or_create_eq8(track_element: ET.Element, tree: ET.ElementTree) -> ET.El
 
     Returns:
         The ``Eq8`` Element (existing or newly created).
+
+    Raises:
+        ValueError: If the track has no DeviceChain/Devices container.
+        RuntimeError: If the reference EQ8 template cannot be loaded.
     """
     existing = track_element.find(".//Eq8")
     if existing is not None:
         return existing
 
-    # Locate (or create) the Devices container
     devices = track_element.find(".//DeviceChain/DeviceChain/Devices")
     if devices is None:
-        # Fall back: any DeviceChain/Devices
         devices = track_element.find(".//DeviceChain/Devices")
     if devices is None:
         raise ValueError(
@@ -301,76 +363,8 @@ def find_or_create_eq8(track_element: ET.Element, tree: ET.ElementTree) -> ET.El
             "The track structure is unexpected."
         )
 
-    next_id = get_next_id(tree)
-
-    # Build the Eq8 element
-    eq8 = ET.SubElement(devices, "Eq8")
-    eq8.set("Id", str(next_id))
-    next_id += 1
-
-    # LomId (required boilerplate)
-    lom = ET.SubElement(eq8, "LomId")
-    lom.set("Value", "0")
-
-    # IsOn
-    is_on_top = ET.SubElement(eq8, "IsOn")
-    is_on_manual = ET.SubElement(is_on_top, "Manual")
-    is_on_manual.set("Value", "true")
-    ET.SubElement(is_on_top, "AutomationTarget").set("Id", str(next_id))
-    next_id += 1
-
-    # ParametersListWrapper
-    ET.SubElement(eq8, "ParametersListWrapper").set("LomId", "0")
-
-    # Preset (minimal)
-    ET.SubElement(eq8, "Preset")
-
-    # UserName / EffectiveName
-    ET.SubElement(eq8, "UserName").set("Value", "EQ Eight")
-    ET.SubElement(eq8, "EffectiveName").set("Value", "EQ Eight")
-    ET.SubElement(eq8, "IsExpanded").set("Value", "true")
-    ET.SubElement(eq8, "On")
-
-    # Bands
-    for band_idx in range(8):
-        band = ET.SubElement(eq8, f"Bands.{band_idx}")
-
-        param_a = ET.SubElement(band, "ParameterA")
-
-        # IsOn
-        iso = ET.SubElement(param_a, "IsOn")
-        ET.SubElement(iso, "Manual").set("Value", "true")
-        ET.SubElement(iso, "AutomationTarget").set("Id", str(next_id))
-        next_id += 1
-
-        # Mode — default to Bell (3) for middle bands, LowCut48 for band 0,
-        # HighCut48 for band 7
-        default_modes = {0: 0, 7: 7}
-        default_mode = default_modes.get(band_idx, 3)
-        mode = ET.SubElement(param_a, "Mode")
-        ET.SubElement(mode, "Manual").set("Value", str(default_mode))
-        ET.SubElement(mode, "AutomationTarget").set("Id", str(next_id))
-        next_id += 1
-
-        # Freq — distribute sensibly across the spectrum
-        default_freqs = [80, 200, 400, 1000, 2500, 5000, 10000, 16000]
-        freq = ET.SubElement(param_a, "Freq")
-        ET.SubElement(freq, "Manual").set("Value", str(float(default_freqs[band_idx])))
-        ET.SubElement(freq, "AutomationTarget").set("Id", str(next_id))
-        next_id += 1
-
-        # Gain (0 dB)
-        gain = ET.SubElement(param_a, "Gain")
-        ET.SubElement(gain, "Manual").set("Value", "0")
-        ET.SubElement(gain, "AutomationTarget").set("Id", str(next_id))
-        next_id += 1
-
-        # Q
-        q_elem = ET.SubElement(param_a, "Q")
-        ET.SubElement(q_elem, "Manual").set("Value", "0.7071067690849304")
-        ET.SubElement(q_elem, "AutomationTarget").set("Id", str(next_id))
-        next_id += 1
-
+    eq8 = _clone_eq8_with_unique_ids(tree)
+    devices.append(eq8)
     return eq8
 
 
