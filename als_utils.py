@@ -519,8 +519,18 @@ def write_automation_envelope(
     if envelopes_node is None:
         envelopes_node = ET.SubElement(auto_envelopes_node, "Envelopes")
 
+    # Ableton requires every AutomationEnvelope in an Envelopes container to
+    # carry a unique Id attribute; the numbering is local to the track.
+    existing_env_ids = [
+        int(e.get("Id", "-1"))
+        for e in envelopes_node.findall("AutomationEnvelope")
+        if e.get("Id") is not None
+    ]
+    envelope_local_id = max(existing_env_ids) + 1 if existing_env_ids else 0
+
     # Build the envelope element
     envelope = ET.SubElement(envelopes_node, "AutomationEnvelope")
+    envelope.set("Id", str(envelope_local_id))
 
     env_target = ET.SubElement(envelope, "EnvelopeTarget")
     ET.SubElement(env_target, "PointeeId").set("Value", str(pointee_id))
