@@ -511,6 +511,11 @@ def write_dynamic_notch(
 ) -> AutomationReport:
     """Write a dynamic notch that tracks a peak trajectory.
 
+    The band is configured as a narrow Bell (Mode 3), not Notch (Mode 4),
+    because EQ8's Gain parameter is inoperative on Mode in [0, 1, 4, 6, 7]
+    (see ableton_devices_mapping.json "gain_inoperative_modes"). A narrow
+    Bell with a negative Gain envelope produces an automatable notch.
+
     Automates both Freq (following the peak frequency) and Gain.
 
     When proportional=True (default), the cut depth scales with the peak's
@@ -528,7 +533,7 @@ def write_dynamic_notch(
         automation_map: Optional TrackAutomationMap to mask muted sections.
         proportional: Scale reduction with peak amplitude (default True).
         threshold_db: Amplitude floor below which no reduction is applied.
-        q: Notch Q factor (default 8.0, narrow).
+        q: Bell Q factor (default 8.0, narrow — mimics a notch).
 
     Returns:
         AutomationReport (breakpoints_written counts both Freq + Gain).
@@ -537,7 +542,11 @@ def write_dynamic_notch(
         als_path, track_id, band_index
     )
 
-    configure_eq8_band(band_param, mode=4, q=_q_to_eq8_value(q))
+    # Mode 3 (Bell), not Mode 4 (Notch): the EQ8 Gain is inoperative on
+    # Mode in [0, 1, 4, 6, 7] per ableton_devices_mapping.json. A narrow
+    # Bell (Q>=8) with a negative Gain envelope produces a dynamic notch
+    # whose depth is actually automatable.
+    configure_eq8_band(band_param, mode=3, q=_q_to_eq8_value(q))
     ison = band_param.find("IsOn/Manual")
     if ison is not None:
         ison.set("Value", "true")
@@ -664,9 +673,11 @@ def write_resonance_suppression(
     threshold_db: float = -40.0,
     q: float = 8.0,
 ) -> list[AutomationReport]:
-    """Soothe-style resonance suppression using multiple dynamic notches.
+    """Soothe-style resonance suppression using multiple narrow Bells.
 
-    Identifies the most resonant peaks and creates one notch per peak.
+    Identifies the most resonant peaks and creates one narrow Bell per peak
+    (Mode 3, not Mode 4 — see write_dynamic_notch for the rationale: EQ8
+    Gain is inoperative on Mode in [0, 1, 4, 6, 7]).
     Reduction is proportional to each frame's amplitude: louder frames
     get cut more aggressively, scaled by sensitivity.
 
@@ -680,7 +691,7 @@ def write_resonance_suppression(
         band_index_start: First band index if specified, or None for auto.
         automation_map: Optional TrackAutomationMap to mask muted sections.
         threshold_db: Amplitude floor below which no reduction is applied.
-        q: Notch Q factor (default 8.0).
+        q: Bell Q factor (default 8.0, narrow — mimics a notch).
 
     Returns:
         List of AutomationReport (one per band used).
@@ -727,7 +738,9 @@ def write_resonance_suppression(
         exclude.append(bi)
 
         band_param = get_eq8_band(eq8, bi)
-        configure_eq8_band(band_param, mode=4, q=_q_to_eq8_value(q))
+        # Mode 3 (Bell), not Mode 4 (Notch): EQ8 Gain is inoperative on
+        # Mode in [0, 1, 4, 6, 7] — see write_dynamic_notch for details.
+        configure_eq8_band(band_param, mode=3, q=_q_to_eq8_value(q))
         ison = band_param.find("IsOn/Manual")
         if ison is not None:
             ison.set("Value", "true")

@@ -505,7 +505,9 @@ class TestDynamicNotch:
         track = find_track_by_name(tree, "Track1")
         eq8 = track.find(".//Eq8")
         band_param = get_eq8_band(eq8, 1)
-        assert band_param.find("Mode/Manual").get("Value") == "4"
+        # Bell (Mode 3), not Notch (Mode 4): Gain is inoperative on
+        # Mode in [0, 1, 4, 6, 7] per ableton_devices_mapping.json.
+        assert band_param.find("Mode/Manual").get("Value") == "3"
 
         freq_target_id = get_automation_target_id(band_param, "Freq")
         gain_target_id = get_automation_target_id(band_param, "Gain")

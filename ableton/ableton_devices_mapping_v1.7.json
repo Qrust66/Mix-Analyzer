@@ -1045,6 +1045,35 @@
           "notes": "Plage XML Min 0.1 Max 18 confirmee. Forte derive flottante: Q affiche 8.00 stocke 7.99624634. Tag d une seule lettre (cf $xml_pattern.tag_name_constraint)."
         }
       },
+      "automation_values": {
+        "Freq": {
+          "encoding": "direct",
+          "unit": "Hz",
+          "min": 10,
+          "max": 22000,
+          "confirmed_by_calibration": true
+        },
+        "Gain": {
+          "encoding": "direct",
+          "unit": "dB",
+          "min": -15,
+          "max": 15,
+          "confirmed_by_calibration": true,
+          "disabled_when": "Mode in [0, 1, 4, 6, 7] (Low Cut, Notch, High Cut) — envelope written but inaudible. Use Bell (Mode 3) for automatable cuts."
+        },
+        "Q": {
+          "encoding": "direct",
+          "unit": "Q",
+          "min": 0.1,
+          "max": 18,
+          "confirmed_by_calibration": true
+        },
+        "IsOn": {
+          "encoding": "bool",
+          "values": [0, 1],
+          "confirmed_by_calibration": true
+        }
+      },
       "unmapped_sections": [
         "Mecanique exacte de stockage des courbes L vs R en mode L/R ou M/S (a investiguer si necessaire pour un cas d usage specifique)",
         "AdaptiveQAffectsShelves, AdaptiveQFactor (sous-parametres de AdaptiveQ, observes mais pas testes)",
