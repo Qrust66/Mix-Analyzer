@@ -2,23 +2,25 @@
 
 ## Projet
 
-Mix Analyzer v2.5 — Outil d'analyse audio qui génère des rapports Excel
+Mix Analyzer v2.5.2 — Outil d'analyse audio qui génère des rapports Excel
 et des automations EQ8 dynamiques pour Ableton Live.
 
 ## Versioning
 
-Tous les fichiers .py de production doivent afficher **v2.5** de manière cohérente.
+La version canonique est la constante `VERSION` dans `mix_analyzer.py`.
+Tous les fichiers .py de production doivent afficher la même version.
 Endroits à maintenir synchronisés si la version change :
 
+- `mix_analyzer.py` `VERSION = 'X.Y.Z'` (constante canonique)
 - `mix_analyzer.py` ligne 4 (docstring)
-- `mix_analyzer.py` `self.root.title(...)` (titre fenêtre tkinter)
-- `mix_analyzer.py` dialog Help title
-- `mix_analyzer.py` logo subtitle + UI label (`'v2.5 — Visual Mix Diagnostic'`)
+- `mix_analyzer.py` titre fenêtre, Help, logo subtitle (utilisent `VERSION`)
 - `als_utils.py` docstring ligne 4
 - `spectral_evolution.py` docstring ligne 4
 - `feature_storage.py` docstring ligne 4
 - `eq8_automation.py` docstring ligne 4
+- `automation_map.py` docstring ligne 4
 
+La version est estampillée dans chaque rapport Excel (Index + AI Context).
 Ne jamais laisser des versions désynchronisées entre fichiers.
 
 ## Communication avec l'utilisateur
