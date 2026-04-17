@@ -3,5 +3,6 @@ _tmp/
 
 # Ableton Live
 *.asd
+*.als.v24.bak
 Backup/
 ableton/projects/*/Samples/
