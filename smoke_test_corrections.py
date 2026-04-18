@@ -35,7 +35,7 @@ from spectral_evolution import PeakTrajectory, ZONE_RANGES
 
 # Bump à chaque essai pour identifier l'.als généré.
 # Apparaît dans le nom du fichier ET dans le UserName des EQ8 nouvellement clonés.
-SMOKE_TEST_BUILD = "v3-mapping-v1.8-BoolEvent"
+SMOKE_TEST_BUILD = "v4-NextPointeeId-bump"
 
 REPO_ROOT = Path(__file__).resolve().parent
 PROJECTS = REPO_ROOT / "ableton" / "projects"

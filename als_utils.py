@@ -105,6 +105,37 @@ def get_als_xml_string(als_path: str) -> str:
         return f.read().decode("utf-8")
 
 
+def _bump_next_pointee_id(tree: ET.ElementTree) -> int | None:
+    """Update ``<NextPointeeId>`` so it exceeds the max ``Id`` in the tree.
+
+    Ableton refuses to open a file with the error
+    ``"NextPointeeId is too low: X must be bigger than Y"`` whenever the
+    counter is not strictly greater than the highest Id present in the
+    project.  We must bump it every time we add new EQ8 devices or
+    automation envelopes.
+
+    Returns the new counter value, or None if the element is missing.
+    """
+    next_pid_elem = tree.getroot().find(".//NextPointeeId")
+    if next_pid_elem is None:
+        return None
+
+    max_id = 0
+    for elem in tree.getroot().iter():
+        raw = elem.get("Id")
+        if raw is not None:
+            try:
+                v = int(raw)
+                if v > max_id:
+                    max_id = v
+            except ValueError:
+                pass
+
+    new_value = max_id + 1
+    next_pid_elem.set("Value", str(new_value))
+    return new_value
+
+
 def save_als_from_tree(tree: ET.ElementTree, output_path: str) -> str:
     """Save an ElementTree back to a gzip-compressed .als file.
 
@@ -115,6 +146,10 @@ def save_als_from_tree(tree: ET.ElementTree, output_path: str) -> str:
     Returns:
         Path to the saved file.
     """
+    # Keep <NextPointeeId> strictly above max(Id) — Live refuses to load
+    # a project whose counter is stale.
+    _bump_next_pointee_id(tree)
+
     output_path = Path(output_path)
     # Manually prepend the XML declaration that matches Ableton's native format
     # (double-quoted attributes, uppercase UTF-8) so Live's parser sees the same
