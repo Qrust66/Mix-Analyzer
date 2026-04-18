@@ -130,9 +130,9 @@ Traiter **une track à la fois**. Sauvegarder et valider après chaque track.
 | 13 | Glider Lead Synth | 1087 | 10 | +6 | |
 | 14 | Guitar Distorted | 552 | 5 | +4 | |
 | 15 | Toms Overhead | 268 | 5 | +3 | |
-| 16 | Acid Bass | 42480 | 45 | +12 | ⚠️ SKIP — InstrumentGroupDevice |
+| 16 | Acid Bass | 42480 | 45 | +12 | ⚠️ InstrumentGroupDevice — EQ8 ajouté manuellement |
 
-**Acid Bass** a un InstrumentGroupDevice — **ne pas traiter**. Signaler à l'utilisateur qu'il doit ajouter un EQ8 manuellement dans Ableton, puis relancer.
+**Acid Bass** a un InstrumentGroupDevice — NE PAS créer de nouveau device. L'utilisateur a ajouté manuellement un EQ Eight nommé "EQ Eight Peak Resonnance". Écrire dans ses bandes libres (IsOn=false) et ses Envelopes. Ne pas injecter un nouveau bloc `<Eq8>`. Le traiter en DERNIER (après toutes les autres tracks) pour minimiser le risque.
 
 Les tracks avec un score < 200 (Solo Lead Synth, Xylo Percussion, Guitar PM B, ARP Intense) peuvent être ignorées — résonances trop faibles pour justifier un traitement.
 
@@ -157,8 +157,62 @@ Après chaque injection :
 3. Vérifier que tous les PointeeId des envelopes pointent vers des AutomationTarget existants dans le nouvel EQ8
 4. Sauvegarder et informer l'utilisateur pour test dans Ableton
 
+## Gestion des timeouts et batching
+
+Le fichier .als fait ~37 MB de XML. Chaque EQ8 injecté ajoute ~41K chars + les envelopes. Avec 15 tracks × ~7000 breakpoints chacune, le volume total est massif. **Tu vas probablement manquer de contexte si tu essaies tout d'un coup.**
+
+### Stratégie de batching
+
+- **Maximum 3 tracks par opération**. Après 3 tracks, sauvegarder le .als, faire un checkpoint, et continuer dans une nouvelle opération sur le fichier sauvegardé.
+- **Ordre de traitement par batch** :
+  - Batch 1 : Sub Bass, Kick 1, Kick 2
+  - Batch 2 : Pluck Lead, ARP Glitter Box, NINja Lead Synth
+  - Batch 3 : Toms Rack, Ambience, Floor Toms
+  - Batch 4 : Xylo Texture, Riser, Glider Lead Synth
+  - Batch 5 : Guitar Distorted, Toms Overhead
+  - Batch 6 : Acid Bass (seul — cas spécial, EQ8 déjà créé manuellement)
+
+### Quand sauvegarder
+
+- Après **chaque batch de 3 tracks** : sauvegarder sous `Acid_Drops_Code_BatchN.als`
+- Le batch suivant **repart du fichier sauvegardé** du batch précédent
+- Si une track a plus de 1000 frames de peaks, la traiter **seule** dans son propre batch (Sub Bass = 843 frames, Kick 1 = 1235 frames)
+
+### Estimation de charge par track
+
+| Track | Frames | Résonances | ~Breakpoints | Charge |
+|---|---|---|---|---|
+| Sub Bass | 843 | 15 | ~10K | Lourde |
+| Kick 1 | 1235 | 14 | ~12K | Très lourde |
+| Kick 2 | 982 | 8 | ~8K | Lourde |
+| Pluck Lead | 258 | 13 | ~3K | Moyenne |
+| ARP Glitter Box | 272 | 5 | ~2K | Légère |
+| NINja Lead Synth | 205 | 11 | ~3K | Moyenne |
+| Toms Rack | 107 | 22 | ~3K | Moyenne |
+| Ambience | 477 | 1 | ~1.5K | Légère |
+| Floor Toms | 79 | 12 | ~1K | Légère |
+| Acid Bass | 476 | 45 | ~8K | Lourde (cas spécial) |
+
+### Si le contexte se remplit
+
+1. **Ne pas tenter de finir** — sauvegarder ce qui est fait proprement
+2. Indiquer clairement quelles tracks sont traitées et lesquelles restent
+3. Le prochain prompt reprendra avec le fichier sauvegardé et la liste des tracks restantes
+4. **Préparer les fonctions utilitaires en premier** (create_eq8, get_resonances, compute_automations) et les réutiliser pour chaque track — ne pas réécrire le code à chaque fois
+
+### Structure de code recommandée
+
+Écrire un **script réutilisable** (`apply_peak_resonance.py`) qui prend en paramètre le .als, le .xlsx, et une liste de tracks à traiter. Comme ça, si le contexte timeout, l'utilisateur peut relancer le script sur les tracks restantes sans repasser par Claude Code.
+
+```python
+# Usage:
+# python apply_peak_resonance.py Acid_Drops_Code.als rapport.xlsx "Sub Bass" "Kick 1" "Kick 2"
+#
+# Produit: Acid_Drops_Code_resonance.als
+```
+
 ## Livrables
 
 - Le `.als` modifié avec les EQ8 Peak Resonance sur toutes les tracks traitées
 - Un résumé par track : quelles résonances, combien de breakpoints, amplitude max
-- Signaler Acid Bass comme non-traité (InstrumentGroupDevice)
+- Acid Bass : traité via l'EQ8 ajouté manuellement (pas de nouveau device créé)
