@@ -348,7 +348,7 @@ def extract_peak_trajectories(matrix: SpectralMatrix,
             for idx in peak_indices
         ]
         frame_peaks.sort(key=lambda p: p[2], reverse=True)
-        per_frame_peaks.append(frame_peaks[:n_peaks * 3])
+        per_frame_peaks.append(frame_peaks if n_peaks is None else frame_peaks[:n_peaks * 3])
 
     # Link peaks across frames
     active_trajectories: List[List[Tuple[int, float, float]]] = []
@@ -398,7 +398,7 @@ def extract_peak_trajectories(matrix: SpectralMatrix,
         if len(traj) >= min_duration_frames
     ]
     trajectories.sort(key=lambda t: t.mean_amplitude, reverse=True)
-    return trajectories[:n_peaks]
+    return trajectories if n_peaks is None else trajectories[:n_peaks]
 
 
 def extract_valley_trajectories(matrix: SpectralMatrix,
@@ -601,8 +601,8 @@ def extract_all_features(mono: np.ndarray, sr: int) -> TrackFeatures:
 
     zone_energy = extract_zone_energy(matrix)
     descriptors = extract_spectral_descriptors(matrix)
-    peak_traj = extract_peak_trajectories(matrix)
-    valley_traj = extract_valley_trajectories(matrix)
+    peak_traj = extract_peak_trajectories(matrix, n_peaks=None, min_prominence_db=1.0, min_duration_frames=1)
+    valley_traj = extract_valley_trajectories(matrix, n_valleys=None, min_prominence_db=1.0, min_duration_frames=1)
     crest = extract_crest_by_zone(matrix)
     delta = extract_delta_spectrum(matrix)
     transients = extract_transients(matrix, delta)
