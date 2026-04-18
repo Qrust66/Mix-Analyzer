@@ -50,7 +50,7 @@ from spectral_evolution import (
 # Ableton EQ8 mapping — single source of truth for validation
 # ---------------------------------------------------------------------------
 
-_MAPPING_PATH = Path(__file__).resolve().parent / "ableton" / "ableton_devices_mapping_v1.7.json"
+_MAPPING_PATH = Path(__file__).resolve().parent / "ableton" / "ableton_devices_mapping_v1_8.json"
 
 
 def _load_eq8_mapping() -> dict:
@@ -159,12 +159,15 @@ def _validate_eq8_automation(
     vmin, vmax = float(min(values)), float(max(values))
 
     if spec["encoding"] == "bool":
-        allowed = set(spec["values"])
-        bad = [v for v in values if v not in allowed]
+        # Callers pass numeric inputs (0/1, 0.0/1.0, np.bool_); the
+        # write layer converts to "true"/"false" using the v1.8 BoolEvent
+        # convention. Accept any value that round-trips to a strict 0 or 1.
+        bad = [v for v in values if float(v) not in (0.0, 1.0)]
         if bad:
             raise EQ8ValidationError(
                 f"{param_name} envelope contains non-boolean values "
-                f"(allowed {sorted(allowed)}): first offending = {bad[0]}"
+                f"(must be 0 or 1; written as <BoolEvent Value=\"true|false\"/>): "
+                f"first offending = {bad[0]}"
             )
         return
 
@@ -196,7 +199,10 @@ def _write_validated_env(
     _validate_eq8_automation(band_param, param_name, breakpoints)
     target_id = get_automation_target_id(band_param, param_name)
     _remove_existing_envelope(track, target_id)
-    write_automation_envelope(track, target_id, breakpoints, next_id_counter)
+    event_type = _EQ8_AUTOMATION_SPEC[param_name].get("event_type", "FloatEvent")
+    write_automation_envelope(
+        track, target_id, breakpoints, next_id_counter, event_type=event_type
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -377,6 +383,12 @@ def _zone_center_freq(zone: str) -> float:
     return float(np.sqrt(lo * hi))
 
 
+# Module-level tag stamped on EQ8 devices created by this module. Callers
+# (e.g. smoke_test_corrections.py) can set this to identify generated devices
+# in Ableton's UI.
+NEW_EQ8_USER_NAME: str | None = None
+
+
 def _prepare_track_eq8(
     als_path: Path | str,
     track_id: str,
@@ -398,7 +410,7 @@ def _prepare_track_eq8(
     except ValueError as e:
         raise TrackNotFoundError(str(e)) from e
 
-    eq8 = find_or_create_eq8(track, tree)
+    eq8 = find_or_create_eq8(track, tree, user_name=NEW_EQ8_USER_NAME)
 
     if band_index is not None:
         bi = band_index

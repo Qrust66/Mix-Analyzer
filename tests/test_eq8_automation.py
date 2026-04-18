@@ -477,13 +477,19 @@ class TestSafetyHPF:
         band_param = get_eq8_band(eq8, 3)
         ison_target_id = get_automation_target_id(band_param, "IsOn")
 
+        # IsOn uses BoolEvent (mapping v1.8) — Value="true"|"false".
         for env in track.iter("AutomationEnvelope"):
             pointee = env.find("EnvelopeTarget/PointeeId")
             if pointee is not None and pointee.get("Value") == ison_target_id:
-                events = env.findall(".//FloatEvent")
+                events = env.findall(".//BoolEvent")
                 real_events = [e for e in events if float(e.get("Time")) >= 0]
-                values = [float(e.get("Value")) for e in real_events]
-                assert values == [1.0, 1.0, 0.0, 0.0, 1.0]
+                values = [e.get("Value") for e in real_events]
+                assert values == ["true", "true", "false", "false", "true"]
+                # Make sure no FloatEvent slipped through (Live ignores them).
+                assert env.findall(".//FloatEvent") == []
+                break
+        else:
+            raise AssertionError("No envelope written for IsOn target.")
 
 
 # ---------------------------------------------------------------------------

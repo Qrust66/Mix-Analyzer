@@ -22,6 +22,7 @@ import numpy as np
 import openpyxl
 
 from als_utils import parse_als
+import eq8_automation
 from eq8_automation import (
     EQ8SlotFullError,
     TrackNotFoundError,
@@ -32,10 +33,14 @@ from eq8_automation import (
 )
 from spectral_evolution import PeakTrajectory, ZONE_RANGES
 
+# Bump à chaque essai pour identifier l'.als généré.
+# Apparaît dans le nom du fichier ET dans le UserName des EQ8 nouvellement clonés.
+SMOKE_TEST_BUILD = "v3-mapping-v1.8-BoolEvent"
+
 REPO_ROOT = Path(__file__).resolve().parent
 PROJECTS = REPO_ROOT / "ableton" / "projects"
 ALS_SRC = PROJECTS / "Acid_drops_Code_P14.als"
-ALS_DST = PROJECTS / "Acid_drops_SMOKE_TEST.als"
+ALS_DST = PROJECTS / f"Acid_drops_SMOKE_TEST_{SMOKE_TEST_BUILD}.als"
 EXCEL = PROJECTS / "Acid_drops_MixAnalyzer_2026-04-16_19-56.xlsx"
 
 SAFETY_TARGETS = [
@@ -163,8 +168,12 @@ def main() -> int:
         print(f"ERR: {EXCEL} introuvable", file=sys.stderr)
         return 1
 
+    print(f"=== Smoke test build: {SMOKE_TEST_BUILD} ===")
     print(f"Copie {ALS_SRC.name} -> {ALS_DST.name}")
     shutil.copy2(ALS_SRC, ALS_DST)
+
+    # Tag les EQ8 nouvellement créés avec la build pour les retrouver dans Ableton.
+    eq8_automation.NEW_EQ8_USER_NAME = f"MixAnalyzer SMOKE {SMOKE_TEST_BUILD}"
 
     print(f"Chargement rapport Excel : {EXCEL.name}")
     wb = openpyxl.load_workbook(EXCEL, read_only=True, data_only=True)
