@@ -1,6 +1,8 @@
 # Feature 3 — Détection de sections et Locators
 
-## Référence : Mix Analyzer v3.1 / Feature 3 de 6
+## Référence : Mix Analyzer v3.1 / Feature 3 de N
+
+**Version** : 1.1 (mise à jour pour intégration avec Features 3.5 TFP et 3.6 CDE)
 
 ---
 
@@ -15,14 +17,16 @@ Le système traite les 64 buckets temporels comme une séquence plate. Il ne sai
 
 Un morceau de musique a des sections. L'ingénieur pense en sections. Le système doit aussi.
 
+**Note v1.1 :** Feature 3 reste autonome — elle peut tourner sans 3.5 (TFP) ni 3.6 (CDE). Mais ses outputs sont **enrichis automatiquement** quand 3.5 et 3.6 sont disponibles.
+
 ---
 
 ## 2. Objectif
 
 1. Détecter automatiquement les sections du morceau (intro, build, drop, break, outro) à partir des features spectrales.
-2. Écrire des **Locators** dans le `.als` pour que l'utilisateur voie les sections dans Ableton.
+2. Écrire des **Locators** dans le `.als` pour que l'utilisateur voie les sections dans Ableton, avec annotations enrichies si TFP et CDE sont présents.
 3. Construire une **matrice de co-présence** : pour chaque section, quelles tracks jouent et avec quelle énergie.
-4. Exposer les sections comme données pour les Features 1 et 2 (correction conditionnelle section-aware).
+4. Exposer les sections comme données pour les Features 1, 2, 3.5, 3.6, 4, 5.
 
 ---
 
@@ -74,6 +78,30 @@ class Section:
     total_energy_db: float        # énergie RMS totale de la section
     tracks_active: list[str]      # noms des tracks audibles dans cette section
     track_energy: dict[str, dict[str, float]]  # {track_name: {zone: avg_energy_db}}
+
+    # NOUVEAU v1.1 — enrichissements optionnels (None si TFP/CDE absent)
+    tfp_summary: SectionTFPSummary | None        # résumé des fonctions par track (Feature 3.5)
+    diagnostic_summary: SectionDiagnosticSummary | None  # résumé des diagnostics (Feature 3.6)
+```
+
+```python
+# NOUVEAU v1.1
+@dataclass
+class SectionTFPSummary:
+    """Résumé des fonctions de tracks dans cette section (depuis Feature 3.5)."""
+    heroes: list[str]                    # tracks classées *_hero dans cette section
+    rhythmic_engine: list[str]           # tracks rhythmic_*
+    harmonic_layer: list[str]            # tracks harmonic_pad, lead_synth
+    atmosphere: list[str]                # tracks atmosphere
+    skipped: list[str]                   # tracks marquées skip dans cette section
+
+@dataclass
+class SectionDiagnosticSummary:
+    """Résumé des diagnostics CDE pour cette section (depuis Feature 3.6)."""
+    total_diagnostics: int
+    by_severity: dict[str, int]          # {"critical": 2, "moderate": 4, "minor": 1}
+    by_issue_type: dict[str, int]        # {"masking_conflict": 3, "resonance_buildup": 2}
+    top_conflicts: list[str]             # ["Kick↔Sub Bass (Low: 0.82)", ...]
 ```
 
 ---
@@ -98,7 +126,7 @@ Conflits dans cette section:
   Kick ↔ Acid Bass | Low: 0.45
   Acid Bass ↔ Sub  | Sub: 0.71  ← CRITIQUE
   Toms ↔ Acid Bass | Mud: 0.38
-  
+
 Accumulations:
   248 Hz: 6 tracks simultanées ← MUD RISK
   120 Hz: 3 tracks ← OK
@@ -108,12 +136,14 @@ Accumulations:
 
 Nouveau sheet caché : `_track_sections`
 
-| Section | Label | Start (s) | End (s) | Tracks actives | Total energy |
-|---|---|---|---|---|---|
-| 0 | INTRO | 0.0 | 29.3 | 5 | -35.2 |
-| 1 | BUILD | 29.3 | 44.0 | 12 | -22.1 |
-| 2 | DROP | 44.0 | 95.4 | 25 | -8.5 |
-| 3 | BREAK | 95.4 | 110.0 | 8 | -28.3 |
+| Section | Label | Start (s) | End (s) | Tracks actives | Total energy | Heroes (TFP) | Diagnostics (CDE) |
+|---|---|---|---|---|---|---|---|
+| 0 | INTRO | 0.0 | 29.3 | 5 | -35.2 | — | 0 |
+| 1 | BUILD | 29.3 | 44.0 | 12 | -22.1 | — | 1 |
+| 2 | DROP | 44.0 | 95.4 | 25 | -8.5 | Pluck Lead, NINja | 12 |
+| 3 | BREAK | 95.4 | 110.0 | 8 | -28.3 | Ambience | 3 |
+
+Les colonnes "Heroes (TFP)" et "Diagnostics (CDE)" sont vides si 3.5/3.6 ne sont pas disponibles.
 
 Nouveau sheet caché : `_track_copresence`
 
@@ -140,8 +170,8 @@ Nouveau sheet caché : `_track_copresence`
         </Locator>
         <Locator Id="1">
             <Time Value="352.0" />
-            <Name Value="v2.5_DROP" />
-            <Annotation Value="25 tracks, energy -8.5 dB" />
+            <Name Value="v3.1_DROP" />
+            <Annotation Value="..." />
             <IsSongStart Value="false" />
             <LockEnvelope Value="0" />
         </Locator>
@@ -151,7 +181,26 @@ Nouveau sheet caché : `_track_copresence`
 
 **Localisation dans le XML :** `LiveSet/Locators/Locators`
 
-**Convention de nommage :** préfixer `v2.5_` pour distinguer les locators générés des locators manuels de l'utilisateur. Ne jamais supprimer/modifier les locators existants.
+**Convention de nommage :** préfixer `v3.1_` pour distinguer les locators générés des locators manuels de l'utilisateur. Ne jamais supprimer/modifier les locators existants.
+
+### Annotations — trois niveaux selon les features disponibles
+
+**Niveau 1 — Feature 3 seule (basique) :**
+```xml
+<Annotation Value="25 tracks, energy -8.5 dB" />
+```
+
+**Niveau 2 — Feature 3 + 3.5 (TFP) :**
+```xml
+<Annotation Value="25 tracks. Heroes: Pluck Lead, NINja Lead Synth. Rhythm: Kick 1, Sub Bass, Bass Rythm." />
+```
+
+**Niveau 3 — Feature 3 + 3.5 + 3.6 (TFP + CDE) :**
+```xml
+<Annotation Value="25 tracks. Heroes: Pluck Lead, NINja. 12 diagnostics (2 critical). Top conflict: Kick↔Sub Bass (Low: 0.82)." />
+```
+
+L'annotation est **construite dynamiquement** selon ce qui est disponible. Si TFP est absent, on saute la mention des heroes. Si CDE est absent, on saute le compte de diagnostics.
 
 ### Fonction
 
@@ -159,44 +208,79 @@ Nouveau sheet caché : `_track_copresence`
 def write_section_locators(
     als_path: Path,
     sections: list[Section],
-    prefix: str = "v2.5_",
+    prefix: str = "v3.1_",
     overwrite_existing: bool = False,
 ) -> int:
     """Écrit des Locators dans le .als pour chaque section détectée.
-    
+
     Si overwrite_existing=True, supprime les locators préfixés existants avant d'écrire.
     Si False, ajoute sans toucher aux existants.
-    
+
+    L'annotation de chaque locator est construite selon les enrichissements disponibles
+    dans Section (tfp_summary, diagnostic_summary).
+
     Returns: nombre de locators écrits.
+    """
+
+def build_locator_annotation(section: Section) -> str:
+    """Construit l'annotation textuelle selon les enrichissements présents.
+
+    Niveau 1 (Feature 3 seule) : "N tracks, energy X dB"
+    Niveau 2 (+ TFP) : ajoute "Heroes: ..., Rhythm: ..."
+    Niveau 3 (+ CDE) : ajoute "N diagnostics (M critical). Top conflict: ..."
     """
 ```
 
 ---
 
-## 6. Intégration avec Feature 1 (correction conditionnelle)
+## 6. Intégration avec les autres features
 
-Le `CorrectionContext` de Feature 1 reçoit un champ supplémentaire :
+Feature 3 produit des `Section` qui sont consommées par tous les modules en aval. Le contrat est unidirectionnel : Feature 3 ne dépend de personne, mais ses outputs sont enrichis quand TFP et CDE sont présents.
 
-```python
-@dataclass
-class CorrectionContext:
-    # ... champs existants ...
-    
-    sections: list[Section] | None       # sections détectées
-    current_section: Section | None      # section du bucket en cours d'évaluation
-    section_copresence: dict | None      # tracks actives dans cette section
-```
+### Avec Feature 1 (correction conditionnelle)
 
-La cascade de décision de Feature 1 devient section-aware :
+Le `CorrectionContext` reçoit le champ `current_section`. La cascade de décision devient section-aware (voir spec Feature 1 § 4).
 
 ```
 ÉTAPE 3 — Masking ?
   AVANT : masking score moyen sur toute la durée
   APRÈS : masking score DANS LA SECTION COURANTE
-  
+
   → Le HPF sur Guitar Distorted est justifié dans le DROP (masking avec Kick)
     mais PAS dans l'INTRO (Kick absent dans cette section)
 ```
+
+**Note v1.1 :** quand Feature 3.6 (CDE) est implémenté, Feature 1 consomme CDE qui consomme les sections. La logique reste équivalente, mais passe par un intermédiaire.
+
+### Avec Feature 3.5 (TFP)
+
+TFP **dépend de Feature 3** — les `function_by_section` requièrent que les sections soient détectées.
+
+Feature 3 enrichit ses propres outputs avec TFP **a posteriori** : après que TFP a tourné, les `Section.tfp_summary` sont remplies.
+
+```
+PIPELINE COMPLET :
+  1. Feature 3 produit Section (sans tfp_summary)
+  2. Feature 3.5 consomme Section, produit TrackFunctionProfile par track
+  3. Feature 3 enrichit Section.tfp_summary avec les profils
+  4. Feature 3 réécrit les Locators avec annotations niveau 2
+```
+
+### Avec Feature 3.6 (CDE)
+
+CDE **dépend de Feature 3 et 3.5**. Génère des diagnostics par section.
+
+Même pattern d'enrichissement a posteriori :
+
+```
+  5. Feature 3.6 consomme Section + TFP, produit CorrectionDiagnostic par décision
+  6. Feature 3 enrichit Section.diagnostic_summary avec les comptes
+  7. Feature 3 réécrit les Locators avec annotations niveau 3
+```
+
+### Avec Features 4 (M/S) et 5 (autres devices)
+
+Ces features consomment les sections via Feature 1 (qui consomme CDE qui consomme Sections). Pas de dépendance directe.
 
 ---
 
@@ -211,9 +295,10 @@ La cascade de décision de Feature 1 devient section-aware :
 - Première section → "INTRO"
 - Dernière section → "OUTRO"
 
-### Test 3 — Locators dans le .als
-- Après écriture, le `.als` contient des Locators préfixés "v2.5_"
+### Test 3 — Locators dans le .als (niveau 1, sans TFP/CDE)
+- Après écriture, le `.als` contient des Locators préfixés "v3.1_"
 - Les Time correspondent aux transitions détectées (en beats)
+- Les annotations contiennent "N tracks, energy X dB"
 - Les locators existants de l'utilisateur sont intacts
 
 ### Test 4 — Matrice de co-présence
@@ -225,37 +310,108 @@ La cascade de décision de Feature 1 devient section-aware :
 - Même correction dans la section DROP = justifiée (masking avec Kick)
 - Le `dynamic_mask` reflète cette différence section par section
 
+### Test 6 — Annotation niveau 2 (avec TFP) — NOUVEAU v1.1
+- TFP disponible avec heroes identifiés dans le DROP
+- **Attendu :** annotation du locator DROP contient "Heroes: ..., Rhythm: ..."
+
+### Test 7 — Annotation niveau 3 (avec TFP + CDE) — NOUVEAU v1.1
+- TFP et CDE disponibles
+- **Attendu :** annotation contient "N diagnostics (M critical). Top conflict: ..."
+
+### Test 8 — Enrichissement a posteriori — NOUVEAU v1.1
+- Feature 3 tourne seule → sections sans tfp_summary
+- TFP tourne → Section.tfp_summary remplis
+- Feature 3 réécrit les locators (overwrite_existing=True)
+- **Attendu :** annotations passent de niveau 1 à niveau 2
+
 ---
 
 ## 8. Dépendances
 
+### Dépendances de Feature 3 (ce dont elle a besoin)
+
 - **`delta_spectrum`** (v2.5) : déjà extrait. Source primaire pour la détection de transitions.
 - **`_track_zone_energy`** : pour calculer l'énergie par section et par track.
 - **`_track_automation_map`** : pour savoir quelles tracks sont audibles par section.
-- **Feature 1** : la détection de sections enrichit le CorrectionContext. Peut être implémenté avant ou après Feature 1, mais les deux se renforcent.
 - **als_utils.py** : ajout de fonctions pour écrire/lire des Locators.
+
+### Dépendants de Feature 3 (ce qui consomme ses outputs)
+
+- **Feature 1** : `CorrectionContext.current_section`
+- **Feature 3.5 (TFP)** : `function_by_section` requiert les sections
+- **Feature 3.6 (CDE)** : diagnostics par section
+- **Feature 4 (M/S)** : corrections section-aware
+- **Feature 5 (devices)** : compression et width section-aware
+
+### Enrichissements optionnels (ce qui enrichit les outputs de Feature 3)
+
+- **Feature 3.5** : remplit `Section.tfp_summary`
+- **Feature 3.6** : remplit `Section.diagnostic_summary`
+
+Feature 3 reste fonctionnelle même sans ces enrichissements (annotations niveau 1).
 
 ---
 
 ## 9. Plan de développement
 
-### Phase A — Détection de sections
+### Phase A — Détection de sections (v1.0)
 - Nouveau module `section_detector.py`
 - `detect_sections(delta_spectrum, zone_energy, times, threshold_multiplier=2.5) -> list[Section]`
 - Labellisation automatique
 - Tests sur fixture synthétique + Acid Drops
 
-### Phase B — Matrice de co-présence
+### Phase B — Matrice de co-présence (v1.0)
 - `build_copresence_matrix(sections, all_tracks_zone_energy, automation_maps) -> dict`
 - Sheet `_track_sections` et `_track_copresence`
 - Tests : vérifier le nombre de tracks actives par section
 
-### Phase C — Locators dans le .als
+### Phase C — Locators dans le .als (v1.0)
 - `write_section_locators()` dans `als_utils.py`
+- `build_locator_annotation()` avec support niveau 1
 - Lecture du XML Locators, ajout sans écraser
 - Tests : round-trip écriture → relecture
 
-### Phase D — Intégration Feature 1
+### Phase D — Intégration Feature 1 (v1.0)
 - Enrichir `CorrectionContext` avec les sections
 - Adapter la cascade de décision pour être section-aware
 - Tests : même correction justifiée dans une section mais pas une autre
+
+### Phase E — Enrichissements TFP (v1.1) — NOUVEAU
+- `Section.tfp_summary` rempli a posteriori
+- `build_locator_annotation()` étendu pour niveau 2
+- API `enrich_sections_with_tfp(sections, tfp) -> list[Section]`
+- Tests : Test 6 et 8
+
+### Phase F — Enrichissements CDE (v1.1) — NOUVEAU
+- `Section.diagnostic_summary` rempli a posteriori
+- `build_locator_annotation()` étendu pour niveau 3
+- API `enrich_sections_with_diagnostics(sections, diagnostics) -> list[Section]`
+- Tests : Test 7
+
+---
+
+## 10. Pipeline d'exécution recommandé
+
+Pour profiter de tous les enrichissements :
+
+```python
+# Étape 1 — Détection des sections (toujours nécessaire)
+sections = detect_sections(delta_spectrum, zone_energy, times)
+sections = build_copresence_matrix(sections, ...)
+write_section_locators(als_path, sections, prefix="v3.1_")
+# → annotations niveau 1
+
+# Étape 2 — TFP (optionnel mais recommandé)
+tfp = generate_tfp(als_path, report_path, sections)  # Feature 3.5
+sections = enrich_sections_with_tfp(sections, tfp)
+write_section_locators(als_path, sections, prefix="v3.1_", overwrite_existing=True)
+# → annotations niveau 2
+
+# Étape 3 — CDE (optionnel)
+diagnostics = generate_diagnostics(als_path, report_path, sections, tfp)  # Feature 3.6
+sections = enrich_sections_with_diagnostics(sections, diagnostics)
+write_section_locators(als_path, sections, prefix="v3.1_", overwrite_existing=True)
+# → annotations niveau 3
+```
+
+Chaque étape est **autonome** : on peut s'arrêter à n'importe quel niveau et avoir un résultat utilisable.
