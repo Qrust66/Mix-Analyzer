@@ -73,3 +73,29 @@ Ne jamais laisser des versions désynchronisées entre fichiers.
 - FloatEvent : `Id` (unique), `Time` (en beats), `Value`
 - Time=-63072000 = event pré-song (état initial)
 - DeviceChain path = `DeviceChain/DeviceChain/Devices` (doublé)
+
+## Guide technique manipulation .als
+
+Voir **`ableton/ALS_MANIPULATION_GUIDE.md`** pour les APIs Python génériques
+(applicable à tout projet Ableton, pas seulement Acid Drops) : lecture/écriture
+gzip, bornage de track, injection de device avec `<Devices />` self-closing,
+calcul de `safe_id`, règle des grands IDs, tempo map, automations.
+
+**Pièges critiques déjà rencontrés** :
+
+1. **Double gzip** : `gzip.open('wb').write(gzip.compress(...))` → Ableton
+   refuse d'ouvrir. Utiliser soit `gzip.open('wb').write(xml.encode())` soit
+   `open('wb').write(gzip.compress(...))`, pas les deux.
+
+2. **`<Devices />` self-closing** : les tracks sans device ont `<Devices />`
+   auto-fermant. `xml.find('<Devices>', ...)` ne matche pas cette forme et
+   saute sur la track suivante → device injecté sur la mauvaise track.
+   Toujours borner la recherche aux limites de la track et détecter les
+   deux formes (`<Devices />` et `<Devices>`).
+
+3. **`<Envelopes />` self-closing** : même piège côté AutomationEnvelopes
+   pour une track sans automation existante.
+
+4. **Vérification post-écriture obligatoire** : relire le fichier produit,
+   premiers octets doivent être `<?xml` (sinon double-gzip), et vérifier
+   que le nouveau device Id se trouve bien dans les bornes de la track cible.
