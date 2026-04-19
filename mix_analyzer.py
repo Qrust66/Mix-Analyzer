@@ -6829,6 +6829,100 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     except Exception as e:
         log_fn(f"    v2.5: Spectral evolution sheets failed: {e}")
 
+    # ---- Feature 3: Sections timeline (auto-detect + _sections_timeline sheet) ----
+    # Requires both an .als (for Locators) and v25 features (for delta_spectrum).
+    if als_path and v25_features_with_info:
+        try:
+            from section_detector import (
+                build_sections_timeline_sheet,
+                get_or_detect_sections,
+            )
+            from als_utils import als_info as _als_info
+
+            # Pick the Full Mix track as the source of truth for delta_spectrum
+            # + global zone_energy; fall back to the first available track
+            # with a delta_spectrum if no Full Mix is present.
+            full_mix_feat = None
+            for feat, ti in v25_features_with_info:
+                if ti.get('type') == 'Full Mix' and feat.delta_spectrum is not None:
+                    full_mix_feat = feat
+                    break
+            if full_mix_feat is None:
+                for feat, ti in v25_features_with_info:
+                    if feat.delta_spectrum is not None:
+                        full_mix_feat = feat
+                        break
+
+            if full_mix_feat is not None:
+                # Aggregate zone energies into a single 1-D "total energy" curve
+                # (linear sum of zone energies in dB space).
+                import numpy as _np
+                zones_stack = _np.stack([
+                    _np.asarray(arr, dtype=float)
+                    for arr in full_mix_feat.zone_energy.zones.values()
+                ]) if full_mix_feat.zone_energy.zones else _np.empty((0, 0))
+                if zones_stack.size:
+                    linear = _np.nansum(10.0 ** (zones_stack / 10.0), axis=0)
+                    total_zone_energy = 10.0 * _np.log10(_np.maximum(linear, 1e-12))
+                else:
+                    total_zone_energy = _np.zeros_like(full_mix_feat.delta_spectrum)
+                times = full_mix_feat.zone_energy.times
+
+                # Tempo map: single-tempo is the common case; parse from the .als.
+                try:
+                    _info = _als_info(als_path)
+                    _bpm = float(_info.get('tempo') or 120.0)
+                except Exception:
+                    _bpm = 120.0
+                tempo_events = [(0.0, _bpm)]
+
+                sections, were_written = get_or_detect_sections(
+                    als_path=als_path,
+                    delta_spectrum=full_mix_feat.delta_spectrum,
+                    zone_energy=total_zone_energy,
+                    times=times,
+                    tempo_events=tempo_events,
+                )
+                if were_written:
+                    log_fn(
+                        f"    Feature 3: {len(sections)} sections detected, "
+                        f"Locators written to <stem>_with_sections.als"
+                    )
+                else:
+                    log_fn(
+                        f"    Feature 3: {len(sections)} existing Locators read "
+                        f"from the .als (detection skipped)"
+                    )
+
+                if sections:
+                    v25_individuals = [
+                        (feat, ti)
+                        for feat, ti in v25_features_with_info
+                        if ti.get('type') == 'Individual'
+                    ]
+                    all_tracks_zone_energy = {
+                        ti['name']: feat.zone_energy for feat, ti in v25_individuals
+                    }
+                    all_tracks_peak_trajectories = {
+                        ti['name']: (feat.peak_trajectories or [])
+                        for feat, ti in v25_individuals
+                    }
+                    build_sections_timeline_sheet(
+                        workbook=wb,
+                        sections=sections,
+                        all_tracks_zone_energy=all_tracks_zone_energy,
+                        all_tracks_peak_trajectories=all_tracks_peak_trajectories,
+                        log_fn=log_fn,
+                    )
+            else:
+                log_fn("    Feature 3: no delta_spectrum available — skipped")
+        except Exception as e:
+            log_fn(f"    Feature 3: failed: {type(e).__name__}: {e}")
+            import traceback as _tb
+            _tb.print_exc()
+    else:
+        log_fn("    Feature 3: skipped (needs both an .als path and v25 features)")
+
     # ---- v2.5.1: Automation Map sheet ----
     if auto_maps:
         try:

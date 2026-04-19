@@ -138,7 +138,9 @@ def test_detect_conflicts_scores_and_severity_order():
 
 def test_detect_accumulations_clusters_peaks_within_semitone():
     section = _make_section(1, 0, 99, total_energy_db=-15.0)
-    # 5 tracks with peaks around 247 Hz (inside 1 semitone of each other)
+    # 5 tracks with peaks around 247 Hz (inside 1 semitone of each other).
+    # We pass min_tracks=4 explicitly so the test documents the clustering
+    # behaviour independently of the production default (6).
     peaks = {
         "TrackA": [_FakePeakTraj(points=[(10, 246.0, -5.0)])],
         "TrackB": [_FakePeakTraj(points=[(20, 247.5, -8.0)])],
@@ -149,12 +151,51 @@ def test_detect_accumulations_clusters_peaks_within_semitone():
         # this track is outside the section frames -> must not count
         "Outsider": [_FakePeakTraj(points=[(500, 247.0, -5.0)])],
     }
-    accs = detect_accumulations_in_section(section, peaks)
+    accs = detect_accumulations_in_section(section, peaks, min_tracks=4)
 
     assert len(accs) == 1
     assert accs[0]["n_tracks"] == 5
     assert accs[0]["freq_hz"] == pytest.approx(247.7, abs=1.0)
     assert set(accs[0]["track_names"]) == {"TrackA", "TrackB", "TrackC", "TrackD", "TrackE"}
+
+
+def test_detect_accumulations_default_min_tracks_is_six():
+    """Production default requires >=6 tracks to surface as an accumulation."""
+    section = _make_section(1, 0, 99, total_energy_db=-15.0)
+    five_tracks = {
+        f"T{i}": [_FakePeakTraj(points=[(10 * i, 247.0 + 0.1 * i, -5.0)])]
+        for i in range(5)
+    }
+    # With 5 tracks and the production default (6), no accumulation is surfaced.
+    assert detect_accumulations_in_section(section, five_tracks) == []
+
+    # Adding a 6th pushes us over the threshold.
+    six_tracks = dict(five_tracks)
+    six_tracks["T5"] = [_FakePeakTraj(points=[(60, 247.5, -5.0)])]
+    accs = detect_accumulations_in_section(section, six_tracks)
+    assert len(accs) == 1 and accs[0]["n_tracks"] == 6
+
+
+def test_build_sheet_warns_on_bus_or_full_mix_tracks(caplog):
+    n = 20
+    sections = [_make_section(1, 0, n - 1, total_energy_db=-10.0)]
+    all_tracks = {
+        "Kick":             _zone_arrays_for(-5.0,  n, ["sub"]),
+        "BUS Drums":        _zone_arrays_for(-5.0,  n, ["low"]),  # suspect
+        "Song_HIRES_ALL":   _zone_arrays_for(-5.0,  n, ["mid"]),  # suspect
+    }
+    warnings: list = []
+    wb = Workbook()
+    build_sections_timeline_sheet(
+        workbook=wb,
+        sections=sections,
+        all_tracks_zone_energy=all_tracks,
+        log_fn=lambda msg: warnings.append(msg),
+    )
+    joined = "\n".join(warnings)
+    assert "WARNING" in joined
+    assert "BUS Drums" in joined
+    assert "Song_HIRES_ALL" in joined
 
 
 # ---------------------------------------------------------------------------

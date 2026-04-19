@@ -318,6 +318,23 @@ ACTIVE_THRESHOLD_DB = -40.0
 CONFLICT_CRITICAL = 0.7
 CONFLICT_MODERATE = 0.4
 
+# Accumulation defaults tuned against real Acid Drops data (smoke test run):
+# with min_tracks=4 / min_amp=-30 dB we got ~65 accumulations per section
+# (signal lost in noise). Raising both filters keeps only the real buildups.
+ACCUMULATION_MIN_TRACKS = 6
+ACCUMULATION_MIN_AMP_DB = -25.0
+
+# Track names that almost certainly represent bounces / busses rather than
+# individual instruments. Used by build_sections_timeline_sheet to warn the
+# caller when filtering was apparently forgotten upstream.
+_SUSPECT_NON_INDIVIDUAL_PATTERNS: Tuple[str, ...] = (
+    "BUS ",
+    "_HIRES_ALL",
+    "Full Mix",
+    "FullMix",
+    "Master",
+)
+
 
 def _as_zone_arrays(zone_energy_entry) -> dict:
     """Coerce a per-track entry into ``{zone_name: np.ndarray}``.
@@ -476,8 +493,8 @@ def detect_accumulations_in_section(
     section: Section,
     all_tracks_peak_trajectories: Optional[dict],
     frequency_tolerance_semitones: float = 1.0,
-    min_tracks: int = 4,
-    min_amplitude_db: float = -30.0,
+    min_tracks: int = ACCUMULATION_MIN_TRACKS,
+    min_amplitude_db: float = ACCUMULATION_MIN_AMP_DB,
 ) -> List[dict]:
     """Find frequencies where ``min_tracks`` or more tracks have a significant peak.
 
@@ -928,12 +945,35 @@ def _render_section_block(
     return row
 
 
+def _warn_non_individual_tracks(
+    all_tracks_zone_energy: dict,
+    log_fn,
+) -> None:
+    """Warn when track names look like busses / stems rather than individuals."""
+    suspects = [
+        name for name in all_tracks_zone_energy
+        if any(pat in name for pat in _SUSPECT_NON_INDIVIDUAL_PATTERNS)
+    ]
+    if not suspects:
+        return
+    sample = ", ".join(suspects[:5])
+    more = f" (+{len(suspects) - 5} more)" if len(suspects) > 5 else ""
+    log_fn(
+        f"    WARNING: _sections_timeline received {len(suspects)} track(s) "
+        f"that look like BUS / Full-Mix stems: {sample}{more}. Upstream "
+        f"filtering on Individual tracks was likely skipped; conflicts and "
+        f"accumulations will over-count."
+    )
+
+
 def build_sections_timeline_sheet(
     workbook,
     sections: List[Section],
     all_tracks_zone_energy: dict,
     all_tracks_peak_trajectories: Optional[dict] = None,
     active_threshold_db: float = ACTIVE_THRESHOLD_DB,
+    min_tracks_for_accumulation: int = ACCUMULATION_MIN_TRACKS,
+    min_amplitude_for_accumulation_db: float = ACCUMULATION_MIN_AMP_DB,
     log_fn=None,
 ) -> None:
     """Build the ``_sections_timeline`` sheet.
@@ -942,13 +982,26 @@ def build_sections_timeline_sheet(
     The sheet is read-only for the user: every cell is plain text, no formulas,
     no colors, no conditional formatting.
 
+    Expected input: ``all_tracks_zone_energy`` is the *audibility-masked*
+    zone-energy produced by ``mix_analyzer._apply_audibility_mask`` — inaudible
+    frames carry NaN, which the analysis helpers naturally ignore. When a
+    track has no automation map, its zone energy is raw (from WAV). The
+    ``-40 dB`` default threshold is calibrated for this mixed regime.
+
     Args:
         workbook: An openpyxl ``Workbook``.
         sections: Detected or user-defined sections (see :class:`Section`).
         all_tracks_zone_energy: ``{track_name: ZoneEnergy or dict[zone, ndarray]}``.
+            Must contain Individual tracks only — Pass in BUS / Full-Mix stems
+            and you will over-count conflicts; a warning is emitted in that case.
         all_tracks_peak_trajectories: Optional ``{track_name: [PeakTrajectory, ...]}``
             used to populate the "Peak max par track" block with frequency data.
-        active_threshold_db: Energy threshold for "active"/"significative" labels.
+        active_threshold_db: Energy threshold (dB) for "active" / "significative".
+        min_tracks_for_accumulation: Minimum distinct tracks required to call
+            a frequency cluster an accumulation (default 6, tuned against real
+            data — smoke test with 4 produced ~65 accumulations/section).
+        min_amplitude_for_accumulation_db: Skip peaks quieter than this when
+            computing accumulations (default -25 dB).
         log_fn: Optional logger callable.
     """
     if log_fn is None:
@@ -956,6 +1009,8 @@ def build_sections_timeline_sheet(
     if not sections:
         log_fn("    Excel: no sections -> _sections_timeline sheet skipped")
         return
+
+    _warn_non_individual_tracks(all_tracks_zone_energy, log_fn)
 
     enrich_sections_with_track_stats(
         sections, all_tracks_zone_energy, active_threshold_db=active_threshold_db
@@ -966,7 +1021,12 @@ def build_sections_timeline_sheet(
         for s in sections
     }
     accumulations_by_idx: dict = {
-        s.index: detect_accumulations_in_section(s, all_tracks_peak_trajectories)
+        s.index: detect_accumulations_in_section(
+            s,
+            all_tracks_peak_trajectories,
+            min_tracks=min_tracks_for_accumulation,
+            min_amplitude_db=min_amplitude_for_accumulation_db,
+        )
         for s in sections
     }
     observations_by_idx: dict = {
