@@ -174,6 +174,39 @@ def next_device_id(xml, ts, te):
     return (max(short_ids) if short_ids else 0) + 1
 ```
 
+### Piège : remplacement d'un device existant
+
+Quand on **remplace** un device (pas une simple injection), il faut exclure
+l'Id de l'ancien device du calcul — sinon on peut réutiliser un Id porté par
+un autre device du même `<Devices>` :
+
+```python
+def safe_id_when_replacing(xml, track_name, old_device_tag, old_device_id):
+    ts, te = track_bounds(xml, track_name)
+    track = xml[ts:te]
+    # Retirer le bloc de l'ancien device pour que son Id ne biaise pas le calcul
+    pat = f'<{old_device_tag} Id="{old_device_id}"'
+    p = track.find(pat)
+    if p >= 0:
+        end = track.find(f'</{old_device_tag}>', p) + len(f'</{old_device_tag}>')
+        track = track[:p] + track[end:]
+    short_ids = [int(x) for x in re.findall(r'Id="(\d{1,4})"', track)]
+    return (max(short_ids) if short_ids else 0) + 1
+```
+
+### Piège : template cloné qui garde l'Id d'origine
+
+Quand un template EQ8 provient d'une autre track (ex. Sub Bass Eq8 Id=6),
+**son Id n'est pas "big" (< 5 chiffres) donc la règle de remap ne le
+touche pas**. Il faut explicitement renommer le `<Eq8 Id="..."` avec le
+`safe_id` calculé pour la track cible avant injection, sinon plusieurs
+tracks peuvent finir avec le même Id de device — voire entrer en
+collision avec un autre device du même `<Devices>`.
+
+```python
+new_eq8 = re.sub(r'<Eq8 Id="\d+"', f'<Eq8 Id="{safe_id}"', new_eq8, count=1)
+```
+
 ### Règle de remplacement des IDs du template
 
 Quand on clone un template EQ8 depuis une track existante, il faut
@@ -273,6 +306,43 @@ if 0 < es < ae_e:
 elif ec > 0:
     xml = xml[:ec] + envs_xml + '\n' + xml[ec:]
 ```
+
+---
+
+## 8.5 Suppression / remplacement d'un device et de ses envelopes
+
+Quand on retire ou remplace un device, les `AutomationEnvelope` qui
+pointent vers ses `AutomationTarget` deviennent des références dangling.
+Ableton ne charge pas un .als contenant des `PointeeId` orphelins, donc
+il faut les supprimer en même temps.
+
+```python
+def delete_envelopes_pointing_to(xml, ts, te, pointee_ids):
+    """Supprime les <AutomationEnvelope> dans [ts, te] dont le PointeeId
+    est dans pointee_ids (set of str). Retourne (xml, n_removed)."""
+    targets = []
+    for m in re.finditer(r'<AutomationEnvelope Id="\d+">', xml[ts:te]):
+        astart = ts + m.start()
+        aend = xml.find('</AutomationEnvelope>', astart) + len('</AutomationEnvelope>')
+        pm = re.search(r'<PointeeId Value="(\d+)"', xml[astart:aend])
+        if pm and pm.group(1) in pointee_ids:
+            ls = xml.rfind('\n', 0, astart) + 1
+            nl = xml.find('\n', aend)
+            targets.append((ls, nl + 1 if nl > 0 else aend))
+    for s, e in sorted(targets, reverse=True):
+        xml = xml[:s] + xml[e:]
+    return xml, len(targets)
+```
+
+Procédure de remplacement complète :
+
+1. Extraire les `AutomationTarget Id` de l'ancien device (set de strings)
+2. Retirer le bloc de l'ancien device du XML
+3. Appeler `delete_envelopes_pointing_to()` pour nettoyer les envelopes
+   orphelines
+4. Injecter le nouveau device (avec `safe_id` recalculé)
+5. Générer et injecter les nouvelles envelopes pointant vers les
+   `AutomationTarget` du nouveau device
 
 ---
 
@@ -398,3 +468,8 @@ Avant de livrer un .als modifié, vérifier :
 - [ ] Taille du fichier final cohérente (~0-30% plus grand que l'original,
   pas la moitié = compression double, pas double = non compressé)
 - [ ] Tous les devices injectés ont un `UserName` explicite (jamais vide)
+- [ ] Quand on remplace un device : aucun `PointeeId` d'envelope ne pointe
+  vers un `AutomationTarget Id` qui n'existe plus (orphelins supprimés)
+- [ ] Le `safe_id` d'un nouveau device n'entre pas en collision avec un
+  autre device du même `<Devices>` — recalculer en excluant l'ancien Id
+  lors d'un remplacement
