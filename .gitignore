@@ -6,3 +6,6 @@ _tmp/
 *.als.v24.bak
 Backup/
 ableton/projects/*/Samples/
+
+# Local smoke tests (not part of the test suite — run manually)
+smoke_test_*.py
