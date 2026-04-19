@@ -37,6 +37,13 @@ from tkinter import ttk, filedialog, messagebox, scrolledtext
 
 VERSION = '2.6.0'
 
+
+# Persisted last-used paths across runs (input/output/.als) — helpers live in
+# a tiny dependency-free module so they stay testable without the audio stack.
+from user_config import load_user_paths as _load_user_paths
+from user_config import save_user_paths as _save_user_paths
+
+
 # ============================================================================
 # CATEGORIES - 25 options organized hierarchically
 # ============================================================================
@@ -8331,9 +8338,11 @@ class MixAnalyzerApp:
 
         setup_ttk_styles()
 
-        # State
-        self.input_folder = tk.StringVar()
-        self.output_folder = tk.StringVar()
+        # State — pre-fill from last-used paths (empty strings if first run)
+        _last_paths = _load_user_paths()
+        self.input_folder = tk.StringVar(value=_last_paths['input_folder'])
+        self.output_folder = tk.StringVar(value=_last_paths['output_folder'])
+        self.als_path = tk.StringVar(value=_last_paths['als_path'])
         self.style = tk.StringVar(value='Industrial')
 
         # Track configs: dict filename -> config dict
@@ -8546,9 +8555,18 @@ class MixAnalyzerApp:
         ttk.Button(frame, text='Browse...', command=self._browse_output).grid(
             row=2, column=2, pady=SPACING['sm'])
 
+        # Ableton .als file (optional — auto-detected if left empty)
+        ttk.Label(frame, text='Ableton .als file (optional):').grid(
+            row=3, column=0, sticky='w', pady=SPACING['sm'])
+        ttk.Entry(frame, textvariable=self.als_path, width=70).grid(
+            row=3, column=1, sticky='we', pady=SPACING['sm'],
+            padx=(SPACING['md'], SPACING['xs']))
+        ttk.Button(frame, text='Browse...', command=self._browse_als).grid(
+            row=3, column=2, pady=SPACING['sm'])
+
         # Style
         style_row = ttk.Frame(frame)
-        style_row.grid(row=3, column=0, columnspan=4, sticky='we',
+        style_row.grid(row=4, column=0, columnspan=4, sticky='we',
                        pady=SPACING['sm'])
         ttk.Label(style_row, text='Musical style:').pack(side='left')
         ttk.Combobox(style_row, textvariable=self.style,
@@ -8558,14 +8576,14 @@ class MixAnalyzerApp:
 
         # M8.7: Separator before warning
         sep1 = create_separator(frame)
-        sep1.grid(row=4, column=0, columnspan=4, sticky='we',
+        sep1.grid(row=5, column=0, columnspan=4, sticky='we',
                   pady=(SPACING['lg'], SPACING['sm']))
 
         # Warning box for filename naming — M8.7: refined padding
         warning_frame = tk.Frame(frame, bg=UI_THEME['panel'], bd=0,
                                    highlightbackground=UI_THEME['warning'],
                                    highlightthickness=1)
-        warning_frame.grid(row=5, column=0, columnspan=4, sticky='we',
+        warning_frame.grid(row=6, column=0, columnspan=4, sticky='we',
                           pady=(SPACING['sm'], SPACING['md']))
 
         tk.Label(warning_frame, text='[!] TRACK NAMING IMPORTANT',
@@ -8597,14 +8615,14 @@ class MixAnalyzerApp:
         # Status
         self.setup_status = ttk.Label(frame, text='No folder selected yet.',
                                         style='Dim.TLabel')
-        self.setup_status.grid(row=6, column=0, columnspan=4, sticky='w',
+        self.setup_status.grid(row=7, column=0, columnspan=4, sticky='w',
                               pady=(SPACING['lg'], SPACING['xs']))
 
         # Load button
         ttk.Button(frame, text='Load tracks from folder',
                    style='Accent.TButton',
                    command=self._load_tracks).grid(
-            row=7, column=0, columnspan=4, sticky='we',
+            row=8, column=0, columnspan=4, sticky='we',
             pady=(SPACING['sm'], 0))
 
         frame.columnconfigure(1, weight=1)
@@ -8620,6 +8638,13 @@ class MixAnalyzerApp:
         folder = filedialog.askdirectory(title='Select output folder')
         if folder:
             self.output_folder.set(folder)
+
+    def _browse_als(self):
+        path = filedialog.askopenfilename(
+            title='Select Ableton project file (.als) — optional',
+            filetypes=[('Ableton Live Set', '*.als'), ('All files', '*.*')])
+        if path:
+            self.als_path.set(path)
 
     def _load_tracks(self):
         folder = self.input_folder.get()
@@ -9550,18 +9575,8 @@ class MixAnalyzerApp:
 
         # v2.5.1 Phase C: extract automation maps ONCE before analysis loop
         _auto_maps = {}
-        _als_path_for_maps = None
+        _als_path_for_maps = self._resolve_als_path()
         try:
-            _input_dir = Path(self.input_folder.get())
-            for search_dir in [_input_dir, _input_dir.parent,
-                               _input_dir.parent.parent,
-                               _input_dir.parent.parent.parent]:
-                if not search_dir.is_dir():
-                    break
-                als_files = list(search_dir.glob('*.als'))
-                if als_files:
-                    _als_path_for_maps = str(als_files[0])
-                    break
             if _als_path_for_maps:
                 from automation_map import extract_all_track_automations
                 _auto_maps = extract_all_track_automations(_als_path_for_maps)
@@ -9649,20 +9664,10 @@ class MixAnalyzerApp:
                 if xlsx_path.exists():
                     xlsx_path.unlink()
 
-                # Auto-detect .als file in input folder or ancestor dirs
-                _als_path = None
-                _input_dir = Path(self.input_folder.get())
-                if _input_dir.is_dir():
-                    for search_dir in [_input_dir, _input_dir.parent,
-                                       _input_dir.parent.parent,
-                                       _input_dir.parent.parent.parent]:
-                        if not search_dir.is_dir():
-                            break
-                        als_files = list(search_dir.glob('*.als'))
-                        if als_files:
-                            _als_path = str(als_files[0])
-                            self.log(f"    ALS detected: {Path(_als_path).name}")
-                            break
+                # Resolve .als: user-specified path takes priority, else auto-detect
+                _als_path = self._resolve_als_path()
+                if _als_path:
+                    self.log(f"    ALS detected: {Path(_als_path).name}")
 
                 generate_excel_report(
                     analyses_with_info, str(xlsx_path), self.style.get(),
@@ -9778,7 +9783,44 @@ class MixAnalyzerApp:
     # ------------------------------------------------------------------
     # CONFIG SAVE/LOAD
     # ------------------------------------------------------------------
+    def _resolve_als_path(self):
+        """Return the .als path to use, or None.
+
+        Priority: explicit user-specified path (if it exists and is a .als),
+        then auto-detect by scanning the input folder and its 3 parents.
+        """
+        user_als = (self.als_path.get() or '').strip()
+        if user_als and os.path.isfile(user_als) and user_als.lower().endswith('.als'):
+            return user_als
+
+        input_folder = self.input_folder.get()
+        if not input_folder:
+            return None
+        input_dir = Path(input_folder)
+        if not input_dir.is_dir():
+            return None
+        for search_dir in [input_dir, input_dir.parent,
+                           input_dir.parent.parent,
+                           input_dir.parent.parent.parent]:
+            if not search_dir.is_dir():
+                break
+            als_files = list(search_dir.glob('*.als'))
+            if als_files:
+                return str(als_files[0])
+        return None
+
+    def _persist_user_paths(self):
+        """Save the current 3 paths to ~/.mix_analyzer/config.json."""
+        _save_user_paths(
+            input_folder=self.input_folder.get(),
+            output_folder=self.output_folder.get(),
+            als_path=self.als_path.get(),
+        )
+
     def _save_config(self):
+        # Persist last-used paths to the global user config (survives restart)
+        self._persist_user_paths()
+
         folder = self.input_folder.get()
         if not folder or not os.path.isdir(folder):
             return
