@@ -206,3 +206,78 @@ def test_seconds_beats_roundtrip_piecewise_tempo():
     # inverse
     assert beats_to_seconds(20.0, tempo_events) == pytest.approx(10.0, abs=1e-6)
     assert beats_to_seconds(35.0, tempo_events) == pytest.approx(20.0, abs=1e-6)
+
+
+# ---------------------------------------------------------------------------
+# Fix 1 — dense mix: the energy-transition pass rescues drops/breaks that the
+# spectral delta alone would miss on a song where every track plays throughout.
+# ---------------------------------------------------------------------------
+
+def test_dense_mix_detects_multiple_sections():
+    """Acid-Drops-like: tracks play constantly so delta_spectrum is flat,
+    but the drops carry +15 dB of total energy concentrated in Low/Mud.
+    The energy-transition pass must find these even with a near-zero delta.
+    """
+    n_buckets = 64
+    n_zones = 9
+
+    # Base: modest energy spread across every zone at -30 dB.
+    zone_energy = np.full((n_zones, n_buckets), -30.0, dtype=float)
+
+    # Drop 1 — buckets 20..29, Low/Mud jump to -15 dB (+15 dB).
+    zone_energy[1:3, 20:30] = -15.0
+    # Drop 2 — buckets 45..54, same pattern.
+    zone_energy[1:3, 45:55] = -15.0
+
+    # delta_spectrum near flat — dense mix, little spectral-shape change.
+    rng = np.random.default_rng(seed=3)
+    delta_spectrum = rng.uniform(0.05, 0.25, size=n_buckets)
+
+    times = np.linspace(0.0, 60.0, n_buckets)
+
+    sections = detect_sections_from_audio(
+        delta_spectrum=delta_spectrum,
+        zone_energy=zone_energy,  # 2-D input accepted
+        times=times,
+    )
+
+    assert len(sections) >= 3, (
+        f"expected >=3 sections on a dense mix with 2 drops (intro, drop, "
+        f"bridge, drop, outro...); got {len(sections)}: "
+        f"{[(s.index, s.start_bucket, s.end_bucket) for s in sections]}"
+    )
+
+
+def test_energy_threshold_db_parameter_is_exposed():
+    """energy_threshold_db must be an override-able parameter."""
+    n_buckets = 32
+    zone_energy = np.full((9, n_buckets), -30.0)
+    zone_energy[1, 15:16] = -20.0  # single-bucket 10 dB jump
+    delta = np.full(n_buckets, 0.1)
+    times = np.linspace(0.0, 30.0, n_buckets)
+
+    # A high energy threshold ignores the 10 dB jump -> 1 section.
+    sections_high = detect_sections_from_audio(
+        delta, zone_energy, times, energy_threshold_db=15.0
+    )
+    # A low energy threshold catches the 10 dB jump -> multiple sections.
+    sections_low = detect_sections_from_audio(
+        delta, zone_energy, times, energy_threshold_db=3.0
+    )
+
+    assert len(sections_low) > len(sections_high)
+
+
+def test_zone_energy_accepts_both_1d_and_2d():
+    """Callers can pass either the raw per-zone grid or a pre-summed 1-D curve."""
+    n_buckets = 20
+    zone_energy_2d = np.full((9, n_buckets), -30.0)
+    # Equivalent 1-D form: 10*log10(sum(10^(z/10))) = 10*log10(9 * 0.001) ≈ -20.46 dB
+    zone_energy_1d = np.full(n_buckets, -20.46)
+    delta = np.full(n_buckets, 0.1)
+    times = np.linspace(0.0, 20.0, n_buckets)
+
+    sections_2d = detect_sections_from_audio(delta, zone_energy_2d, times)
+    sections_1d = detect_sections_from_audio(delta, zone_energy_1d, times)
+    # Both should return the same section count (one flat section here).
+    assert len(sections_2d) == len(sections_1d)

@@ -107,51 +107,131 @@ def _collect_transition_frames(
     return transitions
 
 
+def _detect_energy_transitions(
+    total_energy_db: np.ndarray,
+    threshold_db: float = 6.0,
+) -> List[int]:
+    """Detect transitions from bucket-to-bucket total-energy jumps.
+
+    Args:
+        total_energy_db: 1-D array of total energy per bucket (dB). NaN-safe.
+        threshold_db: A bucket is a transition when its absolute dB delta
+            vs the previous bucket exceeds this value.
+
+    Returns:
+        Bucket indices flagged as transitions (the first of each jump).
+    """
+    arr = np.asarray(total_energy_db, dtype=float)
+    if arr.size < 2:
+        return []
+    deltas = np.abs(np.diff(arr))
+    # NaN deltas (either neighbour NaN) cannot flag a transition.
+    return [int(i + 1) for i, d in enumerate(deltas) if np.isfinite(d) and d > threshold_db]
+
+
+def _merge_close_transitions(transitions, min_frames_between: int) -> List[int]:
+    """Merge transitions that are closer than ``min_frames_between`` apart.
+
+    Keeps the earliest transition in each cluster so the first boundary is
+    aligned with the first jump detected.
+    """
+    if not transitions:
+        return []
+    ordered = sorted(set(int(t) for t in transitions))
+    merged = [ordered[0]]
+    for t in ordered[1:]:
+        if t - merged[-1] >= min_frames_between:
+            merged.append(t)
+    return merged
+
+
 def detect_sections_from_audio(
     delta_spectrum: np.ndarray,
     zone_energy: np.ndarray,
     times: np.ndarray,
-    threshold_multiplier: float = 2.5,
+    threshold_multiplier: float = 1.5,
+    energy_threshold_db: float = 6.0,
     tempo_events: Optional[List[Tuple[float, float]]] = None,
     smoothing_window: int = 3,
     min_frames_between: int = 4,
 ) -> List[Section]:
-    """Detect sections from spectral-change analysis.
+    """Detect sections from spectral-change + total-energy analysis.
 
     Algorithm:
-        1. Smooth delta_spectrum with a moving average (window = smoothing_window).
-        2. Threshold = median(delta_spectrum) * threshold_multiplier.
-        3. Frames where smoothed delta > threshold are candidate transitions.
-        4. Transitions closer than min_frames_between are merged.
-        5. Each segment between transitions becomes a Section, named
+        1. Spectral transitions: smooth ``delta_spectrum`` with a moving
+           average, threshold = median(delta) * ``threshold_multiplier``,
+           flag frames crossing the threshold (internal min-gap fusion).
+        2. Energy transitions: flag buckets where the *total* zone energy
+           jumps by more than ``energy_threshold_db`` vs. the previous bucket.
+        3. Merge both sets, then fuse transitions closer than
+           ``min_frames_between`` apart.
+        4. Each segment between transitions becomes a ``Section``, named
            "Section 1" .. "Section N" (1-indexed).
+
+    On dense mixes where every track plays throughout the song the spectral
+    delta varies little — the energy-transition pass surfaces the drops and
+    breaks that the spectral pass misses.
 
     Args:
         delta_spectrum: 1-D array of frame-to-frame spectral change (dB).
-        zone_energy: 1-D array of total energy per frame (dB), same length.
-        times: 1-D array of frame timestamps (seconds), same length.
-        threshold_multiplier: Multiplier applied to the delta median.
+        zone_energy: Either a 1-D array (n_frames,) of total energy per
+            frame in dB, or a 2-D array (n_zones, n_frames). 2-D inputs are
+            collapsed via a NaN-safe linear sum before further analysis.
+        times: 1-D array of frame timestamps (seconds).
+        threshold_multiplier: Spectral-threshold multiplier applied to the
+            delta median. Defaults to 1.5 (lowered from 2.5 — 2.5 was too
+            strict for dense mixes, producing 1 section for a 4-minute song).
+        energy_threshold_db: Minimum absolute dB delta between consecutive
+            buckets' total energy to flag an energy transition.
         tempo_events: Optional tempo map. Defaults to 120 BPM constant.
-        smoothing_window: Moving-average window size (frames).
+        smoothing_window: Moving-average window size (frames) for delta.
         min_frames_between: Minimum gap between accepted transitions (frames).
     """
     delta = np.asarray(delta_spectrum, dtype=float)
-    energy = np.asarray(zone_energy, dtype=float)
     t = np.asarray(times, dtype=float)
-    if not (delta.shape == energy.shape == t.shape):
+
+    ze_arr = np.asarray(zone_energy, dtype=float)
+    if ze_arr.ndim == 2:
+        with np.errstate(all="ignore"):
+            linear = np.nansum(np.power(10.0, ze_arr / 10.0), axis=0)
+        total_energy_1d = 10.0 * np.log10(np.maximum(linear, 1e-12))
+    elif ze_arr.ndim == 1:
+        total_energy_1d = ze_arr
+    else:
         raise ValueError(
-            f"delta_spectrum, zone_energy and times must have the same shape; "
-            f"got {delta.shape}, {energy.shape}, {t.shape}"
+            f"zone_energy must be 1-D or 2-D; got shape {ze_arr.shape}"
+        )
+
+    if delta.shape != t.shape or total_energy_1d.shape != delta.shape:
+        raise ValueError(
+            f"delta_spectrum, zone_energy (or its column axis) and times must "
+            f"share the same frame count; got delta={delta.shape}, "
+            f"energy={total_energy_1d.shape}, times={t.shape}"
         )
     if delta.size == 0:
         return []
 
+    # --- Spectral transitions
     smoothed = _smooth_moving_average(delta, smoothing_window)
     threshold = float(np.median(delta)) * float(threshold_multiplier)
-    transitions = [x for x in _collect_transition_frames(smoothed, threshold, min_frames_between) if x > 0]
+    spectral_transitions = [
+        x for x in _collect_transition_frames(smoothed, threshold, min_frames_between)
+        if x > 0
+    ]
+
+    # --- Energy transitions (NEW — dense-mix rescue)
+    energy_transitions = [
+        x for x in _detect_energy_transitions(total_energy_1d, energy_threshold_db)
+        if x > 0
+    ]
+
+    # --- Merge both candidate sets, refuse anything closer than min_frames_between
+    combined = _merge_close_transitions(
+        spectral_transitions + energy_transitions, min_frames_between
+    )
 
     n_frames = delta.size
-    boundaries = sorted({0, *transitions, n_frames})
+    boundaries = sorted({0, *combined, n_frames})
 
     sections: List[Section] = []
     for i in range(len(boundaries) - 1):
@@ -161,8 +241,14 @@ def detect_sections_from_audio(
             continue
         start_s = float(t[start])
         end_s = float(t[end - 1]) if end - 1 < n_frames else float(t[-1])
-        segment_energy = energy[start:end]
-        total_db = float(np.mean(segment_energy)) if segment_energy.size else -120.0
+        segment_energy = total_energy_1d[start:end]
+        if segment_energy.size:
+            with np.errstate(all="ignore"):
+                total_db = float(np.nanmean(segment_energy))
+            if not np.isfinite(total_db):
+                total_db = -120.0
+        else:
+            total_db = -120.0
         sections.append(
             Section(
                 index=len(sections) + 1,
