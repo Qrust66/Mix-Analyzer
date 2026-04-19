@@ -473,3 +473,6 @@ Avant de livrer un .als modifié, vérifier :
 - [ ] Le `safe_id` d'un nouveau device n'entre pas en collision avec un
   autre device du même `<Devices>` — recalculer en excluant l'ancien Id
   lors d'un remplacement
+- [ ] Les noms de tracks sont matchés **de manière exacte** (pas substring) :
+  `'Acid Bass' in 'Texture Acid Bass.wav'` est True et pollue les données.
+  Préférer `row_name == expected_name` ou `row_name.endswith(f' {track}.wav')`
