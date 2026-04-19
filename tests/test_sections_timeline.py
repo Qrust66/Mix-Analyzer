@@ -18,6 +18,7 @@ from openpyxl import Workbook  # noqa: E402
 
 from section_detector import (  # noqa: E402
     Section,
+    _is_track_active_in_section,
     build_sections_timeline_sheet,
     detect_accumulations_in_section,
     detect_conflicts_in_section,
@@ -69,24 +70,29 @@ def _zone_arrays_for(level_db: float, n_frames: int, zones_with_energy: List[str
 def test_enrich_populates_tracks_active_and_track_energy():
     n = 30
     sections = [_make_section(1, 0, n - 1, total_energy_db=-20.0)]
+    # Pad at -20 dB is above the default presence threshold (-30 dB); Pad at
+    # -35 dB would be below and correctly treated as inactive now (Fix 2).
     all_tracks = {
         "Kick":      _zone_arrays_for(-10.0, n, ["sub", "low"]),
-        "Pad":       _zone_arrays_for(-35.0, n, ["mid", "presence"]),
+        "Pad":       _zone_arrays_for(-20.0, n, ["mid", "presence"]),
         "Silent":    _zone_arrays_for(-80.0, n, ["air"]),
     }
 
     enrich_sections_with_track_stats(sections, all_tracks)
 
     section = sections[0]
-    # Kick and Pad are active (above -40 dB in at least one zone). Silent is not.
+    # Kick and Pad are active (present above -30 dB in at least one zone).
     assert set(section.tracks_active) == {"Kick", "Pad"}
     # track_energy has every track and every zone
     assert set(section.track_energy.keys()) == {"Kick", "Pad", "Silent"}
     for zones in section.track_energy.values():
         assert set(zones.keys()) == set(get_zone_order())
-    # sanity on values
+    # sanity on values (track_energy stores nanmax now, not mean)
     assert section.track_energy["Kick"]["sub"] == pytest.approx(-10.0, abs=0.01)
-    assert section.track_energy["Pad"]["mid"] == pytest.approx(-35.0, abs=0.01)
+    assert section.track_energy["Pad"]["mid"] == pytest.approx(-20.0, abs=0.01)
+    # track_presence is populated and consistent with tracks_active
+    assert section.track_presence["Kick"]["sub"] == pytest.approx(1.0, abs=0.01)
+    assert section.track_presence["Silent"]["air"] == pytest.approx(0.0, abs=0.01)
 
 
 # ---------------------------------------------------------------------------
@@ -320,3 +326,80 @@ def test_conflict_severity_boundaries_match_spec():
     confs = detect_conflicts_in_section(section)
     assert confs and confs[0]["severity"] == "critical"
     assert confs[0]["score"] >= 0.7 - 1e-6
+
+
+# ---------------------------------------------------------------------------
+# Fix 2 — presence-ratio activity gate (NaN-friendly)
+# ---------------------------------------------------------------------------
+
+def test_fix2_masked_track_still_active():
+    """Track with 50% of buckets masked (NaN) and 50% at -20 dB must stay active.
+
+    Before Fix 2 the mean would collapse toward -120 dB and the track would
+    drop out; the presence-ratio gate only counts non-NaN buckets.
+    """
+    n_zones = 9
+    n_buckets = 20
+    track_ze = {z: np.full(n_buckets, np.nan) for z in get_zone_order()}
+    # 10/20 = 50% presence in Low at -20 dB (above default -30 dB threshold)
+    track_ze["low"] = np.concatenate([np.full(10, -20.0), np.full(10, np.nan)])
+
+    assert _is_track_active_in_section(track_ze) is True
+
+
+def test_fix2_track_all_masked_inactive():
+    """An entirely-NaN track is inactive."""
+    track_ze = {z: np.full(20, np.nan) for z in get_zone_order()}
+    assert _is_track_active_in_section(track_ze) is False
+
+
+def test_fix2_track_low_energy_inactive():
+    """Track with finite energy below threshold everywhere is inactive."""
+    track_ze = {z: np.full(20, -50.0) for z in get_zone_order()}
+    assert _is_track_active_in_section(track_ze) is False
+
+
+def test_fix2_tracks_active_and_accumulations_coherent():
+    """After Fix 2, the tracks_active count must not be wildly smaller than the
+    number of tracks contributing accumulations. Previously Acid Drops showed
+    3 active tracks side by side with 32-track accumulations.
+    """
+    n = 30
+    sections = [_make_section(1, 0, n - 1, total_energy_db=-10.0)]
+    # Ten tracks, each playing audibly in one zone or another, each with
+    # 30% NaN — enough masking that the OLD mean-based rule would reject
+    # most of them. Fix 2 must keep them all active.
+    all_tracks = {}
+    rng = np.random.default_rng(0)
+    zone_targets = get_zone_order()
+    for i in range(10):
+        zones = {z: np.full(n, np.nan) for z in zone_targets}
+        # 21/30 = 70% presence at a level clearly above the -30 dB threshold.
+        audible = np.full(21, -10.0) + rng.normal(0, 0.5, size=21)
+        zones[zone_targets[i % len(zone_targets)]] = np.concatenate(
+            [audible, np.full(9, np.nan)]
+        )
+        all_tracks[f"T{i:02d}"] = zones
+
+    enrich_sections_with_track_stats(sections, all_tracks)
+    assert len(sections[0].tracks_active) == 10, (
+        f"expected all 10 half-masked tracks active, got "
+        f"{sections[0].tracks_active}"
+    )
+
+
+def test_fix2_presence_params_exposed():
+    """presence_threshold_db and min_presence_ratio must be callable overrides."""
+    n = 30
+    sections = [_make_section(1, 0, n - 1, total_energy_db=-20.0)]
+    all_tracks = {
+        "Quiet": _zone_arrays_for(-35.0, n, ["mid"]),
+    }
+    # With defaults (-30 dB, 20% ratio): Quiet at -35 dB is not present.
+    enrich_sections_with_track_stats(sections, all_tracks)
+    assert sections[0].tracks_active == []
+    # Override to a lower threshold: Quiet now counts as present.
+    enrich_sections_with_track_stats(
+        sections, all_tracks, presence_threshold_db=-40.0
+    )
+    assert sections[0].tracks_active == ["Quiet"]

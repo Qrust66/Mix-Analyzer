@@ -59,6 +59,12 @@ class Section:
     total_energy_db: float
     tracks_active: List[str] = field(default_factory=list)
     track_energy: dict = field(default_factory=dict)
+    # Fraction of buckets in the section where ``track_energy`` > presence
+    # threshold, per track per zone. Populated by
+    # :func:`enrich_sections_with_track_stats`. Used as the gate for
+    # "dominant in zone" / "active in section" checks (Fix 2 — the
+    # plain mean-based gate collapses under heavy NaN masking).
+    track_presence: dict = field(default_factory=dict)
     tfp_summary: Optional[dict] = None
     diagnostic_summary: Optional[dict] = None
 
@@ -400,7 +406,9 @@ _ZONE_LABELS: dict = {
     "air":       "Air (10-20 kHz)",
 }
 
-ACTIVE_THRESHOLD_DB = -40.0
+ACTIVE_THRESHOLD_DB = -40.0  # deprecated alias; prefer PRESENCE_THRESHOLD_DB
+PRESENCE_THRESHOLD_DB = -30.0
+MIN_PRESENCE_RATIO = 0.20
 CONFLICT_CRITICAL = 0.7
 CONFLICT_MODERATE = 0.4
 
@@ -444,41 +452,108 @@ def _section_frame_slice(section: Section, n_frames: int) -> slice:
     return slice(start, end)
 
 
-def _mean_track_energy(
+def _track_segment_stats(
     zone_arrays: dict,
     frame_slice: slice,
-) -> dict:
-    """Return ``{zone_name: mean_db}`` restricted to ``frame_slice``.
+    presence_threshold_db: float,
+) -> tuple:
+    """Return ``({zone: representative_db}, {zone: presence_ratio})`` for one
+    track restricted to ``frame_slice``.
 
-    Frames below -120 dB are treated as silence and excluded from the mean.
-    A zone with no non-silent frames returns -120 dB.
+    The representative dB is a NaN-safe ``nanmax`` over the segment so a
+    track masked in 80% of the section still reports the level it plays at
+    when audible.  ``presence_ratio`` is the fraction of buckets whose
+    energy is finite AND above ``presence_threshold_db``.
     """
-    out: dict = {}
+    level: dict = {}
+    presence: dict = {}
     for zone in _ZONE_ORDER:
         arr = zone_arrays.get(zone)
         if arr is None:
-            out[zone] = -120.0
+            level[zone] = -120.0
+            presence[zone] = 0.0
             continue
         segment = np.asarray(arr, dtype=float)[frame_slice]
         if segment.size == 0:
-            out[zone] = -120.0
+            level[zone] = -120.0
+            presence[zone] = 0.0
             continue
-        audible = segment[segment > -119.0]
-        out[zone] = float(np.mean(audible)) if audible.size else -120.0
-    return out
+        with np.errstate(all="ignore"):
+            finite_mask = np.isfinite(segment)
+            if finite_mask.any():
+                level[zone] = float(np.nanmax(segment))
+                present = finite_mask & (segment > presence_threshold_db)
+                presence[zone] = float(np.sum(present)) / float(segment.size)
+            else:
+                level[zone] = -120.0
+                presence[zone] = 0.0
+    return level, presence
+
+
+def _is_track_active_in_section(
+    zone_arrays_slice: dict,
+    presence_threshold_db: float = PRESENCE_THRESHOLD_DB,
+    min_presence_ratio: float = MIN_PRESENCE_RATIO,
+) -> bool:
+    """True when the track plays ``min_presence_ratio`` of the section in >=1 zone.
+
+    NaN-friendly: masked frames (``np.nan``) count as neither present nor
+    absent; the ratio is measured against the segment length.
+
+    Args:
+        zone_arrays_slice: ``{zone_name: np.ndarray of bucket dB}`` already
+            restricted to the section.
+        presence_threshold_db: Bucket is "present" when its energy is above
+            this level in at least one zone.
+        min_presence_ratio: Minimum fraction of buckets that must be
+            "present" for the track to count as active.
+    """
+    if not zone_arrays_slice:
+        return False
+    n_buckets = max((len(a) for a in zone_arrays_slice.values()), default=0)
+    if n_buckets == 0:
+        return False
+    stacked = np.stack(
+        [np.asarray(a, dtype=float) for a in zone_arrays_slice.values()]
+    )
+    # Short-circuit on fully-masked tracks so ``nanmax`` does not emit a
+    # ``RuntimeWarning: All-NaN slice`` during normal runs.
+    if not np.isfinite(stacked).any():
+        return False
+    import warnings as _warnings
+    with np.errstate(all="ignore"), _warnings.catch_warnings():
+        _warnings.simplefilter("ignore", RuntimeWarning)
+        max_per_bucket = np.nanmax(stacked, axis=0)
+    present = np.isfinite(max_per_bucket) & (max_per_bucket > presence_threshold_db)
+    return bool(np.sum(present) / float(n_buckets) >= min_presence_ratio)
 
 
 def enrich_sections_with_track_stats(
     sections: List[Section],
     all_tracks_zone_energy: dict,
-    active_threshold_db: float = ACTIVE_THRESHOLD_DB,
+    presence_threshold_db: float = PRESENCE_THRESHOLD_DB,
+    min_presence_ratio: float = MIN_PRESENCE_RATIO,
 ) -> List[Section]:
-    """Populate ``tracks_active`` and ``track_energy`` on each section in place.
+    """Populate ``tracks_active``, ``track_energy`` and ``track_presence``
+    on each section in place.
 
-    A track is "active" in a section if its mean energy is above
-    ``active_threshold_db`` in at least one zone.
-    ``track_energy[track][zone] = mean_db`` for every track in
-    ``all_tracks_zone_energy`` (not only the active ones).
+    Fix 2 — a track is "active" in a section when it has energy above
+    ``presence_threshold_db`` in at least ``min_presence_ratio`` of the
+    section's buckets, in *any* zone.  The previous "mean > threshold"
+    rule collapsed under heavy NaN masking (tracks with an active
+    audibility mask showed a misleadingly low mean and dropped out).
+
+    ``track_energy[track][zone]`` stores the representative level (NaN-safe
+    ``nanmax`` over the segment) so per-zone listings and conflict scoring
+    can still display meaningful dB values.  ``track_presence[track][zone]``
+    carries the per-zone presence ratio for downstream gating.
+
+    Args:
+        sections: Sections to enrich (modified in place).
+        all_tracks_zone_energy: ``{track_name: ZoneEnergy or dict[zone, ndarray]}``.
+        presence_threshold_db: dB threshold used when counting "present" buckets.
+        min_presence_ratio: Minimum bucket ratio above threshold to count
+            a track as active.
     """
     if not sections:
         return sections
@@ -494,17 +569,24 @@ def enrich_sections_with_track_stats(
 
     for section in sections:
         section.track_energy = {}
+        section.track_presence = {}
         section.tracks_active = []
         if n_frames == 0:
             continue
         frame_slice = _section_frame_slice(section, n_frames)
         for track_name, entry in all_tracks_zone_energy.items():
             arrays = _as_zone_arrays(entry)
-            means = _mean_track_energy(arrays, frame_slice)
+            level, presence = _track_segment_stats(
+                arrays, frame_slice, presence_threshold_db
+            )
             section.track_energy[track_name] = {
-                z: round(v, 2) for z, v in means.items()
+                z: round(v, 2) for z, v in level.items()
             }
-            if any(v > active_threshold_db for v in means.values()):
+            section.track_presence[track_name] = {
+                z: round(v, 3) for z, v in presence.items()
+            }
+            # Active if the track crosses presence in at least one zone
+            if any(ratio >= min_presence_ratio for ratio in presence.values()):
                 section.tracks_active.append(track_name)
     return sections
 
@@ -519,7 +601,7 @@ def _severity(score: float) -> Optional[str]:
 
 def detect_conflicts_in_section(
     section: Section,
-    active_threshold_db: float = ACTIVE_THRESHOLD_DB,
+    min_presence_ratio: float = MIN_PRESENCE_RATIO,
 ) -> List[dict]:
     """Pair-wise, zone-wise conflicts within this section.
 
@@ -528,10 +610,16 @@ def detect_conflicts_in_section(
         level_weight = max(0, (avg_db + 40) / 40)
         score        = overlap * level_weight
 
+    Gate (Fix 2): both tracks must have ``track_presence[zone] >=
+    min_presence_ratio`` in the zone under consideration.  Gating on the
+    presence ratio rather than on the stored dB level keeps the conflict
+    count aligned with the "dominant in zone" listings: a track that only
+    flashes loudly once in the section no longer triggers a false conflict.
+
     Args:
-        section: Section enriched with ``track_energy`` (via
-            :func:`enrich_sections_with_track_stats`).
-        active_threshold_db: Both tracks must reach this level in the zone.
+        section: Section enriched via :func:`enrich_sections_with_track_stats`.
+        min_presence_ratio: Both tracks must reach this presence ratio in
+            the zone to be considered in conflict.
 
     Returns:
         Conflict dicts sorted by severity (critical first) then score desc.
@@ -540,6 +628,8 @@ def detect_conflicts_in_section(
     if not section.track_energy:
         return []
 
+    track_presence = section.track_presence or {}
+
     conflicts: List[dict] = []
     tracks = list(section.track_energy.keys())
     for i in range(len(tracks)):
@@ -547,10 +637,12 @@ def detect_conflicts_in_section(
             a = tracks[i]
             b = tracks[j]
             for zone in _ZONE_ORDER:
+                pa = track_presence.get(a, {}).get(zone, 0.0)
+                pb = track_presence.get(b, {}).get(zone, 0.0)
+                if pa < min_presence_ratio or pb < min_presence_ratio:
+                    continue
                 ea = section.track_energy[a].get(zone, -120.0)
                 eb = section.track_energy[b].get(zone, -120.0)
-                if ea <= active_threshold_db or eb <= active_threshold_db:
-                    continue
                 overlap = max(0.0, 1.0 - abs(ea - eb) / 30.0)
                 avg_db = (ea + eb) / 2.0
                 level_weight = max(0.0, (avg_db + 40.0) / 40.0)
@@ -919,7 +1011,8 @@ def _render_section_block(
     observations: List[str],
     all_tracks_zone_energy: dict,
     all_tracks_peak_trajectories: Optional[dict],
-    active_threshold_db: float,
+    presence_threshold_db: float,
+    min_presence_ratio: float,
     row: int,
 ) -> int:
     duration = section.end_seconds - section.start_seconds
@@ -932,16 +1025,19 @@ def _render_section_block(
     _write_row(ws, row, [header_line]); row += 1
     _write_row(ws, row, ["\u2550" * 72]); row += 2
 
-    # --- Zone dominantes
+    # --- Zone dominantes — gated on per-zone presence ratio (Fix 2).
     _write_row(ws, row, ["TRACKS ACTIVES PAR ZONE D'ENERGIE DOMINANTE"]); row += 1
     _write_row(ws, row, ["\u2500" * 72]); row += 1
     _write_row(ws, row, ["ZONE", "TRACKS DOMINANTES"]); row += 1
+    track_presence = section.track_presence or {}
     for zone in _ZONE_ORDER:
         dominants = []
         for track, zones in section.track_energy.items():
+            ratio = track_presence.get(track, {}).get(zone, 0.0)
+            if ratio < min_presence_ratio:
+                continue
             db = zones.get(zone, -120.0)
-            if db > active_threshold_db:
-                dominants.append((track, db))
+            dominants.append((track, db))
         dominants.sort(key=lambda t: -t[1])
         if dominants:
             text = ", ".join(f"{name} ({db:+.0f} dB)" for name, db in dominants)
@@ -996,7 +1092,7 @@ def _render_section_block(
         section,
         all_tracks_zone_energy,
         all_tracks_peak_trajectories,
-        active_threshold_db,
+        presence_threshold_db,
     )
     if peak_rows:
         _write_row(ws, row, ["TRACK", "FREQ DU PEAK MAX", "AMPLITUDE", "DUREE ACTIVE"])
@@ -1057,7 +1153,8 @@ def build_sections_timeline_sheet(
     sections: List[Section],
     all_tracks_zone_energy: dict,
     all_tracks_peak_trajectories: Optional[dict] = None,
-    active_threshold_db: float = ACTIVE_THRESHOLD_DB,
+    presence_threshold_db: float = PRESENCE_THRESHOLD_DB,
+    min_presence_ratio: float = MIN_PRESENCE_RATIO,
     min_tracks_for_accumulation: int = ACCUMULATION_MIN_TRACKS,
     min_amplitude_for_accumulation_db: float = ACCUMULATION_MIN_AMP_DB,
     log_fn=None,
@@ -1070,22 +1167,26 @@ def build_sections_timeline_sheet(
 
     Expected input: ``all_tracks_zone_energy`` is the *audibility-masked*
     zone-energy produced by ``mix_analyzer._apply_audibility_mask`` — inaudible
-    frames carry NaN, which the analysis helpers naturally ignore. When a
-    track has no automation map, its zone energy is raw (from WAV). The
-    ``-40 dB`` default threshold is calibrated for this mixed regime.
+    frames carry NaN, which the analysis helpers ignore. When a track has no
+    automation map, its zone energy is raw (from WAV).
 
     Args:
         workbook: An openpyxl ``Workbook``.
         sections: Detected or user-defined sections (see :class:`Section`).
         all_tracks_zone_energy: ``{track_name: ZoneEnergy or dict[zone, ndarray]}``.
-            Must contain Individual tracks only — Pass in BUS / Full-Mix stems
+            Must contain Individual tracks only — pass in BUS / Full-Mix stems
             and you will over-count conflicts; a warning is emitted in that case.
         all_tracks_peak_trajectories: Optional ``{track_name: [PeakTrajectory, ...]}``
             used to populate the "Peak max par track" block with frequency data.
-        active_threshold_db: Energy threshold (dB) for "active" / "significative".
-        min_tracks_for_accumulation: Minimum distinct tracks required to call
-            a frequency cluster an accumulation (default 6, tuned against real
-            data — smoke test with 4 produced ~65 accumulations/section).
+        presence_threshold_db: dB above which a bucket counts as "present"
+            when computing activity / zone-dominante gates (Fix 2; default
+            -30 dB).  Previously ``active_threshold_db`` with a mean-based
+            gate — the new gate is NaN-robust under audibility masking.
+        min_presence_ratio: Minimum fraction of section buckets a track
+            must reach in a zone to count as dominant / active there
+            (Fix 2 default 0.20 — 20% presence).
+        min_tracks_for_accumulation: Minimum distinct tracks required to
+            call a frequency cluster an accumulation (default 6).
         min_amplitude_for_accumulation_db: Skip peaks quieter than this when
             computing accumulations (default -25 dB).
         log_fn: Optional logger callable.
@@ -1099,11 +1200,14 @@ def build_sections_timeline_sheet(
     _warn_non_individual_tracks(all_tracks_zone_energy, log_fn)
 
     enrich_sections_with_track_stats(
-        sections, all_tracks_zone_energy, active_threshold_db=active_threshold_db
+        sections,
+        all_tracks_zone_energy,
+        presence_threshold_db=presence_threshold_db,
+        min_presence_ratio=min_presence_ratio,
     )
 
     conflicts_by_idx: dict = {
-        s.index: detect_conflicts_in_section(s, active_threshold_db=active_threshold_db)
+        s.index: detect_conflicts_in_section(s, min_presence_ratio=min_presence_ratio)
         for s in sections
     }
     accumulations_by_idx: dict = {
@@ -1122,7 +1226,7 @@ def build_sections_timeline_sheet(
             accumulations=accumulations_by_idx[s.index],
             all_sections=sections,
             all_tracks_zone_energy=all_tracks_zone_energy,
-            active_threshold_db=active_threshold_db,
+            active_threshold_db=presence_threshold_db,
         )
         for s in sections
     }
@@ -1141,7 +1245,8 @@ def build_sections_timeline_sheet(
             observations=observations_by_idx[section.index],
             all_tracks_zone_energy=all_tracks_zone_energy,
             all_tracks_peak_trajectories=all_tracks_peak_trajectories,
-            active_threshold_db=active_threshold_db,
+            presence_threshold_db=presence_threshold_db,
+            min_presence_ratio=min_presence_ratio,
             row=row,
         )
 
