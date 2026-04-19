@@ -99,3 +99,9 @@ calcul de `safe_id`, règle des grands IDs, tempo map, automations.
 4. **Vérification post-écriture obligatoire** : relire le fichier produit,
    premiers octets doivent être `<?xml` (sinon double-gzip), et vérifier
    que le nouveau device Id se trouve bien dans les bornes de la track cible.
+
+5. **Nommer tout device injecté** : chaque device créé par Claude doit
+   avoir un `<UserName Value="..." />` explicite révélant sa fonction
+   (ex. `"Peak Resonance"`). Ne jamais laisser vide — l'utilisateur doit
+   voir d'un coup d'œil à quoi sert chaque device dans sa chain. Voir
+   `ableton/ALS_MANIPULATION_GUIDE.md` section "Nommer un device injecté".

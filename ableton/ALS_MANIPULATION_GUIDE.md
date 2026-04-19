@@ -289,7 +289,80 @@ ET.fromstring(xml)  # lève si XML invalide
 
 ---
 
-## 10. EQ8 — modes et paramètres
+## 10. Nommer un device injecté (UserName)
+
+Chaque device dans `.als` contient un champ `<UserName Value="" />` qui
+correspond au **nom personnalisé affiché dans le header du device** dans
+Ableton. Par défaut, c'est vide et Live affiche le nom du type de device
+(ex. "EQ Eight"). En le renseignant, on l'utilisateur voit directement
+la fonction du device dans sa chain.
+
+**Règle projet** : chaque device injecté par Claude doit avoir un
+`UserName` explicite révélant sa fonction (ex. `"Peak Resonance"`,
+`"Dynamic Tilt"`, `"Sidechain HPF"`, etc.). Ne jamais laisser le
+`UserName` vide sur un device injecté.
+
+### Où se trouve le `UserName` dans un Eq8
+
+Le premier `<UserName Value="..." />` à l'intérieur d'un `<Eq8>` est le
+nom du device (il y en a un second plus loin, niché dans `<LastPresetRef>`,
+qu'il ne faut PAS toucher). Il apparaît après le bloc `<On>` et avant
+`<Annotation>`.
+
+### Pattern d'injection / renommage
+
+```python
+def set_device_username(xml, device_tag, device_id, name):
+    """Renomme le UserName du premier device matching <device_tag Id=device_id>.
+
+    Args:
+        xml: XML complet du projet
+        device_tag: 'Eq8', 'Compressor2', 'Limiter', etc.
+        device_id: Id du device (string)
+        name: nouveau UserName
+    """
+    open_tag = f'<{device_tag} Id="{device_id}"'
+    close_tag = f'</{device_tag}>'
+    start = xml.find(open_tag)
+    if start < 0:
+        raise ValueError(f"{device_tag} Id={device_id} introuvable")
+    end = xml.find(close_tag, start)
+    # Premier UserName vide dans le device = nom du device
+    un = xml.find('<UserName Value="" />', start, end)
+    if un < 0:
+        # Déjà renommé ou structure non standard — cherche avec regex permissive
+        import re
+        m = re.search(r'<UserName Value="[^"]*" />', xml[start:end])
+        if m:
+            un = start + m.start()
+            un_end = start + m.end()
+        else:
+            raise RuntimeError(f"Pas de UserName trouvé dans {device_tag} {device_id}")
+    else:
+        un_end = un + len('<UserName Value="" />')
+    return xml[:un] + f'<UserName Value="{name}" />' + xml[un_end:]
+```
+
+### Intégration dans le pipeline d'injection
+
+Appliquer le nom **juste après avoir cloné le template** (avant
+l'injection finale), ou **juste après injection** via la fonction
+ci-dessus. Faire ça dans la même étape que la configuration des bandes
+évite d'oublier.
+
+### Convention de nommage (projet Mix Analyzer)
+
+| Fonction | UserName |
+|----------|----------|
+| Compensation dynamique des résonances de peak | `Peak Resonance` |
+| (à étendre pour futures fonctions) | ... |
+
+Ajouter une ligne ici chaque fois qu'une nouvelle fonction d'EQ8 est
+introduite, pour garder un vocabulaire cohérent entre tracks et projets.
+
+---
+
+## 11. EQ8 — modes et paramètres
 
 | Mode | Nom |
 |------|-----|
@@ -324,3 +397,4 @@ Avant de livrer un .als modifié, vérifier :
 - [ ] `NextPointeeId` > max des Ids utilisés
 - [ ] Taille du fichier final cohérente (~0-30% plus grand que l'original,
   pas la moitié = compression double, pas double = non compressé)
+- [ ] Tous les devices injectés ont un `UserName` explicite (jamais vide)
