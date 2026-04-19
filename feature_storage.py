@@ -582,3 +582,14 @@ def _resample_curve_to_buckets(
         bucket_beats = bucket_centers
 
     return _interpolate_at(curve.times_beats, curve.values, bucket_beats)
+
+
+# ---------------------------------------------------------------------------
+# Feature 3 Phase C — sections timeline sheet
+# ---------------------------------------------------------------------------
+
+# The real implementation lives in section_detector.py so it can be imported
+# and tested without the spectral_evolution/librosa dependency tree. We
+# re-export it here to preserve the public API expected by the Feature 3 spec:
+# ``from feature_storage import build_sections_timeline_sheet``.
+from section_detector import build_sections_timeline_sheet  # noqa: E402,F401
