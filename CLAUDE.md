@@ -2,7 +2,7 @@
 
 ## Projet
 
-Mix Analyzer v2.5.2 — Outil d'analyse audio qui génère des rapports Excel
+Mix Analyzer v2.6.0 — Outil d'analyse audio qui génère des rapports Excel
 et des automations EQ8 dynamiques pour Ableton Live.
 
 ## Versioning

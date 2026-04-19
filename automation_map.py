@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Automation Map — v2.5.2
+Automation Map — v2.6.0
 
 Extracts gain-affecting automations (volume fader, Utility gain, Speaker mute,
 device on/off) from Ableton .als files and computes per-track effective gain

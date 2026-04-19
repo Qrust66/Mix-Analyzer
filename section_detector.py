@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Section Detector v2.5.2 — Feature 3 Phase A/B.
+Section Detector v2.6.0 — Feature 3 (complete).
 
 Detects musical sections from spectral analysis, or reads existing Locators
 from an Ableton .als file when the user has already placed them.

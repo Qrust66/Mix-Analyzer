@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-EQ8 Automation Engine — v2.5.2
+EQ8 Automation Engine — v2.6.0
 
 Consumes features from spectral_evolution.py and writes dynamic EQ8
 automations into Ableton .als files via als_utils.py.

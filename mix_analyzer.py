@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Mix Analyzer v2.5.2 - Visual audio mix analysis tool
+Mix Analyzer v2.6.0 - Visual audio mix analysis tool
 Generates detailed Excel reports for audio tracks to aid mixing and mastering decisions.
 
 Usage:
@@ -35,7 +35,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 
 
-VERSION = '2.5.2'
+VERSION = '2.6.0'
 
 # ============================================================================
 # CATEGORIES - 25 options organized hierarchically
