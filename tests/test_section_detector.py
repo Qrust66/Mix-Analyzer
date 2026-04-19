@@ -235,10 +235,16 @@ def test_dense_mix_detects_multiple_sections():
 
     times = np.linspace(0.0, 60.0, n_buckets)
 
+    # Pass a smaller energy threshold than the production default so the test
+    # exercises the algorithm's behaviour rather than the prod calibration.
+    # The two drops here only produce ~9 dB of total-energy delta because
+    # the uplift is concentrated in 2 of the 9 zones.
     sections = detect_sections_from_audio(
         delta_spectrum=delta_spectrum,
         zone_energy=zone_energy,  # 2-D input accepted
         times=times,
+        energy_threshold_db=5.0,
+        min_section_duration_s=0.0,  # exercise the spectral+energy passes only
     )
 
     assert len(sections) >= 3, (
@@ -281,3 +287,38 @@ def test_zone_energy_accepts_both_1d_and_2d():
     sections_1d = detect_sections_from_audio(delta, zone_energy_1d, times)
     # Both should return the same section count (one flat section here).
     assert len(sections_2d) == len(sections_1d)
+
+
+def test_min_section_duration_filters_short_transitions():
+    """Transitions that would create a section shorter than
+    ``min_section_duration_s`` are dropped.  Scenario: 10 evenly-spaced
+    pics in a 20 s stream; with a 4 s minimum, at most 5 sections should
+    survive and none can be shorter than ~4 s.
+    """
+    n_buckets = 40
+    times = np.linspace(0, 20, n_buckets)
+
+    delta_spectrum = np.zeros(n_buckets)
+    for i in range(2, n_buckets, 4):  # pics every 4 buckets ≈ every 2 s
+        delta_spectrum[i] = 5.0
+
+    zone_energy = np.full((9, n_buckets), -30.0)  # flat — isolate the test
+
+    sections = detect_sections_from_audio(
+        delta_spectrum,
+        zone_energy,
+        times,
+        threshold_multiplier=1.0,   # permissive on the spectral side
+        energy_threshold_db=100.0,  # disable the energy-transition pass
+        min_section_duration_s=4.0,
+    )
+
+    assert len(sections) <= 5, (
+        f"expected <=5 sections with 4 s min duration, got {len(sections)}"
+    )
+    for s in sections:
+        duration = s.end_seconds - s.start_seconds
+        # Tolerance of half a bucket for grid effects.
+        assert duration >= 4.0 - 0.5, (
+            f"Section {s.index} too short: {duration:.2f}s"
+        )

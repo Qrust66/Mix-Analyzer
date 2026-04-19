@@ -115,7 +115,7 @@ def _collect_transition_frames(
 
 def _detect_energy_transitions(
     total_energy_db: np.ndarray,
-    threshold_db: float = 6.0,
+    threshold_db: float = 10.0,
 ) -> List[int]:
     """Detect transitions from bucket-to-bucket total-energy jumps.
 
@@ -155,8 +155,9 @@ def detect_sections_from_audio(
     delta_spectrum: np.ndarray,
     zone_energy: np.ndarray,
     times: np.ndarray,
-    threshold_multiplier: float = 1.5,
-    energy_threshold_db: float = 6.0,
+    threshold_multiplier: float = 2.0,
+    energy_threshold_db: float = 10.0,
+    min_section_duration_s: float = 4.0,
     tempo_events: Optional[List[Tuple[float, float]]] = None,
     smoothing_window: int = 3,
     min_frames_between: int = 4,
@@ -171,12 +172,17 @@ def detect_sections_from_audio(
            jumps by more than ``energy_threshold_db`` vs. the previous bucket.
         3. Merge both sets, then fuse transitions closer than
            ``min_frames_between`` apart.
-        4. Each segment between transitions becomes a ``Section``, named
-           "Section 1" .. "Section N" (1-indexed).
+        4. Filter transitions that would create a section shorter than
+           ``min_section_duration_s`` — short bursts are rarely musical.
+        5. Each segment between the remaining transitions becomes a
+           ``Section``, named "Section 1" .. "Section N" (1-indexed).
 
     On dense mixes where every track plays throughout the song the spectral
     delta varies little — the energy-transition pass surfaces the drops and
-    breaks that the spectral pass misses.
+    breaks that the spectral pass misses.  Defaults were retuned against
+    Acid Drops validation (3min55 dark techno): 2.5/—/— produced 1 section,
+    1.5/6.0/— produced 39 (many <3 s); 2.0/10.0/4.0 targets 6-12 sections
+    with every section >= 4 s.
 
     Args:
         delta_spectrum: 1-D array of frame-to-frame spectral change (dB).
@@ -185,10 +191,12 @@ def detect_sections_from_audio(
             collapsed via a NaN-safe linear sum before further analysis.
         times: 1-D array of frame timestamps (seconds).
         threshold_multiplier: Spectral-threshold multiplier applied to the
-            delta median. Defaults to 1.5 (lowered from 2.5 — 2.5 was too
-            strict for dense mixes, producing 1 section for a 4-minute song).
+            delta median. Default 2.0.
         energy_threshold_db: Minimum absolute dB delta between consecutive
-            buckets' total energy to flag an energy transition.
+            buckets' total energy to flag an energy transition. Default 10.0.
+        min_section_duration_s: Minimum duration in seconds of any detected
+            section. Transitions closer than this in elapsed time are
+            dropped (the later one is discarded).  Default 4.0.
         tempo_events: Optional tempo map. Defaults to 120 BPM constant.
         smoothing_window: Moving-average window size (frames) for delta.
         min_frames_between: Minimum gap between accepted transitions (frames).
@@ -235,6 +243,33 @@ def detect_sections_from_audio(
     combined = _merge_close_transitions(
         spectral_transitions + energy_transitions, min_frames_between
     )
+
+    # --- Minimum-duration filter: drop transitions that would create a section
+    # shorter than ``min_section_duration_s`` relative to the previous accepted
+    # boundary.  Runs after the frame-gap fusion so we reject for *elapsed time*
+    # regardless of the sampling density. Also trims a trailing short section
+    # by dropping the last accepted transition when the tail is too short.
+    if (
+        min_section_duration_s > 0
+        and combined
+        and t.size >= 2
+    ):
+        filtered: List[int] = []
+        last_time = float(t[0])
+        for tr in combined:
+            tr_time = float(t[min(tr, t.size - 1)])
+            if tr_time - last_time >= min_section_duration_s:
+                filtered.append(tr)
+                last_time = tr_time
+
+        end_time = float(t[-1])
+        while filtered and (
+            end_time - float(t[min(filtered[-1], t.size - 1)])
+            < min_section_duration_s
+        ):
+            filtered.pop()
+
+        combined = filtered
 
     n_frames = delta.size
     boundaries = sorted({0, *combined, n_frames})
