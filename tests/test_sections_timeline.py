@@ -142,44 +142,61 @@ def test_detect_conflicts_scores_and_severity_order():
 # Accumulation detection
 # ---------------------------------------------------------------------------
 
-def test_detect_accumulations_clusters_peaks_within_semitone():
+def _simultaneous_peak_traj(freqs: List[float], buckets: List[int], amp_db: float = -5.0):
+    """Build a PeakTrajectory with peaks at each (bucket, freq) pair for one track."""
+    points = []
+    for bucket in buckets:
+        for f in freqs:
+            points.append((bucket, f, amp_db))
+    return _FakePeakTraj(points=points)
+
+
+def test_detect_accumulations_clusters_simultaneous_peaks_within_semitone():
+    """5 tracks with peaks near 247 Hz, all simultaneous over buckets 10..14
+    (5 buckets >= default min_duration 3) => one accumulation."""
     section = _make_section(1, 0, 99, total_energy_db=-15.0)
-    # 5 tracks with peaks around 247 Hz (inside 1 semitone of each other).
-    # We pass min_tracks=4 explicitly so the test documents the clustering
-    # behaviour independently of the production default (6).
-    peaks = {
-        "TrackA": [_FakePeakTraj(points=[(10, 246.0, -5.0)])],
-        "TrackB": [_FakePeakTraj(points=[(20, 247.5, -8.0)])],
-        "TrackC": [_FakePeakTraj(points=[(30, 248.0, -10.0)])],
-        "TrackD": [_FakePeakTraj(points=[(40, 249.0, -12.0)])],
-        # inside the section, plus an unrelated peak far away
-        "TrackE": [_FakePeakTraj(points=[(50, 250.0, -14.0), (60, 4000.0, -20.0)])],
-        # this track is outside the section frames -> must not count
-        "Outsider": [_FakePeakTraj(points=[(500, 247.0, -5.0)])],
-    }
-    accs = detect_accumulations_in_section(section, peaks, min_tracks=4)
+    freqs = [246.0, 247.5, 248.0, 249.0, 250.0]  # within 1 semitone of each other
+    peaks = {}
+    for i, f in enumerate(freqs):
+        track = f"Track{chr(ord('A') + i)}"
+        peaks[track] = [_simultaneous_peak_traj([f], buckets=list(range(10, 15)))]
+    # Far-away peak for one of the tracks (unrelated freq) must not interfere.
+    peaks["TrackE"].append(_simultaneous_peak_traj([4000.0], buckets=[60]))
+    # Out-of-section track must not count.
+    peaks["Outsider"] = [_simultaneous_peak_traj([247.0], buckets=[500])]
+
+    accs = detect_accumulations_in_section(
+        section, peaks, min_tracks_simultaneous=4, min_duration_buckets=3
+    )
 
     assert len(accs) == 1
-    assert accs[0]["n_tracks"] == 5
-    assert accs[0]["freq_hz"] == pytest.approx(247.7, abs=1.0)
-    assert set(accs[0]["track_names"]) == {"TrackA", "TrackB", "TrackC", "TrackD", "TrackE"}
+    assert accs[0]["n_tracks_simultaneous"] == 5
+    assert accs[0]["duration_buckets"] == 5
+    assert accs[0]["freq_hz"] == pytest.approx(248.0, abs=2.0)
+    assert accs[0]["start_bucket"] == 10
+    assert accs[0]["end_bucket"] == 14
+    assert set(accs[0]["track_names"]) == {
+        "TrackA", "TrackB", "TrackC", "TrackD", "TrackE",
+    }
 
 
 def test_detect_accumulations_default_min_tracks_is_six():
-    """Production default requires >=6 tracks to surface as an accumulation."""
+    """Production default requires >=6 simultaneous tracks."""
     section = _make_section(1, 0, 99, total_energy_db=-15.0)
+    # 5 simultaneous tracks on buckets 10..14 -> below default, no accumulation
     five_tracks = {
-        f"T{i}": [_FakePeakTraj(points=[(10 * i, 247.0 + 0.1 * i, -5.0)])]
+        f"T{i}": [_simultaneous_peak_traj([247.0 + 0.1 * i], buckets=list(range(10, 15)))]
         for i in range(5)
     }
-    # With 5 tracks and the production default (6), no accumulation is surfaced.
     assert detect_accumulations_in_section(section, five_tracks) == []
 
-    # Adding a 6th pushes us over the threshold.
+    # Adding a 6th simultaneous track pushes us over the threshold.
     six_tracks = dict(five_tracks)
-    six_tracks["T5"] = [_FakePeakTraj(points=[(60, 247.5, -5.0)])]
+    six_tracks["T5"] = [_simultaneous_peak_traj([247.5], buckets=list(range(10, 15)))]
     accs = detect_accumulations_in_section(section, six_tracks)
-    assert len(accs) == 1 and accs[0]["n_tracks"] == 6
+    assert len(accs) == 1
+    assert accs[0]["n_tracks_simultaneous"] == 6
+    assert accs[0]["duration_buckets"] == 5
 
 
 def test_build_sheet_warns_on_bus_or_full_mix_tracks(caplog):
@@ -403,3 +420,109 @@ def test_fix2_presence_params_exposed():
         sections, all_tracks, presence_threshold_db=-40.0
     )
     assert sections[0].tracks_active == ["Quiet"]
+
+
+# ---------------------------------------------------------------------------
+# Fix 3 — accumulations require temporal simultaneity over a minimum duration
+# ---------------------------------------------------------------------------
+
+def test_fix3_accumulation_requires_simultaneity():
+    """5 tracks with peaks at 370 Hz but at DIFFERENT buckets -> no accumulation.
+
+    Before Fix 3, the old algo counted each track as contributing whenever
+    any of its peaks fell within the section, producing impossible counts
+    (Acid Drops: 32 tracks at 370 Hz).
+    """
+    section = _make_section(1, 0, 99, total_energy_db=-15.0)
+    # Each track has exactly one peak at 370 Hz, at its own dedicated bucket,
+    # with no overlap between tracks.
+    peaks = {
+        f"Track{chr(ord('A') + i)}": [
+            _FakePeakTraj(points=[(10 + 10 * i, 370.0, -5.0)])
+        ]
+        for i in range(5)
+    }
+    accs = detect_accumulations_in_section(
+        section, peaks, min_tracks_simultaneous=4, min_duration_buckets=3
+    )
+    assert accs == [], (
+        f"no simultaneous bucket has >=4 tracks; expected empty, got {accs}"
+    )
+
+
+def test_fix3_accumulation_with_simultaneity():
+    """5 tracks with peaks at 370 Hz, all simultaneous over buckets 20..24,
+    yields one accumulation with duration 5."""
+    section = _make_section(1, 0, 99, total_energy_db=-5.0)
+    peaks = {}
+    for i in range(5):
+        peaks[f"T{i}"] = [_simultaneous_peak_traj([370.0], buckets=list(range(20, 25)))]
+
+    accs = detect_accumulations_in_section(
+        section, peaks, min_tracks_simultaneous=5, min_duration_buckets=3
+    )
+    assert len(accs) == 1
+    acc = accs[0]
+    assert acc["n_tracks_simultaneous"] == 5
+    assert acc["duration_buckets"] == 5
+    assert acc["freq_hz"] == pytest.approx(370.0, abs=0.1)
+    assert acc["start_bucket"] == 20
+    assert acc["end_bucket"] == 24
+    assert set(acc["track_names"]) == {f"T{i}" for i in range(5)}
+
+
+def test_fix3_accumulation_duration_minimum():
+    """Runs shorter than ``min_duration_buckets`` are rejected; exactly-minimum
+    runs are kept."""
+    section = _make_section(1, 0, 99, total_energy_db=-5.0)
+
+    # Case A: 6 tracks simultaneous for 2 buckets only -> reject (below default 3).
+    peaks_short = {
+        f"T{i}": [_simultaneous_peak_traj([370.0], buckets=[20, 21])]
+        for i in range(6)
+    }
+    assert detect_accumulations_in_section(section, peaks_short) == []
+
+    # Case B: 6 tracks simultaneous for exactly 3 buckets -> keep.
+    peaks_exact = {
+        f"T{i}": [_simultaneous_peak_traj([370.0], buckets=[20, 21, 22])]
+        for i in range(6)
+    }
+    accs_exact = detect_accumulations_in_section(section, peaks_exact)
+    assert len(accs_exact) == 1
+    assert accs_exact[0]["duration_buckets"] == 3
+
+
+def test_fix3_reports_max_simult_when_count_varies_in_run():
+    """When the simultaneous count oscillates inside a run, n_tracks_simultaneous
+    reports the MAX count seen in the run."""
+    section = _make_section(1, 0, 99, total_energy_db=-5.0)
+    # 6 baseline tracks for all 5 buckets, plus 2 extra tracks joining at bucket 22.
+    peaks = {
+        f"T{i}": [_simultaneous_peak_traj([370.0], buckets=list(range(20, 25)))]
+        for i in range(6)
+    }
+    peaks["T6"] = [_simultaneous_peak_traj([370.0], buckets=[22])]
+    peaks["T7"] = [_simultaneous_peak_traj([370.0], buckets=[22])]
+
+    accs = detect_accumulations_in_section(section, peaks)
+    assert len(accs) == 1
+    assert accs[0]["n_tracks_simultaneous"] == 8  # 6 baseline + 2 at bucket 22
+    assert accs[0]["duration_buckets"] == 5
+    # The union includes the two bucket-22 tracks even though they only play once.
+    assert set(accs[0]["track_names"]) >= {f"T{i}" for i in range(8)}
+
+
+def test_fix3_amplitude_filter_honoured():
+    """Peaks below min_amplitude_db must not contribute to accumulations."""
+    section = _make_section(1, 0, 99, total_energy_db=-5.0)
+    # 6 tracks but half the peaks are quieter than -25 dB default; only
+    # the loud peaks contribute.
+    peaks = {}
+    for i in range(6):
+        amp = -5.0 if i < 3 else -40.0
+        peaks[f"T{i}"] = [
+            _simultaneous_peak_traj([370.0], buckets=list(range(20, 25)), amp_db=amp)
+        ]
+    # Only 3 loud tracks -> below min 6 -> no accumulation.
+    assert detect_accumulations_in_section(section, peaks) == []

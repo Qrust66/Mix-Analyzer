@@ -415,8 +415,11 @@ CONFLICT_MODERATE = 0.4
 # Accumulation defaults tuned against real Acid Drops data (smoke test run):
 # with min_tracks=4 / min_amp=-30 dB we got ~65 accumulations per section
 # (signal lost in noise). Raising both filters keeps only the real buildups.
+# Fix 3: ``min_duration_buckets`` keeps one-bucket flashes from surfacing as
+# accumulations — a real musical buildup must persist for a few buckets.
 ACCUMULATION_MIN_TRACKS = 6
 ACCUMULATION_MIN_AMP_DB = -25.0
+ACCUMULATION_MIN_DURATION = 3
 
 # Track names that almost certainly represent bounces / busses rather than
 # individual instruments. Used by build_sections_timeline_sheet to warn the
@@ -667,35 +670,103 @@ def detect_conflicts_in_section(
     return conflicts
 
 
+def _cluster_frequencies(
+    freqs: List[float],
+    tolerance_semitones: float,
+) -> List[Tuple[float, float]]:
+    """Group sorted frequencies into ``(lo, hi)`` bins at most ``tolerance_semitones`` wide.
+
+    Chained clustering: a new frequency joins the current bin if it is within
+    ``tolerance_semitones`` of the bin's *first* frequency (not the running
+    mean), which keeps bin widths bounded under the stated tolerance.
+    """
+    if not freqs:
+        return []
+    ordered = sorted(set(round(f, 2) for f in freqs if f > 0))
+    bins: List[List[float]] = [[ordered[0]]]
+    for f in ordered[1:]:
+        ref = bins[-1][0]
+        semitones = abs(12.0 * np.log2(f / ref)) if ref > 0 else float("inf")
+        if semitones <= tolerance_semitones:
+            bins[-1].append(f)
+        else:
+            bins.append([f])
+    return [(b[0], b[-1]) for b in bins]
+
+
 def detect_accumulations_in_section(
     section: Section,
     all_tracks_peak_trajectories: Optional[dict],
     frequency_tolerance_semitones: float = 1.0,
-    min_tracks: int = ACCUMULATION_MIN_TRACKS,
+    min_tracks_simultaneous: int = ACCUMULATION_MIN_TRACKS,
     min_amplitude_db: float = ACCUMULATION_MIN_AMP_DB,
+    min_duration_buckets: int = ACCUMULATION_MIN_DURATION,
+    min_tracks: Optional[int] = None,
 ) -> List[dict]:
-    """Find frequencies where ``min_tracks`` or more tracks have a significant peak.
+    """Find frequencies where ``min_tracks_simultaneous`` or more tracks play
+    *at the same bucket* for at least ``min_duration_buckets`` consecutive buckets.
+
+    Fix 3: the previous algo counted every track that had a peak at a given
+    frequency at any point in the section, producing impossible numbers on
+    real mixes (Acid Drops reported 32 tracks competing at 370 Hz although
+    no more than 6 played simultaneously).  Accumulations are now flagged
+    only when the collision is *temporally real*.
+
+    Algorithm:
+        1. For every bucket in the section, collect ``(freq, track)`` pairs
+           from every peak whose ``frame_idx`` equals the bucket and whose
+           amplitude exceeds ``min_amplitude_db``. A track contributes at
+           most one pair per (bucket, freq-bin).
+        2. Cluster all observed frequencies into bins of at most
+           ``frequency_tolerance_semitones`` wide.
+        3. For each bin, count unique active tracks per bucket.
+        4. Emit an accumulation when the per-bucket count stays at or above
+           ``min_tracks_simultaneous`` for at least ``min_duration_buckets``
+           consecutive buckets.
 
     Args:
-        section: Section to scope to via ``start_bucket``/``end_bucket``.
-        all_tracks_peak_trajectories: ``{track_name: list[PeakTrajectory]}``.
-            Each ``PeakTrajectory`` must expose ``points`` as
+        section: Section to scope to (start_bucket..end_bucket inclusive).
+        all_tracks_peak_trajectories: ``{track_name: list[PeakTrajectory]}``;
+            each trajectory must expose ``points`` as
             ``[(frame_idx, freq_hz, amplitude_db), ...]``.
-        frequency_tolerance_semitones: Peaks within this distance are clustered.
-        min_tracks: Minimum unique tracks required to call it an accumulation.
-        min_amplitude_db: Skip peaks quieter than this.
+        frequency_tolerance_semitones: Bin width for clustering nearby peaks.
+        min_tracks_simultaneous: Minimum unique tracks active at the same
+            bucket for the bin to qualify (default 6 — kept from Phase C
+            retuning to keep sheets readable on dense mixes).
+        min_amplitude_db: Peaks below this amplitude are ignored.
+        min_duration_buckets: Minimum consecutive-bucket run for the
+            accumulation to qualify (default 3 — one-bucket flashes are
+            not musically meaningful).
+        min_tracks: Deprecated alias for ``min_tracks_simultaneous``; when
+            provided it overrides the new name for backwards compatibility
+            with Phase C callers (test suite still uses it).
 
     Returns:
-        Accumulation dicts sorted by track count desc, each with
-        ``{freq_hz, n_tracks, track_names}``.
+        Accumulation dicts sorted by ``n_tracks_simultaneous`` desc then
+        duration desc. Each dict carries::
+
+            {
+                "freq_hz": float,             # cluster median freq
+                "n_tracks_simultaneous": int, # max unique tracks at any bucket
+                "duration_buckets": int,      # run length in buckets
+                "start_bucket": int,          # first bucket of the run
+                "end_bucket": int,            # last bucket of the run
+                "track_names": list[str],     # union over the run
+            }
     """
     if not all_tracks_peak_trajectories:
         return []
+    if min_tracks is not None:
+        min_tracks_simultaneous = int(min_tracks)
 
-    start, end = section.start_bucket, section.end_bucket
-    peak_points: List[Tuple[float, str]] = []  # (freq_hz, track_name)
+    start = int(section.start_bucket)
+    end = int(section.end_bucket)
+    if end < start:
+        return []
+
+    # (1) Collect (bucket, freq, track) triples.
+    triples: List[Tuple[int, float, str]] = []
     for track_name, trajectories in all_tracks_peak_trajectories.items():
-        seen_freqs = set()
         for traj in trajectories or []:
             points = getattr(traj, "points", None) or []
             for point in points:
@@ -703,46 +774,95 @@ def detect_accumulations_in_section(
                     frame_idx, freq_hz, amp_db = point
                 except Exception:
                     continue
-                if frame_idx < start or frame_idx > end:
+                bucket = int(frame_idx)
+                if bucket < start or bucket > end:
                     continue
                 if amp_db < min_amplitude_db:
                     continue
-                rounded_key = round(float(freq_hz), 1)
-                if rounded_key in seen_freqs:
+                if freq_hz <= 0:
                     continue
-                seen_freqs.add(rounded_key)
-                peak_points.append((float(freq_hz), track_name))
+                triples.append((bucket, float(freq_hz), track_name))
 
-    if not peak_points:
+    if not triples:
         return []
 
-    # Cluster by log-frequency within tolerance.
-    peak_points.sort(key=lambda p: p[0])
-    clusters: List[List[Tuple[float, str]]] = [[peak_points[0]]]
-    for freq, name in peak_points[1:]:
-        ref_freq, _ = clusters[-1][0]
-        ratio = freq / ref_freq if ref_freq > 0 else 1.0
-        semitones = abs(12.0 * np.log2(ratio)) if ratio > 0 else float("inf")
-        if semitones <= frequency_tolerance_semitones:
-            clusters[-1].append((freq, name))
-        else:
-            clusters.append([(freq, name)])
+    # (2) Cluster the unique frequencies observed in the section.
+    freq_bins = _cluster_frequencies(
+        [f for _, f, _ in triples], frequency_tolerance_semitones
+    )
 
-    accumulations: List[dict] = []
-    for cluster in clusters:
-        unique_tracks = sorted({name for _, name in cluster})
-        if len(unique_tracks) < min_tracks:
+    def _bin_for(freq: float) -> int:
+        for idx, (lo, hi) in enumerate(freq_bins):
+            # bin bounds are the inclusive first/last sorted rounded freqs
+            lo_s = 12.0 * np.log2(freq / lo) if lo > 0 else float("inf")
+            hi_s = 12.0 * np.log2(freq / hi) if hi > 0 else float("inf")
+            if (
+                -frequency_tolerance_semitones <= lo_s
+                and hi_s <= frequency_tolerance_semitones
+            ):
+                return idx
+        return -1
+
+    # (3) Per-bin per-bucket unique track sets.
+    n_bins = len(freq_bins)
+    n_buckets = end - start + 1
+    # bucket_tracks[bin_idx][local_bucket_idx] -> set(track_names)
+    bucket_tracks: List[List[set]] = [
+        [set() for _ in range(n_buckets)] for _ in range(n_bins)
+    ]
+    # bucket_freqs[bin_idx][local_bucket_idx] -> [observed freqs] for median
+    bucket_freqs: List[List[List[float]]] = [
+        [[] for _ in range(n_buckets)] for _ in range(n_bins)
+    ]
+
+    for bucket, freq, track in triples:
+        b = _bin_for(freq)
+        if b < 0:
             continue
-        mean_freq = float(np.mean([f for f, _ in cluster]))
-        accumulations.append(
-            {
-                "freq_hz": round(mean_freq, 1),
-                "n_tracks": len(unique_tracks),
-                "track_names": unique_tracks,
-            }
-        )
+        local = bucket - start
+        bucket_tracks[b][local].add(track)
+        bucket_freqs[b][local].append(freq)
 
-    accumulations.sort(key=lambda a: (-a["n_tracks"], a["freq_hz"]))
+    # (4) Scan each bin for runs of consecutive buckets meeting the threshold.
+    accumulations: List[dict] = []
+    for b_idx in range(n_bins):
+        counts = [len(s) for s in bucket_tracks[b_idx]]
+        local = 0
+        while local < n_buckets:
+            if counts[local] < min_tracks_simultaneous:
+                local += 1
+                continue
+            run_start = local
+            while local < n_buckets and counts[local] >= min_tracks_simultaneous:
+                local += 1
+            run_end = local - 1
+            run_length = run_end - run_start + 1
+            if run_length < min_duration_buckets:
+                continue
+
+            freqs_in_run: List[float] = []
+            tracks_in_run: set = set()
+            max_simult = 0
+            for lb in range(run_start, run_end + 1):
+                freqs_in_run.extend(bucket_freqs[b_idx][lb])
+                tracks_in_run.update(bucket_tracks[b_idx][lb])
+                if counts[lb] > max_simult:
+                    max_simult = counts[lb]
+
+            accumulations.append(
+                {
+                    "freq_hz": round(float(np.median(freqs_in_run)), 1),
+                    "n_tracks_simultaneous": int(max_simult),
+                    "duration_buckets": int(run_length),
+                    "start_bucket": int(run_start + start),
+                    "end_bucket": int(run_end + start),
+                    "track_names": sorted(tracks_in_run),
+                }
+            )
+
+    accumulations.sort(
+        key=lambda a: (-a["n_tracks_simultaneous"], -a["duration_buckets"], a["freq_hz"])
+    )
     return accumulations
 
 
@@ -830,12 +950,12 @@ def generate_observations(
             f"(score {top['score']:.2f})"
         )
 
-    # P4 — Top accumulation
+    # P4 — Top accumulation (temporal simultaneity, Fix 3)
     if accumulations:
         top_acc = accumulations[0]
         observations.append(
-            f"{top_acc['n_tracks']} tracks competent autour de "
-            f"{top_acc['freq_hz']:.0f} Hz - zone encombree"
+            f"{top_acc['n_tracks_simultaneous']} tracks simultanees autour de "
+            f"{top_acc['freq_hz']:.0f} Hz pendant {top_acc['duration_buckets']} buckets"
         )
 
     # P5 — Most crowded zone
@@ -1067,21 +1187,26 @@ def _render_section_block(
         row += 1
     row += 1
 
-    # --- Accumulations
-    _write_row(ws, row, ["ACCUMULATIONS (4+ tracks a la meme frequence)"]); row += 1
+    # --- Accumulations (temporal simultaneity, Fix 3)
+    _write_row(
+        ws, row,
+        ["ACCUMULATIONS (N+ tracks simultanees, duree minimale M buckets)"],
+    )
+    row += 1
     _write_row(ws, row, ["\u2500" * 72]); row += 1
     if accumulations:
-        _write_row(ws, row, ["FREQUENCE", "N TRACKS", "TRACKS"])
+        _write_row(ws, row, ["FREQ", "N SIMULT", "DUREE", "TRACKS IMPLIQUEES"])
         row += 1
         for acc in accumulations:
             _write_row(ws, row, [
                 f"{acc['freq_hz']:.0f} Hz",
-                str(acc["n_tracks"]),
+                str(acc["n_tracks_simultaneous"]),
+                f"{acc['duration_buckets']} buck.",
                 ", ".join(acc["track_names"]),
             ])
             row += 1
     else:
-        _write_row(ws, row, ["(Aucune accumulation dans cette section)"])
+        _write_row(ws, row, ["(Aucune accumulation simultanee dans cette section)"])
         row += 1
     row += 1
 
@@ -1157,6 +1282,7 @@ def build_sections_timeline_sheet(
     min_presence_ratio: float = MIN_PRESENCE_RATIO,
     min_tracks_for_accumulation: int = ACCUMULATION_MIN_TRACKS,
     min_amplitude_for_accumulation_db: float = ACCUMULATION_MIN_AMP_DB,
+    min_duration_buckets_accumulation: int = ACCUMULATION_MIN_DURATION,
     log_fn=None,
 ) -> None:
     """Build the ``_sections_timeline`` sheet.
@@ -1214,8 +1340,9 @@ def build_sections_timeline_sheet(
         s.index: detect_accumulations_in_section(
             s,
             all_tracks_peak_trajectories,
-            min_tracks=min_tracks_for_accumulation,
+            min_tracks_simultaneous=min_tracks_for_accumulation,
             min_amplitude_db=min_amplitude_for_accumulation_db,
+            min_duration_buckets=min_duration_buckets_accumulation,
         )
         for s in sections
     }
