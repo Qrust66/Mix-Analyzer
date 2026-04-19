@@ -5688,37 +5688,48 @@ def _create_comparison_chart(ws_data, header_row, data_end, n_tracks):
     return _create_comparison_grouped_barchart(ws_data, header_row, data_end, n_tracks)
 
 
-def _apply_audibility_mask(v25_features_with_info, auto_maps, log_fn=None):
+def _apply_audibility_mask(v25_features_with_info, auto_maps, log_fn=None, als_path=None):
     """Apply NaN mask to v2.5 features where track is inaudible.
 
     Modifies features in-place: zone_energy, spectral_descriptors, and
     crest_by_zone arrays get NaN where the track's effective gain is below
     the audibility threshold.
+
+    Args:
+        v25_features_with_info: List of (TrackFeatures, track_info) tuples.
+        auto_maps: ``{ableton_track_name: TrackAutomationMap}``.
+        log_fn: Optional logger callable.
+        als_path: Optional .als path used to derive the project prefix
+            (e.g. ``"Acid_Drops_Code.als"`` → prefix ``"Acid_Drops_Code"``)
+            for robust wav<->track name matching.
     """
     import numpy as np
     from automation_map import resample_audibility
+    from als_utils import match_track_name
 
     if log_fn is None:
         log_fn = lambda msg: None
 
-    # Build a lookup: normalize names for matching
-    als_names = set(auto_maps.keys())
+    als_stem = os.path.splitext(os.path.basename(als_path))[0] if als_path else None
 
+    matched_count = 0
     masked_count = 0
+    missed_stems = []
+
     for feat, ti in v25_features_with_info:
         track_stem = os.path.splitext(ti['name'])[0]
 
-        # Try exact match first, then stripped of leading track numbers
-        auto_map = auto_maps.get(track_stem)
-        if auto_map is None:
-            # Ableton sometimes exports as "01 Toms Rack" — strip leading digits
-            import re
-            stripped = re.sub(r'^\d+[\s._-]*', '', track_stem)
-            auto_map = auto_maps.get(stripped)
+        matched_name = match_track_name(track_stem, auto_maps.keys(), als_stem=als_stem)
+        auto_map = auto_maps.get(matched_name) if matched_name else None
 
         if auto_map is None:
+            missed_stems.append(track_stem)
             log_fn(f"    v2.5.1: no automation map for '{track_stem}' (skipped)")
             continue
+
+        matched_count += 1
+        if matched_name != track_stem:
+            log_fn(f"    v2.5.1: matched '{track_stem}' -> '{matched_name}'")
 
         times = feat.zone_energy.times
         if len(times) == 0:
@@ -5748,8 +5759,35 @@ def _apply_audibility_mask(v25_features_with_info, auto_maps, log_fn=None):
                 if len(crest_data) == len(inaudible):
                     crest_data[inaudible] = np.nan
 
-    log_fn(f"    v2.5.1: Audibility mask — {masked_count} tracks masked, "
-           f"{len(v25_features_with_info) - masked_count} fully audible")
+    total = len(v25_features_with_info)
+    log_fn(
+        f"    v2.5.1: Audibility mask — {matched_count}/{total} tracks matched, "
+        f"{masked_count} masked, {total - matched_count} missed"
+    )
+
+    # Defensive health check: a successful matching run should leave most
+    # tracks with usable signal. If it doesn't, the name-matching is likely
+    # misaligned (wrong project prefix, wrong .als, BUS stems included...).
+    tracks_with_signal = 0
+    for feat, _ti in v25_features_with_info:
+        max_energy = -120.0
+        for arr in feat.zone_energy.zones.values():
+            if len(arr) == 0:
+                continue
+            with np.errstate(all='ignore'):
+                local_max = float(np.nanmax(arr))
+            if local_max > max_energy:
+                max_energy = local_max
+        if max_energy > -90.0:
+            tracks_with_signal += 1
+    if total > 0 and tracks_with_signal < 0.5 * total:
+        sample = ", ".join(missed_stems[:5])
+        more = f" (+{len(missed_stems) - 5} more)" if len(missed_stems) > 5 else ""
+        log_fn(
+            f"    WARNING: only {tracks_with_signal}/{total} tracks have signal "
+            f"> -90 dB after audibility mask. Check wav<->track name matching. "
+            f"Unmatched stems: {sample}{more}"
+        )
 
 
 def generate_excel_report(analyses_with_info, output_path, style_name,
@@ -6814,7 +6852,9 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # v2.5.1 Phase C: mask inaudible frames with NaN BEFORE building sheets
     if auto_maps and v25_features_with_info:
         try:
-            _apply_audibility_mask(v25_features_with_info, auto_maps, log_fn)
+            _apply_audibility_mask(
+                v25_features_with_info, auto_maps, log_fn, als_path=als_path
+            )
         except Exception as e:
             log_fn(f"    v2.5.1: Audibility masking failed: {e}")
             import traceback; traceback.print_exc()
@@ -9712,44 +9752,16 @@ class MixAnalyzerApp:
         self.log(f"    v2.5.2: '{stem}' — masked {n_inaudible_buckets}/64 buckets ({n_inaudible_frames} frames)")
 
     @staticmethod
-    def _match_auto_map(stem, auto_maps):
-        """Match an audio filename stem to an automation map key.
+    def _match_auto_map(stem, auto_maps, als_stem=None):
+        """Match an audio filename stem to an automation map entry.
 
-        Cascade: exact → strip prefix → strip group numbers → substring.
+        Delegates the name matching to :func:`als_utils.match_track_name`
+        so :func:`_apply_audibility_mask` and this UI-layer matcher stay
+        in lockstep.
         """
-        import re
-
-        # 1. Exact match
-        if stem in auto_maps:
-            return auto_maps[stem]
-
-        # 2. Strip project prefix ("Acid_drops Toms Rack" → "Toms Rack")
-        parts = stem.split(' ', 1)
-        wav_clean = parts[1] if len(parts) == 2 else stem
-
-        if wav_clean in auto_maps:
-            return auto_maps[wav_clean]
-
-        # 3. Strip group numbers from .als names ("5-Toms Rack" → "Toms Rack")
-        for als_name, am in auto_maps.items():
-            als_clean = re.sub(r'^\d+[\s._-]+', '', als_name)
-            if als_clean == wav_clean or als_clean == stem:
-                return am
-
-        # 4. Substring match (handles "OverHead" ⊂ "Toms Overhead")
-        wav_lower = wav_clean.lower()
-        best_match = None
-        best_len = 0
-        for als_name, am in auto_maps.items():
-            als_clean = re.sub(r'^\d+[\s._-]+', '', als_name).lower()
-            if len(als_clean) < 3:
-                continue
-            if als_clean in wav_lower or wav_lower in als_clean:
-                if len(als_clean) > best_len:
-                    best_len = len(als_clean)
-                    best_match = am
-
-        return best_match
+        from als_utils import match_track_name
+        matched_name = match_track_name(stem, auto_maps.keys(), als_stem=als_stem)
+        return auto_maps.get(matched_name) if matched_name else None
 
     def _open_output_folder(self):
         if self.output_dir_after_run and os.path.isdir(self.output_dir_after_run):

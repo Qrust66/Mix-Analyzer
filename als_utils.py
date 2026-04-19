@@ -169,6 +169,123 @@ def save_als_from_tree(tree: ET.ElementTree, output_path: str) -> str:
     return str(output_path)
 
 
+# ---------------------------------------------------------------------------
+# WAV filename <-> Ableton track name matching
+# ---------------------------------------------------------------------------
+
+_PREFIX_SEPARATORS_RE = re.compile(r"[\s_]+")
+
+
+def _normalize_for_compare(name: str) -> str:
+    """Lowercase and collapse space/underscore runs to a single space."""
+    return _PREFIX_SEPARATORS_RE.sub(" ", name.strip()).lower()
+
+
+def match_track_name(
+    wav_stem: str,
+    candidate_track_names,
+    als_stem: Optional[str] = None,
+) -> Optional[str]:
+    """Match a WAV filename stem to an Ableton track name.
+
+    WAV stems exported from Ableton are typically prefixed with the project
+    name (e.g. ``"Acid_Drops Bass Rythm"`` for the Ableton track
+    ``"Bass Rythm"``). This helper strips the common prefixes and returns
+    the matching track name from ``candidate_track_names``, or ``None``.
+
+    Matching cascade (first hit wins):
+        1. Exact match (``wav_stem == track_name``).
+        2. Strip any leading word(s) separated by space or underscore and
+           retry — longest remaining suffix wins.
+        3. Strip leading digits / punctuation (``"01 Toms Rack"`` forms).
+        4. Case-insensitive, separator-normalised substring match.
+
+    Args:
+        wav_stem: The WAV filename stem (no extension).
+        candidate_track_names: Iterable of Ableton track names
+            (typically ``auto_maps.keys()``).
+        als_stem: Optional .als filename stem (e.g. ``"Acid_Drops_Code"``).
+            When supplied, prefixes drawn from its initial word(s) are
+            tried first before the generic suffix walk.
+
+    Returns:
+        The matching name from ``candidate_track_names``, or ``None``.
+    """
+    candidates = list(candidate_track_names)
+    if not candidates:
+        return None
+
+    candidate_set = set(candidates)
+
+    # 1. Exact match.
+    if wav_stem in candidate_set:
+        return wav_stem
+
+    # 2a. When we know the .als name, try stripping its leading words first
+    # (most specific signal we have about the project prefix).
+    if als_stem:
+        als_words = [w for w in _PREFIX_SEPARATORS_RE.split(als_stem) if w]
+        # try progressively shorter "als prefix" forms: full, N-1, N-2, ...
+        for n in range(len(als_words), 0, -1):
+            prefix_words = als_words[:n]
+            # allow either " " or "_" between prefix words and the rest
+            for joiner in (" ", "_"):
+                prefix = joiner.join(prefix_words)
+                for sep in (" ", "_", "-"):
+                    marker = prefix + sep
+                    if wav_stem.startswith(marker):
+                        suffix = wav_stem[len(marker):].lstrip(" _-")
+                        if suffix in candidate_set:
+                            return suffix
+
+    # 2b. Generic walk: try every word boundary as a possible prefix end and
+    # keep the match with the longest remaining suffix (most specific).
+    best_suffix = None
+    for i, ch in enumerate(wav_stem):
+        if ch in " _-" and i > 0:
+            suffix = wav_stem[i + 1:].lstrip(" _-")
+            if suffix and suffix in candidate_set:
+                if best_suffix is None or len(suffix) > len(best_suffix):
+                    best_suffix = suffix
+    if best_suffix is not None:
+        return best_suffix
+
+    # 3. Digit/punctuation prefix ("01 Toms Rack", "5-Toms Rack").
+    stripped = re.sub(r"^\d+[\s._-]+", "", wav_stem)
+    if stripped != wav_stem and stripped in candidate_set:
+        return stripped
+    for cand in candidates:
+        cand_stripped = re.sub(r"^\d+[\s._-]+", "", cand)
+        if cand_stripped == wav_stem or cand_stripped == stripped:
+            return cand
+
+    # 4. Case-insensitive, separator-normalised substring match.
+    # Also try the suffix-after-first-word to handle tokens like
+    # ``"Kit OverHead"`` ⊂ ``"Toms Overhead"``.
+    wav_norm = _normalize_for_compare(wav_stem)
+    first_space = wav_stem.find(" ")
+    wav_suffix_norm = (
+        _normalize_for_compare(wav_stem[first_space + 1:])
+        if first_space > 0 else wav_norm
+    )
+    best_match = None
+    best_len = 0
+    for cand in candidates:
+        cand_norm = _normalize_for_compare(cand)
+        if len(cand_norm) < 3:
+            continue
+        if (
+            cand_norm in wav_norm
+            or wav_norm in cand_norm
+            or cand_norm in wav_suffix_norm
+            or wav_suffix_norm in cand_norm
+        ):
+            if len(cand_norm) > best_len:
+                best_len = len(cand_norm)
+                best_match = cand
+    return best_match
+
+
 def als_info(als_path: str) -> dict:
     """Extract summary information from an .als file.
 
