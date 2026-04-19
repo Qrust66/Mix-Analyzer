@@ -16,10 +16,15 @@ Usage (CLI):
 
 import copy
 import gzip
+import re
 import sys
 import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Iterable, List, Optional, Sequence, Tuple, Union
+
+TempoEvents = Sequence[Tuple[float, float]]
+TempoLike = Union[float, int, TempoEvents]
 
 
 def decompress_als(als_path: str, output_path: str | None = None) -> str:
@@ -635,33 +640,233 @@ def write_automation_envelope(
     return envelope
 
 
-def seconds_to_beats(seconds: float, tempo: float) -> float:
-    """Convert a time in seconds to Ableton beat units.
+_DEFAULT_TEMPO_BPM = 120.0
 
-    Ableton stores automation times in beats (quarter-note units).
-    One beat = 60 / tempo seconds at a constant tempo.
+
+def _normalize_tempo_events(tempo) -> List[Tuple[float, float]]:
+    """Return a sorted (time_s, bpm) list starting at t=0.
+
+    Accepts a single BPM (float/int), a list of ``(time_s, bpm)`` events,
+    or ``None`` / an empty sequence (falls back to a constant 120 BPM map).
+    """
+    if tempo is None:
+        return [(0.0, _DEFAULT_TEMPO_BPM)]
+    if isinstance(tempo, (int, float)):
+        if tempo <= 0:
+            return [(0.0, _DEFAULT_TEMPO_BPM)]
+        return [(0.0, float(tempo))]
+
+    cleaned: List[Tuple[float, float]] = []
+    for t, bpm in tempo:
+        if bpm is None or bpm <= 0:
+            continue
+        cleaned.append((float(max(t, 0.0)), float(bpm)))
+
+    if not cleaned:
+        return [(0.0, _DEFAULT_TEMPO_BPM)]
+
+    cleaned.sort(key=lambda e: e[0])
+    if cleaned[0][0] > 0.0:
+        cleaned.insert(0, (0.0, cleaned[0][1]))
+    return cleaned
+
+
+def seconds_to_beats(seconds: float, tempo: TempoLike) -> float:
+    """Convert a time in seconds to Ableton beat units (quarter notes).
+
+    ``tempo`` can be a single BPM (backwards-compatible single-tempo form)
+    or a piecewise-constant tempo map ``[(time_s, bpm), ...]``.
+    """
+    if seconds <= 0.0:
+        return 0.0
+    events = _normalize_tempo_events(tempo)
+    beats = 0.0
+    for i, (t_start, bpm) in enumerate(events):
+        t_end = events[i + 1][0] if i + 1 < len(events) else float("inf")
+        if seconds <= t_start:
+            break
+        segment_end = min(seconds, t_end)
+        beats += (segment_end - t_start) * (bpm / 60.0)
+        if seconds <= t_end:
+            break
+    return beats
+
+
+def beats_to_seconds(beats: float, tempo: TempoLike) -> float:
+    """Inverse of :func:`seconds_to_beats` over a piecewise-constant tempo map."""
+    if beats <= 0.0:
+        return 0.0
+    events = _normalize_tempo_events(tempo)
+    accumulated = 0.0
+    t_cursor = 0.0
+    for i, (t_start, bpm) in enumerate(events):
+        t_end = events[i + 1][0] if i + 1 < len(events) else float("inf")
+        segment_seconds = t_end - t_start if t_end != float("inf") else None
+        segment_beats = (
+            segment_seconds * (bpm / 60.0) if segment_seconds is not None else float("inf")
+        )
+        if accumulated + segment_beats >= beats:
+            remaining = beats - accumulated
+            return t_start + remaining * (60.0 / bpm)
+        accumulated += segment_beats
+        t_cursor = t_end
+    return t_cursor
+
+
+# ---------------------------------------------------------------------------
+# Locator I/O (Feature 3)
+# ---------------------------------------------------------------------------
+
+_LOCATOR_BLOCK_RE = re.compile(
+    r"<Locators>\s*<Locators>(?P<body>.*?)</Locators>\s*</Locators>",
+    re.DOTALL,
+)
+_LOCATOR_ENTRY_RE = re.compile(
+    r"<Locator\s+Id=\"(?P<id>\d+)\">(?P<inner>.*?)</Locator>",
+    re.DOTALL,
+)
+
+
+def _read_als_xml(als_path: Path) -> str:
+    with gzip.open(als_path, "rb") as f:
+        return f.read().decode("utf-8")
+
+
+def _extract_value(tag: str, xml_fragment: str) -> Optional[str]:
+    m = re.search(rf"<{tag}\s+Value=\"(?P<v>[^\"]*)\"\s*/>", xml_fragment)
+    return m.group("v") if m else None
+
+
+def _xml_escape(value: str) -> str:
+    return (
+        value.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\"", "&quot;")
+    )
+
+
+def read_locators(als_path) -> List[dict]:
+    """Read every Locator from ``LiveSet/Locators/Locators`` in the .als.
+
+    Returns a list of dicts ``{id, time_beats, name, annotation}`` in document
+    order. Returns ``[]`` when no Locators block or no entries are found.
+    """
+    xml = _read_als_xml(Path(als_path))
+    block = _LOCATOR_BLOCK_RE.search(xml)
+    if not block:
+        return []
+    locators: List[dict] = []
+    for m in _LOCATOR_ENTRY_RE.finditer(block.group("body")):
+        inner = m.group("inner")
+        locators.append(
+            {
+                "id": int(m.group("id")),
+                "time_beats": float(_extract_value("Time", inner) or 0.0),
+                "name": _extract_value("Name", inner) or "",
+                "annotation": _extract_value("Annotation", inner) or "",
+            }
+        )
+    return locators
+
+
+def _build_locator_block(new_locators: Iterable[dict], existing_max_id: int) -> str:
+    """Build the XML fragment for newly appended Locator entries."""
+    lines: List[str] = []
+    next_id = existing_max_id + 1
+    for loc in new_locators:
+        time_beats = float(loc.get("time_beats", 0.0))
+        name = _xml_escape(str(loc.get("name", "")))
+        annotation = _xml_escape(str(loc.get("annotation", "")))
+        lines.append(
+            f"\t\t\t<Locator Id=\"{next_id}\">\n"
+            f"\t\t\t\t<Time Value=\"{time_beats}\" />\n"
+            f"\t\t\t\t<Name Value=\"{name}\" />\n"
+            f"\t\t\t\t<Annotation Value=\"{annotation}\" />\n"
+            f"\t\t\t\t<IsSongStart Value=\"false\" />\n"
+            f"\t\t\t\t<LockEnvelope Value=\"0\" />\n"
+            f"\t\t\t</Locator>"
+        )
+        next_id += 1
+    return "\n".join(lines)
+
+
+def _inject_locators(xml: str, new_locators: List[dict]) -> Tuple[str, int]:
+    """Append Locators to the existing block, preserving every existing entry.
+
+    Returns ``(new_xml, count_appended)``. When ``new_locators`` is empty the
+    XML is returned unchanged and the count is 0.
+    """
+    if not new_locators:
+        return xml, 0
+
+    existing_block = _LOCATOR_BLOCK_RE.search(xml)
+    existing_max_id = -1
+    if existing_block:
+        for m in _LOCATOR_ENTRY_RE.finditer(existing_block.group("body")):
+            existing_max_id = max(existing_max_id, int(m.group("id")))
+
+    new_entries = _build_locator_block(new_locators, existing_max_id)
+
+    if existing_block:
+        body = existing_block.group("body").rstrip()
+        merged_body = (
+            f"{body}\n{new_entries}\n\t\t"
+            if body.strip()
+            else f"\n{new_entries}\n\t\t"
+        )
+        new_block = (
+            f"<Locators>\n\t\t<Locators>{merged_body}</Locators>\n\t</Locators>"
+        )
+        return (
+            xml[: existing_block.start()]
+            + new_block
+            + xml[existing_block.end() :],
+            len(new_locators),
+        )
+
+    # No Locators block at all: inject a fresh one right before </LiveSet>.
+    fresh = (
+        f"<Locators>\n\t\t<Locators>\n{new_entries}\n\t\t</Locators>\n\t</Locators>"
+    )
+    idx = xml.rfind("</LiveSet>")
+    if idx == -1:
+        return xml + fresh, len(new_locators)
+    return xml[:idx] + "\t" + fresh + "\n" + xml[idx:], len(new_locators)
+
+
+def write_locators(
+    als_path,
+    new_locators: List[dict],
+    output_path=None,
+) -> int:
+    """Append Locators to the .als, preserving all existing Locators.
 
     Args:
-        seconds: Time in seconds.
-        tempo: Project tempo in BPM.
+        als_path: Path to the source .als file (never overwritten).
+        new_locators: List of ``{time_beats, name, annotation?}`` dicts.
+            Ids are auto-assigned using ``max(existing_ids) + 1``. An empty
+            list is a no-op: the file is left untouched and 0 is returned.
+        output_path: Destination for the modified .als. Defaults to
+            ``<als_path stem>_with_sections.als`` alongside the source.
 
     Returns:
-        Equivalent time in beats (quarter-note units).
+        Number of Locators appended.
     """
-    return seconds * (tempo / 60.0)
+    als_path = Path(als_path)
+    if not new_locators:
+        return 0
 
+    xml = _read_als_xml(als_path)
+    new_xml, count = _inject_locators(xml, list(new_locators))
 
-def beats_to_seconds(beats: float, tempo: float) -> float:
-    """Convert Ableton beat units to seconds.
+    if output_path is None:
+        output_path = als_path.with_name(als_path.stem + "_with_sections.als")
+    output_path = Path(output_path)
 
-    Args:
-        beats: Time in beats (quarter-note units).
-        tempo: Project tempo in BPM.
-
-    Returns:
-        Equivalent time in seconds.
-    """
-    return beats * (60.0 / tempo)
+    # gzip.compress() standard — NEVER double-gzip (cf. CLAUDE.md piège 1).
+    output_path.write_bytes(gzip.compress(new_xml.encode("utf-8")))
+    return count
 
 
 def backup_als(als_path: str) -> Path:

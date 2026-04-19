@@ -14,14 +14,15 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from als_utils import (  # noqa: E402
+    beats_to_seconds,
+    read_locators,
+    seconds_to_beats,
+)
 from section_detector import (  # noqa: E402
     Section,
-    _beats_to_seconds,
-    _parse_locators,
-    _read_als_xml,
     detect_sections_from_audio,
     get_or_detect_sections,
-    seconds_to_beats,
 )
 
 
@@ -148,10 +149,11 @@ def test_als_without_locators_triggers_detection_and_write(tmp_path):
     # The output file must exist, be valid gzip XML, and contain the new locators.
     output = als_path.with_name(als_path.stem + "_with_sections.als")
     assert output.exists(), "expected a <stem>_with_sections.als output file"
-    xml = _read_als_xml(output)
+    with gzip.open(output, "rb") as f:
+        xml = f.read().decode("utf-8")
     assert xml.startswith("<?xml"), "gzip content must decode to XML (guards against double-gzip)"
 
-    parsed = _parse_locators(xml)
+    parsed = read_locators(output)
     assert len(parsed) == len(sections)
     # Names are preserved, Ids are positive and unique
     assert [p["name"] for p in parsed] == [s.name for s in sections]
@@ -202,5 +204,5 @@ def test_seconds_beats_roundtrip_piecewise_tempo():
     # + 90 BPM for next 10 s → 20 + 15 = 35 beats
     assert seconds_to_beats(20.0, tempo_events) == pytest.approx(35.0, abs=1e-6)
     # inverse
-    assert _beats_to_seconds(20.0, tempo_events) == pytest.approx(10.0, abs=1e-6)
-    assert _beats_to_seconds(35.0, tempo_events) == pytest.approx(20.0, abs=1e-6)
+    assert beats_to_seconds(20.0, tempo_events) == pytest.approx(10.0, abs=1e-6)
+    assert beats_to_seconds(35.0, tempo_events) == pytest.approx(20.0, abs=1e-6)
