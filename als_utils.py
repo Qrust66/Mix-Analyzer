@@ -676,6 +676,12 @@ def seconds_to_beats(seconds: float, tempo: TempoLike) -> float:
 
     ``tempo`` can be a single BPM (backwards-compatible single-tempo form)
     or a piecewise-constant tempo map ``[(time_s, bpm), ...]``.
+
+    Technical debt: the ``float BPM`` form is kept only to preserve the
+    existing eq8_automation.py call sites (see ``eq8_automation.py:349``).
+    Once those callers are migrated to the tempo-events signature, the
+    float branch of :func:`_normalize_tempo_events` should be removed
+    and the ``TempoLike`` alias narrowed to ``TempoEvents``.
     """
     if seconds <= 0.0:
         return 0.0
