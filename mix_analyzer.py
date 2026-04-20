@@ -4803,10 +4803,12 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None,
     ws.column_dimensions['B'].width = 10
     ws.column_dimensions['C'].width = 12
     ws.column_dimensions['D'].width = 30
-    # Per-section table uses columns A-I when present; widen if we rendered it
+    # Per-section table uses columns A-I when present; widen if we rendered it.
+    # Column 3 ("Tracks actives") now holds a numeric count, so it no longer
+    # needs the 28-char reserve used when it held comma-joined filenames.
     if per_section_rows:
         from openpyxl.utils import get_column_letter as _gcl
-        for col_idx, width in [(1, 18), (2, 10), (3, 28), (4, 10),
+        for col_idx, width in [(1, 18), (2, 10), (3, 14), (4, 10),
                                (5, 12), (6, 10), (7, 10), (8, 10), (9, 12)]:
             # Do not shrink existing widths set above
             current = ws.column_dimensions[_gcl(col_idx)].width or 0
@@ -4854,8 +4856,12 @@ def _write_per_section_metrics_block(
     start_row += 1
 
     def _fmt_duration(s):
-        total = int(round(s))
-        return f"{total // 60}:{total % 60:02d}"
+        # Format "Xs" harmonised with section_detector's Sections Timeline
+        # sheet (vue maître, col Durée) so the same section reads the same
+        # way in both tabs. Option A per the polish spec: keep "Xs" even
+        # above 60s — simpler to scan than "M:SS" for a tab full of 5-90s
+        # EDM sections.
+        return f"{int(round(s))}s"
 
     def _cell(row, col, value, *, numfmt=None, align='center'):
         c = ws.cell(row=row, column=col, value=value)
@@ -4871,9 +4877,10 @@ def _write_per_section_metrics_block(
     for m in section_metrics:
         _cell(start_row, 1, m['name'], align='left')
         _cell(start_row, 2, _fmt_duration(m['duration_s']))
-        tracks = ', '.join(m['tracks_active']) if m['tracks_active'] else '—'
-        c = _cell(start_row, 3, tracks, align='left')
-        c.font = dim_font  # dim so it doesn't dominate the numeric columns
+        # Show the count of active tracks, not the list: the list would
+        # wrap to multi-line cells and duplicates the per-track detail
+        # already rendered in the Sections Timeline sheet.
+        _cell(start_row, 3, len(m['tracks_active']))
 
         # LUFS — "--" when duration < SECTION_LUFS_MIN_SECONDS
         if m['lufs'] is None:
@@ -4881,7 +4888,8 @@ def _write_per_section_metrics_block(
         else:
             _cell(start_row, 4, m['lufs'], numfmt='0.0')
 
-        _cell(start_row, 5, m['true_peak_db'], numfmt='0.00')
+        # True Peak: 1 decimal (matches LUFS / Crest / PLR precision)
+        _cell(start_row, 5, m['true_peak_db'], numfmt='0.0')
         _cell(start_row, 6, m['crest'], numfmt='0.0')
 
         # PLR — same convention as LUFS
