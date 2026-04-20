@@ -22,9 +22,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from openpyxl import Workbook  # noqa: E402
 
 from section_detector import (  # noqa: E402
+    SECTION_LISTING_THRESHOLD_DB,
     SECTIONS_TIMELINE_SHEET_NAME,
     Section,
     _is_track_active_in_section,
+    _peak_max_per_track,
     build_sections_timeline_sheet,
     detect_accumulations_in_section,
     detect_conflicts_in_section,
@@ -381,6 +383,103 @@ def test_build_sheet_replaces_existing_sheet_at_correct_position():
 
     assert wb.sheetnames.count(SECTIONS_TIMELINE_SHEET_NAME) == 1
     assert wb.sheetnames[1] == SECTIONS_TIMELINE_SHEET_NAME
+
+
+# ---------------------------------------------------------------------------
+# Per-section track listing via TRACK PEAK (v2.6.x, fixes empty tracks_active)
+# ---------------------------------------------------------------------------
+
+def test_peak_max_per_track_lists_all_tracks_above_audibility_threshold():
+    """When TRACK PEAK data is passed in, every track above -60 dB must
+    appear — even if section.tracks_active is empty (the bug this fixes).
+    Tracks below -60 dB are filtered as audibly negligible."""
+    n = 20
+    section = _make_section(1, 0, n - 1, total_energy_db=-15.0)
+    assert section.tracks_active == []  # sanity: intentionally empty
+
+    all_tracks = {
+        "Kick":      _zone_arrays_for(-5.0,  n, ["sub"]),
+        "Bass":      _zone_arrays_for(-10.0, n, ["low"]),
+        "Pad":       _zone_arrays_for(-40.0, n, ["mid"]),
+        "Atmos":     _zone_arrays_for(-70.0, n, ["air"]),   # below -60
+        "Silent":    _zone_arrays_for(-120., n, []),
+    }
+    # TRACK PEAK per section — the new gating input
+    peak_by_section = {
+        "Kick":   {1: -15.0},  # well above -60
+        "Bass":   {1: -22.0},  # above -60
+        "Pad":    {1: -55.0},  # just above -60
+        "Atmos":  {1: -75.0},  # below -60 -> filtered
+        "Silent": {1: None},   # None (silent) -> filtered
+    }
+
+    rows = _peak_max_per_track(
+        section, all_tracks,
+        all_tracks_peak_trajectories=None,
+        active_threshold_db=-30.0,
+        all_tracks_peak_by_section=peak_by_section,
+    )
+
+    names = [r["track"] for r in rows]
+    assert names == ["Kick", "Bass", "Pad"], (
+        "expected Kick/Bass/Pad above -60 dB, Atmos/Silent filtered. "
+        f"Got: {names}"
+    )
+
+
+def test_peak_max_per_track_sorted_by_track_peak_descending():
+    """Loudest-first ordering: the mix engineer reads hero -> support -> atmos
+    from top to bottom."""
+    n = 10
+    section = _make_section(1, 0, n - 1, total_energy_db=-15.0)
+    all_tracks = {
+        "Quiet": _zone_arrays_for(-30.0, n, ["mid"]),
+        "Loud":  _zone_arrays_for(-5.0,  n, ["low"]),
+        "Mid":   _zone_arrays_for(-15.0, n, ["body"]),
+    }
+    peak_by_section = {
+        "Quiet": {1: -45.0},
+        "Loud":  {1: -10.0},
+        "Mid":   {1: -25.0},
+    }
+    rows = _peak_max_per_track(
+        section, all_tracks,
+        all_tracks_peak_trajectories=None,
+        active_threshold_db=-30.0,
+        all_tracks_peak_by_section=peak_by_section,
+    )
+    assert [r["track"] for r in rows] == ["Loud", "Mid", "Quiet"]
+
+
+def test_peak_max_per_track_legacy_fallback_when_no_track_peak_data():
+    """Backwards compatibility: without all_tracks_peak_by_section we must
+    still work (iterate section.tracks_active, sort by AMP ZONE)."""
+    n = 10
+    section = _make_section(1, 0, n - 1, total_energy_db=-10.0)
+    all_tracks = {
+        "A": _zone_arrays_for(-5.0, n, ["low"]),
+        "B": _zone_arrays_for(-10.0, n, ["mid"]),
+    }
+    enrich_sections_with_track_stats([section], all_tracks)
+
+    rows = _peak_max_per_track(
+        section, all_tracks,
+        all_tracks_peak_trajectories=None,
+        active_threshold_db=-30.0,
+        all_tracks_peak_by_section=None,  # legacy path
+    )
+    names = {r["track"] for r in rows}
+    # Both tracks are active (above -30 dB presence threshold)
+    assert names == {"A", "B"}
+    # No track_peak_db column when no data was provided
+    for r in rows:
+        assert r["track_peak_db"] is None
+
+
+def test_section_listing_threshold_constant_is_minus_sixty_db():
+    """Pin the audibility threshold: -60 dB is the standard mix-audibility
+    floor. A future tweak should be deliberate — document it as a test."""
+    assert SECTION_LISTING_THRESHOLD_DB == -60.0
 
 
 # ---------------------------------------------------------------------------

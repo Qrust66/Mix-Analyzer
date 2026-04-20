@@ -42,6 +42,16 @@ from als_utils import (
 SECTIONS_TIMELINE_SHEET_NAME = "Sections Timeline"
 
 
+# Threshold for listing a track in the per-section "PEAK MAX PAR TRACK" table.
+# A track is shown when its fader-equivalent peak (TRACK PEAK column) exceeds
+# this value in the section. At -60 dB a track is at the edge of mix
+# audibility — below that, it's bleed / noise floor and adds clutter to the
+# report without informative value. This decouples the table from
+# section.tracks_active which was found unreliable (often empty despite
+# clearly audible tracks in the section — a pre-existing Feature 3 issue).
+SECTION_LISTING_THRESHOLD_DB = -60.0
+
+
 # ---------------------------------------------------------------------------
 # Data model
 # ---------------------------------------------------------------------------
@@ -1077,20 +1087,34 @@ def _peak_max_per_track(
 ) -> List[dict]:
     """Build the "Peak max par track" rows for one section.
 
-    Uses ``all_tracks_peak_trajectories`` when available to identify the single
-    loudest peak per track within the section bounds. Falls back to the
-    dominant zone when no peak-trajectory data is passed in.
-    ``duree_active_frac`` is the fraction of section frames where the track
-    exceeds ``active_threshold_db`` in any zone.
-
     When ``all_tracks_peak_by_section`` is provided
-    (``{track_name: {section_index: peak_dbfs_or_None}}``), each row carries a
-    ``track_peak_db`` field representing the fader-equivalent peak of the
-    track in this section (WAV sample-peak after applying effective_gain).
-    ``None`` means the track was effectively silent (below the silence floor)
-    and the sheet renders "--".
+    (``{track_name: {section_index: peak_dbfs_or_None}}``), iterates **every
+    track** for which a TRACK PEAK exists and keeps those above
+    :data:`SECTION_LISTING_THRESHOLD_DB` (default -60 dB). Rows are sorted by
+    TRACK PEAK descending — loudest contributor first — which makes the
+    hero/support/atmos gradient immediately readable. Each row carries a
+    ``track_peak_db`` field = fader-equivalent peak (WAV × effective_gain).
+
+    Without ``all_tracks_peak_by_section`` (backwards compatibility), falls
+    back to iterating ``section.tracks_active`` and sorting by spectral
+    amplitude — the pre-v2.6.x behaviour.
+
+    Design note: ``section.tracks_active`` was found to be almost always
+    empty on real projects (Feature 3 symptom pre-dating this change), which
+    caused the table to list no tracks even in busy sections. Using
+    TRACK PEAK as both the gate and the sort key bypasses that issue.
+
+    Args:
+        section: The section to render a table for.
+        all_tracks_zone_energy: ``{track_name: ZoneEnergy-or-dict[zone, arr]}``.
+            Used for the DUREE ACTIVE column and the dominant-zone fallback.
+        all_tracks_peak_trajectories: ``{track_name: [PeakTrajectory, ...]}``.
+            Used to pick the single loudest spectral peak per track (FREQ +
+            AMP ZONE columns).
+        active_threshold_db: Zone-energy threshold used by DUREE ACTIVE.
+        all_tracks_peak_by_section: ``{track_name: {section_index: dBFS}}``.
+            Source of truth for the TRACK PEAK column and for the row gate.
     """
-    rows: List[dict] = []
     # Determine number of frames in the time axis, used for duration fractions.
     n_frames = 0
     for entry in all_tracks_zone_energy.values():
@@ -1101,7 +1125,27 @@ def _peak_max_per_track(
     frame_slice = _section_frame_slice(section, n_frames) if n_frames else slice(0, 0)
     section_frames = max(frame_slice.stop - frame_slice.start, 1)
 
-    for track_name in section.tracks_active:
+    # Decide which tracks to list:
+    #   - if we have TRACK PEAK data: every track whose TRACK PEAK in this
+    #     section exceeds SECTION_LISTING_THRESHOLD_DB (mix audibility floor)
+    #   - else: fall back to section.tracks_active (legacy behaviour)
+    if all_tracks_peak_by_section:
+        tracks_to_list = []
+        for track_name in all_tracks_zone_energy.keys():
+            per_section = all_tracks_peak_by_section.get(track_name) or {}
+            tp = per_section.get(section.index)
+            if tp is None:
+                continue  # silent (below -90 dB floor set upstream)
+            if tp < SECTION_LISTING_THRESHOLD_DB:
+                continue  # audibly negligible in this section
+            tracks_to_list.append(track_name)
+    else:
+        tracks_to_list = list(section.tracks_active)
+
+    rows: List[dict] = []
+    for track_name in tracks_to_list:
+        if track_name not in all_tracks_zone_energy:
+            continue
         zone_arrays = _as_zone_arrays(all_tracks_zone_energy[track_name])
         active_frac = _track_active_fraction(section, zone_arrays, active_threshold_db)
 
@@ -1142,7 +1186,13 @@ def _peak_max_per_track(
             }
         )
 
-    rows.sort(key=lambda r: (r["peak_amplitude_db"] or -120.0), reverse=True)
+    # Sort by TRACK PEAK descending when available — makes the loudest
+    # contributor to the section appear first. Fall back to AMP ZONE when
+    # TRACK PEAK is missing (legacy path).
+    if all_tracks_peak_by_section:
+        rows.sort(key=lambda r: (r.get("track_peak_db") or -120.0), reverse=True)
+    else:
+        rows.sort(key=lambda r: (r["peak_amplitude_db"] or -120.0), reverse=True)
     return rows
 
 
