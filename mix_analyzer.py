@@ -2300,6 +2300,24 @@ def _xl_add_sheet_nav(ws, row, current_sheet=None, nav_targets=None):
     return row
 
 
+def _xl_append_index_link(ws_index, sheet_name):
+    """Append a hyperlink row at the bottom of the Index sheet.
+
+    Used for sheets whose presence is decided at runtime (e.g. the
+    Sections Timeline sheet, which only exists when an .als with sections
+    is provided). The Index layout writes static hyperlinks in a loop; this
+    helper adds one more row below whatever was last written.
+    """
+    from openpyxl.styles import Font
+    row = ws_index.max_row + 1
+    data_font = Font(name='Calibri', size=10, color='E8E8FF')
+    link_font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
+    ws_index.cell(row=row, column=2, value=sheet_name).font = data_font
+    link_cell = ws_index.cell(row=row, column=5, value=sheet_name)
+    link_cell.font = link_font
+    link_cell.hyperlink = f'#{sheet_name}!A1'
+
+
 def _xl_add_comment(cell, text, width=300, height=150):
     """Add a comment (tooltip) to a cell with optional dimensions."""
     from openpyxl.comments import Comment
@@ -6876,8 +6894,10 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     except Exception as e:
         log_fn(f"    v2.5: Spectral evolution sheets failed: {e}")
 
-    # ---- Feature 3: Sections timeline (auto-detect + _sections_timeline sheet) ----
+    # ---- Feature 3: Sections timeline (auto-detect + Sections Timeline sheet) ----
     # Requires both an .als (for Locators) and v25 features (for delta_spectrum).
+    # The sheet is placed right after the Index tab (position 2) — see
+    # section_detector.build_sections_timeline_sheet for the reposition logic.
     if als_path and v25_features_with_info:
         try:
             from section_detector import (
@@ -6961,6 +6981,15 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                         all_tracks_peak_trajectories=all_tracks_peak_trajectories,
                         log_fn=log_fn,
                     )
+                    # Link the new sheet from the Index so the user finds it
+                    # without scrolling the tab bar. The sheet only exists
+                    # here (post-build_sections_timeline_sheet) so we append
+                    # the hyperlink after the static special_sheet_order list.
+                    from section_detector import SECTIONS_TIMELINE_SHEET_NAME
+                    if SECTIONS_TIMELINE_SHEET_NAME in wb.sheetnames:
+                        _xl_append_index_link(
+                            wb['Index'], SECTIONS_TIMELINE_SHEET_NAME
+                        )
             else:
                 log_fn("    Feature 3: no delta_spectrum available — skipped")
         except Exception as e:

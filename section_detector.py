@@ -35,6 +35,13 @@ from als_utils import (
 )
 
 
+# User-facing name of the per-section dashboard in the Excel report. Kept as
+# a constant so renames do not drift across the codebase + tests.
+# The sheet is positioned right after the Index (position 2 in the tab bar)
+# so it is one of the first things the engineer sees when opening the report.
+SECTIONS_TIMELINE_SHEET_NAME = "Sections Timeline"
+
+
 # ---------------------------------------------------------------------------
 # Data model
 # ---------------------------------------------------------------------------
@@ -1053,7 +1060,7 @@ def get_zone_order() -> Tuple[str, ...]:
 
 
 # ---------------------------------------------------------------------------
-# Phase C — Excel sheet rendering (_sections_timeline)
+# Phase C — Excel sheet rendering (Sections Timeline)
 # ---------------------------------------------------------------------------
 
 def _format_time_mmss(seconds: float) -> str:
@@ -1301,7 +1308,7 @@ def _warn_non_individual_tracks(
     sample = ", ".join(suspects[:5])
     more = f" (+{len(suspects) - 5} more)" if len(suspects) > 5 else ""
     log_fn(
-        f"    WARNING: _sections_timeline received {len(suspects)} track(s) "
+        f"    WARNING: {SECTIONS_TIMELINE_SHEET_NAME} received {len(suspects)} track(s) "
         f"that look like BUS / Full-Mix stems: {sample}{more}. Upstream "
         f"filtering on Individual tracks was likely skipped; conflicts and "
         f"accumulations will over-count."
@@ -1320,7 +1327,7 @@ def build_sections_timeline_sheet(
     min_duration_buckets_accumulation: int = ACCUMULATION_MIN_DURATION,
     log_fn=None,
 ) -> None:
-    """Build the ``_sections_timeline`` sheet.
+    """Build the ``Sections Timeline`` sheet (positioned right after Index).
 
     Silent no-op if ``sections`` is empty (the sheet is simply not created).
     The sheet is read-only for the user: every cell is plain text, no formulas,
@@ -1355,7 +1362,9 @@ def build_sections_timeline_sheet(
     if log_fn is None:
         log_fn = lambda msg: None
     if not sections:
-        log_fn("    Excel: no sections -> _sections_timeline sheet skipped")
+        log_fn(
+            f"    Excel: no sections -> {SECTIONS_TIMELINE_SHEET_NAME} sheet skipped"
+        )
         return
 
     _warn_non_individual_tracks(all_tracks_zone_energy, log_fn)
@@ -1393,9 +1402,23 @@ def build_sections_timeline_sheet(
         for s in sections
     }
 
-    if "_sections_timeline" in workbook.sheetnames:
-        del workbook["_sections_timeline"]
-    ws = workbook.create_sheet("_sections_timeline")
+    if SECTIONS_TIMELINE_SHEET_NAME in workbook.sheetnames:
+        del workbook[SECTIONS_TIMELINE_SHEET_NAME]
+    ws = workbook.create_sheet(SECTIONS_TIMELINE_SHEET_NAME)
+
+    # Position the sheet right after the Index tab (index 1) so it appears in
+    # the top of the tab bar instead of after all global sheets. If Index is
+    # not at position 0 (unexpected), fall back to whatever order openpyxl
+    # gave us — best-effort, never crash the report.
+    try:
+        target_index = 1
+        current_index = workbook.sheetnames.index(SECTIONS_TIMELINE_SHEET_NAME)
+        if current_index != target_index:
+            workbook._sheets.insert(
+                target_index, workbook._sheets.pop(current_index)
+            )
+    except (ValueError, IndexError) as e:
+        log_fn(f"    {SECTIONS_TIMELINE_SHEET_NAME}: could not reposition tab: {e}")
 
     row = _render_master_view(ws, sections, conflicts_by_idx, row=1)
     for section in sections:
@@ -1413,4 +1436,6 @@ def build_sections_timeline_sheet(
         )
 
     ws.sheet_state = "visible"  # user needs to see it; editing is discouraged via format
-    log_fn(f"    Excel: _sections_timeline done ({len(sections)} sections)")
+    log_fn(
+        f"    Excel: {SECTIONS_TIMELINE_SHEET_NAME} done ({len(sections)} sections)"
+    )
