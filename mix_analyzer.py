@@ -4882,24 +4882,30 @@ def _write_per_section_metrics_block(
         # already rendered in the Sections Timeline sheet.
         _cell(start_row, 3, len(m['tracks_active']))
 
+        # Values are rounded BEFORE being written into the cell (not only
+        # via Excel's number_format) so every viewer — Excel, LibreOffice,
+        # CSV export, openpyxl-based extractors — sees the rounded value.
+        # The number_format is still set so Excel pads trailing zeros
+        # (e.g. 0.10 instead of 0.1 for width/correlation).
+
         # LUFS — "--" when duration < SECTION_LUFS_MIN_SECONDS
         if m['lufs'] is None:
             _cell(start_row, 4, '--')
         else:
-            _cell(start_row, 4, m['lufs'], numfmt='0.0')
+            _cell(start_row, 4, round(float(m['lufs']), 1), numfmt='0.0')
 
         # True Peak: 1 decimal (matches LUFS / Crest / PLR precision)
-        _cell(start_row, 5, m['true_peak_db'], numfmt='0.0')
-        _cell(start_row, 6, m['crest'], numfmt='0.0')
+        _cell(start_row, 5, round(float(m['true_peak_db']), 1), numfmt='0.0')
+        _cell(start_row, 6, round(float(m['crest']), 1), numfmt='0.0')
 
         # PLR — same convention as LUFS
         if m['plr'] is None:
             _cell(start_row, 7, '--')
         else:
-            _cell(start_row, 7, m['plr'], numfmt='0.0')
+            _cell(start_row, 7, round(float(m['plr']), 1), numfmt='0.0')
 
-        _cell(start_row, 8, m['width'], numfmt='0.00')
-        _cell(start_row, 9, m['correlation'], numfmt='0.00')
+        _cell(start_row, 8, round(float(m['width']), 2), numfmt='0.00')
+        _cell(start_row, 9, round(float(m['correlation']), 2), numfmt='0.00')
 
         start_row += 1
         n_rendered += 1
