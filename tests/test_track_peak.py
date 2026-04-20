@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for the per-section fader-equivalent track-peak computation.
+"""Tests for the per-section track-peak computation.
 
-Covers ``mix_analyzer.compute_track_peak_by_section`` (v2.6.x). Verifies
-that the sample-accurate gain multiplication reproduces the Ableton-fader
-peak within numerical tolerance on synthetic signals, and that the edge
-cases (silent track, missing auto_map, section out of range, clipping) are
-handled per the Phase A contract.
+Covers ``mix_analyzer.compute_track_peak_by_section`` (v2.6.x).
+
+**Assumption under test: WAV files are post-FX, post-fader** — the default
+Ableton "All Individual Tracks" export. The function returns the raw
+sample-peak of the section slice; it does NOT re-apply effective_gain.
+Tests here check slicing, silence floor, stereo handling, and clipping
+behaviour. They deliberately do NOT exercise gain application, since the
+v2.6.4 fix removed that path.
 """
 
 from __future__ import annotations
@@ -116,80 +119,38 @@ def test_sine_without_gain_map_returns_raw_peak_dbfs():
     assert peak == pytest.approx(expected, abs=0.2)
 
 
-def test_constant_gain_half_drops_peak_by_six_db():
-    """Amplitude 0.5 with gain 0.5 -> peak_lin 0.25 -> -12 dBFS (approx)."""
-    data = _stereo_sine(duration_s=5.0, amplitude=0.5)
+def test_auto_maps_does_not_affect_peak_v264_post_fader_assumption():
+    """v2.6.4 regression guard: even if auto_maps is passed, the function
+    must NOT apply effective_gain. Ableton's "All Individual Tracks" export
+    already bakes the fader into the WAV — applying gain on top would
+    double-attenuate (the pre-v2.6.4 bug that surfaced in Acid Drops
+    testing: Spoon Percussion read -29.5 dB instead of her ~-19 dB meter)."""
+    data = _stereo_sine(duration_s=5.0, amplitude=0.5)  # WAV peak = -6 dBFS
     sections = [FakeSection(1, 0.0, 5.0)]
-    auto_maps = {"Kick": _auto_map_constant(0.5)}
+    # auto_map with gain 0.5 (-6 dB) — if re-applied, result would be -12 dB
+    auto_maps_with_gain = {"Kick": _auto_map_constant(0.5)}
 
-    result = compute_track_peak_by_section(
-        [_analysis(data, "Kick.wav")], sections, auto_maps=auto_maps,
+    result_with = compute_track_peak_by_section(
+        [_analysis(data, "Kick.wav")], sections,
+        auto_maps=auto_maps_with_gain,
     )
-    peak = result["Kick.wav"][1]
-    expected = 20 * np.log10(0.25)  # -12.04
-    assert peak == pytest.approx(expected, abs=0.2)
-
-
-def test_unity_gain_matches_raw_peak():
-    """Explicit gain 1.0 must match no-auto-map case."""
-    data = _stereo_sine(duration_s=2.0, amplitude=0.707)  # ~-3 dBFS
-    sections = [FakeSection(1, 0.0, 2.0)]
-
-    unity = {"T": _auto_map_constant(1.0)}
-    result_unity = compute_track_peak_by_section(
-        [_analysis(data, "T.wav")], sections, auto_maps=unity,
+    result_without = compute_track_peak_by_section(
+        [_analysis(data, "Kick.wav")], sections, auto_maps=None,
     )
-    result_none = compute_track_peak_by_section(
-        [_analysis(data, "T.wav")], sections, auto_maps=None,
-    )
-    assert result_unity["T.wav"][1] == pytest.approx(
-        result_none["T.wav"][1], abs=0.01
-    )
+    # Both paths must produce the same peak — the raw WAV peak (-6 dB)
+    assert result_with["Kick.wav"][1] == pytest.approx(-6.0, abs=0.2)
+    assert result_without["Kick.wav"][1] == pytest.approx(-6.0, abs=0.2)
 
 
-# ---------------------------------------------------------------------------
-# Sample-accurate (vs mean-gain) sanity — the whole reason we pushed back on
-# the user's initial formula
-# ---------------------------------------------------------------------------
-
-def test_rising_gain_ramp_peak_tracks_the_end_of_section():
-    """Sine at -6 dBFS with gain ramp 0.01 -> 1.0 over 2s.
-
-    - Mean gain = 0.505 -> mean-gain approx would predict
-      peak_db ≈ -6 + 20*log10(0.505) ≈ -12 dB
-    - Sample-accurate peak tracks the LAST part of the section where gain
-      is ~1.0 -> peak_db ≈ -6 dB (within a fraction of a dB of the raw peak)
-
-    If we see ~-12 dB instead of ~-6 dB, the implementation is silently
-    using a mean approximation — test catches that regression.
-    """
-    duration = 2.0
-    data = _stereo_sine(duration_s=duration, amplitude=0.5)  # -6 dBFS
-    sections = [FakeSection(1, 0.0, duration)]
-    auto_maps = {"T": _auto_map_ramp(0.01, 1.0, duration_s=duration)}
-
-    result = compute_track_peak_by_section(
-        [_analysis(data, "T.wav")], sections, auto_maps=auto_maps,
-    )
-    peak = result["T.wav"][1]
-    # Must be close to raw peak (-6 dB), NOT the mean-gain approx (~-12 dB)
-    assert peak == pytest.approx(-6.0, abs=0.5), (
-        f"expected ~-6 dB (sample-accurate tracks ramp), got {peak:.2f} dB"
-    )
-
-
-# ---------------------------------------------------------------------------
-# Edge cases per Phase A contract
-# ---------------------------------------------------------------------------
-
-def test_silent_track_returns_none():
-    """Gain = 1e-6 => peak ~-126 dB, below the -90 dB silence floor => None."""
-    data = _stereo_sine(duration_s=1.0, amplitude=0.5)
+def test_silent_slice_returns_none():
+    """Amplitude below the silence floor => None. Uses a very quiet WAV
+    (1e-5 ≈ -100 dBFS) so the silence floor triggers regardless of gain."""
+    sr = SR
+    n = int(1.0 * sr)
+    quiet = (np.full((n, 2), 1e-5, dtype=np.float32))
     sections = [FakeSection(1, 0.0, 1.0)]
-    auto_maps = {"T": _auto_map_constant(1e-6)}
-
     result = compute_track_peak_by_section(
-        [_analysis(data, "T.wav")], sections, auto_maps=auto_maps,
+        [_analysis(quiet, "T.wav")], sections, auto_maps=None,
     )
     assert result["T.wav"][1] is None
 

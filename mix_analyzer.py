@@ -1206,36 +1206,29 @@ def compute_track_peak_by_section(
 ):
     """Return ``{track_name: {section_index: peak_dbfs_or_None}}``.
 
-    For each Individual track, slices its WAV audio by section and computes
-    the peak dBFS **after applying the effective_gain** from the track's
-    automation map (volume fader + Utility gain + mute). The result is the
-    signal level equivalent to what Ableton shows on the fader meter, not
-    the raw WAV level nor the per-band spectral peak.
+    For each Individual track, slices its WAV audio by section and returns
+    the sample-peak dBFS of that slice. Result is the signal level
+    equivalent to what Ableton shows on the track's post-FX meter.
 
-    Gain is applied sample-accurate (step interpolation from the automation
-    map's beat grid to sample times via ``resample_effective_gain``). This
-    matters when volume automation rises during a section: the mean-gain
-    approximation would under-estimate the peak.
+    **Assumption: WAV files are already post-FX, post-fader.** Ableton's
+    default "Rendered Track: All Individual Tracks" export bakes the FX
+    chain and the fader into each WAV, so the file on disk is already the
+    faded signal. We therefore do NOT re-apply ``effective_gain`` — doing
+    so would double-attenuate (bug pre-v2.6.4, which produced a systematic
+    ~10 dB underestimate on tracks whose fader sat below unity).
+
+    ``auto_maps`` is kept as a parameter for future use (e.g. to flag
+    tracks where an .als automation map exists but the bounce was pre-FX),
+    but it is currently unused by this function. Pass whatever you have.
 
     Returns ``None`` for (track, section) pairs where the peak falls below
-    :data:`TRACK_PEAK_SILENCE_FLOOR_DB` — the track is effectively silent in
-    that section; the sheet renders "--".
-
-    Tracks absent from ``auto_maps`` fall back to gain = 1.0 (raw WAV peak).
-    Tracks of non-Individual type (BUS, Full Mix) are skipped entirely.
+    :data:`TRACK_PEAK_SILENCE_FLOOR_DB` — the slice is effectively silent;
+    the sheet renders "--".
     """
     if log_fn is None:
         log_fn = lambda msg: None
     if not sections or not analyses_with_info:
         return {}
-
-    from automation_map import resample_effective_gain
-    from als_utils import match_track_name
-
-    als_stem = (
-        os.path.splitext(os.path.basename(als_path))[0] if als_path else None
-    )
-    auto_map_keys = list((auto_maps or {}).keys())
 
     result = {}
     for analysis, ti in analyses_with_info:
@@ -1248,18 +1241,6 @@ def compute_track_peak_by_section(
         sr = analysis.get('sample_rate')
         if data is None or not sr:
             continue
-
-        # Match WAV stem -> auto_map name. Silent fallback to gain=1.0 when
-        # no match (user confirmed in Phase A: acceptable for bounces that
-        # have no automation in the .als).
-        auto_map = None
-        if auto_map_keys:
-            stem = os.path.splitext(track_name)[0]
-            matched_name = match_track_name(
-                stem, auto_map_keys, als_stem=als_stem
-            )
-            if matched_name:
-                auto_map = auto_maps[matched_name]
 
         data_arr = np.asarray(data)
         if data_arr.ndim == 1:
@@ -1284,18 +1265,7 @@ def compute_track_peak_by_section(
             else:
                 signal_abs = np.abs(slice_data[:, 0])
 
-            if auto_map is not None and len(auto_map.effective_gain) > 0:
-                # Sample-accurate step interpolation of the automation curve.
-                sample_times = np.linspace(
-                    section.start_seconds, section.end_seconds,
-                    num=len(signal_abs), endpoint=False,
-                )
-                gain = resample_effective_gain(auto_map, sample_times)
-                gained = signal_abs * gain
-            else:
-                gained = signal_abs
-
-            peak_lin = float(np.max(gained)) if gained.size else 0.0
+            peak_lin = float(np.max(signal_abs)) if signal_abs.size else 0.0
             if peak_lin <= 0.0:
                 per_section[section.index] = None
                 continue
