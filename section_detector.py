@@ -52,6 +52,16 @@ SECTIONS_TIMELINE_SHEET_NAME = "Sections Timeline"
 SECTION_LISTING_THRESHOLD_DB = -60.0
 
 
+# Minimum active_fraction required for a track to be listed in a section's
+# rendered blocks ("TRACKS ACTIVES PAR ZONE D'ENERGIE DOMINANTE" and
+# "PEAK MAX PAR TRACK"). Applied on top of the meter-based active fraction
+# (see mix_analyzer.compute_track_active_fraction_by_section). Filters
+# reverb tails and slight bleed from adjacent sections: Tambourine
+# leaking ~2-6% into Chorus 1/2 on Acid Drops does not get listed.
+# Paramétrable via build_sections_timeline_sheet kwarg.
+MIN_ACTIVE_FRACTION_FOR_LISTING = 0.10
+
+
 # ---------------------------------------------------------------------------
 # Data model
 # ---------------------------------------------------------------------------
@@ -1085,6 +1095,7 @@ def _peak_max_per_track(
     active_threshold_db: float,
     all_tracks_peak_by_section: Optional[dict] = None,
     all_tracks_active_fraction: Optional[dict] = None,
+    min_active_fraction_for_listing: float = MIN_ACTIVE_FRACTION_FOR_LISTING,
 ) -> List[dict]:
     """Build the "Peak max par track" rows for one section.
 
@@ -1169,14 +1180,15 @@ def _peak_max_per_track(
             )
 
         # Second gate (applied only when TRACK PEAK drives the listing):
-        # require a non-zero active_fraction. With the meter-based
-        # calculation above, this filters out bleed / reverb tails /
-        # plugin noise floors that pass the -60 dB TRACK PEAK gate but
-        # produce no signal above -40 dB in the section. Observed on
-        # Acid Drops: Tambourine Hi-Hat peaked at -20 dB in Chorus
-        # sections (reverb tail from the preceding Acid section) with
-        # zero active windows — correctly filtered out.
-        if all_tracks_peak_by_section and active_frac <= 0:
+        # require active_fraction >= min_active_fraction_for_listing
+        # (default 10% — see MIN_ACTIVE_FRACTION_FOR_LISTING). Filters
+        # bleed / reverb tails / plugin noise floors that pass the -60 dB
+        # TRACK PEAK gate but only tickle the meter above -40 dB for a
+        # few hundred ms. Observed on Acid Drops: Tambourine Hi-Hat
+        # leaking 2-6% into Chorus 1/2 (reverb tail from the preceding
+        # Acid section) — now filtered out so the user sees only
+        # musically meaningful contributors per section.
+        if all_tracks_peak_by_section and active_frac < min_active_fraction_for_listing:
             continue
 
         peak_freq: Optional[float] = None
@@ -1273,6 +1285,7 @@ def _render_section_block(
     row: int,
     all_tracks_peak_by_section: Optional[dict] = None,
     all_tracks_active_fraction: Optional[dict] = None,
+    min_active_fraction_for_listing: float = MIN_ACTIVE_FRACTION_FOR_LISTING,
 ) -> int:
     duration = section.end_seconds - section.start_seconds
     header_line = (
@@ -1295,6 +1308,16 @@ def _render_section_block(
             ratio = track_presence.get(track, {}).get(zone, 0.0)
             if ratio < min_presence_ratio:
                 continue
+            # Secondary filter (v2.6.6): reject tracks musically inactive in
+            # this section even if their spectral presence in the zone met
+            # the bucket-level gate. Applied only when the meter-based
+            # active-fraction dict is available. Mirrors the same gate used
+            # in the PEAK MAX block so both views stay consistent.
+            if all_tracks_active_fraction is not None:
+                per_section = all_tracks_active_fraction.get(track) or {}
+                afrac = per_section.get(section.index, 0.0)
+                if afrac < min_active_fraction_for_listing:
+                    continue
             db = zones.get(zone, -120.0)
             dominants.append((track, db))
         dominants.sort(key=lambda t: -t[1])
@@ -1359,6 +1382,7 @@ def _render_section_block(
         presence_threshold_db,
         all_tracks_peak_by_section=all_tracks_peak_by_section,
         all_tracks_active_fraction=all_tracks_active_fraction,
+        min_active_fraction_for_listing=min_active_fraction_for_listing,
     )
     if peak_rows:
         # "AMP ZONE" = peak amplitude within the track's dominant band
@@ -1440,6 +1464,7 @@ def build_sections_timeline_sheet(
     min_duration_buckets_accumulation: int = ACCUMULATION_MIN_DURATION,
     all_tracks_peak_by_section: Optional[dict] = None,
     all_tracks_active_fraction: Optional[dict] = None,
+    min_active_fraction_for_listing: float = MIN_ACTIVE_FRACTION_FOR_LISTING,
     log_fn=None,
 ) -> None:
     """Build the ``Sections Timeline`` sheet (positioned right after Index).
@@ -1550,6 +1575,7 @@ def build_sections_timeline_sheet(
             row=row,
             all_tracks_peak_by_section=all_tracks_peak_by_section,
             all_tracks_active_fraction=all_tracks_active_fraction,
+            min_active_fraction_for_listing=min_active_fraction_for_listing,
         )
 
     ws.sheet_state = "visible"  # user needs to see it; editing is discouraged via format

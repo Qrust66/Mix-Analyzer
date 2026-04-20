@@ -608,23 +608,23 @@ def test_peak_max_per_track_filters_bleed_with_zero_active_fraction():
     )
 
 
-def test_peak_max_per_track_keeps_track_with_brief_activity():
-    """A track that's active only briefly (e.g. 1% of the section, like
-    Acid Drops Spoon Percussion in Build 1) must still be listed — any
-    non-zero active_fraction passes the second gate."""
+def test_peak_max_per_track_filters_track_below_min_active_fraction():
+    """v2.6.6: a track whose active_fraction is below the listing threshold
+    (default 10%) must be filtered out, even if it passes the -60 dB peak
+    gate. Real-world case: Tambourine Hi-Hat reverb tail leaking 2-6%
+    into Chorus sections on Acid Drops — correctly dropped from the table."""
     n = 100
     section = _make_section(1, 0, n - 1, total_energy_db=-15.0)
-    # Build zone_arrays where "BriefHit" has 1 loud frame (above -30 dB)
-    # and 99 silent frames — active_fraction should be 0.01 (non-zero)
+    # Build zone_arrays where "BriefLeak" has 1 loud frame (1% active)
     brief_zones = {z: np.full(n, -100.0) for z in get_zone_order()}
-    brief_zones["sub"][50] = -10.0  # 1 frame well above -30 dB threshold
+    brief_zones["sub"][50] = -10.0
     all_tracks = {
-        "Loud":     _zone_arrays_for(-5.0, n, ["low"]),
-        "BriefHit": brief_zones,
+        "Loud":      _zone_arrays_for(-5.0, n, ["low"]),
+        "BriefLeak": brief_zones,
     }
     peak_by_section = {
-        "Loud":     {1: -10.0},
-        "BriefHit": {1: -15.0},
+        "Loud":      {1: -10.0},
+        "BriefLeak": {1: -15.0},
     }
     rows = _peak_max_per_track(
         section, all_tracks,
@@ -633,9 +633,62 @@ def test_peak_max_per_track_keeps_track_with_brief_activity():
         all_tracks_peak_by_section=peak_by_section,
     )
     names = [r["track"] for r in rows]
-    assert "BriefHit" in names, (
-        f"a 1-frame-active track must be listed, got {names}"
+    assert names == ["Loud"], (
+        f"BriefLeak at ~1% active must be filtered by the 10% default gate, "
+        f"got {names}"
     )
+
+
+def test_peak_max_per_track_keeps_track_above_min_active_fraction():
+    """A track whose active_fraction exceeds the listing threshold must be
+    listed. Complements the filter test above."""
+    n = 100
+    section = _make_section(1, 0, n - 1, total_energy_db=-15.0)
+    # "Intermittent" has 15 loud frames in 100 (= 15%, above default 10%)
+    inter_zones = {z: np.full(n, -100.0) for z in get_zone_order()}
+    inter_zones["sub"][40:55] = -10.0
+    all_tracks = {
+        "Loud":         _zone_arrays_for(-5.0, n, ["low"]),
+        "Intermittent": inter_zones,
+    }
+    peak_by_section = {
+        "Loud":         {1: -10.0},
+        "Intermittent": {1: -15.0},
+    }
+    rows = _peak_max_per_track(
+        section, all_tracks,
+        all_tracks_peak_trajectories=None,
+        active_threshold_db=-30.0,
+        all_tracks_peak_by_section=peak_by_section,
+    )
+    names = [r["track"] for r in rows]
+    assert set(names) == {"Loud", "Intermittent"}
+
+
+def test_peak_max_per_track_custom_min_active_fraction_respected():
+    """The listing threshold is a kwarg — passing 0.0 restores the v2.6.5
+    behaviour (filter only hard zeros), matching the legacy gate."""
+    n = 100
+    section = _make_section(1, 0, n - 1, total_energy_db=-15.0)
+    brief_zones = {z: np.full(n, -100.0) for z in get_zone_order()}
+    brief_zones["sub"][50] = -10.0  # 1% active
+    all_tracks = {
+        "Loud":      _zone_arrays_for(-5.0, n, ["low"]),
+        "BriefHit":  brief_zones,
+    }
+    peak_by_section = {
+        "Loud":      {1: -10.0},
+        "BriefHit":  {1: -15.0},
+    }
+    rows = _peak_max_per_track(
+        section, all_tracks,
+        all_tracks_peak_trajectories=None,
+        active_threshold_db=-30.0,
+        all_tracks_peak_by_section=peak_by_section,
+        min_active_fraction_for_listing=0.0,
+    )
+    names = [r["track"] for r in rows]
+    assert set(names) == {"Loud", "BriefHit"}
 
 
 # ---------------------------------------------------------------------------
