@@ -1073,6 +1073,7 @@ def _peak_max_per_track(
     all_tracks_zone_energy: dict,
     all_tracks_peak_trajectories: Optional[dict],
     active_threshold_db: float,
+    all_tracks_peak_by_section: Optional[dict] = None,
 ) -> List[dict]:
     """Build the "Peak max par track" rows for one section.
 
@@ -1081,6 +1082,13 @@ def _peak_max_per_track(
     dominant zone when no peak-trajectory data is passed in.
     ``duree_active_frac`` is the fraction of section frames where the track
     exceeds ``active_threshold_db`` in any zone.
+
+    When ``all_tracks_peak_by_section`` is provided
+    (``{track_name: {section_index: peak_dbfs_or_None}}``), each row carries a
+    ``track_peak_db`` field representing the fader-equivalent peak of the
+    track in this section (WAV sample-peak after applying effective_gain).
+    ``None`` means the track was effectively silent (below the silence floor)
+    and the sheet renders "--".
     """
     rows: List[dict] = []
     # Determine number of frames in the time axis, used for duration fractions.
@@ -1118,12 +1126,19 @@ def _peak_max_per_track(
                 peak_freq = None
                 peak_amp = best_db
 
+        track_peak_db = None
+        if all_tracks_peak_by_section:
+            track_peak_db = (all_tracks_peak_by_section.get(track_name) or {}).get(
+                section.index
+            )
+
         rows.append(
             {
                 "track": track_name,
                 "peak_freq_hz": peak_freq,
                 "peak_amplitude_db": peak_amp,
                 "active_fraction": active_frac,
+                "track_peak_db": track_peak_db,
             }
         )
 
@@ -1176,6 +1191,7 @@ def _render_section_block(
     presence_threshold_db: float,
     min_presence_ratio: float,
     row: int,
+    all_tracks_peak_by_section: Optional[dict] = None,
 ) -> int:
     duration = section.end_seconds - section.start_seconds
     header_line = (
@@ -1260,20 +1276,35 @@ def _render_section_block(
         all_tracks_zone_energy,
         all_tracks_peak_trajectories,
         presence_threshold_db,
+        all_tracks_peak_by_section=all_tracks_peak_by_section,
     )
     if peak_rows:
-        _write_row(ws, row, ["TRACK", "FREQ DU PEAK MAX", "AMPLITUDE", "DUREE ACTIVE"])
+        # "AMP ZONE" = peak amplitude within the track's dominant band
+        # (spectral, per-band). "TRACK PEAK" = fader-equivalent sample peak
+        # of the whole track after gain. The two can differ by 15-25 dB on
+        # tracks where a narrow band dominates — see the commit that added
+        # the TRACK PEAK column for context.
+        _write_row(ws, row, [
+            "TRACK", "FREQ DU PEAK MAX", "AMP ZONE",
+            "TRACK PEAK", "DUREE ACTIVE",
+        ])
         row += 1
         duration_s = max(section.end_seconds - section.start_seconds, 0.001)
         for pr in peak_rows:
             freq_text = f"{pr['peak_freq_hz']:.0f} Hz" if pr["peak_freq_hz"] is not None else "-"
             amp_text = f"{pr['peak_amplitude_db']:+.1f} dB" if pr["peak_amplitude_db"] is not None else "-"
+            if pr.get("track_peak_db") is None:
+                track_peak_text = "--"
+            else:
+                track_peak_text = f"{pr['track_peak_db']:+.1f} dB"
             active_seconds = pr["active_fraction"] * duration_s
             active_text = (
                 f"{active_seconds:.0f} / {duration_s:.0f}s "
                 f"({pr['active_fraction'] * 100:.0f}%)"
             )
-            _write_row(ws, row, [pr["track"], freq_text, amp_text, active_text])
+            _write_row(ws, row, [
+                pr["track"], freq_text, amp_text, track_peak_text, active_text,
+            ])
             row += 1
     else:
         _write_row(ws, row, ["(Aucune track active)"])
@@ -1325,6 +1356,7 @@ def build_sections_timeline_sheet(
     min_tracks_for_accumulation: int = ACCUMULATION_MIN_TRACKS,
     min_amplitude_for_accumulation_db: float = ACCUMULATION_MIN_AMP_DB,
     min_duration_buckets_accumulation: int = ACCUMULATION_MIN_DURATION,
+    all_tracks_peak_by_section: Optional[dict] = None,
     log_fn=None,
 ) -> None:
     """Build the ``Sections Timeline`` sheet (positioned right after Index).
@@ -1433,6 +1465,7 @@ def build_sections_timeline_sheet(
             presence_threshold_db=presence_threshold_db,
             min_presence_ratio=min_presence_ratio,
             row=row,
+            all_tracks_peak_by_section=all_tracks_peak_by_section,
         )
 
     ws.sheet_state = "visible"  # user needs to see it; editing is discouraged via format

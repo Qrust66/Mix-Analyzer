@@ -1181,7 +1181,133 @@ def analyze_track(filepath, compute_tempo=False):
 # LUFS readings emerge around the BS.1770-4 3-second gating block. Below this
 # threshold we render "--" for LUFS and PLR (PLR depends on LUFS) in the
 # per-section table, while True Peak / Crest / Width / Correlation stay valid.
+# Minimum section duration (in seconds) for a reliable LUFS integrated reading.
+# pyloudnorm needs roughly 400 ms absolute minimum, but stable integrated
+# LUFS readings emerge around the BS.1770-4 3-second gating block. Below this
+# threshold we render "--" for LUFS and PLR (PLR depends on LUFS) in the
+# per-section table, while True Peak / Crest / Width / Correlation stay valid.
 SECTION_LUFS_MIN_SECONDS = 3.0
+
+
+# Peak dBFS below this floor is treated as "effectively silent" for the
+# per-section track-peak column. A track sitting -90 dB under the fader is
+# inaudible and the value would be a noise floor artefact, not a useful
+# reading. Rendered as None (the sheet prints "--") rather than a misleading
+# number like -112 dB.
+TRACK_PEAK_SILENCE_FLOOR_DB = -90.0
+
+
+def compute_track_peak_by_section(
+    analyses_with_info,
+    sections,
+    auto_maps=None,
+    als_path=None,
+    log_fn=None,
+):
+    """Return ``{track_name: {section_index: peak_dbfs_or_None}}``.
+
+    For each Individual track, slices its WAV audio by section and computes
+    the peak dBFS **after applying the effective_gain** from the track's
+    automation map (volume fader + Utility gain + mute). The result is the
+    signal level equivalent to what Ableton shows on the fader meter, not
+    the raw WAV level nor the per-band spectral peak.
+
+    Gain is applied sample-accurate (step interpolation from the automation
+    map's beat grid to sample times via ``resample_effective_gain``). This
+    matters when volume automation rises during a section: the mean-gain
+    approximation would under-estimate the peak.
+
+    Returns ``None`` for (track, section) pairs where the peak falls below
+    :data:`TRACK_PEAK_SILENCE_FLOOR_DB` — the track is effectively silent in
+    that section; the sheet renders "--".
+
+    Tracks absent from ``auto_maps`` fall back to gain = 1.0 (raw WAV peak).
+    Tracks of non-Individual type (BUS, Full Mix) are skipped entirely.
+    """
+    if log_fn is None:
+        log_fn = lambda msg: None
+    if not sections or not analyses_with_info:
+        return {}
+
+    from automation_map import resample_effective_gain
+    from als_utils import match_track_name
+
+    als_stem = (
+        os.path.splitext(os.path.basename(als_path))[0] if als_path else None
+    )
+    auto_map_keys = list((auto_maps or {}).keys())
+
+    result = {}
+    for analysis, ti in analyses_with_info:
+        if ti.get('type') != 'Individual':
+            continue
+        track_name = ti.get('name')
+        if not track_name:
+            continue
+        data = analysis.get('_data')
+        sr = analysis.get('sample_rate')
+        if data is None or not sr:
+            continue
+
+        # Match WAV stem -> auto_map name. Silent fallback to gain=1.0 when
+        # no match (user confirmed in Phase A: acceptable for bounces that
+        # have no automation in the .als).
+        auto_map = None
+        if auto_map_keys:
+            stem = os.path.splitext(track_name)[0]
+            matched_name = match_track_name(
+                stem, auto_map_keys, als_stem=als_stem
+            )
+            if matched_name:
+                auto_map = auto_maps[matched_name]
+
+        data_arr = np.asarray(data)
+        if data_arr.ndim == 1:
+            data_arr = data_arr.reshape(-1, 1)
+        total_samples = data_arr.shape[0]
+
+        per_section = {}
+        for section in sections:
+            start_i = max(0, int(round(section.start_seconds * sr)))
+            end_i = min(total_samples, int(round(section.end_seconds * sr)))
+            if end_i <= start_i:
+                per_section[section.index] = None
+                continue
+
+            slice_data = data_arr[start_i:end_i]
+            # Per-sample magnitude — stereo signal peak is max(|L|, |R|),
+            # matching what the Ableton fader meter shows (mono-reduced peak).
+            if slice_data.shape[1] >= 2:
+                signal_abs = np.maximum(
+                    np.abs(slice_data[:, 0]), np.abs(slice_data[:, 1])
+                )
+            else:
+                signal_abs = np.abs(slice_data[:, 0])
+
+            if auto_map is not None and len(auto_map.effective_gain) > 0:
+                # Sample-accurate step interpolation of the automation curve.
+                sample_times = np.linspace(
+                    section.start_seconds, section.end_seconds,
+                    num=len(signal_abs), endpoint=False,
+                )
+                gain = resample_effective_gain(auto_map, sample_times)
+                gained = signal_abs * gain
+            else:
+                gained = signal_abs
+
+            peak_lin = float(np.max(gained)) if gained.size else 0.0
+            if peak_lin <= 0.0:
+                per_section[section.index] = None
+                continue
+            peak_db = 20.0 * float(np.log10(peak_lin))
+            if peak_db < TRACK_PEAK_SILENCE_FLOOR_DB:
+                per_section[section.index] = None
+            else:
+                per_section[section.index] = peak_db
+
+        result[track_name] = per_section
+
+    return result
 
 
 def compute_section_metrics(data, sr, sections):
@@ -7218,11 +7344,20 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                         ti['name']: (feat.peak_trajectories or [])
                         for feat, ti in v25_individuals
                     }
+                    # Per-section fader-equivalent peak: slice the WAV per
+                    # section and apply effective_gain from the .als. The
+                    # pre-compute lives here (not in the builder) because
+                    # this is where audio + auto_maps are both in scope.
+                    all_tracks_peak_by_section = compute_track_peak_by_section(
+                        analyses_with_info, sections, auto_maps=auto_maps,
+                        als_path=als_path, log_fn=log_fn,
+                    )
                     build_sections_timeline_sheet(
                         workbook=wb,
                         sections=sections,
                         all_tracks_zone_energy=all_tracks_zone_energy,
                         all_tracks_peak_trajectories=all_tracks_peak_trajectories,
+                        all_tracks_peak_by_section=all_tracks_peak_by_section,
                         log_fn=log_fn,
                     )
                     # Link the new sheet from the Index so the user finds it
