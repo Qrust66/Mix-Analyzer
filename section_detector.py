@@ -1084,6 +1084,7 @@ def _peak_max_per_track(
     all_tracks_peak_trajectories: Optional[dict],
     active_threshold_db: float,
     all_tracks_peak_by_section: Optional[dict] = None,
+    all_tracks_active_fraction: Optional[dict] = None,
 ) -> List[dict]:
     """Build the "Peak max par track" rows for one section.
 
@@ -1147,16 +1148,34 @@ def _peak_max_per_track(
         if track_name not in all_tracks_zone_energy:
             continue
         zone_arrays = _as_zone_arrays(all_tracks_zone_energy[track_name])
-        active_frac = _track_active_fraction(section, zone_arrays, active_threshold_db)
+
+        # Active fraction source of truth (option H, v2.6.5):
+        # - Prefer ``all_tracks_active_fraction`` when provided — this is
+        #   the WAV-meter-based calculation from mix_analyzer, which
+        #   matches Ableton's meter behaviour and correctly reports
+        #   continuous percussion patterns as ~95%+ active.
+        # - Fall back to the CQT zone_energy-based helper
+        #   ``_track_active_fraction`` when no pre-computed dict is
+        #   available (tests, offline tools, backwards compat). This
+        #   legacy path under-counts percussion transients but keeps the
+        #   function usable without a WAV pre-compute pipeline.
+        active_frac: Optional[float] = None
+        if all_tracks_active_fraction is not None:
+            per_section = all_tracks_active_fraction.get(track_name) or {}
+            active_frac = per_section.get(section.index)
+        if active_frac is None:
+            active_frac = _track_active_fraction(
+                section, zone_arrays, active_threshold_db
+            )
 
         # Second gate (applied only when TRACK PEAK drives the listing):
-        # require at least one frame where the track's zone_energy exceeds
-        # the presence threshold. This filters out bleed / reverb tails /
-        # plugin noise floors that pass the -60 dB audibility gate on WAV
-        # peak but produce no sustained signal in the section. Observed on
-        # Acid Drops: Tambourine Hi-Hat peaked at -20 dB in Chorus sections
-        # (reverb tail from the preceding Acid section) with zero active
-        # frames — she should not appear there, only in Acid 1/2/3.
+        # require a non-zero active_fraction. With the meter-based
+        # calculation above, this filters out bleed / reverb tails /
+        # plugin noise floors that pass the -60 dB TRACK PEAK gate but
+        # produce no signal above -40 dB in the section. Observed on
+        # Acid Drops: Tambourine Hi-Hat peaked at -20 dB in Chorus
+        # sections (reverb tail from the preceding Acid section) with
+        # zero active windows — correctly filtered out.
         if all_tracks_peak_by_section and active_frac <= 0:
             continue
 
@@ -1253,6 +1272,7 @@ def _render_section_block(
     min_presence_ratio: float,
     row: int,
     all_tracks_peak_by_section: Optional[dict] = None,
+    all_tracks_active_fraction: Optional[dict] = None,
 ) -> int:
     duration = section.end_seconds - section.start_seconds
     header_line = (
@@ -1338,6 +1358,7 @@ def _render_section_block(
         all_tracks_peak_trajectories,
         presence_threshold_db,
         all_tracks_peak_by_section=all_tracks_peak_by_section,
+        all_tracks_active_fraction=all_tracks_active_fraction,
     )
     if peak_rows:
         # "AMP ZONE" = peak amplitude within the track's dominant band
@@ -1418,6 +1439,7 @@ def build_sections_timeline_sheet(
     min_amplitude_for_accumulation_db: float = ACCUMULATION_MIN_AMP_DB,
     min_duration_buckets_accumulation: int = ACCUMULATION_MIN_DURATION,
     all_tracks_peak_by_section: Optional[dict] = None,
+    all_tracks_active_fraction: Optional[dict] = None,
     log_fn=None,
 ) -> None:
     """Build the ``Sections Timeline`` sheet (positioned right after Index).
@@ -1527,6 +1549,7 @@ def build_sections_timeline_sheet(
             min_presence_ratio=min_presence_ratio,
             row=row,
             all_tracks_peak_by_section=all_tracks_peak_by_section,
+            all_tracks_active_fraction=all_tracks_active_fraction,
         )
 
     ws.sheet_state = "visible"  # user needs to see it; editing is discouraged via format

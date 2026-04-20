@@ -483,6 +483,93 @@ def test_peak_max_per_track_legacy_fallback_when_no_track_peak_data():
         assert r["track_peak_db"] is None
 
 
+def test_peak_max_per_track_prefers_pre_computed_active_fraction_over_zone_energy():
+    """v2.6.5 (option H): when ``all_tracks_active_fraction`` is provided,
+    it is the source of truth for DUREE ACTIVE — bypasses the CQT
+    zone_energy-based ``_track_active_fraction`` entirely. This is the
+    contract the fix relies on: percussive tracks that under-count with
+    zone_energy but read correctly with WAV peak-hold now surface the
+    correct percentage."""
+    n = 20
+    section = _make_section(1, 0, n - 1, total_energy_db=-15.0)
+    # Zone energy is deliberately very quiet so the legacy path would
+    # yield active_fraction = 0.
+    all_tracks = {
+        "Tambourine": _zone_arrays_for(-80.0, n, ["sibilance"]),
+    }
+    # TRACK PEAK dict (drives the listing gate)
+    peak_by_section = {"Tambourine": {1: -15.0}}
+    # Pre-computed active fraction: 0.95 (Acid 1 style, continuous hits).
+    active_fraction_by_section = {"Tambourine": {1: 0.95}}
+
+    rows = _peak_max_per_track(
+        section, all_tracks,
+        all_tracks_peak_trajectories=None,
+        active_threshold_db=-30.0,
+        all_tracks_peak_by_section=peak_by_section,
+        all_tracks_active_fraction=active_fraction_by_section,
+    )
+    assert len(rows) == 1
+    # Must reflect the pre-computed 0.95, NOT the zone_energy-derived ~0.
+    assert rows[0]["active_fraction"] == pytest.approx(0.95, abs=0.01)
+
+
+def test_peak_max_per_track_falls_back_to_zone_energy_when_active_fraction_missing():
+    """Backwards compatibility: when ``all_tracks_active_fraction`` is None
+    (tests, offline tools) the function still computes active_fraction
+    from zone_energy via ``_track_active_fraction``."""
+    n = 20
+    section = _make_section(1, 0, n - 1, total_energy_db=-10.0)
+    # Zone energy well above presence threshold of -30 dB
+    all_tracks = {"Kick": _zone_arrays_for(-10.0, n, ["sub", "low"])}
+    peak_by_section = {"Kick": {1: -8.0}}
+
+    rows = _peak_max_per_track(
+        section, all_tracks,
+        all_tracks_peak_trajectories=None,
+        active_threshold_db=-30.0,
+        all_tracks_peak_by_section=peak_by_section,
+        all_tracks_active_fraction=None,  # legacy path
+    )
+    assert len(rows) == 1
+    # With all frames above -30 dB, legacy path reports full activity.
+    assert rows[0]["active_fraction"] == pytest.approx(1.0, abs=0.01)
+
+
+def test_peak_max_per_track_active_fraction_gate_uses_pre_computed_value():
+    """The bleed filter (active_fraction <= 0 -> skip) must respect the
+    pre-computed value. If option H says a track is 0% active, skip it
+    even when zone_energy would say otherwise (e.g. when zone_energy
+    catches an unrelated frequency peak unrelated to the track playing
+    musically)."""
+    n = 20
+    section = _make_section(1, 0, n - 1, total_energy_db=-10.0)
+    # Zone energy is high (would pass the legacy gate)
+    all_tracks = {
+        "Kick": _zone_arrays_for(-5.0, n, ["sub"]),
+        "TambourineBleed": _zone_arrays_for(-10.0, n, ["air"]),
+    }
+    peak_by_section = {
+        "Kick": {1: -8.0},
+        "TambourineBleed": {1: -30.0},
+    }
+    # Override: Tambourine is NOT actually playing in this section.
+    active_fraction_by_section = {
+        "Kick": {1: 0.95},
+        "TambourineBleed": {1: 0.0},
+    }
+
+    rows = _peak_max_per_track(
+        section, all_tracks,
+        all_tracks_peak_trajectories=None,
+        active_threshold_db=-30.0,
+        all_tracks_peak_by_section=peak_by_section,
+        all_tracks_active_fraction=active_fraction_by_section,
+    )
+    names = [r["track"] for r in rows]
+    assert names == ["Kick"]  # TambourineBleed filtered by active_fraction gate
+
+
 def test_section_listing_threshold_constant_is_minus_sixty_db():
     """Pin the audibility threshold: -60 dB is the standard mix-audibility
     floor. A future tweak should be deliberate — document it as a test."""

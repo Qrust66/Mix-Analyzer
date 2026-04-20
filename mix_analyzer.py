@@ -1197,6 +1197,129 @@ SECTION_LUFS_MIN_SECONDS = 3.0
 TRACK_PEAK_SILENCE_FLOOR_DB = -90.0
 
 
+# Defaults for the meter-based "active fraction" per section. A small window
+# plus a -40 dB threshold reproduces the release behaviour of a standard
+# VU-style peak meter: a percussive track hitting every 16th note stays
+# "above threshold" between strokes thanks to the window averaging, while
+# pure silence or reverb tail drops below. These are audio-engineering
+# defaults, not magic numbers — tune if the perceptual match is off.
+ACTIVE_FRACTION_WINDOW_MS = 50.0
+ACTIVE_FRACTION_THRESHOLD_DB = -40.0
+
+
+def compute_track_active_fraction_by_section(
+    analyses_with_info,
+    sections,
+    window_ms=ACTIVE_FRACTION_WINDOW_MS,
+    threshold_db=ACTIVE_FRACTION_THRESHOLD_DB,
+    log_fn=None,
+):
+    """Return ``{track_name: {section_index: fraction_0_to_1}}``.
+
+    For each Individual track, slides a short window over the section slice
+    of the track's WAV and measures the fraction of windows whose peak
+    exceeds ``threshold_db``. This mirrors the behaviour of an Ableton-style
+    peak meter: percussive transients elevate the window peak above the
+    threshold and the small window size provides just enough release time
+    for continuous 16th-note patterns to read as ~continuously active,
+    instead of dropping below threshold between hits as raw CQT
+    zone_energy does.
+
+    Designed as a drop-in replacement for
+    :func:`section_detector._track_active_fraction` (zone_energy + fixed
+    threshold). The legacy function remains as fallback when this dict
+    is not available.
+
+    Tracks of non-Individual type (BUS, Full Mix) are skipped — they carry
+    no meaningful per-section presence signal.
+
+    Args:
+        analyses_with_info: List of ``(analysis_dict, track_info)`` tuples
+            with ``analysis['_data']`` and ``analysis['sample_rate']``.
+        sections: Section objects with ``start_seconds`` / ``end_seconds``
+            / ``index`` attributes.
+        window_ms: Window size in milliseconds. 50 ms is the practical
+            VU-meter equivalent; smaller values track transients more
+            tightly but report gaps between hits, larger values smear.
+        threshold_db: dBFS threshold a window peak must exceed to count as
+            active. -40 dB matches standard meter audibility — below that
+            a track is either silent or bleeding from reverb tails.
+        log_fn: Optional logger (unused currently — reserved for telemetry).
+
+    Returns:
+        ``{track_name: {section_index: fraction}}`` where fraction is in
+        [0.0, 1.0]. A fraction of 0.0 means the track's WAV never exceeded
+        ``threshold_db`` in that section (musically silent).
+    """
+    if log_fn is None:
+        log_fn = lambda msg: None
+    if not sections or not analyses_with_info:
+        return {}
+
+    threshold_lin = 10.0 ** (threshold_db / 20.0)
+
+    result = {}
+    for analysis, ti in analyses_with_info:
+        if ti.get('type') != 'Individual':
+            continue
+        track_name = ti.get('name')
+        if not track_name:
+            continue
+        data = analysis.get('_data')
+        sr = analysis.get('sample_rate')
+        if data is None or not sr:
+            continue
+
+        data_arr = np.asarray(data)
+        if data_arr.ndim == 1:
+            data_arr = data_arr.reshape(-1, 1)
+        total_samples = data_arr.shape[0]
+
+        window_samples = max(1, int(round(window_ms * 1e-3 * sr)))
+
+        per_section = {}
+        for section in sections:
+            start_i = max(0, int(round(section.start_seconds * sr)))
+            end_i = min(total_samples, int(round(section.end_seconds * sr)))
+            if end_i <= start_i:
+                per_section[section.index] = 0.0
+                continue
+
+            slice_data = data_arr[start_i:end_i]
+            # Mono-reduce (max across channels) to match meter behaviour.
+            if slice_data.shape[1] >= 2:
+                signal_abs = np.maximum(
+                    np.abs(slice_data[:, 0]), np.abs(slice_data[:, 1])
+                )
+            else:
+                signal_abs = np.abs(slice_data[:, 0])
+
+            n = len(signal_abs)
+            if n == 0:
+                per_section[section.index] = 0.0
+                continue
+
+            # Non-overlapping window peaks — counts each window once.
+            # Trimming to a multiple of window_samples makes the reshape
+            # exact; the truncated tail (< 1 window) would add noise rather
+            # than signal since its peak is dominated by boundary effects.
+            n_windows = n // window_samples
+            if n_windows == 0:
+                # Section shorter than one window — use the whole slice as
+                # a single window (keeps very short sections evaluable).
+                window_peaks = np.array([float(np.max(signal_abs))])
+            else:
+                trimmed = signal_abs[: n_windows * window_samples]
+                window_peaks = trimmed.reshape(n_windows, window_samples).max(axis=1)
+
+            active_count = int(np.sum(window_peaks > threshold_lin))
+            per_section[section.index] = float(active_count) / float(len(window_peaks))
+
+        result[track_name] = per_section
+
+    return result
+
+
 def compute_track_peak_by_section(
     analyses_with_info,
     sections,
@@ -7322,12 +7445,23 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                         analyses_with_info, sections, auto_maps=auto_maps,
                         als_path=als_path, log_fn=log_fn,
                     )
+                    # Meter-based active fraction (option H) — WAV peak-hold
+                    # mirrors what Ableton's meter shows. Replaces the
+                    # CQT zone_energy under-count on percussive tracks that
+                    # motivated the user-facing fix (Tambourine Hi-Hat in
+                    # Acid 1/2/3 now reads ~95% instead of ~10%).
+                    all_tracks_active_fraction = (
+                        compute_track_active_fraction_by_section(
+                            analyses_with_info, sections, log_fn=log_fn,
+                        )
+                    )
                     build_sections_timeline_sheet(
                         workbook=wb,
                         sections=sections,
                         all_tracks_zone_energy=all_tracks_zone_energy,
                         all_tracks_peak_trajectories=all_tracks_peak_trajectories,
                         all_tracks_peak_by_section=all_tracks_peak_by_section,
+                        all_tracks_active_fraction=all_tracks_active_fraction,
                         log_fn=log_fn,
                     )
                     # Link the new sheet from the Index so the user finds it
