@@ -390,27 +390,32 @@ def test_build_sheet_replaces_existing_sheet_at_correct_position():
 # ---------------------------------------------------------------------------
 
 def test_peak_max_per_track_lists_all_tracks_above_audibility_threshold():
-    """When TRACK PEAK data is passed in, every track above -60 dB must
-    appear — even if section.tracks_active is empty (the bug this fixes).
-    Tracks below -60 dB are filtered as audibly negligible."""
+    """When TRACK PEAK data is passed in, every track with TRACK PEAK above
+    -60 dB AND non-zero active_fraction must appear — even if
+    section.tracks_active is empty (the bug this fixes). Below-threshold
+    peaks, silent slices, and bleed-only tracks (no zone activity) are
+    filtered."""
     n = 20
     section = _make_section(1, 0, n - 1, total_energy_db=-15.0)
     assert section.tracks_active == []  # sanity: intentionally empty
 
+    # Every track listed below has zones well above the -30 dB presence
+    # threshold, so active_fraction > 0. The filtering in this test
+    # exercises the TRACK PEAK gate, not the active_fraction gate (a
+    # separate test covers that).
     all_tracks = {
-        "Kick":      _zone_arrays_for(-5.0,  n, ["sub"]),
-        "Bass":      _zone_arrays_for(-10.0, n, ["low"]),
-        "Pad":       _zone_arrays_for(-40.0, n, ["mid"]),
-        "Atmos":     _zone_arrays_for(-70.0, n, ["air"]),   # below -60
-        "Silent":    _zone_arrays_for(-120., n, []),
+        "Kick":   _zone_arrays_for(-5.0,  n, ["sub"]),
+        "Bass":   _zone_arrays_for(-10.0, n, ["low"]),
+        "Pad":    _zone_arrays_for(-20.0, n, ["mid"]),
+        "Atmos":  _zone_arrays_for(-70.0, n, ["air"]),   # inactive (below presence)
+        "Silent": _zone_arrays_for(-120., n, []),
     }
-    # TRACK PEAK per section — the new gating input
     peak_by_section = {
-        "Kick":   {1: -15.0},  # well above -60
-        "Bass":   {1: -22.0},  # above -60
-        "Pad":    {1: -55.0},  # just above -60
-        "Atmos":  {1: -75.0},  # below -60 -> filtered
-        "Silent": {1: None},   # None (silent) -> filtered
+        "Kick":   {1: -15.0},  # pass both gates
+        "Bass":   {1: -22.0},  # pass both gates
+        "Pad":    {1: -55.0},  # passes peak gate, active_fraction > 0
+        "Atmos":  {1: -75.0},  # below -60 peak gate -> filtered
+        "Silent": {1: None},   # None -> filtered
     }
 
     rows = _peak_max_per_track(
@@ -422,7 +427,7 @@ def test_peak_max_per_track_lists_all_tracks_above_audibility_threshold():
 
     names = [r["track"] for r in rows]
     assert names == ["Kick", "Bass", "Pad"], (
-        "expected Kick/Bass/Pad above -60 dB, Atmos/Silent filtered. "
+        "expected Kick/Bass/Pad (Atmos filtered by peak gate, Silent by None). "
         f"Got: {names}"
     )
 
@@ -432,8 +437,10 @@ def test_peak_max_per_track_sorted_by_track_peak_descending():
     from top to bottom."""
     n = 10
     section = _make_section(1, 0, n - 1, total_energy_db=-15.0)
+    # All tracks active (zones above -30 dB presence threshold) so the
+    # active_fraction gate lets them all through; the test focuses on order.
     all_tracks = {
-        "Quiet": _zone_arrays_for(-30.0, n, ["mid"]),
+        "Quiet": _zone_arrays_for(-25.0, n, ["mid"]),
         "Loud":  _zone_arrays_for(-5.0,  n, ["low"]),
         "Mid":   _zone_arrays_for(-15.0, n, ["body"]),
     }
@@ -480,6 +487,68 @@ def test_section_listing_threshold_constant_is_minus_sixty_db():
     """Pin the audibility threshold: -60 dB is the standard mix-audibility
     floor. A future tweak should be deliberate — document it as a test."""
     assert SECTION_LISTING_THRESHOLD_DB == -60.0
+
+
+def test_peak_max_per_track_filters_bleed_with_zero_active_fraction():
+    """Second gate: a track with TRACK PEAK above -60 dB but no zone above
+    the presence threshold (zero active frames) is filtered — it's bleed,
+    reverb tail, or plugin noise floor, not a true contributor to the
+    section. Regression guard for Acid Drops Tambourine Hi-Hat which
+    showed up in Chorus 1/2 at -20 dB (reverb tail) with 0% activity."""
+    n = 20
+    section = _make_section(1, 0, n - 1, total_energy_db=-15.0)
+    # Kick: genuinely active (loud, above -30 dB presence threshold)
+    # Tambourine bleed: TRACK PEAK above -60 but zone_energy never above -30
+    # in any zone (simulates a reverb tail audible on the WAV but with no
+    # sustained spectral signature).
+    all_tracks = {
+        "Kick":      _zone_arrays_for(-5.0,  n, ["sub"]),
+        "TambourineBleed": _zone_arrays_for(-45.0, n, ["air"]),  # below -30
+    }
+    peak_by_section = {
+        "Kick":              {1: -10.0},
+        "TambourineBleed":   {1: -20.0},  # above -60, would pass first gate
+    }
+    rows = _peak_max_per_track(
+        section, all_tracks,
+        all_tracks_peak_trajectories=None,
+        active_threshold_db=-30.0,
+        all_tracks_peak_by_section=peak_by_section,
+    )
+    names = [r["track"] for r in rows]
+    assert names == ["Kick"], (
+        f"expected TambourineBleed filtered (0 active frames), got {names}"
+    )
+
+
+def test_peak_max_per_track_keeps_track_with_brief_activity():
+    """A track that's active only briefly (e.g. 1% of the section, like
+    Acid Drops Spoon Percussion in Build 1) must still be listed — any
+    non-zero active_fraction passes the second gate."""
+    n = 100
+    section = _make_section(1, 0, n - 1, total_energy_db=-15.0)
+    # Build zone_arrays where "BriefHit" has 1 loud frame (above -30 dB)
+    # and 99 silent frames — active_fraction should be 0.01 (non-zero)
+    brief_zones = {z: np.full(n, -100.0) for z in get_zone_order()}
+    brief_zones["sub"][50] = -10.0  # 1 frame well above -30 dB threshold
+    all_tracks = {
+        "Loud":     _zone_arrays_for(-5.0, n, ["low"]),
+        "BriefHit": brief_zones,
+    }
+    peak_by_section = {
+        "Loud":     {1: -10.0},
+        "BriefHit": {1: -15.0},
+    }
+    rows = _peak_max_per_track(
+        section, all_tracks,
+        all_tracks_peak_trajectories=None,
+        active_threshold_db=-30.0,
+        all_tracks_peak_by_section=peak_by_section,
+    )
+    names = [r["track"] for r in rows]
+    assert "BriefHit" in names, (
+        f"a 1-frame-active track must be listed, got {names}"
+    )
 
 
 # ---------------------------------------------------------------------------

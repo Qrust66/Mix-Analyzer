@@ -1149,6 +1149,17 @@ def _peak_max_per_track(
         zone_arrays = _as_zone_arrays(all_tracks_zone_energy[track_name])
         active_frac = _track_active_fraction(section, zone_arrays, active_threshold_db)
 
+        # Second gate (applied only when TRACK PEAK drives the listing):
+        # require at least one frame where the track's zone_energy exceeds
+        # the presence threshold. This filters out bleed / reverb tails /
+        # plugin noise floors that pass the -60 dB audibility gate on WAV
+        # peak but produce no sustained signal in the section. Observed on
+        # Acid Drops: Tambourine Hi-Hat peaked at -20 dB in Chorus sections
+        # (reverb tail from the preceding Acid section) with zero active
+        # frames — she should not appear there, only in Acid 1/2/3.
+        if all_tracks_peak_by_section and active_frac <= 0:
+            continue
+
         peak_freq: Optional[float] = None
         peak_amp: Optional[float] = None
 
