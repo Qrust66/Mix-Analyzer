@@ -37,6 +37,13 @@ from tkinter import ttk, filedialog, messagebox, scrolledtext
 
 VERSION = '2.6.0'
 
+
+# Persisted last-used paths across runs (input/output/.als) — helpers live in
+# a tiny dependency-free module so they stay testable without the audio stack.
+from user_config import load_user_paths as _load_user_paths
+from user_config import save_user_paths as _save_user_paths
+
+
 # ============================================================================
 # CATEGORIES - 25 options organized hierarchically
 # ============================================================================
@@ -1167,6 +1174,93 @@ def analyze_track(filepath, compute_tempo=False):
     result['_data'] = data
 
     return result
+
+
+# Minimum section duration (in seconds) for a reliable LUFS integrated reading.
+# pyloudnorm needs roughly 400 ms absolute minimum, but stable integrated
+# LUFS readings emerge around the BS.1770-4 3-second gating block. Below this
+# threshold we render "--" for LUFS and PLR (PLR depends on LUFS) in the
+# per-section table, while True Peak / Crest / Width / Correlation stay valid.
+SECTION_LUFS_MIN_SECONDS = 3.0
+
+
+def compute_section_metrics(data, sr, sections):
+    """Compute LUFS / True Peak / Crest / PLR / Width / Correlation per section.
+
+    Args:
+        data: Full-mix audio as returned by ``load_audio`` — shape (N, C) with
+            C in {1, 2}. Values are the same units the global metrics used.
+        sr: Sample rate (Hz).
+        sections: Iterable of section objects with attributes ``name``,
+            ``start_seconds``, ``end_seconds``, and optional ``tracks_active``
+            (from section_detector.Section).
+
+    Returns:
+        list[dict] — one entry per section in order. Keys:
+            name, duration_s, tracks_active (list[str]),
+            lufs (float or None), true_peak_db (float), crest (float),
+            plr (float or None), width (float), correlation (float).
+        LUFS and PLR are ``None`` when the section is shorter than
+        SECTION_LUFS_MIN_SECONDS — the caller is expected to render them as
+        "--" so the user knows the value is intentionally omitted, not zero.
+
+    Consistency: because the full-mix duration equals the sum of section
+    durations, a weighted average (by duration) of per-section metrics tracks
+    the global metrics closely. It will not match exactly because LUFS is a
+    non-linear gated loudness — averaging dB values is an approximation.
+    """
+    if data is None or sr is None or not sections:
+        return []
+
+    data_arr = np.asarray(data)
+    if data_arr.ndim == 1:
+        data_arr = data_arr.reshape(-1, 1)
+    total_samples = data_arr.shape[0]
+
+    results = []
+    for section in sections:
+        start_s = float(getattr(section, 'start_seconds', 0.0))
+        end_s = float(getattr(section, 'end_seconds', 0.0))
+        start_i = max(0, int(round(start_s * sr)))
+        end_i = min(total_samples, int(round(end_s * sr)))
+        if end_i <= start_i:
+            continue
+
+        slice_data = data_arr[start_i:end_i]
+        duration_s = (end_i - start_i) / float(sr)
+
+        loud = analyze_loudness(slice_data, sr)
+        true_peak_db = loud['true_peak_db']
+        crest = loud['crest_factor']
+
+        if duration_s >= SECTION_LUFS_MIN_SECONDS and np.isfinite(loud['lufs_integrated']):
+            lufs = loud['lufs_integrated']
+            plr = loud['plr']
+        else:
+            lufs = None
+            plr = None
+
+        if slice_data.shape[1] >= 2:
+            stereo = analyze_stereo(slice_data, sr)
+            width = float(stereo['width_overall'])
+            correlation = float(stereo['correlation'])
+        else:
+            width = 0.0
+            correlation = 1.0
+
+        results.append({
+            'name': getattr(section, 'name', ''),
+            'duration_s': duration_s,
+            'tracks_active': list(getattr(section, 'tracks_active', []) or []),
+            'lufs': lufs,
+            'true_peak_db': true_peak_db,
+            'crest': crest,
+            'plr': plr,
+            'width': width,
+            'correlation': correlation,
+        })
+
+    return results
 # ============================================================================
 # CHART GENERATION - Enhanced with tempogram and spectral panorama
 # ============================================================================
@@ -2291,6 +2385,24 @@ def _xl_add_sheet_nav(ws, row, current_sheet=None, nav_targets=None):
             c.hyperlink = f'#{sheet_name}!A1'
         col += 1
     return row
+
+
+def _xl_append_index_link(ws_index, sheet_name):
+    """Append a hyperlink row at the bottom of the Index sheet.
+
+    Used for sheets whose presence is decided at runtime (e.g. the
+    Sections Timeline sheet, which only exists when an .als with sections
+    is provided). The Index layout writes static hyperlinks in a loop; this
+    helper adds one more row below whatever was last written.
+    """
+    from openpyxl.styles import Font
+    row = ws_index.max_row + 1
+    data_font = Font(name='Calibri', size=10, color='E8E8FF')
+    link_font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
+    ws_index.cell(row=row, column=2, value=sheet_name).font = data_font
+    link_cell = ws_index.cell(row=row, column=5, value=sheet_name)
+    link_cell.font = link_font
+    link_cell.hyperlink = f'#{sheet_name}!A1'
 
 
 def _xl_add_comment(cell, text, width=300, height=150):
@@ -4412,12 +4524,18 @@ def _init_ma_fonts():
 
 
 def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None,
-                                nav_targets=None):
+                                nav_targets=None, sections=None):
     """
     Génère le sheet 'Mix Health Score' (P3.3) dans le workbook donné.
     Calcule un score global de santé du mix sur 100, décomposé en
     5 sous-scores : Loudness, Dynamics, Spectral Balance, Stereo Image,
     Anomalies. Filtre les pistes : Individual + Full Mix, exclut BUS.
+
+    When ``sections`` is provided and a Full Mix track exists, a secondary
+    table is appended below the global breakdown showing the same key
+    metrics (LUFS, True Peak, Crest, PLR, Width, Correlation) computed on
+    each section — useful to diagnose section-local issues (e.g. a quiet
+    breakdown vs a loud drop) that average out in the global metrics.
     """
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from openpyxl.formatting.rule import ColorScaleRule
@@ -4654,6 +4772,29 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None,
 
         detail_row += 1  # blank row between sections
 
+    # --- Section 4 (optional): Per-section metrics table ---
+    # Only when the project has sections and a Full Mix track is available
+    # to slice. detail_row still points at the row after the last detail
+    # block (+1 blank row already added by the loop above).
+    per_section_rows = 0
+    if sections and full_mix is not None:
+        data = full_mix.get('_data')
+        sr = full_mix.get('sample_rate')
+        if data is not None and sr:
+            section_metrics = compute_section_metrics(data, sr, sections)
+            if section_metrics:
+                detail_row, per_section_rows = _write_per_section_metrics_block(
+                    ws, detail_row, section_metrics,
+                    header_fill=header_fill, panel_fill=panel_fill,
+                    bg_fill=bg_fill, thin_border=thin_border,
+                    header_font=header_font, data_font=data_font,
+                    dim_font=dim_font,
+                )
+                log_fn(
+                    f"    Excel: Mix Health Score — per-section table added "
+                    f"({per_section_rows} sections)"
+                )
+
     # --- Freeze panes (row 11) ---
     ws.freeze_panes = 'A11'
 
@@ -4662,9 +4803,115 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None,
     ws.column_dimensions['B'].width = 10
     ws.column_dimensions['C'].width = 12
     ws.column_dimensions['D'].width = 30
+    # Per-section table uses columns A-I when present; widen if we rendered it
+    if per_section_rows:
+        from openpyxl.utils import get_column_letter as _gcl
+        for col_idx, width in [(1, 18), (2, 10), (3, 28), (4, 10),
+                               (5, 12), (6, 10), (7, 10), (8, 10), (9, 12)]:
+            # Do not shrink existing widths set above
+            current = ws.column_dimensions[_gcl(col_idx)].width or 0
+            if width > current:
+                ws.column_dimensions[_gcl(col_idx)].width = width
 
     _apply_dark_background(ws)
     log_fn("    Excel: Mix Health Score sheet done.")
+
+
+def _write_per_section_metrics_block(
+    ws, start_row, section_metrics,
+    *, header_fill, panel_fill, bg_fill, thin_border,
+    header_font, data_font, dim_font,
+):
+    """Render the per-section metrics table starting at ``start_row``.
+
+    Returns (next_free_row, n_rendered_sections).
+    """
+    from openpyxl.styles import Alignment
+
+    # Sub-header
+    c = ws.cell(row=start_row, column=1, value='Metrics per Section')
+    c.font = MA_FONT_SUBHEADING
+    c.fill = panel_fill
+    c.border = thin_border
+    for col in range(2, 10):
+        c2 = ws.cell(row=start_row, column=col)
+        c2.fill = panel_fill
+        c2.border = thin_border
+    start_row += 1
+
+    # Column headers
+    headers = [
+        'Section', 'Duration', 'Tracks actives',
+        'LUFS', 'True Peak', 'Crest', 'PLR',
+        'Width', 'Correlation',
+    ]
+    for col, h in enumerate(headers, 1):
+        c = ws.cell(row=start_row, column=col, value=h)
+        c.font = MA_FONT_BODY_BOLD
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal='center')
+    start_row += 1
+
+    def _fmt_duration(s):
+        total = int(round(s))
+        return f"{total // 60}:{total % 60:02d}"
+
+    def _cell(row, col, value, *, numfmt=None, align='center'):
+        c = ws.cell(row=row, column=col, value=value)
+        c.font = data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal=align)
+        if numfmt:
+            c.number_format = numfmt
+        return c
+
+    n_rendered = 0
+    for m in section_metrics:
+        _cell(start_row, 1, m['name'], align='left')
+        _cell(start_row, 2, _fmt_duration(m['duration_s']))
+        tracks = ', '.join(m['tracks_active']) if m['tracks_active'] else '—'
+        c = _cell(start_row, 3, tracks, align='left')
+        c.font = dim_font  # dim so it doesn't dominate the numeric columns
+
+        # LUFS — "--" when duration < SECTION_LUFS_MIN_SECONDS
+        if m['lufs'] is None:
+            _cell(start_row, 4, '--')
+        else:
+            _cell(start_row, 4, m['lufs'], numfmt='0.0')
+
+        _cell(start_row, 5, m['true_peak_db'], numfmt='0.00')
+        _cell(start_row, 6, m['crest'], numfmt='0.0')
+
+        # PLR — same convention as LUFS
+        if m['plr'] is None:
+            _cell(start_row, 7, '--')
+        else:
+            _cell(start_row, 7, m['plr'], numfmt='0.0')
+
+        _cell(start_row, 8, m['width'], numfmt='0.00')
+        _cell(start_row, 9, m['correlation'], numfmt='0.00')
+
+        start_row += 1
+        n_rendered += 1
+
+    # Footnote explaining the "--" convention
+    note = (
+        "— LUFS and PLR show \"--\" for sections shorter than "
+        f"{SECTION_LUFS_MIN_SECONDS:.0f}s, where the BS.1770 integrated "
+        "loudness measurement is unstable. True Peak, Crest, Width, and "
+        "Correlation remain valid on short slices."
+    )
+    c = ws.cell(row=start_row, column=1, value=note)
+    c.font = dim_font
+    c.fill = bg_fill
+    c.alignment = Alignment(horizontal='left', wrap_text=True)
+    ws.merge_cells(start_row=start_row, start_column=1,
+                   end_row=start_row, end_column=9)
+    start_row += 2
+
+    return start_row, n_rendered
 
 
 def _find_previous_reports(output_folder, song_name):
@@ -5876,6 +6123,11 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     wb = Workbook()
     tmp_files = []
 
+    # Sections detected / read from the .als during Feature 3. Persisted here
+    # so downstream sheets (Mix Health Score) can render per-section metrics
+    # without re-running detection. Remains None when no .als or no sections.
+    detected_sections = None
+
     # Hidden sheet for native chart data (Peak/RMS timelines)
     ws_chart_data = wb.create_sheet('_chart_data')
     _apply_clean_layout(ws_chart_data)
@@ -6869,8 +7121,10 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     except Exception as e:
         log_fn(f"    v2.5: Spectral evolution sheets failed: {e}")
 
-    # ---- Feature 3: Sections timeline (auto-detect + _sections_timeline sheet) ----
+    # ---- Feature 3: Sections timeline (auto-detect + Sections Timeline sheet) ----
     # Requires both an .als (for Locators) and v25 features (for delta_spectrum).
+    # The sheet is placed right after the Index tab (position 2) — see
+    # section_detector.build_sections_timeline_sheet for the reposition logic.
     if als_path and v25_features_with_info:
         try:
             from section_detector import (
@@ -6935,6 +7189,9 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                     )
 
                 if sections:
+                    # Share the detected sections with later sheet builders
+                    # (e.g. Mix Health Score per-section metrics table).
+                    detected_sections = sections
                     v25_individuals = [
                         (feat, ti)
                         for feat, ti in v25_features_with_info
@@ -6954,6 +7211,15 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                         all_tracks_peak_trajectories=all_tracks_peak_trajectories,
                         log_fn=log_fn,
                     )
+                    # Link the new sheet from the Index so the user finds it
+                    # without scrolling the tab bar. The sheet only exists
+                    # here (post-build_sections_timeline_sheet) so we append
+                    # the hyperlink after the static special_sheet_order list.
+                    from section_detector import SECTIONS_TIMELINE_SHEET_NAME
+                    if SECTIONS_TIMELINE_SHEET_NAME in wb.sheetnames:
+                        _xl_append_index_link(
+                            wb['Index'], SECTIONS_TIMELINE_SHEET_NAME
+                        )
             else:
                 log_fn("    Feature 3: no delta_spectrum available — skipped")
         except Exception as e:
@@ -6993,7 +7259,8 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     # Mode ai_optimized: INCLUDED (detailed breakdown beyond scores in AI Context)
     if 'Mix Health Score' in sheets_to_generate:
         generate_health_score_sheet(wb, analyses_with_info, log_fn=log_fn,
-                                     nav_targets=nav_targets)
+                                     nav_targets=nav_targets,
+                                     sections=detected_sections)
     else:
         log_fn("    Excel: Mix Health Score skipped (not in export mode).")
 
@@ -8331,9 +8598,11 @@ class MixAnalyzerApp:
 
         setup_ttk_styles()
 
-        # State
-        self.input_folder = tk.StringVar()
-        self.output_folder = tk.StringVar()
+        # State — pre-fill from last-used paths (empty strings if first run)
+        _last_paths = _load_user_paths()
+        self.input_folder = tk.StringVar(value=_last_paths['input_folder'])
+        self.output_folder = tk.StringVar(value=_last_paths['output_folder'])
+        self.als_path = tk.StringVar(value=_last_paths['als_path'])
         self.style = tk.StringVar(value='Industrial')
 
         # Track configs: dict filename -> config dict
@@ -8546,9 +8815,18 @@ class MixAnalyzerApp:
         ttk.Button(frame, text='Browse...', command=self._browse_output).grid(
             row=2, column=2, pady=SPACING['sm'])
 
+        # Ableton .als file (optional — auto-detected if left empty)
+        ttk.Label(frame, text='Ableton .als file (optional):').grid(
+            row=3, column=0, sticky='w', pady=SPACING['sm'])
+        ttk.Entry(frame, textvariable=self.als_path, width=70).grid(
+            row=3, column=1, sticky='we', pady=SPACING['sm'],
+            padx=(SPACING['md'], SPACING['xs']))
+        ttk.Button(frame, text='Browse...', command=self._browse_als).grid(
+            row=3, column=2, pady=SPACING['sm'])
+
         # Style
         style_row = ttk.Frame(frame)
-        style_row.grid(row=3, column=0, columnspan=4, sticky='we',
+        style_row.grid(row=4, column=0, columnspan=4, sticky='we',
                        pady=SPACING['sm'])
         ttk.Label(style_row, text='Musical style:').pack(side='left')
         ttk.Combobox(style_row, textvariable=self.style,
@@ -8558,14 +8836,14 @@ class MixAnalyzerApp:
 
         # M8.7: Separator before warning
         sep1 = create_separator(frame)
-        sep1.grid(row=4, column=0, columnspan=4, sticky='we',
+        sep1.grid(row=5, column=0, columnspan=4, sticky='we',
                   pady=(SPACING['lg'], SPACING['sm']))
 
         # Warning box for filename naming — M8.7: refined padding
         warning_frame = tk.Frame(frame, bg=UI_THEME['panel'], bd=0,
                                    highlightbackground=UI_THEME['warning'],
                                    highlightthickness=1)
-        warning_frame.grid(row=5, column=0, columnspan=4, sticky='we',
+        warning_frame.grid(row=6, column=0, columnspan=4, sticky='we',
                           pady=(SPACING['sm'], SPACING['md']))
 
         tk.Label(warning_frame, text='[!] TRACK NAMING IMPORTANT',
@@ -8597,14 +8875,14 @@ class MixAnalyzerApp:
         # Status
         self.setup_status = ttk.Label(frame, text='No folder selected yet.',
                                         style='Dim.TLabel')
-        self.setup_status.grid(row=6, column=0, columnspan=4, sticky='w',
+        self.setup_status.grid(row=7, column=0, columnspan=4, sticky='w',
                               pady=(SPACING['lg'], SPACING['xs']))
 
         # Load button
         ttk.Button(frame, text='Load tracks from folder',
                    style='Accent.TButton',
                    command=self._load_tracks).grid(
-            row=7, column=0, columnspan=4, sticky='we',
+            row=8, column=0, columnspan=4, sticky='we',
             pady=(SPACING['sm'], 0))
 
         frame.columnconfigure(1, weight=1)
@@ -8620,6 +8898,13 @@ class MixAnalyzerApp:
         folder = filedialog.askdirectory(title='Select output folder')
         if folder:
             self.output_folder.set(folder)
+
+    def _browse_als(self):
+        path = filedialog.askopenfilename(
+            title='Select Ableton project file (.als) — optional',
+            filetypes=[('Ableton Live Set', '*.als'), ('All files', '*.*')])
+        if path:
+            self.als_path.set(path)
 
     def _load_tracks(self):
         folder = self.input_folder.get()
@@ -9550,18 +9835,8 @@ class MixAnalyzerApp:
 
         # v2.5.1 Phase C: extract automation maps ONCE before analysis loop
         _auto_maps = {}
-        _als_path_for_maps = None
+        _als_path_for_maps = self._resolve_als_path()
         try:
-            _input_dir = Path(self.input_folder.get())
-            for search_dir in [_input_dir, _input_dir.parent,
-                               _input_dir.parent.parent,
-                               _input_dir.parent.parent.parent]:
-                if not search_dir.is_dir():
-                    break
-                als_files = list(search_dir.glob('*.als'))
-                if als_files:
-                    _als_path_for_maps = str(als_files[0])
-                    break
             if _als_path_for_maps:
                 from automation_map import extract_all_track_automations
                 _auto_maps = extract_all_track_automations(_als_path_for_maps)
@@ -9649,20 +9924,10 @@ class MixAnalyzerApp:
                 if xlsx_path.exists():
                     xlsx_path.unlink()
 
-                # Auto-detect .als file in input folder or ancestor dirs
-                _als_path = None
-                _input_dir = Path(self.input_folder.get())
-                if _input_dir.is_dir():
-                    for search_dir in [_input_dir, _input_dir.parent,
-                                       _input_dir.parent.parent,
-                                       _input_dir.parent.parent.parent]:
-                        if not search_dir.is_dir():
-                            break
-                        als_files = list(search_dir.glob('*.als'))
-                        if als_files:
-                            _als_path = str(als_files[0])
-                            self.log(f"    ALS detected: {Path(_als_path).name}")
-                            break
+                # Resolve .als: user-specified path takes priority, else auto-detect
+                _als_path = self._resolve_als_path()
+                if _als_path:
+                    self.log(f"    ALS detected: {Path(_als_path).name}")
 
                 generate_excel_report(
                     analyses_with_info, str(xlsx_path), self.style.get(),
@@ -9778,7 +10043,44 @@ class MixAnalyzerApp:
     # ------------------------------------------------------------------
     # CONFIG SAVE/LOAD
     # ------------------------------------------------------------------
+    def _resolve_als_path(self):
+        """Return the .als path to use, or None.
+
+        Priority: explicit user-specified path (if it exists and is a .als),
+        then auto-detect by scanning the input folder and its 3 parents.
+        """
+        user_als = (self.als_path.get() or '').strip()
+        if user_als and os.path.isfile(user_als) and user_als.lower().endswith('.als'):
+            return user_als
+
+        input_folder = self.input_folder.get()
+        if not input_folder:
+            return None
+        input_dir = Path(input_folder)
+        if not input_dir.is_dir():
+            return None
+        for search_dir in [input_dir, input_dir.parent,
+                           input_dir.parent.parent,
+                           input_dir.parent.parent.parent]:
+            if not search_dir.is_dir():
+                break
+            als_files = list(search_dir.glob('*.als'))
+            if als_files:
+                return str(als_files[0])
+        return None
+
+    def _persist_user_paths(self):
+        """Save the current 3 paths to ~/.mix_analyzer/config.json."""
+        _save_user_paths(
+            input_folder=self.input_folder.get(),
+            output_folder=self.output_folder.get(),
+            als_path=self.als_path.get(),
+        )
+
     def _save_config(self):
+        # Persist last-used paths to the global user config (survives restart)
+        self._persist_user_paths()
+
         folder = self.input_folder.get()
         if not folder or not os.path.isdir(folder):
             return

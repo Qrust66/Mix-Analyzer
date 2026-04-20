@@ -50,7 +50,7 @@ from spectral_evolution import (
 # Ableton EQ8 mapping — single source of truth for validation
 # ---------------------------------------------------------------------------
 
-_MAPPING_PATH = Path(__file__).resolve().parent / "ableton" / "ableton_devices_mapping_v1_8.json"
+_MAPPING_PATH = Path(__file__).resolve().parent / "ableton" / "ableton_devices_mapping.json"
 
 
 def _load_eq8_mapping() -> dict:

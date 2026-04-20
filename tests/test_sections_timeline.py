@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Tests for the _sections_timeline sheet (Feature 3 Phase C)."""
+"""Tests for the Sections Timeline sheet (Feature 3 Phase C).
+
+Sheet was renamed from ``_sections_timeline`` to ``Sections Timeline`` and
+positioned right after the Index tab in v2.6.x — see SECTIONS_TIMELINE_SHEET_NAME
+in section_detector.py.
+"""
 
 from __future__ import annotations
 
@@ -17,6 +22,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from openpyxl import Workbook  # noqa: E402
 
 from section_detector import (  # noqa: E402
+    SECTIONS_TIMELINE_SHEET_NAME,
     Section,
     _is_track_active_in_section,
     build_sections_timeline_sheet,
@@ -272,7 +278,7 @@ def test_build_sheet_silent_noop_when_no_sections():
         sections=[],
         all_tracks_zone_energy={},
     )
-    assert "_sections_timeline" not in wb.sheetnames
+    assert SECTIONS_TIMELINE_SHEET_NAME not in wb.sheetnames
 
 
 def test_build_sheet_contains_master_view_and_per_section_blocks():
@@ -293,9 +299,9 @@ def test_build_sheet_contains_master_view_and_per_section_blocks():
         sections=sections,
         all_tracks_zone_energy=all_tracks,
     )
-    assert "_sections_timeline" in wb.sheetnames
+    assert SECTIONS_TIMELINE_SHEET_NAME in wb.sheetnames
 
-    ws = wb["_sections_timeline"]
+    ws = wb[SECTIONS_TIMELINE_SHEET_NAME]
     text = "\n".join(
         " | ".join(str(c.value) for c in row if c.value is not None)
         for row in ws.iter_rows()
@@ -322,6 +328,59 @@ def test_build_sheet_contains_master_view_and_per_section_blocks():
                 assert not cell.value.lstrip().startswith("="), (
                     f"cell {cell.coordinate} contains a formula: {cell.value!r}"
                 )
+
+
+def test_build_sheet_user_visible_name():
+    """Sheet name must not start with an underscore (underscore-prefixed
+    sheets read as 'internal / technical' to Excel users). v2.6.x."""
+    assert not SECTIONS_TIMELINE_SHEET_NAME.startswith("_")
+    assert SECTIONS_TIMELINE_SHEET_NAME == "Sections Timeline"
+
+
+def test_build_sheet_positioned_right_after_index():
+    """The sheet must land at index 1 in the tab bar (right after Index at 0)
+    so the user finds it in the top 3 visible tabs — v2.6.x user-facing move."""
+    wb = Workbook()
+    # Simulate a real-world workbook order: Index first, then a few global
+    # sheets, then the Sections Timeline is created (late in the pipeline).
+    wb.active.title = "Index"
+    wb.create_sheet("Summary")
+    wb.create_sheet("Dashboard")
+    wb.create_sheet("Mix Health Score")
+
+    n = 10
+    sections = [_make_section(1, 0, 9, total_energy_db=-20.0)]
+    all_tracks = {"Kick": _zone_arrays_for(-5.0, n, ["sub"])}
+    build_sections_timeline_sheet(
+        workbook=wb, sections=sections, all_tracks_zone_energy=all_tracks,
+    )
+
+    assert wb.sheetnames[0] == "Index"
+    assert wb.sheetnames[1] == SECTIONS_TIMELINE_SHEET_NAME, (
+        f"expected Sections Timeline at position 1, got order: {wb.sheetnames}"
+    )
+
+
+def test_build_sheet_replaces_existing_sheet_at_correct_position():
+    """Re-running the build on a workbook that already has the sheet should
+    replace it AND keep it at position 1, not append at the end."""
+    wb = Workbook()
+    wb.active.title = "Index"
+    wb.create_sheet("Dashboard")
+
+    n = 10
+    sections = [_make_section(1, 0, 9, total_energy_db=-15.0)]
+    all_tracks = {"Kick": _zone_arrays_for(-5.0, n, ["sub"])}
+
+    build_sections_timeline_sheet(
+        workbook=wb, sections=sections, all_tracks_zone_energy=all_tracks,
+    )
+    build_sections_timeline_sheet(  # second build — should replace cleanly
+        workbook=wb, sections=sections, all_tracks_zone_energy=all_tracks,
+    )
+
+    assert wb.sheetnames.count(SECTIONS_TIMELINE_SHEET_NAME) == 1
+    assert wb.sheetnames[1] == SECTIONS_TIMELINE_SHEET_NAME
 
 
 # ---------------------------------------------------------------------------
