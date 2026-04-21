@@ -7789,12 +7789,21 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                         from cde_engine import (
                             detect_masking_conflicts,
                             dump_diagnostics_to_json,
+                            infer_project_stem,
+                        )
+                        # Strip the project prefix from user-facing names
+                        # (diagnostic IDs, diagnosis text, outcome
+                        # templates) — ``"Acid_Drops [H_R] Kick 1.wav"``
+                        # reads as ``"Kick 1"`` in the output.
+                        _cde_project_stem = infer_project_stem(
+                            list(all_tracks_zone_energy.keys())
                         )
                         _cde_diags = []
                         for _s in sections:
                             _cde_diags.extend(detect_masking_conflicts(
                                 _s,
                                 all_tracks_zone_energy=all_tracks_zone_energy,
+                                project_stem=_cde_project_stem or None,
                             ))
                         if als_path:
                             _cde_json_path = Path(als_path).with_name(

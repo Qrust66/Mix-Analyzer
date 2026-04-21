@@ -9,3 +9,7 @@ ableton/projects/*/Samples/
 
 # Local smoke tests (not part of the test suite — run manually)
 smoke_test_*.py
+
+# Feature 3.6 CDE diagnostics dump — regenerated on every run, bulky
+# (can reach several MB on busy mixes). Not worth tracking in git.
+*_diagnostics.json

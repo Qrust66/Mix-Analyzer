@@ -40,6 +40,8 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import re
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -229,6 +231,113 @@ class CorrectionDiagnostic:
     # Audit
     data_sources: List[str] = field(default_factory=list)
     rules_applied: List[str] = field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Track-name display cleanup
+# ---------------------------------------------------------------------------
+#
+# Track names arriving here come from the WAV filenames (e.g.
+# ``"Acid_Drops [H_R] Kick 1.wav"``). They carry three layers of noise
+# that hurt readability in diagnostic IDs, diagnosis text and outcome
+# templates:
+#
+#   1. the ``.wav`` extension
+#   2. the TFP role prefix  ``[H/R]`` / ``[H_R]`` / ``[H R]`` (Ableton
+#      substitutes ``/`` with ``_`` when bouncing, ``[H R]`` is a rarer
+#      hand-written form — we accept all three)
+#   3. the project stem prepended by the bouncer (e.g. ``"Acid_Drops"``)
+#
+# :func:`_clean_track_display_name` strips all three. The original
+# name is NEVER mutated on the diagnostic; cleanup is display-layer
+# only (IDs, diagnosis text, outcome template substitutions).
+
+# Match a TFP prefix anywhere in the string:
+#   "[H/R]", "[H_R]", "[H R]", lowercase variants, with optional spaces.
+_TFP_PREFIX_ANYWHERE_RE = re.compile(
+    r"\[\s*[HSAhsa]\s*[/_ ]\s*[RHMTrhmt]\s*\]\s*"
+)
+_WHITESPACE_COLLAPSE_RE = re.compile(r"\s+")
+
+
+def _clean_track_display_name(
+    raw_name: Optional[str],
+    project_stem: Optional[str] = None,
+) -> str:
+    """Return a human-friendly display name for ``raw_name``.
+
+    Applies three cleanups:
+
+        1. Strip ``.wav`` extension (case-insensitive).
+        2. Strip ``project_stem`` if it prefixes the name — accepting
+           the raw stem, the underscore variant and the space variant.
+        3. Strip any TFP role prefix (``[H/R]``, ``[H_R]``, ``[H R]``).
+
+    Whitespace is collapsed and trimmed at the end. Already-clean names
+    like ``"Kick 1"`` or ``"Sub Bass"`` pass through unchanged.
+    """
+    if not isinstance(raw_name, str):
+        return ""
+    s = raw_name.strip()
+    if not s:
+        return ""
+
+    # (1) Strip .wav extension, case-insensitive.
+    if s.lower().endswith(".wav"):
+        s = s[:-4]
+
+    # (2) Strip the project stem when it prefixes the name. We try the
+    # stem verbatim and the two common separator substitutions (Ableton
+    # names can mix spaces and underscores freely).
+    if project_stem:
+        stem_raw = project_stem.strip()
+        variants = {stem_raw,
+                    stem_raw.replace("_", " "),
+                    stem_raw.replace(" ", "_")}
+        for variant in variants:
+            if variant and s.startswith(variant):
+                s = s[len(variant):].lstrip(" _-")
+                break
+
+    # (3) Strip any TFP prefix anywhere — one pass is enough.
+    s = _TFP_PREFIX_ANYWHERE_RE.sub(" ", s)
+
+    # Collapse multi-space + trim.
+    s = _WHITESPACE_COLLAPSE_RE.sub(" ", s).strip()
+    return s
+
+
+def infer_project_stem(track_names) -> str:
+    """Guess the bouncer's project-name prefix shared by every track.
+
+    Uses :func:`os.path.commonprefix` on the provided names and keeps
+    only the portion before the first ``[`` — i.e. the start of the
+    TFP role prefix. We intentionally require the TFP bracket to be in
+    the common prefix: without it, a shared word across track names
+    (``"Kick 1"``, ``"Kick 2"``) would be mistaken for a project stem
+    and wreck the display name. Names without TFP prefixes therefore
+    get no stem stripped — they likely do not need any cleanup anyway.
+
+    The extracted stem is accepted only when it ends on a clean
+    boundary (``" "`` or ``"_"``).
+
+    Callers pass the full set of WAV track names
+    (``all_tracks_zone_energy.keys()``). Returns ``""`` when fewer
+    than 2 names are given or no reliable stem can be detected.
+    """
+    names = list(track_names or [])
+    if len(names) < 2:
+        return ""
+
+    common = os.path.commonprefix(names)
+    bracket_idx = common.find("[")
+    if bracket_idx <= 0:
+        return ""
+    candidate = common[:bracket_idx]
+
+    if candidate and candidate[-1] in " _":
+        return candidate.rstrip(" _-")
+    return ""
 
 
 # ---------------------------------------------------------------------------
@@ -430,8 +539,14 @@ def _diagnosis_text_masking(
     freq_hz: float,
     severity: str,
     section_name: str,
+    project_stem: Optional[str] = None,
 ) -> str:
-    """Build the natural-language explanation for a masking conflict."""
+    """Build the natural-language explanation for a masking conflict.
+
+    Track names are passed through :func:`_clean_track_display_name`
+    so the user-facing sentence shows ``"Kick 1"`` instead of
+    ``"Acid_Drops [H_R] Kick 1.wav"``.
+    """
     sev_label = {"critical": "critique", "moderate": "modéré"}.get(severity, severity)
     role_a_str = (
         f"{_IMPORTANCE_LABEL_FR[role_a[0]]} {_FUNCTION_LABEL_FR[role_a[1]]}"
@@ -439,9 +554,11 @@ def _diagnosis_text_masking(
     role_b_str = (
         f"{_IMPORTANCE_LABEL_FR[role_b[0]]} {_FUNCTION_LABEL_FR[role_b[1]]}"
     )
+    a_clean = _clean_track_display_name(track_a, project_stem) or track_a
+    b_clean = _clean_track_display_name(track_b, project_stem) or track_b
     return (
         f"Conflit {sev_label} autour de {int(round(freq_hz))} Hz entre "
-        f"{track_a} ({role_a_str}) et {track_b} ({role_b_str}) dans "
+        f"{a_clean} ({role_a_str}) et {b_clean} ({role_b_str}) dans "
         f"{section_name}. Les deux tracks occupent la même bande "
         f"spectrale ({get_zone_label(zone)}), créant du masking."
     )
@@ -1207,18 +1324,28 @@ def _substitute_placeholders(
     template: str,
     diagnostic: CorrectionDiagnostic,
     recipe: CorrectionRecipe,
+    project_stem: Optional[str] = None,
 ) -> str:
     """Render ``template`` against ``(diagnostic, recipe)``.
 
     Sidechain needs special handling because the template's
     ``[track_a]`` / ``[track_b]`` refer to trigger / ducked semantics,
     not to the diagnostic's raw track_a / track_b ordering.
+
+    Track-name placeholders pass through :func:`_clean_track_display_name`,
+    so user-facing text reads ``"Kick 1"`` rather than
+    ``"Acid_Drops [H_R] Kick 1.wav"``.
     """
     track_a = diagnostic.track_a
     track_b = diagnostic.track_b or ""
     section = diagnostic.section or "la section"
     freq = diagnostic.measurement.frequency_hz if diagnostic.measurement else None
     zone_label = _resolve_zone_label_for_freq(freq)
+
+    def _clean(name: str) -> str:
+        # Fall back to the raw name when the cleaner empties it — a
+        # defensive guard against overly-aggressive stem stripping.
+        return _clean_track_display_name(name, project_stem) or name
 
     target = recipe.target_track
     # "Protected" is the other track in the conflict — the one that
@@ -1232,17 +1359,17 @@ def _substitute_placeholders(
 
     if recipe.approach == "sidechain":
         trigger = recipe.parameters.get("trigger_track", "") or ""
-        sub_a = trigger
-        sub_b = target
+        sub_a = _clean(trigger)
+        sub_b = _clean(target)
     else:
-        sub_a = track_a
-        sub_b = track_b
+        sub_a = _clean(track_a)
+        sub_b = _clean(track_b)
 
     replacements = {
         "[track_a]":         sub_a,
         "[track_b]":         sub_b,
-        "[track_cut]":       target,
-        "[track_protected]": protected,
+        "[track_cut]":       _clean(target),
+        "[track_protected]": _clean(protected),
         "[section]":         section,
         "[zone]":            zone_label,
     }
@@ -1252,7 +1379,10 @@ def _substitute_placeholders(
     return out
 
 
-def populate_outcome_templates(diagnostic: CorrectionDiagnostic) -> None:
+def populate_outcome_templates(
+    diagnostic: CorrectionDiagnostic,
+    project_stem: Optional[str] = None,
+) -> None:
     """Fill ``expected_outcomes`` / ``potential_risks`` / ``verification_steps``
     on the diagnostic using the primary_correction's approach.
 
@@ -1260,6 +1390,12 @@ def populate_outcome_templates(diagnostic: CorrectionDiagnostic) -> None:
     path). When primary is ``None`` — for example R2 skipped a Sub-zone
     cut on Hero Rhythm — the lists stay empty: there is no concrete
     action to describe outcomes for.
+
+    Args:
+        diagnostic: Will be mutated in place.
+        project_stem: Optional project prefix stripped from every track
+            name in the template substitutions (see
+            :func:`_clean_track_display_name`).
     """
     recipe = diagnostic.primary_correction
     if recipe is None:
@@ -1270,15 +1406,15 @@ def populate_outcome_templates(diagnostic: CorrectionDiagnostic) -> None:
         return
 
     diagnostic.expected_outcomes = [
-        _substitute_placeholders(t, diagnostic, recipe)
+        _substitute_placeholders(t, diagnostic, recipe, project_stem)
         for t in templates.get("expected", [])
     ]
     diagnostic.potential_risks = [
-        _substitute_placeholders(t, diagnostic, recipe)
+        _substitute_placeholders(t, diagnostic, recipe, project_stem)
         for t in templates.get("risks", [])
     ]
     diagnostic.verification_steps = [
-        _substitute_placeholders(t, diagnostic, recipe)
+        _substitute_placeholders(t, diagnostic, recipe, project_stem)
         for t in templates.get("verification", [])
     ]
 
@@ -1429,6 +1565,7 @@ def detect_masking_conflicts(
     section,
     all_tracks_zone_energy: Optional[dict] = None,
     ai_context: Optional[dict] = None,
+    project_stem: Optional[str] = None,
 ) -> List[CorrectionDiagnostic]:
     """Generate one :class:`CorrectionDiagnostic` per conflict in ``section``.
 
@@ -1455,6 +1592,13 @@ def detect_masking_conflicts(
             map from the AI Context sheet. Feeds Rule 1 (signature
             frequency protection). When absent the rule falls back to
             ``section.track_energy`` to find the track's dom_band.
+        project_stem: Optional project prefix (e.g. ``"Acid_Drops"``)
+            stripped from every user-facing track name — diagnostic
+            IDs, diagnosis text, and outcome template substitutions.
+            Use :func:`infer_project_stem` to detect it from the set of
+            WAV track names. Internal fields (``track_a``,
+            ``recipe.target_track``, etc.) keep the raw name so
+            matching with ``section.*`` keys stays intact.
 
     Args:
         section: A :class:`section_detector.Section` whose
@@ -1493,11 +1637,13 @@ def detect_masking_conflicts(
         measurement = _measurement_from_conflict(conflict, section)
 
         freq_hz = measurement.frequency_hz or 0.0
+        # Clean the track names going into the ID so the user sees
+        # CONF_CHORUS1_KICK1_SUBBASS_50HZ instead of the full WAV path.
         diag_id = generate_diagnostic_id(
             issue_type="masking_conflict",
             section=section_ctx.section_name,
-            track_a=track_a,
-            track_b=track_b,
+            track_a=_clean_track_display_name(track_a, project_stem) or track_a,
+            track_b=_clean_track_display_name(track_b, project_stem) or track_b,
             frequency_hz=freq_hz,
         )
         diagnosis_text = _diagnosis_text_masking(
@@ -1509,6 +1655,7 @@ def detect_masking_conflicts(
             freq_hz=freq_hz,
             severity=conflict["severity"],
             section_name=section_ctx.section_name,
+            project_stem=project_stem,
         )
 
         diag = CorrectionDiagnostic(
@@ -1546,8 +1693,9 @@ def detect_masking_conflicts(
         )
 
         # B1c2b — fill the qualitative-impact lists (outcomes / risks /
-        # verification) from the primary_correction's approach.
-        populate_outcome_templates(diag)
+        # verification) from the primary_correction's approach. Track
+        # names in the substitutions get the same cleanup as the ID.
+        populate_outcome_templates(diag, project_stem=project_stem)
 
         diagnostics.append(diag)
 
