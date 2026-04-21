@@ -5014,6 +5014,24 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None,
                     f"({per_section_rows} sections)"
                 )
 
+    # --- Section 5 (optional): TFP coherence score per section ---
+    # Requires sections with track_roles already populated (by Feature 3.5
+    # Phase B2 via build_sections_timeline_sheet ->
+    # enrich_sections_with_track_roles). Skipped silently when roles are
+    # absent — the Mix Health sheet still works without the block.
+    tfp_coherence_rows = 0
+    if sections and any(getattr(s, "track_roles", None) for s in sections):
+        detail_row, tfp_coherence_rows = _write_tfp_coherence_block(
+            ws, detail_row, sections,
+            header_fill=header_fill, panel_fill=panel_fill,
+            bg_fill=bg_fill, thin_border=thin_border,
+            data_font=data_font, dim_font=dim_font,
+        )
+        log_fn(
+            f"    Excel: Mix Health Score — TFP coherence table added "
+            f"({tfp_coherence_rows} sections)"
+        )
+
     # --- Freeze panes (row 11) ---
     ws.freeze_panes = 'A11'
 
@@ -5142,6 +5160,104 @@ def _write_per_section_metrics_block(
     c.alignment = Alignment(horizontal='left', wrap_text=True)
     ws.merge_cells(start_row=start_row, start_column=1,
                    end_row=start_row, end_column=9)
+    start_row += 2
+
+    return start_row, n_rendered
+
+
+def _write_tfp_coherence_block(
+    ws, start_row, sections,
+    *, header_fill, panel_fill, bg_fill, thin_border,
+    data_font, dim_font,
+):
+    """Render the per-section TFP coherence table.
+
+    Feature 3.5 Phase B3 — for each section, display its 0-100 coherence
+    score, the H/S/A count, the R/H/M/T count, the number of critical
+    hero-vs-hero conflicts and a diagnostic string + up to 3 specific
+    messages. Sparse sections (< 3 s OR < 3 active tracks) render "—"
+    instead of a numeric score.
+
+    Returns ``(next_free_row, n_rendered_sections)``.
+    """
+    from openpyxl.styles import Alignment
+    from section_detector import detect_conflicts_in_section
+    from tfp_coherence import compute_section_coherence_score
+
+    # Sub-header
+    c = ws.cell(row=start_row, column=1, value="Cohérence TFP par section")
+    c.font = MA_FONT_SUBHEADING
+    c.fill = panel_fill
+    c.border = thin_border
+    for col in range(2, 7):
+        c2 = ws.cell(row=start_row, column=col)
+        c2.fill = panel_fill
+        c2.border = thin_border
+    start_row += 1
+
+    # Column headers
+    headers = ["Section", "Score", "H/S/A", "R/H/M/T", "H×H crit.", "Diagnostic"]
+    for col, h in enumerate(headers, 1):
+        c = ws.cell(row=start_row, column=col, value=h)
+        c.font = MA_FONT_BODY_BOLD
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal="center")
+    start_row += 1
+
+    def _cell(row, col, value, *, align="center", font=None):
+        c = ws.cell(row=row, column=col, value=value)
+        c.font = font or data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal=align)
+        return c
+
+    n_rendered = 0
+    for section in sections:
+        conflicts = detect_conflicts_in_section(section)
+        result = compute_section_coherence_score(section, conflicts=conflicts)
+        counts = result["counts"]
+
+        _cell(start_row, 1, section.name, align="left")
+
+        if result["sparse"]:
+            _cell(start_row, 2, "—")
+        else:
+            _cell(start_row, 2, int(round(result["score"])))
+
+        _cell(start_row, 3, f"{counts['H']}/{counts['S']}/{counts['A']}")
+        _cell(
+            start_row, 4,
+            f"{counts['fn_R']}/{counts['fn_H']}/{counts['fn_M']}/{counts['fn_T']}",
+        )
+        _cell(start_row, 5, result["n_critical_hh"])
+
+        _cell(start_row, 6, result["diagnostic"], align="left")
+        start_row += 1
+
+        # Render specific messages on successive indented rows (column 6)
+        for message in result["messages"]:
+            _cell(start_row, 6, f"  • {message}", align="left", font=dim_font)
+            start_row += 1
+
+        n_rendered += 1
+
+    # Footnote for the sparse convention
+    note = (
+        '— Score "—" when section duration < '
+        f"{int(3)}s OR fewer than "
+        f"{int(3)} active tracks "
+        "(coherence scoring requires enough data points to be meaningful)."
+    )
+    c = ws.cell(row=start_row, column=1, value=note)
+    c.font = dim_font
+    c.fill = bg_fill
+    c.alignment = Alignment(horizontal="left", wrap_text=True)
+    ws.merge_cells(
+        start_row=start_row, start_column=1,
+        end_row=start_row, end_column=6,
+    )
     start_row += 2
 
     return start_row, n_rendered

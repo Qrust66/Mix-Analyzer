@@ -295,6 +295,107 @@ def test_build_sheet_no_warning_when_all_tagged():
 # REGRESSION GUARD — WAV<->auto_map matching under TFP prefixes
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Phase B3 — TFP coherence block inside Mix Health Score
+# ---------------------------------------------------------------------------
+
+def test_mix_health_score_contains_tfp_coherence_block():
+    """Phase B3 integration: when sections carry track_roles, the Mix
+    Health Score sheet renders a 'Cohérence TFP par section' block."""
+    import sys as _sys
+    import types as _types
+    # Stub tkinter so generate_health_score_sheet import works headless.
+    if "tkinter" not in _sys.modules:
+        tk = _types.ModuleType("tkinter")
+        for _n in ("Tk", "StringVar", "BooleanVar", "IntVar", "Toplevel",
+                   "Frame", "Label", "Button", "Entry", "Canvas",
+                   "PhotoImage", "Widget", "Misc"):
+            setattr(tk, _n, type(_n, (), {}))
+        tk.TclError = Exception
+        _sys.modules["tkinter"] = tk
+        for sub in ("ttk", "filedialog", "messagebox", "scrolledtext", "font"):
+            _sys.modules[f"tkinter.{sub}"] = _types.ModuleType(f"tkinter.{sub}")
+            setattr(tk, sub, _sys.modules[f"tkinter.{sub}"])
+
+    from mix_analyzer import generate_health_score_sheet
+    from tfp_parser import Function, Importance
+
+    # Build a section with balanced roles so coherence score is high.
+    section = _make_section(1, 0, 14, -10.0)
+    section.end_seconds = 15.0
+    section.tracks_active = ["Kick", "Bass", "Pad", "Atmos"]
+    section.track_roles = {
+        "Kick":  (Importance.H, Function.R),
+        "Bass":  (Importance.S, Function.H),
+        "Pad":   (Importance.S, Function.M),
+        "Atmos": (Importance.A, Function.T),
+    }
+
+    # Minimal analyses_with_info — one Individual + one Full Mix. The
+    # Mix Health Score sheet is quite data-hungry; give it just enough
+    # to reach the TFP block without exploding on the earlier code.
+    import numpy as np
+    sr = 44100
+    audio = (np.random.default_rng(0)
+             .standard_normal((int(5 * sr), 2))
+             .astype(np.float32) * 0.2)
+    analysis_individual = {
+        "filepath": "Kick.wav", "filename": "Kick.wav",
+        "duration": 5.0, "sample_rate": sr,
+        "is_stereo": True, "num_channels": 2,
+        "loudness": {"lufs_integrated": -20.0, "peak_db": -6.0,
+                     "true_peak_db": -6.0, "rms_db": -20.0, "lra": 5.0,
+                     "crest_factor": 14.0, "plr": 14.0, "psr": 12.0,
+                     "lufs_short_term_max": -18.0},
+        "spectrum": {"band_energies": {}, "spectrum_db_normalized": np.zeros(10),
+                     "centroid": 1000.0, "spread": 500.0},
+        "stereo": {"is_stereo": True, "correlation": 0.5, "width_overall": 0.3,
+                   "width_per_band": {}, "pan_per_freq": None,
+                   "pan_freqs": None, "pan_energy": None,
+                   "mid": np.zeros(100), "side": np.zeros(100)},
+        "temporal": {"onsets": [], "tempogram": None,
+                     "tempogram_times": None},
+        "anomalies": [], "characteristics": {},
+        "_v25_features": None,
+        "_mono": np.zeros(int(5 * sr)),
+        "_data": audio,
+        "tempo": {"tempo_median": 120.0, "tempo_min": 120.0,
+                  "tempo_max": 120.0, "tempo_std": 0.0, "confidence": 0.0,
+                  "confidence_label": "", "tempogram": None,
+                  "tempogram_times": None, "tempo_over_time": None,
+                  "reliable": False},
+        "musical": {"key": "C", "scale": "major", "tonal_strength": 0.5,
+                    "chroma_mean": np.zeros(12)},
+        "multiband_timeline": {}, "dynamic_range_timeline": {},
+    }
+    analyses = [(analysis_individual, {"name": "Kick.wav",
+                                        "type": "Individual",
+                                        "category": "Drum", "parent_bus": "None"})]
+
+    from openpyxl import Workbook
+    wb = Workbook()
+    wb.active.title = "Index"
+    try:
+        generate_health_score_sheet(wb, analyses, sections=[section])
+    except Exception as e:
+        pytest.fail(f"generate_health_score_sheet raised: {type(e).__name__}: {e}")
+
+    ws = wb["Mix Health Score"]
+    dump = "\n".join(
+        " | ".join(str(c) for c in row if c is not None)
+        for row in ws.iter_rows(values_only=True)
+    )
+    assert "Cohérence TFP par section" in dump, (
+        f"coherence block missing:\n{dump}"
+    )
+    # Header row should include H/S/A + R/H/M/T + diagnostic
+    assert "H/S/A" in dump
+    assert "R/H/M/T" in dump
+    assert "H×H crit." in dump
+    # The balanced section above yields a score ≥ 80 -> "Équilibre OK"
+    assert "Équilibre OK" in dump
+
+
 def test_tfp_prefix_stripping_keeps_match_track_name_working():
     """Regression guard against the "-100 dB everywhere" bug class.
 
