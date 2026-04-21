@@ -598,6 +598,13 @@ RULE_SS_ZONE_CUT = "support_vs_support_secondary_cut_rule"
 RULE_SA_ZONE_CUT = "support_vs_atmos_zone_cut_rule"
 RULE_AA_NO_ACTION = "atmos_pair_no_action_rule"
 
+# B2a — accumulation detector: cut the lowest-importance tracks and
+# leave Hero tracks alone. When every track in the accumulation is
+# Hero, we produce an informational diagnostic with ``primary = None``
+# (same "no action" pattern as the A×A masking case).
+RULE_ACCUMULATION_CUT_LOW_IMPORTANCE = "accumulation_cut_low_importance_rule"
+RULE_ACCUMULATION_ALL_HERO_NO_ACTION = "accumulation_all_hero_no_action_rule"
+
 
 def _sections_list(diagnostic: "CorrectionDiagnostic") -> List[str]:
     """Return a single-element list with the diagnostic's section, or []."""
@@ -1302,6 +1309,22 @@ _OUTCOME_TEMPLATES: dict = {
             "A/B comparaison, vérifier que l'effet est audible",
         ],
     },
+    # B2a — accumulation-specific wording. Recipe.approach is still the
+    # plain ``static_dip`` EQ operation; the issue_type distinguishes
+    # accumulation-cuts so we get different FR wording (several tracks
+    # involved, no single "protected" counterpart).
+    "accumulation_static_dip": {
+        "expected": [
+            "[track_cut] libère de l'espace autour de [zone] dans [section]",
+            "L'accumulation devrait se démêler dans cette bande",
+        ],
+        "risks": [
+            "[track_cut] pourrait perdre en présence si le cut est trop marqué",
+        ],
+        "verification": [
+            "Écouter [section] — vérifier que la zone [zone] sonne plus aérée",
+        ],
+    },
 }
 
 
@@ -1401,7 +1424,17 @@ def populate_outcome_templates(
     if recipe is None:
         return
 
-    templates = _OUTCOME_TEMPLATES.get(recipe.approach)
+    # Accumulation diagnostics use the same ``static_dip`` EQ operation
+    # as a masking static_dip, but the wording needs to talk about
+    # several tracks piling up (not a single A-vs-B masking pair). We
+    # key the template lookup on issue_type here to keep recipe.approach
+    # aligned with the actual DSP action.
+    template_key = recipe.approach
+    if (diagnostic.issue_type == "accumulation_risk"
+            and recipe.approach == "static_dip"):
+        template_key = "accumulation_static_dip"
+
+    templates = _OUTCOME_TEMPLATES.get(template_key)
     if templates is None:
         return
 
@@ -1558,6 +1591,140 @@ def dump_diagnostics_to_json(
 
 
 # ---------------------------------------------------------------------------
+# Accumulation — diagnosis text + recommendation (B2a)
+# ---------------------------------------------------------------------------
+#
+# An accumulation is a multi-track pile-up (``section.accumulations``):
+# 6+ tracks sharing a narrow band for at least 3 consecutive buckets.
+# Unlike masking (pair-wise, A vs B), accumulations are N-wise so the
+# CorrectionDiagnostic shape adapts:
+#
+#   - ``track_a`` = primary cut target (the first lowest-importance track)
+#   - ``track_b`` = None (no pairwise counterpart)
+#   - ``measurement.peak_db`` = None (no single peak — multi-track)
+#   - ``measurement.masking_score`` = None (different issue shape)
+#
+# A second cut can be recommended via ``parameters.secondary_cut`` when
+# at least two non-Hero tracks are present. Hero tracks are never cut
+# by the accumulation rule — they fall into the matrix's "preserve
+# the signature" philosophy.
+
+# Importance priority for "cut me first" ranking — Atmos is most
+# expendable, Hero is preserved. Support sits in the middle.
+_ACCUMULATION_CUT_PRIORITY: dict = {
+    Importance.A: 0,
+    Importance.S: 1,
+    Importance.H: 2,
+}
+
+
+def _diagnosis_text_accumulation(
+    primary_target: str,
+    n_tracks: int,
+    freq_hz: float,
+    zone_label: str,
+    section_name: str,
+    project_stem: Optional[str] = None,
+) -> str:
+    """One-paragraph French explanation of an accumulation issue."""
+    target_clean = (
+        _clean_track_display_name(primary_target, project_stem) or primary_target
+    )
+    return (
+        f"Accumulation de {n_tracks} tracks autour de "
+        f"{int(round(freq_hz))} Hz ({zone_label}) dans {section_name}. "
+        f"Réduire {target_clean} libère de l'espace pour les autres "
+        f"éléments présents dans la zone."
+    )
+
+
+def _accumulation_severity(n_tracks: int, duration_buckets: int) -> str:
+    """Map (n_tracks, duration) to a severity label.
+
+    The detector's default gate is 6 tracks / 3 buckets → moderate
+    floor. Above 8 tracks OR 10 buckets the accumulation crosses into
+    critical territory (dense pile-up that won't resolve by itself).
+    """
+    if n_tracks >= 8 or duration_buckets >= 10:
+        return "critical"
+    return "moderate"
+
+
+def _accumulation_recommendation(
+    accumulation: dict,
+    section,
+    project_stem: Optional[str] = None,
+) -> Tuple[Optional[CorrectionRecipe], List[str]]:
+    """Pick up to two lowest-importance tracks and build a static_dip.
+
+    Returns ``(recipe_or_None, rules_applied)``. When every track in
+    the accumulation is Hero, returns ``(None, [RULE_ALL_HERO_NO_ACTION])``
+    — consistent with the A×A "no action" case in the masking matrix.
+    """
+    from tfp_parser import DEFAULT_ROLE
+
+    track_names = list(accumulation.get("track_names") or [])
+    if not track_names:
+        return None, []
+
+    track_roles = getattr(section, "track_roles", {}) or {}
+
+    def _priority(name: str):
+        role = track_roles.get(name, DEFAULT_ROLE)
+        return (_ACCUMULATION_CUT_PRIORITY.get(role[0], 3), name)
+
+    sorted_tracks = sorted(track_names, key=_priority)
+    cuttable = [
+        t for t in sorted_tracks
+        if track_roles.get(t, DEFAULT_ROLE)[0] is not Importance.H
+    ]
+    if not cuttable:
+        # Every track is Hero — do not cut, flag the awareness.
+        return None, [RULE_ACCUMULATION_ALL_HERO_NO_ACTION]
+
+    primary_target = cuttable[0]
+    secondary_target = cuttable[1] if len(cuttable) > 1 else None
+    freq = float(accumulation["freq_hz"])
+    section_name = getattr(section, "name", "") or ""
+
+    n_tracks = int(accumulation.get("n_tracks_simultaneous", len(track_names)))
+    primary_clean = (
+        _clean_track_display_name(primary_target, project_stem) or primary_target
+    )
+
+    params: dict = {
+        "frequency_hz":       freq,
+        "gain_db":            -3.0,
+        "q":                  3.0,
+        "active_in_sections": [section_name],
+    }
+    if secondary_target is not None:
+        params["secondary_cut"] = {
+            "track":          secondary_target,
+            "frequency_hz":   freq,
+            "gain_db":        -3.0,
+            "q":              3.0,
+        }
+
+    rationale = (
+        f"Accumulation de {n_tracks} tracks autour de "
+        f"{int(round(freq))} Hz — cut sur les tracks de plus basse "
+        f"importance TFP (primaire : {primary_clean}) pour libérer la "
+        f"bande sans toucher aux Hero."
+    )
+    recipe = CorrectionRecipe(
+        target_track=primary_target,
+        device="EQ8 — Peak Resonance",
+        approach="static_dip",
+        parameters=params,
+        applies_to_sections=[section_name],
+        rationale=rationale,
+        confidence="medium",
+    )
+    return recipe, [RULE_ACCUMULATION_CUT_LOW_IMPORTANCE]
+
+
+# ---------------------------------------------------------------------------
 # Public API — masking detector
 # ---------------------------------------------------------------------------
 
@@ -1695,6 +1862,176 @@ def detect_masking_conflicts(
         # B1c2b — fill the qualitative-impact lists (outcomes / risks /
         # verification) from the primary_correction's approach. Track
         # names in the substitutions get the same cleanup as the ID.
+        populate_outcome_templates(diag, project_stem=project_stem)
+
+        diagnostics.append(diag)
+
+    return diagnostics
+
+
+# ---------------------------------------------------------------------------
+# Public API — accumulation detector (B2a)
+# ---------------------------------------------------------------------------
+
+def detect_accumulation_risks(
+    section,
+    all_tracks_zone_energy: Optional[dict] = None,
+    ai_context: Optional[dict] = None,
+    project_stem: Optional[str] = None,
+) -> List[CorrectionDiagnostic]:
+    """Generate ``issue_type="accumulation_risk"`` diagnostics from
+    ``section.accumulations`` (persisted by B1a).
+
+    For each accumulation the recommendation cuts the two
+    lowest-importance tracks (Atmos first, then Support). Hero tracks
+    are never cut — when every track involved is Hero, we still emit a
+    diagnostic for awareness, with ``primary_correction = None`` and
+    ``rules_applied = [RULE_ACCUMULATION_ALL_HERO_NO_ACTION]``.
+
+    Protection rules (R1 / R2 / R3) run on the recommendation, same as
+    for masking diagnostics — ``section.track_energy`` feeds Rule 1's
+    priority-2 dom_band lookup when ``ai_context`` is ``None``.
+
+    Args:
+        section: A :class:`section_detector.Section` with
+            ``accumulations`` populated by
+            :func:`section_detector.build_sections_timeline_sheet`.
+        all_tracks_zone_energy: Optional WAV map — accumulations where
+            any track is absent from this map are skipped with a
+            warning log (Risque 7).
+        ai_context: Optional AI Context dict for R1 dom_band lookup.
+        project_stem: Optional project prefix stripped from user-facing
+            names (see :func:`_clean_track_display_name`).
+
+    Returns:
+        One :class:`CorrectionDiagnostic` per accumulation (in
+        section.accumulations' order). Empty list when the section has
+        no accumulations.
+    """
+    accumulations = getattr(section, "accumulations", None) or []
+    if not accumulations:
+        return []
+
+    section_ctx = _section_context(section)
+    section_span = max(
+        int(getattr(section, "end_bucket", 0))
+        - int(getattr(section, "start_bucket", 0)) + 1,
+        1,
+    )
+    section_duration_s = float(
+        getattr(section, "end_seconds", 0.0)
+        - getattr(section, "start_seconds", 0.0)
+    )
+    now = datetime.now()
+    diagnostics: List[CorrectionDiagnostic] = []
+
+    for accumulation in accumulations:
+        track_names = list(accumulation.get("track_names") or [])
+        if not track_names:
+            continue
+
+        # Risque 7 — skip accumulations where any track is MIDI-without-WAV.
+        if all_tracks_zone_energy is not None:
+            missing = [t for t in track_names if t not in all_tracks_zone_energy]
+            if missing:
+                logger.warning(
+                    "CDE: skipping accumulation at %s Hz — tracks missing "
+                    "from WAV map: %s",
+                    accumulation.get("freq_hz"), missing,
+                )
+                continue
+
+        recipe, rules = _accumulation_recommendation(
+            accumulation, section, project_stem=project_stem,
+        )
+        # Diagnostic always references the primary target — the first
+        # cuttable track, or the first accumulation track when all are
+        # Hero (so the user still sees who is involved).
+        primary_target = (
+            recipe.target_track if recipe is not None else track_names[0]
+        )
+
+        n_tracks = int(accumulation.get(
+            "n_tracks_simultaneous", len(track_names),
+        ))
+        duration_buckets = int(accumulation.get("duration_buckets", 0))
+        severity = _accumulation_severity(n_tracks, duration_buckets)
+
+        freq_hz = float(accumulation.get("freq_hz", 0.0))
+        zone_label = _resolve_zone_label_for_freq(freq_hz)
+
+        # Measurement — multi-track accumulation: no single peak, no
+        # masking score. severity_score scales with n_tracks, capped 1.
+        duration_ratio = min(1.0, duration_buckets / section_span)
+        measurement = ProblemMeasurement(
+            frequency_hz=freq_hz,
+            peak_db=None,
+            duration_in_section_s=section_duration_s * duration_ratio,
+            duration_ratio_in_section=duration_ratio,
+            is_audible_fraction=1.0,
+            severity_score=min(1.0, n_tracks / 10.0),
+            masking_score=None,
+        )
+
+        # TFP context — the primary target's role, no pair.
+        from tfp_parser import DEFAULT_ROLE
+        track_roles = getattr(section, "track_roles", {}) or {}
+        target_role = track_roles.get(primary_target, DEFAULT_ROLE)
+        tfp_ctx = TFPContext(
+            track_a_role=target_role,
+            track_b_role=None,
+            role_compatibility="compatible",
+        )
+
+        diag_id = generate_diagnostic_id(
+            issue_type="accumulation_risk",
+            section=section_ctx.section_name,
+            track_a=(
+                _clean_track_display_name(primary_target, project_stem)
+                or primary_target
+            ),
+            track_b=None,
+            frequency_hz=freq_hz,
+        )
+        diagnosis_text = _diagnosis_text_accumulation(
+            primary_target=primary_target,
+            n_tracks=n_tracks,
+            freq_hz=freq_hz,
+            zone_label=zone_label,
+            section_name=section_ctx.section_name,
+            project_stem=project_stem,
+        )
+
+        diag = CorrectionDiagnostic(
+            diagnostic_id=diag_id,
+            timestamp=now,
+            cde_version=CDE_VERSION,
+            track_a=primary_target,
+            track_b=None,
+            section=section_ctx.section_name,
+            issue_type="accumulation_risk",
+            severity=severity,
+            measurement=measurement,
+            tfp_context=tfp_ctx,
+            section_context=section_ctx,
+            diagnosis_text=diagnosis_text,
+            data_sources=[
+                "Sections Timeline:ACCUMULATIONS",
+                "Section.track_roles (Feature 3.5)",
+            ],
+        )
+        diag.rules_applied = list(rules)
+
+        # Protection rules — may cap or invalidate (R2 will skip an
+        # accumulation cut on H/R in Sub, matching the masking logic).
+        zone_energy = getattr(section, "track_energy", {}) or {}
+        diag.primary_correction = apply_protection_rules(
+            diag, recipe, ai_context=ai_context, zone_energy=zone_energy,
+        )
+        diag.fallback_correction = None  # no fallback for accumulations in B2a
+
+        # Outcome templates — keyed on issue_type so "static_dip" maps
+        # to the accumulation-specific wording, not the masking one.
         populate_outcome_templates(diag, project_stem=project_stem)
 
         diagnostics.append(diag)

@@ -7787,6 +7787,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                     # produces the JSON artefact.
                     try:
                         from cde_engine import (
+                            detect_accumulation_risks,
                             detect_masking_conflicts,
                             dump_diagnostics_to_json,
                             infer_project_stem,
@@ -7798,13 +7799,22 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                         _cde_project_stem = infer_project_stem(
                             list(all_tracks_zone_energy.keys())
                         )
-                        _cde_diags = []
+                        _cde_masking = []
+                        _cde_accum = []
                         for _s in sections:
-                            _cde_diags.extend(detect_masking_conflicts(
+                            _cde_masking.extend(detect_masking_conflicts(
                                 _s,
                                 all_tracks_zone_energy=all_tracks_zone_energy,
                                 project_stem=_cde_project_stem or None,
                             ))
+                            # B2a — accumulation diagnostics from
+                            # section.accumulations (persisted by B1a).
+                            _cde_accum.extend(detect_accumulation_risks(
+                                _s,
+                                all_tracks_zone_energy=all_tracks_zone_energy,
+                                project_stem=_cde_project_stem or None,
+                            ))
+                        _cde_diags = _cde_masking + _cde_accum
                         if als_path:
                             _cde_json_path = Path(als_path).with_name(
                                 f"{Path(als_path).stem}_diagnostics.json"
@@ -7813,15 +7823,17 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                                 _cde_diags, _cde_json_path,
                             )
                             log_fn(
-                                f"    Feature 3.6: {len(_cde_diags)} masking "
-                                f"diagnostics written to "
-                                f"{_cde_json_path.name}"
+                                f"    Feature 3.6: "
+                                f"{len(_cde_masking)} masking + "
+                                f"{len(_cde_accum)} accumulation diagnostics "
+                                f"written to {_cde_json_path.name}"
                             )
                         else:
                             log_fn(
-                                f"    Feature 3.6: {len(_cde_diags)} masking "
-                                f"diagnostics generated (no .als path — JSON "
-                                f"not written)"
+                                f"    Feature 3.6: "
+                                f"{len(_cde_masking)} masking + "
+                                f"{len(_cde_accum)} accumulation diagnostics "
+                                f"generated (no .als path — JSON not written)"
                             )
                     except Exception as e:
                         log_fn(
