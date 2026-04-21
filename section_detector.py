@@ -1635,6 +1635,56 @@ def _warn_non_individual_tracks(
     )
 
 
+def _override_tracks_active_with_meter_filter(
+    sections: List[Section],
+    *,
+    all_tracks_zone_energy: dict,
+    all_tracks_peak_by_section: Optional[dict],
+    all_tracks_active_fraction: Optional[dict],
+    min_active_fraction_for_listing: float,
+) -> None:
+    """Re-populate ``section.tracks_active`` using the PEAK MAX gate.
+
+    A track is "active in the section" when BOTH:
+      * its pre-computed fader-equivalent peak (TRACK PEAK) exceeds
+        :data:`SECTION_LISTING_THRESHOLD_DB` (-60 dB by default), AND
+      * its meter-based active fraction for the section is >=
+        ``min_active_fraction_for_listing`` (default 0.10 = 10%).
+
+    This is the EXACT same rule used in :func:`_peak_max_per_track`, so
+    the count of ``section.tracks_active`` matches the number of rows the
+    user reads in the PEAK MAX block — which in turn matches the H/S/A
+    total in the Score TFP block and the "Tracks" column in the Vue
+    Maître. Single source of truth.
+
+    When the meter-based pre-computed dicts are unavailable (tests
+    without a mix_analyzer pre-compute, legacy runs), the function is a
+    no-op and the bucket-based list populated by
+    :func:`enrich_sections_with_track_stats` is left in place — ensuring
+    backwards compatibility.
+    """
+    if all_tracks_peak_by_section is None and all_tracks_active_fraction is None:
+        return  # Legacy path — keep bucket-based tracks_active as-is.
+    if all_tracks_peak_by_section is None or all_tracks_active_fraction is None:
+        # Half-populated dicts would produce a silently inconsistent
+        # override. Require both.
+        return
+
+    for section in sections:
+        new_active: List[str] = []
+        for track_name in all_tracks_zone_energy.keys():
+            per_peak = all_tracks_peak_by_section.get(track_name) or {}
+            tp = per_peak.get(section.index)
+            if tp is None or tp < SECTION_LISTING_THRESHOLD_DB:
+                continue
+            per_af = all_tracks_active_fraction.get(track_name) or {}
+            afrac = per_af.get(section.index, 0.0)
+            if afrac < min_active_fraction_for_listing:
+                continue
+            new_active.append(track_name)
+        section.tracks_active = new_active
+
+
 def _detect_tracks_without_prefix(wav_to_ableton: dict) -> List[str]:
     """Return WAV filenames whose Ableton track has no TFP prefix.
 
@@ -1724,6 +1774,30 @@ def build_sections_timeline_sheet(
         all_tracks_zone_energy,
         presence_threshold_db=presence_threshold_db,
         min_presence_ratio=min_presence_ratio,
+    )
+
+    # v2.6.x — unify the "tracks active in section" definition.
+    # `enrich_sections_with_track_stats` populates ``section.tracks_active``
+    # with the bucket-based rule (-30 dB presence, 20% of buckets in any
+    # zone). The PEAK MAX block has been using a different, meter-based
+    # rule (TRACK PEAK > -60 dB + meter-based active_fraction >= 10%)
+    # since v2.6.5, producing a larger and more perceptually accurate
+    # set. That asymmetry left Vue Maître, Score TFP and the header
+    # counter showing a smaller number of tracks than the user reads in
+    # the PEAK MAX block (bug report by Alexandre, 2026-04-21).
+    # Fix: override ``section.tracks_active`` with the meter-based list
+    # so every downstream consumer — Vue Maître count, Score TFP,
+    # observations, Feature 3.6 CDE — sees the same source of truth.
+    # ``track_energy`` and ``track_presence`` are preserved (still needed
+    # for the per-zone dominants block and conflict detection).
+    # Fallback to the bucket-based list when meter data is unavailable
+    # (legacy path / tests without a mix_analyzer pre-compute).
+    _override_tracks_active_with_meter_filter(
+        sections,
+        all_tracks_zone_energy=all_tracks_zone_energy,
+        all_tracks_peak_by_section=all_tracks_peak_by_section,
+        all_tracks_active_fraction=all_tracks_active_fraction,
+        min_active_fraction_for_listing=min_active_fraction_for_listing,
     )
 
     # Feature 3.5 — resolve TFP roles per section from the Ableton track

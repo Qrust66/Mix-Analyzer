@@ -396,6 +396,99 @@ def test_mix_health_score_contains_tfp_coherence_block():
     assert "Équilibre OK" in dump
 
 
+def test_tracks_active_matches_peak_max_gate_for_coherent_counters():
+    """Regression guard for the 3-counter coherence bug (Alexandre,
+    2026-04-21).
+
+    Contract: after ``build_sections_timeline_sheet`` runs,
+    ``len(section.tracks_active)`` must equal the number of rows the
+    PEAK MAX block would render for that section AND the H+S+A total
+    reported by the Score TFP. Prior to this fix, ``tracks_active`` was
+    bucket-based (-30 dB / 20% presence) while the PEAK MAX gate was
+    meter-based (-40 dB / 10% active_fraction) — the PEAK MAX block
+    listed up to 2 extra tracks per section that Vue Maître and Score
+    TFP ignored.
+
+    The test drives ``build_sections_timeline_sheet`` with carefully
+    crafted pre-computes so one track ("Quiet") passes the meter-based
+    PEAK MAX gate (15% active, TRACK PEAK -25 dB) but fails the
+    bucket-based gate (zone energy below -30 dB). Post-fix, that track
+    must appear in ``section.tracks_active``.
+    """
+    from openpyxl import Workbook
+    from section_detector import (
+        SECTION_LISTING_THRESHOLD_DB,
+        build_sections_timeline_sheet,
+    )
+
+    n = 20
+    # Kick is "loud" on the bucket gate (well above -30 dB)
+    # Quiet is BELOW the bucket gate (-80 dB zone energy) but passes
+    # the meter gate (15% active, TRACK PEAK = -25 dB > -60 dB).
+    sections = [_make_section(1, 0, n - 1, total_energy_db=-10.0)]
+    all_tracks = {
+        "Kick.wav":  _zone_arrays_for(-5.0,  n, ["sub", "low"]),
+        "Quiet.wav": _zone_arrays_for(-80.0, n, ["mid"]),  # below bucket gate
+    }
+    peak_by_section = {
+        "Kick.wav":  {1: -10.0},
+        "Quiet.wav": {1: -25.0},  # above -60 dB listing threshold
+    }
+    active_fraction = {
+        "Kick.wav":  {1: 0.95},
+        "Quiet.wav": {1: 0.15},  # passes 10% meter gate
+    }
+
+    wb = Workbook()
+    wb.active.title = "Index"
+    build_sections_timeline_sheet(
+        workbook=wb,
+        sections=sections,
+        all_tracks_zone_energy=all_tracks,
+        all_tracks_peak_by_section=peak_by_section,
+        all_tracks_active_fraction=active_fraction,
+    )
+
+    section = sections[0]
+    # Without the fix, bucket-based enrichment would set tracks_active = ["Kick.wav"]
+    # only (Quiet has zone energy at -80 dB). With the fix, both pass.
+    assert "Quiet.wav" in section.tracks_active, (
+        "Quiet.wav passes the meter-based PEAK MAX gate (TP=-25 dB, "
+        "active_fraction=15%) but was filtered out of tracks_active — "
+        "the bucket-based override did not run correctly."
+    )
+    assert "Kick.wav" in section.tracks_active
+    assert len(section.tracks_active) == 2
+
+
+def test_tracks_active_fallback_stays_bucket_based_when_meter_dicts_absent():
+    """Backwards compatibility: when no PEAK MAX pre-computes are passed,
+    ``section.tracks_active`` stays bucket-based
+    (``enrich_sections_with_track_stats`` result), so existing callers
+    and tests without a mix_analyzer pre-compute pipeline keep working."""
+    from openpyxl import Workbook
+    from section_detector import build_sections_timeline_sheet
+
+    n = 20
+    sections = [_make_section(1, 0, n - 1, total_energy_db=-10.0)]
+    all_tracks = {
+        "Kick.wav":  _zone_arrays_for(-5.0,  n, ["sub"]),
+        "Quiet.wav": _zone_arrays_for(-80.0, n, ["mid"]),
+    }
+
+    wb = Workbook()
+    wb.active.title = "Index"
+    build_sections_timeline_sheet(
+        workbook=wb,
+        sections=sections,
+        all_tracks_zone_energy=all_tracks,
+        all_tracks_peak_by_section=None,       # legacy path
+        all_tracks_active_fraction=None,
+    )
+    # Bucket-based: Kick is active, Quiet is not. Override did not run.
+    assert sections[0].tracks_active == ["Kick.wav"]
+
+
 def test_tfp_prefix_stripping_keeps_match_track_name_working():
     """Regression guard against the "-100 dB everywhere" bug class.
 
