@@ -38,6 +38,85 @@ from tkinter import ttk, filedialog, messagebox, scrolledtext
 VERSION = '2.6.0'
 
 
+# Production Python modules whose version / content hash we stamp into the
+# Excel report. When debugging "did the user run the report with the
+# right code?" — this lets us confirm in 2 seconds by reading the Index
+# sheet's Build Info block instead of guessing from filename timestamps.
+_BUILD_STAMPED_MODULES = [
+    'mix_analyzer.py',
+    'section_detector.py',
+    'tfp_parser.py',
+    'tfp_coherence.py',
+    'automation_map.py',
+    'als_utils.py',
+    'feature_storage.py',
+    'spectral_evolution.py',
+    'user_config.py',
+    'eq8_automation.py',
+]
+
+
+def _get_build_info():
+    """Return a dict snapshotting the code state that produced the report.
+
+    Keys:
+        version         : VERSION constant (release tag)
+        git_sha         : short git SHA of HEAD or 'unknown'
+        git_dirty       : True if the working tree has uncommitted changes
+        timestamp       : report generation timestamp (ISO 8601)
+        module_hashes   : {module_filename: md5_short} for a fixed list of
+                          production modules. A user comparing two reports
+                          can see at a glance which module changed between
+                          runs — much cheaper than diffing the .py files.
+
+    Failures are absorbed: any step that can't collect its info returns a
+    sentinel string (``'unknown'`` / ``None``) so the report build never
+    aborts because of a missing git binary or a file read error.
+    """
+    import hashlib
+    import subprocess
+    from datetime import datetime
+
+    repo_root = os.path.dirname(os.path.abspath(__file__))
+
+    # Git SHA (short)
+    git_sha = 'unknown'
+    git_dirty = False
+    try:
+        result = subprocess.run(
+            ['git', 'rev-parse', '--short', 'HEAD'],
+            cwd=repo_root, capture_output=True, text=True, timeout=2,
+        )
+        if result.returncode == 0:
+            git_sha = result.stdout.strip() or 'unknown'
+        status = subprocess.run(
+            ['git', 'status', '--porcelain'],
+            cwd=repo_root, capture_output=True, text=True, timeout=2,
+        )
+        if status.returncode == 0 and status.stdout.strip():
+            git_dirty = True
+    except Exception:
+        pass
+
+    # Per-module MD5 (first 8 chars) — detects edits even if git is absent.
+    module_hashes = {}
+    for fname in _BUILD_STAMPED_MODULES:
+        fpath = os.path.join(repo_root, fname)
+        try:
+            with open(fpath, 'rb') as f:
+                module_hashes[fname] = hashlib.md5(f.read()).hexdigest()[:8]
+        except Exception:
+            module_hashes[fname] = 'missing'
+
+    return {
+        'version': VERSION,
+        'git_sha': git_sha,
+        'git_dirty': git_dirty,
+        'timestamp': datetime.now().isoformat(timespec='seconds'),
+        'module_hashes': module_hashes,
+    }
+
+
 # Persisted last-used paths across runs (input/output/.als) — helpers live in
 # a tiny dependency-free module so they stay testable without the audio stack.
 from user_config import load_user_paths as _load_user_paths
@@ -6575,6 +6654,66 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
         link_cell = ws_index.cell(row=row, column=5, value=special_name)
         link_cell.font = Font(name='Calibri', size=10, color='00D9FF', underline='single')
         link_cell.hyperlink = f"#{special_name}!A1"
+        row += 1
+
+    # ---- Build Info block (v2.6.1) ----
+    # Stamps the exact code state (git SHA + per-module MD5) that produced
+    # this report. When diagnosing "did the user run with the latest
+    # code?", the answer is here in 2 seconds instead of a half-hour of
+    # git log detective work against filename timestamps.
+    row += 2
+    build_info = _get_build_info()
+    c = ws_index.cell(row=row, column=1, value='Build Info')
+    c.font = accent_font
+    c.fill = panel_fill
+    c.border = thin_border
+    ws_index.merge_cells(
+        start_row=row, start_column=1, end_row=row, end_column=5
+    )
+    row += 1
+
+    _build_rows = [
+        ('Version',  build_info['version']),
+        ('Git SHA',  build_info['git_sha'] + (
+            ' (dirty working tree)' if build_info['git_dirty'] else ''
+        )),
+        ('Generated', build_info['timestamp']),
+    ]
+    for label, value in _build_rows:
+        c = ws_index.cell(row=row, column=1, value=label)
+        c.font = dim_font
+        c.fill = panel_fill
+        c.border = thin_border
+        c = ws_index.cell(row=row, column=2, value=str(value))
+        c.font = data_font
+        c.fill = panel_fill
+        c.border = thin_border
+        ws_index.merge_cells(
+            start_row=row, start_column=2, end_row=row, end_column=5
+        )
+        row += 1
+
+    # Module hashes — one row per stamped .py file, short MD5 for quick
+    # visual comparison between two reports.
+    row += 1
+    c = ws_index.cell(row=row, column=1, value='Module')
+    c.font = header_font
+    c.fill = header_fill
+    c.border = thin_border
+    c = ws_index.cell(row=row, column=2, value='MD5 (8)')
+    c.font = header_font
+    c.fill = header_fill
+    c.border = thin_border
+    row += 1
+    for mod_name, md5_short in build_info['module_hashes'].items():
+        c = ws_index.cell(row=row, column=1, value=mod_name)
+        c.font = data_font
+        c.fill = panel_fill
+        c.border = thin_border
+        c = ws_index.cell(row=row, column=2, value=md5_short)
+        c.font = data_font
+        c.fill = panel_fill
+        c.border = thin_border
         row += 1
 
     ws_index.column_dimensions['B'].width = 45
