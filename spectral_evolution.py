@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Spectral Evolution Engine — v2.6.0
+Spectral Evolution Engine — v2.7.0
 
 Generates a transient CQT matrix from audio and extracts compact features
 (zone energy, spectral descriptors, trajectories, transients) that downstream

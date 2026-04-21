@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Mix Analyzer v2.6.0 - Visual audio mix analysis tool
+Mix Analyzer v2.7.0 - Visual audio mix analysis tool
 Generates detailed Excel reports for audio tracks to aid mixing and mastering decisions.
 
 Usage:
@@ -35,7 +35,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 
 
-VERSION = '2.6.0'
+VERSION = '2.7.0'
 
 
 # Production Python modules whose version / content hash we stamp into the
@@ -47,6 +47,7 @@ _BUILD_STAMPED_MODULES = [
     'section_detector.py',
     'tfp_parser.py',
     'tfp_coherence.py',
+    'cde_engine.py',
     'automation_map.py',
     'als_utils.py',
     'feature_storage.py',
@@ -7775,6 +7776,51 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                         _xl_append_index_link(
                             wb['Index'], SECTIONS_TIMELINE_SHEET_NAME
                         )
+
+                    # ---- Feature 3.6 (v2.7.0): CDE masking diagnostics ----
+                    # Every Section now carries a persisted .conflicts list
+                    # (cf. section_detector B1a). Hand them to the CDE to get
+                    # structured diagnostics (primary / fallback corrections,
+                    # protection rules, FR outcome templates) and dump them
+                    # to a JSON file next to the .als, per spec §9.1. The
+                    # Excel sheet + summary block ship in B2; B1 only
+                    # produces the JSON artefact.
+                    try:
+                        from cde_engine import (
+                            detect_masking_conflicts,
+                            dump_diagnostics_to_json,
+                        )
+                        _cde_diags = []
+                        for _s in sections:
+                            _cde_diags.extend(detect_masking_conflicts(
+                                _s,
+                                all_tracks_zone_energy=all_tracks_zone_energy,
+                            ))
+                        if als_path:
+                            _cde_json_path = Path(als_path).with_name(
+                                f"{Path(als_path).stem}_diagnostics.json"
+                            )
+                            dump_diagnostics_to_json(
+                                _cde_diags, _cde_json_path,
+                            )
+                            log_fn(
+                                f"    Feature 3.6: {len(_cde_diags)} masking "
+                                f"diagnostics written to "
+                                f"{_cde_json_path.name}"
+                            )
+                        else:
+                            log_fn(
+                                f"    Feature 3.6: {len(_cde_diags)} masking "
+                                f"diagnostics generated (no .als path — JSON "
+                                f"not written)"
+                            )
+                    except Exception as e:
+                        log_fn(
+                            f"    Feature 3.6: failed: "
+                            f"{type(e).__name__}: {e}"
+                        )
+                        import traceback as _tb
+                        _tb.print_exc()
             else:
                 log_fn("    Feature 3: no delta_spectrum available — skipped")
         except Exception as e:

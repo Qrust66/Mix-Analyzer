@@ -2,8 +2,10 @@
 
 ## Projet
 
-Mix Analyzer v2.6.0 — Outil d'analyse audio qui génère des rapports Excel
-et des automations EQ8 dynamiques pour Ableton Live.
+Mix Analyzer v2.7.0 — Outil d'analyse audio qui génère des rapports Excel
+et des automations EQ8 dynamiques pour Ableton Live. Depuis v2.7.0, produit
+également un fichier `<projet>_diagnostics.json` à côté du `.als` via le
+Correction Diagnostic Engine (Feature 3.6 B1, cf. `cde_engine.py`).
 
 ## Versioning
 
@@ -19,6 +21,8 @@ Endroits à maintenir synchronisés si la version change :
 - `feature_storage.py` docstring ligne 4
 - `eq8_automation.py` docstring ligne 4
 - `automation_map.py` docstring ligne 4
+- `section_detector.py` docstring ligne 4
+- `cde_engine.py` docstring ligne 4 (depuis v2.7.0)
 
 La version est estampillée dans chaque rapport Excel (Index + AI Context).
 Ne jamais laisser des versions désynchronisées entre fichiers.
@@ -36,15 +40,18 @@ Ne jamais laisser des versions désynchronisées entre fichiers.
   2. Je push sur GitHub quand c'est prêt
   3. L'utilisateur fait **Pull** dans GitHub Desktop → fichiers locaux à jour
 
-## Fichiers de production (5 fichiers, même dossier)
+## Fichiers de production (8 fichiers, même dossier)
 
 | Fichier | Rôle |
 |---------|------|
-| `mix_analyzer.py` | App principale (UI tkinter + analyse + rapport Excel) |
+| `mix_analyzer.py` | App principale (UI tkinter + analyse + rapport Excel + orchestration CDE depuis v2.7.0) |
 | `spectral_evolution.py` | Moteur CQT + extraction features v2.5 |
 | `feature_storage.py` | Écriture des sheets cachés Excel v2.5 |
 | `als_utils.py` | Manipulation des fichiers .als (lecture/écriture EQ8) |
 | `eq8_automation.py` | 15 fonctions d'automation EQ8 dynamique |
+| `section_detector.py` | Détection / lecture des sections Ableton + sheet Sections Timeline (Feature 3/3.5/3.6 hooks) |
+| `tfp_parser.py` + `tfp_coherence.py` | TFP roles (Feature 3.5) — parsing + score de cohérence par section |
+| `cde_engine.py` | Correction Diagnostic Engine (Feature 3.6 B1) — diagnostics masking + JSON dump |
 
 ## Tests
 

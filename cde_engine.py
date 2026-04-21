@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-cde_engine.py — Correction Diagnostic Engine (Feature 3.6).
+Correction Diagnostic Engine — v2.7.0 — Feature 3.6 (B1 complete).
 
 The CDE produces structured correction diagnostics for the problems
 already measured by Mix Analyzer (conflicts, accumulations, …) and the
