@@ -309,17 +309,25 @@ def test_detect_masking_conflicts_produces_one_diagnostic_per_conflict():
     assert d.rejection_reason is None
 
 
-def test_detect_masking_conflicts_impact_fields_are_empty_in_b1c1():
-    """B1c1 contract: the qualitative-impact fields (expected_outcomes,
-    potential_risks, verification_steps) stay empty — they ship in B1c2
-    alongside the protection rules. The recommendation fields are
-    covered by a dedicated B1c1 test (see test_cde_b1c1.py)."""
+def test_detect_masking_conflicts_impact_fields_are_populated_after_b1c2b():
+    """Inverted from the B1c1 contract: qualitative-impact fields
+    (expected_outcomes, potential_risks, verification_steps) are now
+    populated by B1c2b's outcome templates. The H/R × S/H conflict
+    resolves to sidechain on Sub Bass, so the outcome templates should
+    mention "Kick 1" (the trigger gains punch) and "Sub Bass" (the
+    ducked track) with the section name injected."""
     s = _section_with_one_conflict()
     diags = detect_masking_conflicts(s)
     assert len(diags) == 1
-    assert diags[0].expected_outcomes == []
-    assert diags[0].potential_risks == []
-    assert diags[0].verification_steps == []
+    d = diags[0]
+    assert d.expected_outcomes, "sidechain primary must trigger outcome template"
+    assert d.potential_risks
+    assert d.verification_steps
+    # Substitution wiring: trigger ("Kick 1") lands in outcomes,
+    # the ducked track ("Sub Bass") lands in risks, section name too.
+    assert any("Kick 1" in line for line in d.expected_outcomes)
+    assert any("Sub Bass" in line for line in d.potential_risks)
+    assert any("Drop 1" in line for line in d.expected_outcomes)
 
 
 def test_detect_masking_conflicts_skips_midi_tracks_without_wav():

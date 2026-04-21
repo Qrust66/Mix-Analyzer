@@ -15,11 +15,12 @@ This module is shipped in three sub-commits:
       CorrectionDiagnostic instances with ``primary_correction = None``
       and ``fallback_correction = None``.
     * B1c1: recommendation matrix + fallback table.
-    * B1c2 (this commit): §6.3 protection rules (signature frequency,
-      sub integrity, role-appropriate max cut), ``apply_protection_rules``
-      orchestrator, qualitative-impact templates (expected_outcomes,
-      potential_risks, verification_steps), and
-      ``dump_diagnostics_to_json``.
+    * B1c2a: §6.3 protection rules (signature frequency, sub integrity,
+      role-appropriate max cut) + ``apply_protection_rules`` orchestrator
+      + coherence-invariance test against tfp_coherence.
+    * B1c2b (this commit): qualitative-impact templates
+      (``expected_outcomes`` / ``potential_risks`` / ``verification_steps``)
+      and ``dump_diagnostics_to_json``.
     * B2+: accumulation detector, Excel sheet, richer JSON with summary.
 
 Design invariants:
@@ -1111,6 +1112,316 @@ def apply_protection_rules(
 
 
 # ---------------------------------------------------------------------------
+# Qualitative-impact templates (§7)
+# ---------------------------------------------------------------------------
+#
+# Each approach gets three parallel lists of French one-liners — what
+# the engineer should expect, what could go wrong, and how to verify
+# the correction audibly. Templates use bracketed placeholders that
+# :func:`_substitute_placeholders` resolves against the diagnostic +
+# recipe pair.
+#
+# Placeholder semantics:
+#   [track_a]        — for sidechain: the trigger (gains punch).
+#                      For other cut approaches: diagnostic.track_a.
+#   [track_b]        — for sidechain: the ducked track (the recipe's
+#                      target_track). For other approaches: diagnostic.track_b.
+#   [track_cut]      — the track being cut (recipe.target_track).
+#   [track_protected]— the other track in the conflict (the one that
+#                      benefits from the correction).
+#   [section]        — diagnostic.section, falling back to "la section".
+#   [zone]           — human-readable zone label derived from the
+#                      recipe's frequency_hz via ZONE_CENTER_HZ.
+#
+# Approaches not listed here (or a ``None`` recommendation) yield empty
+# lists — no made-up text.
+
+_OUTCOME_TEMPLATES: dict = {
+    "sidechain": {
+        "expected": [
+            "Le [track_a] aura plus de punch dans [section]",
+            "Le sub-mix sera plus propre pendant les frappes",
+        ],
+        "risks": [
+            "Pumping audible si le release est trop long",
+            "[track_b] pourrait paraître moins soutenu",
+        ],
+        "verification": [
+            "Écouter [section], vérifier que [track_b] respire entre les frappes",
+            "A/B comparaison avant/après",
+        ],
+    },
+    "reciprocal_cuts": {
+        "expected": [
+            "Les deux tracks auront chacune leur espace spectral",
+        ],
+        "risks": [
+            "Les deux pourraient perdre en présence si le cut est trop profond",
+        ],
+        "verification": [
+            "A/B comparaison avant/après",
+            "Vérifier que chaque track garde son character",
+        ],
+    },
+    "static_dip": {
+        "expected": [
+            "[track_cut] laissera plus d'espace dans la zone [zone]",
+        ],
+        "risks": [
+            "[track_cut] pourrait perdre du body dans [zone]",
+        ],
+        "verification": [
+            "Écouter [section], vérifier que [track_protected] respire mieux",
+        ],
+    },
+    "musical_dip": {
+        "expected": [
+            "Correction douce, le character de [track_cut] est préservé",
+        ],
+        "risks": [
+            "Effet subtil, peut être insuffisant si le conflit est sévère",
+        ],
+        "verification": [
+            "A/B comparaison, vérifier que l'effet est audible",
+        ],
+    },
+}
+
+
+def _resolve_zone_label_for_freq(freq_hz: Optional[float]) -> str:
+    """Return a human-readable zone label for a recipe frequency.
+
+    The recipe's ``frequency_hz`` is always a zone midpoint from
+    :data:`ZONE_CENTER_HZ`, so the reverse lookup is exact — no range
+    matching. Falls back to a generic label if the freq doesn't match.
+    """
+    if freq_hz is None:
+        return "la bande concernée"
+    zone_key = _HZ_TO_ZONE.get(float(freq_hz))
+    if zone_key is None:
+        return "la bande concernée"
+    return get_zone_label(zone_key)
+
+
+def _substitute_placeholders(
+    template: str,
+    diagnostic: CorrectionDiagnostic,
+    recipe: CorrectionRecipe,
+) -> str:
+    """Render ``template`` against ``(diagnostic, recipe)``.
+
+    Sidechain needs special handling because the template's
+    ``[track_a]`` / ``[track_b]`` refer to trigger / ducked semantics,
+    not to the diagnostic's raw track_a / track_b ordering.
+    """
+    track_a = diagnostic.track_a
+    track_b = diagnostic.track_b or ""
+    section = diagnostic.section or "la section"
+    freq = diagnostic.measurement.frequency_hz if diagnostic.measurement else None
+    zone_label = _resolve_zone_label_for_freq(freq)
+
+    target = recipe.target_track
+    # "Protected" is the other track in the conflict — the one that
+    # benefits from the correction.
+    if target == track_a:
+        protected = track_b
+    elif target == track_b:
+        protected = track_a
+    else:
+        protected = track_a  # fallback — shouldn't normally happen
+
+    if recipe.approach == "sidechain":
+        trigger = recipe.parameters.get("trigger_track", "") or ""
+        sub_a = trigger
+        sub_b = target
+    else:
+        sub_a = track_a
+        sub_b = track_b
+
+    replacements = {
+        "[track_a]":         sub_a,
+        "[track_b]":         sub_b,
+        "[track_cut]":       target,
+        "[track_protected]": protected,
+        "[section]":         section,
+        "[zone]":            zone_label,
+    }
+    out = template
+    for placeholder, value in replacements.items():
+        out = out.replace(placeholder, str(value))
+    return out
+
+
+def populate_outcome_templates(diagnostic: CorrectionDiagnostic) -> None:
+    """Fill ``expected_outcomes`` / ``potential_risks`` / ``verification_steps``
+    on the diagnostic using the primary_correction's approach.
+
+    Uses the primary correction by default (the user's first-choice
+    path). When primary is ``None`` — for example R2 skipped a Sub-zone
+    cut on Hero Rhythm — the lists stay empty: there is no concrete
+    action to describe outcomes for.
+    """
+    recipe = diagnostic.primary_correction
+    if recipe is None:
+        return
+
+    templates = _OUTCOME_TEMPLATES.get(recipe.approach)
+    if templates is None:
+        return
+
+    diagnostic.expected_outcomes = [
+        _substitute_placeholders(t, diagnostic, recipe)
+        for t in templates.get("expected", [])
+    ]
+    diagnostic.potential_risks = [
+        _substitute_placeholders(t, diagnostic, recipe)
+        for t in templates.get("risks", [])
+    ]
+    diagnostic.verification_steps = [
+        _substitute_placeholders(t, diagnostic, recipe)
+        for t in templates.get("verification", [])
+    ]
+
+
+# ---------------------------------------------------------------------------
+# JSON serialisation — minimal B1c2b output
+# ---------------------------------------------------------------------------
+#
+# ``dump_diagnostics_to_json`` writes the masking diagnostics to disk in
+# a deterministic, human-readable format. B2 will extend the payload
+# with a ``summary`` block (counts by severity) and accumulation
+# diagnostics; the field-level shape of each diagnostic entry is stable.
+#
+# Deserialisation (load + filter + get_by_id) ships in B3 together with
+# the consultation API. B1c2b is write-only.
+
+def _role_to_list(
+    role: Optional[Tuple[Importance, Function]],
+) -> Optional[List[str]]:
+    """Convert a role tuple to a JSON list of short codes (``["H", "R"]``).
+
+    ``None`` stays ``None`` — a single-track diagnostic has no second role.
+    """
+    if role is None:
+        return None
+    return [role[0].value, role[1].value]
+
+
+def _coerce_value(value):
+    """Recursively coerce a parameters-dict value to a JSON-native form.
+
+    Handles the usual suspects: enums → ``.value``, ``datetime`` →
+    ISO string, ``Path`` → ``str(...)``, nested dicts / lists. Any
+    unknown object falls through untouched and will raise at
+    ``json.dumps`` time — better to fail loudly than silently drop data.
+    """
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, dict):
+        return {k: _coerce_value(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_coerce_value(v) for v in value]
+    return value
+
+
+def _recipe_to_dict(recipe: Optional[CorrectionRecipe]) -> Optional[dict]:
+    """Serialise a :class:`CorrectionRecipe` to a JSON-ready dict."""
+    if recipe is None:
+        return None
+    return {
+        "target_track":        recipe.target_track,
+        "device":              recipe.device,
+        "approach":            recipe.approach,
+        "parameters":          _coerce_value(recipe.parameters),
+        "applies_to_sections": list(recipe.applies_to_sections),
+        "rationale":           recipe.rationale,
+        "confidence":          recipe.confidence,
+    }
+
+
+def _diagnostic_to_dict(d: CorrectionDiagnostic) -> dict:
+    """Serialise one :class:`CorrectionDiagnostic` to a JSON-ready dict.
+
+    Top-level field order matches the spec §9.1 example for readability —
+    ID / identification first, then problem + contexts, then
+    recommendations, then impact lists, then audit.
+    """
+    return {
+        "diagnostic_id":    d.diagnostic_id,
+        "timestamp":        d.timestamp.isoformat() if d.timestamp else None,
+        "cde_version":      d.cde_version,
+        "issue_type":       d.issue_type,
+        "severity":         d.severity,
+        "section":          d.section,
+        "track_a":          d.track_a,
+        "track_b":          d.track_b,
+        "measurement":      asdict(d.measurement) if d.measurement else None,
+        "tfp_context": {
+            "track_a_role":         _role_to_list(d.tfp_context.track_a_role),
+            "track_b_role":         _role_to_list(d.tfp_context.track_b_role),
+            "role_compatibility":   d.tfp_context.role_compatibility,
+        },
+        "section_context":   asdict(d.section_context) if d.section_context else None,
+        "diagnosis_text":    d.diagnosis_text,
+        "primary_correction":   _recipe_to_dict(d.primary_correction),
+        "fallback_correction":  _recipe_to_dict(d.fallback_correction),
+        "expected_outcomes":    list(d.expected_outcomes),
+        "potential_risks":      list(d.potential_risks),
+        "verification_steps":   list(d.verification_steps),
+        "application_status":   d.application_status,
+        "rejection_reason":     d.rejection_reason,
+        "applied_backup_path":  (
+            str(d.applied_backup_path) if d.applied_backup_path else None
+        ),
+        "data_sources":         list(d.data_sources),
+        "rules_applied":        list(d.rules_applied),
+    }
+
+
+def dump_diagnostics_to_json(
+    diagnostics: List[CorrectionDiagnostic],
+    path,
+) -> None:
+    """Write ``diagnostics`` to ``path`` as UTF-8 JSON (indent=2, human-readable).
+
+    Payload shape::
+
+        {
+            "cde_version":        "1.0",
+            "generated_at":       "<ISO timestamp>",
+            "diagnostic_count":   <int>,
+            "diagnostics":        [ { ... }, ... ]
+        }
+
+    A ``summary`` block with per-severity counts and accumulation
+    diagnostics ships in B2. B1c2b is intentionally minimal.
+
+    Args:
+        diagnostics: Output of :func:`detect_masking_conflicts` (or any
+            caller that produces ``CorrectionDiagnostic`` instances).
+            Order is preserved in the output file.
+        path: Destination file path (``str`` or :class:`pathlib.Path`).
+            Parent directories are created if missing.
+    """
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    payload = {
+        "cde_version":      CDE_VERSION,
+        "generated_at":     datetime.now().isoformat(),
+        "diagnostic_count": len(diagnostics),
+        "diagnostics":      [_diagnostic_to_dict(d) for d in diagnostics],
+    }
+
+    with target.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+
+
+# ---------------------------------------------------------------------------
 # Public API — masking detector
 # ---------------------------------------------------------------------------
 
@@ -1233,6 +1544,11 @@ def detect_masking_conflicts(
         diag.fallback_correction = apply_protection_rules(
             diag, fallback, ai_context=ai_context, zone_energy=zone_energy,
         )
+
+        # B1c2b — fill the qualitative-impact lists (outcomes / risks /
+        # verification) from the primary_correction's approach.
+        populate_outcome_templates(diag)
+
         diagnostics.append(diag)
 
     return diagnostics
