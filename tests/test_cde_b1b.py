@@ -309,16 +309,14 @@ def test_detect_masking_conflicts_produces_one_diagnostic_per_conflict():
     assert d.rejection_reason is None
 
 
-def test_detect_masking_conflicts_leaves_primary_and_fallback_none_in_b1b():
-    """B1b contract: recommendations are intentionally None — they're
-    computed in B1c by the recommendation matrix. This test pins that
-    contract so a premature implementation is caught."""
+def test_detect_masking_conflicts_impact_fields_are_empty_in_b1c1():
+    """B1c1 contract: the qualitative-impact fields (expected_outcomes,
+    potential_risks, verification_steps) stay empty — they ship in B1c2
+    alongside the protection rules. The recommendation fields are
+    covered by a dedicated B1c1 test (see test_cde_b1c1.py)."""
     s = _section_with_one_conflict()
     diags = detect_masking_conflicts(s)
     assert len(diags) == 1
-    assert diags[0].primary_correction is None
-    assert diags[0].fallback_correction is None
-    assert diags[0].rules_applied == []
     assert diags[0].expected_outcomes == []
     assert diags[0].potential_risks == []
     assert diags[0].verification_steps == []

@@ -11,13 +11,15 @@ ALS — that is Feature 1's job — and it produces deterministic output
 
 This module is shipped in three sub-commits:
 
-    * B1b (this commit): core dataclasses + masking conflict detector,
-      producing CorrectionDiagnostic instances with
-      ``primary_correction = None`` and ``fallback_correction = None``.
-      The recommendation matrix + protection rules that fill those
-      fields come in B1c.
-    * B1c: recommendation matrix, fallback table, protection rules,
-      JSON dump.
+    * B1b: core dataclasses + masking conflict detector, producing
+      CorrectionDiagnostic instances with ``primary_correction = None``
+      and ``fallback_correction = None``.
+    * B1c1 (this commit): recommendation matrix + fallback table.
+      Diagnostics produced for masking conflicts now carry a
+      ``primary_correction`` (or ``None`` for A×A atmos-vs-atmos pairs,
+      per spec §6.1) and a ``fallback_correction`` when a primary
+      exists. Protection rules still pending in B1c2.
+    * B1c2: protection rules, JSON dump, invariance test.
     * B2+: accumulation detector, Excel sheet, richer JSON.
 
 Design invariants:
@@ -442,6 +444,310 @@ def _diagnosis_text_masking(
 
 
 # ---------------------------------------------------------------------------
+# Recommendation matrix — primary correction per TFP role pair
+# ---------------------------------------------------------------------------
+#
+# Encodes §6.1 of the Feature 3.6 spec:
+#
+#   Role A | Role B | Primary recommendation
+#   -------|--------|------------------------
+#   H×H    | reciprocal_cuts (light cut on each in the shared zone)
+#   H×S    | sidechain (H trigger, S ducked)
+#   H×A    | zone cut on A
+#   S×S    | zone cut on the alphabetically later track (the "secondary")
+#   S×A    | zone cut on A
+#   A×A    | no action
+#
+# Exception: H/R × H/H → sidechain the H/H (typically a bass) on the H/R
+# (typically a kick), not reciprocal_cuts.
+#
+# Devices used:
+#   * ``"EQ8 — Peak Resonance"`` for every zone-cut approach
+#   * ``"Kickstart 2"`` for sidechain (matches the codebase's default
+#     sidechain device — see eq8_automation / als_utils conventions).
+#
+# Rule names returned in CorrectionDiagnostic.rules_applied — short
+# underscore-cased slugs, easy to grep for in the Excel sheet and JSON.
+
+RULE_HH_RECIPROCAL = "hero_vs_hero_reciprocal_cuts_rule"
+RULE_HR_HH_SIDECHAIN = "hero_rhythm_vs_hero_harmonic_sidechain_rule"
+RULE_HS_SIDECHAIN = "hero_vs_support_sidechain_rule"
+RULE_HA_ZONE_CUT = "hero_vs_atmos_zone_cut_rule"
+RULE_SS_ZONE_CUT = "support_vs_support_secondary_cut_rule"
+RULE_SA_ZONE_CUT = "support_vs_atmos_zone_cut_rule"
+RULE_AA_NO_ACTION = "atmos_pair_no_action_rule"
+
+
+def _sections_list(diagnostic: "CorrectionDiagnostic") -> List[str]:
+    """Return a single-element list with the diagnostic's section, or []."""
+    return [diagnostic.section] if diagnostic.section else []
+
+
+def _make_reciprocal_cuts(diagnostic: "CorrectionDiagnostic") -> CorrectionRecipe:
+    """H×H primary — a small cut on each track in the shared zone."""
+    freq = diagnostic.measurement.frequency_hz
+    sections = _sections_list(diagnostic)
+    return CorrectionRecipe(
+        target_track=diagnostic.track_a,
+        device="EQ8 — Peak Resonance",
+        approach="reciprocal_cuts",
+        parameters={
+            "frequency_hz": freq,
+            "gain_db": -2.0,
+            "q": 3.0,
+            "secondary_cut": {
+                "track": diagnostic.track_b,
+                "frequency_hz": freq,
+                "gain_db": -2.0,
+                "q": 3.0,
+            },
+            "active_in_sections": sections,
+        },
+        applies_to_sections=sections,
+        rationale=(
+            "Deux tracks Hero se disputent la bande — léger cut "
+            "réciproque pour partager l'espace sans qu'aucune des "
+            "deux ne domine complètement."
+        ),
+        confidence="medium",
+    )
+
+
+def _make_sidechain(
+    trigger: str,
+    target: str,
+    diagnostic: "CorrectionDiagnostic",
+) -> CorrectionRecipe:
+    """H-vs-* primary — sidechain-duck the target from the trigger."""
+    sections = _sections_list(diagnostic)
+    return CorrectionRecipe(
+        target_track=target,
+        device="Kickstart 2",
+        approach="sidechain",
+        parameters={
+            "trigger_track": trigger,
+            "depth_db": -8.0,
+            "release_ms": 150,
+            "active_in_sections": sections,
+        },
+        applies_to_sections=sections,
+        rationale=(
+            f"{trigger} conserve sa prééminence ; {target} est ducké "
+            "à chaque frappe pour lui laisser l'espace rythmique."
+        ),
+        confidence="high",
+    )
+
+
+def _make_zone_cut(
+    target: str,
+    diagnostic: "CorrectionDiagnostic",
+    gain_db: float = -3.0,
+    q: float = 4.0,
+    approach: str = "static_dip",
+) -> CorrectionRecipe:
+    """H/S-vs-* primary — a single EQ8 peak cut on the lower-priority track."""
+    sections = _sections_list(diagnostic)
+    return CorrectionRecipe(
+        target_track=target,
+        device="EQ8 — Peak Resonance",
+        approach=approach,
+        parameters={
+            "frequency_hz": diagnostic.measurement.frequency_hz,
+            "gain_db": gain_db,
+            "q": q,
+            "active_in_sections": sections,
+        },
+        applies_to_sections=sections,
+        rationale=(
+            f"{target} occupe la zone partagée avec une track de rôle "
+            "supérieur — un léger dip statique libère l'espace sans "
+            "altérer le reste du spectre."
+        ),
+        confidence="medium",
+    )
+
+
+def compute_primary_recommendation(
+    diagnostic: CorrectionDiagnostic,
+) -> Tuple[Optional[CorrectionRecipe], List[str]]:
+    """Return the primary :class:`CorrectionRecipe` + rule slugs applied.
+
+    Implements the §6.1 matrix for ``masking_conflict`` diagnostics.
+    Returns ``(None, [RULE_AA_NO_ACTION])`` for atmos-vs-atmos pairs,
+    matching the spec ("rarely a real problem — leave as is").
+
+    Args:
+        diagnostic: A :class:`CorrectionDiagnostic` with ``tfp_context``
+            and ``measurement`` populated.
+
+    Returns:
+        ``(recipe_or_none, rules_applied)``. ``rules_applied`` always
+        contains at least one entry so the audit trail is never empty.
+    """
+    if diagnostic.issue_type != "masking_conflict":
+        return None, []
+
+    role_a = diagnostic.tfp_context.track_a_role
+    role_b = diagnostic.tfp_context.track_b_role
+    if role_b is None:
+        return None, []
+
+    imp_a, fn_a = role_a
+    imp_b, fn_b = role_b
+    ta, tb = diagnostic.track_a, diagnostic.track_b
+
+    # A × A — no action
+    if imp_a is Importance.A and imp_b is Importance.A:
+        return None, [RULE_AA_NO_ACTION]
+
+    # H × H — exception first (H/R × H/H → sidechain), else reciprocal
+    if imp_a is Importance.H and imp_b is Importance.H:
+        if fn_a is Function.R and fn_b is Function.H:
+            return (
+                _make_sidechain(trigger=ta, target=tb, diagnostic=diagnostic),
+                [RULE_HR_HH_SIDECHAIN],
+            )
+        if fn_a is Function.H and fn_b is Function.R:
+            return (
+                _make_sidechain(trigger=tb, target=ta, diagnostic=diagnostic),
+                [RULE_HR_HH_SIDECHAIN],
+            )
+        return _make_reciprocal_cuts(diagnostic), [RULE_HH_RECIPROCAL]
+
+    # H vs S — sidechain the Support from the Hero
+    if imp_a is Importance.H and imp_b is Importance.S:
+        return (
+            _make_sidechain(trigger=ta, target=tb, diagnostic=diagnostic),
+            [RULE_HS_SIDECHAIN],
+        )
+    if imp_b is Importance.H and imp_a is Importance.S:
+        return (
+            _make_sidechain(trigger=tb, target=ta, diagnostic=diagnostic),
+            [RULE_HS_SIDECHAIN],
+        )
+
+    # H vs A — zone cut on the Atmos track
+    if imp_a is Importance.H and imp_b is Importance.A:
+        return _make_zone_cut(target=tb, diagnostic=diagnostic), [RULE_HA_ZONE_CUT]
+    if imp_b is Importance.H and imp_a is Importance.A:
+        return _make_zone_cut(target=ta, diagnostic=diagnostic), [RULE_HA_ZONE_CUT]
+
+    # S × S — cut on the alphabetically later track (the "secondary")
+    if imp_a is Importance.S and imp_b is Importance.S:
+        target = tb if ta <= tb else ta
+        return _make_zone_cut(target=target, diagnostic=diagnostic), [RULE_SS_ZONE_CUT]
+
+    # S × A — zone cut on the Atmos track
+    if imp_a is Importance.S and imp_b is Importance.A:
+        return _make_zone_cut(target=tb, diagnostic=diagnostic), [RULE_SA_ZONE_CUT]
+    if imp_b is Importance.S and imp_a is Importance.A:
+        return _make_zone_cut(target=ta, diagnostic=diagnostic), [RULE_SA_ZONE_CUT]
+
+    return None, []
+
+
+# ---------------------------------------------------------------------------
+# Fallback — a conservative alternative to the primary (§6.2)
+# ---------------------------------------------------------------------------
+#
+#   Primary                | Fallback
+#   -----------------------|----------------------------------------
+#   reciprocal_cuts        | static_dip (cut on a single track)
+#   sidechain depth -8 dB  | sidechain depth -4 dB
+#   static_dip / musical_dip | musical_dip (wider Q, shallower depth)
+#
+# ``ms_side_cut → stereo_cut`` from the spec is defined as a plain-dict
+# mapping so B4 can reuse it when it introduces phase diagnostics — it
+# is not currently produced by the B1c1 primary matrix.
+
+FALLBACK_APPROACH_MAP: dict = {
+    "reciprocal_cuts": "static_dip",
+    "sidechain":       "sidechain",
+    "static_dip":      "musical_dip",
+    "musical_dip":     "musical_dip",
+    "ms_side_cut":     "stereo_cut",
+}
+
+
+def compute_fallback_recommendation(
+    diagnostic: CorrectionDiagnostic,
+    primary: Optional[CorrectionRecipe],
+) -> Optional[CorrectionRecipe]:
+    """Compute a conservative alternative to ``primary`` per §6.2.
+
+    ``primary = None`` (A×A or single-track) → no fallback either.
+    Unknown approaches return ``None`` rather than guess — the test
+    suite pins every mapping this function produces.
+    """
+    if primary is None:
+        return None
+
+    approach = primary.approach
+    sections = primary.applies_to_sections
+
+    if approach == "reciprocal_cuts":
+        # Drop the secondary cut, keep a single dip on track_a.
+        return CorrectionRecipe(
+            target_track=primary.target_track,
+            device="EQ8 — Peak Resonance",
+            approach="static_dip",
+            parameters={
+                "frequency_hz": primary.parameters.get("frequency_hz"),
+                "gain_db": -1.5,
+                "q": 3.0,
+                "active_in_sections": sections,
+            },
+            applies_to_sections=sections,
+            rationale=(
+                "Cut unique (pas réciproque) — option moins agressive "
+                "si le reciprocal_cuts laisse entendre des artefacts."
+            ),
+            confidence="medium",
+        )
+
+    if approach == "sidechain":
+        return CorrectionRecipe(
+            target_track=primary.target_track,
+            device=primary.device,
+            approach="sidechain",
+            parameters={
+                **primary.parameters,
+                "depth_db": -4.0,
+            },
+            applies_to_sections=sections,
+            rationale=(
+                "Sidechain moitié moins profond (-4 dB) — plus "
+                "transparent si le pumping à -8 dB est audible."
+            ),
+            confidence="medium",
+        )
+
+    if approach in ("static_dip", "musical_dip"):
+        new_params = dict(primary.parameters)
+        # Shallower and wider: gain -1.5 dB min, Q = 2.
+        new_params["gain_db"] = min(
+            float(primary.parameters.get("gain_db", -3.0)) + 1.5, -1.5
+        )
+        new_params["q"] = 2.0
+        return CorrectionRecipe(
+            target_track=primary.target_track,
+            device=primary.device,
+            approach="musical_dip",
+            parameters=new_params,
+            applies_to_sections=sections,
+            rationale=(
+                "Dip plus large et moins profond — alternative plus "
+                "musicale si le cut primaire sonne artificiel."
+            ),
+            confidence="medium",
+        )
+
+    # Unknown approach — no fallback rather than guess.
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Public API — masking detector
 # ---------------------------------------------------------------------------
 
@@ -460,9 +766,13 @@ def detect_masking_conflicts(
     that were never bounced to WAV) are skipped with a warning log —
     Risque 7 of the F3.6 recon.
 
-    In B1b the returned diagnostics carry ``primary_correction = None``
-    and ``fallback_correction = None``; the recommendation matrix +
-    protection rules that fill them ship in B1c.
+    Since B1c1, each diagnostic is also decorated with a
+    ``primary_correction`` (via :func:`compute_primary_recommendation`,
+    §6.1 matrix) and a ``fallback_correction``
+    (:func:`compute_fallback_recommendation`, §6.2). Both can still be
+    ``None`` when the matrix returns no action — typically the A×A
+    atmos-vs-atmos case. Protection rules that cap / block a primary
+    are added in B1c2.
 
     Args:
         section: A :class:`section_detector.Section` whose
@@ -519,28 +829,29 @@ def detect_masking_conflicts(
             section_name=section_ctx.section_name,
         )
 
-        diagnostics.append(
-            CorrectionDiagnostic(
-                diagnostic_id=diag_id,
-                timestamp=now,
-                cde_version=CDE_VERSION,
-                track_a=track_a,
-                track_b=track_b,
-                section=section_ctx.section_name,
-                issue_type="masking_conflict",
-                severity=conflict["severity"],
-                measurement=measurement,
-                tfp_context=tfp_ctx,
-                section_context=section_ctx,
-                diagnosis_text=diagnosis_text,
-                primary_correction=None,   # filled in B1c
-                fallback_correction=None,  # filled in B1c
-                data_sources=[
-                    "Sections Timeline:CONFLITS DE FREQUENCES",
-                    "Section.track_roles (Feature 3.5)",
-                ],
-                rules_applied=[],  # filled in B1c
-            )
+        diag = CorrectionDiagnostic(
+            diagnostic_id=diag_id,
+            timestamp=now,
+            cde_version=CDE_VERSION,
+            track_a=track_a,
+            track_b=track_b,
+            section=section_ctx.section_name,
+            issue_type="masking_conflict",
+            severity=conflict["severity"],
+            measurement=measurement,
+            tfp_context=tfp_ctx,
+            section_context=section_ctx,
+            diagnosis_text=diagnosis_text,
+            data_sources=[
+                "Sections Timeline:CONFLITS DE FREQUENCES",
+                "Section.track_roles (Feature 3.5)",
+            ],
         )
+        # B1c1 — fill recommendations from the §6.1 matrix + §6.2 fallback
+        primary, rules = compute_primary_recommendation(diag)
+        diag.primary_correction = primary
+        diag.fallback_correction = compute_fallback_recommendation(diag, primary)
+        diag.rules_applied = list(rules)
+        diagnostics.append(diag)
 
     return diagnostics
