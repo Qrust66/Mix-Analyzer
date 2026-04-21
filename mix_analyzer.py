@@ -5014,6 +5014,24 @@ def generate_health_score_sheet(workbook, analyses_with_info, log_fn=None,
                     f"({per_section_rows} sections)"
                 )
 
+    # --- Section 5 (optional): TFP coherence score per section ---
+    # Requires sections with track_roles already populated (by Feature 3.5
+    # Phase B2 via build_sections_timeline_sheet ->
+    # enrich_sections_with_track_roles). Skipped silently when roles are
+    # absent — the Mix Health sheet still works without the block.
+    tfp_coherence_rows = 0
+    if sections and any(getattr(s, "track_roles", None) for s in sections):
+        detail_row, tfp_coherence_rows = _write_tfp_coherence_block(
+            ws, detail_row, sections,
+            header_fill=header_fill, panel_fill=panel_fill,
+            bg_fill=bg_fill, thin_border=thin_border,
+            data_font=data_font, dim_font=dim_font,
+        )
+        log_fn(
+            f"    Excel: Mix Health Score — TFP coherence table added "
+            f"({tfp_coherence_rows} sections)"
+        )
+
     # --- Freeze panes (row 11) ---
     ws.freeze_panes = 'A11'
 
@@ -5142,6 +5160,104 @@ def _write_per_section_metrics_block(
     c.alignment = Alignment(horizontal='left', wrap_text=True)
     ws.merge_cells(start_row=start_row, start_column=1,
                    end_row=start_row, end_column=9)
+    start_row += 2
+
+    return start_row, n_rendered
+
+
+def _write_tfp_coherence_block(
+    ws, start_row, sections,
+    *, header_fill, panel_fill, bg_fill, thin_border,
+    data_font, dim_font,
+):
+    """Render the per-section TFP coherence table.
+
+    Feature 3.5 Phase B3 — for each section, display its 0-100 coherence
+    score, the H/S/A count, the R/H/M/T count, the number of critical
+    hero-vs-hero conflicts and a diagnostic string + up to 3 specific
+    messages. Sparse sections (< 3 s OR < 3 active tracks) render "—"
+    instead of a numeric score.
+
+    Returns ``(next_free_row, n_rendered_sections)``.
+    """
+    from openpyxl.styles import Alignment
+    from section_detector import detect_conflicts_in_section
+    from tfp_coherence import compute_section_coherence_score
+
+    # Sub-header
+    c = ws.cell(row=start_row, column=1, value="Cohérence TFP par section")
+    c.font = MA_FONT_SUBHEADING
+    c.fill = panel_fill
+    c.border = thin_border
+    for col in range(2, 7):
+        c2 = ws.cell(row=start_row, column=col)
+        c2.fill = panel_fill
+        c2.border = thin_border
+    start_row += 1
+
+    # Column headers
+    headers = ["Section", "Score", "H/S/A", "R/H/M/T", "H×H crit.", "Diagnostic"]
+    for col, h in enumerate(headers, 1):
+        c = ws.cell(row=start_row, column=col, value=h)
+        c.font = MA_FONT_BODY_BOLD
+        c.fill = header_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal="center")
+    start_row += 1
+
+    def _cell(row, col, value, *, align="center", font=None):
+        c = ws.cell(row=row, column=col, value=value)
+        c.font = font or data_font
+        c.fill = bg_fill
+        c.border = thin_border
+        c.alignment = Alignment(horizontal=align)
+        return c
+
+    n_rendered = 0
+    for section in sections:
+        conflicts = detect_conflicts_in_section(section)
+        result = compute_section_coherence_score(section, conflicts=conflicts)
+        counts = result["counts"]
+
+        _cell(start_row, 1, section.name, align="left")
+
+        if result["sparse"]:
+            _cell(start_row, 2, "—")
+        else:
+            _cell(start_row, 2, int(round(result["score"])))
+
+        _cell(start_row, 3, f"{counts['H']}/{counts['S']}/{counts['A']}")
+        _cell(
+            start_row, 4,
+            f"{counts['fn_R']}/{counts['fn_H']}/{counts['fn_M']}/{counts['fn_T']}",
+        )
+        _cell(start_row, 5, result["n_critical_hh"])
+
+        _cell(start_row, 6, result["diagnostic"], align="left")
+        start_row += 1
+
+        # Render specific messages on successive indented rows (column 6)
+        for message in result["messages"]:
+            _cell(start_row, 6, f"  • {message}", align="left", font=dim_font)
+            start_row += 1
+
+        n_rendered += 1
+
+    # Footnote for the sparse convention
+    note = (
+        '— Score "—" when section duration < '
+        f"{int(3)}s OR fewer than "
+        f"{int(3)} active tracks "
+        "(coherence scoring requires enough data points to be meaningful)."
+    )
+    c = ws.cell(row=start_row, column=1, value=note)
+    c.font = dim_font
+    c.fill = bg_fill
+    c.alignment = Alignment(horizontal="left", wrap_text=True)
+    ws.merge_cells(
+        start_row=start_row, start_column=1,
+        end_row=start_row, end_column=6,
+    )
     start_row += 2
 
     return start_row, n_rendered
@@ -7319,10 +7435,31 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # ---- v2.5.1: Extract automation maps BEFORE v2.5 sheets ----
     auto_maps = {}
+    # Raw (TFP-prefixed) Ableton names indexed by clean name — preserved
+    # separately so downstream code can recover the original name for
+    # display even though the auto_maps dict itself is keyed by clean
+    # name to keep WAV<->track matching working (Feature 3.5).
+    auto_maps_raw_names: dict = {}
     if als_path:
         try:
             from automation_map import extract_all_track_automations
-            auto_maps = extract_all_track_automations(als_path)
+            raw_auto_maps = extract_all_track_automations(als_path)
+            # Feature 3.5: strip the "[H/R] " TFP prefix from auto_maps
+            # dict keys so match_track_name continues to match WAV stems
+            # (which never carry the prefix) against "clean" Ableton
+            # names. Without this, renaming "Kick 1" -> "[H/R] Kick 1"
+            # in Ableton silently breaks the audibility mask and track
+            # matching, pushing tracks to -100 dB (user-reported bug
+            # class we explicitly guard against).
+            from tfp_parser import parse_tfp_prefix
+            for raw_name, amap in raw_auto_maps.items():
+                parsed = parse_tfp_prefix(raw_name)
+                if parsed is not None:
+                    _, _, clean_name = parsed
+                else:
+                    clean_name = raw_name
+                auto_maps[clean_name] = amap
+                auto_maps_raw_names[clean_name] = raw_name
             log_fn(f"    v2.5.1: Automation maps extracted for {len(auto_maps)} tracks")
         except Exception as e:
             log_fn(f"    v2.5.1: Automation map extraction failed: {e}")
@@ -7455,6 +7592,31 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                             analyses_with_info, sections, log_fn=log_fn,
                         )
                     )
+                    # Feature 3.5 — build wav_filename -> raw_ableton_name
+                    # mapping so the builder can parse TFP prefixes (living
+                    # on the Ableton name) for each track displayed in the
+                    # sheet. Matching uses match_track_name on the CLEAN
+                    # auto_maps keys; the raw (prefixed) name is recovered
+                    # via auto_maps_raw_names.
+                    from als_utils import match_track_name as _match_tn
+                    _als_stem = (
+                        os.path.splitext(os.path.basename(als_path))[0]
+                        if als_path else None
+                    )
+                    _auto_map_clean_keys = list(auto_maps.keys())
+                    wav_to_ableton: dict = {}
+                    for wav_name in all_tracks_zone_energy.keys():
+                        stem = os.path.splitext(wav_name)[0]
+                        matched_clean = _match_tn(
+                            stem, _auto_map_clean_keys, als_stem=_als_stem
+                        )
+                        if matched_clean:
+                            wav_to_ableton[wav_name] = (
+                                auto_maps_raw_names.get(matched_clean)
+                                or matched_clean
+                            )
+                        else:
+                            wav_to_ableton[wav_name] = None
                     build_sections_timeline_sheet(
                         workbook=wb,
                         sections=sections,
@@ -7462,6 +7624,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                         all_tracks_peak_trajectories=all_tracks_peak_trajectories,
                         all_tracks_peak_by_section=all_tracks_peak_by_section,
                         all_tracks_active_fraction=all_tracks_active_fraction,
+                        wav_to_ableton=wav_to_ableton,
                         log_fn=log_fn,
                     )
                     # Link the new sheet from the Index so the user finds it

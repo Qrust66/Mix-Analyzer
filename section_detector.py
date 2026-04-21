@@ -92,6 +92,21 @@ class Section:
     # "dominant in zone" / "active in section" checks (Fix 2 — the
     # plain mean-based gate collapses under heavy NaN masking).
     track_presence: dict = field(default_factory=dict)
+    # Raw Locator annotation text, e.g. ``"override: Kick 1=S"``. Populated
+    # by :func:`_locators_to_sections`. Feature 3.5 (TFP) parses TFP
+    # overrides from this field; empty string otherwise.
+    annotation: str = ""
+    # Effective TFP role per track for this section, resolved from the
+    # Ableton name's prefix and this section's annotation overrides.
+    # Populated by :func:`enrich_sections_with_track_roles`. Keyed by the
+    # WAV filename (``ti['name']``) to stay aligned with every other
+    # per-track structure in the sheet (all_tracks_zone_energy,
+    # all_tracks_peak_by_section, etc.). Empty dict when no Ableton
+    # automation maps were loaded.
+    track_roles: dict = field(default_factory=dict)
+    # True when an override from the annotation changed this track's role
+    # away from its base prefix — used to flag "*" in the sheet.
+    track_role_overridden: dict = field(default_factory=dict)
     tfp_summary: Optional[dict] = None
     diagnostic_summary: Optional[dict] = None
 
@@ -383,6 +398,7 @@ def _locators_to_sections(
                 start_beats=round(ordered[i]["time_beats"], 4),
                 end_beats=round(end_beats, 4),
                 total_energy_db=round(total_db, 2),
+                annotation=ordered[i].get("annotation", "") or "",
             )
         )
     return sections
@@ -653,6 +669,60 @@ def enrich_sections_with_track_stats(
             # Active if the track crosses presence in at least one zone
             if any(ratio >= min_presence_ratio for ratio in presence.values()):
                 section.tracks_active.append(track_name)
+    return sections
+
+
+def enrich_sections_with_track_roles(
+    sections: List[Section],
+    wav_to_ableton: dict,
+) -> List[Section]:
+    """Populate ``section.track_roles`` using the Ableton track names.
+
+    Feature 3.5 — for each track we have features for (keyed by its WAV
+    filename, as everywhere else in the sheet), look up the corresponding
+    Ableton track name, parse its TFP prefix, apply any per-section
+    override from the Locator annotation, and store the final
+    ``(Importance, Function)`` keyed by the WAV filename.
+
+    Tracks whose Ableton name could not be resolved fall back to
+    :data:`tfp_parser.DEFAULT_ROLE` (Support / Rhythm) — the same
+    behaviour as tracks without a TFP prefix. The caller (builder)
+    collects those into a single "tracks sans préfixe" warning.
+
+    Args:
+        sections: Sections to enrich, modified in place.
+        wav_to_ableton: ``{wav_filename: ableton_track_name}`` where the
+            value is the raw EffectiveName (still carrying any
+            ``"[H/R] "`` prefix). Pass ``{}`` when no .als was loaded —
+            every track gets DEFAULT_ROLE.
+
+    Returns:
+        The same list of sections, now carrying ``track_roles`` and
+        ``track_role_overridden`` per entry.
+    """
+    from tfp_parser import DEFAULT_ROLE, parse_tfp_overrides, resolve_track_role
+
+    for section in sections:
+        overrides = parse_tfp_overrides(section.annotation or "")
+        for wav_name, ableton_name in wav_to_ableton.items():
+            if ableton_name is None:
+                # No Ableton counterpart found — fall back silently; the
+                # warning "tracks sans préfixe" is produced upstream by
+                # the builder based on the ableton_name being missing.
+                section.track_roles[wav_name] = DEFAULT_ROLE
+                section.track_role_overridden[wav_name] = False
+                continue
+
+            resolved = resolve_track_role(ableton_name, overrides, DEFAULT_ROLE)
+            section.track_roles[wav_name] = resolved
+
+            # Flag whether the annotation changed the role vs the base
+            # (prefix-derived or default). The "*" marker in the sheet
+            # reflects this boolean.
+            base_resolved = resolve_track_role(ableton_name, {}, DEFAULT_ROLE)
+            section.track_role_overridden[wav_name] = (
+                resolved != base_resolved
+            )
     return sections
 
 
@@ -1218,6 +1288,12 @@ def _peak_max_per_track(
                 section.index
             )
 
+        # Feature 3.5: TFP role for this track in this section (resolved
+        # upstream by enrich_sections_with_track_roles; empty dict when
+        # no .als was loaded).
+        role_pair = section.track_roles.get(track_name)
+        role_overridden = bool(section.track_role_overridden.get(track_name, False))
+
         rows.append(
             {
                 "track": track_name,
@@ -1225,6 +1301,8 @@ def _peak_max_per_track(
                 "peak_amplitude_db": peak_amp,
                 "active_fraction": active_frac,
                 "track_peak_db": track_peak_db,
+                "role": role_pair,
+                "role_overridden": role_overridden,
             }
         )
 
@@ -1241,6 +1319,82 @@ def _peak_max_per_track(
 def _write_row(ws, row_idx: int, values: List[str]) -> None:
     for col_idx, value in enumerate(values, start=1):
         ws.cell(row=row_idx, column=col_idx, value=value)
+
+
+def _format_role(
+    role_pair: Optional[tuple],
+    overridden: bool = False,
+) -> str:
+    """Format a (Importance, Function) pair as ``"H/R"`` (or ``"H/R*"``
+    when an annotation override changed the role).
+
+    ``role_pair`` may be ``None`` — e.g. when no .als was loaded. We fall
+    back to the string ``"?"`` rather than guessing so the user can tell
+    the difference between "default S/R" and "we don't know".
+    """
+    if role_pair is None:
+        return "?"
+    try:
+        imp, fn = role_pair
+        imp_code = imp.value if hasattr(imp, "value") else str(imp)
+        fn_code = fn.value if hasattr(fn, "value") else str(fn)
+        return f"{imp_code}/{fn_code}{'*' if overridden else ''}"
+    except Exception:
+        return "?"
+
+
+def _format_track_with_role(
+    track_name: str,
+    role_pair: Optional[tuple],
+    overridden: bool,
+) -> str:
+    """Build ``"[H/R] Kick 1"`` for a single track — used in the
+    "TRACKS ACTIVES PAR ZONE" block where tracks are comma-joined with
+    their role badge inlined. ``*`` appended inside the bracket when an
+    annotation override changed the role for this section.
+    """
+    if role_pair is None:
+        return track_name
+    badge = _format_role(role_pair, overridden=overridden)
+    return f"[{badge}] {track_name}"
+
+
+def _render_tfp_warning_banner(
+    ws, tracks_without_prefix: List[str], row: int,
+) -> int:
+    """Render the "tracks sans préfixe TFP" warning banner.
+
+    Feature 3.5 — appears at the top of the Sections Timeline sheet when
+    one or more tracks lack a TFP prefix in their Ableton name. Those
+    tracks fall back to ``DEFAULT_ROLE`` (S/R) which may not reflect the
+    user's intent. The banner lists every offending track so the user
+    can fix the names in Ableton and re-run. Absent when every track is
+    correctly prefixed.
+    """
+    n = len(tracks_without_prefix)
+    _write_row(ws, row, [f"⚠ WARNING TFP — {n} TRACK(S) SANS PRÉFIXE"])
+    row += 1
+    _write_row(ws, row, ["─" * 72])
+    row += 1
+    _write_row(ws, row, [
+        f"{n} tracks n'ont pas de préfixe TFP dans leur nom Ableton "
+        "— classifiées par défaut [S/R] :"
+    ])
+    row += 1
+    # List first 15 to avoid flooding; append "+N more" for the rest.
+    sample = tracks_without_prefix[:15]
+    for name in sample:
+        _write_row(ws, row, [f"  • {name}"])
+        row += 1
+    if n > len(sample):
+        _write_row(ws, row, [f"  ... +{n - len(sample)} autres"])
+        row += 1
+    _write_row(ws, row, [
+        "Pour classifier correctement, renommer dans Ableton avec le "
+        "format [X/Y] avant les prochaines analyses."
+    ])
+    row += 2
+    return row
 
 
 def _render_master_view(ws, sections: List[Section], conflicts_by_idx: dict, row: int) -> int:
@@ -1322,7 +1476,16 @@ def _render_section_block(
             dominants.append((track, db))
         dominants.sort(key=lambda t: -t[1])
         if dominants:
-            text = ", ".join(f"{name} ({db:+.0f} dB)" for name, db in dominants)
+            # Feature 3.5: prepend TFP role badge to each track name.
+            # "[H/R] Kick 1 (-2 dB)". Asterisk inside the badge when an
+            # annotation override changed the role for this section.
+            parts = []
+            for name, db in dominants:
+                role_pair = section.track_roles.get(name)
+                overridden = bool(section.track_role_overridden.get(name, False))
+                badged = _format_track_with_role(name, role_pair, overridden)
+                parts.append(f"{badged} ({db:+.0f} dB)")
+            text = ", ".join(parts)
         else:
             text = "(aucune track significative)"
         _write_row(ws, row, [_ZONE_LABELS.get(zone, zone), text])
@@ -1333,14 +1496,27 @@ def _render_section_block(
     _write_row(ws, row, ["CONFLITS DE FREQUENCES (par severite)"]); row += 1
     _write_row(ws, row, ["\u2500" * 72]); row += 1
     if conflicts:
-        _write_row(ws, row, ["SEVERITE", "ZONE", "TRACKS EN CONFLIT", "SCORE"])
+        # Feature 3.5: COMBO column = "RoleA x RoleB". Track names carry
+        # the role badge via _format_track_with_role so the user reads
+        # "[H/R] Kick 1 <-> [S/H] Sub Bass" directly.
+        _write_row(ws, row, [
+            "SEVERITE", "ZONE", "TRACKS EN CONFLIT", "COMBO", "SCORE",
+        ])
         row += 1
         for conf in conflicts:
+            role_a = section.track_roles.get(conf["track_a"])
+            role_b = section.track_roles.get(conf["track_b"])
+            over_a = bool(section.track_role_overridden.get(conf["track_a"], False))
+            over_b = bool(section.track_role_overridden.get(conf["track_b"], False))
+            name_a = _format_track_with_role(conf["track_a"], role_a, over_a)
+            name_b = _format_track_with_role(conf["track_b"], role_b, over_b)
+            combo = f"{_format_role(role_a)} x {_format_role(role_b)}"
             _write_row(ws, row, [
                 conf["severity"].upper(),
                 _ZONE_LABELS.get(conf["zone"], conf["zone"]),
-                f"{conf['track_a']} ({conf['energy_a']:+.0f} dB) <-> "
-                f"{conf['track_b']} ({conf['energy_b']:+.0f} dB)",
+                f"{name_a} ({conf['energy_a']:+.0f} dB) <-> "
+                f"{name_b} ({conf['energy_b']:+.0f} dB)",
+                combo,
                 f"{conf['score']:.2f}",
             ])
             row += 1
@@ -1385,18 +1561,24 @@ def _render_section_block(
         min_active_fraction_for_listing=min_active_fraction_for_listing,
     )
     if peak_rows:
+        # "RÔLE" = TFP role from Feature 3.5 (Importance/Function). "*"
+        # suffix indicates a per-section annotation override vs the
+        # base prefix-derived role.
         # "AMP ZONE" = peak amplitude within the track's dominant band
         # (spectral, per-band). "TRACK PEAK" = fader-equivalent sample peak
         # of the whole track after gain. The two can differ by 15-25 dB on
         # tracks where a narrow band dominates — see the commit that added
         # the TRACK PEAK column for context.
         _write_row(ws, row, [
-            "TRACK", "FREQ DU PEAK MAX", "AMP ZONE",
+            "TRACK", "RÔLE", "FREQ DU PEAK MAX", "AMP ZONE",
             "TRACK PEAK", "DUREE ACTIVE",
         ])
         row += 1
         duration_s = max(section.end_seconds - section.start_seconds, 0.001)
         for pr in peak_rows:
+            role_text = _format_role(
+                pr.get("role"), overridden=pr.get("role_overridden", False)
+            )
             freq_text = f"{pr['peak_freq_hz']:.0f} Hz" if pr["peak_freq_hz"] is not None else "-"
             amp_text = f"{pr['peak_amplitude_db']:+.1f} dB" if pr["peak_amplitude_db"] is not None else "-"
             if pr.get("track_peak_db") is None:
@@ -1409,7 +1591,8 @@ def _render_section_block(
                 f"({pr['active_fraction'] * 100:.0f}%)"
             )
             _write_row(ws, row, [
-                pr["track"], freq_text, amp_text, track_peak_text, active_text,
+                pr["track"], role_text, freq_text, amp_text,
+                track_peak_text, active_text,
             ])
             row += 1
     else:
@@ -1452,6 +1635,32 @@ def _warn_non_individual_tracks(
     )
 
 
+def _detect_tracks_without_prefix(wav_to_ableton: dict) -> List[str]:
+    """Return WAV filenames whose Ableton track has no TFP prefix.
+
+    Feature 3.5 — used to populate the "⚠ WARNING TFP" banner at the top
+    of the Sections Timeline sheet. A missing prefix falls back to
+    ``DEFAULT_ROLE`` (Support / Rhythm) which is fine but may not reflect
+    the user's intent; surfacing the list lets them fix the names in
+    Ableton before the next run.
+
+    Tracks whose Ableton counterpart is not known (``wav_to_ableton[w]``
+    is ``None``) also count — a missing match means we could not check
+    the prefix at all. Returned in the order they appear in
+    ``wav_to_ableton``.
+    """
+    from tfp_parser import parse_tfp_prefix
+
+    missing: List[str] = []
+    for wav_name, ableton_name in wav_to_ableton.items():
+        if ableton_name is None:
+            missing.append(wav_name)
+            continue
+        if parse_tfp_prefix(ableton_name) is None:
+            missing.append(wav_name)
+    return missing
+
+
 def build_sections_timeline_sheet(
     workbook,
     sections: List[Section],
@@ -1465,6 +1674,7 @@ def build_sections_timeline_sheet(
     all_tracks_peak_by_section: Optional[dict] = None,
     all_tracks_active_fraction: Optional[dict] = None,
     min_active_fraction_for_listing: float = MIN_ACTIVE_FRACTION_FOR_LISTING,
+    wav_to_ableton: Optional[dict] = None,
     log_fn=None,
 ) -> None:
     """Build the ``Sections Timeline`` sheet (positioned right after Index).
@@ -1516,6 +1726,17 @@ def build_sections_timeline_sheet(
         min_presence_ratio=min_presence_ratio,
     )
 
+    # Feature 3.5 — resolve TFP roles per section from the Ableton track
+    # names + each Locator annotation. If no mapping was passed, we still
+    # populate track_roles with the default (S, R) for every track so
+    # downstream rendering code can assume the dict is complete.
+    _wav_to_ableton = wav_to_ableton or {
+        name: None for name in all_tracks_zone_energy
+    }
+    enrich_sections_with_track_roles(sections, _wav_to_ableton)
+
+    tracks_without_prefix = _detect_tracks_without_prefix(_wav_to_ableton)
+
     conflicts_by_idx: dict = {
         s.index: detect_conflicts_in_section(s, min_presence_ratio=min_presence_ratio)
         for s in sections
@@ -1560,7 +1781,15 @@ def build_sections_timeline_sheet(
     except (ValueError, IndexError) as e:
         log_fn(f"    {SECTIONS_TIMELINE_SHEET_NAME}: could not reposition tab: {e}")
 
-    row = _render_master_view(ws, sections, conflicts_by_idx, row=1)
+    # Feature 3.5 — TFP warning banner in rows 1-3 when any track lacks
+    # a prefix. Displayed before the master view so the user sees the
+    # warning immediately when the sheet opens. No-op when every track
+    # is properly prefixed.
+    next_row = 1
+    if tracks_without_prefix:
+        next_row = _render_tfp_warning_banner(ws, tracks_without_prefix, 1)
+
+    row = _render_master_view(ws, sections, conflicts_by_idx, row=next_row)
     for section in sections:
         row = _render_section_block(
             ws,
