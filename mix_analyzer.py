@@ -7319,10 +7319,31 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
 
     # ---- v2.5.1: Extract automation maps BEFORE v2.5 sheets ----
     auto_maps = {}
+    # Raw (TFP-prefixed) Ableton names indexed by clean name — preserved
+    # separately so downstream code can recover the original name for
+    # display even though the auto_maps dict itself is keyed by clean
+    # name to keep WAV<->track matching working (Feature 3.5).
+    auto_maps_raw_names: dict = {}
     if als_path:
         try:
             from automation_map import extract_all_track_automations
-            auto_maps = extract_all_track_automations(als_path)
+            raw_auto_maps = extract_all_track_automations(als_path)
+            # Feature 3.5: strip the "[H/R] " TFP prefix from auto_maps
+            # dict keys so match_track_name continues to match WAV stems
+            # (which never carry the prefix) against "clean" Ableton
+            # names. Without this, renaming "Kick 1" -> "[H/R] Kick 1"
+            # in Ableton silently breaks the audibility mask and track
+            # matching, pushing tracks to -100 dB (user-reported bug
+            # class we explicitly guard against).
+            from tfp_parser import parse_tfp_prefix
+            for raw_name, amap in raw_auto_maps.items():
+                parsed = parse_tfp_prefix(raw_name)
+                if parsed is not None:
+                    _, _, clean_name = parsed
+                else:
+                    clean_name = raw_name
+                auto_maps[clean_name] = amap
+                auto_maps_raw_names[clean_name] = raw_name
             log_fn(f"    v2.5.1: Automation maps extracted for {len(auto_maps)} tracks")
         except Exception as e:
             log_fn(f"    v2.5.1: Automation map extraction failed: {e}")
@@ -7455,6 +7476,31 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                             analyses_with_info, sections, log_fn=log_fn,
                         )
                     )
+                    # Feature 3.5 — build wav_filename -> raw_ableton_name
+                    # mapping so the builder can parse TFP prefixes (living
+                    # on the Ableton name) for each track displayed in the
+                    # sheet. Matching uses match_track_name on the CLEAN
+                    # auto_maps keys; the raw (prefixed) name is recovered
+                    # via auto_maps_raw_names.
+                    from als_utils import match_track_name as _match_tn
+                    _als_stem = (
+                        os.path.splitext(os.path.basename(als_path))[0]
+                        if als_path else None
+                    )
+                    _auto_map_clean_keys = list(auto_maps.keys())
+                    wav_to_ableton: dict = {}
+                    for wav_name in all_tracks_zone_energy.keys():
+                        stem = os.path.splitext(wav_name)[0]
+                        matched_clean = _match_tn(
+                            stem, _auto_map_clean_keys, als_stem=_als_stem
+                        )
+                        if matched_clean:
+                            wav_to_ableton[wav_name] = (
+                                auto_maps_raw_names.get(matched_clean)
+                                or matched_clean
+                            )
+                        else:
+                            wav_to_ableton[wav_name] = None
                     build_sections_timeline_sheet(
                         workbook=wb,
                         sections=sections,
@@ -7462,6 +7508,7 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                         all_tracks_peak_trajectories=all_tracks_peak_trajectories,
                         all_tracks_peak_by_section=all_tracks_peak_by_section,
                         all_tracks_active_fraction=all_tracks_active_fraction,
+                        wav_to_ableton=wav_to_ableton,
                         log_fn=log_fn,
                     )
                     # Link the new sheet from the Index so the user finds it
