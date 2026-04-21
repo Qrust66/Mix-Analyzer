@@ -108,6 +108,28 @@ def test_R1_12_multiple_trailing_spaces_in_body_are_kept_verbatim():
     assert result[2] == "Kick 1"
 
 
+def test_R1_13_underscore_separator_accepted_ableton_bounce_compat():
+    """Ableton bounces substitute '/' with '_' in track filenames so the
+    prefix survives on disk. The parser must handle both so it stays
+    correct whether it runs against the Ableton EffectiveName or a WAV
+    filename stem."""
+    result = parse_tfp_prefix("[H_R] Kick 1")
+    assert result == (Importance.H, Function.R, "Kick 1")
+
+
+def test_R1_14_underscore_separator_lowercase_accepted():
+    """Case-insensitive still applies when the separator is '_'."""
+    result = parse_tfp_prefix("[h_r] kick 1")
+    assert result == (Importance.H, Function.R, "kick 1")
+
+
+def test_R1_15_underscore_separator_other_role_codes():
+    """Underscore works for the full H/S/A × R/H/M/T matrix — regression
+    guard in case someone tightens the char class later."""
+    result = parse_tfp_prefix("[A_T] Ambience")
+    assert result == (Importance.A, Function.T, "Ambience")
+
+
 # ===========================================================================
 # R3 — parse_tfp_overrides : 11 cases from the spec table
 # ===========================================================================

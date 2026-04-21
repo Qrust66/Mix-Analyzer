@@ -102,12 +102,17 @@ def _to_function(code: str) -> Optional[Function]:
 # Strict prefix regex — R1 of the spec:
 #   - Optional leading whitespace (trimmed before matching)
 #   - Square brackets mandatory
-#   - Slash separator mandatory
+#   - Slash OR underscore separator ( Ableton substitutes "/" with "_" when
+#     bouncing audio, since "/" is illegal in filesystem names — a track
+#     named "[H/R] Kick 1" in Ableton yields "ProjectName [H_R] Kick 1.wav"
+#     on disk. Accepting both separators keeps the parser correct whether
+#     it is called on the EffectiveName (as in the current pipeline) or on
+#     a WAV stem that retains the prefix.)
 #   - Exactly one letter per dimension in the bracket
 #   - Mandatory whitespace between closing bracket and the name
 # Case-insensitive in input (the match groups lowercase-compare later).
 _PREFIX_RE = re.compile(
-    r"^\[\s*([HSAhsa])\s*/\s*([RHMTrhmt])\s*\]\s+(.+)$"
+    r"^\[\s*([HSAhsa])\s*[/_]\s*([RHMTrhmt])\s*\]\s+(.+)$"
 )
 
 # Token parser for one "name=value" override pair — R3 format rules.
