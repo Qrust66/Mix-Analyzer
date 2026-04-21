@@ -109,6 +109,14 @@ class Section:
     track_role_overridden: dict = field(default_factory=dict)
     tfp_summary: Optional[dict] = None
     diagnostic_summary: Optional[dict] = None
+    # Feature 3.6 — per-section conflicts and accumulations, populated by
+    # :func:`build_sections_timeline_sheet` right after
+    # :func:`detect_conflicts_in_section` / :func:`detect_accumulations_in_section`
+    # are computed. They persist on the Section instance so downstream
+    # consumers (Feature 3.6 CDE) can read them without re-running the
+    # detectors. Each entry is the exact dict returned by its detector.
+    conflicts: List[dict] = field(default_factory=list)
+    accumulations: List[dict] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -1150,6 +1158,43 @@ def get_zone_order() -> Tuple[str, ...]:
 
 
 # ---------------------------------------------------------------------------
+# Shared role-filter helper (Feature 3.5 / 3.6)
+# ---------------------------------------------------------------------------
+#
+# ``Section`` carries two parallel notions of "which tracks count":
+#
+#   1. ``section.tracks_active`` — meter-based list (compute from the per-bucket
+#      fader-corrected meter, see mix_analyzer.compute_track_active_fraction_by_section).
+#      This is the gate rendered in the Sections Timeline sheet and is the
+#      semantic the user sees.
+#   2. ``section.track_energy`` / ``section.track_presence`` — bucket-based
+#      zone energy and presence ratios fed to :func:`detect_conflicts_in_section`
+#      (which applies its own ``min_presence_ratio`` gate).
+#
+# Features 3.5 and 3.6 both need "the roles of the tracks that actually count
+# in the section". To keep a single source of truth, they go through
+# :func:`active_tracks_with_roles`. Do NOT reimplement this filter elsewhere —
+# divergence has already been flagged as a risk (Risque 6 of the Feature 3.6
+# reconnaissance). Any change to the meter/bucket semantics belongs here.
+
+def active_tracks_with_roles(section: Section) -> dict:
+    """Return ``{track_name: (Importance, Function)}`` for tracks active in the section.
+
+    Restricts ``section.track_roles`` to tracks present in
+    ``section.tracks_active`` (meter-based gate). Tracks without a role
+    entry (MIDI without WAV, etc.) are silently dropped — the caller
+    decides whether to log a warning.
+
+    Used by :mod:`tfp_coherence` for its importance-ratio counts and by
+    :mod:`cde_engine` to decide which conflicts reference "real" active
+    tracks for the section.
+    """
+    tracks_active = list(getattr(section, "tracks_active", []) or [])
+    track_roles = getattr(section, "track_roles", {}) or {}
+    return {t: track_roles[t] for t in tracks_active if t in track_roles}
+
+
+# ---------------------------------------------------------------------------
 # Phase C — Excel sheet rendering (Sections Timeline)
 # ---------------------------------------------------------------------------
 
@@ -1825,6 +1870,11 @@ def build_sections_timeline_sheet(
         )
         for s in sections
     }
+    # Feature 3.6 — persist detector output on the Section instance so CDE
+    # (and any other downstream consumer) does not have to recompute it.
+    for s in sections:
+        s.conflicts = conflicts_by_idx[s.index]
+        s.accumulations = accumulations_by_idx[s.index]
     observations_by_idx: dict = {
         s.index: generate_observations(
             section=s,
