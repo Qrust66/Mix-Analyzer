@@ -14,13 +14,13 @@ This module is shipped in three sub-commits:
     * B1b: core dataclasses + masking conflict detector, producing
       CorrectionDiagnostic instances with ``primary_correction = None``
       and ``fallback_correction = None``.
-    * B1c1 (this commit): recommendation matrix + fallback table.
-      Diagnostics produced for masking conflicts now carry a
-      ``primary_correction`` (or ``None`` for A×A atmos-vs-atmos pairs,
-      per spec §6.1) and a ``fallback_correction`` when a primary
-      exists. Protection rules still pending in B1c2.
-    * B1c2: protection rules, JSON dump, invariance test.
-    * B2+: accumulation detector, Excel sheet, richer JSON.
+    * B1c1: recommendation matrix + fallback table.
+    * B1c2 (this commit): §6.3 protection rules (signature frequency,
+      sub integrity, role-appropriate max cut), ``apply_protection_rules``
+      orchestrator, qualitative-impact templates (expected_outcomes,
+      potential_risks, verification_steps), and
+      ``dump_diagnostics_to_json``.
+    * B2+: accumulation detector, Excel sheet, richer JSON with summary.
 
 Design invariants:
 
@@ -37,9 +37,12 @@ Design invariants:
 
 from __future__ import annotations
 
+import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
+from enum import Enum
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 from tfp_parser import Function, Importance
@@ -748,12 +751,373 @@ def compute_fallback_recommendation(
 
 
 # ---------------------------------------------------------------------------
+# Protection rules (§6.3) — applied after the primary matrix
+# ---------------------------------------------------------------------------
+#
+# Three rules cap or invalidate a recommendation produced by the §6.1
+# matrix. They are applied in this strict order:
+#
+#   R2  Sub integrity (Hero Rhythm): can skip the whole recipe
+#   R1  Signature frequency protection: caps gain at -2 dB in dom_band
+#   R3  Role-appropriate max cut: caps gain by Importance
+#
+# R2 skips → the orchestrator stops, caller can try the fallback.
+# R1 caps → R3 still runs afterwards. R3 is a final safety net.
+#
+# All rules target the ``gain_db`` parameter of cut approaches
+# (``static_dip``, ``musical_dip``, ``reciprocal_cuts``) — not
+# sidechain's ``depth_db``, which is a dynamic reduction with a
+# different risk profile. The §6.1 matrix's sidechain defaults (-8 dB
+# primary, -4 dB fallback) are intentional starting points that should
+# not be capped by a static-EQ rule.
+
+RULE_SIGNATURE_FREQ_PROTECTION = "signature_freq_protection_rule"
+RULE_SUB_INTEGRITY_HR = "sub_integrity_hero_rhythm_rule"
+RULE_ROLE_APPROPRIATE_MAX_CUT = "role_appropriate_max_cut_rule"
+
+# Importance → max cut depth (dB). Values are the magnitudes; gains
+# must stay >= the stored negative number.
+_ROLE_MAX_CUT_DB: dict = {
+    Importance.H: -3.0,
+    Importance.S: -6.0,
+    Importance.A: -12.0,
+}
+
+# Sub zone range (inclusive). Matches ``section_detector._ZONE_LABELS["sub"]``.
+SUB_ZONE_RANGE_HZ: Tuple[float, float] = (20.0, 80.0)
+
+# Approaches that operate via a static gain cut; all protection rules
+# apply only to these (sidechain is ducking, not cutting).
+_CUT_APPROACHES: Tuple[str, ...] = ("static_dip", "musical_dip", "reciprocal_cuts")
+
+# Reverse mapping from zone center frequency to zone key. Used to
+# resolve "the recipe targets freq X Hz — which zone is that?" without
+# re-importing section_detector's private tables.
+_HZ_TO_ZONE: dict = {v: k for k, v in ZONE_CENTER_HZ.items()}
+
+# Zone label → key inverse, built from section_detector's public
+# ``get_zone_label`` so the two tables cannot drift.
+def _build_zone_label_to_key() -> dict:
+    from section_detector import get_zone_order
+    return {get_zone_label(k): k for k in get_zone_order()}
+
+
+_ZONE_LABEL_TO_KEY: dict = _build_zone_label_to_key()
+
+
+# ---------------------------------------------------------------------------
+# Protection-rule helpers
+# ---------------------------------------------------------------------------
+
+def _target_role(
+    diagnostic: CorrectionDiagnostic,
+    track_name: Optional[str],
+) -> Optional[Tuple[Importance, Function]]:
+    """Return the (Importance, Function) tuple for ``track_name`` if it
+    is one of the diagnostic's two tracks; ``None`` otherwise."""
+    if track_name is None:
+        return None
+    if track_name == diagnostic.track_a:
+        return diagnostic.tfp_context.track_a_role
+    if track_name == diagnostic.track_b:
+        return diagnostic.tfp_context.track_b_role
+    return None
+
+
+def _freq_in_sub_zone(freq_hz: Optional[float]) -> bool:
+    """True when ``freq_hz`` sits inside the Sub zone (20-80 Hz, inclusive)."""
+    if freq_hz is None:
+        return False
+    lo, hi = SUB_ZONE_RANGE_HZ
+    return lo <= float(freq_hz) <= hi
+
+
+def _dom_band_zone(
+    track_name: str,
+    ai_context: Optional[dict],
+    zone_energy: Optional[dict],
+) -> Optional[str]:
+    """Resolve the dominant-band zone key for ``track_name``.
+
+    Priority 1: ``ai_context[track][dom_band]`` — either a zone key
+    (``"mid"``) or a label (``"Mid (1-4 kHz)"``). Accept both.
+    Priority 2: the zone with the highest energy in
+    ``zone_energy[track]`` (``{zone: db_level}``).
+    Otherwise: ``None`` — caller skips the rule with a warning.
+    """
+    if ai_context:
+        entry = ai_context.get(track_name)
+        if isinstance(entry, dict):
+            dom_band = entry.get("dom_band")
+            if isinstance(dom_band, str):
+                if dom_band in ZONE_CENTER_HZ:
+                    return dom_band
+                key = _ZONE_LABEL_TO_KEY.get(dom_band)
+                if key is not None:
+                    return key
+
+    if zone_energy:
+        entry = zone_energy.get(track_name)
+        if isinstance(entry, dict):
+            scalars = {
+                z: float(v) for z, v in entry.items()
+                if isinstance(v, (int, float))
+            }
+            if scalars:
+                return max(scalars, key=scalars.get)
+
+    return None
+
+
+def _ensure_rule(diagnostic: CorrectionDiagnostic, slug: str) -> None:
+    """Append ``slug`` to ``diagnostic.rules_applied`` if not already present."""
+    if slug not in diagnostic.rules_applied:
+        diagnostic.rules_applied.append(slug)
+
+
+def _with_rationale_warning(
+    recipe: CorrectionRecipe,
+    params: dict,
+    warning: str,
+) -> CorrectionRecipe:
+    """Return a copy of ``recipe`` with ``params`` and an appended warning."""
+    existing = recipe.rationale or ""
+    sep = " " if existing and not existing.endswith(" ") else ""
+    return CorrectionRecipe(
+        target_track=recipe.target_track,
+        device=recipe.device,
+        approach=recipe.approach,
+        parameters=params,
+        applies_to_sections=recipe.applies_to_sections,
+        rationale=f"{existing}{sep}{warning}",
+        confidence=recipe.confidence,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Rule 2 — Sub integrity for Hero Rhythm (applied first)
+# ---------------------------------------------------------------------------
+
+def _apply_rule_sub_integrity(
+    diagnostic: CorrectionDiagnostic,
+    recipe: CorrectionRecipe,
+) -> Tuple[Optional[CorrectionRecipe], bool]:
+    """Skip the recipe when it would cut an H/R track in the Sub zone.
+
+    Returns ``(recipe_or_None, triggered)``. For ``reciprocal_cuts``,
+    either the primary target OR the secondary cut being on an H/R
+    track in Sub skips the whole recipe — caller can try the fallback.
+    """
+    if recipe.approach not in _CUT_APPROACHES:
+        return recipe, False
+
+    primary_role = _target_role(diagnostic, recipe.target_track)
+    primary_freq = recipe.parameters.get("frequency_hz")
+    if (primary_role == (Importance.H, Function.R)
+            and _freq_in_sub_zone(primary_freq)):
+        return None, True
+
+    secondary = recipe.parameters.get("secondary_cut")
+    if isinstance(secondary, dict):
+        secondary_target = secondary.get("track")
+        secondary_role = _target_role(diagnostic, secondary_target)
+        secondary_freq = secondary.get("frequency_hz")
+        if (secondary_role == (Importance.H, Function.R)
+                and _freq_in_sub_zone(secondary_freq)):
+            return None, True
+
+    return recipe, False
+
+
+# ---------------------------------------------------------------------------
+# Rule 1 — Signature frequency protection (applied second)
+# ---------------------------------------------------------------------------
+
+_SIGNATURE_PROTECTED_FUNCTIONS: Tuple[Function, ...] = (Function.M, Function.H)
+
+
+def _is_signature_protected(role: Optional[Tuple[Importance, Function]]) -> bool:
+    """Hero Melodic or Hero Harmonic tracks are signature-protected."""
+    return (
+        role is not None
+        and role[0] is Importance.H
+        and role[1] in _SIGNATURE_PROTECTED_FUNCTIONS
+    )
+
+
+def _freq_in_zone(freq_hz: Optional[float], zone_key: Optional[str]) -> bool:
+    """True when the recipe's freq falls into the given zone key.
+
+    Because ``frequency_hz`` is always a zone midpoint produced by
+    :data:`ZONE_CENTER_HZ`, the test reduces to a dict lookup — no
+    arithmetic comparison needed.
+    """
+    if freq_hz is None or zone_key is None:
+        return False
+    return _HZ_TO_ZONE.get(float(freq_hz)) == zone_key
+
+
+def _apply_rule_signature_freq(
+    diagnostic: CorrectionDiagnostic,
+    recipe: CorrectionRecipe,
+    ai_context: Optional[dict],
+    zone_energy: Optional[dict],
+) -> Tuple[CorrectionRecipe, bool]:
+    """Cap gain to -2 dB when cutting H/M or H/H in its dom_band.
+
+    No-op when the target is not signature-protected, when dom_band
+    cannot be resolved, or when the recipe's freq falls outside the
+    dom_band zone. Also checks the secondary cut for reciprocal_cuts.
+    """
+    if recipe.approach not in _CUT_APPROACHES:
+        return recipe, False
+
+    new_params = dict(recipe.parameters)
+    changed = False
+
+    primary_role = _target_role(diagnostic, recipe.target_track)
+    if _is_signature_protected(primary_role):
+        dom_zone = _dom_band_zone(recipe.target_track, ai_context, zone_energy)
+        if dom_zone is None:
+            logger.warning(
+                "CDE: signature freq protection skipped for %s — dom_band unresolved",
+                recipe.target_track,
+            )
+        elif _freq_in_zone(new_params.get("frequency_hz"), dom_zone):
+            gain = float(new_params.get("gain_db", 0.0))
+            if gain < -2.0:
+                new_params["gain_db"] = -2.0
+                changed = True
+
+    secondary = new_params.get("secondary_cut")
+    if isinstance(secondary, dict):
+        secondary_target = secondary.get("track")
+        secondary_role = _target_role(diagnostic, secondary_target)
+        if _is_signature_protected(secondary_role):
+            dom_zone = _dom_band_zone(secondary_target, ai_context, zone_energy)
+            if dom_zone is None:
+                logger.warning(
+                    "CDE: signature freq protection skipped for %s — dom_band unresolved",
+                    secondary_target,
+                )
+            elif _freq_in_zone(secondary.get("frequency_hz"), dom_zone):
+                gain = float(secondary.get("gain_db", 0.0))
+                if gain < -2.0:
+                    new_secondary = dict(secondary)
+                    new_secondary["gain_db"] = -2.0
+                    new_params["secondary_cut"] = new_secondary
+                    changed = True
+
+    if not changed:
+        return recipe, False
+
+    return _with_rationale_warning(
+        recipe, new_params,
+        "Correction limitée à -2 dB par protection signature frequency.",
+    ), True
+
+
+# ---------------------------------------------------------------------------
+# Rule 3 — Role-appropriate max cut (applied last)
+# ---------------------------------------------------------------------------
+
+def _apply_rule_role_max_cut(
+    diagnostic: CorrectionDiagnostic,
+    recipe: CorrectionRecipe,
+) -> Tuple[CorrectionRecipe, bool]:
+    """Cap gain_db to the Importance-based max (§6.3 Rule 3).
+
+    Hero: -3 dB; Support: -6 dB; Atmos: -12 dB. Applies to both the
+    primary target and the secondary_cut for reciprocal_cuts. Sidechain
+    depth_db is not touched.
+    """
+    if recipe.approach not in _CUT_APPROACHES:
+        return recipe, False
+
+    new_params = dict(recipe.parameters)
+    changed = False
+
+    primary_role = _target_role(diagnostic, recipe.target_track)
+    if primary_role is not None:
+        cap = _ROLE_MAX_CUT_DB.get(primary_role[0])
+        if cap is not None:
+            gain = new_params.get("gain_db")
+            if gain is not None and float(gain) < cap:
+                new_params["gain_db"] = cap
+                changed = True
+
+    secondary = new_params.get("secondary_cut")
+    if isinstance(secondary, dict):
+        secondary_target = secondary.get("track")
+        secondary_role = _target_role(diagnostic, secondary_target)
+        if secondary_role is not None:
+            cap = _ROLE_MAX_CUT_DB.get(secondary_role[0])
+            if cap is not None:
+                gain = secondary.get("gain_db")
+                if gain is not None and float(gain) < cap:
+                    new_secondary = dict(secondary)
+                    new_secondary["gain_db"] = cap
+                    new_params["secondary_cut"] = new_secondary
+                    changed = True
+
+    if not changed:
+        return recipe, False
+
+    return _with_rationale_warning(
+        recipe, new_params,
+        "Gain plafonné par la règle role-appropriate max cut.",
+    ), True
+
+
+# ---------------------------------------------------------------------------
+# Orchestrator
+# ---------------------------------------------------------------------------
+
+def apply_protection_rules(
+    diagnostic: CorrectionDiagnostic,
+    recommendation: Optional[CorrectionRecipe],
+    ai_context: Optional[dict] = None,
+    zone_energy: Optional[dict] = None,
+) -> Optional[CorrectionRecipe]:
+    """Run R2 → R1 → R3 in strict order on ``recommendation``.
+
+    Returns the (possibly modified) recipe or ``None`` if R2 skipped
+    the whole recipe. Appends every triggered rule's slug to
+    ``diagnostic.rules_applied`` (deduped — a rule that fires on both
+    primary AND fallback is recorded once).
+    """
+    if recommendation is None:
+        return None
+
+    current = recommendation
+
+    current, r2 = _apply_rule_sub_integrity(diagnostic, current)
+    if r2:
+        _ensure_rule(diagnostic, RULE_SUB_INTEGRITY_HR)
+    if current is None:
+        return None
+
+    current, r1 = _apply_rule_signature_freq(
+        diagnostic, current, ai_context, zone_energy,
+    )
+    if r1:
+        _ensure_rule(diagnostic, RULE_SIGNATURE_FREQ_PROTECTION)
+
+    current, r3 = _apply_rule_role_max_cut(diagnostic, current)
+    if r3:
+        _ensure_rule(diagnostic, RULE_ROLE_APPROPRIATE_MAX_CUT)
+
+    return current
+
+
+# ---------------------------------------------------------------------------
 # Public API — masking detector
 # ---------------------------------------------------------------------------
 
 def detect_masking_conflicts(
     section,
     all_tracks_zone_energy: Optional[dict] = None,
+    ai_context: Optional[dict] = None,
 ) -> List[CorrectionDiagnostic]:
     """Generate one :class:`CorrectionDiagnostic` per conflict in ``section``.
 
@@ -766,13 +1130,20 @@ def detect_masking_conflicts(
     that were never bounced to WAV) are skipped with a warning log —
     Risque 7 of the F3.6 recon.
 
-    Since B1c1, each diagnostic is also decorated with a
+    Since B1c1 each diagnostic is decorated with a
     ``primary_correction`` (via :func:`compute_primary_recommendation`,
     §6.1 matrix) and a ``fallback_correction``
-    (:func:`compute_fallback_recommendation`, §6.2). Both can still be
-    ``None`` when the matrix returns no action — typically the A×A
-    atmos-vs-atmos case. Protection rules that cap / block a primary
-    are added in B1c2.
+    (:func:`compute_fallback_recommendation`, §6.2). Since B1c2a both
+    are run through :func:`apply_protection_rules` (§6.3) which can
+    cap the gain or invalidate a recipe — ``None`` is therefore also
+    returned when the protection rules skip the recipe entirely (e.g.
+    a kick's Sub-zone cut).
+
+    Args continued:
+        ai_context: Optional ``{track_name: {"dom_band": <zone_or_label>}}``
+            map from the AI Context sheet. Feeds Rule 1 (signature
+            frequency protection). When absent the rule falls back to
+            ``section.track_energy`` to find the track's dom_band.
 
     Args:
         section: A :class:`section_detector.Section` whose
@@ -849,9 +1220,19 @@ def detect_masking_conflicts(
         )
         # B1c1 — fill recommendations from the §6.1 matrix + §6.2 fallback
         primary, rules = compute_primary_recommendation(diag)
-        diag.primary_correction = primary
-        diag.fallback_correction = compute_fallback_recommendation(diag, primary)
+        fallback = compute_fallback_recommendation(diag, primary)
         diag.rules_applied = list(rules)
+
+        # B1c2a — protection rules (§6.3) may cap or invalidate each recipe.
+        # ``section.track_energy`` feeds Rule 1's priority-2 dom_band lookup
+        # when no ``ai_context`` is provided.
+        zone_energy = getattr(section, "track_energy", {}) or {}
+        diag.primary_correction = apply_protection_rules(
+            diag, primary, ai_context=ai_context, zone_energy=zone_energy,
+        )
+        diag.fallback_correction = apply_protection_rules(
+            diag, fallback, ai_context=ai_context, zone_energy=zone_energy,
+        )
         diagnostics.append(diag)
 
     return diagnostics
