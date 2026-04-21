@@ -231,14 +231,16 @@ def compute_section_coherence_score(
     duration = float(
         getattr(section, "end_seconds", 0.0) - getattr(section, "start_seconds", 0.0)
     )
-    tracks_active = list(getattr(section, "tracks_active", []) or [])
 
-    track_roles = getattr(section, "track_roles", {}) or {}
     # Restrict role counts to tracks actually "active" in the section so
-    # the score reflects what the user sees in the PEAK MAX block.
-    active_roles = [
-        track_roles[t] for t in tracks_active if t in track_roles
-    ]
+    # the score reflects what the user sees in the PEAK MAX block. The
+    # filter lives in ``section_detector.active_tracks_with_roles`` so
+    # Feature 3.6 (CDE) can share the exact same semantics — see the
+    # "Shared role-filter helper" banner in section_detector.py.
+    from section_detector import active_tracks_with_roles
+    active_roles_map = active_tracks_with_roles(section)
+    active_roles = list(active_roles_map.values())
+    track_roles = getattr(section, "track_roles", {}) or {}
 
     imp_counts = Counter(r[0] for r in active_roles)
     fn_counts = Counter(r[1] for r in active_roles)
