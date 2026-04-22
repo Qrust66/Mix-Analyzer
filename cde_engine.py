@@ -101,6 +101,25 @@ ZONE_CENTER_HZ: dict = {
     "air":        15000,  # 10000 + 20000
 }
 
+# Zone bounds (inclusive, Hz). Used by
+# :func:`_resolve_zone_label_for_freq` to look up a zone from an
+# arbitrary frequency — masking diagnostics always hand us a
+# midpoint, but accumulations come in with the cluster's actual
+# median (e.g. 311 Hz), which needs range matching. The bounds are
+# mirrored from ``section_detector._ZONE_LABELS`` — if you change
+# one, change the other.
+ZONE_BOUNDS_HZ: dict = {
+    "sub":        (20,    80),
+    "low":        (80,    250),
+    "mud":        (200,   500),
+    "body":       (250,   800),
+    "low_mid":    (500,   2000),
+    "mid":        (1000,  4000),
+    "presence":   (2000,  5000),
+    "sibilance":  (5000,  10000),
+    "air":        (10000, 20000),
+}
+
 
 # ---------------------------------------------------------------------------
 # Enum-side helpers — human labels used in diagnosis text
@@ -1329,18 +1348,34 @@ _OUTCOME_TEMPLATES: dict = {
 
 
 def _resolve_zone_label_for_freq(freq_hz: Optional[float]) -> str:
-    """Return a human-readable zone label for a recipe frequency.
+    """Return a human-readable zone label for any frequency (Hz).
 
-    The recipe's ``frequency_hz`` is always a zone midpoint from
-    :data:`ZONE_CENTER_HZ`, so the reverse lookup is exact — no range
-    matching. Falls back to a generic label if the freq doesn't match.
+    Masking recipes always hand us a zone midpoint from
+    :data:`ZONE_CENTER_HZ`; accumulation recipes hand us the cluster's
+    actual median (e.g. ``311 Hz``, which is not a midpoint). The
+    resolver does a range match against :data:`ZONE_BOUNDS_HZ`, and
+    when several zones overlap (Mud 200-500 vs Low 80-250 vs Body
+    250-800 etc.) picks the one whose midpoint is closest in Hz.
+
+    Returns the generic ``"la bande concernée"`` fallback only when
+    ``freq_hz`` is ``None`` or falls outside the full 20-20 000 Hz
+    range of the instrument zones.
     """
     if freq_hz is None:
         return "la bande concernée"
-    zone_key = _HZ_TO_ZONE.get(float(freq_hz))
-    if zone_key is None:
-        return "la bande concernée"
-    return get_zone_label(zone_key)
+    f = float(freq_hz)
+
+    # Collect zones whose range contains the freq.
+    candidates = [
+        (zone, abs(f - ZONE_CENTER_HZ[zone]))
+        for zone, (lo, hi) in ZONE_BOUNDS_HZ.items()
+        if lo <= f <= hi
+    ]
+    if candidates:
+        zone = min(candidates, key=lambda pair: pair[1])[0]
+        return get_zone_label(zone)
+
+    return "la bande concernée"
 
 
 def _substitute_placeholders(
@@ -1993,6 +2028,13 @@ def detect_accumulation_risks(
             track_b=None,
             frequency_hz=freq_hz,
         )
+        # B2a.1 disambiguation — a section can contain multiple
+        # accumulations at the same freq cluster when the pile-up
+        # dies down and resumes. Append ``_B<start_bucket>`` so each
+        # diagnostic_id stays unique across the JSON payload.
+        start_bucket = int(accumulation.get("start_bucket", 0))
+        diag_id = f"{diag_id}_B{start_bucket}"
+
         diagnosis_text = _diagnosis_text_accumulation(
             primary_target=primary_target,
             n_tracks=n_tracks,

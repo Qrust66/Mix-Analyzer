@@ -221,9 +221,11 @@ def test_detector_produces_one_diagnostic_per_accumulation():
     assert d.track_a == "Pad"  # lowest-importance Atmos
     assert d.track_b is None   # accumulation is multi-track, no pair
     assert d.section == "Chorus 1"
-    # Diagnostic ID follows the human-readable convention.
+    # Diagnostic ID follows the human-readable convention —
+    # ``ACC_<SECTION>_<TARGET>_<FREQ>HZ_B<start_bucket>`` since B2a.1.
     assert d.diagnostic_id.startswith("ACC_CHORUS1_PAD_")
-    assert d.diagnostic_id.endswith("HZ")
+    assert "HZ_B" in d.diagnostic_id
+    assert d.diagnostic_id.endswith(f"_B{s.accumulations[0]['start_bucket']}")
     # Primary correction is filled, fallback intentionally None for B2a.
     assert d.primary_correction is not None
     assert d.primary_correction.approach == "static_dip"
