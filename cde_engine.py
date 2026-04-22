@@ -1625,6 +1625,144 @@ def dump_diagnostics_to_json(
         json.dump(payload, f, indent=2, ensure_ascii=False)
 
 
+def _role_from_list(role_list: Optional[List[str]]) -> Optional[
+    Tuple[Importance, Function]
+]:
+    """Reverse of :func:`_role_to_list` — rebuild the role tuple from
+    a two-element list of single-character codes."""
+    if role_list is None:
+        return None
+    if not isinstance(role_list, (list, tuple)) or len(role_list) != 2:
+        return None
+    return (Importance(role_list[0]), Function(role_list[1]))
+
+
+def _recipe_from_dict(data: Optional[dict]) -> Optional[CorrectionRecipe]:
+    """Reverse of :func:`_recipe_to_dict`. Returns ``None`` when the
+    recipe slot was ``null`` in the JSON."""
+    if data is None:
+        return None
+    return CorrectionRecipe(
+        target_track=data["target_track"],
+        device=data.get("device", ""),
+        approach=data["approach"],
+        parameters=dict(data.get("parameters", {})),
+        applies_to_sections=list(data.get("applies_to_sections", [])),
+        rationale=data.get("rationale", ""),
+        confidence=data.get("confidence", "medium"),
+    )
+
+
+def load_diagnostics_from_json(path) -> List[CorrectionDiagnostic]:
+    """Load diagnostics from a JSON file produced by
+    :func:`dump_diagnostics_to_json`.
+
+    Companion to the dumper — performs the full round-trip:
+    enum codes → ``Importance`` / ``Function``, ISO timestamp →
+    ``datetime``, nested recipe / measurement / context dicts →
+    dataclass instances. Preserves the JSON order.
+
+    This is the minimal read half needed by Feature 1 (the CLI
+    wrapper and ``revert_cde_application``). The full read API
+    (``get_diagnostic_by_id`` + ``filter_diagnostics``) ships later
+    in B3 with the dedicated ``cde_api`` module.
+
+    Args:
+        path: File path (``str`` or :class:`pathlib.Path`) of a JSON
+            payload in the shape produced by
+            :func:`dump_diagnostics_to_json`.
+
+    Returns:
+        List of :class:`CorrectionDiagnostic` instances. Empty when
+        the file's ``diagnostics`` array is empty or missing.
+
+    Raises:
+        FileNotFoundError: if the JSON file does not exist.
+        json.JSONDecodeError: if the file is malformed.
+        KeyError: if a diagnostic entry is missing a mandatory field
+            (``diagnostic_id``, ``track_a``, ``issue_type``,
+            ``severity``).
+    """
+    source = Path(path)
+    if not source.exists():
+        raise FileNotFoundError(f"Diagnostics JSON not found: {source}")
+
+    with source.open("r", encoding="utf-8") as f:
+        payload = json.load(f)
+
+    entries = payload.get("diagnostics", []) or []
+    result: List[CorrectionDiagnostic] = []
+    for entry in entries:
+        # Timestamp — fall back to now() if absent / malformed.
+        ts_raw = entry.get("timestamp")
+        try:
+            ts = datetime.fromisoformat(ts_raw) if ts_raw else datetime.now()
+        except (ValueError, TypeError):
+            ts = datetime.now()
+
+        meas_data = entry.get("measurement")
+        measurement = (
+            ProblemMeasurement(**meas_data) if meas_data is not None
+            else ProblemMeasurement(
+                frequency_hz=None, peak_db=None,
+                duration_in_section_s=0.0,
+                duration_ratio_in_section=0.0,
+                is_audible_fraction=0.0,
+                severity_score=0.0, masking_score=None,
+            )
+        )
+
+        tfp_data = entry.get("tfp_context", {}) or {}
+        tfp_ctx = TFPContext(
+            track_a_role=_role_from_list(tfp_data.get("track_a_role")),
+            track_b_role=_role_from_list(tfp_data.get("track_b_role")),
+            role_compatibility=tfp_data.get(
+                "role_compatibility", "compatible"
+            ),
+        )
+
+        sec_data = entry.get("section_context")
+        section_ctx = (
+            SectionContext(**sec_data) if sec_data is not None
+            else SectionContext(
+                section_name="", section_duration_s=0.0,
+                tracks_active_count=0, conflicts_in_section=0,
+                coherence_score=None,
+            )
+        )
+
+        diag = CorrectionDiagnostic(
+            diagnostic_id=entry["diagnostic_id"],
+            timestamp=ts,
+            cde_version=entry.get("cde_version", CDE_VERSION),
+            track_a=entry["track_a"],
+            track_b=entry.get("track_b"),
+            section=entry.get("section"),
+            issue_type=entry["issue_type"],
+            severity=entry["severity"],
+            measurement=measurement,
+            tfp_context=tfp_ctx,
+            section_context=section_ctx,
+            diagnosis_text=entry.get("diagnosis_text", ""),
+            primary_correction=_recipe_from_dict(
+                entry.get("primary_correction")
+            ),
+            fallback_correction=_recipe_from_dict(
+                entry.get("fallback_correction")
+            ),
+            expected_outcomes=list(entry.get("expected_outcomes", [])),
+            potential_risks=list(entry.get("potential_risks", [])),
+            verification_steps=list(entry.get("verification_steps", [])),
+            application_status=entry.get("application_status", "proposed"),
+            rejection_reason=entry.get("rejection_reason"),
+            applied_backup_path=entry.get("applied_backup_path"),
+            data_sources=list(entry.get("data_sources", [])),
+            rules_applied=list(entry.get("rules_applied", [])),
+        )
+        result.append(diag)
+    return result
+
+
 # ---------------------------------------------------------------------------
 # Accumulation — diagnosis text + recommendation (B2a)
 # ---------------------------------------------------------------------------
