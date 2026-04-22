@@ -1,30 +1,36 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-cde_apply.py — v2.7.0 — Feature 1 phase F1a (clustering + data prep).
+cde_apply.py — v2.7.0 — Feature 1 (CDE → ALS bridge).
 
-Bridges Feature 3.6 (CDE) and the EQ8 automation engine: consumes
-``CorrectionDiagnostic`` instances, groups them by target track,
-clusters them by frequency, and matches them to peak trajectories
-read from the Mix Analyzer Excel report.
+Consumes ``CorrectionDiagnostic`` instances and applies them to an
+Ableton ``.als`` project as dynamic EQ8 corrections. Sits between
+:mod:`cde_engine` (data model) and :mod:`eq8_automation` (low-level
+XML writers).
 
-F1a ships the **read-only** side of the bridge:
-
+F1a — data prep (read-only):
     - Dataclasses ``FreqCluster`` and ``CdeApplicationReport``
-    - ``_group_diagnostics_by_target``     — filters sidechain / empty
-                                             recipes, groups by target_track
-    - ``_cluster_diagnostics_by_frequency`` — single-link clustering with
-                                             centroid-distance matching,
-                                             default tolerance 2 semitones
-    - ``_match_peak_trajectories_to_cluster`` — filter trajectories whose
-                                             ``mean_freq`` sits inside the
-                                             cluster's tolerance band
-    - ``load_peak_trajectories_from_excel`` — parse the
-                                             ``_track_peak_trajectories``
-                                             sheet
+    - Grouping by target track, frequency clustering, peak-trajectory
+      matching, Excel reader for ``_track_peak_trajectories``
 
-No EQ8 insertion, no automation write, no ``.als`` mutation. Those
-ship in F1b (section-locked writer) and F1c (peak-following mode).
+F1b — section-locked writer:
+    - ``write_dynamic_eq8_from_cde_diagnostics(als_path, diagnostics,
+      *, peak_follow=False, …)`` — public entry point
+    - Atomic reciprocal_cuts validation (both tracks must exist)
+    - Reciprocal expansion into primary + secondary pseudo-diagnostics
+    - Dense per-frame gain envelope that reads ``severest_gain_db``
+      in every section listed by ``cluster.applies_to_sections``,
+      0 dB everywhere else
+    - Cluster cap at :data:`MAX_CDE_BANDS` with "least severe first"
+      skip policy
+    - Idempotent: purges any prior ``CDE Correction …`` EQ8 on the
+      target track before insertion
+    - Preview + confirmation prompt (``_skip_confirmation=True`` for
+      tests, ``dry_run=True`` for CLI previews)
+
+F1c (not yet shipped): ``peak_follow=True`` mode — Freq + Gain + Q
+automation frame-by-frame driven by the target track's own peak
+trajectories. F1c is gated on the F1b.5 field validation.
 """
 
 from __future__ import annotations
@@ -431,3 +437,634 @@ def load_peak_trajectories_from_excel(
         result[track].append(PeakTrajectory(points=grouped[(track, traj_num)]))
 
     return result
+
+
+# ===========================================================================
+# F1b — section-locked writer
+# ===========================================================================
+
+# Imports needed only for the writer. Kept here rather than at the top so the
+# F1a slice (clustering only) does not pull in the heavy als/EQ8 stack just
+# to read an Excel sheet.
+from cde_engine import CorrectionRecipe, ProblemMeasurement  # noqa: E402
+from als_utils import (  # noqa: E402
+    backup_als,
+    configure_eq8_band,
+    find_track_by_name,
+    get_eq8_band,
+    get_next_id,
+    parse_als,
+    read_locators,
+    save_als_from_tree,
+    _clone_eq8_with_unique_ids,
+)
+from eq8_automation import (  # noqa: E402
+    _extract_tempo,
+    _feature_to_breakpoints,
+    _remove_existing_envelope,
+    _write_validated_env,
+)
+
+
+# Default dense-sampling spacing for the gain envelope. Matches the v3
+# script that drove the 247 Hz cut on Ambience and the production
+# Peak Resonance density (~0.5 s per event).
+DEFAULT_GRID_SPACING_SEC = 0.5
+
+
+# ---------------------------------------------------------------------------
+# Reciprocal validation + expansion
+# ---------------------------------------------------------------------------
+
+def _validate_reciprocal_pairs(
+    tree,
+    diagnostics: List[CorrectionDiagnostic],
+    report: CdeApplicationReport,
+) -> List[CorrectionDiagnostic]:
+    """Filter out reciprocal_cuts whose secondary_cut targets a track
+    that doesn't exist in the project. Both halves of the pair are
+    skipped together with reason ``reciprocal_cut_missing_track`` so
+    the user can spot the broken link.
+    """
+    valid: List[CorrectionDiagnostic] = []
+    for d in diagnostics:
+        pc = d.primary_correction
+        if pc is None or pc.approach != "reciprocal_cuts":
+            valid.append(d)
+            continue
+        sec = pc.parameters.get("secondary_cut") if isinstance(pc.parameters, dict) else None
+        if not isinstance(sec, dict):
+            valid.append(d)
+            continue
+        track_a = pc.target_track
+        track_b = sec.get("track", "")
+        try:
+            find_track_by_name(tree, track_a)
+            if track_b:
+                find_track_by_name(tree, track_b)
+            else:
+                raise ValueError("missing secondary track name")
+        except ValueError:
+            report.skipped.append((
+                d.diagnostic_id,
+                f"reciprocal_cut_missing_track "
+                f"(track_a={track_a!r}, track_b={track_b!r})",
+            ))
+            continue
+        valid.append(d)
+    return valid
+
+
+def _expand_reciprocal_cuts(
+    diagnostics: List[CorrectionDiagnostic],
+) -> List[CorrectionDiagnostic]:
+    """For every reciprocal_cuts diagnostic, append a pseudo-diagnostic
+    targeting the secondary track so it ends up in the same grouping
+    pipeline. The pseudo carries diagnostic_id ``<orig>_SEC`` so the
+    audit trail still groups the atomic pair logically.
+    """
+    expanded: List[CorrectionDiagnostic] = []
+    for d in diagnostics:
+        expanded.append(d)
+        pc = d.primary_correction
+        if pc is None or pc.approach != "reciprocal_cuts":
+            continue
+        sec = pc.parameters.get("secondary_cut") if isinstance(pc.parameters, dict) else None
+        if not isinstance(sec, dict):
+            continue
+        track_b = sec.get("track", "")
+        if not track_b:
+            continue
+
+        sec_freq = sec.get("frequency_hz", pc.parameters.get("frequency_hz"))
+        sec_gain = sec.get("gain_db", pc.parameters.get("gain_db"))
+        sec_q = sec.get("q", pc.parameters.get("q"))
+
+        meas = d.measurement
+        pseudo_meas = ProblemMeasurement(
+            frequency_hz=float(sec_freq) if sec_freq is not None else None,
+            peak_db=meas.peak_db if meas else None,
+            duration_in_section_s=meas.duration_in_section_s if meas else 0.0,
+            duration_ratio_in_section=meas.duration_ratio_in_section if meas else 0.0,
+            is_audible_fraction=meas.is_audible_fraction if meas else 0.0,
+            severity_score=meas.severity_score if meas else 0.0,
+            masking_score=meas.masking_score if meas else None,
+        )
+        pseudo_recipe = CorrectionRecipe(
+            target_track=track_b,
+            device=pc.device,
+            approach="reciprocal_cuts",
+            parameters={
+                "frequency_hz": float(sec_freq) if sec_freq is not None else 0.0,
+                "gain_db": float(sec_gain) if sec_gain is not None else 0.0,
+                "q": float(sec_q) if sec_q is not None else 1.0,
+                "active_in_sections": list(pc.parameters.get("active_in_sections", [])),
+            },
+            applies_to_sections=list(pc.applies_to_sections),
+            rationale=pc.rationale,
+            confidence=pc.confidence,
+        )
+        pseudo = CorrectionDiagnostic(
+            diagnostic_id=f"{d.diagnostic_id}_SEC",
+            timestamp=d.timestamp,
+            cde_version=d.cde_version,
+            track_a=track_b,
+            track_b=None,
+            section=d.section,
+            issue_type=d.issue_type,
+            severity=d.severity,
+            measurement=pseudo_meas,
+            tfp_context=d.tfp_context,
+            section_context=d.section_context,
+            diagnosis_text=d.diagnosis_text,
+            primary_correction=pseudo_recipe,
+            fallback_correction=None,
+        )
+        expanded.append(pseudo)
+    return expanded
+
+
+# ---------------------------------------------------------------------------
+# Section ranges + dense gain curves
+# ---------------------------------------------------------------------------
+
+def _build_section_ranges_beats(locators) -> Dict[str, Tuple[float, float]]:
+    """Return ``{section_name: (start_beats, end_beats)}`` from a
+    sorted locator list. Each section ends where the next locator
+    starts; the final section is given a 32-beat tail (~1 bar at 4/4)
+    so a cut that runs to the end of the song doesn't get cropped.
+    """
+    if not locators:
+        return {}
+    sorted_locs = sorted(locators, key=lambda L: L["time_beats"])
+    ranges: Dict[str, Tuple[float, float]] = {}
+    for i, loc in enumerate(sorted_locs):
+        start = float(loc["time_beats"])
+        if i + 1 < len(sorted_locs):
+            end = float(sorted_locs[i + 1]["time_beats"])
+        else:
+            end = start + 32.0
+        ranges[loc["name"]] = (start, end)
+    return ranges
+
+
+def _estimate_song_end_beats(locators) -> float:
+    """Last locator + 32 beats fallback. 32 beats default keeps a
+    16-second tail at 128 BPM so the envelope covers the very end of
+    the song without truncation."""
+    if not locators:
+        return 32.0
+    return max(float(L["time_beats"]) for L in locators) + 32.0
+
+
+def _build_section_locked_gain_curve(
+    cluster: FreqCluster,
+    section_ranges: Dict[str, Tuple[float, float]],
+    times_sec: np.ndarray,
+    tempo_bpm: float,
+) -> np.ndarray:
+    """Build a per-frame gain curve: ``cluster.severest_gain_db`` for
+    frames whose time falls inside any section listed in
+    ``cluster.applies_to_sections``, ``0.0`` everywhere else.
+
+    Vectorised numpy mask — cheap even on 5000-frame grids.
+    """
+    beats_per_sec = float(tempo_bpm) / 60.0
+    gain_curve = np.zeros(len(times_sec), dtype=float)
+    for section_name in cluster.applies_to_sections:
+        rng = section_ranges.get(section_name)
+        if rng is None:
+            continue
+        start_b, end_b = rng
+        start_s = start_b / beats_per_sec
+        end_s = end_b / beats_per_sec
+        mask = (times_sec >= start_s) & (times_sec < end_s)
+        gain_curve[mask] = cluster.severest_gain_db
+    return gain_curve
+
+
+# ---------------------------------------------------------------------------
+# EQ8 cloning + chain helpers (mirrored from the apply_cde_correction_247hz
+# scripts so callers don't depend on them)
+# ---------------------------------------------------------------------------
+
+_NEUTRAL_BAND_FREQS_HZ = (60.0, 150.0, 400.0, 1000.0,
+                          2500.0, 6000.0, 12000.0, 18000.0)
+
+
+def _clone_in_project_eq8(tree, user_name: str):
+    """Sandbox-friendly clone — used when ``Pluggin Mapping.als`` is
+    not deployed locally. Deep-copies an existing EQ8 from anywhere in
+    the project, renumbers IDs and resets every band to neutral."""
+    import copy
+    source = tree.getroot().find(".//Eq8")
+    if source is None:
+        raise RuntimeError("No Eq8 in project to clone from.")
+    eq8 = copy.deepcopy(source)
+    next_id = get_next_id(tree)
+    for elem in eq8.iter():
+        raw = elem.get("Id")
+        if raw is not None and raw != "0":
+            elem.set("Id", str(next_id))
+            next_id += 1
+    un = eq8.find("UserName")
+    if un is not None:
+        un.set("Value", user_name)
+    for i in range(8):
+        band = eq8.find(f"Bands.{i}/ParameterA")
+        if band is None:
+            continue
+        for tag, value in (("Mode/Manual", "3"),
+                           ("Freq/Manual", str(_NEUTRAL_BAND_FREQS_HZ[i])),
+                           ("Gain/Manual", "0.0"),
+                           ("Q/Manual", "0.7071067095"),
+                           ("IsOn/Manual", "false")):
+            el = band.find(tag)
+            if el is not None:
+                el.set("Value", value)
+    return eq8
+
+
+def _build_fresh_eq8(tree, user_name: str):
+    """Try the canonical Pluggin Mapping template, fall back to an
+    in-project clone when it's not deployed."""
+    try:
+        return _clone_eq8_with_unique_ids(tree, user_name=user_name)
+    except RuntimeError as e:
+        if "template file not found" not in str(e):
+            raise
+        return _clone_in_project_eq8(tree, user_name)
+
+
+def _devices_container(track):
+    devices = track.find(".//DeviceChain/DeviceChain/Devices")
+    if devices is None:
+        devices = track.find(".//DeviceChain/Devices")
+    if devices is None:
+        raise RuntimeError("No Devices container on the target track.")
+    return devices
+
+
+def _find_device_by_username(track, username: str):
+    if not username:
+        return None
+    for eq8 in track.findall(".//Eq8"):
+        un = eq8.find("UserName")
+        if un is not None and un.get("Value") == username:
+            return eq8
+    return None
+
+
+def _insert_after(devices, anchor, new_device) -> int:
+    children = list(devices)
+    if anchor is None:
+        devices.append(new_device)
+        return len(children)
+    anchor_idx = children.index(anchor)
+    for c in children:
+        devices.remove(c)
+    for i, c in enumerate(children):
+        devices.append(c)
+        if i == anchor_idx:
+            devices.append(new_device)
+    return anchor_idx + 1
+
+
+def _purge_existing_cde_eq8(
+    track,
+    device_user_name_fmt: str,
+    report: CdeApplicationReport,
+) -> int:
+    """Remove every prior ``"CDE Correction (…)"`` EQ8 + its envelopes.
+
+    The match uses the pre-``{n}`` prefix of ``device_user_name_fmt``
+    so re-runs don't accumulate stale devices.
+    """
+    prefix = device_user_name_fmt.split("{")[0]
+    devices = _devices_container(track)
+    removed = 0
+    for child in list(devices):
+        if child.tag != "Eq8":
+            continue
+        un = child.find("UserName")
+        if un is None or not un.get("Value", "").startswith(prefix):
+            continue
+        for at in child.iter("AutomationTarget"):
+            tid = at.get("Id")
+            if tid is not None:
+                _remove_existing_envelope(track, tid)
+        devices.remove(child)
+        removed += 1
+        report.warnings.append(
+            f"Purged previous {un.get('Value')!r} on chain"
+        )
+    return removed
+
+
+# ---------------------------------------------------------------------------
+# Cluster cap + preview
+# ---------------------------------------------------------------------------
+
+def _cap_clusters(
+    clusters: List[FreqCluster],
+    max_bands: int,
+    track_name: str,
+    report: CdeApplicationReport,
+) -> List[FreqCluster]:
+    """Keep the ``max_bands`` most severe clusters (most negative
+    ``severest_gain_db`` first); record the rest in
+    ``report.skipped`` with reason ``"cluster_cap_exceeded"``."""
+    if len(clusters) <= max_bands:
+        return clusters
+    # Sort ascending = most negative first = most severe first.
+    by_severity = sorted(clusters, key=lambda c: c.severest_gain_db)
+    kept = by_severity[:max_bands]
+    dropped = by_severity[max_bands:]
+    dropped_freqs = [round(c.centroid_hz) for c in dropped]
+    report.warnings.append(
+        f"{track_name}: {len(clusters)} clusters exceed cap "
+        f"({max_bands}). Dropped {len(dropped)} least severe "
+        f"@ {dropped_freqs} Hz."
+    )
+    for c in dropped:
+        for d in c.diagnostics:
+            report.skipped.append((
+                d.diagnostic_id, "cluster_cap_exceeded",
+            ))
+    return kept
+
+
+def _build_preview_text(
+    als_path: Path,
+    clusters_by_track: Dict[str, List[FreqCluster]],
+    report: CdeApplicationReport,
+    backup_path_hint: Path,
+) -> str:
+    sep = "═" * 64
+    total_diags = sum(
+        len(c.diagnostics)
+        for cs in clusters_by_track.values() for c in cs
+    )
+    crit = mod = minor = 0
+    for cs in clusters_by_track.values():
+        for c in cs:
+            for d in c.diagnostics:
+                if d.severity == "critical":
+                    crit += 1
+                elif d.severity == "moderate":
+                    mod += 1
+                else:
+                    minor += 1
+
+    sidechain_n = report.sidechain_count()
+    primary_none_n = sum(
+        1 for (_, r) in report.skipped if "primary_correction is None" in r
+    )
+    other_skip = len(report.skipped) - sidechain_n - primary_none_n
+
+    lines = [
+        sep,
+        "CDE APPLICATION PREVIEW",
+        sep,
+        f"Diagnostics à appliquer : {total_diags} "
+        f"(critical: {crit}, moderate: {mod}, minor: {minor})",
+        f"Diagnostics skippés     : {len(report.skipped)}",
+        f"  - sidechain (Feature 1.5) : {sidechain_n}",
+        f"  - primary=None (R2/R3)    : {primary_none_n}",
+        f"  - autre                   : {other_skip}",
+        "",
+        f"Tracks affectées : {len(clusters_by_track)}",
+    ]
+    for track_name, clusters in sorted(clusters_by_track.items()):
+        freqs = sorted(int(round(c.centroid_hz)) for c in clusters)
+        freq_str = ", ".join(f"{f} Hz" for f in freqs)
+        lines.append(
+            f"  - {track_name} : {len(clusters)} clusters ({freq_str})"
+        )
+    lines.append("")
+    lines.append(f"Backup sera créé : {backup_path_hint}")
+    if report.warnings:
+        lines.append("")
+        lines.append("Warnings :")
+        for w in report.warnings:
+            lines.append(f"  - {w}")
+    lines.append(sep)
+    return "\n".join(lines)
+
+
+def _prompt_confirmation() -> bool:
+    """Ask the user via stdin. Accepts y/yes/o/oui (case-insensitive)
+    as confirmation. Anything else is treated as a refusal."""
+    try:
+        resp = input("Procéder ? (y/N) ").strip().lower()
+    except EOFError:
+        return False
+    return resp in ("y", "yes", "o", "oui")
+
+
+# ---------------------------------------------------------------------------
+# Public API — section-locked writer
+# ---------------------------------------------------------------------------
+
+def write_dynamic_eq8_from_cde_diagnostics(
+    als_path,
+    diagnostics: List[CorrectionDiagnostic],
+    *,
+    peak_trajectories_by_track: Optional[Dict[str, List[PeakTrajectory]]] = None,
+    zone_energy_by_track: Optional[Dict[str, Dict[str, np.ndarray]]] = None,
+    times: Optional[np.ndarray] = None,
+    device_user_name_fmt: str = "CDE Correction ({n} bands)",
+    insertion_anchor_username: Optional[str] = "Peak Resonance",
+    freq_match_tolerance_semitones: float = DEFAULT_FREQ_CLUSTER_TOLERANCE_SEMITONES,
+    peak_follow: bool = False,
+    threshold_db: float = -30.0,
+    use_fallback_when_primary_none: bool = False,
+    dry_run: bool = False,
+    automation_map=None,
+    grid_spacing_sec: float = DEFAULT_GRID_SPACING_SEC,
+    _skip_confirmation: bool = False,
+    _preview_writer: Callable[[str], None] = print,
+) -> CdeApplicationReport:
+    """Apply a batch of CDE diagnostics to ``.als`` as dynamic EQ8 corrections.
+
+    F1b — section-locked mode only (``peak_follow=False``). The
+    ``peak_follow=True`` path will ship in F1c after F1b.5 field
+    validation; the kwarg already exists for forward compatibility but
+    raises ``NotImplementedError`` when set to True in this slice.
+
+    Per target track, diagnostics are clustered by frequency
+    (tolerance ``freq_match_tolerance_semitones``); each cluster gets
+    its own EQ8 band in a single ``CDE Correction (n bands)`` device
+    inserted right after ``insertion_anchor_username`` (defaults to
+    the existing ``Peak Resonance`` corrective EQ).
+
+    Each band is configured Bell, ``cluster.centroid_hz``, ``cluster.median_q``,
+    ``IsOn=true``, with a manual gain of 0 dB. The Gain envelope is
+    a dense per-frame curve (``grid_spacing_sec`` apart) that holds
+    ``cluster.severest_gain_db`` whenever the time falls inside any
+    section listed by ``cluster.applies_to_sections`` and 0 dB
+    everywhere else — same pattern as the production
+    ``write_section_aware_eq``.
+
+    Args:
+        als_path: Path to the ``.als`` to mutate.
+        diagnostics: Source diagnostics (typically
+            ``json.load(<project>_diagnostics.json)`` parsed back to
+            ``CorrectionDiagnostic`` instances).
+        peak_trajectories_by_track: Reserved for F1c (``peak_follow=True``).
+        zone_energy_by_track: Reserved for F1c.
+        times: Reserved for F1c. F1b builds its own dense time grid.
+        device_user_name_fmt: Format string with ``{n}`` placeholder
+            for the band count. Used as the device's ``UserName``.
+        insertion_anchor_username: Insert the new EQ8 right after the
+            track's device with this UserName. ``None`` → append to
+            the end of the chain.
+        freq_match_tolerance_semitones: Clustering tolerance.
+        peak_follow: Set ``True`` to enable peak-following automation
+            (F1c). Raises ``NotImplementedError`` in this slice.
+        threshold_db: F1c parameter, ignored in F1b.
+        use_fallback_when_primary_none: When ``True``, also process
+            diagnostics whose ``primary_correction`` is ``None`` by
+            falling back to ``fallback_correction`` if available.
+            ``False`` (default) skips them.
+        dry_run: Print the preview, return the report, do not write.
+        automation_map: Optional ``TrackAutomationMap`` for audibility
+            masking — passed through to ``_feature_to_breakpoints``
+            indirectly when implemented.
+        grid_spacing_sec: Dense-sampling grid step. Default 0.5 s
+            matches production Peak Resonance density.
+        _skip_confirmation: Internal — bypass the interactive prompt
+            for tests and CLI ``--yes``.
+        _preview_writer: Callable used to print the preview. Tests
+            override with a list collector.
+
+    Returns:
+        :class:`CdeApplicationReport` with ``applied`` / ``skipped`` /
+        ``warnings`` / ``devices_created`` / ``envelopes_written`` /
+        ``backup_path`` populated.
+    """
+    if peak_follow:
+        raise NotImplementedError(
+            "peak_follow=True ships in F1c after F1b.5 field validation."
+        )
+    if use_fallback_when_primary_none:
+        raise NotImplementedError(
+            "use_fallback_when_primary_none not yet supported in F1b."
+        )
+
+    als_path = Path(als_path)
+    report = CdeApplicationReport()
+
+    if not als_path.exists():
+        report.warnings.append(f"als_path not found: {als_path}")
+        return report
+
+    # Parse once. Locator + tempo extracted before validation so the
+    # preview can show what will happen without writing anything.
+    tree = parse_als(str(als_path))
+    tempo = _extract_tempo(tree)
+    locators = read_locators(str(als_path))
+    section_ranges = _build_section_ranges_beats(locators)
+    if not section_ranges:
+        report.warnings.append(
+            "No locators found — section-locked mode requires section "
+            "boundaries. Aborting without write."
+        )
+        return report
+
+    # Reciprocal validation + expansion before grouping.
+    diagnostics = _validate_reciprocal_pairs(tree, list(diagnostics), report)
+    diagnostics = _expand_reciprocal_cuts(diagnostics)
+
+    # Group + cluster.
+    grouped = _group_diagnostics_by_target(diagnostics, report=report)
+    clusters_by_track: Dict[str, List[FreqCluster]] = {}
+    for track_name, diags in grouped.items():
+        clusters = _cluster_diagnostics_by_frequency(
+            diags, tolerance_semitones=freq_match_tolerance_semitones,
+        )
+        clusters = _cap_clusters(clusters, MAX_CDE_BANDS, track_name, report)
+        if clusters:
+            clusters_by_track[track_name] = clusters
+
+    # Preview — always shown, even in dry_run / _skip_confirmation.
+    backup_hint = als_path.with_suffix(".als.v24.bak")
+    preview = _build_preview_text(
+        als_path, clusters_by_track, report, backup_hint,
+    )
+    _preview_writer(preview)
+
+    if dry_run:
+        report.warnings.append("dry_run=True — no write performed")
+        return report
+
+    if not _skip_confirmation:
+        if not _prompt_confirmation():
+            report.warnings.append("user cancelled at preview prompt")
+            return report
+
+    # Backup + write.
+    report.backup_path = backup_als(str(als_path))
+
+    song_end_beats = _estimate_song_end_beats(locators)
+    beats_per_sec = tempo / 60.0
+    song_end_sec = song_end_beats / beats_per_sec
+    n_frames = int(np.ceil(song_end_sec / grid_spacing_sec)) + 1
+    times_sec = np.arange(n_frames) * grid_spacing_sec
+
+    for track_name, clusters in clusters_by_track.items():
+        if not clusters:
+            continue
+        try:
+            track = find_track_by_name(tree, track_name)
+        except ValueError:
+            for c in clusters:
+                for d in c.diagnostics:
+                    report.skipped.append((
+                        d.diagnostic_id,
+                        f"track not found in project: {track_name!r}",
+                    ))
+            continue
+
+        # Self-heal: purge any prior CDE Correction EQ8 + envelopes.
+        _purge_existing_cde_eq8(track, device_user_name_fmt, report)
+
+        # Build + place the new EQ8.
+        device_name = device_user_name_fmt.format(n=len(clusters))
+        eq8 = _build_fresh_eq8(tree, user_name=device_name)
+        devices = _devices_container(track)
+        anchor = _find_device_by_username(track, insertion_anchor_username)
+        _insert_after(devices, anchor, eq8)
+        report.devices_created[track_name] = device_name
+
+        # Configure each cluster on a dedicated band (1, 2, 3, …, 6).
+        next_id_counter = [get_next_id(tree)]
+        for i, cluster in enumerate(clusters):
+            band_index = i + 1  # band 0 reserved for HPF convention
+            band_param = get_eq8_band(eq8, band_index)
+            configure_eq8_band(
+                band_param,
+                mode=3,
+                freq=cluster.centroid_hz,
+                gain=0.0,
+                q=cluster.median_q,
+            )
+            ison = band_param.find("IsOn/Manual")
+            if ison is not None:
+                ison.set("Value", "true")
+
+            gain_curve = _build_section_locked_gain_curve(
+                cluster, section_ranges, times_sec, tempo,
+            )
+            gain_bps = _feature_to_breakpoints(gain_curve, times_sec, tempo)
+            _write_validated_env(
+                track, band_param, "Gain", gain_bps, next_id_counter,
+            )
+            report.envelopes_written += 1
+
+            for d in cluster.diagnostics:
+                if d.diagnostic_id not in report.applied:
+                    report.applied.append(d.diagnostic_id)
+
+    save_als_from_tree(tree, str(als_path))
+    return report
