@@ -863,6 +863,234 @@ def _prompt_confirmation() -> bool:
 
 
 # ---------------------------------------------------------------------------
+# F1c1a — peak-following helpers (pure functions)
+# ---------------------------------------------------------------------------
+#
+# The writer's peak_follow=True mode (wired in F1c1b, smoke-tested in
+# F1c1c) drives the band's Freq + Gain + Q envelopes frame-by-frame
+# from the target track's own PeakTrajectory list. These four helpers
+# handle the data-shaping side of that mode — they are deliberately
+# pure (no IO, no XML) so they can be tested in isolation in F1c2.
+
+def _scale_gain_by_amplitude(
+    target_gain_db: float,
+    peak_amp_db: float,
+    threshold_db: float,
+) -> float:
+    """Scale a cut gain proportionally to how loud the peak is.
+
+    Under ``threshold_db`` → return ``0.0`` (band neutral for this frame).
+    At the threshold → return ``0.0``. As ``peak_amp_db`` rises toward
+    ``0 dB``, the scale climbs linearly from 0 to 1 and the return
+    value approaches the full ``target_gain_db``.
+
+    The formula ``(peak_amp_db - threshold_db) / |threshold_db|`` treats
+    the distance above the threshold as a fraction of the threshold's
+    magnitude, then clips to ``[0, 1]``. For the default
+    ``threshold_db = -30``:
+
+        peak_amp_db = 0 dB   → scale = 1.0 → target_gain_db (full cut)
+        peak_amp_db = -15 dB → scale = 0.5 → target_gain_db / 2
+        peak_amp_db = -35 dB → below threshold → 0 dB (no cut)
+
+    Args:
+        target_gain_db: The cluster's cap (e.g. -6 dB). Usually negative
+            — the magnitude is what the hottest peak will receive.
+        peak_amp_db: Peak amplitude at this frame, in dB.
+        threshold_db: Amplitude floor (negative) below which no cut is
+            applied.
+
+    Returns:
+        Scaled gain in dB. Always has the same sign as ``target_gain_db``
+        (or zero when under threshold).
+    """
+    if peak_amp_db <= threshold_db:
+        return 0.0
+    denom = abs(float(threshold_db)) if threshold_db != 0 else 1.0
+    scale = (float(peak_amp_db) - float(threshold_db)) / denom
+    scale = max(0.0, min(1.0, scale))
+    return float(target_gain_db) * scale
+
+
+def _scale_q_by_peak_width(
+    peak_width_hz,
+    base_q: float,
+    centroid_hz: float,
+) -> float:
+    """Adaptive Q placeholder — currently returns ``base_q`` unchanged.
+
+    When ``PeakTrajectory`` eventually exposes a peak_width field (see
+    methodology §2.4 "Notch dynamique" in
+    ``ableton_devices_mapping_v2_3.json``), this stub will be replaced
+    by the spec's adaptive formula (Q=14 for surgical-sharp peaks,
+    Q=1 for broad ones). The signature stays stable so that F1c1b can
+    already call the function; upgrading the logic later will not break
+    the writer.
+
+    Args:
+        peak_width_hz: Reserved for the future adaptive calculation.
+            Currently ignored.
+        base_q: The cluster's median Q — returned as-is for now.
+        centroid_hz: Reserved (width-to-Q mapping depends on the
+            absolute frequency). Currently ignored.
+
+    Returns:
+        ``float(base_q)`` unchanged.
+    """
+    return float(base_q)
+
+
+def _collect_active_peak_frames(
+    trajectories,
+    section_ranges_beats,
+    times,
+    tempo,
+    threshold_db: float,
+):
+    """Collect ``(frame_idx, freq_hz, amp_db)`` points where at least
+    one trajectory's peak is active inside one of the allowed section
+    ranges and rises above ``threshold_db``.
+
+    When several trajectories emit a peak on the same frame, the one
+    with the highest ``amp_db`` wins — the band cannot follow two
+    drifting peaks at once.
+
+    Args:
+        trajectories: iterable of :class:`spectral_evolution.PeakTrajectory`.
+            Each exposes ``points = [(frame_idx, freq_hz, amp_db), …]``.
+        section_ranges_beats: iterable of ``(start_beats, end_beats)``
+            tuples. A frame's time is kept only if it falls inside at
+            least one range (inclusive bounds).
+        times: 1-D array of per-frame timestamps in seconds.
+            ``times[frame_idx]`` gives the absolute time of the frame.
+        tempo: Project tempo in BPM for seconds↔beats conversion.
+        threshold_db: Amplitude floor — points with ``amp_db`` ≤ this
+            are dropped (the band stays neutral on quiet frames).
+
+    Returns:
+        Sorted list of ``(frame_idx, freq_hz, amp_db)`` tuples in
+        ascending frame order.
+    """
+    if not trajectories:
+        return []
+    beats_per_sec = float(tempo) / 60.0
+    ranges = list(section_ranges_beats or [])
+    n_frames = len(times) if times is not None else 0
+
+    candidates: Dict[int, Tuple[float, float]] = {}
+    for traj in trajectories:
+        for point in getattr(traj, "points", None) or []:
+            try:
+                frame_idx, freq_hz, amp_db = point
+            except (TypeError, ValueError):
+                continue
+            if amp_db <= threshold_db:
+                continue
+            frame_idx = int(frame_idx)
+            if n_frames and (frame_idx < 0 or frame_idx >= n_frames):
+                continue
+            time_sec = float(times[frame_idx]) if n_frames else 0.0
+            time_beats = time_sec * beats_per_sec
+            in_range = any(
+                start_b <= time_beats <= end_b
+                for (start_b, end_b) in ranges
+            )
+            if not in_range:
+                continue
+            existing = candidates.get(frame_idx)
+            if existing is None or float(amp_db) > existing[1]:
+                candidates[frame_idx] = (float(freq_hz), float(amp_db))
+
+    return sorted(
+        ((f, fr, amp) for f, (fr, amp) in candidates.items()),
+        key=lambda item: item[0],
+    )
+
+
+def _build_peak_following_curves(
+    active_frames,
+    n_frames: int,
+    fallback_freq_hz: float,
+    fallback_gain_db: float,
+    fallback_q: float,
+    target_gain_db: float,
+    threshold_db: float,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Build dense per-frame Freq / Gain / Q envelopes for a band in
+    peak-following mode.
+
+    Semantics:
+        - ``freq_curve`` starts at ``fallback_freq_hz`` everywhere. On
+          active frames it takes the peak's actual frequency. Between
+          two active frames it is FORWARD-FILLED with the last active
+          freq so Ableton never sees a jump back to the fallback while
+          the band is cutting.
+        - ``gain_curve`` starts at ``fallback_gain_db`` (typically 0,
+          i.e. band neutral). On active frames it takes
+          :func:`_scale_gain_by_amplitude` of the peak's amp. Between
+          active frames it STAYS at fallback — the band releases
+          between peaks.
+        - ``q_curve`` is fully populated via :func:`_scale_q_by_peak_width`
+          on active frames and stays at ``fallback_q`` elsewhere. The
+          Q stub currently returns ``fallback_q`` everywhere, so in
+          practice the array is constant until the adaptive-Q logic
+          lands.
+
+    The forward-fill of ``freq_curve`` only kicks in AFTER the first
+    active frame. Frames before the very first peak keep the
+    ``fallback_freq_hz`` so Ableton's pre-song default sits at a sane
+    value.
+
+    Args:
+        active_frames: Output of :func:`_collect_active_peak_frames`.
+        n_frames: Length of the output arrays (typically
+            ``len(times_sec)``).
+        fallback_freq_hz: Freq value outside active peaks (usually the
+            cluster centroid).
+        fallback_gain_db: Gain value outside active peaks (usually 0).
+        fallback_q: Q value outside active peaks (usually the cluster
+            median Q).
+        target_gain_db: Cluster-level max cut depth passed through to
+            :func:`_scale_gain_by_amplitude`.
+        threshold_db: Amplitude floor — same semantics as
+            :func:`_scale_gain_by_amplitude`.
+
+    Returns:
+        ``(freq_curve, gain_curve, q_curve)`` numpy arrays, each of
+        length ``n_frames``.
+    """
+    freq_curve = np.full(n_frames, float(fallback_freq_hz), dtype=float)
+    gain_curve = np.full(n_frames, float(fallback_gain_db), dtype=float)
+    q_curve = np.full(n_frames, float(fallback_q), dtype=float)
+
+    active_indices: set = set()
+    for frame_idx, freq_hz, amp_db in active_frames or []:
+        if not (0 <= frame_idx < n_frames):
+            continue
+        active_indices.add(frame_idx)
+        freq_curve[frame_idx] = float(freq_hz)
+        gain_curve[frame_idx] = _scale_gain_by_amplitude(
+            target_gain_db, amp_db, threshold_db,
+        )
+        q_curve[frame_idx] = _scale_q_by_peak_width(
+            None, fallback_q, freq_hz,
+        )
+
+    # Forward-fill the Freq curve only — Gain and Q stay at their
+    # fallback values outside active frames so the band is musically
+    # neutral when no peak is present.
+    if active_indices:
+        last_active_freq: Optional[float] = None
+        for i in range(n_frames):
+            if i in active_indices:
+                last_active_freq = float(freq_curve[i])
+            elif last_active_freq is not None:
+                freq_curve[i] = last_active_freq
+
+    return freq_curve, gain_curve, q_curve
+
+
+# ---------------------------------------------------------------------------
 # Public API — section-locked writer
 # ---------------------------------------------------------------------------
 
