@@ -34,11 +34,15 @@ no unnecessary thinning in Intro, Break 1, Breakdown 1, Outro, etc.
 Usage:
     python scripts/apply_cde_correction_247hz_dynamic.py [als_path]
 
-Idempotence:
-    Stops cleanly (exit 2) if ``"CDE 247Hz Cut (dynamic)"`` is already
-    present. Silently removes the older static ``"CDE 247Hz Cut"``
-    before inserting the dynamic version — so running this script once
-    supersedes the static one-shot cleanly.
+Idempotence — self-healing:
+    Re-running the script performs a clean re-apply regardless of
+    what is currently on the track. A previous
+    ``"CDE 247Hz Cut (dynamic)"`` device (plus every envelope
+    targeting its AutomationTargets) and the legacy static
+    ``"CDE 247Hz Cut"`` are purged before the fresh insertion. This
+    matters because the first dynamic pass produced a sluggish
+    envelope (missing leading ``(start-ε, 0)`` hold event before each
+    step-down) — re-running this script overwrites that broken state.
 """
 
 from __future__ import annotations
@@ -64,6 +68,7 @@ from als_utils import (  # noqa: E402
     save_als_from_tree,
     write_automation_envelope,
 )
+from eq8_automation import _remove_existing_envelope  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -253,26 +258,41 @@ def _build_gain_breakpoints(
 ) -> list[tuple[float, float]]:
     """Turn merged cut ranges into Ableton FloatEvent breakpoints.
 
-    Emits a staircase (t, -6 dB) / (t + ε, -6 dB) / (end - ε, -6 dB) /
-    (end, 0 dB) for each range — very-short ramps that read as
-    instantaneous switches in Live.
+    **Symmetric six-event pattern per range** so Ableton's linear
+    interpolation does not ramp into or out of each step:
 
-    The pre-song default (``Time=-63072000``, Value=0 dB) is NOT
-    included here — ``write_automation_envelope`` prepends it
-    automatically using the first event's value. We therefore emit an
-    opening ``(ε, 0.0)`` event so the pre-song default lands at 0 dB.
+        (start - ε, 0 dB)   ← HOLD 0 before the step (prevents a slow
+                              down-ramp from the previous zero event)
+        (start,      -6 dB) ← instantaneous step down
+        (start + ε, -6 dB)  ← hold cut value
+        (end - ε,   -6 dB)  ← hold cut value
+        (end,         0 dB) ← instantaneous step up
+        (end + ε,     0 dB) ← HOLD 0 after the step (prevents a slow
+                              up-ramp into the next zero event)
+
+    The ε = 0.001 beat offset (~0.47 ms at 128 BPM) reads as an
+    instantaneous transition both in Live's arrangement view and in
+    the audio engine's linear interpolation.
+
+    The pre-song default (``Time=-63072000``, Value=0 dB) is prepended
+    automatically by ``write_automation_envelope`` using the first
+    event's value — our first event is ``(start - ε, 0.0)``, so that
+    value ends up correct.
+
+    Previous version (v1 dynamic) emitted only four events per range
+    and was missing the leading ``(start - ε, 0)`` hold. Ableton was
+    therefore ramping from the previous zero event down to
+    ``(start, -6)`` over **104 beats** (≈ 49 s at 128 BPM) — hence
+    the "ultra-lent" symptom the user observed on Acid Drops.
     """
     events: list[tuple[float, float]] = []
-    # Explicit 0 dB floor before the first cut so the envelope is
-    # unambiguous from the project start.
-    events.append((0.0, NO_CUT_GAIN_DB))
-
     for start, end, _names in ranges:
+        events.append((start - STEP_EPSILON_BEATS, NO_CUT_GAIN_DB))
         events.append((start, CUT_GAIN_DB))
         events.append((start + STEP_EPSILON_BEATS, CUT_GAIN_DB))
         events.append((end - STEP_EPSILON_BEATS, CUT_GAIN_DB))
         events.append((end, NO_CUT_GAIN_DB))
-
+        events.append((end + STEP_EPSILON_BEATS, NO_CUT_GAIN_DB))
     return events
 
 
@@ -326,17 +346,29 @@ def apply_correction(als_path: Path) -> int:
         print(f"ERROR: no track named {TARGET_TRACK_NAME!r}.")
         return 1
 
-    # 4. Idempotence guard.
-    if _find_device_by_username(track, DYNAMIC_DEVICE_NAME) is not None:
-        print(f"STOP:  {DYNAMIC_DEVICE_NAME!r} already on the track — "
-              f"nothing to do.")
-        return 2
-
     devices = _devices_container(track)
 
-    # 5. Remove the static v1 cut if still present. This keeps the chain
-    # sane when replaying the correction — the dynamic version
-    # supersedes the static one.
+    # 4. Self-healing idempotence — a previous run (v1 dynamic or static)
+    # may have left devices + envelopes behind. We remove them before
+    # re-applying, so re-running the script always converges to the
+    # same clean state regardless of what was previously on the track.
+    dyn_old = _find_device_by_username(track, DYNAMIC_DEVICE_NAME)
+    if dyn_old is not None:
+        # Collect all AutomationTarget Ids inside the old dynamic EQ8 so
+        # we can purge any envelope targeting them (Gain, Freq, Q, ...).
+        stale_target_ids = {
+            at.get("Id")
+            for at in dyn_old.iter("AutomationTarget")
+            if at.get("Id") is not None
+        }
+        for target_id in stale_target_ids:
+            _remove_existing_envelope(track, target_id)
+        idx = _remove_device(devices, dyn_old)
+        print(f"NOTE:  replacing previous {DYNAMIC_DEVICE_NAME!r} "
+              f"(was at chain position [{idx}]); purged "
+              f"{len(stale_target_ids)} stale envelope target(s).")
+
+    # 5. Also remove the legacy static v1 cut if still present.
     static_old = _find_device_by_username(track, STATIC_DEVICE_NAME)
     if static_old is not None:
         idx = _remove_device(devices, static_old)
