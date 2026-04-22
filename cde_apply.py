@@ -1171,10 +1171,6 @@ def write_dynamic_eq8_from_cde_diagnostics(
         ``warnings`` / ``devices_created`` / ``envelopes_written`` /
         ``backup_path`` populated.
     """
-    if peak_follow:
-        raise NotImplementedError(
-            "peak_follow=True ships in F1c after F1b.5 field validation."
-        )
     if use_fallback_when_primary_none:
         raise NotImplementedError(
             "use_fallback_when_primary_none not yet supported in F1b."
@@ -1267,6 +1263,9 @@ def write_dynamic_eq8_from_cde_diagnostics(
 
         # Configure each cluster on a dedicated band (1, 2, 3, …, 6).
         next_id_counter = [get_next_id(tree)]
+        track_trajectories = (
+            (peak_trajectories_by_track or {}).get(track_name, [])
+        )
         for i, cluster in enumerate(clusters):
             band_index = i + 1  # band 0 reserved for HPF convention
             band_param = get_eq8_band(eq8, band_index)
@@ -1281,14 +1280,78 @@ def write_dynamic_eq8_from_cde_diagnostics(
             if ison is not None:
                 ison.set("Value", "true")
 
-            gain_curve = _build_section_locked_gain_curve(
-                cluster, section_ranges, times_sec, tempo,
-            )
-            gain_bps = _feature_to_breakpoints(gain_curve, times_sec, tempo)
-            _write_validated_env(
-                track, band_param, "Gain", gain_bps, next_id_counter,
-            )
-            report.envelopes_written += 1
+            # Mode selection — peak-following when requested AND at
+            # least one trajectory matches the cluster's centroid;
+            # otherwise fall back to section-locked (with an explicit
+            # warning when the caller asked for peak_follow but no
+            # trajectory was available).
+            use_peak_follow = False
+            matched_trajectories = []
+            if peak_follow:
+                if not track_trajectories:
+                    report.warnings.append(
+                        f"No peak trajectory for {track_name!r} near "
+                        f"{cluster.centroid_hz:.1f} Hz — fell back to "
+                        f"section-locked mode"
+                    )
+                else:
+                    matched_trajectories = _match_peak_trajectories_to_cluster(
+                        track_trajectories, cluster,
+                        tolerance_semitones=freq_match_tolerance_semitones,
+                    )
+                    if matched_trajectories:
+                        use_peak_follow = True
+                    else:
+                        report.warnings.append(
+                            f"No peak trajectory for {track_name!r} near "
+                            f"{cluster.centroid_hz:.1f} Hz — fell back to "
+                            f"section-locked mode"
+                        )
+
+            if use_peak_follow:
+                # Peak-following: write Freq + Gain + Q envelopes
+                # driven frame-by-frame by the target track's peaks.
+                allowed_ranges = [
+                    section_ranges[name]
+                    for name in cluster.applies_to_sections
+                    if name in section_ranges
+                ]
+                active_frames = _collect_active_peak_frames(
+                    matched_trajectories, allowed_ranges, times_sec,
+                    tempo, threshold_db,
+                )
+                freq_curve, gain_curve, q_curve = _build_peak_following_curves(
+                    active_frames, n_frames=len(times_sec),
+                    fallback_freq_hz=cluster.centroid_hz,
+                    fallback_gain_db=0.0,
+                    fallback_q=cluster.median_q,
+                    target_gain_db=cluster.severest_gain_db,
+                    threshold_db=threshold_db,
+                )
+                freq_bps = _feature_to_breakpoints(freq_curve, times_sec, tempo)
+                gain_bps = _feature_to_breakpoints(gain_curve, times_sec, tempo)
+                q_bps = _feature_to_breakpoints(q_curve, times_sec, tempo)
+                _write_validated_env(
+                    track, band_param, "Freq", freq_bps, next_id_counter,
+                )
+                _write_validated_env(
+                    track, band_param, "Gain", gain_bps, next_id_counter,
+                )
+                _write_validated_env(
+                    track, band_param, "Q", q_bps, next_id_counter,
+                )
+                report.envelopes_written += 3
+            else:
+                # Section-locked: Gain envelope only (Freq + Q stay at
+                # the manual baseline set above).
+                gain_curve = _build_section_locked_gain_curve(
+                    cluster, section_ranges, times_sec, tempo,
+                )
+                gain_bps = _feature_to_breakpoints(gain_curve, times_sec, tempo)
+                _write_validated_env(
+                    track, band_param, "Gain", gain_bps, next_id_counter,
+                )
+                report.envelopes_written += 1
 
             for d in cluster.diagnostics:
                 if d.diagnostic_id not in report.applied:
