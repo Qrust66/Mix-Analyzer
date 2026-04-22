@@ -107,11 +107,19 @@ class FreqCluster:
 
 @dataclass
 class CdeApplicationReport:
-    """Summary of one CDE batch application run.
+    """Summary of one CDE batch application (or revert) run.
 
     The writer (F1b/c) populates the fields as it goes. ``skipped`` is
     a list of ``(diagnostic_id, reason)`` pairs so the caller can show
     the user WHY something was not applied without reverse-engineering.
+
+    Field semantics:
+
+    * ``applied``  — diagnostic_ids successfully written to the ``.als``
+    * ``reverted`` — diagnostic_ids restored to the pre-apply state via
+      :func:`revert_cde_application` (F1d)
+    * ``skipped``  — ``(diagnostic_id, reason)`` pairs for diagnostics
+      the writer refused to process
     """
     applied: List[str] = field(default_factory=list)
     skipped: List[Tuple[str, str]] = field(default_factory=list)
@@ -120,6 +128,10 @@ class CdeApplicationReport:
     devices_created: Dict[str, str] = field(default_factory=dict)
     envelopes_written: int = 0
     backup_path: Optional[Path] = None
+    # F1d — diagnostic_ids whose ``application_status`` was flipped to
+    # ``"reverted"`` by :func:`revert_cde_application`. Populated only
+    # on revert paths; empty for a standard apply.
+    reverted: List[str] = field(default_factory=list)
 
     def sidechain_count(self) -> int:
         """How many diagnostics were skipped because they needed
@@ -1393,6 +1405,118 @@ def write_dynamic_eq8_from_cde_diagnostics(
             for d in cluster.diagnostics:
                 if d.diagnostic_id not in report.applied:
                     report.applied.append(d.diagnostic_id)
+                # F1d — flip in-place status + stamp backup path so the
+                # caller can round-trip the diagnostics JSON with
+                # ``dump_diagnostics_to_json`` after the writer returns.
+                # Reciprocal pseudo-diagnostics (id suffix ``_SEC``) are
+                # transient and won't leak into the caller's list, but
+                # their originals were already enqueued in the loop so
+                # the mutation lands on the object the caller sees.
+                d.application_status = "applied"
+                d.applied_backup_path = (
+                    str(report.backup_path) if report.backup_path else None
+                )
 
     save_als_from_tree(tree, str(als_path))
+    return report
+
+
+# ===========================================================================
+# F1d1 — Revert utility
+# ===========================================================================
+
+def revert_cde_application(
+    als_path,
+    *,
+    diagnostics: Optional[List[CorrectionDiagnostic]] = None,
+    diagnostic_ids: Optional[List[str]] = None,
+    backup_path=None,
+) -> CdeApplicationReport:
+    """Restore an ``.als`` from its ``.als.v24.bak`` and flip the
+    matching diagnostics' ``application_status`` to ``"reverted"``.
+
+    Pair with :func:`write_dynamic_eq8_from_cde_diagnostics` — that
+    writer stores every applied diagnostic's backup path inside its
+    ``applied_backup_path`` field, so a later revert can locate the
+    backup without the caller having to remember it.
+
+    The revert is "all or nothing" on the ``.als`` side: the backup
+    file is copied verbatim over the original. The ``diagnostics``
+    list is mutated in place so the caller can re-dump the JSON
+    with the updated statuses via
+    :func:`cde_engine.dump_diagnostics_to_json`.
+
+    Args:
+        als_path: Path to the ``.als`` to restore.
+        diagnostics: Optional list of :class:`CorrectionDiagnostic`
+            to mutate in place. When ``None`` the writer still
+            restores the ``.als`` but does not touch any status.
+        diagnostic_ids: Optional explicit filter. When set, only
+            diagnostics whose ``diagnostic_id`` appears in this list
+            have their status flipped. When ``None``, every
+            diagnostic currently flagged ``application_status ==
+            "applied"`` is flipped. This lets the caller revert a
+            targeted subset (e.g. "undo only the Drop 1 cuts")
+            without disturbing the rest.
+        backup_path: Optional explicit backup file. Defaults to
+            ``<als_path>.v24.bak`` alongside the ``.als``.
+
+    Returns:
+        :class:`CdeApplicationReport` with:
+
+            - ``reverted``: diagnostic_ids whose status was flipped
+            - ``backup_path``: the backup file that was consumed
+            - ``warnings``: status notes (restore path, missing
+              backup, empty diagnostic list, etc.)
+
+    Notes:
+        The backup file is NOT deleted after the restore — it can
+        still serve as a safety net for a subsequent forward
+        rewrite. Clean it up manually when you are confident the
+        session is done.
+    """
+    import shutil
+
+    als_path = Path(als_path)
+    report = CdeApplicationReport()
+
+    if backup_path is None:
+        backup_path = als_path.with_suffix(".als.v24.bak")
+    backup_path = Path(backup_path)
+
+    if not backup_path.exists():
+        report.warnings.append(
+            f"Backup not found: {backup_path} — revert aborted."
+        )
+        return report
+    if not als_path.exists():
+        report.warnings.append(
+            f".als target not found: {als_path} — revert aborted."
+        )
+        return report
+
+    shutil.copy2(backup_path, als_path)
+    report.backup_path = backup_path
+    report.warnings.append(
+        f"Restored {als_path.name} from {backup_path.name}"
+    )
+
+    if diagnostics is None:
+        return report
+
+    explicit_filter = (
+        set(diagnostic_ids) if diagnostic_ids is not None else None
+    )
+    for d in diagnostics:
+        if explicit_filter is not None:
+            if d.diagnostic_id not in explicit_filter:
+                continue
+        else:
+            if d.application_status != "applied":
+                continue
+        d.application_status = "reverted"
+        d.rejection_reason = "reverted by user"
+        d.applied_backup_path = None
+        report.reverted.append(d.diagnostic_id)
+
     return report
