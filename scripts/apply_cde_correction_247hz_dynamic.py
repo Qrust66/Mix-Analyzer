@@ -1,48 +1,49 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""apply_cde_correction_247hz_dynamic.py — section-aware version of
-the 247 Hz accumulation cut on the ``[A/T] Ambience`` track.
+"""apply_cde_correction_247hz_dynamic.py — section-locked 247 Hz cut
+on the ``[A/T] Ambience`` track, written in the production pattern.
 
-Supersedes ``apply_cde_correction_247hz.py`` (static always-on):
+The CDE accumulation detector flagged 10 pile-ups at ~247 Hz all
+targeting Ambience (B3 fundamental of the song). This script applies
+a band 4 Bell cut at 247 Hz with depth -6 dB, active ONLY during the
+six flagged sections.
 
-    * Removes the previously-installed static ``"CDE 247Hz Cut"`` EQ8
-      (which the first pass landed at the END of the chain, after the
-      Limiter — the wrong spot per §effect_chain_placement).
-    * Inserts a fresh EQ8 named ``"CDE 247Hz Cut (dynamic)"`` right
-      AFTER the existing ``"Peak Resonance"`` corrective EQ — the
-      canonical "EQ8 #1 correctif, avant compresseur" slot described in
-      ``ableton_devices_mapping_v2_3.json``.
-    * Configures band 4 in Bell mode at 247 Hz / Q=4, manual gain 0 dB,
-      IsOn=true. The cut depth is driven entirely by a Gain automation
-      envelope — the band is "inert" by default and only digs the
-      Ambience in sections where the CDE flagged an accumulation.
-    * Writes a staircase Gain envelope with two-event bookends
-      (``t`` and ``t+0.001`` beats) at each section boundary so the
-      transitions read as near-instantaneous switches rather than
-      linear sweeps.
+Why the dense pattern (v3):
 
-Target sections — merged when adjacent with gap ≤ 4 beats:
+    The first two attempts used sparse FloatEvents with 0.001-beat
+    epsilon pairs around step transitions. That XML structure is
+    valid but Ableton's playback engine renders the steps as slow
+    ramps — the user reported the gain drifting rather than
+    switching. The root cause is that Live's audio engine smooths
+    between events over a perceptible window regardless of their
+    proximity.
 
-    Build 2              104.000 → 136.000   ( 32.0 beats, 5 acc)
-    Drop 1 + Chorus 1    168.000 → 232.000   ( 64.0 beats, 6 acc — Fall 1 gap 1b)
-    Fall 2 + Drop 2      310.500 → 342.000   ( 31.5 beats, 9 acc — adjacent)
-    Chorus 2             376.000 → 408.000   ( 32.0 beats, 3 acc)
+    The "Peak Resonance" EQ8 already on Ambience (written by Mix
+    Analyzer's ``write_dynamic_notch``) has 471 events per envelope,
+    sampled at ~0.5 s intervals, with continuous frame-by-frame
+    values. Ableton handles this flawlessly.
 
-Outside these ranges the Ambience runs at full amplitude on 247 Hz —
-no unnecessary thinning in Intro, Break 1, Breakdown 1, Outro, etc.
+    This v3 mimics that pattern exactly. For each frame in a dense
+    time grid (one sample every ``GRID_SPACING_SEC`` seconds, capped
+    at 500 via ``thin_breakpoints``) we write the target gain: -6 dB
+    when the frame falls inside a cut range, 0 dB outside. Step
+    transitions happen in one frame-width (~0.5 s) — imperceptible
+    in practice.
+
+Reuses the production writer path:
+    ``_write_validated_env(track, band_param, "Gain", bps, next_id)``
+    — same function every ``write_dynamic_notch`` / ``write_section_aware_eq``
+    calls, which guarantees the same validation, the same idempotent
+    removal of any existing envelope on that target, and the same
+    ``FloatEvent`` emission via ``write_automation_envelope``.
 
 Usage:
     python scripts/apply_cde_correction_247hz_dynamic.py [als_path]
 
 Idempotence — self-healing:
-    Re-running the script performs a clean re-apply regardless of
-    what is currently on the track. A previous
-    ``"CDE 247Hz Cut (dynamic)"`` device (plus every envelope
-    targeting its AutomationTargets) and the legacy static
-    ``"CDE 247Hz Cut"`` are purged before the fresh insertion. This
-    matters because the first dynamic pass produced a sluggish
-    envelope (missing leading ``(start-ε, 0)`` hold event before each
-    step-down) — re-running this script overwrites that broken state.
+    Re-running overwrites any previous ``"CDE 247Hz Cut"`` /
+    ``"CDE 247Hz Cut (dynamic)"`` device (including every envelope
+    targeting its AutomationTargets) before re-inserting the v3 one.
 """
 
 from __future__ import annotations
@@ -50,6 +51,8 @@ from __future__ import annotations
 import copy
 import sys
 from pathlib import Path
+
+import numpy as np
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
@@ -60,15 +63,18 @@ from als_utils import (  # noqa: E402
     backup_als,
     configure_eq8_band,
     find_track_by_name,
-    get_automation_target_id,
     get_eq8_band,
     get_next_id,
     parse_als,
     read_locators,
     save_als_from_tree,
-    write_automation_envelope,
 )
-from eq8_automation import _remove_existing_envelope  # noqa: E402
+from eq8_automation import (  # noqa: E402
+    _extract_tempo,
+    _feature_to_breakpoints,
+    _remove_existing_envelope,
+    _write_validated_env,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -83,7 +89,7 @@ DEFAULT_ALS_PATH = (
 
 TARGET_TRACK_NAME = "[A/T] Ambience"
 DYNAMIC_DEVICE_NAME = "CDE 247Hz Cut (dynamic)"
-STATIC_DEVICE_NAME = "CDE 247Hz Cut"               # the v1 static cut to purge
+STATIC_DEVICE_NAME = "CDE 247Hz Cut"               # legacy v1 static
 PEAK_RESONANCE_NAME = "Peak Resonance"             # insertion anchor
 
 BAND_INDEX = 3                 # 0-indexed — band 4 in Ableton's UI
@@ -93,31 +99,22 @@ BAND_Q = 4.0
 CUT_GAIN_DB = -6.0
 NO_CUT_GAIN_DB = 0.0
 
-# Target sections (as flagged by the CDE accumulation detector).
-# Times in beats are read from the project locators at runtime; this
-# list carries the names only.
+# Target sections (CDE accumulation detector output).
 TARGET_SECTIONS = ("Build 2", "Drop 1", "Chorus 1", "Fall 2", "Drop 2",
                    "Chorus 2")
+MERGE_GAP_BEATS = 4.0  # merge consecutive targets whose gap is <= 4 beats
 
-# Merge neighbours when the gap between two target sections is at most
-# ``MERGE_GAP_BEATS`` — avoids sub-bar dips when one untouched section
-# (e.g. Fall 1, 1 beat long) sits between two consecutive targets.
-MERGE_GAP_BEATS = 4.0
-
-# A near-instant step at a section boundary is produced with two
-# breakpoints this far apart (in beats). 0.001 beats ≈ 0.47 ms at
-# 128 BPM — well below the ear's resolution, visually a staircase
-# in Live's arrangement view.
-STEP_EPSILON_BEATS = 0.001
+# Dense-sampling grid. Production Peak Resonance uses ~0.5 s per event;
+# we match that density. ``_feature_to_breakpoints`` + ``thin_breakpoints``
+# will cap at 500 breakpoints if the grid overshoots.
+GRID_SPACING_SEC = 0.5
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Track-chain helpers
 # ---------------------------------------------------------------------------
 
-def _find_device_by_username(track, username: str):
-    """Return the first EQ8 device on the track whose ``<UserName>``
-    matches, or ``None``."""
+def _find_device_by_username(track, username):
     for eq8 in track.findall(".//Eq8"):
         un = eq8.find("UserName")
         if un is not None and un.get("Value") == username:
@@ -126,8 +123,6 @@ def _find_device_by_username(track, username: str):
 
 
 def _devices_container(track):
-    """Return the ``<Devices>`` container (handles both doubled +
-    single DeviceChain paths)."""
     devices = track.find(".//DeviceChain/DeviceChain/Devices")
     if devices is None:
         devices = track.find(".//DeviceChain/Devices")
@@ -137,42 +132,64 @@ def _devices_container(track):
 
 
 def _remove_device(devices, device):
-    """Remove ``device`` from its ``Devices`` parent. Raises if absent."""
     for i, child in enumerate(list(devices)):
         if child is device:
             devices.remove(child)
             return i
-    raise RuntimeError("Device not found in container — cannot remove.")
+    raise RuntimeError("Device not found in container.")
 
 
-def _neutral_bands(eq8):
-    """Reset every band to neutral (Bell, 0 dB gain, off). Used after
-    cloning an in-project EQ8 to produce a clean slate before we
-    configure band 4."""
-    # Frequencies spread across the 8 bands so Ableton's UI shows points
-    # in sensible positions even when every band is off.
-    default_freqs = (60.0, 150.0, 400.0, 1000.0,
-                     2500.0, 6000.0, 12000.0, 18000.0)
+def _insert_after(devices, anchor, new_device):
+    children = list(devices)
+    anchor_idx = children.index(anchor)
+    for c in children:
+        devices.remove(c)
+    for i, c in enumerate(children):
+        devices.append(c)
+        if i == anchor_idx:
+            devices.append(new_device)
+    return anchor_idx + 1
+
+
+# ---------------------------------------------------------------------------
+# EQ8 clone — safe fallback when Pluggin Mapping.als is absent
+# ---------------------------------------------------------------------------
+
+_NEUTRAL_BAND_FREQS_HZ = (60.0, 150.0, 400.0, 1000.0,
+                          2500.0, 6000.0, 12000.0, 18000.0)
+
+
+def _clone_in_project_eq8(tree, user_name):
+    source = tree.getroot().find(".//Eq8")
+    if source is None:
+        raise RuntimeError("No Eq8 in project to clone from.")
+    eq8 = copy.deepcopy(source)
+    next_id = get_next_id(tree)
+    for elem in eq8.iter():
+        raw = elem.get("Id")
+        if raw is not None and raw != "0":
+            elem.set("Id", str(next_id))
+            next_id += 1
+    un = eq8.find("UserName")
+    if un is not None:
+        un.set("Value", user_name)
+    # Reset every band to neutral — Bell / 0 dB / Q 0.71 / off.
     for i in range(8):
         band = eq8.find(f"Bands.{i}/ParameterA")
         if band is None:
             continue
-        for tag, value in (
-            ("Mode/Manual", "3"),
-            ("Freq/Manual", str(default_freqs[i])),
-            ("Gain/Manual", "0.0"),
-            ("Q/Manual", "0.7071067095"),
-            ("IsOn/Manual", "false"),
-        ):
-            elem = band.find(tag)
-            if elem is not None:
-                elem.set("Value", value)
+        for tag, value in (("Mode/Manual", "3"),
+                           ("Freq/Manual", str(_NEUTRAL_BAND_FREQS_HZ[i])),
+                           ("Gain/Manual", "0.0"),
+                           ("Q/Manual", "0.7071067095"),
+                           ("IsOn/Manual", "false")):
+            el = band.find(tag)
+            if el is not None:
+                el.set("Value", value)
+    return eq8
 
 
-def _clone_fresh_eq8(tree, user_name: str):
-    """Get a clean EQ8 — canonical template if available, otherwise
-    in-project clone with neutral bands. Same fallback pattern as the
-    static script."""
+def _build_fresh_eq8(tree, user_name):
     try:
         return _clone_eq8_with_unique_ids(tree, user_name=user_name)
     except RuntimeError as e:
@@ -180,70 +197,35 @@ def _clone_fresh_eq8(tree, user_name: str):
             raise
         print(f"NOTE:  Pluggin Mapping.als template absent; "
               f"cloning an in-project EQ8 instead.")
-        # Fallback path
-        source = tree.getroot().find(".//Eq8")
-        if source is None:
-            raise RuntimeError("No Eq8 in project; cannot clone.")
-        eq8 = copy.deepcopy(source)
-        next_id = get_next_id(tree)
-        for elem in eq8.iter():
-            raw = elem.get("Id")
-            if raw is not None and raw != "0":
-                elem.set("Id", str(next_id))
-                next_id += 1
-        un = eq8.find("UserName")
-        if un is not None:
-            un.set("Value", user_name)
-        _neutral_bands(eq8)
-        return eq8
+        return _clone_in_project_eq8(tree, user_name)
 
 
-def _insert_after(devices, anchor, new_device) -> int:
-    """Insert ``new_device`` right after ``anchor`` in the ``Devices``
-    container. Returns the resulting index of the new device."""
-    children = list(devices)
-    anchor_idx = None
-    for i, child in enumerate(children):
-        if child is anchor:
-            anchor_idx = i
-            break
-    if anchor_idx is None:
-        raise RuntimeError("Anchor device not found in container.")
-
-    # Rebuild the container with new_device inserted after anchor.
-    for child in children:
-        devices.remove(child)
-    for i, child in enumerate(children):
-        devices.append(child)
-        if i == anchor_idx:
-            devices.append(new_device)
-    return anchor_idx + 1
+def _activate_band(band_param):
+    ison = band_param.find("IsOn/Manual")
+    if ison is None:
+        raise RuntimeError("Band has no IsOn/Manual.")
+    ison.set("Value", "true")
 
 
-def _compute_target_ranges(locators) -> list[tuple[float, float, list[str]]]:
-    """From the project's locators, return ``(start, end, [names])``
-    tuples for each merged target range.
+# ---------------------------------------------------------------------------
+# Target range computation — section locators → merged cut ranges
+# ---------------------------------------------------------------------------
 
-    Locators are sorted by time; each section's end = the next
-    locator's start. Only the sections named in :data:`TARGET_SECTIONS`
-    are kept. Consecutive targets separated by a gap ≤
-    :data:`MERGE_GAP_BEATS` are coalesced into one range.
-    """
+def _compute_target_ranges_beats(locators):
+    """Return ``(start_beats, end_beats, names)`` for each merged target
+    section. Merges neighbours whose gap ≤ :data:`MERGE_GAP_BEATS`."""
     sorted_locs = sorted(locators, key=lambda L: L["time_beats"])
-    # Build (name, start, end) triples.
-    ranges: list[tuple[str, float, float]] = []
+    ranges = []
     for i, loc in enumerate(sorted_locs):
         start = float(loc["time_beats"])
         end = (float(sorted_locs[i + 1]["time_beats"])
                if i + 1 < len(sorted_locs) else start + 32.0)
         ranges.append((loc["name"], start, end))
 
-    # Keep only target sections, preserving chronological order.
     target_set = set(TARGET_SECTIONS)
-    targets = [(name, s, e) for (name, s, e) in ranges if name in target_set]
+    targets = [(n, s, e) for (n, s, e) in ranges if n in target_set]
 
-    # Merge consecutive entries whose gap ≤ MERGE_GAP_BEATS.
-    merged: list[tuple[float, float, list[str]]] = []
+    merged = []
     for name, start, end in targets:
         if merged and (start - merged[-1][1]) <= MERGE_GAP_BEATS:
             prev_start, _prev_end, prev_names = merged[-1]
@@ -253,54 +235,45 @@ def _compute_target_ranges(locators) -> list[tuple[float, float, list[str]]]:
     return merged
 
 
-def _build_gain_breakpoints(
-    ranges: list[tuple[float, float, list[str]]],
-) -> list[tuple[float, float]]:
-    """Turn merged cut ranges into Ableton FloatEvent breakpoints.
+# ---------------------------------------------------------------------------
+# Dense gain curve — production pattern (§2.4 adapted)
+# ---------------------------------------------------------------------------
 
-    **Symmetric six-event pattern per range** so Ableton's linear
-    interpolation does not ramp into or out of each step:
+def _build_dense_gain_curve(
+    ranges_beats,
+    tempo_bpm: float,
+    song_end_beats: float,
+    spacing_sec: float = GRID_SPACING_SEC,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Sample a dense per-frame gain curve + per-frame time axis (seconds).
 
-        (start - ε, 0 dB)   ← HOLD 0 before the step (prevents a slow
-                              down-ramp from the previous zero event)
-        (start,      -6 dB) ← instantaneous step down
-        (start + ε, -6 dB)  ← hold cut value
-        (end - ε,   -6 dB)  ← hold cut value
-        (end,         0 dB) ← instantaneous step up
-        (end + ε,     0 dB) ← HOLD 0 after the step (prevents a slow
-                              up-ramp into the next zero event)
+    The grid runs from 0 to the end of the song at ``spacing_sec``
+    intervals. Gain at each frame is -6 dB when the frame time falls
+    inside any cut range, 0 dB otherwise. Consumed by
+    :func:`_feature_to_breakpoints`.
 
-    The ε = 0.001 beat offset (~0.47 ms at 128 BPM) reads as an
-    instantaneous transition both in Live's arrangement view and in
-    the audio engine's linear interpolation.
-
-    The pre-song default (``Time=-63072000``, Value=0 dB) is prepended
-    automatically by ``write_automation_envelope`` using the first
-    event's value — our first event is ``(start - ε, 0.0)``, so that
-    value ends up correct.
-
-    Previous version (v1 dynamic) emitted only four events per range
-    and was missing the leading ``(start - ε, 0)`` hold. Ableton was
-    therefore ramping from the previous zero event down to
-    ``(start, -6)`` over **104 beats** (≈ 49 s at 128 BPM) — hence
-    the "ultra-lent" symptom the user observed on Acid Drops.
+    Returns:
+        (gain_curve_db, times_sec) — two parallel 1-D arrays.
     """
-    events: list[tuple[float, float]] = []
-    for start, end, _names in ranges:
-        events.append((start - STEP_EPSILON_BEATS, NO_CUT_GAIN_DB))
-        events.append((start, CUT_GAIN_DB))
-        events.append((start + STEP_EPSILON_BEATS, CUT_GAIN_DB))
-        events.append((end - STEP_EPSILON_BEATS, CUT_GAIN_DB))
-        events.append((end, NO_CUT_GAIN_DB))
-        events.append((end + STEP_EPSILON_BEATS, NO_CUT_GAIN_DB))
-    return events
+    beats_per_sec = tempo_bpm / 60.0
+    song_end_sec = song_end_beats / beats_per_sec
 
+    n_frames = int(np.ceil(song_end_sec / spacing_sec)) + 1
+    times_sec = np.arange(n_frames) * spacing_sec
 
-def _activate_band(band_param):
-    ison = band_param.find("IsOn/Manual")
-    if ison is None:
-        raise RuntimeError("Band has no IsOn/Manual.")
-    ison.set("Value", "true")
+    # Convert cut ranges to seconds.
+    cut_ranges_sec = [
+        (start / beats_per_sec, end / beats_per_sec)
+        for (start, end, _names) in ranges_beats
+    ]
+
+    # Vectorised per-frame cut membership test.
+    in_cut = np.zeros(n_frames, dtype=bool)
+    for (start_s, end_s) in cut_ranges_sec:
+        in_cut |= (times_sec >= start_s) & (times_sec < end_s)
+
+    gain_curve = np.where(in_cut, CUT_GAIN_DB, NO_CUT_GAIN_DB).astype(float)
+    return gain_curve, times_sec
 
 
 # ---------------------------------------------------------------------------
@@ -315,141 +288,124 @@ def apply_correction(als_path: Path) -> int:
 
     print(f"=> Source  : {als_path}")
 
-    # 1. Locators first — they come from the file before we touch it.
     locators = read_locators(str(als_path))
     if not locators:
-        print("ERROR: no locators found in the project — "
-              "cannot derive section ranges.")
+        print("ERROR: no locators.")
         return 1
 
-    ranges = _compute_target_ranges(locators)
+    ranges = _compute_target_ranges_beats(locators)
     if not ranges:
-        print("ERROR: none of the CDE-flagged sections "
-              f"{TARGET_SECTIONS!r} found in the project's locators.")
+        print(f"ERROR: none of {TARGET_SECTIONS!r} found in locators.")
         return 1
 
     print()
-    print("Target cut ranges (merged, gap ≤ "
-          f"{MERGE_GAP_BEATS} beats):")
+    print(f"Target cut ranges (merged, gap ≤ {MERGE_GAP_BEATS} beats):")
     for start, end, names in ranges:
         print(f"  {start:8.3f} → {end:8.3f}  "
               f"({end - start:5.1f} beats)  {' + '.join(names)}")
 
-    # 2. Backup before any tree mutation.
-    backup_path = backup_als(str(als_path))
+    song_end_beats = max(float(loc["time_beats"]) for loc in locators) + 32.0
 
-    # 3. Parse + locate the track.
+    backup_path = backup_als(str(als_path))
     tree = parse_als(str(als_path))
+
     try:
         track = find_track_by_name(tree, TARGET_TRACK_NAME)
     except ValueError:
-        print(f"ERROR: no track named {TARGET_TRACK_NAME!r}.")
+        print(f"ERROR: no track {TARGET_TRACK_NAME!r}.")
         return 1
 
     devices = _devices_container(track)
 
-    # 4. Self-healing idempotence — a previous run (v1 dynamic or static)
-    # may have left devices + envelopes behind. We remove them before
-    # re-applying, so re-running the script always converges to the
-    # same clean state regardless of what was previously on the track.
-    dyn_old = _find_device_by_username(track, DYNAMIC_DEVICE_NAME)
-    if dyn_old is not None:
-        # Collect all AutomationTarget Ids inside the old dynamic EQ8 so
-        # we can purge any envelope targeting them (Gain, Freq, Q, ...).
+    # Self-healing — purge any previous CDE EQ (dynamic or static) + its envelopes.
+    for legacy_name in (DYNAMIC_DEVICE_NAME, STATIC_DEVICE_NAME):
+        legacy = _find_device_by_username(track, legacy_name)
+        if legacy is None:
+            continue
         stale_target_ids = {
-            at.get("Id")
-            for at in dyn_old.iter("AutomationTarget")
+            at.get("Id") for at in legacy.iter("AutomationTarget")
             if at.get("Id") is not None
         }
-        for target_id in stale_target_ids:
-            _remove_existing_envelope(track, target_id)
-        idx = _remove_device(devices, dyn_old)
-        print(f"NOTE:  replacing previous {DYNAMIC_DEVICE_NAME!r} "
-              f"(was at chain position [{idx}]); purged "
-              f"{len(stale_target_ids)} stale envelope target(s).")
+        for tid in stale_target_ids:
+            _remove_existing_envelope(track, tid)
+        idx = _remove_device(devices, legacy)
+        print(f"NOTE:  purged legacy {legacy_name!r} from chain "
+              f"position [{idx}] ({len(stale_target_ids)} envelope "
+              f"target(s) removed).")
 
-    # 5. Also remove the legacy static v1 cut if still present.
-    static_old = _find_device_by_username(track, STATIC_DEVICE_NAME)
-    if static_old is not None:
-        idx = _remove_device(devices, static_old)
-        print(f"NOTE:  removed legacy static {STATIC_DEVICE_NAME!r} "
-              f"from chain position [{idx}].")
-
-    # 6. Find the Peak Resonance anchor for insertion.
+    # Anchor — the existing Peak Resonance EQ8. Canonical corrective #1 slot.
     anchor = _find_device_by_username(track, PEAK_RESONANCE_NAME)
     if anchor is None:
-        print(f"ERROR: anchor device {PEAK_RESONANCE_NAME!r} not found "
-              f"on the track. Cannot determine where to insert the new "
-              f"corrective EQ.")
+        print(f"ERROR: anchor {PEAK_RESONANCE_NAME!r} not found.")
         return 1
 
-    # 7. Clone a fresh EQ8, configure band 4 manual state, activate.
-    eq8 = _clone_fresh_eq8(tree, user_name=DYNAMIC_DEVICE_NAME)
+    # Fresh EQ8 + manual baseline on band 4.
+    eq8 = _build_fresh_eq8(tree, user_name=DYNAMIC_DEVICE_NAME)
     band_param = get_eq8_band(eq8, BAND_INDEX)
     configure_eq8_band(
-        band_param,
-        mode=BAND_MODE_BELL,
-        freq=BAND_FREQ_HZ,
-        gain=NO_CUT_GAIN_DB,   # baseline 0 dB — cuts come from the envelope
-        q=BAND_Q,
+        band_param, mode=BAND_MODE_BELL, freq=BAND_FREQ_HZ,
+        gain=NO_CUT_GAIN_DB, q=BAND_Q,
     )
     _activate_band(band_param)
 
-    # 8. Insert the EQ right after Peak Resonance.
     insertion_idx = _insert_after(devices, anchor, eq8)
     print(f"=> Inserted {DYNAMIC_DEVICE_NAME!r} at chain position "
-          f"[{insertion_idx}] (immediately after {PEAK_RESONANCE_NAME!r}).")
+          f"[{insertion_idx}] (right after {PEAK_RESONANCE_NAME!r}).")
 
-    # 9. Build & write the Gain automation envelope.
-    events = _build_gain_breakpoints(ranges)
-    gain_target_id = get_automation_target_id(band_param, "Gain")
-    next_id_counter = [get_next_id(tree)]
-    write_automation_envelope(
-        track_element=track,
-        pointee_id=gain_target_id,
-        events=events,
-        next_id_counter=next_id_counter,
-        event_type="FloatEvent",
+    # Dense gain curve — production pattern matching Peak Resonance density.
+    tempo = _extract_tempo(tree)
+    gain_curve, times_sec = _build_dense_gain_curve(
+        ranges, tempo_bpm=tempo, song_end_beats=song_end_beats,
     )
-    print(f"=> Wrote {len(events)} gain breakpoints targeting band 4 "
-          f"(AutomationTarget Id={gain_target_id}).")
+    print(f"=> Dense grid: {len(gain_curve)} frames at "
+          f"{GRID_SPACING_SEC} s spacing "
+          f"(song end ~{song_end_beats:.0f} beats, tempo {tempo:.1f} BPM).")
 
-    # 10. Save.
+    # Convert to beat-space breakpoints + thin to 500 (production default).
+    gain_bps = _feature_to_breakpoints(gain_curve, times_sec, tempo)
+    print(f"=> Breakpoints: {len(gain_bps)} "
+          f"({int(sum(1 for _, v in gain_bps if v < -0.1))} at cut, "
+          f"{int(sum(1 for _, v in gain_bps if abs(v) < 0.1))} at 0 dB).")
+
+    # Write via the production pipeline — validate, remove existing, emit.
+    next_id_counter = [get_next_id(tree)]
+    _write_validated_env(
+        track, band_param, "Gain", gain_bps, next_id_counter,
+    )
+
     save_als_from_tree(tree, str(als_path))
 
-    # 11. Report.
+    # Report.
     print()
-    print("CDE DYNAMIC CORRECTION APPLIED")
-    print("================================")
+    print("CDE DYNAMIC CORRECTION APPLIED (v3 — dense production pattern)")
+    print("================================================================")
     print(f"Backup              : {backup_path}")
     print(f"Track modifiée      : {TARGET_TRACK_NAME}")
     print(f"Device ajouté       : {DYNAMIC_DEVICE_NAME}")
-    print(f"Position dans chain : [{insertion_idx}] (juste après "
+    print(f"Position dans chain : [{insertion_idx}] (après "
           f"{PEAK_RESONANCE_NAME!r})")
-    print(f"Bande 4 manual      : Bell, {BAND_FREQ_HZ:.0f} Hz, "
-          f"Q={BAND_Q}, 0 dB baseline")
-    print(f"Gain automation     : {len(events)} points, "
-          f"{len(ranges)} cut ranges")
+    print(f"Bande 4 manual      : Bell, {BAND_FREQ_HZ:.0f} Hz, Q={BAND_Q}, "
+          f"0 dB baseline")
+    print(f"Gain automation     : {len(gain_bps)} breakpoints, "
+          f"{len(ranges)} cut ranges, grid {GRID_SPACING_SEC} s")
     for start, end, names in ranges:
         print(f"  - {start:7.2f} → {end:7.2f}  "
               f"({CUT_GAIN_DB} dB)  {' + '.join(names)}")
     print(f"Chemin de sortie    : {als_path}")
     print()
     print("Validation suggérée :")
-    print("  1. Fermer Ableton si ouvert")
-    print("  2. Ouvrir le .als modifié")
-    print(f"  3. Track {TARGET_TRACK_NAME} → chain doit être :")
+    print("  1. Ouvrir le .als dans Ableton")
+    print(f"  2. Track {TARGET_TRACK_NAME} → chain doit être :")
     print(f"     [0] {PEAK_RESONANCE_NAME}  [1] {DYNAMIC_DEVICE_NAME}  "
           f"...  Limiter (dernier)")
-    print(f"  4. Arrangement view → Automation lane 'Eq8 — Gain (band 4)' "
-          f"montre la courbe staircase")
-    print("  5. Bounce la track Ambience")
-    print("  6. Re-run Mix Analyzer pour valider la disparition des "
-          "accumulations à 247 Hz")
+    print("  3. Clic sur le device → Arrangement automation lane Band 4 Gain")
+    print("     doit montrer une courbe dense (des points tous les ~0.5 s),")
+    print("     plate à 0 dB hors sections, plate à -6 dB dans les 4 plages.")
+    print("  4. Bounce la track Ambience et re-run Mix Analyzer.")
     return 0
 
 
-def main(argv: list[str]) -> int:
+def main(argv):
     als_path = Path(argv[1]) if len(argv) > 1 else DEFAULT_ALS_PATH
     return apply_correction(als_path)
 
