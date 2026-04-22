@@ -1113,63 +1113,100 @@ def write_dynamic_eq8_from_cde_diagnostics(
     _skip_confirmation: bool = False,
     _preview_writer: Callable[[str], None] = print,
 ) -> CdeApplicationReport:
-    """Apply a batch of CDE diagnostics to ``.als`` as dynamic EQ8 corrections.
+    """Applique un batch de diagnostics CDE sur un ``.als`` sous
+    forme de corrections EQ8 dynamiques.
 
-    F1b — section-locked mode only (``peak_follow=False``). The
-    ``peak_follow=True`` path will ship in F1c after F1b.5 field
-    validation; the kwarg already exists for forward compatibility but
-    raises ``NotImplementedError`` when set to True in this slice.
+    Deux modes disponibles — sélectionnés via ``peak_follow`` et,
+    quand ``True``, suivant la présence effective de peak trajectories
+    pour la track cible :
 
-    Per target track, diagnostics are clustered by frequency
-    (tolerance ``freq_match_tolerance_semitones``); each cluster gets
-    its own EQ8 band in a single ``CDE Correction (n bands)`` device
-    inserted right after ``insertion_anchor_username`` (defaults to
-    the existing ``Peak Resonance`` corrective EQ).
+    **Mode section-locked** (``peak_follow=False``, défaut)
 
-    Each band is configured Bell, ``cluster.centroid_hz``, ``cluster.median_q``,
-    ``IsOn=true``, with a manual gain of 0 dB. The Gain envelope is
-    a dense per-frame curve (``grid_spacing_sec`` apart) that holds
-    ``cluster.severest_gain_db`` whenever the time falls inside any
-    section listed by ``cluster.applies_to_sections`` and 0 dB
-    everywhere else — same pattern as the production
-    ``write_section_aware_eq``.
+        Pour chaque cluster de diagnostics, une bande EQ8 Bell est
+        allouée à ``cluster.centroid_hz`` / ``cluster.median_q``,
+        manual Gain = 0 dB, IsOn=true. Une seule enveloppe Gain est
+        écrite : dense par frame (pas = ``grid_spacing_sec``,
+        défaut 0.5 s), valant ``cluster.severest_gain_db`` à chaque
+        frame tombant dans une des sections listées par
+        ``cluster.applies_to_sections``, et 0 dB partout ailleurs.
+        Freq et Q restent constants (pas d'enveloppe). Pattern
+        identique à la production ``write_section_aware_eq``.
+
+    **Mode peak-following** (``peak_follow=True``)
+
+        Requiert ``peak_trajectories_by_track`` — un dict mappant
+        chaque track name vers ses :class:`PeakTrajectory` (parsées
+        via :func:`load_peak_trajectories_from_excel` depuis le sheet
+        ``_track_peak_trajectories`` d'un rapport Mix Analyzer).
+
+        Pour chaque cluster, les trajectoires dont la ``mean_freq``
+        tombe dans la tolérance ``freq_match_tolerance_semitones`` du
+        centroïde sont sélectionnées. Si au moins une match :
+
+            - Freq, Gain et Q sont automatisés frame par frame via
+              trois enveloppes indépendantes.
+            - Sur les frames actives (peak présent, amp > threshold
+              ET frame dans ``applies_to_sections``) : Freq suit la
+              fréquence du peak, Gain est scalé par
+              :func:`_scale_gain_by_amplitude`, Q vient de
+              :func:`_scale_q_by_peak_width` (actuellement stub =
+              ``median_q``).
+            - Entre les peaks actifs : Gain retombe à 0 (bande
+              neutre), Q reste à ``median_q``, mais Freq est
+              **forward-filled** avec la dernière freq active connue
+              pour éviter les sauts abrupts sur la ligne Freq.
+
+        **Fallback automatique** : quand ``peak_follow=True`` mais
+        qu'aucune trajectoire ne matche un cluster donné (ou que le
+        dict est vide / absent), ce cluster bascule silencieusement
+        vers le mode section-locked et un warning explicite est
+        ajouté au ``CdeApplicationReport.warnings``. Le reste du
+        batch n'est pas impacté.
 
     Args:
-        als_path: Path to the ``.als`` to mutate.
-        diagnostics: Source diagnostics (typically
-            ``json.load(<project>_diagnostics.json)`` parsed back to
-            ``CorrectionDiagnostic`` instances).
-        peak_trajectories_by_track: Reserved for F1c (``peak_follow=True``).
-        zone_energy_by_track: Reserved for F1c.
-        times: Reserved for F1c. F1b builds its own dense time grid.
-        device_user_name_fmt: Format string with ``{n}`` placeholder
-            for the band count. Used as the device's ``UserName``.
-        insertion_anchor_username: Insert the new EQ8 right after the
-            track's device with this UserName. ``None`` → append to
-            the end of the chain.
-        freq_match_tolerance_semitones: Clustering tolerance.
-        peak_follow: Set ``True`` to enable peak-following automation
-            (F1c). Raises ``NotImplementedError`` in this slice.
-        threshold_db: F1c parameter, ignored in F1b.
-        use_fallback_when_primary_none: When ``True``, also process
-            diagnostics whose ``primary_correction`` is ``None`` by
-            falling back to ``fallback_correction`` if available.
-            ``False`` (default) skips them.
-        dry_run: Print the preview, return the report, do not write.
-        automation_map: Optional ``TrackAutomationMap`` for audibility
-            masking — passed through to ``_feature_to_breakpoints``
-            indirectly when implemented.
-        grid_spacing_sec: Dense-sampling grid step. Default 0.5 s
-            matches production Peak Resonance density.
-        _skip_confirmation: Internal — bypass the interactive prompt
-            for tests and CLI ``--yes``.
-        _preview_writer: Callable used to print the preview. Tests
-            override with a list collector.
+        als_path: Path du ``.als`` à muter.
+        diagnostics: Liste de :class:`CorrectionDiagnostic` (typiquement
+            désérialisés depuis ``<project>_diagnostics.json``).
+        peak_trajectories_by_track: Dict ``{track_name: [PeakTrajectory,
+            ...]}`` consommé uniquement en mode peak-following.
+            Typiquement produit par
+            :func:`load_peak_trajectories_from_excel`.
+        zone_energy_by_track: Réservé pour une extension future
+            (zone-energy-driven gain scaling). Actuellement ignoré.
+        times: Réservé pour une extension future où l'appelant
+            contrôle la grille temporelle. F1c1b construit sa propre
+            grille dense à partir du tempo + ``grid_spacing_sec``.
+        device_user_name_fmt: Format string avec placeholder ``{n}``
+            pour le nombre de bandes. Utilisé comme ``UserName`` du
+            device EQ8 inséré.
+        insertion_anchor_username: Nom d'un device existant sur la
+            track après lequel insérer le nouveau EQ8. Défaut :
+            ``"Peak Resonance"``. ``None`` → append en fin de chain.
+        freq_match_tolerance_semitones: Tolérance en demi-tons pour
+            (1) le clustering par fréquence et (2) le matching
+            trajectoire ↔ cluster en mode peak-following.
+        peak_follow: ``True`` pour activer le mode peak-following.
+            ``False`` (défaut) = mode section-locked uniquement.
+        threshold_db: Plancher d'amplitude sous lequel un peak est
+            ignoré en mode peak-following. Ignoré en mode section-locked.
+        use_fallback_when_primary_none: Réservé pour F1d. Lève
+            ``NotImplementedError`` quand ``True``.
+        dry_run: Affiche le preview et retourne le report sans écrire.
+        automation_map: Optional ``TrackAutomationMap`` pour
+            audibility masking (extension).
+        grid_spacing_sec: Pas de la grille dense. Défaut 0.5 s —
+            même densité que la production ``Peak Resonance``.
+        _skip_confirmation: Interne — bypass du prompt interactif
+            pour tests et flag CLI ``--yes``.
+        _preview_writer: Callable utilisé pour afficher le preview.
+            Les tests peuvent l'override avec un collecteur de liste.
 
     Returns:
-        :class:`CdeApplicationReport` with ``applied`` / ``skipped`` /
+        :class:`CdeApplicationReport` avec ``applied`` / ``skipped`` /
         ``warnings`` / ``devices_created`` / ``envelopes_written`` /
-        ``backup_path`` populated.
+        ``backup_path``. Compter 1 envelope par cluster en mode
+        section-locked (Gain seul) et 3 envelopes par cluster en mode
+        peak-following (Freq + Gain + Q).
     """
     if use_fallback_when_primary_none:
         raise NotImplementedError(
