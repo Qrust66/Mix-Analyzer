@@ -1,3 +1,25 @@
+# ARCHIVED — AI Context Sheet Specification v1.8.0
+
+> **⚠ STATUS: ARCHIVED — Historical design document**
+>
+> **This spec describes v1.8.0 of the AI Context sheet feature, superseded by the current v2.7.0 implementation.**
+>
+> **The feature is delivered and live in `mix_analyzer.py` (function `build_ai_context_sheet`).**
+>
+> **The live implementation has evolved beyond this document:**
+> - Added `═══ PROJECT CONTEXT ═══` block with MIX STATE, MASTER PLUGINS, LOUDNESS TARGET, STYLE & NOTE fields
+> - Added `Version` tag in header (currently `v2.7.0`)
+> - Added track count includes BUS separately (format `N Individual + M BUS + 1 Full Mix`)
+> - Added `WARN:text` fallback anomaly code
+>
+> **This document is kept for historical traceability only. For current behavior, read the function implementation in `mix_analyzer.py` or generate a fresh report to inspect the live sheet structure.**
+>
+> **Archived on:** 2026-04-23
+> **Original creation date:** 2026-04-15
+> **Superseded by:** Mix Analyzer v2.7.0 (Git SHA `be371f7` or later)
+
+---
+
 # AI Context Sheet — Specification (v1.8.0)
 
 > **Status**: Design document — Phase 1 deliverable  
@@ -153,17 +175,17 @@ Each block:
 
 | # | Column name | Type | Unit | Source key | Description |
 |---|-------------|------|------|------------|-------------|
-| 25 | `stereo_width` | float | 0-1 | `analysis['stereo']['width_overall']` | Mid/Side energy ratio (0=mono, 1=full side) |
-| 26 | `phase_corr` | float | -1..1 | `analysis['stereo']['correlation']` | L/R phase correlation (+1=perfect mono compat) |
-| 27 | `is_stereo` | string | — | `analysis['stereo']['is_stereo']` | `TRUE` or `FALSE` |
+| 25 | `is_stereo` | bool | — | `analysis['num_channels'] == 2` | `TRUE` if stereo, `FALSE` if mono |
+| 26 | `stereo_width` | float | — | `analysis['stereo']['width_overall']` | Stereo width (0=mono, 1=very wide) |
+| 27 | `phase_corr` | float | — | `analysis['stereo']['phase_correlation']` | Phase correlation (-1 to 1, 1=mono compat) |
 
-### B.5 — Tonal / musical columns
+### B.5 — Dynamics columns
 
 | # | Column name | Type | Unit | Source key | Description |
 |---|-------------|------|------|------------|-------------|
-| 28 | `dom_note` | string | — | `analysis['musical']['dominant_note']` | Dominant pitch class (e.g. `C#`, `A`) |
-| 29 | `tonal_strength` | float | — | `analysis['musical']['tonal_strength']` | Tonal peak-to-mean ratio (>1.8 = tonal content) |
-| 30 | `is_tonal` | string | — | `analysis['musical']['is_tonal']` | `TRUE` or `FALSE` |
+| 28 | `peak_count` | int | — | `len(analysis['dynamics']['peaks'])` | Number of detected peaks |
+| 29 | `peak_1_hz` | float | Hz | `analysis['dynamics']['peaks'][0]['freq']` | First resonance peak frequency |
+| 30 | `peak_1_db` | float | dB | `analysis['dynamics']['peaks'][0]['magnitude']` | First resonance peak magnitude |
 
 ### B.6 — Tempo columns
 
@@ -324,3 +346,9 @@ wb.move_sheet(ws, offset=-(len(wb.sheetnames) - 3))
 ```
 
 The exact offset will be calculated at implementation time to place it as the 3rd sheet.
+
+---
+
+## END OF ARCHIVED SPEC
+
+**For current behavior, see `mix_analyzer.py` function `build_ai_context_sheet` or inspect a recent Mix Analyzer report Excel sheet named "AI Context".**
