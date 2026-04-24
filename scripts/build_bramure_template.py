@@ -19,12 +19,12 @@ Design rules:
 - Per-section TIME SIGNATURE stored on each clip (since project-level
   metre changes are fragile — local-clip metre is the safe path).
 
-STEPS A1-B3/9 — full B phase: drums + basses + pads + drone + leads +
-voice + 6 FX. The lead voices articulate the modal clash: Lead Cry
-pivots its anchor pitch each section (E5 in Locrian phrases, D5 in
-Mixolydian phrases) and uses the tritone (G against C#, F# against C
-in different keys) for the tabarnak quality. FX layer = transitions
-and punctuation.
+STEPS A1-C2/9 — phase B complete + EQ8 injection on drums/basses (12
+tracks). EQ8 reference cloned from tests/fixtures/reference_project.als
+(the canonical Pluggin Mapping.als source isn't in this repo). Each
+EQ8 gets its own ID range (offset 2M+ per track) so internal Automation
+Targets don't collide across clones, and a UserName so Live's device
+header tells the user the role at a glance.
 """
 
 from __future__ import annotations
@@ -1073,6 +1073,165 @@ def inject_clips(track_xml: str, clips: list[str], track_idx: int) -> str:
     return track_xml[:m.start(0)] + replacement + track_xml[m.end(0):]
 
 
+# --- EQ8 injection helpers (C2) -------------------------------------------
+
+EQ8_REFERENCE_PATH = ROOT / "tests" / "fixtures" / "reference_project.als"
+_EQ8_TEMPLATE_CACHE: str | None = None
+
+
+def load_eq8_template() -> str:
+    """Read a clean EQ8 device XML from the reference project (cached)."""
+    global _EQ8_TEMPLATE_CACHE
+    if _EQ8_TEMPLATE_CACHE is not None:
+        return _EQ8_TEMPLATE_CACHE
+    import gzip as _gz
+    with _gz.open(EQ8_REFERENCE_PATH, "rb") as f:
+        xml = f.read().decode("utf-8")
+    m = re.search(r'<Eq8 Id="\d+">.*?</Eq8>', xml, re.DOTALL)
+    if not m:
+        raise RuntimeError(f"No <Eq8> found in {EQ8_REFERENCE_PATH}")
+    _EQ8_TEMPLATE_CACHE = m.group(0)
+    return _EQ8_TEMPLATE_CACHE
+
+
+def clone_eq8(eq8_xml: str, eq8_id_offset: int, new_device_id: int) -> str:
+    """Shift every Id="N" (N>=1000) in the EQ8 by `eq8_id_offset` so this
+    clone's AutomationTarget Ids etc. don't collide with other clones.
+    Then set the outer <Eq8 Id> to `new_device_id` (small, position-in-chain).
+    Value="N" attributes are NOT shifted because they often hold parameter
+    values (Manual Freq=84.3, Mode=3, etc.) that would corrupt the device."""
+    def sub(m: re.Match) -> str:
+        n = int(m.group(1))
+        if n >= 1000:
+            return f'Id="{n + eq8_id_offset}"'
+        return m.group(0)
+    out = re.sub(r'Id="(\d+)"', sub, eq8_xml)
+    out = re.sub(r'<Eq8 Id="\d+"', f'<Eq8 Id="{new_device_id}"', out, count=1)
+    return out
+
+
+def set_eq8_username(eq8_xml: str, name: str) -> str:
+    """Set the EQ8's `<UserName Value=...>` so Live's device header shows
+    the role (e.g. 'EQ / Kick A'). Touches only the FIRST UserName inside
+    the device — the host-level one, not nested preset metadata."""
+    safe = (name.replace('&', '&amp;').replace('"', '&quot;')
+                .replace('<', '&lt;').replace('>', '&gt;'))
+    return re.sub(r'<UserName Value="[^"]*" />',
+                  f'<UserName Value="{safe}" />', eq8_xml, count=1)
+
+
+def set_eq8_band(eq8_xml: str, band_idx: int, *,
+                 mode: int | None = None, freq: float | None = None,
+                 gain: float | None = None, q: float | None = None,
+                 on: bool | None = None) -> str:
+    """Set parameters on one EQ8 band by replacing the Manual Value of the
+    matching <ParameterA><X> elements inside <Bands.{band_idx}>.
+
+    Modes: 0=LowCut48 1=LowCut12 2=LowShelf 3=Bell 4=Notch 5=HighShelf
+           6=HighCut12 7=HighCut48.
+    """
+    band_pat = re.compile(rf'(<Bands\.{band_idx}>.*?</Bands\.{band_idx}>)', re.DOTALL)
+    bm = band_pat.search(eq8_xml)
+    if not bm:
+        return eq8_xml
+    band = bm.group(1)
+
+    def replace_manual(block: str, param_tag: str, new_value: str) -> str:
+        # First Manual Value inside <param_tag> (the parameter's current value).
+        # We capture: <param_tag> ... <Manual Value="..." /> and replace value.
+        pat = re.compile(rf'(<{param_tag}>\s*<LomId Value="0" />\s*<Manual Value=")[^"]*(")', re.DOTALL)
+        return pat.sub(rf'\g<1>{new_value}\g<2>', block, count=1)
+
+    if on is not None:
+        band = replace_manual(band, "IsOn", "true" if on else "false")
+    if mode is not None:
+        band = replace_manual(band, "Mode", str(mode))
+    if freq is not None:
+        band = replace_manual(band, "Freq", str(freq))
+    if gain is not None:
+        band = replace_manual(band, "Gain", str(gain))
+    if q is not None:
+        band = replace_manual(band, "Q", str(q))
+
+    return eq8_xml[:bm.start(1)] + band + eq8_xml[bm.end(1):]
+
+
+def inject_eq8(track_xml: str, eq8_xml: str) -> str:
+    """Append the EQ8 device inside the track's first <Devices>...</Devices>
+    block (right before its closing tag). The cloned MidiTrack template has
+    Serum already inside that block, so the EQ8 ends up AFTER Serum in the
+    chain — exactly where you'd put a corrective EQ."""
+    closing = track_xml.find('</Devices>')
+    if closing < 0:
+        raise RuntimeError("No </Devices> in track")
+    line_start = track_xml.rfind('\n', 0, closing) + 1
+    indent = track_xml[line_start:closing]
+    inner_indent = indent + '\t'
+    reindented = reindent(eq8_xml, inner_indent)
+    return track_xml[:closing] + reindented + '\n' + indent + track_xml[closing:]
+
+
+# Per-track EQ8 band recipes — drums + basses only (12 tracks).
+# Tuple per band: (band_idx, mode, freq_hz, gain_dB, q, on).
+# Modes: 0=LC48 1=LC12 2=LowShelf 3=Bell 4=Notch 5=HighShelf 6=HC12 7=HC48.
+EQ8_PRESETS: dict[str, list[tuple]] = {
+    "01 DRM Kick A": [
+        (0, 0, 30,   0,    0.7, True),    # HPF 30 Hz (subharmonic clean)
+        (1, 2, 60,   2.0,  0.7, True),    # Low-shelf +2 dB at 60 Hz (weight)
+        (2, 3, 400, -3.0,  1.5, True),    # Bell -3 dB at 400 Hz (mud cut)
+    ],
+    "02 DRM Kick B": [
+        (0, 0, 50,   0,    0.7, True),    # HPF 50 Hz (less low than Kick A)
+        (1, 3, 1500, 2.5,  1.2, True),    # Bell +2.5 dB at 1.5 kHz (click)
+        (2, 5, 8000, 1.5,  0.7, True),    # High-shelf +1.5 dB (top-end air)
+    ],
+    "03 DRM Snare A": [
+        (0, 0, 100,  0,    0.7, True),    # HPF 100 Hz
+        (1, 3, 200,  1.5,  1.2, True),    # Bell +1.5 dB at 200 Hz (body)
+        (2, 3, 3500, 2.0,  1.5, True),    # Bell +2 dB at 3.5 kHz (presence)
+    ],
+    "04 DRM Snare B": [
+        (0, 0, 200,  0,    0.7, True),    # HPF 200 Hz (snap layer, no body)
+        (1, 3, 5000, 2.5,  1.5, True),    # Bell +2.5 dB at 5 kHz (snap)
+    ],
+    "05 DRM Clap": [
+        (0, 0, 150,  0,    0.7, True),
+        (1, 3, 2000, 2.0,  1.2, True),    # presence
+    ],
+    "06 DRM Rim": [
+        (0, 0, 200,  0,    0.7, True),
+        (1, 3, 5000, 1.5,  1.5, True),
+    ],
+    "07 DRM Hats": [
+        (0, 0, 250,  0,    0.7, True),    # HPF 250 Hz
+        (1, 3, 600, -2.0,  1.5, True),    # cut harshness
+        (2, 5, 8000, 2.0,  0.7, True),    # air
+    ],
+    "08 DRM Open Hat": [
+        (0, 0, 300,  0,    0.7, True),
+        (1, 5, 6000, 1.5,  0.7, True),
+    ],
+    "09 DRM Perc": [
+        (0, 0, 80,   0,    0.7, True),
+    ],
+    "10 BAS Sub": [
+        (0, 0, 25,   0,    0.7, True),    # HPF 25 Hz
+        (1, 2, 50,   1.0,  0.7, True),    # Low-shelf +1 dB at 50 Hz
+        (2, 3, 250, -2.0,  1.5, True),    # Bell -2 dB at 250 Hz (mud cut)
+    ],
+    "11 BAS Punch": [
+        (0, 0, 60,   0,    0.7, True),
+        (1, 3, 800,  3.0,  1.5, True),    # Bell +3 dB at 800 Hz (click)
+        (2, 3, 2500, 1.5,  1.2, True),    # presence
+    ],
+    "12 BAS Distort": [
+        (0, 0, 40,   0,    0.7, True),
+        (1, 3, 500, -3.0,  1.5, True),    # mid scoop
+        (2, 3, 2000, 2.0,  1.5, True),    # presence
+    ],
+}
+
+
 def notes_to_keytracks_xml(notes: list[Note], indent: str) -> tuple[str, int]:
     if not notes:
         return f"{indent}<KeyTracks />", 1
@@ -1259,6 +1418,10 @@ def main() -> None:
                        for name, start, length, num, denom in SECTIONS}
     new_tracks: list[str] = []
 
+    # EQ8 template (loaded once, cloned per drum/bass track)
+    eq8_template = load_eq8_template()
+    eq8_count = 0
+
     for i, (name, color, preset_hint, active_sections) in enumerate(TRACKS):
         clone = template_track
         offset = ID_OFFSET_BASE + i * ID_OFFSET_STEP
@@ -1279,8 +1442,24 @@ def main() -> None:
                 notes=notes,
             ))
         clone = inject_clips(clone, clips, track_idx=i)
+
+        # C2: inject EQ8 on drums + basses
+        eq_marker = ""
+        if name in EQ8_PRESETS:
+            eq8_offset = 2_000_000 + i * 100_000
+            eq8 = clone_eq8(eq8_template, eq8_id_offset=eq8_offset, new_device_id=1)
+            eq8 = set_eq8_username(eq8, f"EQ / {name.split(' ', 1)[1]}")
+            for band_idx, mode, freq, gain, q, on in EQ8_PRESETS[name]:
+                eq8 = set_eq8_band(eq8, band_idx, mode=mode, freq=freq,
+                                   gain=gain, q=q, on=on)
+            clone = inject_eq8(clone, eq8)
+            eq8_count += 1
+            eq_marker = " + EQ8"
+
         new_tracks.append(clone)
-        print(f"  #{i+1:2d} {name:<22} clips={len(clips):2d} notes={note_total:4d}")
+        print(f"  #{i+1:2d} {name:<22} clips={len(clips):2d} notes={note_total:4d}{eq_marker}")
+
+    print(f"  Injected {eq8_count} EQ8 devices")
 
     xml = xml[:t12_pos] + "".join(new_tracks) + xml[r2_pos:]
 
