@@ -6,11 +6,12 @@ fx. Asymmetric section lengths (12-bar verse, 6-bar pre-drop, 2-bar silence,
 20-bar final drop) to destabilize expectation. C# Phrygian primary, Dorian on
 Bridge, half-step pitch-up on first 4 bars of Final Drop.
 
-STEPS 1-8/12 — drums + percussion + basses + pads (Pad Warm / Choir Dark).
-Pad uses 4-note Phrygian voicings (C#m(b9) -> D -> F#m -> G#sus2) with a
-Dorian modal shift in Bridge (#6) and a D-Phrygian up-shift for Final
-Drop bars 1-4. Choir Dark is a low-register 3-note drone active only in
-Intro / Break / Bridge / Outro for continuity.
+STEPS 1-9/12 — drums + percussion + basses + pads + leads (A & B).
+Lead A is an 8-bar call/answer phrase: climb to a held peak, then a
+descent that hits G natural (the tritone from C#) for chromatic shock.
+Lead B does call-and-response: fills the rest in Lead A's bar 4, then
+harmonizes a third below on the answer's peak. Bridge gives Lead B a
+solo Dorian phrase featuring the raised 6 (A#4).
 """
 
 from __future__ import annotations
@@ -687,6 +688,157 @@ NOTE_GENERATORS["14 BAS Stab"]      = _bas_stab
 NOTE_GENERATORS["15 BAS Chug"]      = _bas_chug
 NOTE_GENERATORS["16 SYN Pad Warm"]  = _pad_warm
 NOTE_GENERATORS["17 SYN Choir Dark"] = _choir_dark
+# --- Leads -----------------------------------------------------------------
+#
+# Lead A pitches in C# Phrygian (lead register):
+#   C#4=61  D4=62  E4=64  F#4=66  G#4=68  A4=69  B4=71
+#   C#5=73  D5=74  E5=76  F#5=78  G#5=80  A5=81  B5=83  C#6=85
+# Tritone-from-C# = G natural (G4=67, G5=79) — the chromatic SURPRISE note.
+
+# 8-bar (32-beat) Lead A phrase — original. Beats relative to phrase start.
+# Bars 1-2: climb to C#5 peak, descend to G nat (tritone surprise).
+# Bar 3: question ending. Bar 4: rest (negative space).
+# Bars 5-6: plunge from G4 down through A3, with G nat chromatic in bar 6.
+# Bars 7-8: resolution arc up to C#5 tail.
+LEAD_A_PHRASE = [
+    # Bar 1 — climb
+    (0.0,  61, 0.5,  105),  # C#4
+    (0.5,  64, 0.5,  100),  # E4
+    (1.0,  68, 1.0,  110),  # G#4
+    (2.0,  73, 2.0,  118),  # C#5 PEAK held
+    # Bar 2 — re-trigger and descend with tritone surprise
+    (4.0,  73, 1.0,  110),  # C#5
+    (5.0,  71, 0.5,  100),  # B4
+    (5.5,  69, 0.5,   95),  # A4
+    (6.0,  67, 1.5,  105),  # G nat 4 — TRITONE SURPRISE
+    (7.5,  66, 0.5,   90),  # F#4
+    # Bar 3 — question ending
+    (8.0,  64, 1.5,   98),  # E4
+    (9.5,  62, 0.5,   92),  # D4
+    (10.0, 61, 2.0,  100),  # C#4 (rests on bar 4)
+    # Bar 4 — silence (negative space)
+    # Bar 5 — plunge from G nat
+    (16.0,  67, 0.25, 102),  # G nat 4 (echo)
+    (16.25, 66, 0.25,  95),
+    (16.5,  64, 0.25,  95),
+    (16.75, 62, 0.25,  95),
+    (17.0,  61, 1.0,  105),  # C#4
+    (18.0,  59, 1.0,  100),  # B3
+    (19.0,  57, 1.0,  100),  # A3
+    # Bar 6 — chromatic descent
+    (20.0,  56, 1.0,   95),  # G#3
+    (21.0,  57, 0.5,   92),  # A3 (turn)
+    (21.5,  55, 0.5,   88),  # G nat 3 (chromatic)
+    (22.0,  54, 1.0,   92),  # F#3
+    (23.0,  52, 1.0,   95),  # E3
+    # Bar 7 — resolution arc up
+    (24.0,  61, 0.5,  100),  # C#4
+    (24.5,  64, 0.5,  100),  # E4
+    (25.0,  68, 1.0,  105),  # G#4
+    (26.0,  69, 2.0,  110),  # A4
+    # Bar 8 — tail
+    (28.0,  73, 4.0,  100),  # C#5
+]
+
+
+def _lead_a(section: str, length: int) -> list[Note]:
+    """Main lead. Repeats the 8-bar phrase as many times as the section
+    affords. Drop 2 phrase 2 displaces the call up an octave for ascent.
+    Final Drop bars 1-4 (first 16 beats) pitch up a half-step (D Phrygian)."""
+    notes: list[Note] = []
+    n_phrases = max(1, length // 32 + (1 if length % 32 else 0))
+    for p in range(n_phrases):
+        base_t = p * 32
+        if base_t >= length:
+            break
+        for (dt, pitch, dur, vel) in LEAD_A_PHRASE:
+            t = base_t + dt
+            if t >= length:
+                continue
+            new_pitch = pitch
+            # Drop 2 phrase 2: octave-up call portion (bars 1-3 of phrase)
+            if section == "Drop 2" and p == 1 and dt < 12:
+                new_pitch += 12
+            # Final Drop bars 1-4 (= first 16 beats): half-step up to D
+            if section == "Final Drop" and t < 16:
+                new_pitch += 1
+            notes.append((t, new_pitch, min(dur, length - t), vel))
+    return notes
+
+
+def _lead_b(section: str, length: int) -> list[Note]:
+    """Counter-lead. In drops: silent during Lead A's call (bars 1-3), fills
+    bar 4 with a quick arp, then harmonizes a third below on bars 5-8.
+    Bridge gives it an exposed solo phrase in C# Dorian, using A#4 (the
+    raised-6 signature) as the tonal peak."""
+    notes: list[Note] = []
+
+    if section == "Bridge":
+        # 8-bar solo in C# Dorian (C# D# E F# G# A# B)
+        bridge_phrase = [
+            (0.0,   61, 1.0, 105),   # C#4
+            (1.0,   63, 1.0, 100),   # D#4 (Dorian)
+            (2.0,   64, 0.5, 102),   # E4
+            (2.5,   66, 0.5, 100),   # F#4
+            (3.0,   68, 1.0, 108),   # G#4
+            (4.0,   70, 2.0, 112),   # A#4 — Dorian raised-6 PEAK
+            (6.0,   71, 1.0, 100),   # B4
+            (7.0,   73, 1.0, 110),   # C#5 octave resolve
+            (8.0,   71, 1.0,  95),
+            (9.0,   68, 1.0,  95),
+            (10.0,  70, 2.0, 100),   # A#4 hold
+            (12.0,  66, 1.0,  92),
+            (13.0,  64, 1.0,  90),
+            (14.0,  63, 0.5,  88),
+            (14.5,  61, 1.5, 100),   # C#4 resolve
+            (16.0,  61, 4.0,  95),   # tail
+            # Second half — sparser echo
+            (24.0,  73, 2.0, 105),   # C#5
+            (26.0,  70, 2.0, 100),   # A#4
+            (28.0,  68, 4.0,  95),   # G#4 fade
+        ]
+        for (dt, pitch, dur, vel) in bridge_phrase:
+            if dt < length:
+                notes.append((dt, pitch, min(dur, length - dt), vel))
+        return notes
+
+    # Drops: counter-phrasing with Lead A
+    n_phrases = max(1, length // 32 + (1 if length % 32 else 0))
+    for p in range(n_phrases):
+        base_t = p * 32
+        if base_t >= length:
+            break
+        # Bar 4 fill (Lead A rests) — quick arp C#-E-G#-C#-G#-E-C#
+        fill = [
+            (12.0,  61, 0.5,  95),
+            (12.5,  64, 0.5,  95),
+            (13.0,  68, 0.5, 100),
+            (13.5,  73, 0.5, 105),
+            (14.0,  68, 0.5, 100),
+            (14.5,  64, 0.5,  95),
+            (15.0,  61, 0.5,  90),
+        ]
+        # Bars 7-8 harmony (third below Lead A's peak)
+        harm = [
+            (24.0,  57, 0.5,  92),   # A3 (m3 below C#4)
+            (24.5,  61, 0.5,  92),   # C#4
+            (25.0,  64, 1.0,  98),   # E4
+            (26.0,  66, 2.0, 105),   # F#4 (m3 below A4)
+            (28.0,  69, 4.0,  95),   # A4 (m3 below C#5)
+        ]
+        for (dt, pitch, dur, vel) in fill + harm:
+            t = base_t + dt
+            if t >= length:
+                continue
+            new_pitch = pitch
+            if section == "Final Drop" and t < 16:
+                new_pitch += 1  # up-shift
+            notes.append((t, new_pitch, min(dur, length - t), vel))
+    return notes
+
+
+NOTE_GENERATORS["18 SYN Lead A"]    = _lead_a
+NOTE_GENERATORS["19 SYN Lead B"]    = _lead_b
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
