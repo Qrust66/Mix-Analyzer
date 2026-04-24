@@ -45,20 +45,21 @@ SECTIONS = [
 ]
 
 # Track list: (name, ableton_color_index, [sections_where_it_plays])
+# Naming: "NN CAT Short" -> NN = read order, CAT = DRM/BAS/SYN/VOX/FX
 TRACKS = [
-    ("Kick",           2,  ["Verse 1", "Pre-Drop 1", "Drop 1", "Verse 2", "Pre-Drop 2", "Drop 2", "Final Drop"]),
-    ("Snare",          3,  ["Verse 1", "Pre-Drop 1", "Drop 1", "Verse 2", "Pre-Drop 2", "Drop 2", "Final Drop"]),
-    ("Hats",           4,  ["Build 1", "Verse 1", "Pre-Drop 1", "Drop 1", "Break", "Verse 2", "Pre-Drop 2", "Drop 2", "Final Drop"]),
-    ("Metal Perc",     5,  ["Build 1", "Drop 1", "Verse 2", "Drop 2", "Final Drop"]),
-    ("Sub Bass",       8,  ["Build 1", "Verse 1", "Pre-Drop 1", "Drop 1", "Verse 2", "Pre-Drop 2", "Drop 2", "Bridge", "Final Drop"]),
-    ("Distorted Bass", 11, ["Verse 1", "Drop 1", "Verse 2", "Drop 2", "Final Drop"]),
-    ("Lead Synth",     12, ["Pre-Drop 1", "Drop 1", "Drop 2", "Final Drop"]),
-    ("Pad",            14, ["Intro", "Build 1", "Verse 1", "Pre-Drop 1", "Drop 1", "Break", "Verse 2", "Pre-Drop 2", "Drop 2", "Bridge", "Final Drop", "Outro"]),
-    ("Arp",            15, ["Verse 2", "Pre-Drop 2", "Drop 2", "Bridge", "Final Drop"]),
-    ("Vocal",          16, ["Verse 1", "Drop 1", "Verse 2", "Drop 2", "Bridge", "Final Drop"]),
-    ("Vocal FX",       17, ["Build 1", "Break", "Drop 1", "Drop 2", "Bridge", "Final Drop", "Outro"]),
-    ("Riser FX",       9,  ["Pre-Drop 1", "Pre-Drop 2"]),
-    ("Noise/Texture",  19, ["Intro", "Build 1", "Break", "Bridge", "Outro"]),
+    ("01 DRM Kick",        2,  ["Verse 1", "Pre-Drop 1", "Drop 1", "Verse 2", "Pre-Drop 2", "Drop 2", "Final Drop"]),
+    ("02 DRM Snare",       3,  ["Verse 1", "Pre-Drop 1", "Drop 1", "Verse 2", "Pre-Drop 2", "Drop 2", "Final Drop"]),
+    ("03 DRM Hats",        4,  ["Build 1", "Verse 1", "Pre-Drop 1", "Drop 1", "Break", "Verse 2", "Pre-Drop 2", "Drop 2", "Final Drop"]),
+    ("04 DRM Metal Perc",  5,  ["Build 1", "Drop 1", "Verse 2", "Drop 2", "Final Drop"]),
+    ("05 BAS Sub",         8,  ["Build 1", "Verse 1", "Pre-Drop 1", "Drop 1", "Verse 2", "Pre-Drop 2", "Drop 2", "Bridge", "Final Drop"]),
+    ("06 BAS Distorted",   11, ["Verse 1", "Drop 1", "Verse 2", "Drop 2", "Final Drop"]),
+    ("07 SYN Lead",        12, ["Pre-Drop 1", "Drop 1", "Drop 2", "Final Drop"]),
+    ("08 SYN Pad",         14, ["Intro", "Build 1", "Verse 1", "Pre-Drop 1", "Drop 1", "Break", "Verse 2", "Pre-Drop 2", "Drop 2", "Bridge", "Final Drop", "Outro"]),
+    ("09 SYN Arp",         15, ["Verse 2", "Pre-Drop 2", "Drop 2", "Bridge", "Final Drop"]),
+    ("10 VOX Lead",        16, ["Verse 1", "Drop 1", "Verse 2", "Drop 2", "Bridge", "Final Drop"]),
+    ("11 VOX FX",          17, ["Build 1", "Break", "Drop 1", "Drop 2", "Bridge", "Final Drop", "Outro"]),
+    ("12 FX Riser",        9,  ["Pre-Drop 1", "Pre-Drop 2"]),
+    ("13 FX Noise",        19, ["Intro", "Build 1", "Break", "Bridge", "Outro"]),
 ]
 
 
@@ -269,11 +270,12 @@ def _noise(section: str, length: int) -> list[Note]:
 
 
 NOTE_GENERATORS = {
-    "Kick": _kick, "Snare": _snare, "Hats": _hats, "Metal Perc": _metal_perc,
-    "Sub Bass": _sub_bass, "Distorted Bass": _distorted_bass,
-    "Lead Synth": _lead, "Pad": _pad, "Arp": _arp,
-    "Vocal": _vocal, "Vocal FX": _vocal_fx,
-    "Riser FX": _riser, "Noise/Texture": _noise,
+    "01 DRM Kick": _kick, "02 DRM Snare": _snare, "03 DRM Hats": _hats,
+    "04 DRM Metal Perc": _metal_perc,
+    "05 BAS Sub": _sub_bass, "06 BAS Distorted": _distorted_bass,
+    "07 SYN Lead": _lead, "08 SYN Pad": _pad, "09 SYN Arp": _arp,
+    "10 VOX Lead": _vocal, "11 VOX FX": _vocal_fx,
+    "12 FX Riser": _riser, "13 FX Noise": _noise,
 }
 
 
