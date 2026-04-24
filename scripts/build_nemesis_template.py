@@ -6,11 +6,12 @@ fx. Asymmetric section lengths (12-bar verse, 6-bar pre-drop, 2-bar silence,
 20-bar final drop) to destabilize expectation. C# Phrygian primary, Dorian on
 Bridge, half-step pitch-up on first 4 bars of Final Drop.
 
-STEP 1/12 — constants + stubs only (no helpers, no main, no notes yet).
+STEPS 1-2/12 — constants + stubs + ALS helpers. No main yet.
 """
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 
@@ -135,8 +136,285 @@ def gen_notes(track: str, section: str, length: int) -> list[Note]:
     return clipped
 
 
-# STEP 2/12 will add: helpers (reindent, shift_big_ids PluginDesc-safe,
-# build_locators_block, rename_track, set_plugin_username, inject_clips,
-# notes_to_keytracks_xml, midi_clip).
-#
+# --- ALS helpers -----------------------------------------------------------
+
+def reindent(block: str, target_indent: str) -> str:
+    """Re-indent a multiline tab-indented block so its first non-empty line
+    sits at `target_indent`, preserving relative depth of remaining lines."""
+    lines = block.split("\n")
+    base = ""
+    for l in lines:
+        if l.strip():
+            base = l[: len(l) - len(l.lstrip("\t"))]
+            break
+    out = []
+    for l in lines:
+        if not l.strip():
+            out.append(l)
+            continue
+        rel = l[len(base):] if l.startswith(base) else l
+        out.append(target_indent + rel)
+    return "\n".join(out)
+
+
+def shift_big_ids(block: str, offset: int, min_val: int = 4000) -> str:
+    """Add `offset` to every Id/Value/Pointee Id integer >= `min_val` in
+    `block`, but SKIP content inside `<PluginDesc>...</PluginDesc>` — those
+    Value= attributes are plugin-internal binary state (Serum 2 preset data,
+    VST chunks) and shifting them would corrupt the loaded plugin.
+    """
+    regions = []
+    for m in re.finditer(r'<PluginDesc', block):
+        s = m.start()
+        e = block.find('</PluginDesc>', s)
+        if e >= 0:
+            regions.append((s, e + len('</PluginDesc>')))
+
+    def _shift_chunk(chunk: str) -> str:
+        def sub(m: re.Match) -> str:
+            key, val = m.group(1), int(m.group(2))
+            if val >= min_val:
+                return f'{key}="{val + offset}"'
+            return m.group(0)
+        return re.sub(r'(Id|Value|Pointee Id)="(\d+)"', sub, chunk)
+
+    if not regions:
+        return _shift_chunk(block)
+    out = []
+    cursor = 0
+    for s, e in sorted(regions):
+        out.append(_shift_chunk(block[cursor:s]))
+        out.append(block[s:e])  # PluginDesc interior left untouched
+        cursor = e
+    out.append(_shift_chunk(block[cursor:]))
+    return "".join(out)
+
+
+def build_locators_block(indent: str = "\t\t") -> str:
+    """Build the <Locators> XML block populated with named section markers."""
+    inner = []
+    for i, (name, start, _length) in enumerate(SECTIONS, start=1):
+        inner.append(
+            f"{indent}\t\t<Locator Id=\"{i}\">\n"
+            f"{indent}\t\t\t<LomId Value=\"0\" />\n"
+            f"{indent}\t\t\t<Time Value=\"{start}\" />\n"
+            f"{indent}\t\t\t<Name Value=\"{name}\" />\n"
+            f"{indent}\t\t\t<Annotation Value=\"\" />\n"
+            f"{indent}\t\t\t<IsSongStart Value=\"false\" />\n"
+            f"{indent}\t\t</Locator>"
+        )
+    return (
+        f"{indent}<Locators>\n"
+        f"{indent}\t<Locators>\n"
+        + "\n".join(inner) + "\n"
+        f"{indent}\t</Locators>\n"
+        f"{indent}</Locators>"
+    )
+
+
+def rename_track(track_xml: str, name: str, color: int, new_track_id: int) -> str:
+    """Rename a cloned MidiTrack and set its outer Id + Color to unique values."""
+    track_xml = re.sub(
+        r'<MidiTrack Id="\d+"', f'<MidiTrack Id="{new_track_id}"', track_xml, count=1,
+    )
+    track_xml = re.sub(
+        r'<EffectiveName Value="[^"]*"', f'<EffectiveName Value="{name}"', track_xml, count=1,
+    )
+    track_xml = re.sub(
+        r'<Color Value="\d+"', f'<Color Value="{color}"', track_xml, count=1,
+    )
+    return track_xml
+
+
+def set_plugin_username(track_xml: str, preset_hint: str) -> str:
+    """Set the `<UserName>` of the first PluginDevice in the track to the
+    preset hint so Live's device header tells the user which patch to load.
+
+    The first UserName inside a PluginDevice lives BEFORE the <PluginDesc>
+    block (it's the host-level name), so we can touch it safely.
+    """
+    m = re.search(r'<PluginDevice\s+Id="\d+"[^>]*>', track_xml)
+    if not m:
+        return track_xml
+    pd_end = track_xml.find('</PluginDevice>', m.end())
+    un_match = re.search(r'<UserName Value="[^"]*" />', track_xml[m.end():pd_end])
+    if not un_match:
+        return track_xml
+    un_start = m.end() + un_match.start()
+    un_stop = m.end() + un_match.end()
+    safe = (preset_hint
+            .replace('&', '&amp;')
+            .replace('"', '&quot;')
+            .replace('<', '&lt;')
+            .replace('>', '&gt;'))
+    return track_xml[:un_start] + f'<UserName Value="{safe}" />' + track_xml[un_stop:]
+
+
+def inject_clips(track_xml: str, clips: list[str], track_idx: int) -> str:
+    """Replace the empty `<ArrangerAutomation><Events />` self-closing with a
+    populated `<Events>...</Events>` block containing the given MIDI clips."""
+    m = re.search(r'(<ArrangerAutomation>\s*)<Events />', track_xml)
+    if not m:
+        raise RuntimeError(f"Track #{track_idx}: no <Events /> in ArrangerAutomation")
+    evt_pos = m.start(0) + len(m.group(1))
+    line_start = track_xml.rfind("\n", 0, evt_pos) + 1
+    indent = track_xml[line_start:evt_pos]
+    inner_indent = indent + "\t"
+    reindented = [reindent(c, inner_indent) for c in clips]
+    replacement = (
+        f"{m.group(1)}<Events>\n"
+        + "\n".join(reindented) + "\n"
+        + f"{indent}</Events>"
+    )
+    return track_xml[:m.start(0)] + replacement + track_xml[m.end(0):]
+
+
+def notes_to_keytracks_xml(notes: list[Note], indent: str) -> tuple[str, int]:
+    """Group notes by pitch into <KeyTrack> elements and return
+    (keytracks_xml, next_note_id). `next_note_id` feeds the clip's
+    <NoteIdGenerator><NextId>."""
+    if not notes:
+        return f"{indent}<KeyTracks />", 1
+    by_pitch: dict[int, list[tuple[float, float, int]]] = {}
+    for t, pitch, dur, vel in notes:
+        by_pitch.setdefault(pitch, []).append((t, dur, vel))
+    lines = [f"{indent}<KeyTracks>"]
+    nid = 1
+    kt_id = 0
+    for pitch in sorted(by_pitch):
+        events = sorted(by_pitch[pitch])
+        lines.append(f"{indent}\t<KeyTrack Id=\"{kt_id}\">")
+        lines.append(f"{indent}\t\t<Notes>")
+        for t, dur, vel in events:
+            lines.append(
+                f"{indent}\t\t\t<MidiNoteEvent Time=\"{t}\" Duration=\"{dur}\" "
+                f"Velocity=\"{vel}\" OffVelocity=\"64\" NoteId=\"{nid}\" />"
+            )
+            nid += 1
+        lines.append(f"{indent}\t\t</Notes>")
+        lines.append(f"{indent}\t\t<MidiKey Value=\"{pitch}\" />")
+        lines.append(f"{indent}\t</KeyTrack>")
+        kt_id += 1
+    lines.append(f"{indent}</KeyTracks>")
+    return "\n".join(lines), nid
+
+
+def midi_clip(clip_id: int, start: int, length: int, name: str, color: int,
+              notes: list[Note] | None = None) -> str:
+    """Build an arrangement MidiClip XML block. Pass `notes` to prefill the
+    clip's <KeyTracks>; omit (or pass []) for an empty clip."""
+    end = start + length
+    kt_indent = "\t\t"
+    kt_xml, next_nid = notes_to_keytracks_xml(notes or [], kt_indent)
+    return f"""<MidiClip Id="{clip_id}" Time="{start}">
+	<LomId Value="0" />
+	<LomIdView Value="0" />
+	<CurrentStart Value="{start}" />
+	<CurrentEnd Value="{end}" />
+	<Loop>
+		<LoopStart Value="0" />
+		<LoopEnd Value="{length}" />
+		<StartRelative Value="0" />
+		<LoopOn Value="false" />
+		<OutMarker Value="{length}" />
+		<HiddenLoopStart Value="0" />
+		<HiddenLoopEnd Value="{length}" />
+	</Loop>
+	<Name Value="{name}" />
+	<Annotation Value="" />
+	<Color Value="{color}" />
+	<LaunchMode Value="0" />
+	<LaunchQuantisation Value="0" />
+	<TimeSignature>
+		<TimeSignatures>
+			<RemoteableTimeSignature Id="0">
+				<Numerator Value="4" />
+				<Denominator Value="4" />
+				<Time Value="0" />
+			</RemoteableTimeSignature>
+		</TimeSignatures>
+	</TimeSignature>
+	<Envelopes>
+		<Envelopes />
+	</Envelopes>
+	<ScrollerTimePreserver>
+		<LeftTime Value="0" />
+		<RightTime Value="{length}" />
+	</ScrollerTimePreserver>
+	<TimeSelection>
+		<AnchorTime Value="0" />
+		<OtherTime Value="0" />
+	</TimeSelection>
+	<Legato Value="false" />
+	<Ram Value="false" />
+	<GrooveSettings>
+		<GrooveId Value="-1" />
+	</GrooveSettings>
+	<Disabled Value="false" />
+	<VelocityAmount Value="0" />
+	<FollowAction>
+		<FollowTime Value="4" />
+		<IsLinked Value="true" />
+		<LoopIterations Value="1" />
+		<FollowActionA Value="4" />
+		<FollowActionB Value="0" />
+		<FollowChanceA Value="100" />
+		<FollowChanceB Value="0" />
+		<JumpIndexA Value="1" />
+		<JumpIndexB Value="1" />
+		<FollowActionEnabled Value="false" />
+	</FollowAction>
+	<Grid>
+		<FixedNumerator Value="1" />
+		<FixedDenominator Value="16" />
+		<GridIntervalPixel Value="20" />
+		<Ntoles Value="2" />
+		<SnapToGrid Value="true" />
+		<Fixed Value="false" />
+	</Grid>
+	<FreezeStart Value="0" />
+	<FreezeEnd Value="0" />
+	<IsWarped Value="true" />
+	<TakeId Value="1" />
+	<IsInKey Value="true" />
+	<ScaleInformation>
+		<Root Value="0" />
+		<Name Value="0" />
+	</ScaleInformation>
+	<Notes>
+{kt_xml}
+		<PerNoteEventStore>
+			<EventLists />
+		</PerNoteEventStore>
+		<NoteProbabilityGroups />
+		<ProbabilityGroupIdGenerator>
+			<NextId Value="1" />
+		</ProbabilityGroupIdGenerator>
+		<NoteIdGenerator>
+			<NextId Value="{next_nid}" />
+		</NoteIdGenerator>
+	</Notes>
+	<BankSelectCoarse Value="-1" />
+	<BankSelectFine Value="-1" />
+	<ProgramChange Value="-1" />
+	<NoteEditorFoldInZoom Value="-1" />
+	<NoteEditorFoldInScroll Value="0" />
+	<NoteEditorFoldOutZoom Value="128" />
+	<NoteEditorFoldOutScroll Value="-67" />
+	<NoteEditorFoldScaleZoom Value="-1" />
+	<NoteEditorFoldScaleScroll Value="0" />
+	<NoteSpellingPreference Value="0" />
+	<AccidentalSpellingPreference Value="3" />
+	<PreferFlatRootNote Value="false" />
+	<ExpressionGrid>
+		<FixedNumerator Value="1" />
+		<FixedDenominator Value="16" />
+		<GridIntervalPixel Value="20" />
+		<Ntoles Value="2" />
+		<SnapToGrid Value="false" />
+		<Fixed Value="false" />
+	</ExpressionGrid>
+</MidiClip>"""
+
+
 # STEP 3/12 will add: main() + execution + validation.
