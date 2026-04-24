@@ -6,8 +6,9 @@ fx. Asymmetric section lengths (12-bar verse, 6-bar pre-drop, 2-bar silence,
 20-bar final drop) to destabilize expectation. C# Phrygian primary, Dorian on
 Bridge, half-step pitch-up on first 4 bars of Final Drop.
 
-STEPS 1-4/12 — core drums (Kick/Sub Kick/Snare/Clap) with djent feel,
-bar-level rhythmic surprises on Verse 1 last bar and Drop 1 bar 15.
+STEPS 1-5/12 — core drums + texture drums (Hats/Open Hat/Rim/Ride).
+Rhythmic surprises on Verse 1 last bar and Drop 1 bar 15 propagate to the
+hats layer (dropout on first half-beat of bar 15).
 """
 
 from __future__ import annotations
@@ -295,11 +296,113 @@ def _clap(section: str, length: int) -> list[Note]:
     return notes
 
 
+# --- Drums texture ---------------------------------------------------------
+
+def _hats(section: str, length: int) -> list[Note]:
+    """Closed hats as time-keeper. 8ths in verses/build, 16ths in drops with
+    humanized velocity accent pattern. SURPRISE: Drop 1 bar 15 drops out for
+    the first half-beat so the kick displacement breathes."""
+    notes: list[Note] = []
+    level = INTENSITY[section]
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        # Drop 1 bar 15: dropout for first 2 16th-steps
+        if section == "Drop 1" and bar == 14:
+            for s in range(2, 16):
+                pos = s * 0.25
+                vel = 105 if s % 4 == 0 else (78 if s % 2 == 0 else 62)
+                notes.append((t + pos, 42, 0.15, vel))
+            continue
+        if level == 0:
+            continue
+        if level == 1:  # Build / Break — quiet 8ths
+            for s in range(8):
+                notes.append((t + s * 0.5, 42, 0.3, 72 if s % 2 == 0 else 55))
+        elif level == 2:  # Verse — 8ths
+            for s in range(8):
+                notes.append((t + s * 0.5, 42, 0.25, 94 if s % 2 == 0 else 72))
+        elif level == 3:  # Pre-Drop — 16ths, ramping
+            for s in range(16):
+                vel = 108 if s % 4 == 0 else (80 if s % 2 == 0 else 64)
+                notes.append((t + s * 0.25, 42, 0.15, vel))
+        elif level == 4:  # Drop — driving 16ths, humanized accent pattern
+            accent = [118, 62, 82, 64, 98, 62, 88, 64,
+                      105, 62, 82, 64, 98, 62, 92, 78]
+            for s in range(16):
+                notes.append((t + s * 0.25, 42, 0.15, accent[s]))
+    return notes
+
+
+def _open_hat(section: str, length: int) -> list[Note]:
+    """Open hat accents on '&' of 2 and '&' of 4 in verses/drops — the classic
+    chick groove that locks with snare backbeat. Bridge: single downbeat
+    open per bar for gravitas. Final Drop adds 'a of 4' push."""
+    notes: list[Note] = []
+    level = INTENSITY[section]
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        if section == "Bridge":
+            notes.append((t, 46, 0.5, 92))
+            continue
+        if level == 2:  # Verse
+            notes += [(t + 1.5, 46, 0.5, 92), (t + 3.5, 46, 0.5, 98)]
+        elif level == 4:  # Drop
+            notes += [(t + 1.5, 46, 0.5, 95), (t + 3.5, 46, 0.5, 102)]
+            if section == "Final Drop" and bar >= 4:
+                notes.append((t + 3.75, 46, 0.25, 85))
+    return notes
+
+
+def _rim(section: str, length: int) -> list[Note]:
+    """Cross-stick pull on 'e of 3' (beat 2.25) — creates a subtle
+    polyrhythmic drag against the main groove. Bar 4 of every phrase adds
+    an 'a of 1' pickup (beat 0.75) so the 4-bar loop breathes."""
+    notes: list[Note] = []
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        if section in ("Verse 1", "Verse 2"):
+            notes.append((t + 2.25, 37, 0.1, 88))
+            if bar % 4 == 3:
+                notes.append((t + 0.75, 37, 0.1, 78))
+        elif section == "Final Drop":
+            notes.append((t + 2.25, 37, 0.1, 92))
+            if bar % 4 == 3:
+                notes.append((t + 3.75, 37, 0.1, 82))
+    return notes
+
+
+def _ride(section: str, length: int) -> list[Note]:
+    """Ride bell in drops — 8ths with 1/3 accents normally, 16ths during the
+    Final Drop pitched-up bars (1-4) for that extra intensity on the surprise."""
+    notes: list[Note] = []
+    if INTENSITY[section] != 4:
+        return notes
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        if section == "Final Drop" and bar < 4:
+            for s in range(16):
+                vel = 115 if s % 4 == 0 else 75
+                notes.append((t + s * 0.25, 51, 0.2, vel))
+        else:
+            for s in range(8):
+                on_beat = (s * 0.5) % 2 == 0
+                notes.append((t + s * 0.5, 51, 0.4, 112 if on_beat else 82))
+    return notes
+
+
 NOTE_GENERATORS: dict[str, "callable"] = {name: _noop for (name, *_) in TRACKS}
 NOTE_GENERATORS["01 DRM Kick"]     = _kick
 NOTE_GENERATORS["02 DRM Sub Kick"] = _sub_kick
 NOTE_GENERATORS["03 DRM Snare"]    = _snare
 NOTE_GENERATORS["04 DRM Clap"]     = _clap
+NOTE_GENERATORS["06 DRM Hats"]     = _hats
+NOTE_GENERATORS["07 DRM Open Hat"] = _open_hat
+NOTE_GENERATORS["05 DRM Rim"]      = _rim
+NOTE_GENERATORS["08 DRM Ride"]     = _ride
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
