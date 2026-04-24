@@ -6,7 +6,8 @@ fx. Asymmetric section lengths (12-bar verse, 6-bar pre-drop, 2-bar silence,
 20-bar final drop) to destabilize expectation. C# Phrygian primary, Dorian on
 Bridge, half-step pitch-up on first 4 bars of Final Drop.
 
-STEPS 1-3/12 — constants + stubs + ALS helpers + main. Empty clips only.
+STEPS 1-4/12 — core drums (Kick/Sub Kick/Snare/Clap) with djent feel,
+bar-level rhythmic surprises on Verse 1 last bar and Drop 1 bar 15.
 """
 
 from __future__ import annotations
@@ -124,7 +125,181 @@ def _noop(section: str, length: int) -> list[Note]:
     return []
 
 
+# Intensity table: 0=ambient, 1=texture, 2=verse, 3=pre-drop, 4=drop
+INTENSITY = {
+    "Intro": 0, "Outro": 0, "Silence": 0,
+    "Build": 1, "Break": 1, "Bridge": 1,
+    "Verse 1": 2, "Verse 2": 2,
+    "Pre-Drop 1": 3, "Pre-Drop 2": 3,
+    "Drop 1": 4, "Drop 2": 4, "Final Drop": 4,
+}
+
+
+# --- Drums pilier ----------------------------------------------------------
+
+def _kick(section: str, length: int) -> list[Note]:
+    """Aggressive djent kick. Two-bar A/B alternation in verses/drops.
+    Surprises: 'hole' on bar 12 of Verse 1 (skip beat 1); bar 15 of Drop 1
+    is a displaced pattern (hemiola illusion); Final Drop bars 1-4 punch
+    harder to announce the half-step pitch up."""
+    notes: list[Note] = []
+    level = INTENSITY[section]
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        ab = bar % 2
+
+        if level == 2:  # Verse — half-time with push
+            # SURPRISE: Verse 1 last bar -> skip beat 1 entirely
+            if section == "Verse 1" and bar == bars - 1:
+                notes += [(t + 2.5, 36, 0.125, 95), (t + 3, 36, 0.25, 108)]
+                continue
+            if ab == 0:
+                notes += [(t, 36, 0.25, 115),
+                          (t + 0.75, 36, 0.125, 95),
+                          (t + 2, 36, 0.25, 108)]
+            else:
+                notes += [(t, 36, 0.25, 115),
+                          (t + 1.75, 36, 0.125, 92),
+                          (t + 2, 36, 0.25, 108),
+                          (t + 2.5, 36, 0.125, 95)]
+
+        elif level == 3:  # Pre-Drop — density ramps; 16th roll on last bar
+            if bar == bars - 1:
+                for s in range(16):
+                    notes.append((t + s * 0.25, 36, 0.1, 80 + s * 2))
+            elif bar == bars - 2:
+                notes += [(t, 36, 0.25, 115),
+                          (t + 1, 36, 0.25, 105),
+                          (t + 2, 36, 0.25, 115),
+                          (t + 2.5, 36, 0.125, 100),
+                          (t + 3, 36, 0.25, 110),
+                          (t + 3.75, 36, 0.125, 105)]
+            elif bar >= 1:
+                notes += [(t, 36, 0.25, 108),
+                          (t + 2, 36, 0.25, 108),
+                          (t + 3.75, 36, 0.125, 95)]
+            else:
+                notes += [(t, 36, 0.25, 105), (t + 2, 36, 0.25, 105)]
+
+        elif level == 4:  # Drop — busy gallop
+            # SURPRISE: Drop 1 bar 15 -> displaced pattern (kick off beat 1)
+            if section == "Drop 1" and bar == 14:
+                notes += [(t + 0.5, 36, 0.125, 110),
+                          (t + 1.5, 36, 0.25, 108),
+                          (t + 2, 36, 0.25, 115),
+                          (t + 2.75, 36, 0.125, 98)]
+                continue
+            # Final Drop bars 1-4: pitched-up section, punch harder
+            if section == "Final Drop" and bar < 4:
+                notes += [(t, 36, 0.25, 122),
+                          (t + 0.5, 36, 0.125, 88),
+                          (t + 1, 36, 0.125, 95),
+                          (t + 1.5, 36, 0.25, 108),
+                          (t + 2, 36, 0.25, 122),
+                          (t + 2.75, 36, 0.125, 95),
+                          (t + 3, 36, 0.25, 112),
+                          (t + 3.75, 36, 0.125, 100)]
+                continue
+            if ab == 0:
+                notes += [(t, 36, 0.25, 120),
+                          (t + 0.5, 36, 0.125, 90),
+                          (t + 1, 36, 0.25, 108),
+                          (t + 1.75, 36, 0.125, 95),
+                          (t + 2, 36, 0.25, 118),
+                          (t + 2.75, 36, 0.125, 95),
+                          (t + 3, 36, 0.25, 110)]
+            else:
+                notes += [(t, 36, 0.25, 120),
+                          (t + 0.75, 36, 0.125, 88),
+                          (t + 1, 36, 0.25, 108),
+                          (t + 2, 36, 0.25, 118),
+                          (t + 2.5, 36, 0.125, 98),
+                          (t + 3, 36, 0.25, 110),
+                          (t + 3.75, 36, 0.125, 102)]
+
+        elif section == "Bridge":  # sparse, just gravitas on every 2 bars
+            if bar % 2 == 0:
+                notes.append((t, 36, 0.5, 115))
+    return notes
+
+
+def _sub_kick(section: str, length: int) -> list[Note]:
+    """808 sub layer — downbeats and beat 3 in drops. Pitch is C#1 (25),
+    except Final Drop bars 1-4 pitch up to D1 (26). Drop 2 last bar has a
+    Phrygian chromatic descent C#->C->B to reset tension."""
+    notes: list[Note] = []
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        pitch = 25
+        if section == "Final Drop" and bar < 4:
+            pitch = 26
+        # Drop 2 last bar: chromatic descent
+        if section == "Drop 2" and bar == bars - 1:
+            notes += [(t, 25, 0.5, 122),
+                      (t + 1.5, 24, 0.25, 115),
+                      (t + 2, 24, 0.25, 115),
+                      (t + 3, 23, 1.0, 112)]
+            continue
+        notes += [(t, pitch, 0.5, 122), (t + 2, pitch, 0.5, 118)]
+    return notes
+
+
+def _snare(section: str, length: int) -> list[Note]:
+    """Backbeat with ghost anticipations. Surprises: Verse 1 last bar skips
+    beat 2; Drop 1 bar 15 displaces the snare to push the groove sideways."""
+    notes: list[Note] = []
+    level = INTENSITY[section]
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        if level == 2:  # Verse
+            # SURPRISE: Verse 1 last bar -> only beat 4
+            if section == "Verse 1" and bar == bars - 1:
+                notes += [(t + 3, 38, 0.25, 118), (t + 3.5, 38, 0.0625, 80)]
+                continue
+            notes += [(t + 1, 38, 0.25, 112), (t + 3, 38, 0.25, 115)]
+            notes.append((t + 2.75, 38, 0.0625, 55))
+        elif level == 3:  # Pre-Drop
+            notes += [(t + 1, 38, 0.25, 110), (t + 3, 38, 0.25, 115)]
+            if bar == bars - 1:
+                for s in range(8):
+                    notes.append((t + 2 + s * 0.25, 38, 0.1, 80 + s * 5))
+        elif level == 4:  # Drop
+            # SURPRISE: Drop 1 bar 15 -> displaced
+            if section == "Drop 1" and bar == 14:
+                notes += [(t + 1.25, 38, 0.25, 115),
+                          (t + 2, 38, 0.25, 108),
+                          (t + 2.75, 38, 0.125, 88),
+                          (t + 3.25, 38, 0.25, 120)]
+                continue
+            notes += [(t + 1, 38, 0.25, 118), (t + 3, 38, 0.25, 122)]
+            notes += [(t + 1.75, 38, 0.0625, 60),
+                      (t + 2.75, 38, 0.0625, 58),
+                      (t + 3.75, 38, 0.0625, 70)]
+    return notes
+
+
+def _clap(section: str, length: int) -> list[Note]:
+    """Clap stacked on snare in drops only. Slight +16 tick lag gives the
+    layered attack feel. Final Drop bars 5-20 add 'a of 4' push claps."""
+    notes: list[Note] = []
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        notes += [(t + 1.015, 39, 0.25, 100),
+                  (t + 3.015, 39, 0.25, 105)]
+        if section == "Final Drop" and bar >= 4:
+            notes.append((t + 3.75, 39, 0.125, 85))
+    return notes
+
+
 NOTE_GENERATORS: dict[str, "callable"] = {name: _noop for (name, *_) in TRACKS}
+NOTE_GENERATORS["01 DRM Kick"]     = _kick
+NOTE_GENERATORS["02 DRM Sub Kick"] = _sub_kick
+NOTE_GENERATORS["03 DRM Snare"]    = _snare
+NOTE_GENERATORS["04 DRM Clap"]     = _clap
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
