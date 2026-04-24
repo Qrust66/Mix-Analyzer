@@ -83,189 +83,290 @@ Note = tuple[float, int, float, int]
 
 
 def _kick(section: str, length: int) -> list[Note]:
-    """Original kick pattern — varies from half-time groove to busy syncopation."""
+    """Groovy kick — two-bar loops with dotted push feel and chromatic pockets."""
     notes: list[Note] = []
     level = INTENSITY[section]
     bars = length // 4
     for bar in range(bars):
         t = bar * 4
-        if level == 2:  # verse: chunky half-time with a syncopated push
-            notes += [(t, 36, 0.25, 112), (t + 2.5, 36, 0.125, 96), (t + 3, 36, 0.25, 108)]
-        elif level == 3:  # pre-drop: steady foundation + 16th build on last bar
-            notes += [(t, 36, 0.25, 108), (t + 2, 36, 0.25, 108)]
-            if bar == bars - 1:
-                for s in range(16):
-                    notes.append((t + s * 0.25, 36, 0.1, 80 + s * 2))
-        elif level == 4:  # drop: busy syncopated 4-on-the-floor feel
-            notes += [
-                (t, 36, 0.25, 118), (t + 0.75, 36, 0.125, 90),
-                (t + 1.5, 36, 0.25, 105), (t + 2, 36, 0.25, 118),
-                (t + 2.75, 36, 0.125, 92), (t + 3.5, 36, 0.125, 98),
-            ]
+        ab = bar % 2  # alternate two-bar A / B for groove variation
+        if level == 2:  # verse groove — half-time with dotted push
+            if ab == 0:
+                notes += [(t, 36, 0.25, 115), (t + 1.75, 36, 0.125, 96),
+                          (t + 2.5, 36, 0.125, 100), (t + 3, 36, 0.25, 110)]
+            else:
+                notes += [(t, 36, 0.25, 115), (t + 0.75, 36, 0.125, 92),
+                          (t + 2, 36, 0.25, 108), (t + 3.25, 36, 0.125, 98),
+                          (t + 3.75, 36, 0.125, 90)]
+        elif level == 3:  # pre-drop build — density ramps across 4 bars
+            bar_in_4 = bar % 4
+            if bar_in_4 < 2:
+                notes += [(t, 36, 0.25, 105), (t + 2, 36, 0.25, 105),
+                          (t + 3.5, 36, 0.125, 92)]
+            elif bar_in_4 == 2:
+                notes += [(t, 36, 0.25, 110), (t + 1.5, 36, 0.125, 94),
+                          (t + 2, 36, 0.25, 110), (t + 3, 36, 0.25, 105),
+                          (t + 3.5, 36, 0.125, 98), (t + 3.75, 36, 0.125, 104)]
+            else:
+                for s in range(16):  # 16th roll with rising velocity
+                    notes.append((t + s * 0.25, 36, 0.1, 75 + s * 3))
+        elif level == 4:  # drop — busy groove, two-bar alternation
+            if ab == 0:
+                notes += [(t, 36, 0.25, 120), (t + 0.75, 36, 0.125, 92),
+                          (t + 1.5, 36, 0.25, 105), (t + 2, 36, 0.25, 118),
+                          (t + 2.75, 36, 0.125, 94), (t + 3.5, 36, 0.125, 100)]
+            else:
+                notes += [(t, 36, 0.25, 120), (t + 1, 36, 0.125, 90),
+                          (t + 1.75, 36, 0.125, 98), (t + 2, 36, 0.25, 118),
+                          (t + 3, 36, 0.25, 108), (t + 3.75, 36, 0.125, 102)]
     return notes
 
 
 def _snare(section: str, length: int) -> list[Note]:
+    """Backbeat with anticipation ghosts and fills at phrase ends."""
     notes: list[Note] = []
     level = INTENSITY[section]
     bars = length // 4
     for bar in range(bars):
         t = bar * 4
-        # backbeat on 2 and 4 always
-        notes += [(t + 1, 38, 0.25, 110), (t + 3, 38, 0.25, 114)]
-        if level == 4:  # ghost notes in drops
-            notes += [(t + 2.75, 38, 0.0625, 60), (t + 3.75, 38, 0.0625, 70)]
+        # main backbeat always
+        notes += [(t + 1, 38, 0.25, 112), (t + 3, 38, 0.25, 116)]
+        # anticipation ghost right before beat 3
+        notes.append((t + 2.75, 38, 0.0625, 55))
+        if level == 4:
+            # extra ghosts + push on "a" of 4
+            notes += [(t + 1.75, 38, 0.0625, 58),
+                      (t + 3.75, 38, 0.0625, 72)]
         if level == 3 and bar == bars - 1:
-            # snare roll on the last bar of a pre-drop
+            # snare roll on the last bar of pre-drop (quarters -> 16ths)
             for s in range(8):
-                notes.append((t + 2 + s * 0.25, 38, 0.1, 70 + s * 5))
+                notes.append((t + 2 + s * 0.25, 38, 0.1, 72 + s * 5))
+        # at end of every 4-bar phrase, fill on beat 4.5+
+        if level >= 2 and bar % 4 == 3:
+            notes += [(t + 3.25, 38, 0.0625, 75), (t + 3.5, 38, 0.0625, 85)]
     return notes
 
 
 def _hats(section: str, length: int) -> list[Note]:
+    """Groovy hat pattern — closed on downbeats, open on & of 2/4 in verses,
+    dense 16ths with velocity accents in drops."""
     notes: list[Note] = []
     level = INTENSITY[section]
     bars = length // 4
-    step = 0.25 if level >= 3 else 0.5  # 16ths in drops/pre-drops, 8ths elsewhere
     for bar in range(bars):
         t = bar * 4
-        steps = int(4 / step)
-        for s in range(steps):
-            on_beat = (s * step) % 1 == 0
-            vel = 95 if on_beat else 70
-            notes.append((t + s * step, 42, step * 0.5, vel))
+        if level <= 2:  # verse/ambient — 8ths with open hat accents
+            for s in range(8):
+                pos = s * 0.5
+                if s in (3, 7):  # "& of 2" and "& of 4" -> open hat 46
+                    notes.append((t + pos, 46, 0.5, 95))
+                else:
+                    vel = 92 if s % 2 == 0 else 72
+                    notes.append((t + pos, 42, 0.25, vel))
+        elif level == 3:  # pre-drop — 16ths with strong accents
+            for s in range(16):
+                pos = s * 0.25
+                vel = 105 if s % 4 == 0 else (78 if s % 2 == 0 else 62)
+                pitch = 46 if s == 6 else 42  # open hat on "& of 2"
+                notes.append((t + pos, pitch, 0.15, vel))
+        else:  # drop — driving 16ths with humanized accents
+            accent_pattern = [118, 60, 80, 62, 95, 60, 85, 62,
+                              100, 60, 80, 62, 95, 60, 90, 75]
+            for s in range(16):
+                pitch = 46 if s in (6, 14) else 42
+                notes.append((t + s * 0.25, pitch, 0.15, accent_pattern[s]))
     return notes
 
 
 def _metal_perc(section: str, length: int) -> list[Note]:
-    # sparse industrial accents on "& of 4" and bar 1 of every 4th bar
+    """Industrial accents — downbeat hits and off-beat stabs that pull the groove."""
     notes: list[Note] = []
+    level = INTENSITY[section]
     bars = length // 4
     for bar in range(bars):
         t = bar * 4
         if bar % 4 == 0:
-            notes.append((t, 56, 0.5, 115))  # downbeat metal hit
-        notes.append((t + 3.5, 56, 0.25, 90))  # "& of 4" stab
+            notes.append((t, 56, 0.5, 118))       # big downbeat hit
+        if bar % 2 == 1:
+            notes.append((t + 3.75, 56, 0.125, 92))  # "a of 4" push
+        if level == 4 and bar % 4 == 2:
+            notes += [(t + 1.5, 56, 0.125, 88), (t + 2.75, 56, 0.125, 94)]
     return notes
 
 
 def _sub_bass(section: str, length: int) -> list[Note]:
-    # sustained roots — D1 with occasional octave drop to A0
+    """Sub foundation with breathing — held roots plus an octave flip every 4 bars."""
     notes: list[Note] = []
     bars = length // 4
-    # 4-bar phrase: D hold, D hold, A hold, D hold
-    phrase = [26, 26, 21, 26]  # D1, D1, A0, D1
+    # 4-bar phrase: D1 hold, D1 hold with chromatic push, A0 hold, D1 + octave stab
+    phrase = [26, 26, 21, 26]  # D1 D1 A0 D1
     for bar in range(bars):
         t = bar * 4
-        notes.append((t, phrase[bar % 4], 4.0, 100))
+        p = phrase[bar % 4]
+        notes.append((t, p, 3.5, 100))
+        if bar % 4 == 1:
+            notes.append((t + 3.5, 27, 0.5, 90))   # chromatic Eb1 push
+        elif bar % 4 == 3:
+            notes.append((t + 3.5, 38, 0.5, 95))   # octave up stab to D2
     return notes
 
 
 def _distorted_bass(section: str, length: int) -> list[Note]:
-    # follows kick rhythmically, pitches walk around the root
-    level = INTENSITY[section]
+    """Groovy low bass locked to the kick, walking through D-Eb-A-F-C with
+    chromatic approach tones for industrial weight."""
     notes: list[Note] = []
+    level = INTENSITY[section]
     bars = length // 4
-    # 2-bar pattern of root variations: D, D, A, D  |  D, F, D, C
-    phrase_a = [38, 38, 33, 38]
-    phrase_b = [38, 41, 38, 36]  # includes C2=36 for tension
     for bar in range(bars):
         t = bar * 4
-        p = phrase_a if (bar // 2) % 2 == 0 else phrase_b
-        if level == 2:  # verse: hits on 1 and 3
-            notes += [(t, p[0], 0.25, 108), (t + 2, p[2], 0.5, 108)]
-        elif level >= 3:  # drop: lock with kick syncopation
-            notes += [
-                (t, p[0], 0.25, 115), (t + 0.75, p[1], 0.125, 90),
-                (t + 1.5, p[2], 0.25, 105), (t + 2, p[2], 0.25, 115),
-                (t + 2.75, p[3], 0.125, 95), (t + 3.5, p[0], 0.125, 98),
-            ]
+        ab = bar % 2
+        if level == 2:  # verse — sparse but with push
+            if ab == 0:
+                notes += [(t, 38, 0.5, 110), (t + 0.75, 39, 0.125, 90),  # D, chromatic Eb push
+                          (t + 1.5, 38, 0.25, 100), (t + 2.5, 33, 0.5, 105),  # A below
+                          (t + 3.5, 36, 0.25, 95)]   # C2 leading back
+            else:
+                notes += [(t, 38, 0.25, 112), (t + 1, 38, 0.25, 100),
+                          (t + 2, 41, 0.5, 105),    # F2
+                          (t + 3.25, 38, 0.25, 98), (t + 3.75, 39, 0.125, 88)]
+        elif level >= 3:  # drop — locked to kick, chromatic coloring
+            if ab == 0:
+                notes += [(t, 38, 0.25, 118), (t + 0.75, 39, 0.125, 92),   # D-Eb push
+                          (t + 1.5, 38, 0.25, 105), (t + 2, 38, 0.25, 118),
+                          (t + 2.75, 36, 0.125, 94), (t + 3.5, 33, 0.25, 108)]   # C-A descent
+            else:
+                notes += [(t, 38, 0.25, 118), (t + 1, 41, 0.125, 94),    # F2 stab
+                          (t + 1.75, 38, 0.125, 100), (t + 2, 38, 0.25, 118),
+                          (t + 3, 39, 0.25, 108), (t + 3.75, 38, 0.125, 102)]
     return notes
 
 
 def _lead(section: str, length: int) -> list[Note]:
-    # 2-bar melodic motif in Dm, repeated (original, not transcribed)
-    # Bar 1: D-F-A climb with held high D. Bar 2: descending C-Bb-A answer.
-    motif = [
-        (0.0, 62, 0.5, 105),   # D4
-        (0.5, 65, 0.5, 100),   # F4
-        (1.0, 69, 1.0, 110),   # A4 (quarter-dotted)
-        (2.5, 74, 1.5, 115),   # D5 (held)
-        (4.0, 72, 1.0, 100),   # C5
-        (5.0, 70, 1.0, 100),   # Bb4
-        (6.0, 69, 2.0, 108),   # A4 held
+    """Melodic phrase — 4-bar call, 4-bar answer, with rests + wide intervals.
+    Call climbs Dm triad with a chromatic bend, answer descends with tension."""
+    call = [  # bar 1-2: climb and peak
+        (0.0, 62, 0.5,  102),   # D4
+        (0.5, 65, 0.5,  100),   # F4
+        (1.0, 69, 0.25, 108),   # A4
+        (1.5, 72, 0.25, 110),   # C5
+        (2.0, 74, 1.75, 118),   # D5 held (peak)
+        (4.0, 70, 0.5,  102),   # Bb4
+        (4.5, 72, 0.5,  104),   # C5
+        (5.0, 74, 0.25, 110),   # D5
+        (5.25, 77, 0.75, 115),  # F5 (accent high)
+        (6.5, 74, 1.5,  108),   # D5 held
+    ]
+    answer = [  # bar 3-4: descending with chromatic tension
+        (0.0, 77, 0.5,  112),   # F5
+        (0.5, 76, 0.5,  105),   # E5 (chromatic tension)
+        (1.0, 74, 0.5,  108),   # D5
+        (1.5, 72, 0.5,  100),   # C5
+        (2.0, 70, 1.0,  105),   # Bb4
+        (3.5, 69, 0.5,  98),    # A4
+        (4.0, 65, 1.0,  100),   # F4
+        (5.5, 64, 0.25, 92),    # E4 (chromatic)
+        (6.0, 62, 2.0,  105),   # D4 resolve
     ]
     notes: list[Note] = []
     bars = length // 4
-    for phrase_i in range(bars // 2):
-        base_t = phrase_i * 8
-        for (dt, pitch, dur, vel) in motif:
-            notes.append((base_t + dt, pitch, dur, vel))
+    phrases = bars // 4
+    for p in range(phrases):
+        base = p * 16
+        for (dt, pitch, dur, vel) in call:
+            notes.append((base + dt, pitch, dur, vel))
+        for (dt, pitch, dur, vel) in answer:
+            notes.append((base + 8 + dt, pitch, dur, vel))
     return notes
 
 
 def _pad(section: str, length: int) -> list[Note]:
-    # 4-bar chord progression: Dm -> Bb -> F -> Gm, each chord held 4 bars
-    # Voicings (3-note, mid register)
+    """4-bar chord progression with color tones — Dm9, Bb(add9), F(add9), Gm11.
+    Voicings rotate for smoother voice leading."""
+    # (chord_name, pitches)
     chords = [
-        [50, 53, 57],  # Dm   (D3 F3 A3)
-        [50, 53, 58],  # Bb   (D3 F3 Bb3)  — shared top of Dm
-        [53, 57, 60],  # F    (F3 A3 C4)
-        [50, 55, 58],  # Gm   (D3 G3 Bb3)
+        [50, 53, 57, 64],  # Dm9:    D3 F3 A3 E4
+        [46, 53, 58, 62],  # Bb9:    Bb2 F3 Bb3 D4  (root low, add 9 on top)
+        [53, 57, 60, 67],  # F(add9):F3 A3 C4 G4
+        [43, 55, 58, 62],  # Gm11:   G2 G3 Bb3 D4
     ]
     notes: list[Note] = []
     bars = length // 4
     for bar in range(bars):
         t = bar * 4
         chord = chords[bar % 4]
+        # sustained chord
         for pitch in chord:
-            notes.append((t, pitch, 4.0, 70))  # soft, sustained
+            notes.append((t, pitch, 4.0, 70))
+        # on bar 4 of phrase, add a top-note swell that anticipates the next chord
+        if bar % 4 == 3 and bar < bars - 1:
+            next_top = chords[(bar + 1) % 4][-1]
+            notes.append((t + 3.5, next_top, 0.5, 78))
     return notes
 
 
 def _arp(section: str, length: int) -> list[Note]:
-    # 16th-note arpeggio in Dm: D F A C D A F D (8 notes per beat cluster)
-    pitches = [62, 65, 69, 72, 74, 69, 65, 62]  # D F A C D A F D
+    """Broken Dm arp with octave displacement + hemiola-feel accents.
+    Pattern: D A F C | A D A F | octave leap every 2 bars for movement."""
+    # 16-note cycle over 2 beats (we step 1/8 for breathing room, not full 1/16)
+    # Step is 0.25 (16th). Pattern length = 16 steps over 4 beats = 1 bar.
+    pattern_a = [62, 69, 65, 72, 69, 74, 69, 65,
+                 62, 69, 65, 72, 77, 74, 69, 65]   # bar A
+    pattern_b = [74, 69, 65, 72, 69, 74, 77, 72,
+                 74, 81, 77, 74, 72, 69, 65, 62]   # bar B (higher, resolving down)
+    # Hemiola-style accent pattern (accent every 3 steps for groove feel)
+    vel_pattern = [105, 68, 72, 92, 70, 68, 96, 72, 68, 98, 72, 68, 100, 72, 70, 88]
     notes: list[Note] = []
-    total_steps = int(length / 0.25)
-    for s in range(total_steps):
-        t = s * 0.25
-        pitch = pitches[s % len(pitches)]
-        vel = 95 if s % 4 == 0 else 72  # accent on downbeats
-        notes.append((t, pitch, 0.2, vel))
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        pattern = pattern_a if bar % 2 == 0 else pattern_b
+        for s in range(16):
+            notes.append((t + s * 0.25, pattern[s], 0.2, vel_pattern[s]))
     return notes
 
 
 def _vocal(section: str, length: int) -> list[Note]:
-    # long sustained tones as a guide — 1 note per 2 bars, moving in Dm
-    phrase = [62, 65, 69, 65]  # D4 F4 A4 F4
+    """Melodic guide — 4-bar rise-and-fall phrase that breathes with the arrangement."""
+    phrase = [
+        (0.0, 57,  2.0, 88),   # A3 hold
+        (2.0, 62,  1.5, 95),   # D4
+        (4.0, 65,  2.0, 100),  # F4
+        (6.0, 69,  1.5, 105),  # A4 (peak)
+        (8.0, 67,  1.0, 98),   # G4
+        (9.0, 65,  1.0, 92),   # F4
+        (10.0, 62, 3.0, 90),   # D4 resolve
+        (13.5, 60, 0.5, 82),   # C4 pickup
+        (14.0, 62, 2.0, 88),   # D4 again
+    ]
     notes: list[Note] = []
     bars = length // 4
-    for i, bar in enumerate(range(0, bars, 2)):
-        t = bar * 4
-        notes.append((t, phrase[i % len(phrase)], 8.0, 85))
+    phrases = bars // 4  # 16-beat phrase
+    for p in range(phrases):
+        base = p * 16
+        for (dt, pitch, dur, vel) in phrase:
+            notes.append((base + dt, pitch, dur, vel))
     return notes
 
 
 def _vocal_fx(section: str, length: int) -> list[Note]:
-    # sparse high accents every 4 bars
+    """Short glitchy stabs on off-beats, every 4 bars."""
     notes: list[Note] = []
     bars = length // 4
     for bar in range(0, bars, 4):
         t = bar * 4
-        notes.append((t, 74, 1.0, 95))   # D5 stab
-        notes.append((t + 2, 77, 0.5, 85))  # F5 short
+        notes += [(t + 0.75, 74, 0.25, 102),    # D5 stab on "e of 1"
+                  (t + 2.5, 77, 0.25, 95),      # F5 on "& of 3"
+                  (t + 3.75, 72, 0.125, 88)]    # C5 tail on "a of 4"
     return notes
 
 
 def _riser(section: str, length: int) -> list[Note]:
-    # single held note from start to end of the section (the synth patch
-    # is expected to produce the riser timbre via automation)
+    # Long held note — the riser timbre is shaped by the synth patch / automation
     return [(0.0, 60, float(length), 90)]
 
 
 def _noise(section: str, length: int) -> list[Note]:
-    # single long drone
+    # Single long drone
     return [(0.0, 48, float(length), 75)]
 
 
