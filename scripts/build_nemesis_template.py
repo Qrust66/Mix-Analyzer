@@ -6,9 +6,10 @@ fx. Asymmetric section lengths (12-bar verse, 6-bar pre-drop, 2-bar silence,
 20-bar final drop) to destabilize expectation. C# Phrygian primary, Dorian on
 Bridge, half-step pitch-up on first 4 bars of Final Drop.
 
-STEPS 1-5/12 — core drums + texture drums (Hats/Open Hat/Rim/Ride).
-Rhythmic surprises on Verse 1 last bar and Drop 1 bar 15 propagate to the
-hats layer (dropout on first half-beat of bar 15).
+STEPS 1-6/12 — core drums + texture drums + percussion (Metal/Glitch/Triplet).
+The Triplet track introduces an 8th-note triplet polyrhythm (12 notes/bar
+over the 4/4 grid) — the 'complexity' layer that enters in Verse 2 and
+peaks as 16th-triplets during Final Drop bars 1-4.
 """
 
 from __future__ import annotations
@@ -394,15 +395,104 @@ def _ride(section: str, length: int) -> list[Note]:
     return notes
 
 
+# --- Percussion ------------------------------------------------------------
+
+def _metal(section: str, length: int) -> list[Note]:
+    """Industrial metal hit (cowbell slot, pitch 56). Big downbeat on bar 1
+    of every 4-bar phrase + 'a of 4' push on odd bars. Drops get mid-bar
+    stabs every 4th bar; Bridge gets a beat-3 accent per phrase."""
+    notes: list[Note] = []
+    bars = length // 4
+    level = INTENSITY[section]
+    for bar in range(bars):
+        t = bar * 4
+        if bar % 4 == 0:
+            notes.append((t, 56, 0.5, 118))
+        if bar % 2 == 1:
+            notes.append((t + 3.75, 56, 0.125, 92))
+        if level == 4 and bar % 4 == 2:
+            notes += [(t + 1.5, 56, 0.125, 95),
+                      (t + 2.75, 56, 0.125, 98)]
+        if section == "Bridge" and bar % 4 == 0:
+            notes.append((t + 3, 56, 0.25, 100))
+    return notes
+
+
+def _glitch(section: str, length: int) -> list[Note]:
+    """Stuttered noise bursts. Pitch climbs 60 -> 64 -> 67 -> 72 for tension.
+    Pre-Drops escalate then finish with a 16th stutter roll on the last bar
+    to smash into the drop."""
+    notes: list[Note] = []
+    bars = length // 4
+    pitches = [60, 64, 67, 72]
+    if section == "Build":
+        for t, p, d, v in [(6, 60, 0.125, 85), (10, 64, 0.125, 90),
+                            (18, 67, 0.125, 95), (26, 72, 0.25, 100)]:
+            notes.append((float(t), p, d, v))
+    elif section in ("Pre-Drop 1", "Pre-Drop 2"):
+        for bar in range(bars - 1):
+            t = bar * 4
+            notes.append((t + 1.75, pitches[bar % 4], 0.125, 80 + bar * 8))
+            notes.append((t + 3.5,  pitches[(bar + 1) % 4], 0.125, 85 + bar * 6))
+        tl = (bars - 1) * 4
+        for s in range(16):
+            notes.append((tl + s * 0.25, 72, 0.1, 70 + s * 3))
+    elif section == "Break":
+        for bar in range(bars):
+            t = bar * 4
+            if bar % 2 == 0:
+                notes.append((t + 0.75, 60, 0.125, 78))
+            else:
+                notes.append((t + 2.25, 64, 0.125, 72))
+    elif section == "Bridge":
+        for bar in range(bars):
+            if bar % 2 == 1:
+                notes.append((bar * 4 + 3.75, 67, 0.125, 82))
+    return notes
+
+
+def _triplet(section: str, length: int) -> list[Note]:
+    """Polyrhythmic layer — 8th-note triplets over the 4/4 grid (3-over-2 feel).
+    Enters gently in Verse 2 (every other bar), full density in Drop 2 and
+    Final Drop 5+, peaks as 16th-triplets (24 notes/bar) in Final Drop bars
+    1-4 to match the pitched-up surprise."""
+    notes: list[Note] = []
+    bars = length // 4
+    third = 1.0 / 3.0
+    sixth = 1.0 / 6.0
+    for bar in range(bars):
+        t = bar * 4
+        if section == "Verse 2":
+            if bar % 2 != 0:
+                continue
+            for beat in range(4):
+                for s in range(3):
+                    vel = 92 if s == 0 else 62
+                    notes.append((round(t + beat + s * third, 12), 60, 0.2, vel))
+        elif section == "Final Drop" and bar < 4:
+            for s in range(24):
+                vel = 95 if s % 6 == 0 else 65
+                notes.append((round(t + s * sixth, 12), 60, 0.15, vel))
+        else:  # Drop 2, Final Drop bars 5+
+            for beat in range(4):
+                for s in range(3):
+                    vel = 102 if s == 0 else 72
+                    notes.append((round(t + beat + s * third, 12), 60, 0.2, vel))
+    return notes
+
+
 NOTE_GENERATORS: dict[str, "callable"] = {name: _noop for (name, *_) in TRACKS}
 NOTE_GENERATORS["01 DRM Kick"]     = _kick
 NOTE_GENERATORS["02 DRM Sub Kick"] = _sub_kick
 NOTE_GENERATORS["03 DRM Snare"]    = _snare
 NOTE_GENERATORS["04 DRM Clap"]     = _clap
+NOTE_GENERATORS["05 DRM Rim"]      = _rim
 NOTE_GENERATORS["06 DRM Hats"]     = _hats
 NOTE_GENERATORS["07 DRM Open Hat"] = _open_hat
-NOTE_GENERATORS["05 DRM Rim"]      = _rim
 NOTE_GENERATORS["08 DRM Ride"]     = _ride
+NOTE_GENERATORS["09 PRC Metal"]    = _metal
+NOTE_GENERATORS["10 PRC Glitch"]   = _glitch
+NOTE_GENERATORS["11 PRC Triplet"]  = _triplet
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
