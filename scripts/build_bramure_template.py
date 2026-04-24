@@ -19,9 +19,11 @@ Design rules:
 - Per-section TIME SIGNATURE stored on each clip (since project-level
   metre changes are fragile — local-clip metre is the safe path).
 
-STEPS A1-B1/9 — constants + helpers + main + drums (2 kicks A/B alternated,
-2 snares A/B layered, clap, rim, hats, open hat, perc). Drum patterns
-respect each section's metre (7/4 verses, 4/4 drops, 6/8 bridge).
+STEPS A1-B2/9 — drums + basses + pads + drone. Modal clash engine: Verses
+in C# Locrian (root C#, dim shell), Drops in D Mixolydian (root D, dom-7
+shell). Half-step pivot C#->D = the clash. Shared notes E F# G A B keep
+the line so the clash resolves naturally. Bridge anchors on E (the pivot
+note). Final Drop ALTERNATES Locrian/Mixolydian voicings every 4 bars.
 """
 
 from __future__ import annotations
@@ -422,16 +424,204 @@ def _perc(section: str, length: int) -> list[Note]:
     return notes
 
 
+# --- Basses + Pad + Drone --------------------------------------------------
+#
+# Pitch reference (C#1=25, C#2=37, etc.):
+#   C# Locrian  : C#  D   E   F#  G   A   B    (b2 b3 4 b5 b6 b7)
+#   D Mixolydian: D   E   F#  G   A   B   C    (1 2 3 4 5 6 b7)
+#   Shared      :     D   E   F#  G   A   B    (only roots differ)
+#   Bridge      : anchors on E (the shared note that lives in both modes)
+
+
+def _bas_sub(section: str, length: int) -> list[Note]:
+    """Sub root drone. C#1 in Verses (Locrian), D1 in Drops (Mixolydian — the
+    half-step pivot UP). Pre-Drops bridge it: hold C# for first half then D
+    for second half (announces the pivot). Bridge anchors on E1 (shared
+    note). AUDACITY: every 4th bar octave-drops to one octave below for
+    weight punctuation."""
+    notes: list[Note] = []
+    bars = n_bars(section, length)
+    bl = bar_length(section)
+
+    if section in ("Pre-Drop 1", "Pre-Drop 2"):
+        # 16-beat bridge: 8 beats C#, 8 beats D (announces the pivot)
+        return [(0.0, 25, 8.0, 105), (8.0, 26, 8.0, 110)]
+
+    if section in ("Verse 1", "Verse 2"):
+        root = 25       # C#1
+    elif section == "Bridge":
+        root = 28       # E1 (shared anchor)
+    else:               # Drops, Final Drop
+        root = 26       # D1
+
+    for bar in range(bars):
+        t = bar * bl
+        if bar % 4 == 3:
+            notes.append((t, root - 12, bl, 95))   # octave-down weight
+        else:
+            notes.append((t, root, bl, 102))
+    return notes
+
+
+def _bas_punch(section: str, length: int) -> list[Note]:
+    """Obsessive single-note articulation — repeated heartbeat. Verse 7/4
+    pounds C#2 on backbeats 2.5/4.5/6. Drop 4/4 pounds D2 on every '&'.
+    AUDACITY: every 4th bar swaps in the b2 (D2 in Verse Locrian, Eb2 in
+    Drop Mixolydian) — instant menace via repetition with chromatic shift."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+
+    if section in ("Verse 1", "Verse 2"):
+        for bar in range(bars):
+            t = bar * 7
+            pitch = 38 if (bar + 1) % 4 == 0 else 37     # D2 b2 surprise vs C#2
+            notes += [(t + 1.5, pitch, 0.25, 100),
+                      (t + 3.5, pitch, 0.25, 105),
+                      (t + 5.0, pitch, 0.25, 108)]
+    elif metre == (4, 4) and INTENSITY[section] == 4:
+        for bar in range(bars):
+            t = bar * 4
+            pitch = 39 if (bar + 1) % 4 == 0 else 38     # Eb2 chromatic vs D2
+            notes += [(t + 0.5, pitch, 0.25, 100),
+                      (t + 1.5, pitch, 0.25, 100),
+                      (t + 2.5, pitch, 0.25, 105),
+                      (t + 3.5, pitch, 0.25, 108)]
+    return notes
+
+
+def _bas_distort(section: str, length: int) -> list[Note]:
+    """Heavy sustain — long held dissonant notes with deliberate silence.
+    Drop 4-bar phrase: D2 (2 bars) -> E2 (2 bars, the shared note) -> D2 hold.
+    Bar 4 of each 4-bar = drop to C2 (Mixolydian b7 flavor). AUDACITY:
+    Drop bar 5 of each 8-bar phrase TRANSPOSES UP an octave (D3) for one
+    bar — momentary wail that breaks the low register."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+
+    if section == "Bridge":  # 6/8, 8 bars (24 beats)
+        return [(0.0,  40, 12.0, 100),    # E2 (shared anchor) 4 bars
+                (12.0, 42, 12.0, 105)]    # F#2 slide-up
+    if metre != (4, 4) or INTENSITY[section] != 4:
+        return notes
+
+    for bar in range(bars):
+        t = bar * 4
+        phrase_pos = bar % 8
+        if (bar + 1) % 4 == 0:
+            pitch = 36                                  # C2 b7 Mixolydian flavor
+        elif phrase_pos == 4:
+            pitch = 50                                  # D3 wail (audacity push)
+        elif phrase_pos in (0, 1):
+            pitch = 38                                  # D2
+        elif phrase_pos in (2, 3):
+            pitch = 40                                  # E2 shared
+        else:
+            pitch = 38                                  # back to D2
+        notes.append((t, pitch, 4.0, 105))
+    return notes
+
+
+# Pad voicings — sparse, deliberately dissonant
+LOCRIAN_VOICING = [49, 52, 55, 57]      # C# E G A   (root + b3 + b5 + b6)
+MIXOLYDIAN_VOICING = [50, 54, 57, 60]   # D F# A C   (Dom7 shell)
+BRIDGE_VOICING = [52, 55, 59, 62]       # E G B D    (Em7 anchor)
+
+
+def _pad(section: str, length: int) -> list[Note]:
+    """Sparse pad. Audacity rule: silence as a feature.
+    - Verse 7/4: chord rings 4 beats, then 3 beats SILENCE per bar.
+    - Drops: chord rings 3 beats, 1 beat silence per bar.
+    - Final Drop: ALTERNATES Locrian (clash) and Mixolydian (resolution)
+      every 4 bars. AUDACITY PUSH: bar 4 (last bar of first Locrian phrase)
+      drops to total SILENCE — the clash arrives in negative space."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+
+    if section in ("Intro", "Outro"):
+        # Drone — single 3-note shell every 2 bars
+        for bar in range(0, bars, 2):
+            t = bar * 4
+            for pitch in [49, 52, 55]:
+                notes.append((t, pitch, 4.0, 55))
+    elif section in ("Verse 1", "Verse 2"):
+        for bar in range(bars):
+            t = bar * 7
+            for pitch in LOCRIAN_VOICING:
+                notes.append((t, pitch, 4.0, 70))
+    elif section in ("Pre-Drop 1", "Pre-Drop 2"):
+        for pitch in LOCRIAN_VOICING:
+            notes.append((0.0, pitch, 8.0, 70))
+        for pitch in MIXOLYDIAN_VOICING:
+            notes.append((8.0, pitch, 8.0, 75))
+    elif section in ("Drop 1", "Drop 2"):
+        for bar in range(bars):
+            t = bar * 4
+            if (bar + 1) % 4 == 0:
+                # Bar 4: chord enters on beat 2 (silence on beat 1)
+                for pitch in MIXOLYDIAN_VOICING:
+                    notes.append((t + 1, pitch, 3.0, 75))
+            else:
+                for pitch in MIXOLYDIAN_VOICING:
+                    notes.append((t, pitch, 3.0, 75))
+    elif section == "Break":
+        for bar in range(0, bars, 2):
+            t = bar * 3
+            for pitch in [40, 43, 47]:                  # Em (E G B)
+                notes.append((t, pitch, 6.0, 60))
+    elif section == "Bridge":
+        for bar in range(0, bars, 2):
+            t = bar * 3
+            for pitch in BRIDGE_VOICING:
+                notes.append((t, pitch, 6.0, 65))
+    elif section == "Final Drop":
+        for bar in range(bars):
+            t = bar * 4
+            phrase = (bar // 4) % 2
+            # AUDACITY PUSH: bar 4 of first Locrian phrase = total silence
+            if bar == 3:
+                continue
+            voicing = LOCRIAN_VOICING if phrase == 0 else MIXOLYDIAN_VOICING
+            for pitch in voicing:
+                notes.append((t, pitch, 3.0, 80))
+    return notes
+
+
+def _drone_dark(section: str, length: int) -> list[Note]:
+    """Long sustained atmosphere. AUDACITY: Intro is ONE note for 16 beats
+    — pure tension, no movement. Break: E2 -> F2 chromatic surprise mid-
+    section. Bridge: C#3 -> D3 modal pivot ANNOUNCING the Final Drop clash.
+    Outro: D2 fade."""
+    if section == "Intro":
+        return [(0.0, 40, float(length), 65)]            # pure E2
+    if section == "Break":
+        return [(0.0, 40, 9.0, 65),
+                (9.0, 41, 9.0, 70)]                       # E2 -> F2 chromatic
+    if section == "Bridge":
+        return [(0.0,  49, 12.0, 70),
+                (12.0, 50, 12.0, 75)]                     # C#3 -> D3 pivot
+    if section == "Outro":
+        return [(0.0, 38, float(length), 60)]            # D2 fade
+    return []
+
+
 NOTE_GENERATORS: dict[str, "callable"] = {name: _noop for (name, *_) in TRACKS}
-NOTE_GENERATORS["01 DRM Kick A"]  = _kick_a
-NOTE_GENERATORS["02 DRM Kick B"]  = _kick_b
-NOTE_GENERATORS["03 DRM Snare A"] = _snare_a
-NOTE_GENERATORS["04 DRM Snare B"] = _snare_b
-NOTE_GENERATORS["05 DRM Clap"]    = _clap
-NOTE_GENERATORS["06 DRM Rim"]     = _rim
-NOTE_GENERATORS["07 DRM Hats"]    = _hats
-NOTE_GENERATORS["08 DRM Open Hat"] = _open_hat
-NOTE_GENERATORS["09 DRM Perc"]    = _perc
+NOTE_GENERATORS["01 DRM Kick A"]    = _kick_a
+NOTE_GENERATORS["02 DRM Kick B"]    = _kick_b
+NOTE_GENERATORS["03 DRM Snare A"]   = _snare_a
+NOTE_GENERATORS["04 DRM Snare B"]   = _snare_b
+NOTE_GENERATORS["05 DRM Clap"]      = _clap
+NOTE_GENERATORS["06 DRM Rim"]       = _rim
+NOTE_GENERATORS["07 DRM Hats"]      = _hats
+NOTE_GENERATORS["08 DRM Open Hat"]  = _open_hat
+NOTE_GENERATORS["09 DRM Perc"]      = _perc
+NOTE_GENERATORS["10 BAS Sub"]       = _bas_sub
+NOTE_GENERATORS["11 BAS Punch"]     = _bas_punch
+NOTE_GENERATORS["12 BAS Distort"]   = _bas_distort
+NOTE_GENERATORS["13 SYN Pad"]       = _pad
+NOTE_GENERATORS["14 SYN Drone Dark"] = _drone_dark
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
