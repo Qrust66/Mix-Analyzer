@@ -6,12 +6,11 @@ fx. Asymmetric section lengths (12-bar verse, 6-bar pre-drop, 2-bar silence,
 20-bar final drop) to destabilize expectation. C# Phrygian primary, Dorian on
 Bridge, half-step pitch-up on first 4 bars of Final Drop.
 
-STEPS 1-7/12 — drums + percussion + basses (Sub/Growl/Stab/Chug).
-Basses sit in C# Phrygian (scale C# D E F# G# A B). The djent Chug track
-does 16th palm-mute chugs with power-chord ring-outs on beats 1/3 and
-respiratory silence on beat 3 of every second bar. Drop 2 substitutes D
-(flat-2 Phrygian) on the 4th bar of every 4-bar phrase. Final Drop bars
-1-4 pitch everything up a half-step to D.
+STEPS 1-8/12 — drums + percussion + basses + pads (Pad Warm / Choir Dark).
+Pad uses 4-note Phrygian voicings (C#m(b9) -> D -> F#m -> G#sus2) with a
+Dorian modal shift in Bridge (#6) and a D-Phrygian up-shift for Final
+Drop bars 1-4. Choir Dark is a low-register 3-note drone active only in
+Intro / Break / Bridge / Outro for continuity.
 """
 
 from __future__ import annotations
@@ -591,22 +590,103 @@ def _bas_chug(section: str, length: int) -> list[Note]:
     return notes
 
 
+# --- Pads & choir ----------------------------------------------------------
+#
+# Four-note voicings. Pad main progression is a C# Phrygian loop with the
+# signature bII (D major) push on the second chord. Bridge modulates to C#
+# Dorian (raised 6 = A#/Bb nat) for modal relief. Final Drop bars 1-4 shift
+# the whole progression up a half-step to D Phrygian, then bars 5-20 return
+# home to C# Phrygian.
+
+PAD_CS_PHRYGIAN = [
+    [49, 52, 56, 62],   # C#m(b9)   : C#3 E3 G#3 D4   (root + b9 on top = signature)
+    [50, 54, 57, 62],   # Dmaj      : D3 F#3 A3 D4    (bII push)
+    [54, 57, 61, 66],   # F#m       : F#3 A3 C#4 F#4  (minor iv)
+    [56, 59, 62, 66],   # G#sus2    : G#3 B3 D4 F#4   (v sus for breath)
+]
+
+PAD_CS_DORIAN = [
+    [49, 52, 56, 62],   # C#m       : C#3 E3 G#3 D4
+    [54, 58, 61, 66],   # F#maj     : F#3 A#3 C#4 F#4 (Dorian IV = raised 6!)
+    [51, 54, 58, 61],   # D#m       : D#3 F#3 A#3 C#4 (ii of Dorian)
+    [56, 59, 63, 66],   # G#m       : G#3 B3 D#4 F#4
+]
+
+PAD_D_PHRYGIAN = [
+    [50, 53, 57, 63],   # Dm(b9)    : D3 F3 A3 Eb4    (up-shifted signature)
+    [51, 55, 58, 63],   # Ebmaj     : Eb3 G3 Bb3 Eb4  (bII up-shift)
+    [55, 58, 62, 67],   # Gm        : G3 Bb3 D4 G4
+    [57, 60, 64, 69],   # Am        : A3 C4 E4 A4
+]
+
+
+def _pad_warm(section: str, length: int) -> list[Note]:
+    """Main harmonic pad. 4-note voicings, 4 bars per chord. Anticipation
+    swell on bar 4 of each phrase (top note of the NEXT chord, 0.5 beats
+    before the barline) so the change lands with momentum."""
+    bars = length // 4
+
+    def chord_for_bar(bar: int) -> list[int]:
+        if section == "Bridge":
+            return PAD_CS_DORIAN[bar % 4]
+        if section == "Final Drop" and bar < 4:
+            return PAD_D_PHRYGIAN[bar % 4]
+        if section == "Final Drop":  # bars 5+
+            return PAD_CS_PHRYGIAN[(bar - 4) % 4]
+        if section in ("Intro", "Outro"):
+            return [49, 52, 56]  # 3-note C#m drone, no top extension
+        return PAD_CS_PHRYGIAN[bar % 4]
+
+    notes: list[Note] = []
+    for bar in range(bars):
+        t = bar * 4
+        chord = chord_for_bar(bar)
+        vel = 62 if section in ("Intro", "Outro") else 75
+        for pitch in chord:
+            notes.append((t, pitch, 4.0, vel))
+        # Anticipation swell on bar 4 of each 4-bar phrase
+        if bar % 4 == 3 and bar < bars - 1:
+            next_top = chord_for_bar(bar + 1)[-1]
+            notes.append((t + 3.5, next_top, 0.5, 82))
+    return notes
+
+
+def _choir_dark(section: str, length: int) -> list[Note]:
+    """Low-register 3-note drone. Phrygian shell C#2 G#2 C#3 by default.
+    Bridge cycles a 4-bar Dorian progression (C#m -> F#maj -> C#m -> G#m)
+    in a low voicing, echoing the pad a register down."""
+    bars = length // 4
+    if section == "Bridge":
+        voicings = [[37, 44, 49], [42, 46, 54],
+                    [37, 44, 49], [44, 47, 56]]
+    else:
+        voicings = [[37, 44, 49]]
+    notes: list[Note] = []
+    for bar in range(bars):
+        t = bar * 4
+        for pitch in voicings[bar % len(voicings)]:
+            notes.append((t, pitch, 4.0, 60))
+    return notes
+
+
 NOTE_GENERATORS: dict[str, "callable"] = {name: _noop for (name, *_) in TRACKS}
-NOTE_GENERATORS["01 DRM Kick"]     = _kick
-NOTE_GENERATORS["02 DRM Sub Kick"] = _sub_kick
-NOTE_GENERATORS["03 DRM Snare"]    = _snare
-NOTE_GENERATORS["04 DRM Clap"]     = _clap
-NOTE_GENERATORS["05 DRM Rim"]      = _rim
-NOTE_GENERATORS["06 DRM Hats"]     = _hats
-NOTE_GENERATORS["07 DRM Open Hat"] = _open_hat
-NOTE_GENERATORS["08 DRM Ride"]     = _ride
-NOTE_GENERATORS["09 PRC Metal"]    = _metal
-NOTE_GENERATORS["10 PRC Glitch"]   = _glitch
-NOTE_GENERATORS["11 PRC Triplet"]  = _triplet
-NOTE_GENERATORS["12 BAS Sub"]      = _bas_sub
-NOTE_GENERATORS["13 BAS Growl"]    = _bas_growl
-NOTE_GENERATORS["14 BAS Stab"]     = _bas_stab
-NOTE_GENERATORS["15 BAS Chug"]     = _bas_chug
+NOTE_GENERATORS["01 DRM Kick"]      = _kick
+NOTE_GENERATORS["02 DRM Sub Kick"]  = _sub_kick
+NOTE_GENERATORS["03 DRM Snare"]     = _snare
+NOTE_GENERATORS["04 DRM Clap"]      = _clap
+NOTE_GENERATORS["05 DRM Rim"]       = _rim
+NOTE_GENERATORS["06 DRM Hats"]      = _hats
+NOTE_GENERATORS["07 DRM Open Hat"]  = _open_hat
+NOTE_GENERATORS["08 DRM Ride"]      = _ride
+NOTE_GENERATORS["09 PRC Metal"]     = _metal
+NOTE_GENERATORS["10 PRC Glitch"]    = _glitch
+NOTE_GENERATORS["11 PRC Triplet"]   = _triplet
+NOTE_GENERATORS["12 BAS Sub"]       = _bas_sub
+NOTE_GENERATORS["13 BAS Growl"]     = _bas_growl
+NOTE_GENERATORS["14 BAS Stab"]      = _bas_stab
+NOTE_GENERATORS["15 BAS Chug"]      = _bas_chug
+NOTE_GENERATORS["16 SYN Pad Warm"]  = _pad_warm
+NOTE_GENERATORS["17 SYN Choir Dark"] = _choir_dark
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
