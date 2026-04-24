@@ -19,11 +19,12 @@ Design rules:
 - Per-section TIME SIGNATURE stored on each clip (since project-level
   metre changes are fragile — local-clip metre is the safe path).
 
-STEPS A1-B2/9 — drums + basses + pads + drone. Modal clash engine: Verses
-in C# Locrian (root C#, dim shell), Drops in D Mixolydian (root D, dom-7
-shell). Half-step pivot C#->D = the clash. Shared notes E F# G A B keep
-the line so the clash resolves naturally. Bridge anchors on E (the pivot
-note). Final Drop ALTERNATES Locrian/Mixolydian voicings every 4 bars.
+STEPS A1-B3/9 — full B phase: drums + basses + pads + drone + leads +
+voice + 6 FX. The lead voices articulate the modal clash: Lead Cry
+pivots its anchor pitch each section (E5 in Locrian phrases, D5 in
+Mixolydian phrases) and uses the tritone (G against C#, F# against C
+in different keys) for the tabarnak quality. FX layer = transitions
+and punctuation.
 """
 
 from __future__ import annotations
@@ -622,6 +623,331 @@ NOTE_GENERATORS["11 BAS Punch"]     = _bas_punch
 NOTE_GENERATORS["12 BAS Distort"]   = _bas_distort
 NOTE_GENERATORS["13 SYN Pad"]       = _pad
 NOTE_GENERATORS["14 SYN Drone Dark"] = _drone_dark
+
+
+# --- Leads, Voice, FX ------------------------------------------------------
+#
+# Lead pitch reference (mid-high register):
+#   C#4=61  D4=62  E4=64  F#4=66  G4=67  G#4=68  A4=69  B4=71
+#   C#5=73  D5=74  E5=76  F#5=78  G5=79  A5=81  B5=83  C#6=85
+# Tritone pairs (for the tabarnak-clash tension):
+#   C# <-> G       (Locrian b5)
+#   D  <-> G#      (Mixolydian #4 — 'Lydian flavor on top')
+
+
+def _lead_cry(section: str, length: int) -> list[Note]:
+    """Main melodic voice. Sparse — pounds anchor pitch with deliberate
+    silences and tritone pushes. Drop 1 anchors E5 (the shared note).
+    Drop 2 pivots to D5 (Mixolydian root). Final Drop alternates anchors
+    by 4-bar phrase. AUDACITY: bar 8 of every phrase ends with a single
+    LONG note (4 beats) on the tritone — pure dissonance hold."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+    if metre != (4, 4):
+        return notes
+
+    def phrase_notes(base_t: float, anchor: int, tritone: int) -> list[Note]:
+        # 8-bar phrase, ~24 events. Lots of silence.
+        return [
+            (base_t + 0.0,  anchor,  2.0,  110),     # statement: anchor 2 beats
+            # silence 2 beats
+            (base_t + 3.0,  anchor,  0.5,  102),     # echo
+            (base_t + 3.5,  tritone, 0.5,  108),     # tritone push
+            # silence ~3 beats
+            (base_t + 6.0,  anchor + 2,  1.0, 100),  # F#/G nat (scale step up)
+            (base_t + 7.0,  tritone,    0.5, 105),
+            (base_t + 7.5,  anchor + 5, 4.0, 115),   # held high (peak)
+            # silence then variation bar 5-8
+            (base_t + 14.0, anchor,   1.0, 100),
+            (base_t + 15.0, anchor - 2, 1.0, 95),
+            (base_t + 16.0, anchor + 5, 2.0, 110),
+            # silence bar 6
+            (base_t + 22.0, tritone, 0.5, 100),
+            (base_t + 22.5, anchor + 5, 0.5, 105),
+            (base_t + 23.0, anchor + 7, 1.0, 112),
+            # AUDACITY PUSH: bar 8 = held tritone (pure dissonance)
+            (base_t + 28.0, tritone, 4.0, 118),
+        ]
+
+    # Anchor pitch per phrase
+    if section in ("Pre-Drop 1", "Drop 1"):
+        anchor, tritone = 76, 79                     # E5 anchor, G5 tritone push
+    elif section == "Drop 2":
+        anchor, tritone = 74, 80                     # D5 anchor, G#5 tritone (#4)
+    elif section == "Final Drop":
+        # Alternate per 8-bar phrase
+        for p in range(max(1, bars // 8)):
+            base_t = p * 32
+            if base_t >= length:
+                break
+            if p % 2 == 0:
+                a, tt = 76, 79
+            else:
+                a, tt = 74, 80
+            for note in phrase_notes(base_t, a, tt):
+                t, pitch, dur, vel = note
+                if t < length:
+                    notes.append((t, pitch, min(dur, length - t), vel))
+        return notes
+    else:
+        return notes
+
+    for p in range(max(1, bars // 8 + (1 if bars % 8 else 0))):
+        base_t = p * 32
+        if base_t >= length:
+            break
+        for note in phrase_notes(base_t, anchor, tritone):
+            t, pitch, dur, vel = note
+            if t < length:
+                notes.append((t, pitch, min(dur, length - t), vel))
+    return notes
+
+
+def _lead_counter(section: str, length: int) -> list[Note]:
+    """Counter-lead. Fills silences in Lead Cry (call/response) and gets a
+    Bridge solo. Harmonizes a 4th below the Lead Cry's anchor — adds the
+    'hollow' second voice. AUDACITY: Bridge solo is ONE held note (E4)
+    that swells then fades — pure restraint."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+
+    if section == "Bridge":
+        # 6/8, 8 bars (24 beats). AUDACITY: ONE long swell on E4.
+        return [(0.0, 64, 24.0, 95)]                 # E4 held — pure restraint
+
+    if metre != (4, 4) or INTENSITY[section] != 4:
+        return notes
+
+    # Drop sections — fill the gaps in Lead Cry
+    for p in range(max(1, bars // 8 + (1 if bars % 8 else 0))):
+        base_t = p * 32
+        if base_t >= length:
+            break
+        # Bar 1 — silent (Lead Cry plays anchor)
+        # Bar 2 — fill (Lead Cry silent here)
+        # Bars 3-4 — sparse harmony underneath Lead Cry's climb
+        # Bar 5 — silent
+        # Bar 6 — fill
+        # Bars 7-8 — silent (Lead Cry holds tritone)
+        gap_pattern = [
+            (base_t + 4.0,  62, 0.5, 92),            # D4 echo
+            (base_t + 4.5,  64, 0.5, 95),            # E4
+            (base_t + 5.0,  62, 1.0, 90),            # D4 hold
+            (base_t + 12.0, 67, 1.0, 98),            # G4 (4th below G5 tritone)
+            (base_t + 13.0, 64, 1.0, 92),            # E4 down
+            (base_t + 20.0, 62, 0.5, 90),
+            (base_t + 20.5, 64, 0.5, 95),
+            (base_t + 21.0, 66, 1.0, 100),
+        ]
+        for t, pitch, dur, vel in gap_pattern:
+            if t < length:
+                notes.append((t, pitch, min(dur, length - t), vel))
+    return notes
+
+
+def _pluck_stab(section: str, length: int) -> list[Note]:
+    """Sharp pluck stabs. Audacity = extreme silence. Verse 7/4: ONE stab
+    on beat 4 of bar 1, then NOTHING for 3 bars, then one stab beat 6.5 of
+    bar 5. Pre-Drop 2: 4 quick stabs in bar 4 (announces drop). Final Drop:
+    sparse stabs every 2 bars."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+
+    if metre == (7, 4):  # Verse — extreme sparseness
+        for bar in range(bars):
+            t = bar * 7
+            if bar % 8 == 0:
+                notes.append((t + 3, 73, 0.25, 100))   # C#5 stab on beat 4
+            elif bar % 8 == 4:
+                notes.append((t + 5.5, 76, 0.25, 105)) # E5 stab on beat 6.5
+    elif section == "Pre-Drop 2":
+        # 4/4, 4 bars — 4 stabs in last bar (announce drop)
+        t = (bars - 1) * 4
+        notes += [(t + 0.0, 73, 0.125, 95),
+                  (t + 1.0, 74, 0.125, 100),
+                  (t + 2.0, 76, 0.125, 105),
+                  (t + 3.0, 79, 0.125, 110)]   # rises C#-D-E-G
+    elif section == "Final Drop":
+        # 4/4 — sparse stabs every 2 bars
+        for bar in range(0, bars, 2):
+            t = bar * 4
+            phrase = (bar // 4) % 2
+            pitch = 73 if phrase == 0 else 74           # C#5 (Locrian) / D5 (Mixolydian)
+            notes.append((t + 1.5, pitch, 0.125, 100))
+    return notes
+
+
+def _choir_wail(section: str, length: int) -> list[Note]:
+    """Atmospheric vocal pad. Bridge: high held voicing E5 G5 B5 (Em9
+    shell). Outro: descends to a single held C#3 (resolution). Sparse,
+    breathing."""
+    notes: list[Note] = []
+    if section == "Bridge":
+        # 6/8, 24 beats — held high voicing
+        for pitch in [76, 79, 83]:                       # E5 G5 B5
+            notes.append((0.0, pitch, 24.0, 60))
+    elif section == "Outro":
+        # Held C#4 fade (resolution)
+        notes.append((0.0, 61, float(length), 55))
+    return notes
+
+
+def _vox_guide(section: str, length: int) -> list[Note]:
+    """Vocal guide — phrases that climb and resolve. Verse 7/4: 14-beat
+    phrase (2 bars), then 14 beats SILENCE per 4-bar phrase. Drop: 4-bar
+    phrase. Final Drop alternates Locrian and Mixolydian phrases."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+
+    if metre == (7, 4):
+        # Verse phrase over 2 bars (14 beats), silence next 2 bars
+        for p in range(bars // 4):
+            base_t = p * 28  # 4-bar phrase = 28 beats
+            phrase = [
+                (base_t + 0.0,  61, 2.0, 95),   # C#4 anchor
+                (base_t + 3.0,  64, 1.5, 100),  # E4
+                (base_t + 5.0,  66, 2.0, 108),  # F#4 peak
+                (base_t + 9.0,  64, 2.0, 95),   # E4 descend
+                (base_t + 12.0, 61, 2.0, 90),   # C#4 resolve
+                # bars 3-4 = silence
+            ]
+            for t, pitch, dur, vel in phrase:
+                if t < length:
+                    notes.append((t, pitch, min(dur, length - t), vel))
+    elif metre == (4, 4) and INTENSITY[section] == 4:
+        # Drop phrase over 4 bars
+        for p in range(max(1, bars // 4)):
+            base_t = p * 16
+            if base_t >= length:
+                break
+            phrase_idx = p % 2 if section == "Final Drop" else 0
+            anchor = 64 if phrase_idx == 0 else 62        # E4 Locrian / D4 Mixolydian
+            phrase = [
+                (base_t + 0.0,  anchor,    2.0, 100),
+                (base_t + 3.0,  anchor + 3, 1.0, 105),    # +m3
+                (base_t + 5.0,  anchor + 5, 2.0, 110),    # +P4 peak
+                (base_t + 8.0,  anchor + 3, 2.0, 95),
+                (base_t + 12.0, anchor,    3.0, 90),      # resolve
+            ]
+            for t, pitch, dur, vel in phrase:
+                if t < length:
+                    notes.append((t, pitch, min(dur, length - t), vel))
+    return notes
+
+
+def _vox_wail(section: str, length: int) -> list[Note]:
+    """Wail tones — long expressive notes. Bridge: A4 -> G4 descending
+    over the section. Final Drop: high C#5 / D5 alternating with the Lead."""
+    notes: list[Note] = []
+    if section == "Bridge":
+        # 6/8 24 beats — A4 then G4 then F#4 (descending wail)
+        notes += [(0.0,  69, 8.0, 100),     # A4
+                  (8.0,  67, 8.0, 95),      # G4
+                  (16.0, 66, 8.0, 90)]      # F#4
+    elif section == "Final Drop":
+        # 4/4 — alternate C#5 (Locrian) and D5 (Mixolydian) every 4 bars
+        bars = n_bars(section, length)
+        for bar in range(0, bars, 4):
+            t = bar * 4
+            phrase = (bar // 4) % 2
+            pitch = 73 if phrase == 0 else 74
+            notes.append((t, pitch, 16.0, 100))
+    return notes
+
+
+def _fx_drone(section: str, length: int) -> list[Note]:
+    """Single long held note per section — atmospheric continuity layer."""
+    return [(0.0, 41, float(length), 65)]                 # F2 (different from Drone Dark)
+
+
+def _fx_riser(section: str, length: int) -> list[Note]:
+    """Single long note per section — synth patch + automation make the riser
+    timbre. Pitch placeholder C4=60."""
+    return [(0.0, 60, float(length), 90)]
+
+
+def _fx_reverse(section: str, length: int) -> list[Note]:
+    """Descending reverse swell on the LAST 2 beats of bar 4 of every 4-bar
+    phrase. 8 sixteenths from B5 down to C#4. Aspirates into transitions."""
+    notes: list[Note] = []
+    bars = n_bars(section, length)
+    descent = [(2.0,  83, 0.125, 75), (2.25, 80, 0.125, 78),
+               (2.5,  78, 0.125, 80), (2.75, 76, 0.125, 82),
+               (3.0,  73, 0.125, 85), (3.25, 71, 0.125, 88),
+               (3.5,  68, 0.125, 90), (3.75, 61, 0.25, 92)]
+    for bar in range(bars):
+        if bar % 4 == 3 and bar < bars - 1:
+            t = bar * 4
+            for dt, pitch, dur, vel in descent:
+                notes.append((t + dt, pitch, dur, vel))
+    return notes
+
+
+def _fx_impact(section: str, length: int) -> list[Note]:
+    """Transition hits. Pre-Drops punch on 'a of 4' of last bar. Drops punch
+    on beat 1 of bar 1 of every 4-bar phrase."""
+    notes: list[Note] = []
+    level = INTENSITY[section]
+    bars = n_bars(section, length)
+    if level == 3:
+        notes.append(((bars - 1) * 4 + 3.75, 60, 0.5, 118))
+    elif level == 4:
+        for bar in range(0, bars, 4):
+            notes.append((bar * 4, 60, 1.0, 120))
+    return notes
+
+
+def _fx_sub_boom(section: str, length: int) -> list[Note]:
+    """Sub punctuation. Drop sections: boom on beat 1 of every 4th bar.
+    AUDACITY: Final Drop adds an extra boom on beat 3 of the LAST bar
+    only — single deep punctuation that closes the section."""
+    notes: list[Note] = []
+    if INTENSITY[section] != 4:
+        return notes
+    bars = n_bars(section, length)
+    for bar in range(0, bars, 4):
+        notes.append((bar * 4, 25, 1.0, 122))                # C#1 boom
+    if section == "Final Drop":
+        notes.append(((bars - 1) * 4 + 2, 25, 2.0, 118))     # closing boom
+    return notes
+
+
+def _fx_texture(section: str, length: int) -> list[Note]:
+    """Granular texture. Sparse — 1 hit per 4 bars in Verses, 2 in Bridge,
+    1 in Outro. Pitch wanders to avoid identification."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+    if metre == (7, 4):
+        for bar in range(0, bars, 4):
+            t = bar * 7
+            pitch = 60 + (bar % 12)                           # wander
+            notes.append((t + 3.5, pitch, 1.0, 70))
+    elif section == "Bridge":
+        for bar in range(0, bars, 4):
+            t = bar * 3
+            notes.append((t + 1.5, 67, 1.0, 75))
+    elif section == "Outro":
+        notes.append((4.0, 60, 4.0, 60))
+    return notes
+
+
+NOTE_GENERATORS["15 SYN Lead Cry"]   = _lead_cry
+NOTE_GENERATORS["16 SYN Lead Counter"] = _lead_counter
+NOTE_GENERATORS["17 SYN Pluck Stab"] = _pluck_stab
+NOTE_GENERATORS["18 SYN Choir Wail"] = _choir_wail
+NOTE_GENERATORS["19 VOX Guide"]      = _vox_guide
+NOTE_GENERATORS["20 VOX Wail"]       = _vox_wail
+NOTE_GENERATORS["21 FX Drone"]       = _fx_drone
+NOTE_GENERATORS["22 FX Riser"]       = _fx_riser
+NOTE_GENERATORS["23 FX Reverse"]     = _fx_reverse
+NOTE_GENERATORS["24 FX Impact"]      = _fx_impact
+NOTE_GENERATORS["25 FX Sub Boom"]    = _fx_sub_boom
+NOTE_GENERATORS["26 FX Texture"]     = _fx_texture
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
