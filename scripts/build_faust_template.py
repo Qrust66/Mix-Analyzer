@@ -5,11 +5,13 @@ template), and writes a new `.als` alongside it with:
 
 - Tempo set to 115 BPM (4/4)
 - Named locators for each song section (Intro, Build, Verse, Drop, ...)
-- 13 empty MIDI tracks covering the industrial / metal / electronic palette
-- Empty MIDI clips placed in the arrangement at the sections each track plays
+- 13 MIDI tracks covering the industrial / metal / electronic palette
+- MIDI clips placed in the arrangement at the sections each track plays,
+  pre-filled with original note patterns in D minor inspired by the rhythmic
+  feel of the genre (no notes copied from any protected work)
 
-The goal is a structural scaffold: no melodies, no devices — only the song map
-so the user can write ideas guided by a precise arrangement they enjoy.
+Pattern intensity ramps with section role: intro/break = drones only, verses =
+groove, pre-drops = tension build, drops = full arrangement.
 """
 
 from __future__ import annotations
@@ -60,10 +62,277 @@ TRACKS = [
 ]
 
 
+# --- Note pattern generators (original, D minor) ---------------------------
+
+# D natural minor: D E F G A Bb C
+# MIDI reference (C3 = 60 convention): D2=38, D3=50, D4=62, D5=74
+D_MINOR = [38, 40, 41, 43, 45, 46, 48]  # D E F G A Bb C (octave D2..)
+
+# Section intensity (0 = ambient, 4 = peak)
+INTENSITY = {
+    "Intro": 0, "Outro": 0,
+    "Break": 1, "Build 1": 1, "Bridge": 1,
+    "Verse 1": 2, "Verse 2": 2,
+    "Pre-Drop 1": 3, "Pre-Drop 2": 3,
+    "Drop 1": 4, "Drop 2": 4, "Final Drop": 4,
+}
+
+# A MIDI note is (time_beat, pitch, duration_beat, velocity)
+Note = tuple[float, int, float, int]
+
+
+def _kick(section: str, length: int) -> list[Note]:
+    """Original kick pattern — varies from half-time groove to busy syncopation."""
+    notes: list[Note] = []
+    level = INTENSITY[section]
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        if level == 2:  # verse: chunky half-time with a syncopated push
+            notes += [(t, 36, 0.25, 112), (t + 2.5, 36, 0.125, 96), (t + 3, 36, 0.25, 108)]
+        elif level == 3:  # pre-drop: steady foundation + 16th build on last bar
+            notes += [(t, 36, 0.25, 108), (t + 2, 36, 0.25, 108)]
+            if bar == bars - 1:
+                for s in range(16):
+                    notes.append((t + s * 0.25, 36, 0.1, 80 + s * 2))
+        elif level == 4:  # drop: busy syncopated 4-on-the-floor feel
+            notes += [
+                (t, 36, 0.25, 118), (t + 0.75, 36, 0.125, 90),
+                (t + 1.5, 36, 0.25, 105), (t + 2, 36, 0.25, 118),
+                (t + 2.75, 36, 0.125, 92), (t + 3.5, 36, 0.125, 98),
+            ]
+    return notes
+
+
+def _snare(section: str, length: int) -> list[Note]:
+    notes: list[Note] = []
+    level = INTENSITY[section]
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        # backbeat on 2 and 4 always
+        notes += [(t + 1, 38, 0.25, 110), (t + 3, 38, 0.25, 114)]
+        if level == 4:  # ghost notes in drops
+            notes += [(t + 2.75, 38, 0.0625, 60), (t + 3.75, 38, 0.0625, 70)]
+        if level == 3 and bar == bars - 1:
+            # snare roll on the last bar of a pre-drop
+            for s in range(8):
+                notes.append((t + 2 + s * 0.25, 38, 0.1, 70 + s * 5))
+    return notes
+
+
+def _hats(section: str, length: int) -> list[Note]:
+    notes: list[Note] = []
+    level = INTENSITY[section]
+    bars = length // 4
+    step = 0.25 if level >= 3 else 0.5  # 16ths in drops/pre-drops, 8ths elsewhere
+    for bar in range(bars):
+        t = bar * 4
+        steps = int(4 / step)
+        for s in range(steps):
+            on_beat = (s * step) % 1 == 0
+            vel = 95 if on_beat else 70
+            notes.append((t + s * step, 42, step * 0.5, vel))
+    return notes
+
+
+def _metal_perc(section: str, length: int) -> list[Note]:
+    # sparse industrial accents on "& of 4" and bar 1 of every 4th bar
+    notes: list[Note] = []
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        if bar % 4 == 0:
+            notes.append((t, 56, 0.5, 115))  # downbeat metal hit
+        notes.append((t + 3.5, 56, 0.25, 90))  # "& of 4" stab
+    return notes
+
+
+def _sub_bass(section: str, length: int) -> list[Note]:
+    # sustained roots — D1 with occasional octave drop to A0
+    notes: list[Note] = []
+    bars = length // 4
+    # 4-bar phrase: D hold, D hold, A hold, D hold
+    phrase = [26, 26, 21, 26]  # D1, D1, A0, D1
+    for bar in range(bars):
+        t = bar * 4
+        notes.append((t, phrase[bar % 4], 4.0, 100))
+    return notes
+
+
+def _distorted_bass(section: str, length: int) -> list[Note]:
+    # follows kick rhythmically, pitches walk around the root
+    level = INTENSITY[section]
+    notes: list[Note] = []
+    bars = length // 4
+    # 2-bar pattern of root variations: D, D, A, D  |  D, F, D, C
+    phrase_a = [38, 38, 33, 38]
+    phrase_b = [38, 41, 38, 36]  # includes C2=36 for tension
+    for bar in range(bars):
+        t = bar * 4
+        p = phrase_a if (bar // 2) % 2 == 0 else phrase_b
+        if level == 2:  # verse: hits on 1 and 3
+            notes += [(t, p[0], 0.25, 108), (t + 2, p[2], 0.5, 108)]
+        elif level >= 3:  # drop: lock with kick syncopation
+            notes += [
+                (t, p[0], 0.25, 115), (t + 0.75, p[1], 0.125, 90),
+                (t + 1.5, p[2], 0.25, 105), (t + 2, p[2], 0.25, 115),
+                (t + 2.75, p[3], 0.125, 95), (t + 3.5, p[0], 0.125, 98),
+            ]
+    return notes
+
+
+def _lead(section: str, length: int) -> list[Note]:
+    # 2-bar melodic motif in Dm, repeated (original, not transcribed)
+    # Bar 1: D-F-A climb with held high D. Bar 2: descending C-Bb-A answer.
+    motif = [
+        (0.0, 62, 0.5, 105),   # D4
+        (0.5, 65, 0.5, 100),   # F4
+        (1.0, 69, 1.0, 110),   # A4 (quarter-dotted)
+        (2.5, 74, 1.5, 115),   # D5 (held)
+        (4.0, 72, 1.0, 100),   # C5
+        (5.0, 70, 1.0, 100),   # Bb4
+        (6.0, 69, 2.0, 108),   # A4 held
+    ]
+    notes: list[Note] = []
+    bars = length // 4
+    for phrase_i in range(bars // 2):
+        base_t = phrase_i * 8
+        for (dt, pitch, dur, vel) in motif:
+            notes.append((base_t + dt, pitch, dur, vel))
+    return notes
+
+
+def _pad(section: str, length: int) -> list[Note]:
+    # 4-bar chord progression: Dm -> Bb -> F -> Gm, each chord held 4 bars
+    # Voicings (3-note, mid register)
+    chords = [
+        [50, 53, 57],  # Dm   (D3 F3 A3)
+        [50, 53, 58],  # Bb   (D3 F3 Bb3)  — shared top of Dm
+        [53, 57, 60],  # F    (F3 A3 C4)
+        [50, 55, 58],  # Gm   (D3 G3 Bb3)
+    ]
+    notes: list[Note] = []
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        chord = chords[bar % 4]
+        for pitch in chord:
+            notes.append((t, pitch, 4.0, 70))  # soft, sustained
+    return notes
+
+
+def _arp(section: str, length: int) -> list[Note]:
+    # 16th-note arpeggio in Dm: D F A C D A F D (8 notes per beat cluster)
+    pitches = [62, 65, 69, 72, 74, 69, 65, 62]  # D F A C D A F D
+    notes: list[Note] = []
+    total_steps = int(length / 0.25)
+    for s in range(total_steps):
+        t = s * 0.25
+        pitch = pitches[s % len(pitches)]
+        vel = 95 if s % 4 == 0 else 72  # accent on downbeats
+        notes.append((t, pitch, 0.2, vel))
+    return notes
+
+
+def _vocal(section: str, length: int) -> list[Note]:
+    # long sustained tones as a guide — 1 note per 2 bars, moving in Dm
+    phrase = [62, 65, 69, 65]  # D4 F4 A4 F4
+    notes: list[Note] = []
+    bars = length // 4
+    for i, bar in enumerate(range(0, bars, 2)):
+        t = bar * 4
+        notes.append((t, phrase[i % len(phrase)], 8.0, 85))
+    return notes
+
+
+def _vocal_fx(section: str, length: int) -> list[Note]:
+    # sparse high accents every 4 bars
+    notes: list[Note] = []
+    bars = length // 4
+    for bar in range(0, bars, 4):
+        t = bar * 4
+        notes.append((t, 74, 1.0, 95))   # D5 stab
+        notes.append((t + 2, 77, 0.5, 85))  # F5 short
+    return notes
+
+
+def _riser(section: str, length: int) -> list[Note]:
+    # single held note from start to end of the section (the synth patch
+    # is expected to produce the riser timbre via automation)
+    return [(0.0, 60, float(length), 90)]
+
+
+def _noise(section: str, length: int) -> list[Note]:
+    # single long drone
+    return [(0.0, 48, float(length), 75)]
+
+
+NOTE_GENERATORS = {
+    "Kick": _kick, "Snare": _snare, "Hats": _hats, "Metal Perc": _metal_perc,
+    "Sub Bass": _sub_bass, "Distorted Bass": _distorted_bass,
+    "Lead Synth": _lead, "Pad": _pad, "Arp": _arp,
+    "Vocal": _vocal, "Vocal FX": _vocal_fx,
+    "Riser FX": _riser, "Noise/Texture": _noise,
+}
+
+
+def gen_notes(track: str, section: str, length: int) -> list[Note]:
+    gen = NOTE_GENERATORS[track]
+    out = gen(section, length)
+    # Clamp any note that would overshoot the clip length
+    clipped = []
+    for (t, p, d, v) in out:
+        if t >= length:
+            continue
+        clipped.append((t, p, min(d, length - t), v))
+    return clipped
+
+
+def notes_to_keytracks_xml(notes: list[Note], indent: str) -> tuple[str, int]:
+    """Group notes by pitch and build a `<KeyTracks>` XML block.
+
+    Returns (xml_string, next_note_id) where next_note_id is the value to
+    write into `<NoteIdGenerator><NextId>` for the clip.
+    """
+    if not notes:
+        return f"{indent}<KeyTracks />", 1
+
+    by_pitch: dict[int, list[tuple[float, float, int]]] = {}
+    for t, pitch, dur, vel in notes:
+        by_pitch.setdefault(pitch, []).append((t, dur, vel))
+
+    lines = [f"{indent}<KeyTracks>"]
+    nid = 1
+    kt_id = 0
+    for pitch in sorted(by_pitch):
+        events = sorted(by_pitch[pitch])
+        lines.append(f"{indent}\t<KeyTrack Id=\"{kt_id}\">")
+        lines.append(f"{indent}\t\t<Notes>")
+        for t, dur, vel in events:
+            lines.append(
+                f"{indent}\t\t\t<MidiNoteEvent Time=\"{t}\" Duration=\"{dur}\" "
+                f"Velocity=\"{vel}\" OffVelocity=\"64\" NoteId=\"{nid}\" />"
+            )
+            nid += 1
+        lines.append(f"{indent}\t\t</Notes>")
+        lines.append(f"{indent}\t\t<MidiKey Value=\"{pitch}\" />")
+        lines.append(f"{indent}\t</KeyTrack>")
+        kt_id += 1
+    lines.append(f"{indent}</KeyTracks>")
+    return "\n".join(lines), nid
+
+
 # --- MIDI clip template ----------------------------------------------------
 
-def empty_midi_clip(clip_id: int, start: int, length: int, name: str, color: int) -> str:
+def midi_clip(clip_id: int, start: int, length: int, name: str, color: int,
+              notes: list[Note] | None = None) -> str:
     end = start + length
+    # The <Notes><KeyTracks> block is placed inside the MidiClip. KeyTracks
+    # are indented 3 tabs relative to the clip (matching the rest of the
+    # f-string indentation here with "\t\t\t").
+    kt_indent = "\t\t"
+    kt_xml, next_nid = notes_to_keytracks_xml(notes or [], kt_indent)
     return f"""<MidiClip Id="{clip_id}" Time="{start}">
 	<LomId Value="0" />
 	<LomIdView Value="0" />
@@ -140,7 +409,7 @@ def empty_midi_clip(clip_id: int, start: int, length: int, name: str, color: int
 		<Name Value="0" />
 	</ScaleInformation>
 	<Notes>
-		<KeyTracks />
+{kt_xml}
 		<PerNoteEventStore>
 			<EventLists />
 		</PerNoteEventStore>
@@ -149,7 +418,7 @@ def empty_midi_clip(clip_id: int, start: int, length: int, name: str, color: int
 			<NextId Value="1" />
 		</ProbabilityGroupIdGenerator>
 		<NoteIdGenerator>
-			<NextId Value="1" />
+			<NextId Value="{next_nid}" />
 		</NoteIdGenerator>
 	</Notes>
 	<BankSelectCoarse Value="-1" />
@@ -331,18 +600,22 @@ def main() -> None:
 
         # Build clips for this track, unique Id per track starts at 0
         clips = []
+        note_total = 0
         for slot_idx, section_name in enumerate(active_sections):
             start, length = SECTION_BY_NAME[section_name]
-            clips.append(empty_midi_clip(
+            notes = gen_notes(name, section_name, length)
+            note_total += len(notes)
+            clips.append(midi_clip(
                 clip_id=slot_idx,
                 start=start,
                 length=length,
                 name=section_name,
                 color=color,
+                notes=notes,
             ))
         clone = inject_clips(clone, clips, track_idx=i)
         new_tracks.append(clone)
-        print(f"  Track #{i + 1:2d}: {name:<15} color={color:2d}  clips={len(clips)}")
+        print(f"  Track #{i + 1:2d}: {name:<15} color={color:2d}  clips={len(clips):2d}  notes={note_total}")
 
     # 5) Splice: replace [t12_pos .. r2_pos] with the 13 new tracks concatenated
     xml = xml[:t12_pos] + "".join(new_tracks) + xml[r2_pos:]
