@@ -6,12 +6,12 @@ fx. Asymmetric section lengths (12-bar verse, 6-bar pre-drop, 2-bar silence,
 20-bar final drop) to destabilize expectation. C# Phrygian primary, Dorian on
 Bridge, half-step pitch-up on first 4 bars of Final Drop.
 
-STEPS 1-10/12 — drums + percussion + basses + pads + leads + arp + acid.
-Arp Poly runs a 5-note Phrygian cell as 16ths against the 4/4 grid — the
-5-over-4 hemiola means the cycle realigns every 5 bars, giving a
-continuously-shifting feel without ever losing the groove. Acid is a
-303-style 4-bar phrase featured solo in Break and used as a textural
-layer underneath leads in Drop 2 / Final Drop.
+STEPS 1-11/12 — everything: drums + perc + basses + pads + leads + arp +
+acid + vox + fx transitions. FX Drone is the only track alive in the
+Silence section (total cut). FX Impact punches beat 1 of drops and 'a of
+4' of pre-drops. FX Reverse descends on bar 4 of each 4-bar phrase to
+aspirate into the chord change. FX Noise Burst drops extra pre-transition
+punches on bar 15/16 of Drop 1.
 """
 
 from __future__ import annotations
@@ -923,10 +923,132 @@ def _acid(section: str, length: int) -> list[Note]:
     return notes
 
 
-NOTE_GENERATORS["18 SYN Lead A"]    = _lead_a
-NOTE_GENERATORS["19 SYN Lead B"]    = _lead_b
-NOTE_GENERATORS["20 SYN Arp Poly"]  = _arp_poly
-NOTE_GENERATORS["21 SYN Acid"]      = _acid
+# --- Voice & FX transitions ------------------------------------------------
+
+def _vox_guide(section: str, length: int) -> list[Note]:
+    """Vocal guide melody, 4-bar phrase. Rises A3 -> C#4 -> E4 -> F#4 to A4
+    peak, descends back to C#4 tail. Bridge substitutes A#4 on the peak for
+    Dorian raised-6 flavor. Final Drop bars 1-4: +1 semitone up-shift."""
+    phrase = [
+        (0.0,  57, 2.0,  88),   # A3
+        (2.0,  61, 2.0,  95),   # C#4
+        (4.0,  64, 1.5, 100),   # E4
+        (5.5,  66, 0.5,  95),   # F#4
+        (6.0,  69, 2.0, 108),   # A4 PEAK
+        (8.0,  68, 1.0, 100),   # G#4
+        (9.0,  66, 1.0,  95),   # F#4
+        (10.0, 64, 2.0,  92),   # E4
+        (12.0, 61, 4.0,  88),   # C#4 tail
+    ]
+    notes: list[Note] = []
+    for phrase_start in range(0, length, 16):
+        for (dt, pitch, dur, vel) in phrase:
+            t = phrase_start + dt
+            if t >= length:
+                continue
+            new_pitch = pitch
+            if section == "Bridge" and pitch == 69:
+                new_pitch = 70   # A#4 (Dorian raised 6)
+            if section == "Final Drop" and t < 16:
+                new_pitch += 1
+            notes.append((t, new_pitch, min(dur, length - t), vel))
+    return notes
+
+
+def _vox_chops(section: str, length: int) -> list[Note]:
+    """Short vocal stabs on off-beats (high register). Outro thins to every
+    other bar so the ending breathes out."""
+    notes: list[Note] = []
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        if section == "Outro" and bar % 2 != 0:
+            continue
+        notes += [
+            (t + 0.75, 73, 0.125, 100),  # C#5 'e of 1'
+            (t + 2.5,  76, 0.125,  95),  # E5   '& of 3'
+            (t + 3.75, 70, 0.125,  88),  # A#4  'a of 4'
+        ]
+    return notes
+
+
+def _fx_drone(section: str, length: int) -> list[Note]:
+    """Atmospheric continuity — single long C#2 held for the whole section.
+    The only track still alive during the Silence section (total cut)."""
+    return [(0.0, 37, float(length), 70)]
+
+
+def _fx_riser(section: str, length: int) -> list[Note]:
+    """Single long note held for the whole section — the synth patch (or
+    automation) is what produces the actual riser timbre."""
+    return [(0.0, 60, float(length), 90)]
+
+
+def _fx_impact(section: str, length: int) -> list[Note]:
+    """Transition hits. Pre-Drops punch on 'a of 4' of last bar (drop
+    announcement). Drops punch on beat 1 of bar 1 of every 4-bar phrase."""
+    notes: list[Note] = []
+    level = INTENSITY[section]
+    bars = length // 4
+    if level == 3:
+        notes.append(((bars - 1) * 4 + 3.75, 60, 0.5, 118))
+    elif level == 4:
+        for bar in range(0, bars, 4):
+            notes.append((bar * 4, 60, 1.0, 120))
+    return notes
+
+
+def _fx_reverse(section: str, length: int) -> list[Note]:
+    """Descending reverse swell over the last 2 beats of bar 4 of each
+    4-bar phrase. Aspires into the next chord change. Eight 16th steps
+    from B5 down to C#4 with crescendoing velocity."""
+    descent = [
+        (2.0,  83, 0.125, 75), (2.25, 80, 0.125, 78),
+        (2.5,  78, 0.125, 80), (2.75, 76, 0.125, 82),
+        (3.0,  73, 0.125, 85), (3.25, 71, 0.125, 88),
+        (3.5,  68, 0.125, 90), (3.75, 61, 0.25,  92),
+    ]
+    notes: list[Note] = []
+    bars = length // 4
+    for bar in range(bars):
+        if bar % 4 == 3 and bar < bars - 1:
+            t = bar * 4
+            for (dt, pitch, dur, vel) in descent:
+                notes.append((t + dt, pitch, dur, vel))
+    return notes
+
+
+def _fx_noise_burst(section: str, length: int) -> list[Note]:
+    """Noise punctuation. Build: single punch on bar 4. Drops: one burst on
+    bar 1 of every 4-bar phrase. Drop 1 gets extra bursts on bars 15-16
+    to signal the coming cut into Silence. Pre-Drop 2: big last-bar burst."""
+    notes: list[Note] = []
+    level = INTENSITY[section]
+    bars = length // 4
+    if section == "Build":
+        notes.append((3 * 4, 60, 0.25, 95))
+    elif level == 4:
+        for bar in range(0, bars, 4):
+            notes.append((bar * 4, 60, 0.5, 105))
+        if section == "Drop 1":
+            notes += [((bars - 2) * 4 + 2, 60, 0.5, 100),
+                      ((bars - 1) * 4 + 2, 60, 0.5, 108)]
+    elif section == "Pre-Drop 2":
+        notes.append(((bars - 1) * 4 + 3.5, 60, 0.5, 115))
+    return notes
+
+
+NOTE_GENERATORS["18 SYN Lead A"]      = _lead_a
+NOTE_GENERATORS["19 SYN Lead B"]      = _lead_b
+NOTE_GENERATORS["20 SYN Arp Poly"]    = _arp_poly
+NOTE_GENERATORS["21 SYN Acid"]        = _acid
+NOTE_GENERATORS["22 VOX Guide"]       = _vox_guide
+NOTE_GENERATORS["23 VOX Chops"]       = _vox_chops
+NOTE_GENERATORS["24 FX Drone"]        = _fx_drone
+NOTE_GENERATORS["25 FX Riser"]        = _fx_riser
+NOTE_GENERATORS["26 FX Impact"]       = _fx_impact
+NOTE_GENERATORS["27 FX Reverse"]      = _fx_reverse
+NOTE_GENERATORS["28 FX Noise Burst"]  = _fx_noise_burst
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
