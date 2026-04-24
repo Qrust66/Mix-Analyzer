@@ -19,9 +19,9 @@ Design rules:
 - Per-section TIME SIGNATURE stored on each clip (since project-level
   metre changes are fragile — local-clip metre is the safe path).
 
-STEPS A1-A2/9 — constants + ALS helpers + main. Empty clips, time
-signature locked per clip (so a 7/4 Verse clip plays in 7/4 even if
-project default stays 4/4).
+STEPS A1-B1/9 — constants + helpers + main + drums (2 kicks A/B alternated,
+2 snares A/B layered, clap, rim, hats, open hat, perc). Drum patterns
+respect each section's metre (7/4 verses, 4/4 drops, 6/8 bridge).
 """
 
 from __future__ import annotations
@@ -144,7 +144,294 @@ def _noop(section: str, length: int) -> list[Note]:
     return []
 
 
+# Per-section metre lookup
+SECTION_METRE = {name: (num, denom) for name, _, _, num, denom in SECTIONS}
+
+# Intensity (used by velocity envelopes)
+INTENSITY = {
+    "Intro": 0, "Outro": 0,
+    "Break": 1, "Bridge": 1,
+    "Verse 1": 2, "Verse 2": 2,
+    "Pre-Drop 1": 3, "Pre-Drop 2": 3,
+    "Drop 1": 4, "Drop 2": 4, "Final Drop": 4,
+}
+
+
+def bar_length(section: str) -> float:
+    """Bar length in beats. 4/4=4, 7/4=7, 6/8=3 (six eighths = three quarters)."""
+    num, denom = SECTION_METRE[section]
+    if denom == 4:
+        return float(num)
+    if denom == 8:
+        return num / 2.0
+    return float(num)
+
+
+def n_bars(section: str, length: int) -> int:
+    return int(length / bar_length(section))
+
+
+# --- Drum generators -------------------------------------------------------
+#
+# Drum-rack pitches (GM-ish):
+#   Kick A=36  Kick B=37   (different sample slots so user can route to two
+#                           distinct kicks in the same Drum Rack)
+#   Snare A=38 Snare B=40  (different snare slots)
+#   Clap=39  Rim=37 (alt slot — user can move)  Hat closed=42  Hat open=46
+#   Perc=56 (cowbell / industrial slot)
+
+
+def _kick_a(section: str, length: int) -> list[Note]:
+    """Thumpy kick. 7/4 verses use a 4+3 grouping with kick on 1 + 4.5 + 6
+    (anchors the asymmetric stagger). 4/4 drops keep it punch-and-breathe:
+    beats 1 and 3 with a syncopated push variant every 2 bars. Audacity
+    push: every 4th bar, kick disappears on beat 1 entirely (the soubresaut
+    moment — drum dropout that snaps back)."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+    bl = bar_length(section)
+
+    if metre == (7, 4):  # Verse — asymmetric 4+3 grouping
+        for bar in range(bars):
+            t = bar * 7
+            # Audacity surprise: bar 4 of every 4-bar phrase drops beat 1
+            if (bar + 1) % 4 == 0:
+                notes += [(t + 3.5, 36, 0.25, 105),
+                          (t + 5,   36, 0.25, 110)]
+                continue
+            ab = bar % 2
+            if ab == 0:
+                notes += [(t,       36, 0.25, 118),
+                          (t + 3.5, 36, 0.25, 105),
+                          (t + 5,   36, 0.25, 112)]
+            else:
+                notes += [(t,       36, 0.25, 118),
+                          (t + 2,   36, 0.25, 100),
+                          (t + 4.5, 36, 0.25, 108)]
+    elif metre == (4, 4):  # Drop — punch + breathing
+        for bar in range(bars):
+            t = bar * 4
+            ab = bar % 2
+            if (bar + 1) % 4 == 0:
+                # Soubresaut: skip beat 1, only beat 3 + push
+                notes += [(t + 2,    36, 0.25, 115),
+                          (t + 3.5,  36, 0.125, 95)]
+                continue
+            if ab == 0:
+                notes += [(t,        36, 0.25, 120),
+                          (t + 2,    36, 0.25, 115)]
+            else:
+                notes += [(t,        36, 0.25, 120),
+                          (t + 2.5,  36, 0.125, 100),
+                          (t + 3,    36, 0.25, 110)]
+    return notes
+
+
+def _kick_b(section: str, length: int) -> list[Note]:
+    """Snap top-end kick. Plays where Kick A is silent or fills the space.
+    Pre-Drop: carries alone (beat 1 of every bar plus 'a of 4' push).
+    Drops: snaps on 'e of 2' and '& of 3' to interlace with Kick A."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+
+    if metre == (4, 4):
+        if INTENSITY[section] == 3:  # Pre-Drop — carries alone
+            for bar in range(bars):
+                t = bar * 4
+                notes += [(t,        37, 0.25, 110),
+                          (t + 2,    37, 0.25, 108),
+                          (t + 3.75, 37, 0.125, 95)]
+        elif INTENSITY[section] == 4:  # Drop — fills gaps in Kick A
+            for bar in range(bars):
+                t = bar * 4
+                ab = bar % 2
+                if (bar + 1) % 4 == 0:
+                    # Soubresaut bar — Kick B fills bar 1 of phrase
+                    notes += [(t,       37, 0.25, 115),
+                              (t + 1,   37, 0.125, 90),
+                              (t + 3,   37, 0.25, 108)]
+                    continue
+                if ab == 0:
+                    notes += [(t + 1.75, 37, 0.125, 95),
+                              (t + 2.5,  37, 0.125, 102)]
+                else:
+                    notes += [(t + 0.75, 37, 0.125, 92),
+                              (t + 2.25, 37, 0.125, 100),
+                              (t + 3.75, 37, 0.125, 90)]
+    return notes
+
+
+def _snare_a(section: str, length: int) -> list[Note]:
+    """Cracking snare. 7/4 verse: backbeat on beats 3 and 6 (4+3 grouping
+    backbeats). 4/4 drop: standard 2/4 with anticipation ghost before beat 3.
+    Audacity: bar 4 of phrase in verse SKIPS the beat-3 hit — only beat 6
+    lands. Drops bar 4: snare displaced to beats 1.5 and 3.5."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+
+    if metre == (7, 4):
+        for bar in range(bars):
+            t = bar * 7
+            if (bar + 1) % 4 == 0:
+                # Audacity: skip beat 3, only beat 6
+                notes.append((t + 5, 38, 0.25, 120))
+                continue
+            notes += [(t + 2, 38, 0.25, 115),  # beat 3
+                      (t + 5, 38, 0.25, 118)]  # beat 6
+            # Anticipation ghost before beat 6
+            notes.append((t + 4.75, 38, 0.0625, 60))
+    elif metre == (4, 4):
+        for bar in range(bars):
+            t = bar * 4
+            if INTENSITY[section] >= 2:
+                if (bar + 1) % 4 == 0 and INTENSITY[section] == 4:
+                    # Audacity: displaced backbeat
+                    notes += [(t + 1.5, 38, 0.25, 115),
+                              (t + 3.5, 38, 0.25, 120)]
+                    continue
+                notes += [(t + 1, 38, 0.25, 118),
+                          (t + 3, 38, 0.25, 122)]
+                if INTENSITY[section] == 4:
+                    notes.append((t + 2.75, 38, 0.0625, 55))
+    return notes
+
+
+def _snare_b(section: str, length: int) -> list[Note]:
+    """Air/ghost layer. Sparse soft hits on the 'e' and 'a' positions to
+    add breath under the main snare. Only in drops."""
+    notes: list[Note] = []
+    if INTENSITY[section] != 4:
+        return notes
+    bars = n_bars(section, length)
+    for bar in range(bars):
+        t = bar * 4
+        notes += [(t + 0.75, 40, 0.0625, 58),
+                  (t + 1.75, 40, 0.0625, 62),
+                  (t + 3.25, 40, 0.0625, 60)]
+    return notes
+
+
+def _clap(section: str, length: int) -> list[Note]:
+    """Layered clap on snare backbeats with a tick of delay (+16 ticks =
+    +0.015 beat) for that stacked attack feel."""
+    notes: list[Note] = []
+    if INTENSITY[section] != 4:
+        return notes
+    bars = n_bars(section, length)
+    for bar in range(bars):
+        t = bar * 4
+        notes += [(t + 1.015, 39, 0.25, 100),
+                  (t + 3.015, 39, 0.25, 105)]
+    return notes
+
+
+def _rim(section: str, length: int) -> list[Note]:
+    """Cross-stick. Verse 7/4: rim on the 'in-between' beats 2.5 and 4.5
+    (creates polyrhythmic pull against the kick anchors). Bridge 6/8:
+    rim on beat 1.5 of each bar (mid-bar accent)."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+    if metre == (7, 4):
+        for bar in range(bars):
+            t = bar * 7
+            notes += [(t + 1.5, 37, 0.1, 88),
+                      (t + 4.5, 37, 0.1, 92)]
+    elif metre == (6, 8):
+        for bar in range(bars):
+            t = bar * 3
+            notes.append((t + 1.5, 37, 0.1, 95))
+    return notes
+
+
+def _hats(section: str, length: int) -> list[Note]:
+    """Closed hats. Time-keeper, density scales with intensity.
+    Audacity rule: every 4th bar SKIPS the very last 8th to create a
+    'hole' that resets the groove."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+    bl = bar_length(section)
+    level = INTENSITY[section]
+
+    for bar in range(bars):
+        t = bar * bl
+        if metre == (7, 4):
+            # 8ths across 7 beats = 14 hats per bar
+            steps = 14
+            step_size = 0.5
+        elif metre == (4, 4):
+            # 16ths in drops, 8ths in pre-drop and verse-not-applicable here
+            if level >= 4:
+                steps = 16; step_size = 0.25
+            else:
+                steps = 8; step_size = 0.5
+        elif metre == (6, 8):
+            steps = 6; step_size = 0.5
+        else:
+            continue
+
+        skip_last = ((bar + 1) % 4 == 0)
+        for s in range(steps):
+            if skip_last and s == steps - 1:
+                continue
+            on_beat = (s * step_size) % 1 == 0
+            vel = 95 if on_beat else 70
+            notes.append((t + s * step_size, 42, step_size * 0.6, vel))
+    return notes
+
+
+def _open_hat(section: str, length: int) -> list[Note]:
+    """Open hat accents on '&' of 2 and '&' of 4 in drops only — that
+    'chick' sound that locks with the snare backbeat."""
+    notes: list[Note] = []
+    if INTENSITY[section] != 4:
+        return notes
+    bars = n_bars(section, length)
+    for bar in range(bars):
+        t = bar * 4
+        notes += [(t + 1.5, 46, 0.5, 92),
+                  (t + 3.5, 46, 0.5, 98)]
+    return notes
+
+
+def _perc(section: str, length: int) -> list[Note]:
+    """Industrial accents. Verse 7/4: irregular hits at unexpected beats
+    (beat 4 of bar 1, beat 6.5 of bar 3) — soubresauts. Bridge 6/8: hit
+    on beat 2 every 2 bars. Final Drop 4/4: downbeat slam every 4-bar."""
+    notes: list[Note] = []
+    metre = SECTION_METRE[section]
+    bars = n_bars(section, length)
+    if metre == (7, 4):
+        for bar in range(bars):
+            t = bar * 7
+            if bar % 4 == 0:
+                notes.append((t + 3, 56, 0.25, 110))   # bar 1 beat 4
+            elif bar % 4 == 2:
+                notes.append((t + 5.5, 56, 0.25, 105)) # bar 3 beat 6.5
+    elif metre == (6, 8):
+        for bar in range(bars):
+            if bar % 2 == 0:
+                notes.append((bar * 3 + 1, 56, 0.25, 100))
+    elif section == "Final Drop":
+        for bar in range(0, bars, 4):
+            notes.append((bar * 4, 56, 0.5, 118))
+    return notes
+
+
 NOTE_GENERATORS: dict[str, "callable"] = {name: _noop for (name, *_) in TRACKS}
+NOTE_GENERATORS["01 DRM Kick A"]  = _kick_a
+NOTE_GENERATORS["02 DRM Kick B"]  = _kick_b
+NOTE_GENERATORS["03 DRM Snare A"] = _snare_a
+NOTE_GENERATORS["04 DRM Snare B"] = _snare_b
+NOTE_GENERATORS["05 DRM Clap"]    = _clap
+NOTE_GENERATORS["06 DRM Rim"]     = _rim
+NOTE_GENERATORS["07 DRM Hats"]    = _hats
+NOTE_GENERATORS["08 DRM Open Hat"] = _open_hat
+NOTE_GENERATORS["09 DRM Perc"]    = _perc
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
