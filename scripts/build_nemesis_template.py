@@ -6,12 +6,12 @@ fx. Asymmetric section lengths (12-bar verse, 6-bar pre-drop, 2-bar silence,
 20-bar final drop) to destabilize expectation. C# Phrygian primary, Dorian on
 Bridge, half-step pitch-up on first 4 bars of Final Drop.
 
-STEPS 1-9/12 — drums + percussion + basses + pads + leads (A & B).
-Lead A is an 8-bar call/answer phrase: climb to a held peak, then a
-descent that hits G natural (the tritone from C#) for chromatic shock.
-Lead B does call-and-response: fills the rest in Lead A's bar 4, then
-harmonizes a third below on the answer's peak. Bridge gives Lead B a
-solo Dorian phrase featuring the raised 6 (A#4).
+STEPS 1-10/12 — drums + percussion + basses + pads + leads + arp + acid.
+Arp Poly runs a 5-note Phrygian cell as 16ths against the 4/4 grid — the
+5-over-4 hemiola means the cycle realigns every 5 bars, giving a
+continuously-shifting feel without ever losing the groove. Acid is a
+303-style 4-bar phrase featured solo in Break and used as a textural
+layer underneath leads in Drop 2 / Final Drop.
 """
 
 from __future__ import annotations
@@ -837,8 +837,96 @@ def _lead_b(section: str, length: int) -> list[Note]:
     return notes
 
 
+# --- Arp Poly & Acid -------------------------------------------------------
+
+def _arp_poly(section: str, length: int) -> list[Note]:
+    """5-over-4 hemiola arp. 5-note cell repeated as 16ths against the 4/4
+    grid — realigns every 5 bars. Phrygian cell C#4 E4 G#4 B4 C#5 normally;
+    Bridge swaps to Dorian cell with A#4 raised-6. Verse 2 plays every other
+    bar (gentler intro). Drop 2 last bar: all pitches +12 for octave surprise.
+    Final Drop bars 1-4: all pitches +1 for up-shift."""
+    if section == "Bridge":
+        cell = [61, 63, 66, 68, 70]   # C#4 D#4 F#4 G#4 A#4 (Dorian)
+    else:
+        cell = [61, 64, 68, 71, 73]   # C#4 E4 G#4 B4 C#5 (Phrygian)
+    vel_cell = [100, 72, 80, 72, 88]
+
+    notes: list[Note] = []
+    total_steps = int(length / 0.25)
+    bars = length // 4
+    for s in range(total_steps):
+        t = s * 0.25
+        bar_idx = int(t) // 4
+        if section == "Verse 2" and bar_idx % 2 != 0:
+            continue
+        offset = 0
+        if section == "Drop 2" and bar_idx == bars - 1:
+            offset = 12
+        if section == "Final Drop" and bar_idx < 4:
+            offset = 1
+        notes.append((t, cell[s % 5] + offset, 0.2, vel_cell[s % 5]))
+    return notes
+
+
+# 4-bar acid phrase (16 beats). Original 303-style line with octave jumps,
+# G natural chromatic tension, and a tail slide back to root.
+ACID_PHRASE = [
+    # Bar 1
+    (0.0,  61, 0.25, 105), (0.25, 61, 0.25,  70),
+    (0.5,  73, 0.25, 115), (0.75, 64, 0.25,  85),
+    (1.0,  68, 0.25,  95), (1.25, 68, 0.25,  70),
+    (1.5,  71, 0.25, 100), (1.75, 73, 0.25, 110),
+    (2.0,  61, 0.5,  105), (2.5,  64, 0.25,  85),
+    (2.75, 66, 0.25,  90), (3.0,  67, 0.25,  95),   # G nat chromatic
+    (3.25, 68, 0.25, 100), (3.5,  73, 0.5,  115),
+    # Bar 2
+    (4.0,  71, 0.25, 102), (4.25, 69, 0.25,  90),
+    (4.5,  68, 0.25,  95), (4.75, 66, 0.25,  88),
+    (5.0,  64, 0.25,  92), (5.25, 62, 0.25,  85),
+    (5.5,  61, 0.5,  102), (6.0,  73, 0.25, 115),
+    (6.25, 71, 0.25,  92), (6.5,  68, 0.25,  95),
+    (6.75, 69, 0.25,  88), (7.0,  68, 0.5,   98),
+    (7.5,  66, 0.5,   88),
+    # Bar 3
+    (8.0,  64, 0.5,  102), (8.5,  61, 0.25,  90),
+    (8.75, 62, 0.25,  85), (9.0,  64, 0.25,  95),
+    (9.25, 66, 0.25,  95), (9.5,  67, 0.25,  98),   # G nat
+    (9.75, 68, 0.25, 105), (10.0, 73, 0.5,  118),
+    (10.5, 71, 0.25,  95), (10.75, 69, 0.25, 90),
+    (11.0, 68, 0.25,  95), (11.25, 66, 0.25, 85),
+    (11.5, 64, 0.5,   95),
+    # Bar 4
+    (12.0, 61, 0.25, 110), (12.25, 49, 0.25, 85),   # octave drop
+    (12.5, 61, 0.25,  90), (12.75, 73, 0.25, 115),  # octave up
+    (13.0, 68, 0.25, 100), (13.25, 69, 0.25, 88),
+    (13.5, 68, 0.25,  95), (13.75, 66, 0.25, 85),
+    (14.0, 64, 0.25,  90), (14.25, 62, 0.25, 85),
+    (14.5, 61, 1.5,  105),                          # tail slide
+]
+
+
+def _acid(section: str, length: int) -> list[Note]:
+    """303-style acid sequence. Featured solo in Break (full volume).
+    Textural layer in Drop 2 / Final Drop (velocity x 0.75 to sit under
+    the leads). Final Drop bars 1-4 up-shift."""
+    notes: list[Note] = []
+    vel_scale = 1.0 if section == "Break" else 0.75
+    for phrase_start in range(0, length, 16):
+        for (dt, pitch, dur, vel) in ACID_PHRASE:
+            t = phrase_start + dt
+            if t >= length:
+                continue
+            new_pitch = pitch
+            if section == "Final Drop" and t < 16:
+                new_pitch += 1
+            notes.append((t, new_pitch, min(dur, length - t), int(vel * vel_scale)))
+    return notes
+
+
 NOTE_GENERATORS["18 SYN Lead A"]    = _lead_a
 NOTE_GENERATORS["19 SYN Lead B"]    = _lead_b
+NOTE_GENERATORS["20 SYN Arp Poly"]  = _arp_poly
+NOTE_GENERATORS["21 SYN Acid"]      = _acid
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
