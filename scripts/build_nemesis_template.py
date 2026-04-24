@@ -6,12 +6,14 @@ fx. Asymmetric section lengths (12-bar verse, 6-bar pre-drop, 2-bar silence,
 20-bar final drop) to destabilize expectation. C# Phrygian primary, Dorian on
 Bridge, half-step pitch-up on first 4 bars of Final Drop.
 
-STEPS 1-2/12 — constants + stubs + ALS helpers. No main yet.
+STEPS 1-3/12 — constants + stubs + ALS helpers + main. Empty clips only.
 """
 
 from __future__ import annotations
 
+import gzip
 import re
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 
@@ -417,4 +419,97 @@ def midi_clip(clip_id: int, start: int, length: int, name: str, color: int,
 </MidiClip>"""
 
 
-# STEP 3/12 will add: main() + execution + validation.
+# --- main ------------------------------------------------------------------
+
+def main() -> None:
+    print(f"Reading: {SRC}")
+    with gzip.open(SRC, "rb") as f:
+        xml = f.read().decode("utf-8")
+
+    # 1) Tempo 120 -> 118
+    m_tempo = re.search(r'(<Tempo>.*?<Manual Value=")(\d+)(")', xml, re.DOTALL)
+    assert m_tempo, "Tempo block not found"
+    xml = xml[: m_tempo.start(2)] + str(TEMPO) + xml[m_tempo.end(2):]
+    print(f"  Tempo: {TEMPO} BPM")
+
+    # 2) Locators: replace the empty placeholder with named section markers
+    loc_pat = re.compile(r'([ \t]*)<Locators>\s*<Locators />\s*</Locators>', re.DOTALL)
+    m_loc = loc_pat.search(xml)
+    assert m_loc, "Empty <Locators> block not found"
+    indent = m_loc.group(1)
+    xml = xml[: m_loc.start()] + build_locators_block(indent) + xml[m_loc.end():]
+    print(f"  Locators: {len(SECTIONS)} sections")
+
+    # 3) Identify MidiTrack 12 (the one with Serum 2) as our clone template.
+    #    Splice range: from MidiTrack 12 start -> ReturnTrack 2 start.
+    line_start_of = lambda pos: xml.rfind("\n", 0, pos) + 1
+    m_t12 = re.search(r'<MidiTrack Id="12"', xml)
+    t12_pos = line_start_of(m_t12.start())
+    m_r2 = re.search(r'<ReturnTrack Id="2"', xml)
+    r2_pos = line_start_of(m_r2.start())
+    m_t12_end = xml.find("</MidiTrack>", m_t12.start())
+    m_t13_open = xml.find('<MidiTrack Id="13"', m_t12_end)
+    t12_end_line = xml.rfind("\n", 0, m_t13_open) + 1
+    template_track = xml[t12_pos:t12_end_line]
+    print(f"  Template MidiTrack (with Serum 2): {len(template_track):,} chars")
+
+    # 4) Clone 28 tracks
+    ID_OFFSET_BASE = 84170          # shifts big IDs from [15830..22155] into [100000..]
+    ID_OFFSET_STEP = 10000
+    SECTION_BY_NAME = {name: (start, length) for name, start, length in SECTIONS}
+    new_tracks: list[str] = []
+
+    for i, (name, color, preset_hint, active_sections) in enumerate(TRACKS):
+        clone = template_track
+        offset = ID_OFFSET_BASE + i * ID_OFFSET_STEP
+        clone = shift_big_ids(clone, offset, min_val=4000)
+        clone = rename_track(clone, name, color, new_track_id=200 + i)
+        clone = set_plugin_username(clone, preset_hint)
+
+        clips = []
+        note_total = 0
+        for slot_idx, section_name in enumerate(active_sections):
+            start, length = SECTION_BY_NAME[section_name]
+            notes = gen_notes(name, section_name, length)
+            note_total += len(notes)
+            clips.append(midi_clip(
+                clip_id=slot_idx, start=start, length=length,
+                name=section_name, color=color, notes=notes,
+            ))
+        clone = inject_clips(clone, clips, track_idx=i)
+        new_tracks.append(clone)
+        print(f"  #{i+1:2d} {name:<20} clips={len(clips):2d} notes={note_total:4d}  → {preset_hint}")
+
+    # 5) Splice the new tracks in place of the 4 template tracks
+    xml = xml[:t12_pos] + "".join(new_tracks) + xml[r2_pos:]
+
+    # 6) Bump NextPointeeId safely above everything we allocated
+    max_used = ID_OFFSET_BASE + len(TRACKS) * ID_OFFSET_STEP + 22155 + 1
+    xml = re.sub(
+        r'(<NextPointeeId Value=")(\d+)(")',
+        lambda m: m.group(1) + str(max_used + 100000) + m.group(3),
+        xml, count=1,
+    )
+
+    # 7) Validate
+    try:
+        ET.fromstring(xml)
+    except ET.ParseError as e:
+        raise SystemExit(f"Generated XML is invalid: {e}")
+    print(f"  XML parses OK ({len(xml):,} chars)")
+
+    # 8) Write (single-layer gzip)
+    DST.parent.mkdir(parents=True, exist_ok=True)
+    with gzip.open(DST, "wb", compresslevel=9) as f:
+        f.write(xml.encode("utf-8"))
+
+    # 9) Sanity check: first bytes must be <?xml (not double-gzipped)
+    with gzip.open(DST, "rb") as f:
+        head = f.read(80)
+    assert head.startswith(b"<?xml"), "Double gzip detected"
+    size = DST.stat().st_size
+    print(f"Wrote: {DST}  ({size:,} bytes)")
+
+
+if __name__ == "__main__":
+    main()
