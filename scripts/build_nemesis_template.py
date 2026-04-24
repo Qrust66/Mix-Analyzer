@@ -6,10 +6,12 @@ fx. Asymmetric section lengths (12-bar verse, 6-bar pre-drop, 2-bar silence,
 20-bar final drop) to destabilize expectation. C# Phrygian primary, Dorian on
 Bridge, half-step pitch-up on first 4 bars of Final Drop.
 
-STEPS 1-6/12 — core drums + texture drums + percussion (Metal/Glitch/Triplet).
-The Triplet track introduces an 8th-note triplet polyrhythm (12 notes/bar
-over the 4/4 grid) — the 'complexity' layer that enters in Verse 2 and
-peaks as 16th-triplets during Final Drop bars 1-4.
+STEPS 1-7/12 — drums + percussion + basses (Sub/Growl/Stab/Chug).
+Basses sit in C# Phrygian (scale C# D E F# G# A B). The djent Chug track
+does 16th palm-mute chugs with power-chord ring-outs on beats 1/3 and
+respiratory silence on beat 3 of every second bar. Drop 2 substitutes D
+(flat-2 Phrygian) on the 4th bar of every 4-bar phrase. Final Drop bars
+1-4 pitch everything up a half-step to D.
 """
 
 from __future__ import annotations
@@ -481,6 +483,114 @@ def _triplet(section: str, length: int) -> list[Note]:
     return notes
 
 
+# --- Basses (C# Phrygian: C# D E F# G# A B) --------------------------------
+#
+# Key MIDI pitches:
+#   C#1=25  D1=26  E1=28  F#1=30  G#1=32  A1=33  B1=35
+#   C#2=37  D2=38  E2=40  F#2=42  G#2=44  A2=45  B2=47
+#
+# Phrygian tension notes: flat-2 (D against root C#), flat-6 (A).
+
+def _bas_sub(section: str, length: int) -> list[Note]:
+    """Sub foundation. 4-bar phrase C# -> C# -> A (flat-6) -> G# (dominant).
+    Drops add octave-down stab on 'a of 4'. Drop 2 substitutes D (flat-2)
+    on bars 4 and 12 for Phrygian push. Final Drop bars 1-4 pitch up to D."""
+    notes: list[Note] = []
+    bars = length // 4
+    prog = [25, 25, 33, 32]  # C#1, C#1, A1, G#1
+    for bar in range(bars):
+        t = bar * 4
+        root = prog[bar % 4]
+        if section == "Final Drop" and bar < 4:
+            root = 26  # D1 up-shift
+        if section == "Drop 2" and bar in (3, 11):
+            root = 26  # D1 flat-2 Phrygian push
+        notes.append((t, root, 4.0, 108))
+        if INTENSITY[section] == 4 and bar % 4 == 3:
+            notes.append((t + 3.75, root - 12, 0.25, 92))
+    return notes
+
+
+def _bas_growl(section: str, length: int) -> list[Note]:
+    """Reese-style drone. 2-bar phrase alternating C#2 / A2 (root / flat-6).
+    Retriggered every 2 beats in drops for density. Drop 2 last bar has a
+    chromatic slide B2 -> C2 -> C#2 to snap back to root."""
+    notes: list[Note] = []
+    level = INTENSITY[section]
+    bars = length // 4
+    prog = [37, 45]  # C#2, A2
+    for bar in range(bars):
+        t = bar * 4
+        root = prog[bar % 2]
+        if section == "Drop 2" and bar == 11:
+            root = 38  # D2 flat-2 push
+        if section == "Final Drop" and bar < 4:
+            root = 38  # D2 up-shift
+        if level == 2:
+            notes.append((t, root, 4.0, 100))
+        else:
+            notes += [(t, root, 2.0, 112), (t + 2, root, 2.0, 108)]
+    if section == "Drop 2":
+        last = (bars - 1) * 4
+        notes = [n for n in notes if n[0] < last]
+        notes += [(last,       47, 1.0, 105),   # B2
+                  (last + 1,   48, 1.0, 108),   # C3 (chromatic)
+                  (last + 2,   37, 2.0, 118)]   # C#2 resolve
+    return notes
+
+
+def _bas_stab(section: str, length: int) -> list[Note]:
+    """Chromatic stabs — the menace layer. Default: C#2 on 'a of 2', D2
+    (flat-2 Phrygian) on 'e of 4'. Bridge swaps to Dorian flavor (D#2).
+    Final Drop bars 1-4 fully pitch up to D2 / D#2."""
+    notes: list[Note] = []
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        if section == "Final Drop" and bar < 4:
+            notes += [(t + 1.75, 38, 0.125, 105),  # D2
+                      (t + 3.25, 39, 0.125, 100)]  # D#2
+        elif section == "Bridge":
+            notes += [(t + 1.75, 37, 0.125, 98),   # C#2
+                      (t + 3.25, 39, 0.125, 95)]   # D#2 (Dorian)
+        else:
+            notes += [(t + 1.75, 37, 0.125, 102),  # C#2
+                      (t + 3.25, 38, 0.125, 98)]   # D2 (Phrygian)
+    return notes
+
+
+def _bas_chug(section: str, length: int) -> list[Note]:
+    """Djent palm-mute chug — the guitar mirror. 16th chug at low velocity
+    (68) with power-chord ring-outs (vel 115, duration 0.75) on beats 1/3.
+    'Respiratory silence': every 2nd bar skips the 16ths around beat 3
+    (steps 8-11) so the kick punches through and the track breathes.
+    SURPRISE: Drop 1 bar 15 is fully silent (complements kick displacement).
+    Drop 2: bar 4 of each 4-bar phrase pitches to D (flat-2). Final Drop
+    bars 1-4 pitch to D (up-shift)."""
+    notes: list[Note] = []
+    bars = length // 4
+    for bar in range(bars):
+        t = bar * 4
+        if section == "Drop 1" and bar == 14:
+            continue  # full silence — negative space surprise
+        base = 25  # C#1
+        if section == "Final Drop" and bar < 4:
+            base = 26  # D1
+        if section == "Drop 2" and bar % 4 == 3:
+            base = 26  # flat-2 push
+        for s in range(16):
+            if bar % 2 == 1 and 8 <= s <= 11:
+                continue  # respiratory silence around beat 3
+            pos = s * 0.25
+            if s in (0, 8):
+                notes.append((t + pos, base, 0.75, 115))  # ring-out power
+            elif s in (6, 14):
+                notes.append((t + pos, base, 0.15, 88))   # accented pickup
+            else:
+                notes.append((t + pos, base, 0.12, 68))   # palm-mute chug
+    return notes
+
+
 NOTE_GENERATORS: dict[str, "callable"] = {name: _noop for (name, *_) in TRACKS}
 NOTE_GENERATORS["01 DRM Kick"]     = _kick
 NOTE_GENERATORS["02 DRM Sub Kick"] = _sub_kick
@@ -493,6 +603,10 @@ NOTE_GENERATORS["08 DRM Ride"]     = _ride
 NOTE_GENERATORS["09 PRC Metal"]    = _metal
 NOTE_GENERATORS["10 PRC Glitch"]   = _glitch
 NOTE_GENERATORS["11 PRC Triplet"]  = _triplet
+NOTE_GENERATORS["12 BAS Sub"]      = _bas_sub
+NOTE_GENERATORS["13 BAS Growl"]    = _bas_growl
+NOTE_GENERATORS["14 BAS Stab"]     = _bas_stab
+NOTE_GENERATORS["15 BAS Chug"]     = _bas_chug
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
