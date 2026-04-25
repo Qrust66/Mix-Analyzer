@@ -25,11 +25,11 @@ Design principles (per the brief):
    ("Hollow" section, 4 bars only) before rebuilding bigger. The Final
    Drop catches fire — closer clusters every beat + riser continuous.
 
-STEPS A1-B3/9 — Phase B done: drums + basses + pad + drone + tension +
-leads + voice + FX. SYN Lead climbs OUT of scale on Bridge (4-note motif
-that half-steps up each iteration); VOX Lead Bridge skips through the
-scale to land on D5 just before the fire. FX Impact triple-hit announces
-the Final Drop ignition.
+STEPS A1-C2/9 — Phase B done + automations. Volume sweeps on FX Riser
+(Bridge ramp 0->1 then sustain through Final Drop), FX Tension (multi-
+section crescendo Intro/Hollow/Bridge then Outro fade), SYN Drone Dark
+(Bridge crescendo echoing the Riser, Outro fade). Pan oscillation on
+VOX Lead during Bridge (growing amplitude — spatial tension).
 """
 
 from __future__ import annotations
@@ -881,6 +881,151 @@ def inject_clips(track_xml: str, clips: list[str], track_idx: int) -> str:
                    + "\n".join(reindented) + "\n"
                    + f"{indent}</Events>")
     return track_xml[:m.start(0)] + replacement + track_xml[m.end(0):]
+
+
+# --- Automation envelope helpers (C2) -------------------------------------
+#
+# Live volume scale (verified on Acid_Drops reference):
+#   Min  0.0003162277571 (~ -inf, silent)
+#   1.0  unity (0 dB)
+#   Max  1.99526238       (~ +6 dB)
+# Pan: -1.0 (left) .. 0.0 (center) .. +1.0 (right)
+#
+# Init event at Time=-63072000 = pre-song state. Required.
+
+def find_param_target_id(track_xml: str, param: str) -> int | None:
+    """Find the Mixer parameter's AutomationTarget Id by name (Volume/Pan)."""
+    m = re.search(
+        rf'<Mixer>.*?<{param}>.*?<AutomationTarget Id="(\d+)"',
+        track_xml, re.DOTALL,
+    )
+    return int(m.group(1)) if m else None
+
+
+def build_envelope(env_id: int, target_id: int,
+                   events: list[tuple[float, float]],
+                   event_id_base: int) -> str:
+    """Build one <AutomationEnvelope> block. The init Value is taken from
+    events[0][1] — caller must arrange for the first event to set the rest
+    state (e.g. unity 1.0) so the parameter sits there before the first
+    real change."""
+    if not events:
+        return ""
+    init_val = events[0][1]
+    lines = [
+        f'<AutomationEnvelope Id="{env_id}">',
+        '\t<EnvelopeTarget>',
+        f'\t\t<PointeeId Value="{target_id}" />',
+        '\t</EnvelopeTarget>',
+        '\t<Automation>',
+        '\t\t<Events>',
+        f'\t\t\t<FloatEvent Id="{event_id_base}" Time="-63072000" Value="{init_val}" />',
+    ]
+    for i, (t, v) in enumerate(events):
+        lines.append(
+            f'\t\t\t<FloatEvent Id="{event_id_base + i + 1}" Time="{t}" Value="{v}" />'
+        )
+    lines += [
+        '\t\t</Events>',
+        '\t\t<AutomationTransformViewState>',
+        '\t\t\t<IsTransformPending Value="false" />',
+        '\t\t\t<TimeAndValueTransforms />',
+        '\t\t</AutomationTransformViewState>',
+        '\t</Automation>',
+        '</AutomationEnvelope>',
+    ]
+    return '\n'.join(lines)
+
+
+def inject_envelopes(track_xml: str, envelope_xmls: list[str]) -> str:
+    """Replace <AutomationEnvelopes><Envelopes /> with a populated block.
+    No-op if the track has no self-closing tag (already populated)."""
+    if not envelope_xmls:
+        return track_xml
+    pat = re.compile(
+        r'(<AutomationEnvelopes>\s*)<Envelopes />(\s*</AutomationEnvelopes>)',
+        re.DOTALL,
+    )
+    m = pat.search(track_xml)
+    if not m:
+        return track_xml
+    env_tag_start = m.start(0) + len(m.group(1))
+    line_start = track_xml.rfind('\n', 0, env_tag_start) + 1
+    outer_indent = track_xml[line_start:env_tag_start]
+    inner_indent = outer_indent + '\t'
+    reindented = [reindent(env, inner_indent) for env in envelope_xmls]
+    replacement = (
+        m.group(1) + '<Envelopes>\n' +
+        '\n'.join(reindented) + '\n' +
+        outer_indent + '</Envelopes>' +
+        m.group(2)
+    )
+    return track_xml[:m.start(0)] + replacement + track_xml[m.end(0):]
+
+
+# Volume envelope recipes — values use Live's 0.0003-1.99 scale.
+
+def volume_envelope_riser(env_id: int, target_id: int, eid_base: int) -> str:
+    """FX Riser: silent rest -> 32-beat ramp across Bridge -> sustain at peak
+    through Final Drop. Bridge starts at beat 256, Final Drop at 288, ends
+    at 368."""
+    events = [
+        (0.0,   0.0003),    # rest at song start (silent)
+        (255.0, 0.0003),    # rest until just before Bridge
+        (256.0, 0.0003),    # Bridge start: silent
+        (288.0, 1.0),       # Bridge end / Final Drop start: peak
+        (368.0, 1.0),       # Final Drop end: sustain
+    ]
+    return build_envelope(env_id, target_id, events, eid_base)
+
+
+def volume_envelope_tension(env_id: int, target_id: int, eid_base: int) -> str:
+    """FX Tension: multi-section crescendo across Intro / Hollow / Bridge,
+    then fade in Outro. Active sections (per TRACKS): Intro 0..32, Hollow
+    128..144, Bridge 256..288, Outro 368..400."""
+    events = [
+        (0.0,   0.4),       # Intro start: low ambient
+        (32.0,  0.5),       # Intro end
+        (128.0, 0.5),       # Hollow start
+        (144.0, 0.8),       # Hollow end (void rises ominous)
+        (256.0, 0.8),       # Bridge start
+        (288.0, 1.0),       # Bridge end: peak (just before fire)
+        (368.0, 1.0),       # Final Drop end / Outro start
+        (400.0, 0.0003),    # Outro end: fade silent
+    ]
+    return build_envelope(env_id, target_id, events, eid_base)
+
+
+def volume_envelope_drone_dark(env_id: int, target_id: int, eid_base: int) -> str:
+    """SYN Drone Dark: steady through Intro / Hollow, dip + crescendo in
+    Bridge (echoes Riser), fade in Outro."""
+    events = [
+        (0.0,   0.7),       # Intro: audible drone
+        (128.0, 0.7),       # Hollow: keep level (the void breathes)
+        (256.0, 0.6),       # Bridge start: slight dip
+        (288.0, 1.0),       # Bridge end: peak (matches Riser)
+        (368.0, 0.7),       # Outro start: drop back
+        (400.0, 0.0003),    # Outro end: fade silent
+    ]
+    return build_envelope(env_id, target_id, events, eid_base)
+
+
+def pan_envelope_vox_bridge(env_id: int, target_id: int, eid_base: int) -> str:
+    """VOX Lead pan oscillation during Bridge (beats 256..288). Two cycles
+    with growing amplitude (-0.4 -> 0.4 -> -0.5 -> 0.6 -> 0.0). Snaps back
+    to center at Final Drop entry."""
+    events = [
+        (0.0,   0.0),       # init centered
+        (255.0, 0.0),       # hold center until Bridge
+        (256.0, -0.4),      # cycle 1 left (soft)
+        (264.0,  0.4),      # cycle 1 right
+        (272.0, -0.5),      # cycle 2 left (wider)
+        (280.0,  0.6),      # cycle 2 right (widest)
+        (288.0,  0.0),      # snap center for Final Drop
+    ]
+    return build_envelope(env_id, target_id, events, eid_base)
+
+
 
 
 def notes_to_keytracks_xml(notes: list[Note], indent: str) -> tuple[str, int]:
