@@ -1113,6 +1113,157 @@
     "purpose": "Per-song concrete dissection of widely-documented production, structural, and textural choices. Sourced from interviews, production lore, mix-engineer commentary, and AES documentation — NEVER melodic transcription, NEVER lyrics. Each fiche translates into advisor_extract recipes the advisor applies to ORIGINAL compositions inspired by these techniques.",
     "scope_explicit": "We dissect: production choices (engineer, room, mic placement when documented), structural blueprints (section architecture, dynamic shifts), sonic textures (drum sound, guitar tone, vocal treatment), arrangement decisions (instrument entry/exit), instrument selection (specific guitars/synths cited in interviews), dynamic shifts (loud-quiet-loud blueprints). We do NOT dissect: specific melodies, lyrics, exact chord voicings as creative expression, or any element that constitutes substantive creative authorship.",
     "by_artist": {
+      "Smashing_Pumpkins": {
+        "_meta": {
+          "albums_dissected": ["Siamese Dream", "Mellon Collie and the Infinite Sadness"],
+          "primary_producers_cited": ["Butch Vig (Gish, Siamese Dream)", "Flood + Alan Moulder (Mellon Collie)", "Billy Corgan as primary arranger across all"],
+          "documentation_sources": "Butch Vig interviews in Mix Magazine / Tape Op, Corgan interviews, Alan Moulder mix engineering notes",
+          "what_distinguishes_them": "EXTREME guitar layering — Corgan would track 4-12 distorted guitar takes panned across the stereo field for chorus walls. Major-minor inversions (verse can be major while chorus is minor or vice versa). Orchestral arrangements integrated with rock band (strings, woodwinds, piano on equal footing with guitars). Wide dynamic range from acoustic intimacy (Disarm) to wall-of-sound choruses (Today). Drum machine experimentation (1979) departed from grunge palette."
+        },
+        "Today_Siamese_Dream": {
+          "tempo_bpm_approx": 95,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (clean guitar arpeggio in MAJOR key — sounds happy) -> verse (continues major) -> chorus (heavy distortion enters but harmonic content shifts to minor area) -> verse -> chorus -> bridge -> chorus_extended. The MAJOR-to-MINOR shift between verse and chorus is the song's structural signature.",
+          "signature_production_choices": [
+            "Butch Vig recorded multiple guitar layers (Corgan documented playing 4+ takes for chorus walls)",
+            "Vocal mostly single-tracked but with subtle delay enrichment",
+            "Drum sound clean/dry like Vig's Nevermind work but slightly more roomy"
+          ],
+          "rhythmic_signature": "Mid-tempo 4/4, kick + snare standard backbeat, hi-hat 8ths through verse opening up to crash cymbals through chorus.",
+          "harmonic_signature": "Verse cycles in major key — bright, cheerful sound. Chorus shifts to relative minor / minor area — same key signature but different tonal center. The shift is harmonic, not structural.",
+          "instrumental_signature": ["clean electric guitar arpeggio with chorus pedal", "wall of distorted guitars in chorus (4+ tracks panned)", "Corgan's nasal vocal as melodic carrier"],
+          "the_moment_people_remember": "the verse sounding HAPPY despite the dark thematic content (the song's lyrical context contradicts the bright sound) — the verse-chorus harmonic inversion creates uncanny mood reversal.",
+          "advisor_extract": [
+            {
+              "recipe_name": "major_verse_minor_chorus_inversion",
+              "description": "Verse stays in MAJOR key (or major-quality sound). Chorus pivots to relative minor or minor harmonic area. Inverts the typical 'verse minor → chorus major lift' pattern.",
+              "use_for": ["sections that want unsettling emotional shift", "subverting the 'chorus = lift' expectation"],
+              "wow_factor": 0.8
+            },
+            {
+              "recipe_name": "guitar_wall_4_to_12_layered_takes",
+              "description": "Track the SAME chorus guitar part 4-12 separate times, pan across stereo field. Each take's micro-variations create a thick wall of distortion that no single take can match. (In MIDI/sample context: layer 4-6 distorted synth takes with slight detune and timing offsets.)",
+              "use_for": ["Drop or chorus arrangements wanting massive thickness"],
+              "wow_factor": 0.7
+            }
+          ]
+        },
+        "Mayonaise_Siamese_Dream": {
+          "tempo_bpm_approx": 105,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (clean guitar with phaser/chorus modulation — very textural, dreamlike) -> verse (continues clean texture, vocal layered) -> chorus (heavy distortion enters but doesn't displace clean texture — clean and distorted COEXIST stacked) -> verse -> chorus -> instrumental_outro_extended. Layering is the philosophy.",
+          "signature_production_choices": [
+            "Phaser/chorus modulation on clean guitars throughout — wet/dimensional sound",
+            "Multiple guitar tracks panned hard left and hard right (Corgan-style stereo wall)",
+            "Drum sound mid-bright, snare crisp",
+            "Vocal compressed and slightly fuzzy — texture not clarity"
+          ],
+          "rhythmic_signature": "Steady 4/4, mid-tempo. Drums are foundation, not feature.",
+          "harmonic_signature": "Modal — 4-chord cycle that doesn't resolve traditionally. Pumpkins specialty.",
+          "instrumental_signature": ["clean guitar with phaser/chorus pedal (very wet)", "stacked distorted guitar in chorus that DOESN'T replace clean — adds to it"],
+          "the_moment_people_remember": "the texture itself — the song doesn't have a 'moment', it has a SOUND. The clean+distorted layering is what people remember, not any specific event.",
+          "advisor_extract": [
+            {
+              "recipe_name": "clean_and_distorted_coexist_stacked",
+              "description": "In chorus, ADD distorted guitar layer ON TOP of clean texture — don't REPLACE clean with distortion. Both palettes coexist. Listener hears thickness without losing the dreamlike quality.",
+              "use_for": ["Choruses wanting weight while preserving verse texture", "Drops where the verse atmosphere should bleed through"],
+              "wow_factor": 0.75
+            },
+            {
+              "recipe_name": "phaser_chorus_modulation_on_clean_guitar",
+              "description": "Apply modulation effect (phaser, chorus, flanger — slow rate) to clean guitar throughout a section. Creates a continuously moving texture that doesn't rely on note motion.",
+              "use_for": ["Verse/intro arrangements wanting atmosphere", "ambient pads alternative"],
+              "wow_factor": 0.65
+            }
+          ]
+        },
+        "Cherub_Rock_Siamese_Dream": {
+          "tempo_bpm_approx": 132,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (drum solo intro by Jimmy Chamberlin — drum kit alone) -> riff enters (classic Pumpkins layered distortion) -> verse -> chorus -> verse -> chorus -> bridge_solo (extended Corgan lead) -> chorus_outro. Drum-led intro is unusual for grunge — establishes Chamberlin as a featured player.",
+          "signature_production_choices": [
+            "Drum kit recorded with ROOM mics emphasized — Chamberlin's playing has reverberant SIZE",
+            "Guitar layers stacked Pumpkins-thick from first riff",
+            "Chamberlin's snare hits VERY hard — sustained ringing"
+          ],
+          "rhythmic_signature": "Faster tempo than typical Pumpkins. Chamberlin's drums extremely active — fills, double-kick, syncopated snare. He's a JAZZ-trained drummer playing rock.",
+          "harmonic_signature": "Standard rock chord progression in minor key — straightforward to give the drum + guitar work room.",
+          "instrumental_signature": ["Chamberlin drum kit as featured player (intro)", "wall of Corgan distorted guitars", "vocal pushed forward"],
+          "the_moment_people_remember": "the drum intro — Chamberlin alone for 8 bars before the band joins. Establishes the song's rhythmic complexity from the first second.",
+          "advisor_extract": [
+            {
+              "recipe_name": "drum_solo_intro_8_bars",
+              "description": "Open the song with drum kit ALONE for 8 bars (drums as featured intro instrument, not just timekeeper). Rest of band enters after the drummer has established personality.",
+              "use_for": ["Intros that want to feature rhythmic complexity", "songs with strong drummers as compositional voice"],
+              "wow_factor": 0.7
+            },
+            {
+              "recipe_name": "jazz_trained_drumming_in_rock_context",
+              "description": "Use jazz-style drum vocabulary (active fills, ghost notes, broken backbeat, syncopation) WITHIN a rock arrangement. Creates rhythmic interest without losing the genre identity.",
+              "use_for": ["Rock arrangements wanting rhythmic sophistication", "Verse 2 patterns adding density via drum complexity"],
+              "wow_factor": 0.65
+            }
+          ]
+        },
+        "Tonight_Tonight_Mellon_Collie": {
+          "tempo_bpm_approx": 137,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (orchestral strings — full orchestra) -> verse (orchestra continues with rock band entering subtly) -> chorus (full integration: rock band + orchestra TOGETHER) -> verse -> chorus -> bridge_orchestral -> chorus -> orchestral_outro. The orchestra is NOT a backing element — it's an EQUAL partner with the rock band.",
+          "signature_production_choices": [
+            "Full string orchestra arranged by Audrey Riley — not just sweeteners but PRIMARY harmonic content",
+            "Rock band (drums, bass, electric guitar) recorded to interact with orchestra, not over it",
+            "Drum sound bright and crisp — sits with strings sonically",
+            "Vocal mid-mix with reverb — chamber-music feel"
+          ],
+          "rhythmic_signature": "Driving rock tempo (137 BPM) but the orchestra makes it feel less aggressive — 4/4 with anthemic feel.",
+          "harmonic_signature": "Major key, but uses a I-V-vi-IV cycle with orchestral voicings that add 7ths and suspensions — sophisticated harmony for rock.",
+          "instrumental_signature": ["full string orchestra as PRIMARY instrument", "rock band as supporting layer", "vocal with chamber treatment"],
+          "the_moment_people_remember": "the orchestral arrangement integration — the strings are not 'on top' of the rock band, they ARE the rock band's harmonic foundation. Genre expansion via orchestration.",
+          "advisor_extract": [
+            {
+              "recipe_name": "orchestra_as_equal_partner_not_sweetener",
+              "description": "When using orchestral elements (string section, woodwind), make them EQUAL to band — primary harmonic content, not background lush. Arrange band to interact with orchestra rather than orchestra filling space behind band.",
+              "use_for": ["Choruses wanting genre expansion", "Bridge sections that depart from rock palette"],
+              "wow_factor": 0.8
+            },
+            {
+              "recipe_name": "anthemic_4_4_with_orchestral_lift",
+              "description": "Standard rock 4/4 at 130-140 BPM, but harmonic content provided primarily by strings (with sus, 7th color tones). Drums + bass + guitar do groove; strings do harmony. Each does what they do best.",
+              "use_for": ["Choruses wanting epic scale", "Final Drop with arrangement maturity"],
+              "wow_factor": 0.7
+            }
+          ]
+        },
+        "1979_Mellon_Collie": {
+          "tempo_bpm_approx": 116,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (drum machine + clean guitar) -> verse (electric bass joins, Corgan vocal) -> chorus (slight expansion, no wall-of-distortion) -> verse -> chorus -> bridge (drum machine prominent) -> chorus -> outro. Significantly different palette from typical Pumpkins — drum machine + clean guitars dominate.",
+          "signature_production_choices": [
+            "DRUM MACHINE primary kit (likely Roland) instead of Chamberlin acoustic kit — instantly different palette",
+            "Clean electric guitars with chorus modulation — no distortion walls",
+            "Vocal less nasal than typical Corgan — softer delivery",
+            "Production by Flood and Alan Moulder — they bring electronic palette experience"
+          ],
+          "rhythmic_signature": "Drum machine = perfectly mechanical groove. Hi-hat 8ths, kick on 1, snare on 3 (note: not typical 2/4 backbeat — uses the AIC Would?-style stride pattern).",
+          "harmonic_signature": "Major-key cycle, optimistic feel, simple chord changes that loop.",
+          "instrumental_signature": ["drum machine (Roland or similar)", "clean electric guitars", "no distorted guitar walls (rare for Pumpkins)"],
+          "the_moment_people_remember": "the drum machine + clean guitar palette — Pumpkins doing electronic-tinged ALT-pop instead of grunge. Showed grunge-era band could expand without losing identity.",
+          "advisor_extract": [
+            {
+              "recipe_name": "drum_machine_as_palette_shift",
+              "description": "Replace acoustic drum kit with drum machine for an entire song or section. INSTANTLY changes the genre/era signature. Mechanical perfection vs human variation = different emotional register.",
+              "use_for": ["Songs/sections wanting departure from rock-band palette", "introducing electronic flavor in otherwise organic context"],
+              "wow_factor": 0.7
+            },
+            {
+              "recipe_name": "no_distortion_for_song_identity",
+              "description": "For an artist known for distortion walls, ABSENCE of distortion BECOMES the identity. Same band, same singer, same genre — but no distortion = signal that this song is different.",
+              "use_for": ["Stylistic departure tracks", "songs that want to feel like 'the band other side'"],
+              "wow_factor": 0.65
+            }
+          ]
+        }
+      },
       "Alice_In_Chains": {
         "_meta": {
           "albums_dissected": ["Dirt"],
