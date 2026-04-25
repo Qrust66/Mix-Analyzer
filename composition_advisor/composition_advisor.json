@@ -1113,6 +1113,161 @@
     "purpose": "Per-song concrete dissection of widely-documented production, structural, and textural choices. Sourced from interviews, production lore, mix-engineer commentary, and AES documentation — NEVER melodic transcription, NEVER lyrics. Each fiche translates into advisor_extract recipes the advisor applies to ORIGINAL compositions inspired by these techniques.",
     "scope_explicit": "We dissect: production choices (engineer, room, mic placement when documented), structural blueprints (section architecture, dynamic shifts), sonic textures (drum sound, guitar tone, vocal treatment), arrangement decisions (instrument entry/exit), instrument selection (specific guitars/synths cited in interviews), dynamic shifts (loud-quiet-loud blueprints). We do NOT dissect: specific melodies, lyrics, exact chord voicings as creative expression, or any element that constitutes substantive creative authorship.",
     "by_artist": {
+      "Soundgarden": {
+        "_meta": {
+          "albums_dissected": ["Superunknown", "Down on the Upside", "Badmotorfinger"],
+          "primary_producers_cited": ["Michael Beinhorn (Superunknown — primary)", "Adam Kasper (Down on the Upside)", "Terry Date (Badmotorfinger)"],
+          "documentation_sources": "Producer interviews in Mix Magazine / Tape Op, Greg Prato 'Grunge Is Dead', Chris Cornell interviews, Matt Cameron drumming clinics",
+          "what_distinguishes_them": "Soundgarden uses ODD METERS deliberately as identity — multiple songs in 7/4 or alternating meter. Their drop tunings (drop D, drop C#) lower the harmonic floor below standard. Cornell's multi-octave vocal range is structurally exploited (verse low, chorus high)."
+        },
+        "Black_Hole_Sun_Superunknown": {
+          "tempo_bpm_approx": 105,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (clean watery guitar via Leslie speaker simulation) -> verse (haunting major-key chord cycle, restrained drums) -> chorus (massive expansion, full distortion + Cornell vocal soars) -> verse -> chorus -> bridge (extended atmospheric build) -> chorus_climax_with_outro_solo. Uncanny major-key harmony combined with dark thematic content — the BRIGHTNESS is the unsettling element.",
+          "signature_production_choices": [
+            "Leslie speaker effect on guitar in verses — slow rotary modulation creates underwater/dreamlike feel",
+            "Hammond organ doubles guitar in verses (subtle, sits below mix surface) — provides the warm pad layer that distinguishes this from typical grunge",
+            "Cornell's vocal recorded close, almost whispered in verse / belted in chorus — extreme dynamic between sections",
+            "Drum sound less compressed than Andy Wallace school — more natural, breathing"
+          ],
+          "rhythmic_signature": "Mid-tempo, kick on 1 and 3 with subtle ghost notes. Matt Cameron uses cymbal swells (not crashes) for transitions — adds atmosphere, not impact.",
+          "harmonic_signature": "Major-7 and add9 chords in verse — bright, slightly dissonant. Modulates to a darker minor area in chorus while STAYING in major key (Mixolydian flavor).",
+          "instrumental_signature": ["Leslie speaker rotary on guitar (or Univox effect)", "Hammond organ", "Cornell's signature high register exploited in chorus"],
+          "the_moment_people_remember": "the chorus expansion — when the haunting verse opens up into the soaring chorus. The MAJOR key in the chorus combined with the dark content makes the lift feel sinister rather than triumphant.",
+          "advisor_extract": [
+            {
+              "recipe_name": "rotary_modulation_on_clean_guitar",
+              "description": "Apply slow rotary speaker modulation (or Leslie sim, or slow chorus) to a clean guitar track in verse. Creates underwater/dreamlike texture that reads as 'distance' to the listener.",
+              "use_for": ["Intro / Verse 1 atmosphere that wants warmth without thickness"],
+              "wow_factor": 0.7
+            },
+            {
+              "recipe_name": "hammond_organ_pad_below_guitar",
+              "description": "Place a Hammond organ (or organ-style synth pad) UNDER the guitar in mix — same chord, different timbre, subtle volume. Doubles the harmonic weight without adding density.",
+              "use_for": ["Verse arrangements wanting warmth", "transitioning to chorus while staying in key"],
+              "wow_factor": 0.6
+            },
+            {
+              "recipe_name": "major_quality_dark_content_paradox",
+              "description": "Use unmistakably MAJOR-quality harmony (major triads, add9, maj7) for sections with DARK thematic intent. The brightness creates uncanny dissonance with the meaning — feels more sinister than minor would.",
+              "use_for": ["Bridge sections that subvert expectation", "moments where emotional tone should feel 'wrong' on purpose"],
+              "wow_factor": 0.8
+            }
+          ]
+        },
+        "Spoonman_Superunknown": {
+          "tempo_bpm_approx": 116,
+          "time_signature": "7/4 verse, 4/4 chorus",
+          "structural_blueprint": "intro (riff in 7/4 establishes meter) -> verse 7/4 (riff continues, vocal enters) -> chorus 4/4 (RESOLVES the meter to standard 4/4 — listener feels relief) -> verse 7/4 -> chorus 4/4 -> bridge with literal SPOON SOLO (real spoons percussion) -> chorus -> outro. Meter shift IS the song's structural identity.",
+          "signature_production_choices": [
+            "Real spoons used as percussion in bridge — recorded as actual instrument, not sample",
+            "Drum sound dry and punchy — Matt Cameron's hits are very forward",
+            "Guitar in drop D tuning, low end emphasis"
+          ],
+          "rhythmic_signature": "7/4 verse riff is grouped as 4+3 OR 3+2+2 (debated by analysts). Cameron's drumming locks the grouping with kick on 1 and 5 (for 4+3 reading).",
+          "harmonic_signature": "Modal — minor key with bVII (Aeolian). Repetitive 2-3 chord cycle that's easy to follow despite the meter weirdness.",
+          "instrumental_signature": ["drop D tuned guitar", "real metal spoons in bridge", "no synths"],
+          "the_moment_people_remember": "the 7/4 → 4/4 transition. The meter resolves at the chorus and the listener feels physical relief — this is the song's emotional payoff, not the chorus content per se.",
+          "advisor_extract": [
+            {
+              "recipe_name": "odd_meter_verse_resolves_to_4_4_chorus",
+              "description": "Verse in 7/4 (or 5/4 or 6/4) — odd meter establishes itself as the 'home'. Chorus REVERTS to 4/4 — listener feels resolution from the meter shift itself. The relief IS the emotional payoff.",
+              "use_for": ["Verse-Chorus dynamic where you want the meter shift to BE the cadence"],
+              "wow_factor": 0.85,
+              "warning": "Use only if the verse is long enough (8+ bars) to establish 7/4 as a stable feel. Briefly going 7/4 then 4/4 sounds like a mistake."
+            },
+            {
+              "recipe_name": "found_object_percussion_in_bridge",
+              "description": "Replace standard percussion (drum rack hits) with a recorded REAL physical object (spoons, metal pipe struck, kitchen utensil) — adds authenticity and signals that this is a different sonic world for the bridge.",
+              "use_for": ["Bridge moments wanting break from the song's normal palette", "1-bar percussion fills with character"],
+              "wow_factor": 0.7
+            }
+          ]
+        },
+        "Outshined_Badmotorfinger": {
+          "tempo_bpm_approx": 80,
+          "time_signature": "4/4 verse, 7/4 chorus",
+          "structural_blueprint": "verse 4/4 (slow heavy riff in standard meter) -> chorus 7/4 (the meter SHIFTS for chorus — opposite of Spoonman). The OPPOSITE structural choice from Spoonman: chorus is the unstable meter.",
+          "signature_production_choices": [
+            "Terry Date production — heavier compression than Beinhorn, more 'metal' presence",
+            "Drum room mics very wide — kit feels physically large in mix",
+            "Cornell vocal slightly distorted on chorus (saturation, not clean delay)"
+          ],
+          "rhythmic_signature": "7/4 chorus grouped 4+3, kick on 1 and 5 — same grouping as Spoonman verse, but here it's the destabilizing element instead of the resolution.",
+          "harmonic_signature": "Drop D tuning gives access to D power chord without barre — riff exploits this.",
+          "instrumental_signature": ["drop D guitar with heavy distortion (Mesa Boogie or Ampeg amp likely)", "no synths or organ — pure rock"],
+          "the_moment_people_remember": "the chorus 7/4 — listener has settled into 4/4 verse, then chorus pulls the rug. Inverse emotional logic from Spoonman.",
+          "advisor_extract": [
+            {
+              "recipe_name": "stable_verse_unstable_chorus_meter",
+              "description": "Inverse of Spoonman: verse in 4/4 (stable), chorus in 7/4 (unstable). Chorus becomes the 'wrong' feeling — destabilizing, off-balance.",
+              "use_for": ["Pre-Drop sections that should feel disorienting", "Choruses subverting verse stability"],
+              "wow_factor": 0.8
+            },
+            {
+              "recipe_name": "drop_tuning_root_chord_economy",
+              "description": "Drop D (or drop C#) tuning lets a single low string deliver root power chord without barring. The riff economy frees up the rest of the hand for ornaments. Fundamental to grunge/metal guitar feel.",
+              "use_for": ["Riff-based verses that need low-end weight"],
+              "wow_factor": 0.5
+            }
+          ]
+        },
+        "Rusty_Cage_Badmotorfinger": {
+          "tempo_bpm_approx": 144,
+          "time_signature": "4/4 (with multiple feel changes)",
+          "structural_blueprint": "fast intro riff -> verse (driving 16th note pattern) -> chorus (different rhythmic feel) -> verse -> chorus -> bridge_breakdown (tempo/feel HALVES — section feels like a different song) -> return to fast original feel -> outro. The bridge breakdown is structurally the most adventurous element.",
+          "signature_production_choices": [
+            "Fast 16th-note kick patterns require precise drum tracking — Cameron's right foot is a metronome",
+            "Guitar layered with subtle delay for size",
+            "Cornell vocal pushed forward in mix"
+          ],
+          "rhythmic_signature": "16th-note kick pattern in verses (uncommon for grunge, more metal). Bridge breakdown switches to half-time and the drum kit feel is completely different (slower, heavier hits).",
+          "instrumental_signature": ["fast palm-muted drop D guitar", "double-tracked guitar for thickness"],
+          "the_moment_people_remember": "the bridge breakdown — when the song HALVES tempo and turns into a different beast for ~30 seconds, then returns to full speed. The contrast amplifies the return.",
+          "advisor_extract": [
+            {
+              "recipe_name": "bridge_tempo_halving_then_return",
+              "description": "Bridge section literally halves the perceived tempo (kick lands every 2 beats instead of every 1, half-time feel). Return to full feel after creates massive momentum.",
+              "use_for": ["Bridge sections that want to feel like a different song", "moments needing maximum tempo contrast"],
+              "wow_factor": 0.85
+            },
+            {
+              "recipe_name": "16th_note_kick_pattern_drop_tuning",
+              "description": "Continuous 16th-note kick (or muted bass equivalent) during verse — creates relentless forward motion. Pairs with palm-muted drop-tuned guitar.",
+              "use_for": ["Aggressive verses needing momentum"],
+              "wow_factor": 0.65
+            }
+          ]
+        },
+        "Burden_In_My_Hand_Down_On_The_Upside": {
+          "tempo_bpm_approx": 116,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (acoustic-feel clean electric guitar) -> verse (continues clean, vocal exposed) -> chorus (heavy distortion enters, but NOT the wall-of-sound of Badmotorfinger — controlled lift) -> verse -> chorus -> bridge -> chorus. Mature dynamic — the band has learned restraint. The chorus is heavier than the verse but NOT maximally so.",
+          "signature_production_choices": [
+            "Adam Kasper production — more open and airy than Beinhorn or Date",
+            "Acoustic-style strumming on electric clean tone — harkens to country/folk influence",
+            "Drum compression lighter — rooms breathe"
+          ],
+          "rhythmic_signature": "Steady 4/4, mid-tempo, simple groove — the song relies on melody/lyric, not rhythmic complexity.",
+          "harmonic_signature": "Major-key folk progression underneath — the SONG sounds folk-rock until the chorus distortion enters.",
+          "instrumental_signature": ["clean electric played acoustically (strummed)", "tasteful distortion in chorus (not maxed)"],
+          "the_moment_people_remember": "the controlled dynamic — the band's late-career restraint. The chorus has weight without sacrificing breath. This is the OPPOSITE of SLTS loud-quiet-loud.",
+          "advisor_extract": [
+            {
+              "recipe_name": "controlled_lift_not_explosion",
+              "description": "Chorus adds distortion but at a CONTROLLED level — not max, not pedal-stomp shock. Maintains breathability. Mature dynamic: chorus is heavier than verse but NOT maximum density.",
+              "use_for": ["Choruses that want lift without overwhelm", "Drops in arrangements where Final Drop will be the true peak"],
+              "wow_factor": 0.7
+            },
+            {
+              "recipe_name": "clean_electric_strummed_acoustically",
+              "description": "Clean electric guitar STRUMMED in acoustic style (large strums, full chords, ringing open strings) — gets a folk-rock feel from a rock instrument.",
+              "use_for": ["Verse arrangements wanting acoustic warmth without acoustic guitar"],
+              "wow_factor": 0.55
+            }
+          ]
+        }
+      },
       "Nirvana": {
         "_meta": {
           "albums_dissected": ["Nevermind", "In Utero"],
