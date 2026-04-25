@@ -3470,7 +3470,7 @@
           ]
         },
         "Fell_On_Black_Days": {
-          "_status": "C2_2a_composition_arrangement_done",
+          "_status": "C2_2b_performance_recording_done",
           "album": "Superunknown",
           "year": 1994,
           "tempo_bpm_documented_range": [82, 86],
@@ -3542,6 +3542,114 @@
             ],
             "what_makes_arrangement_unique_within_soundgarden_catalog": "Fell On Black Days demonstrates Soundgarden's MELODIC + MATURE side. Where JCP is the band's aggressive rhythmic peak, FOBD is their introspective melodic peak from Superunknown era. The clean-to-distorted shift is more conventional than JCP's sustained intensity but executed with sophistication (meter shift adding asymmetry to the convention).",
             "comparison_to_jcp_arrangement": "JCP and FOBD are the same band but compositional opposites. JCP: sustained intensity, drums-as-identity, rhythmic complexity, 5:50 long. FOBD: traditional dynamic shift, vocal-as-identity, harmonic sophistication, 4:42 moderate. Both songs use Soundgarden signature meter shifts but for different ends — JCP's metric ambiguity creates AGGRESSION through unpredictability; FOBD's meter shift creates RELEASE through predictable resolution."
+          },
+          "performance": {
+            "tempo_feel_description": "Slow ~84 BPM lets each beat breathe. Tracked LIVE with band per Beinhorn's documented Superunknown approach — Beinhorn's philosophy on this album was performance preservation, multi-take selection rather than punching/comping.",
+            "drum_style": {
+              "performer": "Matt Cameron",
+              "feel": "RESTRAINED compared to JCP. Cameron's compositional drumming sensibility serves the song's introspective character — he plays patient, supportive grooves rather than featuring his polyrhythmic vocabulary.",
+              "techniques_documented": [
+                "6/4 verse: kick + snare patterns adapted to 6-beat bar — feel is stretched, breathy",
+                "Hi-hat 8ths in verse with subtle articulation; opens to ride or crashes in chorus",
+                "Tom fills minimal — Cameron's drumming serves the song over showcasing",
+                "Cymbal swells used to mark verse-to-chorus transitions (similar approach to HSB)",
+                "Chorus: drums hit fuller but not aggressive — supports the chorus lift without overwhelming"
+              ],
+              "groove_feel_alignment": "ON beat — slow tempo demands precision",
+              "fills_and_transitions": "Sparse — section transitions handled via cymbal swells + density build, not drum fills"
+            },
+            "guitar_style": {
+              "performer_thayil": "Kim Thayil — primary lead lines, atmospheric textures, rhythm doubling Cornell",
+              "performer_cornell": "Chris Cornell — also playing rhythm guitar, layered with Thayil",
+              "feel_per_section": {
+                "intro": "Clean strummed/arpeggiated drop D voicings — patient establishing tone",
+                "verse": "Continued clean texture, sus chord coloring, exposed",
+                "pre_chorus": "Chord transitions add tension via voicing shifts; texture begins to fill",
+                "chorus": "DISTORTION ENGAGES — clean-to-distorted dynamic shift between verse and chorus is the core compositional move",
+                "bridge": "Lead lines from Thayil over rhythm section's continued groove",
+                "outro": "Returns to chorus distortion intensity"
+              },
+              "techniques_documented": [
+                "Drop D tuning facilitates open-ringing low D pedal tones in verse arpeggios",
+                "Two-guitar layering: Thayil + Cornell tracked separately, panned for stereo width (Soundgarden standard)",
+                "Verse uses sus2 / sus4 voicings — leaves chord quality open before chorus arrives",
+                "Chorus engages overdrive/distortion via tube amp (Soundgarden's documented amp options)",
+                "No bend riff or signature lead motif — guitar serves the harmonic/textural shift between sections"
+              ],
+              "playing_style_versus_jcp": "JCP's guitars: atmospheric distortion sustained throughout. FOBD's guitars: CLEAN-TO-DISTORTED dynamic shift between sections. Same instruments, two compositional roles."
+            },
+            "bass_performance": {
+              "performer": "Ben Shepherd",
+              "role": "MELODIC + supportive bass line. Shepherd plays root motion that supports the vocal melody phrases, with occasional melodic flourishes. More active than Yamamoto's restrained role on JCP — Shepherd's playing on Superunknown is documented as more compositionally engaged.",
+              "context": "Shepherd had joined Soundgarden for Superunknown era (replacing Yamamoto). His bass approach is documented as more melodic and integrated with the songwriting — Fell On Black Days demonstrates this."
+            },
+            "vocal_delivery": {
+              "performer": "Chris Cornell",
+              "verse_delivery": "Mid-register, intimate, exposed — Cornell singing in his comfortable mid range without strain. Documented as one of his most CONFESSIONAL vocal performances on the album.",
+              "chorus_delivery": "OPENS UP — Cornell expands range and dynamics for the chorus lift. Sustained held notes at peak. NOT the high-range max of JCP, but emotionally accessible.",
+              "outro_delivery": "Continues chorus intensity with subtle variation across cycles",
+              "documented_vocal_quirks": [
+                "Less vocal grit/strain than aggressive Soundgarden tracks — accessible delivery serves the song's introspection",
+                "Cornell's documented multi-octave range used SELECTIVELY here — not maxed but present",
+                "Multiple complete takes recorded; best chosen rather than comped (Beinhorn's documented approach to vocal tracking)"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization or pitch correction (1994 era + Beinhorn philosophy preserves performance integrity)",
+              "Vocal NOT comped piecewise — full takes preferred",
+              "No drum sample replacement",
+              "No second-take overdubs added beyond live tracking + chorus vocal layering"
+            ]
+          },
+          "recording": {
+            "studio": "Bad Animals Studio, Seattle, Washington (Heart's studio — documented Superunknown tracking location)",
+            "session_dates": "1993 sessions",
+            "primary_engineer_producer": "Michael Beinhorn (producer) — different from Badmotorfinger's Terry Date. Beinhorn's documented portfolio includes Soundgarden Superunknown, Korn, Marilyn Manson, Ozzy Osbourne. Brings a more PRODUCER-DRIVEN approach than Date's tracking-focused style.",
+            "subsequent_remix": "Brendan O'Brien mixed Superunknown — separate engineer from producer (in contrast to Date who tracked AND mixed his Soundgarden production)",
+            "drum_micing_approach": {
+              "philosophy_beinhorn": "Multiple close mics + room mics + overheads — Bad Animals's tracking room is medium-sized, captures kit with controlled ambience. Beinhorn's approach more compositionally-aware than Date's pure-capture preference.",
+              "specifics_documented": [
+                "Bad Animals tracking room used — Heart's studio with documented strong drum acoustics",
+                "Cameron's restrained playing on FOBD captured cleanly with close + room balance",
+                "Compression at tracking applied but more subtly than Date or Wallace would (Beinhorn's preference)",
+                "Hi-hat and cymbal positioning carefully captured for the verse arpeggio interplay"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_beinhorn": "Beinhorn encouraged Soundgarden's TWO-GUITAR layering approach — Thayil and Cornell tracked separately for full stereo guitar field",
+              "specifics_documented": [
+                "Both guitars in drop D",
+                "Multiple takes tracked per guitar for chorus distortion thickness",
+                "Tube amps (Soundgarden's documented amp options for Superunknown era — Mesa Boogie + Marshall variations)",
+                "Verse: clean amp tones tracked for arpeggio texture (separate amp settings from chorus distortion takes)"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Ben Shepherd",
+              "specifics": "DI + amp blend per Bad Animals standard. Shepherd's melodic bass role required clarity in mix — documented as recorded with care for melodic intelligibility (vs JCP's deeper-in-mix bass)"
+            },
+            "vocal_tracking_approach": {
+              "philosophy_beinhorn": "Vocal isolation booth at Bad Animals — clean capture for Cornell's full range. Multiple complete passes recorded per take.",
+              "specifics_documented": [
+                "Cornell tracked in vocal booth, dynamic mic capable of high SPL (similar to Shure SM7 / AKG D series)",
+                "Beinhorn documented as preferring multiple complete vocal takes then selection rather than comping piecewise",
+                "Doubled chorus vocals: Cornell self-doubled across multiple takes (Soundgarden's documented chorus harmony approach)"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Drop D tuned guitars (Thayil + Cornell)",
+              "Tube amps (Mesa Boogie / Marshall variations)",
+              "Bad Animals Studio's Neve console (the studio's documented main console)",
+              "Cameron's full kit",
+              "Cornell's vocal mic — likely Shure SM7 (handles high SPL and dynamic range)"
+            ],
+            "what_makes_beinhorn_recording_distinct": [
+              "More PRODUCER-DRIVEN than Date — Beinhorn shaped songs more actively in tracking decisions",
+              "Captures BOTH band live performance AND allows for compositional refinement via multi-take selection",
+              "Bad Animals room character distinct from Studio D Sausalito — Pacific Northwest studio aesthetic vs California metal-friendly studio",
+              "O'Brien's separate mixing role allowed Beinhorn to focus on tracking; gave Superunknown a more polished mix character than the Date-self-mix Badmotorfinger"
+            ],
+            "beinhorn_vs_date_for_soundgarden": "Date (Badmotorfinger 1991) tracked AND mixed — capture-focused, raw. Beinhorn (Superunknown 1994) tracked with more producer involvement, then handed off to O'Brien for mixing — more polished, more compositionally shaped. The two albums sound different partly because of these production philosophy differences applied to the same band."
           }
         },
         "My_Wave": {
