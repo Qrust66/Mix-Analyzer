@@ -4277,7 +4277,7 @@
           }
         },
         "Head_Down": {
-          "_status": "C2_5b_performance_recording_done",
+          "_status": "C2_5c_complete_exhaustive",
           "album": "Superunknown",
           "year": 1994,
           "tempo_bpm_documented_range": [86, 92],
@@ -4420,6 +4420,137 @@
             ],
             "comparison_to_my_wave_recording": "Same album (Superunknown), same producer (Beinhorn), same studio (Bad Animals), same mixer (O'Brien), but DIFFERENT recording emphasis: My Wave tracked for 5/4 groove clarity, Head Down tracked for 7/4 drone foundation. Different songs require different tracking-stage decisions even within the same album session.",
             "comparison_to_overfloater_recording": "Overfloater (1996, Studio Litho, Kasper unified role) vs. Head Down (1993, Bad Animals, Beinhorn+O'Brien split). Both atmospheric Soundgarden tracks but with TOTALLY different production approaches: Kasper band-driven authenticity vs. Beinhorn producer-driven shaping. Same band's atmospheric capacity expressed through different production frames."
+          },
+          "mixing": {
+            "mix_engineer": "Brendan O'Brien (Superunknown mixed throughout — same mixer as JCP, FOBD, My Wave on this album)",
+            "mixing_studio": "Southern Tracks Recording, Atlanta, Georgia (O'Brien's documented Superunknown mix base)",
+            "mixing_philosophy_obrien_for_head_down": "DRONE-FOUNDATION CLARITY + ATMOSPHERIC SPACE. O'Brien's documented Superunknown approach adapted to Head Down's drone-modal compositional intent rather than imposing radio-rock template. Mix prioritizes LOW-FREQUENCY clarity (the drone) + WIDE STEREO ATMOSPHERE (the harmonic field above the drone).",
+            "drum_mix_balance": [
+              "Kick + bass-low coordination CRITICAL — kick fundamentals (~60Hz) must complement Shepherd's drone (~80-120Hz fundamentals) without muddying",
+              "Snare slightly more present than typical atmospheric mix — needed to articulate the 7/4 cycle for listener comprehension",
+              "Cymbals (hi-hat + ride) prominent in upper mid (~2-5 kHz) for cycle articulation",
+              "Room mics blended to give kit natural breathing space"
+            ],
+            "guitar_mix_treatment": [
+              "Two guitars panned hard L/R for stereo width across the atmospheric harmonic field",
+              "EQ EMPHASIZES upper-mid sustain (~1-3 kHz) for chord clarity over the drone",
+              "Less aggressive compression than JCP mix — sustained drone-friendly textures need natural decay preservation",
+              "Bridge atmospheric leads float forward briefly, retreat into texture — mix dynamic automation"
+            ],
+            "vocal_mix_treatment": [
+              "Cornell vocal centered, slightly forward — needs to read clearly above the drone foundation",
+              "Plate reverb + medium hall reverb blend gives vocal SPACE matching atmospheric mood",
+              "Light compression preserves Cornell's sustained held phrases",
+              "EQ carve in low-mid (~200-400Hz) avoids vocal clashing with drone bass"
+            ],
+            "bass_mix_treatment": [
+              "Shepherd's bass drone is COMPOSITIONALLY CENTRAL — mix gives it MORE presence than typical bass placement",
+              "Low-frequency clarity priority — sustained low B notes must read clearly without becoming a wall of low rumble",
+              "Light compression preserves natural envelope; bass + kick coordinated via complementary frequency placement",
+              "Bass SLIGHTLY more forward than JCP/FOBD/My Wave bass mix because the drone IS the foundation"
+            ],
+            "spatial_treatment_drone_atmosphere": [
+              "Reverb usage MORE than typical Superunknown tracks — drone-modal harmonic field benefits from spatial depth",
+              "Plate reverbs on guitars + drums provide 'room' feel without artificial-sounding hall ambience",
+              "Bridge section uses MORE reverb than verses — spatial expansion mirrors structural opening up",
+              "Stereo field WIDE (guitars hard L/R) but bass + kick + vocal anchor center for solidity"
+            ],
+            "automation_used_in_mix": [
+              "Vocal level rides — Cornell's atmospheric phrasing compensated for via mix automation",
+              "Bridge instrument level rides — guitars + drums lift slightly during bridge, then retreat for outro",
+              "Reverb send automation — bridge has more reverb, verses tighter for vocal clarity",
+              "Bass level CONSISTENT — drone foundation should not waver"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression of drone bass (would destroy the song's foundational character)",
+              "No drum sample replacement",
+              "No vocal pitch correction or layering as dynamic device",
+              "No 4/4-style pop-rock mix template imposed (the 7/4 asymmetric cycle dictates different mix priorities)"
+            ],
+            "comparison_to_my_wave_mix": "Same album, same mixer (O'Brien). My Wave mix highlights 5/4 GROOVE PLAYFULNESS — kick/snare punch, mid-range guitar bite. Head Down mix highlights 7/4 DRONE FOUNDATION — bass presence, atmospheric reverb, low-frequency clarity. O'Brien adapts mix philosophy to compositional intent within the same album session.",
+            "comparison_to_overfloater_mix": "Overfloater mix (Kasper unified role, Studio Litho, band-driven) is atmospheric continuity with subtle structural lifts. Head Down mix (O'Brien, Southern Tracks, producer-mixer-split) is drone-foundation with asymmetric cycle clarity. Both atmospheric Soundgarden but with DIFFERENT compositional engines requiring DIFFERENT mix priorities."
+          },
+          "mastering": {
+            "mastering_engineer_album": "Stephen Marcussen (mastered Superunknown — documented album-level mastering engineer; same engineer as Down on the Upside establishing Soundgarden-Marcussen continuity)",
+            "mastering_studio": "Marcussen Mastering (Hollywood, California)",
+            "mastering_philosophy_for_head_down": [
+              "Marcussen's documented approach: high-end clarity + low-end weight + preserves dynamics",
+              "Head Down's drone foundation requires PRESERVED LOW-END WEIGHT — mastering must not over-compress the bass drone or it loses its foundational character",
+              "1994 album-level mastering — Superunknown SLIGHTLY pre-loudness-war but already commercially-loud-enough for radio impact (5M+ US sales)"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS integrated estimate. Head Down specifically slightly quieter than album peak tracks (Spoonman, Black Hole Sun) due to atmospheric compositional intent.",
+            "spectral_signature": "Marcussen's documented sound: present mid-range, smooth top end, tight low end. Head Down benefits from this approach — the drone reads clearly without becoming muddy.",
+            "what_mastering_preserves_for_head_down": [
+              "Dynamic range across verse-chorus-bridge structure",
+              "Low-frequency drone clarity (Shepherd's bass + low-tuned guitars)",
+              "Sustained guitar texture clarity in atmospheric sections",
+              "Cornell's atmospheric vocal phrasing"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "THE 7/4 ASYMMETRIC CYCLE OVER DRONE — listeners feel the long asymmetric pulse over Shepherd's sustained low foundation. The cycle creates a HYPNOTIC + STATELY feel rare in mainstream rock context.",
+            "level_2_arrangement_signature": "DRONE-FOUNDATION + ASYMMETRIC METER. Bass holds sustained low drone, drums establish 7/4 cycle, guitars provide harmonic field above the drone, vocal floats. A meditation-music compositional engine within rock instrumentation.",
+            "level_3_compositional_signature": "ASYMMETRIC METER + DRONE-CENTERED HARMONY as compositional foundation in 1994 commercial rock context. Demonstrates that ODD METER + DRONE COMPOSITIONAL ENGINE can succeed commercially when paired with strong atmospheric arrangement + competent musicianship. Shepherd's documented co-write demonstrates collective writing — bassist driving compositional identity, not just supporting guitar riffs."
+          },
+          "advisor_extract": {
+            "recipe_name": "asymmetric_meter_drone_modal_meditation_within_rock",
+            "applicability": "Atmospheric rock/post-rock/drone-doom-adjacent compositions where asymmetric meter + drone harmony serve meditative or hypnotic intent. Use when the SONG'S IDENTITY is the long cycle over the drone, not the harmonic motion.",
+            "core_compositional_recipes": [
+              {
+                "id": "seven_four_asymmetric_meter_as_structural_device",
+                "rule": "Use 7/4 (or other long asymmetric meters: 11/8, 13/8) as STRUCTURAL DEVICE rather than as decorative complexity. The long asymmetric cycle should feel HYPNOTIC + STATELY — listeners inhabit the cycle. 7-beat groupings can subdivide as 4+3, 3+4, 3+2+2, or 2+3+2 depending on rhythmic emphasis.",
+                "wow_factor": 0.83,
+                "documented_example": "Head Down (Soundgarden, Superunknown 1994, 7/4 throughout) — Cameron's 7/4 mastery makes it feel natural rather than arithmetic",
+                "trade_offs": "Requires excellent drummer + bassist to make asymmetric meter FEEL natural rather than counted-stiffly. Listeners conditioned to 4/4 may need time to lock in.",
+                "personality_fit": "Yorke 35 / Cobain 25 / Reznor 15 / Daft Punk 25 (Yorke for asymmetric meter tolerance, Daft Punk for cyclic hypnotic quality)"
+              },
+              {
+                "id": "drone_foundation_as_compositional_anchor",
+                "rule": "Build a song where SUSTAINED LOW-FREQUENCY DRONE is the harmonic gravity well. All other harmonic motion happens ABOVE the drone (suspended voicings, modal inflections) rather than via traditional chord progression. Drone should be present 80%+ of song duration.",
+                "wow_factor": 0.81,
+                "documented_example": "Head Down — Shepherd's sustained low B drone foundation across 6:08",
+                "trade_offs": "Requires excellent bass tone + sustain capability. May feel monotonous to listeners expecting harmonic motion.",
+                "personality_fit": "Yorke 30 / Cobain 25 / Reznor 30 / Daft Punk 15 (Reznor for drone-doom influence, Yorke for atmospheric tolerance)"
+              },
+              {
+                "id": "modal_voicings_above_drone_replace_chord_progression",
+                "rule": "Instead of standard chord progression (I-IV-V-I or i-VI-VII-i), use SUSTAINED MODAL VOICINGS above a drone foundation. Suspensions (sus2, sus4), modal inflections (Aeolian, Phrygian), and quartal/quintal voicings preserve harmonic openness while creating subtle motion.",
+                "wow_factor": 0.78,
+                "documented_example": "Head Down — modal voicings above drone foundation, harmonic motion via voicing shifts not chord changes",
+                "trade_offs": "Less obvious 'songwriting' for listeners conditioned to hook-driven progressions. Requires harmonic ear to write convincingly.",
+                "personality_fit": "Yorke 45 / Cobain 20 / Reznor 20 / Daft Punk 15"
+              },
+              {
+                "id": "bassist_driven_compositional_identity",
+                "rule": "Allow the BASSIST to drive primary compositional identity (riff, structure, harmonic foundation) rather than always centering guitar riffs. Documented as Shepherd's role on Head Down — the bass drone IS the compositional engine.",
+                "wow_factor": 0.76,
+                "documented_example": "Head Down — Ben Shepherd co-wrote, bass drone foundation is compositional anchor",
+                "trade_offs": "Requires bassist with compositional vision; band must trust bassist's structural ideas",
+                "personality_fit": "Cobain 30 / Yorke 25 / Reznor 25 / Daft Punk 20"
+              },
+              {
+                "id": "long_asymmetric_cycle_for_meditation_not_complexity",
+                "rule": "When using asymmetric meter (7/4, 5/4, 11/8), let the cycle feel LONG + MEDITATIVE rather than tight + complex. Slow tempos (80-95 BPM) + sustained instrumentation help listeners INHABIT the cycle rather than count it. Asymmetric meter as MEDITATIVE STRUCTURAL DEVICE not as virtuosic flex.",
+                "wow_factor": 0.79,
+                "documented_example": "Head Down 7/4 at ~88 BPM — meditative cycle, not virtuosic complexity",
+                "trade_offs": "Requires aesthetic restraint — temptation to show off odd-meter playing must be resisted",
+                "personality_fit": "Yorke 40 / Cobain 20 / Reznor 25 / Daft Punk 15"
+              },
+              {
+                "id": "low_frequency_clarity_priority_in_drone_mix",
+                "rule": "When mixing drone-foundation arrangements, give the drone bass + low-tuned instruments DEDICATED low-frequency space. Coordinate kick (~60Hz) + bass drone (~80-120Hz) via complementary frequency placement. Avoid over-compressing the drone — preserve its natural envelope. Light dedicated reverb on drone-frequency layers can enhance spatial depth.",
+                "wow_factor": 0.74,
+                "documented_example": "Head Down O'Brien mix — bass drone clearly audible without becoming muddy",
+                "trade_offs": "Requires careful frequency carving + restraint with compression",
+                "personality_fit": "Reznor 35 / Cobain 25 / Yorke 25 / Daft Punk 15"
+              }
+            ],
+            "production_philosophy_signature_obrien_adapted_to_drone": {
+              "philosophy": "Producer-mixer split (Beinhorn produced, O'Brien mixed) ADAPTED to drone-foundation compositional intent. Mix priorities shift from radio-rock template to drone-clarity + asymmetric-cycle articulation.",
+              "applicability": "Atmospheric arrangements requiring low-frequency clarity + asymmetric cycle articulation within commercial production framework",
+              "key_insight": "Same mixer (O'Brien) can produce VERY different mixes within same album session by adapting mix priorities to compositional intent. My Wave mix ≠ JCP mix ≠ Head Down mix even though same engineer."
+            },
+            "structural_choice_summary": "Asymmetric 7/4 meter, drone-foundation bass, modal voicings above drone, atmospheric arrangement — Head Down demonstrates Soundgarden's MEDITATIVE + DRONE-MODAL side, a structurally adventurous track within commercially successful 1994 album. Shepherd's co-write demonstrates collective writing approach with bassist as compositional driver."
           }
         }
       },
