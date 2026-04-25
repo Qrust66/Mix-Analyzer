@@ -2438,7 +2438,7 @@
           ]
         },
         "Territorial_Pissings": {
-          "_status": "C1_3a_composition_arrangement_done",
+          "_status": "C1_3b_performance_recording_done",
           "album": "Nevermind",
           "year": 1991,
           "tempo_bpm_documented_range": [175, 180],
@@ -2505,6 +2505,114 @@
               "Does NOT use a pre-chorus build — verse cuts directly to chorus"
             ],
             "what_makes_arrangement_unique_within_nirvana_catalog": "Territorial Pissings is the band's most aggressively HARDCORE-PUNK-influenced track — closer to Black Flag or early Discharge than to Nirvana's pop-leaning material. The arrangement strategy (a cappella intro then unrelenting attack) is unique to this song in the Nevermind tracklist."
+          },
+          "performance": {
+            "tempo_feel_description": "Hardcore-punk speed at ~178 BPM. Tracked LIVE with full band per Vig's documented Sound City sessions approach. Tempo feel pushed slightly AHEAD of beat in vocal and snare hits — the urgency of the performance translates to micro-timing acceleration that engineers can document but rarely correct.",
+            "drum_style": {
+              "performer": "Dave Grohl",
+              "feel": "Documented as Grohl's MOST AGGRESSIVE performance on Nevermind. Plays at the edge of his physical capability for the entire ~2 minutes. No restraint anywhere — opposite of his Dumb performance.",
+              "techniques_documented": [
+                "Continuous fast 8th-note kick with snare on 2/4 backbeat",
+                "Frequent open hi-hat / crash cymbal — no closed-hat verse restraint",
+                "Tom fills used as section transitions (where HSB used cymbal swells)",
+                "Snare hit at maximum strike force throughout — physical drumming style",
+                "Documented as recorded in single complete takes (not punched-in or comped)"
+              ],
+              "groove_feel_alignment": "Slightly AHEAD of beat — the aggression translates to micro-timing push. Documented as part of the song's urgency.",
+              "fills_and_transitions": "Tom fills + crash cymbal hits at section boundaries. UNLIKE HSB's understated approach, fills are explicit and present."
+            },
+            "guitar_style": {
+              "performer": "Kurt Cobain",
+              "feel_per_section": {
+                "intro": "GUITAR ABSENT — 4-bar a cappella intro has no guitar at all",
+                "band_slam_entry": "Distorted power chords crash in on downbeat at maximum gain",
+                "verse": "Continuous distorted power chord cycle, no palm-muting (non-stop ringing distortion)",
+                "chorus": "Same distorted intensity — no clean-to-distorted transition like HSB uses",
+                "bridge": "Sustained chord with feedback — guitar holds while drums and vocal carry",
+                "outro": "Cuts abruptly with band — no sustained final chord"
+              },
+              "techniques_documented": [
+                "Maximum gain distortion via Boss DS-2 (or similar — Cobain's documented Nevermind-era pedal arsenal)",
+                "Open ringing power chords (no palm-muting) — distortion is sustained throughout",
+                "No bend riff, no signature lead — guitar is texture/density not melody",
+                "Cobain's playing style at this tempo: aggressive but rhythmically locked"
+              ],
+              "playing_style_versus_other_nevermind_tracks": "Where SLTS uses clean-to-distorted dynamic shift and In Bloom has melodic guitar interest, Territorial Pissings has SUSTAINED distortion with no dynamic shift. The guitar is closer to a wall of noise than a featured instrument."
+            },
+            "bass_performance": {
+              "performer": "Krist Novoselic",
+              "intro_role": "Novoselic's vocal IS the intro — he sings the a cappella phrase. Bass enters AFTER his vocal phrase ends, when the band slams in.",
+              "post_intro_role": "Locked with kick drum at performance speed — root motion of the chord cycle, no melodic flourishes. Anti-melodic compared to his work on In Bloom or Heart-Shaped Box."
+            },
+            "vocal_delivery": {
+              "primary_performer": "Kurt Cobain (verses + choruses + bridge)",
+              "intro_performer": "Krist Novoselic (a cappella intro only)",
+              "intro_delivery": "Krist Novoselic singing a cappella — relatively in-tune but deliberately unaffected/casual delivery, contrasting with the band slam that follows",
+              "verse_chorus_delivery": "Cobain SCREAMED throughout. Pitch is approximate — the delivery prioritizes rhythmic punch and emotional intensity over pitch accuracy. Documented as nearly hoarse by end of takes.",
+              "outro_delivery": "Continued screaming until the abrupt band cut",
+              "documented_vocal_quirks": [
+                "Cobain's vocal documented as recorded in 1-2 complete takes — not comped",
+                "Vocal cords visibly strained per session photos/footage — physical performance, not just vocal acting",
+                "Audible breath sounds and screams kept in mix (Vig + Wallace philosophy preserves performance authenticity)"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization or pitch correction (1991 era + Vig philosophy)",
+              "Vocal NOT comped piecewise — full takes preferred",
+              "No drum sample replacement on the master track (kit kept as Grohl played)",
+              "No second-take overdubs added to the band slam — the slam is the actual live moment captured"
+            ]
+          },
+          "recording": {
+            "studio": "Sound City Studios, Van Nuys, California",
+            "session_dates": "Recorded May-June 1991",
+            "primary_engineer": "Butch Vig (tracking + initial mix)",
+            "subsequent_remix_engineer": "Andy Wallace (mixed entire Nevermind album AT Scream Studios in Studio City, CA — radio-ready commercial mix)",
+            "drum_micing_approach": {
+              "philosophy_vig": "Sound City's signature large drum room (the room famously used for Tom Petty, Fleetwood Mac, etc.). Multiple close mics + room mics, but with more compression and tighter focus than Albini's Pachyderm philosophy.",
+              "specifics_documented": [
+                "Sound City's Neve 8028 console used for tracking (the studio's famous console that featured in the documentary 'Sound City')",
+                "Drums tracked with close kick + snare mics, hi-hat mic, overheads, plus distant room mics",
+                "Compression applied at tracking on certain elements (in contrast to Albini's NO-tracking-comp philosophy)",
+                "Drums tracked LIVE with band — not separately overdubbed"
+              ],
+              "result_in_mix": "After Vig tracking + Wallace remix, the drums ended up TIGHTER and PUNCHIER than they would have been in pure Albini hands — the famous Nevermind drum sound is post-Wallace processing."
+            },
+            "guitar_tracking_approach": {
+              "philosophy_vig": "Multi-take layered approach — Vig encouraged Cobain to track multiple guitar takes for chorus thickness (a foreshadowing of Vig's Pumpkins layered approach)",
+              "specifics_documented": [
+                "Cobain played his Mexican Fender Mustang (left-handed) and possibly a Univox HiFlyer on parts of Nevermind",
+                "Distortion via Boss DS-2 Turbo Distortion (documented Nevermind-era pedal)",
+                "Amps included Mesa Boogie and possibly Fender Twin (Sound City's available amp options)",
+                "Guitar tracked LIVE with band, with possible chorus overdub layers added later"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Krist Novoselic",
+              "specifics": "Novoselic's bass tracked through bass amp with mic + DI blend — similar to In Utero approach but with Vig's tighter compression at tracking"
+            },
+            "vocal_tracking_approach": {
+              "philosophy_vig": "Close-mic capture in vocal booth (not main tracking room) — more isolated than Albini's tracking room approach, which means less natural ambience but cleaner separation",
+              "specifics_documented": [
+                "Cobain's vocal tracked in Sound City's vocal booth using Shure SM7 (documented Nevermind-era mic for Cobain's screamed delivery — the SM7 handles high SPL well)",
+                "Krist Novoselic's a cappella intro vocal documented as also recorded by Vig at Sound City",
+                "Multiple complete takes of each vocal recorded; best chosen rather than comped from many"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Sound City Neve 8028 console (the studio's famous board)",
+              "Cobain's Mexican Fender Mustang (LH modified)",
+              "Boss DS-2 Turbo Distortion pedal",
+              "EHX Small Clone chorus pedal (documented Cobain pedal — applies more to Come As You Are than Territorial Pissings)",
+              "Shure SM7 vocal mic for Cobain's screamed delivery",
+              "Sound City Neve console with onboard compression"
+            ],
+            "what_makes_sound_city_recording_distinct": [
+              "Sound City's drum room is its DEFINING acoustic feature — the room is featured in Dave Grohl's 'Sound City' documentary (2013)",
+              "Vig's approach more compressed/produced than Albini's pure capture — but still less polished than typical major-label rock production",
+              "The Vig-Wallace combination produced THE Nevermind sound: drier compressed drums, bright guitars, vocal forward with consistency"
+            ],
+            "vig_vs_albini_philosophical_contrast": "Vig represents the PRODUCED rock approach — multi-take guitar layers, compression at tracking, vocal in isolated booth. Albini represents the CAPTURED rock approach — single-take live tracking, no tracking compression, vocal in tracking room. Cobain documented as ambivalent about Nevermind's polish, leading to In Utero's deliberate move to Albini for an opposite aesthetic."
           }
         },
         "Very_Ape": {
