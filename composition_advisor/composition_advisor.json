@@ -2111,6 +2111,79 @@
           "album": "Lullabies to Paralyze",
           "year": 2005
         }
+      },
+      "Daft_Punk": {
+        "_meta": {
+          "albums_in_scope": ["Homework (1997)", "Discovery (2001)", "Random Access Memories (2013)"],
+          "primary_producers": ["Thomas Bangalter + Guy-Manuel de Homem-Christo (always self-produced)"],
+          "notable_engineers_collaborators": ["Bob Ludwig (mastering Discovery + RAM)", "Nile Rodgers (guitar on RAM)", "Giorgio Moroder (vocal feature on RAM)", "John JR Robinson (drums RAM)", "Mick Guzauski (mix RAM)"],
+          "documentation_sources": "Bangalter interviews in Sound on Sound / Mixdown / Future Music, Mick Guzauski mix engineering interviews, Bob Ludwig mastering notes, Mojo Magazine RAM feature",
+          "songs_to_dissect": ["Harder_Better_Faster_Stronger", "Giorgio_By_Moroder", "Veridis_Quo", "Around_The_World"]
+        },
+        "Around_The_World": {
+          "_status": "stub_pending_full_dissection_C6_1",
+          "album": "Homework",
+          "year": 1997,
+          "_note": "Earliest of the 4 — pure analog filter house era"
+        },
+        "Harder_Better_Faster_Stronger": {
+          "_status": "stub_pending_full_dissection_C6_2",
+          "album": "Discovery",
+          "year": 2001,
+          "_note": "Vocoded vocal as primary melodic carrier"
+        },
+        "Veridis_Quo": {
+          "_status": "stub_pending_full_dissection_C6_3",
+          "album": "Discovery",
+          "year": 2001,
+          "_note": "Anomalous track on Discovery — slow, harmonically rich, classical-influenced"
+        },
+        "Giorgio_By_Moroder": {
+          "_status": "stub_pending_full_dissection_C6_4",
+          "album": "Random Access Memories",
+          "year": 2013,
+          "_note": "9-minute multi-section composition with spoken-word interview audio of Giorgio Moroder narrating his career"
+        }
+      },
+      "Radiohead": {
+        "_meta": {
+          "albums_in_scope": ["Kid A (2000)", "Amnesiac (2001)"],
+          "primary_producers": ["Nigel Godrich (co-producer with Radiohead since OK Computer 1997)"],
+          "primary_engineers": ["Nigel Godrich (also engineering)", "Graeme Stewart (assistant engineer Kid A/Amnesiac)"],
+          "mastering": ["Chris Blair (initial Kid A/Amnesiac master, Abbey Road)", "subsequent reissue masters by Bob Ludwig"],
+          "documentation_sources": "Nigel Godrich interviews in Tape Op / Sound on Sound, Jonny Greenwood interviews on Ondes Martenot + electronic instruments, Mac Randall 'Exit Music: The Radiohead Story', Mojo / Q magazine features on Kid A sessions at Copenhagen + Paris",
+          "songs_to_dissect": ["Everything_In_Its_Right_Place", "The_National_Anthem", "Optimistic", "Pyramid_Song", "Packt_Like_Sardines_In_A_Crushd_Tin_Box"]
+        },
+        "Everything_In_Its_Right_Place": {
+          "_status": "stub_pending_full_dissection_C7_1",
+          "album": "Kid A",
+          "year": 2000,
+          "_note": "Album opener; Rhodes piano + manipulated vocal samples; 10/4 time signature"
+        },
+        "The_National_Anthem": {
+          "_status": "stub_pending_full_dissection_C7_2",
+          "album": "Kid A",
+          "year": 2000,
+          "_note": "Free-jazz brass section over locked bass groove — genre clash"
+        },
+        "Optimistic": {
+          "_status": "stub_pending_full_dissection_C7_3",
+          "album": "Kid A",
+          "year": 2000,
+          "_note": "One of the few rock-band-format songs on Kid A"
+        },
+        "Pyramid_Song": {
+          "_status": "stub_pending_full_dissection_C7_4",
+          "album": "Amnesiac",
+          "year": 2001,
+          "_note": "Notoriously difficult-to-count rhythmic feel (often analyzed as 16/8 with Phil Selway's deliberately ambiguous drum entry)"
+        },
+        "Packt_Like_Sardines_In_A_Crushd_Tin_Box": {
+          "_status": "stub_pending_full_dissection_C7_5",
+          "album": "Amnesiac",
+          "year": 2001,
+          "_note": "Album opener; broken metallic percussion loop + Yorke's pitch-shifted/processed vocal"
+        }
       }
     }
   }
