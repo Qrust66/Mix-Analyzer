@@ -3470,7 +3470,7 @@
           ]
         },
         "Fell_On_Black_Days": {
-          "_status": "C2_2b_performance_recording_done",
+          "_status": "C2_2c_complete_exhaustive",
           "album": "Superunknown",
           "year": 1994,
           "tempo_bpm_documented_range": [82, 86],
@@ -3650,7 +3650,82 @@
               "O'Brien's separate mixing role allowed Beinhorn to focus on tracking; gave Superunknown a more polished mix character than the Date-self-mix Badmotorfinger"
             ],
             "beinhorn_vs_date_for_soundgarden": "Date (Badmotorfinger 1991) tracked AND mixed — capture-focused, raw. Beinhorn (Superunknown 1994) tracked with more producer involvement, then handed off to O'Brien for mixing — more polished, more compositionally shaped. The two albums sound different partly because of these production philosophy differences applied to the same band."
-          }
+          },
+          "mixing": {
+            "history_documented": "SINGLE released mix version: Brendan O'Brien mixed Superunknown. O'Brien is DIFFERENT from the producer (Beinhorn) — separation of tracking and mixing roles, in contrast to Date's tracker-mixer dual role on Badmotorfinger.",
+            "obrien_mix_characteristics_for_fobd": [
+              "MODERATE compression — neither Albini's pure capture nor Wallace's heavy commercial — O'Brien's signature middle ground",
+              "Verse texture preserved: clean guitar arpeggios sit in a NATURAL space (light reverb, room ambience kept)",
+              "Chorus DISTORTION TIGHTENED via mix compression — clean-to-distorted dynamic shift made more dramatic via mix processing",
+              "Vocal CENTERED, present but not commercially-forward — Cornell's vocal sits IN the band rather than ON TOP of it",
+              "Two-guitar stereo separation: Thayil panned slightly off-center, Cornell rhythm guitar mirrored on opposite side (less hard-panned than Date's JCP approach)",
+              "Drum balance: close mics dominant, room mics blended subtly for texture (between Albini's room emphasis and Wallace's close-mic focus)"
+            ],
+            "released_version_mix_engineer": "Brendan O'Brien at his mixing room",
+            "console_documented": "O'Brien's documented preference for SSL G-series consoles in his mid-90s mixes",
+            "compression_philosophy_obrien_for_fobd": "Selective compression — vocal compressed for consistency, drum bus moderately compressed (not heavy like Date's JCP), guitar bus left more dynamic. The compression supports the song's CLEAN-TO-DISTORTED shift by NOT crushing the verse's quiet dynamics.",
+            "stereo_image_strategy_for_fobd": [
+              "Drums: kick + snare CENTERED, hi-hat slightly off-center, room mics blended NARROWER than Date's JCP (less aggressive room spread)",
+              "Guitar 1 (Thayil): panned MODERATELY left",
+              "Guitar 2 (Cornell rhythm): panned MODERATELY right (matching Thayil's depth)",
+              "Bass CENTERED with kick",
+              "Vocal CENTERED with subtle width via doubled chorus vocals slightly spread"
+            ],
+            "vocal_treatment": "Cornell vocal: moderate compression (preserves dynamic delivery), subtle plate or chamber reverb adding 'space' that suits the introspective song character, mild EQ presence boost for vocal clarity in mid-register",
+            "drum_treatment": "Close-mic dominant balance, light parallel compression on drum bus (less aggressive than Date or Wallace), room mics blended for ambient context but not featured (vs Albini's room emphasis)",
+            "what_obrien_mix_demonstrates": "O'Brien's mix supports the CLEAN-TO-DISTORTED dynamic SHIFT compositional intent. Heavy compression (Wallace) would FLATTEN the dynamic shift between verse and chorus by crushing the verse's quiet dynamics up to chorus level. Pure capture (Albini) would leave the chorus distortion uncontrolled. O'Brien's moderate compression is OPTIMAL for this kind of dynamic-shift composition.",
+            "comparison_to_jcp_mix": "JCP (Date heavy compression) for sustained intensity = compression CONTAINS chaos. FOBD (O'Brien moderate compression) for dynamic shift = compression PRESERVES dynamic shift between sections. Same band, two different mix philosophies serving two different compositional intents."
+          },
+          "mastering": {
+            "mastering_engineer_album": "Stephen Marcussen at Marcussen Mastering — documented Superunknown mastering engineer",
+            "loudness_approach_documented": "1994 mid-loudness-war era. Marcussen's master pushed Superunknown to commercial-loud levels but preserved more dynamic range than late-90s peak loudness. The album sits at moderate-to-high loudness for 1994 alt-rock.",
+            "vinyl_vs_cd_documented": "Original CD master by Marcussen. Vinyl release used different mastering pass.",
+            "subsequent_remasters_documented": "Various reissues over the decades. 25th anniversary edition (2014) remastered.",
+            "tonal_balance_at_release": "Bright top end (matches O'Brien's mix character), present mid-range for Cornell's vocal, controlled low-end. Tonal balance distinct from Badmotorfinger's Weinberg master — Superunknown sits slightly more polished and slightly less aggressive in mastering.",
+            "marcussen_vs_weinberg_for_soundgarden": "Weinberg mastered Badmotorfinger (1991, raw aggressive aesthetic). Marcussen mastered Superunknown (1994, more polished aesthetic). The two albums' different mastering engineers contribute to their distinct sounds — same band, different tonal aesthetics across releases."
+          },
+          "the_moment_people_remember": {
+            "primary": "The METER SHIFT from 6/4 verse to 4/4 chorus — listener feels the meter resolution as part of the chorus emotional payoff. The shift is so well-integrated that many listeners don't consciously perceive the meter change but feel its emotional effect.",
+            "secondary": "Cornell's CHORUS VOCAL — the lift from intimate verse to opened-up chorus, matching the lyrical theme of breaking through depression. One of his most emotionally accessible vocal performances.",
+            "tertiary": "The SUS CHORD VOICINGS in verses — the open-quality chord coloring (drop D pedal tone under sus2/sus4 voicings) creates the song's introspective harmonic identity."
+          },
+          "advisor_extract": [
+            {
+              "recipe_name": "meter_shift_6_4_verse_to_4_4_chorus",
+              "description": "Verses in 6/4 (asymmetric, patient feel — each bar has 6 beats, longer than 4/4), choruses in 4/4 (resolves the asymmetry — chorus FEELS settled). Listener experiences chorus as RELEASE because the meter itself resolves. Distinct from the inverse direction (Outshined: 4/4 verse → 7/4 chorus = chorus DESTABILIZES). Direction depends on whether you want chorus as RELEASE or as TENSION.",
+              "use_for": ["Choruses that should feel like emotional resolution", "compositions where meter is part of the dynamic device", "songs wanting subtle metric sophistication without overt prog complexity"],
+              "wow_factor": 0.80,
+              "implementation_for_modern_compositions": "In MIDI/sample context: define verse in 6/4 (set time signature explicitly to 6/4 for the verse clip), chorus in 4/4. Most DAWs handle multi-meter clips natively. The transition between sections must land on the chord change for the meter resolution to register emotionally."
+            },
+            {
+              "recipe_name": "sus_voicings_verse_with_drop_tuning_pedal",
+              "description": "In drop-tuned guitar (drop D, drop C#), use the low open string as a sustained PEDAL TONE while moving sus2/sus4 voicings on upper strings. The pedal stays constant; the voicings move around it. Creates harmonic richness without committing to chord quality (sus = neither maj nor min).",
+              "use_for": ["Verse arrangements wanting harmonic sophistication without density", "introspective songs needing chord ambiguity", "compositions where the chord progression should feel UNRESOLVED until chorus"],
+              "wow_factor": 0.70,
+              "implementation_for_modern_compositions": "In MIDI: set lowest voice (bass or guitar low string) on root pedal tone (e.g., D in drop D). Upper voices play sus2 (root + 2 + 5) or sus4 (root + 4 + 5) shapes that move while the pedal sustains. Avoid 3rd in voicings during pedal sections — let the chorus introduce 3rd for tonal commitment."
+            },
+            {
+              "recipe_name": "clean_to_distorted_dynamic_shift_traditional",
+              "description": "Verse uses CLEAN guitar tone (arpeggios or strummed clean voicings). Chorus engages distortion via amp gain or pedal stomp. Direct dynamic shift, distinct from sustained-distortion (Very Ape) or HSB's slow-burn arrival. The shift is CLEAR section marker — listener immediately knows verse vs chorus territory.",
+              "use_for": ["Traditional verse-chorus compositions", "songs wanting clear emotional sections without ambiguity", "compositions where the chorus needs to feel ARRIVED-AT rather than gradually-grown-into"],
+              "wow_factor": 0.65,
+              "implementation_for_modern_compositions": "In sample/synth context: verse uses CLEAN amp simulation or undriven synth tone. Chorus engages saturation/distortion plugin or distorted preset. The transition must be on a section boundary downbeat for the shift to register. Pair with vocal layering increase (single verse vocal → doubled chorus vocal) for additional dynamic distinction."
+            },
+            {
+              "recipe_name": "obrien_moderate_compression_for_dynamic_shift_songs",
+              "description": "When mixing songs with dynamic shifts between sections (clean verse → distorted chorus), apply MODERATE compression: enough to control the chorus distortion's chaos but NOT enough to crush the verse's quiet dynamics. Heavy compression (Wallace) would FLATTEN the shift; pure capture (Albini) would leave the chorus chaotic.",
+              "use_for": ["Mix decisions on traditional dynamic-shift compositions", "songs where verse and chorus must remain dynamically distinct in the mix", "albums where the listener's perception of 'chorus arrival' matters"],
+              "wow_factor": 0.65,
+              "philosophical_note": "The advisor must select compression INTENSITY based on the song's compositional dynamic philosophy. Sustained intensity = heavy compression. Dynamic shift = moderate compression. Dynamic restraint = minimal compression. Three intensities for three compositional intents."
+            },
+            {
+              "recipe_name": "vocal_subselective_range_use",
+              "description": "When a vocalist has a wide range, use it SELECTIVELY rather than maximally. Verses in mid-register (intimate), choruses opening up to upper register (lift), but NOT pushing to physical limits unless the song's intensity demands it. Distinct from JCP's full-range exploitation — here the range is a TOOL deployed strategically rather than a SHOWCASE used continuously.",
+              "use_for": ["Songs centered on vocal expression rather than vocal showcase", "introspective tracks where emotional accessibility matters more than physical performance impressiveness", "compositions where the vocalist's range supports the song without dominating"],
+              "wow_factor": 0.65,
+              "philosophical_note": "Cornell could sing JCP's high-range exploitation OR FOBD's selective range deployment. Same vocalist, two compositional approaches. The advisor should select range usage based on song's emotional intent, not just vocalist's capability."
+            }
+          ]
         },
         "My_Wave": {
           "_status": "stub_pending_full_dissection_C2_3",
