@@ -25,10 +25,10 @@ Design principles (per the brief):
    ("Hollow" section, 4 bars only) before rebuilding bigger. The Final
    Drop catches fire — closer clusters every beat + riser continuous.
 
-STEPS A1-B1/9 — Phase A done + drums (Kick / Snare / Tom Hi / Tom Lo /
-Hats / PRC Metal). Cluster stabs implemented on Kick, Snare, PRC Metal —
-they hit identical syncopated beats on every Drop. Toms tribal & sparse
-(AIC/Rob Zombie). Hats only in Verses + Final Drop (let drops breathe).
+STEPS A1-B2/9 — drums + basses + pad + drone + tension. Bass Sub joins
+the cluster grid on Drops (locks with kick); Bass Lead joins on Drops +
+delivers the snake-charmer maj-3 (F nat) on Verse 2 / Bridge. Pad uses
+sus4 (no commitment to maj/min) to leave the maj-3 to the bass.
 """
 
 from __future__ import annotations
@@ -317,6 +317,134 @@ NOTE_GENERATORS["03 DRM Tom High"]  = _tom_high
 NOTE_GENERATORS["04 DRM Tom Low"]   = _tom_low
 NOTE_GENERATORS["05 DRM Hats"]      = _hats
 NOTE_GENERATORS["06 PRC Metal"]     = _prc_metal
+
+
+# --- Basses + Pad + Drone + Tension (B2) ----------------------------------
+#
+# C# Phrygian Dominant pitch reference:
+#   C#1=25  D1=26  F1=29  F#1=30  G#1=32  A1=33  B1=35
+#   C#2=37  D2=38  F2=41  F#2=42  G#2=44  A2=45  B2=47
+#   C#3=49  D3=50  F3=53  F#3=54  G#3=56  A3=57
+#   The maj-3 (F nat) is the venomous snake-charmer note (creates aug-2
+#   from D b2). Pad avoids committing it; Bass Lead delivers it.
+
+def _bas_sub(section: str, length: int) -> list[Note]:
+    """Sub foundation. Verses: C#1 held long, pivots to D1 (b2) on the
+    LAST 2 BARS to ANNOUNCE the Drop. Drops: cluster sync — sub locks with
+    kick on identical beats. Bridge: D1 held entire section (announces
+    fire). Final Drop: alternates C#1 / D1 every 4 bars (venomous oscill.)."""
+    notes: list[Note] = []
+    bars = length // 4
+    cluster = cluster_beats(section)
+
+    if section == "Verse 1":
+        # 16 bars: C#1 held 14 bars, D1 last 2 (drop announce)
+        notes += [(0.0,  25, 56.0, 105),
+                  (56.0, 26, 8.0,  110)]
+    elif section == "Verse 2":
+        # Mid-section push to D1 + final 2-bar D1 announce
+        notes += [(0.0,  25, 28.0, 105),
+                  (28.0, 26, 4.0,  100),
+                  (32.0, 25, 24.0, 105),
+                  (56.0, 26, 8.0,  110)]
+    elif section == "Bridge":
+        # D1 held entire 8-bar section (the b2 carries the fire announce)
+        notes.append((0.0, 26, float(length), 110))
+    elif cluster:
+        for bar in range(bars):
+            t = bar * 4
+            base_pitch = 25
+            if section == "Final Drop" and (bar // 4) % 2 == 1:
+                base_pitch = 26   # alternate root / b2 every 4 bars
+            for c in cluster:
+                vel = 122 if c in (0.0, 2.5) else 105
+                notes.append((t + c, base_pitch, 0.25, vel))
+    return notes
+
+
+def _bas_lead(section: str, length: int) -> list[Note]:
+    """Distorted bass lead — the maj-3 voice (F nat = snake-charmer venom).
+    Verse 2: held F2 with a half-step F#2 push every 4 bars. Bridge: chromatic
+    climb C#2 -> D2 -> D#2 -> F2 (skips E, snake jump). Drops: cluster sync at
+    C#2. Final Drop: octave jumps to C#3 on bar-4 of each phrase for accent."""
+    notes: list[Note] = []
+    bars = length // 4
+    cluster = cluster_beats(section)
+
+    if section == "Verse 2":
+        # 16 bars: 4 phrases of [F2 hold 3 bars + F#2 push 1 bar]
+        for phrase in range(bars // 4):
+            t = phrase * 16
+            notes += [(t + 0.0,  41, 12.0, 100),    # F2  hold 3 bars
+                      (t + 12.0, 42, 4.0,  105)]    # F#2 push 1 bar
+    elif section == "Bridge":
+        # Chromatic ascending climb (audacity: SKIPS E, jumps D# -> F)
+        notes += [(0.0,  37, 8.0,  100),    # C#2 bars 1-2
+                  (8.0,  38, 8.0,  105),    # D2  bars 3-4
+                  (16.0, 39, 8.0,  110),    # D#2 bars 5-6 (chromatic OUT-of-scale)
+                  (24.0, 41, 8.0,  115)]    # F2  bars 7-8 (skip E, snake jump)
+    elif cluster:
+        for bar in range(bars):
+            t = bar * 4
+            base = 37    # C#2 default
+            # Final Drop: bar-4 of every 4-bar phrase = octave up to C#3
+            if section == "Final Drop" and (bar % 4) == 3:
+                base = 49
+            for c in cluster:
+                vel = 118 if c in (0.0, 2.5) else 100
+                notes.append((t + c, base, 0.25, vel))
+    return notes
+
+
+# Pad voicings: sus4 avoids committing to maj/min; venom voicing pushes
+# the b2 + maj-3 + 4 cluster (D-F-A) for max dissonance against C# root.
+PAD_SUS4  = [49, 54, 56]    # C#3 F#3 G#3
+PAD_VENOM = [50, 53, 57]    # D3  F3  A3  -> b2 / maj3 / 4 — the push
+
+def _pad(section: str, length: int) -> list[Note]:
+    """Sparse pad. Hold C# sus4 for full Intro / Verse 1 / Outro. Verse 2
+    pushes the LAST 4 BARS to D-F-A (b2 + maj3 + 4 cluster) for venom."""
+    notes: list[Note] = []
+    if section in ("Intro", "Verse 1", "Outro"):
+        for pitch in PAD_SUS4:
+            notes.append((0.0, pitch, float(length), 60))
+    elif section == "Verse 2":
+        # 12 bars sus4 + 4 bars venom push
+        for pitch in PAD_SUS4:
+            notes.append((0.0, pitch, 48.0, 60))
+        for pitch in PAD_VENOM:
+            notes.append((48.0, pitch, 16.0, 72))
+    return notes
+
+
+def _drone_dark(section: str, length: int) -> list[Note]:
+    """Single long sustained note per section. AUDACITY: Bridge shifts
+    E1 -> F1 mid-section (aug-2 chromatic step OUT of scale that announces
+    the fire). Outro fades on D1 (b2 unresolved — sting in the tail)."""
+    if section == "Intro":
+        return [(0.0, 28, float(length), 65)]                  # E1 ambiguous tension
+    if section == "Hollow":
+        return [(0.0, 25, float(length), 70)]                  # C#1 root drone (void)
+    if section == "Bridge":
+        half = length / 2
+        return [(0.0,  28, half, 70),                          # E1 first half
+                (half, 29, half, 80)]                          # F1 second half (aug-2)
+    if section == "Outro":
+        return [(0.0, 26, float(length), 60)]                  # D1 b2 unresolved
+    return []
+
+
+def _fx_tension(section: str, length: int) -> list[Note]:
+    """Single held note per section — the synth patch / automation creates
+    the noise-bed timbre, MIDI just provides a constant trigger."""
+    return [(0.0, 60, float(length), 75)]
+
+
+NOTE_GENERATORS["07 BAS Sub"]       = _bas_sub
+NOTE_GENERATORS["08 BAS Lead"]      = _bas_lead
+NOTE_GENERATORS["09 SYN Pad"]       = _pad
+NOTE_GENERATORS["10 SYN Drone Dark"] = _drone_dark
+NOTE_GENERATORS["15 FX Tension"]    = _fx_tension
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
