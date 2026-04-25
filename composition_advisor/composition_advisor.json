@@ -1107,5 +1107,190 @@
       "Smashing Pumpkins Mellon Collie blends grunge + symphonic (orchestrated quiet sections)"
     ],
     "_will_be_distilled_into": "D3a (cobain/reznor genre profiles will draw on grunge_alt_rock_90s + industrial_rock clusters), D3b (yorke/daft_punk profiles), D3c (cross_cluster blend rules)"
+  },
+
+  "song_dissection": {
+    "purpose": "Per-song concrete dissection of widely-documented production, structural, and textural choices. Sourced from interviews, production lore, mix-engineer commentary, and AES documentation — NEVER melodic transcription, NEVER lyrics. Each fiche translates into advisor_extract recipes the advisor applies to ORIGINAL compositions inspired by these techniques.",
+    "scope_explicit": "We dissect: production choices (engineer, room, mic placement when documented), structural blueprints (section architecture, dynamic shifts), sonic textures (drum sound, guitar tone, vocal treatment), arrangement decisions (instrument entry/exit), instrument selection (specific guitars/synths cited in interviews), dynamic shifts (loud-quiet-loud blueprints). We do NOT dissect: specific melodies, lyrics, exact chord voicings as creative expression, or any element that constitutes substantive creative authorship.",
+    "by_artist": {
+      "Nirvana": {
+        "_meta": {
+          "albums_dissected": ["Nevermind", "In Utero"],
+          "primary_producers_cited": ["Butch Vig (Nevermind tracking)", "Andy Wallace (Nevermind mix)", "Steve Albini (In Utero tracking, mostly unmodified)", "Scott Litt (In Utero — Heart-Shaped Box and All Apologies remix)"],
+          "documentation_sources": "Charles R. Cross 'Heavier Than Heaven', Michael Azerrad 'Come As You Are', producer interviews in Sound on Sound / Tape Op / Mix Magazine"
+        },
+        "Smells_Like_Teen_Spirit_Nevermind": {
+          "tempo_bpm_approx": 117,
+          "time_signature": "4/4",
+          "key_area": "F minor (with capo / detuning relative to other Nevermind tracks)",
+          "structural_blueprint": "intro_riff (4 bars clean) -> verse_quiet (clean guitar + sparse bass + vocal whisper-talk) -> pre_chorus_build -> chorus_explosion (full distortion + vocal doubled + cymbals open) -> verse2_quiet -> chorus -> bridge_solo -> chorus_extended -> outro. The TEMPLATE that defined 'loud-quiet-loud' for a generation.",
+          "signature_production_choices": [
+            "Single distortion pedal stomp (Boss DS-1) at chorus entry — clean→saturation transition is THE moment",
+            "Andy Wallace mix added significant compression and high-shelf brightness vs Butch Vig's drier tracking — Cobain reportedly disliked the polish",
+            "Drum room very dry, snare very forward in mix",
+            "Vocal single-tracked in verse, doubled in chorus (creates the perceived size jump)",
+            "Cymbals open WIDE in chorus only — tightly controlled in verse"
+          ],
+          "rhythmic_signature": "kick on 1 and 3, snare backbeat 2/4, hi-hat closed 8ths in verse, open hat + cymbal washes in chorus. Tempo locked, no swing.",
+          "harmonic_signature": "alternates between two harmonic centers via 4-chord cycle — verse and chorus use SAME chord progression but with massively different dynamics + timbre. The CONTRAST is the song.",
+          "instrumental_signature": [
+            "Cobain played a left-handed Fender Mustang (modified) — bright, slightly thin tone that sits between bass and lead frequencies",
+            "Boss DS-1 distortion pedal as the primary tone shaper",
+            "Krist Novoselic bass — warm, rounded, leads the groove"
+          ],
+          "the_moment_people_remember": "the chorus entry — the SECOND the distortion pedal hits at end of pre-chorus. Listeners' bodies physically register the dynamic jump because the verse was so restrained.",
+          "advisor_extract": [
+            {
+              "recipe_name": "single_pedal_dynamic_shift",
+              "description": "Verse uses clean guitar + restrained drums (kick + soft snare only). At chorus entry, ONE single audio event (distortion pedal in original; sample/synth fade-in for our context) flips the WHOLE arrangement to max density.",
+              "use_for": ["chorus entries that need maximum impact", "Drop entries from quiet pre-roll"],
+              "wow_factor": 0.85
+            },
+            {
+              "recipe_name": "vocal_layer_count_as_dynamic_lever",
+              "description": "Single vocal in verse, doubled in chorus — the perceived 'bigness' jump comes from layer count, not just volume.",
+              "use_for": ["Verse to Chorus transitions", "Pre-Drop to Drop in our structure"],
+              "wow_factor": 0.7
+            },
+            {
+              "recipe_name": "same_progression_different_dynamic",
+              "description": "Use IDENTICAL chord progression for verse and chorus — but completely different timbres + densities. The song's identity is the contrast, not the harmony.",
+              "use_for": ["sections where you want listener to recognize 'we've been here' but feel transformed"],
+              "wow_factor": 0.65
+            }
+          ]
+        },
+        "In_Bloom_Nevermind": {
+          "tempo_bpm_approx": 79,
+          "time_signature": "4/4",
+          "structural_blueprint": "verse (driving but contained) -> chorus (vocal harmony soars) -> verse -> chorus -> bridge (guitar lead with controlled feedback) -> chorus extended.",
+          "signature_production_choices": [
+            "Vocal harmony in chorus — Cobain harmonizes with himself a 3rd above main melody (overdubbed)",
+            "Bass leads the groove (Novoselic's melodic bass is the harmonic anchor)",
+            "Slower tempo than SLTS — gives the chorus harmony room to breathe"
+          ],
+          "rhythmic_signature": "Dave Grohl's tom-heavy fills in transitions, kick locked with bass on 1 and 3.",
+          "instrumental_signature": ["bass-led arrangement (rare in grunge)", "single distortion guitar layer (no panned doubles)"],
+          "the_moment_people_remember": "the chorus harmony stack — the vocal triadic doubling that lifts the song into something almost beautiful while the lyrics stay sardonic.",
+          "advisor_extract": [
+            {
+              "recipe_name": "vocal_harmony_3rd_above_chorus_only",
+              "description": "Verse vocal is monophonic. Chorus adds a SINGLE harmony voice a major or minor 3rd above. Doesn't fatten the texture as much as octave doubling — instead it adds harmonic color and lift.",
+              "use_for": ["chorus emphasis", "Final Drop melodic statement that wants color not just volume"],
+              "wow_factor": 0.7
+            },
+            {
+              "recipe_name": "bass_as_harmonic_anchor",
+              "description": "Let bass carry the harmonic motion. Pad/chord instruments stay static or absent — bass alone defines the chord changes via root motion.",
+              "use_for": ["sparse verse arrangements", "moments needing motion without thickness"],
+              "wow_factor": 0.6
+            }
+          ]
+        },
+        "Lithium_Nevermind": {
+          "tempo_bpm_approx": 117,
+          "time_signature": "4/4",
+          "structural_blueprint": "verse (clean arpeggio + bass + soft vocal) -> chorus (full distortion + vocal yelled). Verse-chorus contrast is even more EXTREME than SLTS — clean arpeggiated guitar in verse vs wall-of-distortion chorus.",
+          "signature_production_choices": [
+            "Verse guitar is single arpeggiated clean tone — almost no other instrumentation",
+            "Chorus inverts EVERYTHING — full distortion, drums hit harder, vocal goes from murmured to shouted",
+            "No transition — verse cuts directly to chorus on chord change (no pre-chorus build)"
+          ],
+          "rhythmic_signature": "Dave Grohl plays softer in verse, hits harder (literally heavier strikes) in chorus. Same notes, different velocity = the dynamic.",
+          "harmonic_signature": "Same chord progression in verse and chorus (like SLTS) — but here the CHORDS are major-quality, lifted above the dark vocal content (juxtaposition).",
+          "the_moment_people_remember": "the abrupt cut from clean verse arpeggio to wall-of-sound chorus — no transition, no warning. The contrast IS the song.",
+          "advisor_extract": [
+            {
+              "recipe_name": "abrupt_dynamic_cut_no_transition",
+              "description": "Verse to chorus transition with NO pre-chorus build. Last beat of verse = restraint, first beat of chorus = explosion. The lack of transition is the impact.",
+              "use_for": ["Drop entries that prefer shock over build", "alternative to interrupted_silence cadence"],
+              "wow_factor": 0.8
+            },
+            {
+              "recipe_name": "velocity_as_dynamic_within_same_pattern",
+              "description": "Drum pattern IDENTICAL in verse and chorus — only velocity changes. Verse vel ~70, chorus vel ~115. Same rhythmic content, completely different feel.",
+              "use_for": ["sections where you want continuity with intensity shift"],
+              "wow_factor": 0.65
+            },
+            {
+              "recipe_name": "major_quality_dark_lyric_juxtaposition",
+              "description": "Use major-quality chord progressions paradoxically with dark thematic content (in our case: dark vocal melodic shape). The major quality makes the darkness more unsettling than minor would.",
+              "use_for": ["bridge sections that subvert expectation"],
+              "wow_factor": 0.7
+            }
+          ]
+        },
+        "Heart_Shaped_Box_In_Utero": {
+          "tempo_bpm_approx": 100,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (single guitar + slow build) -> verse (full band but restrained) -> chorus (massive expansion via vocal + guitar) -> verse -> chorus -> bridge (guitar solo with feedback texture) -> chorus_extended_outro. Slower-burn than Nevermind tracks — Albini's recording philosophy emphasizes space.",
+          "signature_production_choices": [
+            "Steve Albini production at Pachyderm Studios, Cannon Falls MN",
+            "Drum room mics WIDE — drums sound big and live, very different from Wallace's compressed Nevermind sound",
+            "Vocal treated with ambient delay — adds physical space behind the voice (Scott Litt later remixed this track and All Apologies)",
+            "Guitar bend riff is recognizable — slightly de-tuned, microtonal feel, achieved via deliberate string bend",
+            "No drum compression in tracking (Albini philosophy) — dynamics preserved"
+          ],
+          "rhythmic_signature": "Mid-tempo, kick + snare 4/4 standard, but the FEEL is laid back (slight behind-beat drag from Grohl)",
+          "instrumental_signature": ["Cobain detuned his guitar 1/2 step down for In Utero — rougher, lower tone", "feedback used as a TEXTURE not just an artifact (sustained throughout sections)"],
+          "the_moment_people_remember": "the bent guitar riff — the way the note BENDS slightly out of tune is the song's signature. It feels broken, deliberately wrong, and is impossible to forget.",
+          "advisor_extract": [
+            {
+              "recipe_name": "ambient_drum_space_vs_compressed_drum",
+              "description": "Use UNCOMPRESSED, room-mic'd drum sound for sections that want vulnerability/intimacy. Switch to compressed/dry drum sound for sections that want force. The same drummer can sound entirely different by space treatment alone.",
+              "use_for": ["Verse 1 (room) vs Drop (dry-compressed) contrast"],
+              "wow_factor": 0.75
+            },
+            {
+              "recipe_name": "feedback_as_sustained_texture",
+              "description": "Hold a sustained guitar feedback note (or synth equivalent) THROUGH a section as an additional layer — not as transition artifact but as a continuous textural element.",
+              "use_for": ["bridge moments needing 'broken' atmosphere", "transitions into Drop"],
+              "wow_factor": 0.7
+            },
+            {
+              "recipe_name": "vocal_delay_for_psychological_space",
+              "description": "Apply medium-length delay (1/4 note or 1/8 dotted) on vocal in specific moments — creates a sense of detached reality or distance. Not used throughout — placed deliberately on key phrases.",
+              "use_for": ["bridge vocal moments", "phrases that want psychological weight"],
+              "wow_factor": 0.6
+            }
+          ]
+        },
+        "All_Apologies_In_Utero": {
+          "tempo_bpm_approx": 113,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (clean guitar) -> verse (vocal forward, restrained band) -> chorus (slight lift, NOT the loud-quiet-loud explosion of earlier songs) -> verse -> chorus -> outro_chant_sustained (the song slowly extinguishes via repeated chant figure). Restraint throughout — refuses the band's own loud-quiet-loud signature.",
+          "signature_production_choices": [
+            "Cello added (Kera Schaley) — orchestral element rare in band's catalog. Bowed cello adds sustained low-mid weight beneath vocal",
+            "Steve Albini tracking, then Scott Litt remix added vocal compression",
+            "Drums simpler, mostly kick + snare + minimal hihat — gives space",
+            "Vocal forward in mix — the SONG is the vocal melody"
+          ],
+          "rhythmic_signature": "Simple, mid-tempo, almost ballad pace despite being 113 BPM. No fills.",
+          "harmonic_signature": "Repetitive 2-3 chord cycle — harmonic minimalism is the canvas for the vocal/cello.",
+          "instrumental_signature": ["acoustic-style clean electric guitar", "cello (overdubbed)", "minimal kit"],
+          "the_moment_people_remember": "the outro — the repeated chant figure that fades the song out via repetition rather than crescendo. Anti-cathartic ending.",
+          "advisor_extract": [
+            {
+              "recipe_name": "restraint_as_subversion",
+              "description": "When listener expects loud-quiet-loud (band's signature), DON'T deliver it. Stay restrained throughout. The expectation that's NOT met becomes the song's identity.",
+              "use_for": ["Bridge or Outro that subverts the song's own dynamic blueprint"],
+              "wow_factor": 0.75
+            },
+            {
+              "recipe_name": "orchestral_element_for_low_mid_weight",
+              "description": "Add a sustained orchestral element (cello, viola, bowed bass) for low-mid weight that drums can't provide. Doesn't replace bass — sits between bass and pad.",
+              "use_for": ["Verse arrangements wanting weight without distortion", "Outro fadeouts that want gravity"],
+              "wow_factor": 0.6
+            },
+            {
+              "recipe_name": "outro_chant_extinction_not_crescendo",
+              "description": "Outro fades via REPETITION of a single phrase, not via dynamic crescendo or decrescendo. The song extinguishes by becoming a loop.",
+              "use_for": ["Outros after a peak section — refusing the typical fade-out arc"],
+              "wow_factor": 0.7
+            }
+          ]
+        }
+      }
+    }
   }
 }
