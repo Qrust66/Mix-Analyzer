@@ -2692,7 +2692,7 @@
           ]
         },
         "Very_Ape": {
-          "_status": "C1_4a_composition_arrangement_done",
+          "_status": "C1_4b_performance_recording_done",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [104, 108],
@@ -2756,6 +2756,105 @@
             ],
             "what_makes_arrangement_unique_within_in_utero": "Very Ape is the SHORTEST aggressive track on In Utero. Where Territorial Pissings (Nevermind) is hardcore-punk speed at ~178 BPM, Very Ape is mid-tempo aggressive at ~106 BPM — aggression with measured tempo. The riff-as-identity approach is similar in DNA to QOTSA's later 'robot rock' but predates it and operates in grunge context.",
             "comparison_to_territorial_pissings": "TP and Very Ape share aggressive intent + abrupt ending + single-tracked vocal, but differ in: TEMPO (TP ~178 vs Very Ape ~106), INTRO STRATEGY (TP uses a cappella fake-out; Very Ape uses guitar-alone riff), STRUCTURE (TP has band-slam after intro; Very Ape builds via instrumental layering)."
+          },
+          "performance": {
+            "tempo_feel_description": "Mid-tempo aggressive at ~106 BPM. Tracked LIVE with full band per Albini's In Utero protocol. Tempo feels LOCKED — not pushed ahead like TP's hardcore urgency, not pulled behind like AIC's drag. The riff demands precise placement; loose timing would dissolve the descending pattern's identity.",
+            "drum_style": {
+              "performer": "Dave Grohl",
+              "feel": "Aggressive but more MEASURED than Territorial Pissings. Grohl plays at the song's natural tempo without rushing. Heavy hits but not at his absolute physical limit (in contrast to TP).",
+              "techniques_documented": [
+                "Kick + snare backbeat at mid-tempo, hi-hat 8ths",
+                "Crash cymbal at section boundaries (intro→verse, verse→chorus) — present but not overused",
+                "Tom fills minimal — riff-focused song doesn't want fills competing with riff",
+                "Drum accents follow the riff's descending pattern (snare hits emphasize riff downbeats)"
+              ],
+              "groove_feel_alignment": "ON beat — locked precision",
+              "fills_and_transitions": "Sparse — Grohl serves the riff rather than featuring his playing"
+            },
+            "guitar_style": {
+              "performer": "Kurt Cobain",
+              "feel_per_section": {
+                "intro": "Full distortion descending power chord pattern — establishes identity in 4 bars",
+                "verse": "Same riff continues, layered with full band",
+                "chorus": "Same riff (no shift to different chord cycle) — distortion sustained at constant level",
+                "bridge": "Riff continues without vocal — guitar alone holds the song's identity briefly",
+                "outro": "Riff repeats through final chorus then cuts abruptly"
+              },
+              "techniques_documented": [
+                "Full distortion sustained throughout (Boss DS-1 or DS-2 type pedal — Cobain's documented In Utero pedalboard)",
+                "Drop-tuning facilitates the descending power chord pattern (root note string easily accesses lower pitches)",
+                "Power chord shape moved descending — fingering economy serves the riff identity",
+                "No clean tone sections, no palm-muting variation — distortion ON for entire song"
+              ],
+              "playing_style_versus_other_in_utero_tracks": "Where Heart-Shaped Box features guitar BEND as the signature, Very Ape features guitar RIFF-DESCENT as the signature. Cobain's two compositional approaches: ornamental (HSB) vs structural (Very Ape)."
+            },
+            "bass_performance": {
+              "performer": "Krist Novoselic",
+              "role": "Locked with kick drum and guitar root motion. The riff is descending power chords; bass follows the descending root pattern in unison. Minimal melodic divergence from guitar — Novoselic supports the riff's clarity rather than counterpointing it."
+            },
+            "vocal_delivery": {
+              "performer": "Kurt Cobain",
+              "verse_delivery": "Shouted/strained — Cobain pushing his vocal cords. Pitch is approximate, energy is the priority.",
+              "chorus_delivery": "Even more strained, slight pitch reach upward in chorus phrases",
+              "outro_delivery": "Documented increasing strain by final chorus — Cobain's vocal cords audibly tiring",
+              "documented_vocal_quirks": [
+                "Recorded as full single-take performances — no comping",
+                "Audible vocal strain kept in mix (Albini philosophy preserves authentic performance)",
+                "Pitch flexibility: at this strain level, pitch is approximate — vocal serves rhythmic delivery over pitch accuracy"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization or pitch correction (Albini standard)",
+              "Vocal NOT comped piecewise — full takes preferred",
+              "No drum sample replacement — kit kept as recorded",
+              "No second-take overdubs added beyond live tracking + Cobain's single vocal pass"
+            ]
+          },
+          "recording": {
+            "studio": "Pachyderm Studios, Cannon Falls, Minnesota",
+            "session_dates": "Recorded February 1993",
+            "primary_engineer": "Steve Albini (tracking + mix — NO Litt remix on this track)",
+            "subsequent_remix_engineer": "NONE — Very Ape retains Albini's original mix (only Heart-Shaped Box and All Apologies were Litt remixed)",
+            "drum_micing_approach": {
+              "philosophy": "Same Albini room-emphasis approach as throughout In Utero — large room captured, distant overheads + close kick + snare mics, no compression at tracking",
+              "specifics_for_very_ape": [
+                "At mid-tempo with aggressive Grohl playing, the room mics capture both the kit AND the natural decay between hits",
+                "Drums sound LARGE and live — not the compressed/forward Wallace sound of Nevermind",
+                "Kick-snare-cymbal balance left for mix decision; no tracking compression dictating the balance"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_albini": "Live full-band tracking, multiple mics on amp",
+              "specifics_documented": [
+                "Cobain's distorted guitar tracked through tube amp (Mesa Boogie or Fender amp — In Utero documented amp options)",
+                "Guitar layered minimally — Cobain's documented preference on In Utero was fewer guitar takes than Nevermind sessions had used (Vig had encouraged layering; Albini preferred single takes with character)",
+                "Mustang or Jaguar (left-handed Cobain instruments) — specific instrument for Very Ape not exhaustively documented, but Mustang is most-cited In Utero guitar"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Krist Novoselic, tracked live with band",
+              "specifics": "Same as throughout In Utero — DI + amp blend, live with band, no overdub layers"
+            },
+            "vocal_tracking_approach": {
+              "philosophy_albini": "Close-mic capture in tracking room (not isolated booth)",
+              "specifics_documented": [
+                "Cobain's vocal recorded in tracking room — natural ambience present in raw capture",
+                "Single take or limited takes per song — Cobain's documented preference for keeping performance integrity",
+                "No vocal booth isolation — Albini's anti-isolation philosophy preserves the room sound's relationship to the band"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Cobain's Fender Mustang (LH modified) — most-cited In Utero guitar",
+              "Boss DS-1 or DS-2 distortion pedal",
+              "Pachyderm Neve console for tracking",
+              "Pachyderm room treatment with stone walls"
+            ],
+            "what_makes_very_ape_recording_distinct_within_in_utero": [
+              "Compact runtime + aggressive tempo: minimal room for tracking subtlety, performance must be tight first take",
+              "Albini mix retained: no Litt commercial polish (Very Ape, like Dumb, demonstrates pure Albini aesthetic)",
+              "Single-vocal-take aesthetic: Cobain's strained delivery preserved as physical performance moment",
+              "No layering complexity: where Pumpkins or HSB benefit from multiple guitar takes, Very Ape is intentionally direct"
+            ]
           }
         },
         "All_Apologies": {
