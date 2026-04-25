@@ -2692,7 +2692,7 @@
           ]
         },
         "Very_Ape": {
-          "_status": "C1_4b_performance_recording_done",
+          "_status": "C1_4c_complete_exhaustive",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [104, 108],
@@ -2855,7 +2855,80 @@
               "Single-vocal-take aesthetic: Cobain's strained delivery preserved as physical performance moment",
               "No layering complexity: where Pumpkins or HSB benefit from multiple guitar takes, Very Ape is intentionally direct"
             ]
-          }
+          },
+          "mixing": {
+            "history_documented": "SINGLE mix version: Albini's original. Like Dumb, Very Ape was deemed acceptable as-tracked and went out without Litt remix. Album balance: 11 of 13 In Utero tracks are Albini's mix; only HSB and All Apologies were Litt-remixed for radio.",
+            "albini_mix_characteristics_for_very_ape": [
+              "Drums LARGE in mix — Pachyderm room mics emphasized, kit feels physically present",
+              "Guitar wall of distortion centered with stereo spread on overheads — riff dominates the mid-frequency range",
+              "Bass center, locked with kick — combined low-frequency punch",
+              "Vocal forward but not commercially compressed — Cobain's strain audible in raw form",
+              "No master bus compression — full dynamic range preserved (though 'dynamic range' at this aggression level still means mostly loud)",
+              "Stereo image moderate (Albini preference) — guitar takes panned modestly, not Wallace-wide"
+            ],
+            "released_version_mix_engineer": "Steve Albini (no remix)",
+            "console_documented": "Pachyderm Neve console — same as tracking",
+            "compression_philosophy": "Pure Albini — no master glue, no parallel drum bus comp, individual track compression rare. The mix preserves the actual dynamic range of the live performance.",
+            "stereo_image_strategy": [
+              "Drums: kick + snare center, room mics spread wide for the BIG room sound",
+              "Guitar: distorted riff center-and-spread, not aggressive wide-panning of multi-take walls",
+              "Bass center",
+              "Vocal center, slight room ambience from Pachyderm tracking room"
+            ],
+            "vocal_treatment": "Minimal — close-mic captured in tracking room, ambience is the room not added effect. Cobain's strain preserved without compression-smoothing.",
+            "drum_treatment": "Pure Albini room mix — close + room balanced, no enhancement, no parallel compression",
+            "what_very_ape_mix_demonstrates": "Like Dumb, Very Ape is a CONTROL CASE for Albini's pure mix philosophy. The aggressive content makes the contrast stark: where Wallace's Nevermind mix CONTAINS aggression via compression, Albini's Very Ape mix LETS aggression breathe in the room.",
+            "comparison_to_territorial_pissings_mix": "TP (Wallace mix) and Very Ape (Albini mix) are both aggressive Nirvana tracks but sound radically different. TP is bright, compressed, forward. Very Ape is roomier, less compressed, has more depth. Same band's aggression — two different mix philosophies producing two different listening experiences."
+          },
+          "mastering": {
+            "mastering_engineer_album": "Bob Ludwig (Gateway Mastering, Maine) — same as full In Utero album",
+            "loudness_approach_documented": "1993 pre-loudness-war norms. Aggressive content but not compressed-to-radio-loudness like Nevermind tracks.",
+            "vinyl_vs_cd_documented": "Original CD master by Ludwig. Vinyl release used different mastering pass.",
+            "subsequent_remasters_documented": "20th anniversary edition (2013) remaster",
+            "tonal_balance_at_release": "Bright top end (matches Albini's tracking choices), present mids for the riff, controlled bass. Less compressed than Wallace-mixed Nevermind tracks."
+          },
+          "the_moment_people_remember": {
+            "primary": "The DESCENDING POWER CHORD RIFF — the riff is the song's identity from bar 1. Listeners may not remember anything else about the song, but they remember the riff's specific descending shape and how it cycles relentlessly.",
+            "secondary": "The COMPACT INTENSITY — at ~1:55, the song is over before it overstays. The brevity is part of the impact: no time to grow tired of the relentless riff because the song doesn't stay long enough.",
+            "tertiary": "The MID-TEMPO AGGRESSION — Very Ape is aggressive but not at hardcore tempo. This 'measured aggression' creates a different physical response than TP's hardcore speed. Listener can headbang at this tempo where TP demands frantic motion."
+          },
+          "advisor_extract": [
+            {
+              "recipe_name": "descending_riff_as_song_identity",
+              "description": "Build the entire song around a single DESCENDING power chord (or pitched motif) pattern. The descent should move in steps or thirds and complete within 1-2 bars. Cycle this pattern through the entire song without harmonic variation between sections. Distinct in DNA from QOTSA's robot-rock REPETITION (which usually cycles a static riff) — here the riff itself has internal motion (the descent).",
+              "use_for": ["Riff-centered tracks where the riff IS the song", "compositions where harmonic motion would compete with rhythmic identity", "drop-tuned aggressive material"],
+              "wow_factor": 0.75,
+              "implementation_for_modern_compositions": "In MIDI/sample context: define a 4-note descending power chord pattern in MIDI (e.g., C# / B / A / G in drop C# tuning), make this the primary instrument's pattern, repeat for the entire song. Vocal/lead synths add melody on top but the descending pattern is constant."
+            },
+            {
+              "recipe_name": "mid_tempo_aggression_not_hardcore_speed",
+              "description": "Aggression does not require fast tempo. At 100-115 BPM with full distortion + locked rhythm + strained vocal, the song achieves max aggressive identity while remaining mid-tempo. Different physical response than hardcore-speed (~170+ BPM) — listener can lock into a measured intensity rather than frantic energy.",
+              "use_for": ["Aggressive sections where headbang feel matters more than speed", "tracks targeting QOTSA-style measured aggression", "sections that pair with slow burns elsewhere on the album"],
+              "wow_factor": 0.65,
+              "philosophical_note": "TEMPO and AGGRESSION are independent variables. The advisor must not assume aggressive = fast. Mid-tempo aggressive (Very Ape, AIC's Dirt) and hardcore-fast aggressive (TP) are different aesthetics serving different goals."
+            },
+            {
+              "recipe_name": "compact_aggressive_under_2_minutes",
+              "description": "Aggressive tracks should resist the urge to extend. Restrict total runtime to under 2 minutes. The brevity prevents the relentless intensity from becoming monotonous. Listener leaves wanting more — the impact is compactness, not duration.",
+              "use_for": ["Album tracks of aggressive nature (not radio singles)", "tracks meant as 'punctuation' between longer songs", "sections where the same intensity over 4 minutes would feel exhausting"],
+              "wow_factor": 0.65,
+              "implementation_for_modern_compositions": "Section budget for compact aggressive form: intro 4 bars / V 8 / C 8 / V 8 / C 8 / bridge 4 / outro 8 = 48 bars total. At 105 BPM 4/4 = ~1:50."
+            },
+            {
+              "recipe_name": "guitar_alone_intro_4_bars_no_a_cappella",
+              "description": "Open the song with the GUITAR ALONE for 4 bars (riff established without other instruments). Distinct from HSB's similar approach because Very Ape's intro is at FULL DISTORTION immediately (HSB's intro is clean leading to distortion at chorus). The opening establishes the song's intensity from bar 1, not the song's restraint.",
+              "use_for": ["Aggressive tracks needing immediate identity", "songs where the riff IS the introduction", "alternative to a-cappella fakeout for songs where vocal isn't the centerpiece"],
+              "wow_factor": 0.65,
+              "comparison_to_other_intros": "HSB intro = clean guitar establishes melodic identity → builds. Very Ape intro = distorted guitar establishes aggressive identity → continues. TP intro = a cappella vocal fakeout → band slam contrast. Three different intro philosophies for three different song goals."
+            },
+            {
+              "recipe_name": "albini_mix_vs_wallace_mix_for_aggression",
+              "description": "When mixing aggressive material, two valid philosophies: ALBINI (Very Ape, Dumb-style) preserves room ambience and dynamic range — the aggression has SPACE to live in. WALLACE (TP, Nevermind-style) compresses + brightens — the aggression is CONTAINED in a tight mix box. Choose deliberately: room aesthetic vs container aesthetic.",
+              "use_for": ["Mix decisions on aggressive tracks", "selecting between live-document and commercial-target sound", "aligning mix philosophy with composition intent"],
+              "wow_factor": 0.65,
+              "philosophical_note": "Both philosophies are valid — neither is inherently 'better'. The choice depends on: room quality (good rooms favor Albini), commercial target (radio favors Wallace), composition intent (slow burn favors Albini, max-density punk favors Wallace). The advisor must select based on context."
+            }
+          ]
         },
         "All_Apologies": {
           "_status": "stub_pending_full_dissection_C1_5",
