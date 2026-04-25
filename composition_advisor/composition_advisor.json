@@ -4562,7 +4562,7 @@
           "songs_to_dissect": ["Quiet", "Soma", "Bodies", "Zero"]
         },
         "Quiet": {
-          "_status": "C3_1a_composition_arrangement_done",
+          "_status": "C3_1b_performance_recording_done",
           "album": "Siamese Dream",
           "year": 1993,
           "tempo_bpm_documented_range": [96, 102],
@@ -4605,6 +4605,111 @@
             "what_makes_arrangement_unique_within_smashing_pumpkins": "Quiet represents Corgan's HEAVY-SUSTAINED-INTENSITY side. Where Today/Mayonaise/Soma use clean-to-distorted dynamic arc, Quiet stays heavy throughout. Demonstrates the band's range: same album includes BOTH dynamic-arc (Today) AND sustained-intensity (Quiet) approaches.",
             "comparison_to_corgan_dynamic_arc_tracks": "Today/Mayonaise/Soma: clean intro → distorted explosion = DYNAMIC ARC compositional engine. Quiet: heavy from start = SUSTAINED INTENSITY engine. Both engines used by same songwriter on same album — shows compositional range.",
             "comparison_to_corgan_atmospheric_tracks": "Soma (track 6): atmospheric long-form, dynamic arc. Quiet: tight heavy economy. Different paths to compositional impact within Siamese Dream."
+          },
+          "performance": {
+            "tempo_feel_description": "AGGRESSIVE FORWARD MOTION — 96-102 BPM at sustained intensity feels driving rather than groove-pocket. The song pushes ahead.",
+            "drum_style": {
+              "performer": "Jimmy Chamberlin",
+              "approach": "DRIVING ROCK PRECISION + JAZZ-INFORMED FILLS — Chamberlin documented as one of rock's most technically gifted drummers (jazz background, big-band influences). Quiet showcases his power + precision combination.",
+              "specifics_documented": [
+                "Kick + snare backbone driving — kick on 1+3 (or 1, 2-and, 3 variants), snare on 2+4",
+                "Hi-hat 8ths or 16ths driving forward motion",
+                "Fills are TECHNICALLY DENSE but musically purposeful — Chamberlin documented as fluent in 32nd-note linear fills + cross-stick patterns",
+                "Cymbal accents articulate chorus moments",
+                "Cymbal work often features ride bell + crash combinations"
+              ],
+              "comparison_to_grohl_drumming": "Grohl on Nevermind/In Utero drums with AGGRESSIVE POWER + simpler patterns. Chamberlin drums with EQUAL POWER + jazz-informed technical complexity. Both heavy rock drummers but different vocabulary.",
+              "comparison_to_cameron_drumming": "Cameron specializes in odd-meter mastery + atmospheric capacity. Chamberlin specializes in 4/4 driving rock + technical jazz-informed fills. Different drumming traditions within heavy rock."
+            },
+            "guitar_style": {
+              "performers": "Billy Corgan + James Iha (with Corgan tracking VAST MAJORITY of guitar parts — documented as Corgan tracking nearly all guitars on Siamese Dream)",
+              "rhythm_guitar_role": "MULTI-LAYERED RIFF DENSITY — Corgan's documented approach: multiple takes layered, EQ-staggered, panned for dense wall of sound",
+              "lead_guitar_role": "Brief lead phrases + chorus melodic emphasis — Corgan's lead playing prioritizes MELODIC PHRASING over technical flash",
+              "specifics_documented": [
+                "Half-step-down tuning (E-flat standard) standard across Siamese Dream",
+                "Big Muff fuzz + various tube amps documented (Marshall, Hiwatt) — Corgan's Siamese Dream tone signature",
+                "Layered tracking: each rhythm guitar take panned slightly differently, EQ adjusted for frequency-spread",
+                "Picking precision required — multiple layers must align rhythmically for the wall to read clearly"
+              ],
+              "playing_style_versus_other_smashing_pumpkins": "Quiet guitars are SUSTAINED-INTENSITY HEAVY layered. Today/Mayonaise guitars use clean-to-distorted dynamic shift. Soma guitars use atmospheric long-form sustain. Different guitar approaches across Siamese Dream tracks."
+            },
+            "bass_performance": {
+              "performer": "D'arcy Wretzky (with Corgan also playing some bass parts on Siamese Dream — documented)",
+              "approach": "ROOT-NOTE DRIVING SUPPORT + selective melodic phrases between sections",
+              "specifics_documented": [
+                "Tight rhythmic locking with Chamberlin's kick pattern",
+                "Half-step-down-tuned bass for sonic coherence with guitar tuning",
+                "Clear pick attack for rhythmic precision",
+                "Bass slightly less melodic than verse/chorus sections — supports the riff-driven density"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Billy Corgan",
+              "verse_delivery": "AGGRESSIVE NASAL TENOR — Corgan's signature vocal quality on full display. Sustained but with bite, melodically precise without ornament.",
+              "chorus_delivery": "Slight upper-register lift, increased intensity. Melodic precision maintained.",
+              "documented_vocal_quirks": [
+                "Corgan's nasal tone is DISTINCT — polarizing but instantly recognizable",
+                "Multiple vocal takes layered/comped (per Vig's documented Siamese Dream approach)",
+                "Vocal layering used selectively — choruses may have doubles or octave doubles for emphasis"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization (preserves Chamberlin's natural drumming feel)",
+              "No drum sample replacement (Chamberlin's playing is the song's rhythmic identity)",
+              "No vocal pitch correction (Corgan's vocal is naturally precise)",
+              "No tempo changes (sustained throughout)"
+            ]
+          },
+          "recording": {
+            "studio": "Triclops Sound Studios, Marietta, Georgia (Siamese Dream primary tracking — documented)",
+            "session_dates": "1992-1993 sessions",
+            "primary_producer": "Butch Vig (co-producer with Billy Corgan — same producer as Nevermind, but different aesthetic from Nevermind's commercial-rock-polish)",
+            "primary_mix_engineer": "Andy Wallace (Siamese Dream mixed by Wallace — same Wallace who mixed Nevermind, providing aesthetic continuity)",
+            "co_producer_role_corgan": "Corgan documented as effective CO-PRODUCER on Siamese Dream — final say on guitar layering, vocal selection, song-level decisions. Vig's role was more engineer-producer than authoritative producer.",
+            "drum_micing_approach": {
+              "philosophy_vig": "Vig's documented approach: meticulous drum sound with multiple close mics + room mics + processed parallel compression",
+              "specifics_for_quiet": [
+                "Chamberlin's full kit miced extensively — kick (in/out), snare (top/bottom), hi-hat, multiple toms, overheads, room mics",
+                "Parallel compression on drum bus — Vig signature approach for adding weight without losing transient detail",
+                "Room mics blended for natural ambience — Triclops tracking room captures kit with controlled liveliness",
+                "Drum sound bigger than Nirvana's Nevermind drums — Vig adapted his approach to Pumpkins' wall-of-sound aesthetic"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_corgan_vig": "MULTIPLE TAKES LAYERED — Corgan's documented Siamese Dream guitar philosophy. Vig's role: capture each take cleanly so layering reads clearly.",
+              "specifics_documented": [
+                "Half-step-down tuning",
+                "Big Muff fuzz + tube amps (Marshall, Hiwatt) — Corgan's Siamese Dream tone palette",
+                "Each guitar layer tracked with different mic placement / amp / pedal combination for textural variation",
+                "Layering documented as time-intensive — Corgan's perfectionism extended sessions",
+                "Each layer EQ'd at tracking to occupy a specific frequency range (frequency-spread layering)"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "DI + amp blend per Vig's documented approach. Bass slightly compressed at tracking for consistency under the dense guitar layers."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_vig": "Corgan tracked vocals extensively — Vig's documented approach included multiple takes, careful comping, layered doubles where compositionally appropriate",
+              "specifics_documented": [
+                "Vocal isolation booth at Triclops",
+                "Multiple complete takes selected/comped",
+                "Selective vocal layering on choruses (doubles, octave doubles) for emphasis"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Big Muff fuzz pedal (Corgan's Siamese Dream signature)",
+              "Marshall + Hiwatt amps",
+              "Half-step-down-tuned guitars + bass",
+              "Chamberlin's full kit at Triclops"
+            ],
+            "what_makes_vig_recording_distinct_for_quiet": [
+              "Engineer-producer-style approach: Vig's role was capturing the band's vision (especially Corgan's) rather than imposing a producer's vision",
+              "Multiple-takes-layered guitar tracking — Vig facilitated Corgan's wall-of-sound vision via meticulous capture of each layer",
+              "Parallel compression on drums (Vig signature) — adds weight without losing transient detail",
+              "Different aesthetic from Vig's Nevermind work — Pumpkins' wall-of-sound vs. Nirvana's punk-rock-with-polish"
+            ],
+            "comparison_to_vig_nevermind_recording": "Same producer (Vig), totally different aesthetic. Nevermind: punk-rock-with-polish, Grohl drums prominent, single guitar layer per side. Siamese Dream: wall-of-sound layered guitars, Chamberlin drums prominent, MULTIPLE guitar layers per side. Vig's documented adaptability — same engineer producing very different sonic worlds for different bands' visions.",
+            "comparison_to_in_utero_albini_recording": "In Utero (Albini, 1993): pure capture, minimal shaping, room-prominent drums, raw tone. Siamese Dream (Vig, 1993): meticulous layering, processed drum bus, wall-of-sound shaping. Two completely opposite recording philosophies in same year — establishes the 1993 alt-rock recording polarity (capture vs. shape)."
           }
         },
         "Soma": {
