@@ -373,7 +373,266 @@
     ]
   },
 
-  "_TBD_D2bc": "voicings_recipes + silence_protocol (D2b) + rhythm_theory + density_curves (D2c)",
+  "voicings_recipes": {
+    "purpose": "Concrete intervallic recipes for stacking notes. Each recipe has a polyphony cost (n voices), a character description, and pairing rules with other recipes when 2 instruments stack on the same chord. The advisor picks recipes by section context + genre blend, not by name alone.",
+    "recipes": {
+      "power_chord": {
+        "intervals_from_root": [0, 7],
+        "voices_count": 2,
+        "character": "wide-open, primal, no commitment to maj/min — root + perfect 5",
+        "best_for": ["grunge guitar", "metal verse", "any track that wants weight without harmonic specificity"],
+        "avoid_for": ["jazz contexts", "anywhere the maj/min identity matters"],
+        "example_in_C_minor": "C2 + G2",
+        "pairs_well_with": ["drone_over_moving (drone on root, power chord above)", "open_fifth_dyad (different register)"],
+        "genre_affinity": {"cobain": 0.95, "reznor": 0.6, "yorke": 0.3, "daft_punk": 0.4}
+      },
+      "power_octave": {
+        "intervals_from_root": [0, 7, 12],
+        "voices_count": 3,
+        "character": "fuller power chord — root, 5, octave",
+        "best_for": ["chorus weight", "guitar-tracked drops"],
+        "avoid_for": ["sparse verses where simplicity matters"],
+        "example_in_C_minor": "C2 + G2 + C3",
+        "pairs_well_with": ["sus2 (different chord-tone count, blends)"],
+        "genre_affinity": {"cobain": 0.9, "reznor": 0.7, "yorke": 0.2, "daft_punk": 0.3}
+      },
+      "sus2": {
+        "intervals_from_root": [0, 2, 7],
+        "voices_count": 3,
+        "character": "suspended 2 — major-second instead of 3rd, leaves maj/min unresolved",
+        "best_for": ["pad voicings that hold without committing", "verse atmosphere"],
+        "avoid_for": ["moments needing definitive minor-key tension"],
+        "example_in_C_minor": "C3 + D3 + G3",
+        "pairs_well_with": ["power_chord (sus2 in pad, power in bass)"],
+        "genre_affinity": {"cobain": 0.5, "reznor": 0.5, "yorke": 0.85, "daft_punk": 0.4}
+      },
+      "sus4": {
+        "intervals_from_root": [0, 5, 7],
+        "voices_count": 3,
+        "character": "suspended 4 — perfect 4 instead of 3rd, classical 4-3 suspension when resolved (or held unresolved for modal hover)",
+        "best_for": ["pre-resolution tension", "modal hover (Yorke), open quartal feel"],
+        "avoid_for": ["fast-moving harmony"],
+        "example_in_C_minor": "C3 + F3 + G3",
+        "pairs_well_with": ["drone_over_moving (sus4 above moving bass)"],
+        "genre_affinity": {"cobain": 0.4, "reznor": 0.6, "yorke": 0.9, "daft_punk": 0.5}
+      },
+      "drop_2": {
+        "intervals_from_root": [0, 12, 7, 16],
+        "voices_count": 4,
+        "character": "jazz voicing — root, octave, 5, 3 (the 2nd voice from top dropped an octave). Spreads the chord wide.",
+        "best_for": ["lush sustained pads", "lead synth chords with breath"],
+        "avoid_for": ["tight rhythmic stabs (too spread)"],
+        "example_in_C_minor": "C3 + Eb4 + G3 + C4 (rearranged: C2 + G3 + C3 + Eb3)",
+        "pairs_well_with": ["power_chord in bass register"],
+        "genre_affinity": {"cobain": 0.2, "reznor": 0.5, "yorke": 0.7, "daft_punk": 0.6}
+      },
+      "quartal": {
+        "intervals_from_root": [0, 5, 10],
+        "voices_count": 3,
+        "character": "built in 4ths instead of 3rds — root + 4 + b7. Modal/modern, no Classical tonal pull",
+        "best_for": ["modal sections (Aeolian/Dorian/Phrygian)", "Yorke ostinatos", "static harmony that doesn't want to resolve"],
+        "avoid_for": ["functional tonal cadences"],
+        "example_in_C_minor": "C3 + F3 + Bb3",
+        "pairs_well_with": ["sus4 (close cousin)", "drone_over_moving"],
+        "genre_affinity": {"cobain": 0.3, "reznor": 0.5, "yorke": 0.95, "daft_punk": 0.4}
+      },
+      "drone_over_moving": {
+        "intervals_from_root": [0, "varies"],
+        "voices_count": "1 fixed + 1-3 moving",
+        "character": "sustained low note (drone) with melodic voices above. The drone is pedal point.",
+        "best_for": ["bridge that wants stasis under motion", "Yorke / Radiohead static harmony"],
+        "avoid_for": ["sections where bass needs to move with chord changes"],
+        "example_in_C_minor": "C2 sustained, with C3-Eb3-F3-Eb3 moving above",
+        "pairs_well_with": ["any moving voicing — that's the whole point"],
+        "genre_affinity": {"cobain": 0.4, "reznor": 0.85, "yorke": 0.95, "daft_punk": 0.5}
+      },
+      "first_inversion": {
+        "intervals_from_root": [-12, 3, 7],
+        "voices_count": 3,
+        "character": "chord with 3rd in bass — softer than root position, common in voice-led sequences",
+        "best_for": ["chord changes that want smoothness", "between-section transitions"],
+        "avoid_for": ["weight-bearing power moments (root position has more authority)"],
+        "example_in_C_minor": "Eb2 + C3 + G3 (Cm/Eb)",
+        "pairs_well_with": ["any sustained voicing"],
+        "genre_affinity": {"cobain": 0.4, "reznor": 0.5, "yorke": 0.6, "daft_punk": 0.4}
+      },
+      "slash_chord_modal": {
+        "intervals_from_root": ["bass = non-chord-tone", 0, 3, 7],
+        "voices_count": 4,
+        "character": "chord with NON-chord-tone bass (e.g., Cm/D) — creates suspended tension",
+        "best_for": ["pre-resolution moments", "modal mixture surprises"],
+        "avoid_for": ["stable home-key sections"],
+        "example_in_C_minor": "D2 (bass) + C3 + Eb3 + G3 — Cm/D",
+        "pairs_well_with": ["any voicing that resolves to home root"],
+        "genre_affinity": {"cobain": 0.3, "reznor": 0.7, "yorke": 0.8, "daft_punk": 0.5}
+      },
+      "min7_no5": {
+        "intervals_from_root": [0, 3, 10],
+        "voices_count": 3,
+        "character": "minor 7 without the 5 — sparse, modern, brooding. Reznor sparse signature.",
+        "best_for": ["pad voicings in industrial sections", "verse harmony that wants brood without thickness"],
+        "avoid_for": ["sections needing chord-quality clarity"],
+        "example_in_C_minor": "C3 + Eb3 + Bb3",
+        "pairs_well_with": ["sus2 (different color, complementary spacing)"],
+        "genre_affinity": {"cobain": 0.3, "reznor": 0.9, "yorke": 0.6, "daft_punk": 0.5}
+      },
+      "open_fifth_dyad": {
+        "intervals_from_root": [0, 19],
+        "voices_count": 2,
+        "character": "JUST root + 5 spread WIDE (root in low octave, 5 nearly 2 octaves up). Maximum width, minimum density.",
+        "best_for": ["intro atmosphere", "outro fade", "moments of negative-space stillness"],
+        "avoid_for": ["any drop or peak"],
+        "example_in_C_minor": "C2 + G3",
+        "pairs_well_with": ["drone_over_moving (the open fifth IS the spine)"],
+        "genre_affinity": {"cobain": 0.4, "reznor": 0.7, "yorke": 0.85, "daft_punk": 0.4}
+      },
+      "vocal_octave_double": {
+        "intervals_from_root": [0, 12],
+        "voices_count": 2,
+        "character": "vocal + lead synth on SAME melody, octave apart — fuses two voices into 'bigger version of vocal'",
+        "best_for": ["chorus emphasis", "Final Drop melodic statement"],
+        "avoid_for": ["sections where vocal needs to be exposed alone"],
+        "example_in_C_minor": "vocal at C4, lead synth at C5 (or C3)",
+        "pairs_well_with": ["min7_no5 pad underneath"],
+        "genre_affinity": {"cobain": 0.7, "reznor": 0.5, "yorke": 0.6, "daft_punk": 0.7}
+      },
+      "chromatic_neighbor_pad": {
+        "intervals_from_root": [0, 1, 7],
+        "voices_count": 3,
+        "character": "root + b9 (chromatic neighbor) + 5 — micro-dissonance held briefly. Reznor false-relation setup.",
+        "best_for": ["1-bar tension moments", "pre-Drop chord that ALMOST resolves"],
+        "avoid_for": ["sustained sections (the b9 will fatigue the ear)"],
+        "example_in_C_minor": "C3 + Db3 + G3",
+        "pairs_well_with": ["resolution to power_chord on next bar"],
+        "genre_affinity": {"cobain": 0.2, "reznor": 0.85, "yorke": 0.7, "daft_punk": 0.3},
+        "max_duration_beats": 4.0,
+        "warning": "do NOT sustain >1 bar — sounds like a wrong note instead of a feature"
+      }
+    },
+    "stacking_rules_when_two_instruments_play_same_chord": {
+      "principle": "Two voicings on the same chord MUST have different intervallic structures so they don't double-up the same notes. The exception is intentional unison/octave doubling.",
+      "compatible_pairs": [
+        {"pad": "sus2", "guitar": "power_chord", "result": "the maj-2 floats above the open fifth — Cobain dirty pad"},
+        {"pad": "min7_no5", "lead": "vocal_octave_double", "result": "Reznor sparse pad under doubled vocal"},
+        {"pad": "quartal", "bass": "drone_over_moving", "result": "Yorke modal hover with pedal bass"},
+        {"pad": "drop_2", "vocal": "single_sustained_note", "result": "lush jazz pad under exposed voice"}
+      ],
+      "forbidden_pairs": [
+        {"pad": "power_chord", "guitar": "power_chord_same_root", "reason": "100% doubling = stiff, no width"},
+        {"pad": "sus2", "lead": "sus2_same_root", "reason": "same chord-tone count, voicings collide"}
+      ]
+    }
+  },
+
+  "silence_protocol": {
+    "purpose": "Silence as the 4TH compositional dimension after pitch/duration/timbre. Each level has a wow_factor and explicit placement rules. Silence + cadence pairs are documented because the BIGGEST WOW moments combine both.",
+    "philosophy": "Silence is content, not absence. A drop that hits after a planted silence is more memorable than a drop that hits after sound. The advisor should plant silences DELIBERATELY at structural pivots, not by accident.",
+    "levels": {
+      "section_silence": {
+        "level": 1,
+        "duration_beats": [16, 32],
+        "duration_bars_4_4": [4, 8],
+        "definition": "Whole section thinned to 1-2 tracks max — the 'Hollow' section in Venin/Nemesis style. Not literal silence — but everything except 1-2 sustained drone/atmosphere tracks drops out.",
+        "placement_rules": [
+          "Plant ONCE per song — overuse kills its impact",
+          "Position right AFTER a major Drop (not before)",
+          "The 1-2 surviving tracks must include a sustained drone (continuity reference)",
+          "Preceding section ends abruptly (no fade) — the silence IS the transition"
+        ],
+        "wow_factor": 0.85,
+        "callback_potential": "the surviving drone in section_silence can be CALLED BACK in Final Drop as a fade-in layer (callback through silence)"
+      },
+      "bar_silence": {
+        "level": 2,
+        "duration_beats": [4, 8],
+        "duration_bars_4_4": [1, 2],
+        "definition": "1-2 full bars of TOTAL silence in the middle of an otherwise busy section. Most powerful at structural pivots inside drops.",
+        "placement_rules": [
+          "Canonical position: bar 13 of a 16-bar Drop (3/4 through — after enough density to feel the loss)",
+          "OR last bar of Pre-Drop into Final Drop (interrupted_silence cadence)",
+          "OR bar 7 of an 8-bar Bridge (before the final 8th bar landing)",
+          "All tracks cut simultaneously — no fade",
+          "The bar AFTER must reenter at maximum density for max impact"
+        ],
+        "wow_factor": 0.9,
+        "pairs_with_cadence": ["interrupted_silence", "silence_as_dominant"]
+      },
+      "beat_silence": {
+        "level": 3,
+        "duration_beats": [0.5, 2.0],
+        "duration_quarter_notes": [0.5, 2.0],
+        "definition": "1-2 beats of silence within a bar — usually replacing a hit you'd expect (the listener has been trained on the pattern).",
+        "placement_rules": [
+          "Replace the LAST cluster hit (e.g., 3.75) with silence on EXACTLY 1 bar out of 8 (or 1 out of 4 in shorter sections)",
+          "OR replace beat 1 of a bar (the most expected hit) — extreme effect, max 1× per song",
+          "Pattern context: must surround the silenced beat with the FULL pattern before and after — the gap must be inside an established pattern"
+        ],
+        "wow_factor": 0.7,
+        "comment": "Easy to overdo. If used > 2× per section, the pattern becomes the silence and the silence loses meaning."
+      },
+      "subbar_silence": {
+        "level": 4,
+        "duration_beats": [0.0625, 0.5],
+        "duration_sixteenth_notes": [1, 8],
+        "definition": "1/16 to 1/2 beat of silence — micro-gap in a busy 16th-note pattern. Velocity = 0 on specific hits to create breath inside groove.",
+        "placement_rules": [
+          "Apply to hi-hat, arp, or perc patterns — never to kick (kick should always speak)",
+          "Pattern: every 4th 16th-note muted (creates 'shuffle' feel)",
+          "OR pattern: random 1-in-8 muted for human imperfection",
+          "Do NOT mute on downbeats — only on offbeat 16ths"
+        ],
+        "wow_factor": 0.4,
+        "comment": "Subtle — adds groove humanization. NOT a structural surprise but a textural one."
+      }
+    },
+    "silence_cadence_pairs": {
+      "principle": "The BIGGEST WOW moments combine a tension_release cadence with a silence — the gap IS the cadence's resolution.",
+      "pairs": [
+        {
+          "name": "interrupted_silence_cadence",
+          "cadence": "interrupted_silence",
+          "silence_level": "bar_silence (1 bar)",
+          "context": "right before Final Drop entry",
+          "wow_factor": 0.95,
+          "execution": "Pre-Drop ends mid-phrase (no resolution). 1 bar of total silence. Final Drop bar 1 entry hits with cluster_density_max."
+        },
+        {
+          "name": "silence_as_dominant",
+          "cadence": "silence_as_dominant",
+          "silence_level": "bar_silence (2 bars)",
+          "context": "anywhere a V chord would functionally lead to i",
+          "wow_factor": 0.9,
+          "execution": "Replace what would be 2 bars of dominant chord with 2 bars of nothing. The expectation of V is so strong that absence functions as V."
+        },
+        {
+          "name": "subtle_breath",
+          "cadence": "modal_phrygian (bII -> i)",
+          "silence_level": "beat_silence (1 beat)",
+          "context": "verse ending into pre-chorus",
+          "wow_factor": 0.6,
+          "execution": "After bII chord lands, 1 beat of silence before i resolution. The breath is the 'oh' moment."
+        },
+        {
+          "name": "groove_breath",
+          "cadence": "no cadence (rhythmic only)",
+          "silence_level": "subbar_silence (1/16-1/8)",
+          "context": "throughout drops",
+          "wow_factor": 0.4,
+          "execution": "1-in-8 hi-hat muted across the section. Adds subliminal groove without breaking pattern."
+        }
+      ]
+    },
+    "silence_callback_strategy": {
+      "principle": "Silence used in an EARLIER section becomes a callback when used again in a later section.",
+      "examples": [
+        "Hollow (section_silence at midpoint) → fade in Hollow's surviving drone in Final Drop bar 5 → instant emotional payoff",
+        "Pre-Drop ends with 1-bar silence → mirror in pre-Final-Drop with 2-bar silence → escalation",
+        "Bar-13 silence in Drop 1 → mirror at bar-13 of Final Drop, but EXTENDED to 2 bars → wow"
+      ]
+    }
+  },
+
+  "_TBD_D2c": "rhythm_theory + density_curves",
   "_TBD_D3": "genres (Cobain, Reznor, Yorke, Daft Punk) + per-genre conditional rules",
   "_TBD_D4": "energy_curves + frequency_space + wow_factors",
   "_TBD_D5": "conditional_rules (B1-B6) + anti_patterns",
