@@ -2931,7 +2931,7 @@
           ]
         },
         "All_Apologies": {
-          "_status": "C1_5b_performance_recording_done",
+          "_status": "C1_5c_complete_exhaustive",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [115, 118],
@@ -3117,7 +3117,84 @@
               "Outro chant: vocal layering captured as full takes, then layered in Litt's remix — the layering is a MIX decision built from raw multi-take vocal"
             ],
             "production_lineage_within_in_utero_album": "All Apologies pairs with Dumb as the album's chamber-music tracks (cello + clean guitar + restraint), pairs with Heart-Shaped Box as the Litt-remixed tracks (commercial polish on Albini's tracking). It is a UNIQUE intersection: the only In Utero track that combines BOTH chamber arrangement AND Litt remix philosophy."
-          }
+          },
+          "mixing": {
+            "history_documented": "TWO mix versions exist: Albini's original at Pachyderm, then Scott Litt remix at his studio. The released album version is Litt's — same scenario as Heart-Shaped Box. Litt's intervention here was more SUBTLE than on HSB (the song's clean instrumentation gave less room for aggressive remixing).",
+            "albini_original_mix_characteristics_documented": [
+              "Drums sit naturally in Pachyderm room — not pushed forward",
+              "Cello prominent and natural — no compression, full sustain envelope",
+              "Vocal at moderate level, not commercially compressed",
+              "No master bus compression",
+              "Outro chant vocal layers blended naturally without artificial spread"
+            ],
+            "litt_remix_characteristics_documented": [
+              "VOCAL processing added: subtle compression for consistency, gentle reverb adding chamber-music space (appropriate for the song's character)",
+              "Drum balance: less room ambience, slightly more close-mic punch — but less aggressive tightening than HSB remix",
+              "Cello kept prominent — Litt did not bury Schaley's playing (recognized as a key element)",
+              "Outro chant vocal stack treated with subtle stereo spread — backing vocals slightly off-center, lead vocal centered. The stack feels enveloping rather than narrowed.",
+              "Master bus glue compression applied — slightly more controlled than Albini's pure capture but less aggressive than typical commercial mixing"
+            ],
+            "released_version_mix_engineer": "Scott Litt at his mixing room",
+            "console_documented": "Litt's documented preference for SSL G-series consoles in his mid-90s mixes",
+            "compression_philosophy_albini_vs_litt_for_all_apologies": {
+              "albini": "Capture-not-shape — preserved natural dynamic range",
+              "litt": "Selective shaping — added vocal compression for consistency, master glue, but kept Albini's instrumental balance more intact than on HSB"
+            },
+            "stereo_image_strategy_for_outro_chant": "The stacked vocal layers in the outro are spread STEREO via Litt's mix — first vocal layer centered, additional layers panned slightly left and right at varying widths. The EFFECT is enveloping rather than aggressive widening. The chant feels like it surrounds the listener as it builds.",
+            "vocal_treatment_litt_remix": "Compression for consistency (Cobain's dynamic range was wide even on this restrained delivery), subtle plate or chamber reverb adding 'space' that suits the meditative quality, mild EQ presence for vocal intelligibility",
+            "drum_treatment_litt_remix": "Less aggressive tightening than HSB — drums kept relatively natural since the song doesn't need punch (it needs breath). Light parallel compression for body without crushing the room.",
+            "what_was_lost_vs_albini_original": "Some natural dynamic range and the rawest version of the room sound. The Litt version is more polished but slightly less LIVE-feeling.",
+            "what_was_gained_via_litt_remix": "Vocal intelligibility (important for a vocal-forward song), commercial loudness for radio play, the outro chant stereo spread that makes the layering enveloping rather than just stacked."
+          },
+          "mastering": {
+            "mastering_engineer_album": "Bob Ludwig at Gateway Mastering, Maine — same as full In Utero album",
+            "loudness_approach_documented": "1993 pre-loudness-war norms preserved. As the album CLOSER, the master is consistent with album flow rather than radio-target — slightly less hot than the singles to give the album a sense of resolution at the end.",
+            "vinyl_vs_cd_documented": "Original CD master by Ludwig. Vinyl release used different mastering pass — particularly important for the outro chant which benefits from vinyl's dynamic flow",
+            "subsequent_remasters_documented": "20th anniversary edition (2013) remastered",
+            "tonal_balance_at_release": "Open and natural — preserves the dynamic range of the Litt mix while maintaining album-context loudness consistency. The outro chant fades naturally without aggressive level chasing."
+          },
+          "the_moment_people_remember": {
+            "primary": "The OUTRO CHANT — the repeated phrase that closes the song (and the album) via meditative repetition rather than dramatic crescendo. The chant has been described as 'hypnotic' and 'lullaby-like' by critics. Listeners often remember the chant as the song's defining moment more than verse or chorus.",
+            "secondary": "The vocal MELODY — Cobain's most accessible/anthemic vocal performance on In Utero. Despite the album's general aggression, this song demonstrates Cobain's pop melodic sensibility.",
+            "tertiary": "The CELLO — Schaley's playing adds chamber-music quality to a rock arrangement. The cello is what makes the song feel ORCHESTRAL despite minimal instrumentation."
+          },
+          "advisor_extract": [
+            {
+              "recipe_name": "outro_chant_extension_via_repetition_not_fade",
+              "description": "End the song via a single PHRASE (vocal, instrumental, or both) repeated for an extended duration (~1:00+ minutes). Repetition is the build mechanism — vocal layers accumulate over cycles without changing the harmonic content. The song fades or ends after sufficient cycles. Anti-cathartic, anti-crescendo. The repetition becomes meditative rather than dramatic. CONTRAST with abrupt-end (TP) and standard fade — this is a third option.",
+              "use_for": ["Album closers needing resolution function", "songs wanting meditative weight as the ending", "tracks where listener should leave the song hypnotized rather than satisfied"],
+              "wow_factor": 0.85,
+              "implementation_for_modern_compositions": "Define a 4-bar phrase to be cycled. Build a vocal stack: first cycle = single voice, every 2 cycles add another voice doubled at unison or octave. After 6-8 cycles, fade naturally. Maintain instrumental backing at constant intensity throughout — only vocal layer count varies. Critical: the cycle length must be SHORT enough (2-4 bars) for the repetition to register, but the song must commit to the cycle for at least 30-60 seconds for the meditative effect to land."
+            },
+            {
+              "recipe_name": "vocal_layering_as_chant_build_mechanism",
+              "description": "Build a vocal section's intensity via PROGRESSIVE LAYERING (single → doubled → stacked) rather than via volume or vocal performance escalation. Each successive cycle adds 1 vocal layer to the existing stack. Listener perceives the section as 'growing' even though no individual voice gets louder. Particularly effective in extended outros or repeated chants.",
+              "use_for": ["Outro chants", "extended chorus repetitions", "any moment where build is wanted but volume cannot increase further"],
+              "wow_factor": 0.75,
+              "implementation_for_modern_compositions": "Track multiple complete passes of the chant phrase. In mix, layer them: 1 voice for cycle 1, 2 voices for cycles 2-3, 3 voices for cycles 4-5, etc. Use SUBTLE pitch/timing variation between passes for thickness without phasing — Cobain's natural take-to-take variation provided this organically; for synth voices, randomize pitch ±5 cents and timing ±5ms per layer."
+            },
+            {
+              "recipe_name": "cello_dual_role_pad_plus_melodic_response",
+              "description": "Use cello (or bowed string) for BOTH harmonic pad function AND occasional melodic counterpoint to vocal phrases. The cello sustains chord tones throughout (pad), AND plays brief melodic responses to vocal lines (counterpoint). This dual role makes the cello feel compositional rather than ornamental.",
+              "use_for": ["Vocal-forward songs wanting orchestral depth", "ballad arrangements wanting movement underneath the vocal", "anywhere a string section would feel too thick but cello-alone provides the right weight"],
+              "wow_factor": 0.70,
+              "comparison_to_dumb_recipe": "Dumb's cello recipe (cello_orchestral_pad_in_rock) emphasizes PAD function only. All Apologies adds the MELODIC RESPONSE dimension. The choice depends on the vocal's complexity — simpler vocals (Dumb) want pure pad; more complex vocals (All Apologies) can support melodic cello responses."
+            },
+            {
+              "recipe_name": "album_closer_resolution_function",
+              "description": "Position a track as deliberate album CLOSER — its structural function is resolution of the album, not just resolution of the song. Compositional and arrangement choices serve the album's overall arc. For aggressive albums, the closer can be SUBVERSIVELY restrained (All Apologies after In Utero's aggression). For introspective albums, the closer can be the album's most expansive moment.",
+              "use_for": ["Final tracks on concept albums", "tracks intended as album resolution rather than singles", "compositions where song meaning extends beyond the song's runtime to inform the album's interpretation"],
+              "wow_factor": 0.65,
+              "philosophical_note": "Album closers are increasingly rare in streaming-era release formats but remain artistically important for album-format releases. The advisor should recognize when a composition is intended to function as resolution beyond the song itself."
+            },
+            {
+              "recipe_name": "litt_subtle_remix_for_chamber_arrangements",
+              "description": "When commercial polish is needed on a CHAMBER-style arrangement (clean guitar + strings + restrained drums + vocal), apply Litt-style SUBTLE intervention rather than Wallace-style aggressive compression. Add vocal compression for consistency, subtle reverb for chamber space, master glue. Do NOT aggressively tighten drums or widen guitar — preserve the chamber aesthetic.",
+              "use_for": ["Chamber-music ballad mixes", "songs combining acoustic + electric elements", "arrangements where the vocal IS the instrument and other instruments support it"],
+              "wow_factor": 0.65,
+              "philosophical_note": "Litt's mixing approach is documented as more flexible than Wallace's — Litt adapts processing to the song's needs. The advisor should recognize that 'commercial mixing' is not monolithic — the right level of intervention depends on the source material's character."
+            }
+          ]
         }
       },
       "Soundgarden": {
