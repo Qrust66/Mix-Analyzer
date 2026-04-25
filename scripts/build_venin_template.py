@@ -1265,6 +1265,11 @@ def main() -> None:
             if tid is not None:
                 env_xmls.append(volume_envelope_drone_dark(1, tid, eid_base))
                 env_marker += " + Drone-cresc"
+        elif name == "12 VOX Lead":
+            tid = find_param_target_id(clone, "Pan")
+            if tid is not None:
+                env_xmls.append(pan_envelope_vox_bridge(1, tid, eid_base))
+                env_marker += " + Pan-Bridge"
         if env_xmls:
             clone = inject_envelopes(clone, env_xmls)
 
