@@ -1328,6 +1328,54 @@ EQ8_PRESETS: dict[str, list[tuple]] = {
 }
 
 
+# --- Volume envelope recipes (C3b) ----------------------------------------
+#
+# Values are on Live's 0.0-1.0 linear scale (0.85 approximates 0 dB unity,
+# 0.4 approximates -8 dB, 0.0 is silence). The RISER envelope ramps the FX
+# Riser volume up over each Pre-Drop, and does a slower sweep over the
+# first 16 beats of the Final Drop. The PUMP envelope ducks the Pad volume
+# on beat 1 of every bar during drops (sidechain-like effect without a
+# compressor).
+
+def build_volume_envelope_riser(env_id: int, target_id: int,
+                                event_id_base: int) -> str:
+    """FX Riser volume envelope — ramps up at each Pre-Drop + Final Drop."""
+    events = [
+        (99.0,  0.85),   # rest before Pre-Drop 1
+        (100.0, 0.0),    # Pre-Drop 1 start: silent
+        (116.0, 0.85),   # Pre-Drop 1 end: peak into Drop 1
+        (281.0, 0.85),   # rest before Pre-Drop 2
+        (282.0, 0.0),    # Pre-Drop 2 start
+        (298.0, 0.85),   # Pre-Drop 2 end: peak into Drop 2
+        (385.0, 0.85),   # rest before Final Drop
+        (386.0, 0.4),    # Final Drop start: slight duck
+        (402.0, 0.85),   # Final Drop bar 4: back to peak (covers the up-shift)
+    ]
+    return build_envelope(env_id, target_id, events, event_id_base)
+
+
+def build_volume_envelope_pump(env_id: int, target_id: int,
+                               event_id_base: int) -> str:
+    """Pad sidechain-pump envelope. Ducks to 0.4 on beat 1 of every bar
+    across Drop 1, Drop 2, and Final Drop. Each duck recovers over 1 beat.
+
+    Leading (0.0, 0.85) event keeps the init at 0.85 (rest) so the Pad
+    sits at unity before the first drop instead of being silent."""
+    events: list[tuple[float, float]] = [(0.0, 0.85)]     # rest at project start
+    # (start_beat, length_beats) — 4/4 drops
+    drops = [
+        (116, 64),   # Drop 1
+        (298, 64),   # Drop 2
+        (386, 64),   # Final Drop
+    ]
+    for start, length in drops:
+        for bar in range(length // 4):
+            beat1 = start + bar * 4
+            events.append((float(beat1),     0.4))    # duck
+            events.append((float(beat1 + 1), 0.85))   # recover
+    return build_envelope(env_id, target_id, events, event_id_base)
+
+
 def notes_to_keytracks_xml(notes: list[Note], indent: str) -> tuple[str, int]:
     if not notes:
         return f"{indent}<KeyTracks />", 1
@@ -1552,14 +1600,39 @@ def main() -> None:
             eq8_count += 1
             eq_marker = " + EQ8"
 
+        # C3b: inject volume automation envelopes on FX Riser + Pad
+        env_marker = ""
+        env_xmls: list[str] = []
+        event_id_base = 9_000_000 + i * 10_000
+        if name == "22 FX Riser":
+            tid = find_param_target_id(clone, "Volume")
+            if tid is not None:
+                env_xmls.append(build_volume_envelope_riser(
+                    env_id=1, target_id=tid, event_id_base=event_id_base))
+                env_marker = " + Riser-sweep"
+        elif name == "13 SYN Pad":
+            tid = find_param_target_id(clone, "Volume")
+            if tid is not None:
+                env_xmls.append(build_volume_envelope_pump(
+                    env_id=1, target_id=tid, event_id_base=event_id_base))
+                env_marker = " + Pump"
+        if env_xmls:
+            clone = inject_envelopes(clone, env_xmls)
+
         new_tracks.append(clone)
-        print(f"  #{i+1:2d} {name:<22} clips={len(clips):2d} notes={note_total:4d}{eq_marker}")
+        print(f"  #{i+1:2d} {name:<22} clips={len(clips):2d} notes={note_total:4d}{eq_marker}{env_marker}")
 
     print(f"  Injected {eq8_count} EQ8 devices")
 
     xml = xml[:t12_pos] + "".join(new_tracks) + xml[r2_pos:]
 
-    max_used = ID_OFFSET_BASE + len(TRACKS) * ID_OFFSET_STEP + 22155 + 1
+    # Bump NextPointeeId above ALL allocated IDs. My envelope FloatEvent Ids
+    # live in the 9M+ range (9_000_000 + i*10_000 + ~200 events per track),
+    # so max reserved ~ 9M + 26*10k + 1000 = ~9.27M. Push to 10M + margin.
+    max_used = max(
+        ID_OFFSET_BASE + len(TRACKS) * ID_OFFSET_STEP + 22155 + 1,
+        9_000_000 + len(TRACKS) * 10_000 + 10_000,
+    )
     xml = re.sub(
         r'(<NextPointeeId Value=")(\d+)(")',
         lambda m: m.group(1) + str(max_used + 100000) + m.group(3),
