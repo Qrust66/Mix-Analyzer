@@ -4277,7 +4277,7 @@
           }
         },
         "Head_Down": {
-          "_status": "C2_5a_composition_arrangement_done",
+          "_status": "C2_5b_performance_recording_done",
           "album": "Superunknown",
           "year": 1994,
           "tempo_bpm_documented_range": [86, 92],
@@ -4315,6 +4315,111 @@
             "comparison_to_fobd_arrangement": "FOBD arrangement is QUIET-LOUD DYNAMIC CONTRAST verse-chorus pop-rock. Head Down arrangement is ATMOSPHERIC CONTINUITY drone-modal meditation. Different arrangement engines.",
             "comparison_to_my_wave_arrangement": "My Wave arrangement is GROOVE-DRIVEN 5/4 playful + harmonic motion. Head Down arrangement is DRONE-FOUNDATION 7/4 hypnotic + harmonic stasis. Both odd-meter but opposite arrangement philosophies.",
             "comparison_to_overfloater_arrangement": "Overfloater arrangement is JAM-BAND atmospheric + extended bridge as centerpiece. Head Down arrangement is DRONE-MODAL meditation + asymmetric meter as structural anchor. Different paths to long-form atmospheric Soundgarden."
+          },
+          "performance": {
+            "tempo_feel_description": "STATELY HYPNOTIC — 86-92 BPM in 7/4 cycle creates a long asymmetric pulse that feels meditative rather than driving. The 7-beat cycle is long enough to feel SPACIOUS rather than urgent.",
+            "drum_style": {
+              "performer": "Matt Cameron",
+              "approach": "ASYMMETRIC METER MASTERY — Cameron documented as one of rock's most fluent odd-meter drummers. Head Down 7/4 played with confidence + groove rather than counted-stiffly.",
+              "specifics_documented": [
+                "7/4 cycle subdivided naturally — Cameron's documented approach to odd meters: feel the long cycle, place kicks/snares/cymbals to articulate the asymmetric pulse",
+                "Restrained intensity — not driving the song forward but ANCHORING the drone foundation",
+                "Hi-hat + ride cymbal articulation prominent in mid-range",
+                "Minimal fills — fills would interrupt the meditative cycle"
+              ],
+              "comparison_to_my_wave_drumming": "My Wave Cameron drums establish 5/4 GROOVE FEEL playfully. Head Down Cameron drums establish 7/4 STATELY CYCLE meditatively. Same drummer, two opposite odd-meter approaches.",
+              "comparison_to_overfloater_drumming": "Overfloater Cameron drums establish atmospheric pulse with subtle dynamics. Head Down Cameron drums anchor 7/4 cycle with hypnotic regularity. Both atmospheric Soundgarden tracks but with different drum-arrangement intents."
+            },
+            "guitar_style": {
+              "performers": "Kim Thayil + Chris Cornell",
+              "rhythm_guitar_role": "SUSTAINED HARMONIC TEXTURE above the drone foundation — chord voicings held for long durations, minimal palm-muting or rhythmic chunking",
+              "atmospheric_guitar_role": "Layered sustained chord voicings + occasional atmospheric leads — guitars provide harmonic FIELD rather than rhythmic engine",
+              "specifics_documented": [
+                "Drop D + flat tunings (Soundgarden Superunknown era exploration of low-tunings)",
+                "Distortion with sustain emphasis — long held chords with controlled feedback",
+                "Voicings often suspended or modal (sus2, sus4, modal voicings) — preserve the drone-friendly harmonic openness",
+                "Lead guitar atmospheric phrases in bridge sections"
+              ],
+              "playing_style_versus_other_soundgarden": "Where JCP guitars provide sustained intensity riff, FOBD guitars use clean-to-distorted dynamic shift, My Wave guitars groove in 5/4, Overfloater guitars create atmospheric texture, Head Down guitars provide DRONE-FRIENDLY HARMONIC FIELD above sustained low foundation. Five distinct guitar approaches across five Soundgarden songs in this dissection."
+            },
+            "bass_performance": {
+              "performer": "Ben Shepherd",
+              "approach": "DRONE-FOUNDATION + COMPOSITIONAL DRIVER — Shepherd co-wrote the song and his bass drone is its compositional anchor. Sustained low B notes form the harmonic gravity well",
+              "specifics_documented": [
+                "Drop D / flat-tuned bass for low frequency drone capability",
+                "Sustained held notes — bass functions as drone instrument NOT as walking/rhythmic bass",
+                "Subtle melodic phrases between sustained passages",
+                "Bass + low-tuned guitars together emphasize the low-frequency foundation"
+              ],
+              "shepherd_compositional_role": "Shepherd's documented Superunknown contributions include Head Down (co-write) — demonstrates Soundgarden's collective writing approach where bassist could drive a song's compositional identity, not just support a guitarist's riff."
+            },
+            "vocal_delivery": {
+              "performer": "Chris Cornell",
+              "verse_delivery": "FLOATING + SUSTAINED — Cornell's vocal hovers above the drone foundation rather than driving the song forward. Long held phrases, breath-supported delivery, less aggressive than JCP or even FOBD chorus",
+              "chorus_delivery": "Slight upper-register lift but still atmospheric — chorus is harmonic + melodic field, not explosion",
+              "bridge_delivery": "Vocal less prominent in bridge — instrumental drone foundation carries the section",
+              "documented_vocal_quirks": [
+                "Cornell adapts to atmospheric drone context — more SUSTAINED than ARGUMENTATIVE",
+                "Long phrasing matches the long 7/4 cycle — vocal phrases align with structural cycle",
+                "Less wide dynamic range than other Superunknown vocals — Head Down requires consistent atmospheric vocal"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization or pitch correction (preserves natural feel)",
+              "No drum sample replacement",
+              "No tempo changes (sustained throughout)",
+              "No meter changes (sustained 7/4)",
+              "No vocal layering as dynamic device — single voice carries the atmospheric quality"
+            ]
+          },
+          "recording": {
+            "studio": "Bad Animals Studio, Seattle, Washington (Superunknown primary tracking — Studio X / Bad Animals)",
+            "session_dates": "1993 sessions",
+            "primary_producer": "Michael Beinhorn (producer for Superunknown — same producer as JCP and FOBD)",
+            "primary_mix_engineer": "Brendan O'Brien (mixer for Superunknown — producer-mixer SPLIT, Beinhorn produced + O'Brien mixed)",
+            "drum_micing_approach": {
+              "philosophy_beinhorn": "Multiple close mics + room mics. Bad Animals tracking room captures kit with controlled ambience. Beinhorn's producer-driven approach shapes the kit sound at tracking",
+              "specifics_for_head_down": [
+                "Slow tempo + restrained Cameron playing means room mics capture extensive natural decay",
+                "7/4 cycle articulation requires clear kick + snare + cymbal balance for listener to track the asymmetric pulse",
+                "Light compression at tracking, but preserved dynamic range for atmospheric character"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_beinhorn": "Two-guitar approach with EMPHASIS on sustained texture for Head Down's drone-friendly arrangement",
+              "specifics_documented": [
+                "Drop D + flat tunings",
+                "Sustained chord voicings recorded with priority on natural sustain decay",
+                "Tube amps (Soundgarden Superunknown era options)",
+                "Feedback-friendly tracking — sustained chords benefit from controlled feedback that mics capture"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Ben Shepherd",
+              "specifics": "DI + amp blend per Bad Animals approach. Drone-foundation role required EXTRA care for low-frequency clarity — sustained low B notes need to read clearly without muddying the mix"
+            },
+            "vocal_tracking_approach": {
+              "philosophy_beinhorn": "Vocal isolation booth at Bad Animals, multiple complete takes selected (Beinhorn's documented selection-not-comping philosophy)",
+              "specifics_documented": [
+                "Cornell tracked in vocal booth, dynamic mic for high SPL capability",
+                "Atmospheric sustained delivery captured cleanly — long held phrases preserved without compression artifacts",
+                "Less vocal layering than typical mid-90s rock — single voice priority for atmospheric coherence"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Drop D + flat-tuned guitars",
+              "Tube amps (Soundgarden Superunknown era options)",
+              "Bad Animals' SSL console + outboard gear",
+              "Cameron's full kit"
+            ],
+            "what_makes_beinhorn_recording_distinct_for_head_down": [
+              "Producer-driven shaping at tracking — Beinhorn shaped the drone-foundation aesthetic for radio-compatible coherence even within atmospheric arrangement",
+              "Tracking + mixing roles SPLIT (Beinhorn produced + tracked, O'Brien mixed) — different from Date's unified or Kasper's unified roles",
+              "Compression at tracking, but Head Down's atmospheric character preserves more dynamic range than Superunknown peak intensity tracks (JCP-equivalents)",
+              "Multiple complete vocal takes selected per Beinhorn's documented preference"
+            ],
+            "comparison_to_my_wave_recording": "Same album (Superunknown), same producer (Beinhorn), same studio (Bad Animals), same mixer (O'Brien), but DIFFERENT recording emphasis: My Wave tracked for 5/4 groove clarity, Head Down tracked for 7/4 drone foundation. Different songs require different tracking-stage decisions even within the same album session.",
+            "comparison_to_overfloater_recording": "Overfloater (1996, Studio Litho, Kasper unified role) vs. Head Down (1993, Bad Animals, Beinhorn+O'Brien split). Both atmospheric Soundgarden tracks but with TOTALLY different production approaches: Kasper band-driven authenticity vs. Beinhorn producer-driven shaping. Same band's atmospheric capacity expressed through different production frames."
           }
         }
       },
