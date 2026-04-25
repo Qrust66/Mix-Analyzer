@@ -25,10 +25,10 @@ Design principles (per the brief):
    ("Hollow" section, 4 bars only) before rebuilding bigger. The Final
    Drop catches fire — closer clusters every beat + riser continuous.
 
-STEPS A1-A3/9 — scaffold + helpers + main + EQ8 baseline on drums/basses.
-Serum stripped (chain is self-closing <Devices />), then EQ8 injected with
-self-closing-aware helper. Track-level Annotation holds the stock-
-instrument hint.
+STEPS A1-B1/9 — Phase A done + drums (Kick / Snare / Tom Hi / Tom Lo /
+Hats / PRC Metal). Cluster stabs implemented on Kick, Snare, PRC Metal —
+they hit identical syncopated beats on every Drop. Toms tribal & sparse
+(AIC/Rob Zombie). Hats only in Verses + Final Drop (let drops breathe).
 """
 
 from __future__ import annotations
@@ -119,7 +119,204 @@ def _noop(section: str, length: int) -> list[Note]:
     return []
 
 
+# Section intensity (0=ambient/void, 2=verse, 3=tension build, 4=drop)
+INTENSITY = {
+    "Intro": 0, "Outro": 0, "Hollow": 0,
+    "Verse 1": 2, "Verse 2": 2,
+    "Bridge": 3,
+    "Drop 1": 4, "Drop 2": 4, "Final Drop": 4,
+}
+
+
+def cluster_beats(section: str) -> list[float]:
+    """Per-bar list of beats where the cluster-stab tracks hit together."""
+    if section == "Drop 1":
+        return [0.0, 0.25, 2.5, 3.75]
+    if section == "Drop 2":
+        return [0.0, 0.25, 1.75, 2.5, 3.75]
+    if section == "Final Drop":
+        return [0.0, 0.25, 1.0, 1.25, 2.5, 2.75, 3.5, 3.75]
+    return []
+
+
+# --- Drums (B1) -----------------------------------------------------------
+
+def _kick(section: str, length: int) -> list[Note]:
+    """Slow, weighty kick. Verses are SPARSE (every bar beat 1, push a-of-4
+    every other bar — slow burn). Drops use cluster_beats verbatim — the
+    kick LOCKS with snare/perc-metal/bass-lead on the same syncopated 16ths.
+    Pitch: 36 (drum-rack convention)."""
+    notes: list[Note] = []
+    bars = length // 4
+    cluster = cluster_beats(section)
+    if cluster:
+        # Drop sections: cluster stabs only — silence elsewhere
+        for bar in range(bars):
+            t = bar * 4
+            for c in cluster:
+                vel = 122 if c in (0.0, 2.5) else 110  # accent on 1 and 3
+                notes.append((t + c, 36, 0.25, vel))
+        return notes
+    if section in ("Verse 1", "Verse 2"):
+        for bar in range(bars):
+            t = bar * 4
+            notes.append((t, 36, 0.25, 115))             # downbeat always
+            if bar % 2 == 1:
+                notes.append((t + 3.75, 36, 0.125, 95))  # push every other bar
+        if section == "Verse 2":
+            # Audacity push: bar 4 of each phrase adds beat-3 articulation
+            for bar in range(3, bars, 4):
+                notes.append((bar * 4 + 2, 36, 0.125, 100))
+    return notes
+
+
+def _snare(section: str, length: int) -> list[Note]:
+    """Discipline: backbeat 2 & 4 in Verses, NO fills (elegance).
+    Drops use cluster_beats — the snare hits the same syncopated grid as
+    kick/perc-metal. Bridge is HALF-TIME (snare on beat 3 only) for slow
+    burn. Pitch: 38."""
+    notes: list[Note] = []
+    bars = length // 4
+    cluster = cluster_beats(section)
+    if cluster:
+        for bar in range(bars):
+            t = bar * 4
+            for c in cluster:
+                vel = 118 if c in (0.0, 2.5) else 100
+                notes.append((t + c, 38, 0.25, vel))
+        return notes
+    if section in ("Verse 1", "Verse 2"):
+        for bar in range(bars):
+            t = bar * 4
+            notes += [(t + 1, 38, 0.25, 110), (t + 3, 38, 0.25, 115)]
+            if section == "Verse 2" and (bar + 1) % 4 == 0:
+                # Audacity: ONE ghost anticipation on bar 4 of phrase
+                notes.append((t + 2.75, 38, 0.0625, 60))
+    elif section == "Bridge":
+        # Half-time: snare only on beat 3 of each bar (slow burn)
+        for bar in range(bars):
+            notes.append((bar * 4 + 2, 38, 0.5, 100))
+    return notes
+
+
+def _tom_high(section: str, length: int) -> list[Note]:
+    """Tribal high tom — sparse, eerie. AUDACITY: Hollow has ONE single hit
+    at bar 2 beat 1.5 — pure restraint, lets the void breathe. Pitch 50."""
+    notes: list[Note] = []
+    bars = length // 4
+    if section == "Intro":
+        # 4 hits across 8 bars (sparse, isolated, snake-charmer call)
+        notes += [(0.0,  50, 1.0,  95),
+                  (10.0, 50, 1.0, 100),
+                  (20.0, 50, 1.0, 105),
+                  (24.0, 50, 1.0,  95)]
+    elif section == "Hollow":
+        notes.append((6.0, 50, 2.0, 100))   # ONE hit (audacity = restraint)
+    elif section == "Bridge":
+        # Ascending tribal — density grows toward Final Drop
+        for bar in range(bars):
+            t = bar * 4
+            if bar < 2:
+                notes.append((t, 50, 0.5, 95))
+            elif bar < 4:
+                notes += [(t, 50, 0.25, 100), (t + 2.5, 50, 0.25, 105)]
+            elif bar < 6:
+                notes += [(t, 50, 0.25, 105),
+                          (t + 1, 50, 0.25, 100),
+                          (t + 2, 50, 0.25, 105)]
+            else:
+                # Last 2 bars: 8th-note roll into Final Drop
+                for s in range(8):
+                    notes.append((t + s * 0.5, 50, 0.2, 90 + s * 4))
+    elif section == "Final Drop":
+        # Tribal machine-gun pattern every 2 bars + extended fill every 4
+        for bar in range(0, bars, 2):
+            t = bar * 4
+            notes += [(t,       50, 0.25, 110),
+                      (t + 0.5, 50, 0.25, 100),
+                      (t + 1,   50, 0.25, 105)]
+            if bar % 4 == 0:
+                notes += [(t + 3,   50, 0.5,  115),
+                          (t + 3.5, 50, 0.25, 100)]
+    return notes
+
+
+def _tom_low(section: str, length: int) -> list[Note]:
+    """Tribal low tom — anchor for the high tom's call. Single hit per
+    2-bar phrase in Intro, one hit per 4-bar phrase in Verse 1 (rare
+    punctuation), more frequent in Verse 2, big hits in Final Drop.
+    Pitch 47."""
+    notes: list[Note] = []
+    bars = length // 4
+    if section == "Intro":
+        for bar in (1, 3, 5, 7):
+            notes.append((bar * 4, 47, 1.0, 105))
+    elif section == "Verse 1":
+        for bar in range(3, bars, 4):
+            notes.append((bar * 4 + 3, 47, 0.5, 110))   # tribal punctuation
+    elif section == "Verse 2":
+        for bar in range(1, bars, 2):
+            notes.append((bar * 4 + 3, 47, 0.5, 108))
+    elif section == "Bridge":
+        # Counter to Tom High — fills the gaps between its calls
+        for bar in range(bars):
+            t = bar * 4
+            if bar % 2 == 0:
+                notes.append((t + 1.5, 47, 0.5, 95))
+            else:
+                notes.append((t + 3, 47, 0.5, 100))
+    elif section == "Final Drop":
+        for bar in range(bars):
+            t = bar * 4
+            notes.append((t, 47, 0.5, 115))
+            if bar % 2 == 1:
+                notes.append((t + 2, 47, 0.5, 110))
+    return notes
+
+
+def _hats(section: str, length: int) -> list[Note]:
+    """Steady 8th-note hats with VARIED velocity (no 16ths — let drops breathe).
+    Active only in Verses + Final Drop. AUDACITY: Drops have NO hats at all
+    so the cluster stabs sit naked. Pitch 42."""
+    notes: list[Note] = []
+    bars = length // 4
+    if section in ("Verse 1", "Verse 2", "Final Drop"):
+        for bar in range(bars):
+            t = bar * 4
+            for s in range(8):
+                if s % 4 == 0:
+                    vel = 90    # downbeat 1, 3
+                elif s % 2 == 0:
+                    vel = 70    # 2, 4
+                else:
+                    vel = 55    # offbeat &
+                notes.append((t + s * 0.5, 42, 0.25, vel))
+    return notes
+
+
+def _prc_metal(section: str, length: int) -> list[Note]:
+    """Industrial metal hit — the cluster-stab voice. Silent everywhere
+    except Drops. Pitch 56."""
+    notes: list[Note] = []
+    bars = length // 4
+    cluster = cluster_beats(section)
+    if not cluster:
+        return notes
+    for bar in range(bars):
+        t = bar * 4
+        for c in cluster:
+            vel = 110 if c in (0.0, 2.5) else 95
+            notes.append((t + c, 56, 0.125, vel))
+    return notes
+
+
 NOTE_GENERATORS: dict[str, "callable"] = {name: _noop for (name, *_) in TRACKS}
+NOTE_GENERATORS["01 DRM Kick"]      = _kick
+NOTE_GENERATORS["02 DRM Snare"]     = _snare
+NOTE_GENERATORS["03 DRM Tom High"]  = _tom_high
+NOTE_GENERATORS["04 DRM Tom Low"]   = _tom_low
+NOTE_GENERATORS["05 DRM Hats"]      = _hats
+NOTE_GENERATORS["06 PRC Metal"]     = _prc_metal
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
