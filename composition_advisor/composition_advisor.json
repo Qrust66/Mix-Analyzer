@@ -4562,9 +4562,50 @@
           "songs_to_dissect": ["Quiet", "Soma", "Bodies", "Zero"]
         },
         "Quiet": {
-          "_status": "stub_pending_full_dissection_C3_1",
+          "_status": "C3_1a_composition_arrangement_done",
           "album": "Siamese Dream",
-          "year": 1993
+          "year": 1993,
+          "tempo_bpm_documented_range": [96, 102],
+          "time_signature": "4/4 throughout",
+          "key_area": "E-flat minor area (with Drop D-flat tuning shifting feel — documented as half-step-down standard tuning across Siamese Dream)",
+          "tuning_documented": "Half-step-down (E-flat standard) — Siamese Dream-wide convention. Adds darkness + slack-string feel.",
+          "track_runtime": "~3:42",
+          "_special_status": "Track 2 on Siamese Dream — follows opener Cherub Rock. Functions as the album's INTENSITY ESTABLISHER — where Cherub Rock opens with anthemic build-and-release, Quiet establishes the album's HEAVIER + MORE AGGRESSIVE side. The title is ironic — the song is anything but quiet. Demonstrates Corgan's documented Siamese Dream LAYERED GUITAR philosophy at peak density.",
+          "composition": {
+            "primary_compositional_signature": "AGGRESSIVE GUITAR-ANTHEM WITH HOOK-DRIVEN VERSE-CHORUS — built around a powerful opening riff that establishes the song's identity within the first 4 bars. Where Cherub Rock builds gradually, Quiet hits HARD from the start.",
+            "core_structural_arc": "Opening riff statement → verse with riff continuation → pre-chorus tension build → explosive chorus → riff return → verse 2 → pre-chorus → chorus → bridge with brief dynamic shift → final chorus expansion → outro. Tight ~3:42 — demonstrates Corgan's documented commercial-rock-economy capacity within an album that also includes longer atmospheric tracks.",
+            "harmonic_motion_summary": "MINOR-MODAL with characteristic Corgan power-chord-plus-suspended-tone voicings. Tonic E-flat minor area, with movement to relative major + flat-VI for chorus expansion. Voice-leading documented as Corgan's deliberate study of pop hook craft applied to heavy rock context.",
+            "characteristic_compositional_choice": "GUITAR RIFF AS BOTH HOOK AND STRUCTURE — the opening riff is simultaneously the song's hook AND the structural backbone (continues through verses). Corgan's documented approach: the riff IS the song. Where Nirvana writes vocal hooks, Corgan writes guitar hooks of equal melodic weight.",
+            "comparison_to_cherub_rock_album_opener": "Cherub Rock (track 1): builds gradually from clean intro to anthemic chorus, dynamic-arc-driven. Quiet (track 2): hits hard from start, riff-driven sustained intensity. Two opposite compositional approaches in adjacent album positions — establishes Siamese Dream's range early.",
+            "comparison_to_today_album_opener_alternative": "Today (track 3): clean intro → anthemic build → distorted chorus, classic Corgan dynamic-arc. Quiet's compositional engine is RIFF-CONSTANCY rather than dynamic-arc. Different compositional intent.",
+            "compositional_economy": "3:42 is tight by Siamese Dream standards (album avg ~5 min). Quiet demonstrates Corgan's HEAVY-RADIO-ROCK economy — concise, hook-forward, sustained intensity. Compositional 'movement' is dense within the short runtime.",
+            "innovation_for_genre_context": "1993 alt-rock context: Nirvana's quiet-loud was dominant template, Soundgarden's odd-meter heavy was emerging. Quiet's contribution: SUSTAINED INTENSITY HEAVY ROCK with hook-driven economy + Corgan's signature LAYERED GUITAR DENSITY (documented 50+ guitar tracks in Siamese Dream's wall-of-sound)."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "WALL-OF-GUITARS LAYERED DENSITY — Corgan's documented Siamese Dream approach with multiple guitar tracks panned + EQ-staggered to create a dense harmonic field. Drums + bass anchor; guitars are the texture.",
+            "intro_arrangement": "Opening riff statement with full-band entry — drums, bass, multiple guitars all enter together. No gradual build. Aggressive intent declared in first 2 measures.",
+            "verse_arrangement": "Riff continues + Corgan vocal enters. Multiple guitar layers panned L/R/center for stereo width + harmonic density. Drums (Jimmy Chamberlin) drive with kick-snare backbone, hi-hat 8ths or 16ths.",
+            "pre_chorus_arrangement": "Slight harmonic shift + density increase — additional guitar layer enters or existing layers gain harmonic interval (octave double, fifth above). Drum fill leads into chorus.",
+            "chorus_arrangement": "MAXIMUM GUITAR DENSITY + harmonic expansion. Vocal lifts to upper register. Power chords with suspended tones widening voicings. Cymbals more prominent.",
+            "bridge_arrangement": "Brief dynamic shift — slight reduction in guitar density or reharmonization, but Quiet's bridge is shorter than typical Siamese Dream bridges (the song's intensity should not relax much)",
+            "outro_arrangement": "Chorus expansion + final riff statement. Sustained intensity to fade or hard ending.",
+            "guitar_layering_philosophy_corgan_documented": [
+              "Multiple guitar tracks (documented as numerous on Siamese Dream — Corgan layered extensively)",
+              "Each layer EQ-staggered: low-mid, mid-range, upper-mid, high — frequency-spread layering creates dense harmonic field without mud",
+              "Stereo placement: hard L, hard R, center-left, center-right, dead center for different layers",
+              "Each layer can have different distortion character (different amps/pedals) for textural variation",
+              "Result: a 'wall of sound' that reads as ONE BIG GUITAR rather than as multiple distinct guitars"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained 96-102 BPM)",
+              "No drum sample replacement (Chamberlin's drums are key to the song's identity)",
+              "No vocal layering as primary dynamic device — guitars are the layering engine",
+              "No clean-to-distorted dynamic shift (Quiet stays HEAVY throughout, unlike Today or Mayonaise)"
+            ],
+            "what_makes_arrangement_unique_within_smashing_pumpkins": "Quiet represents Corgan's HEAVY-SUSTAINED-INTENSITY side. Where Today/Mayonaise/Soma use clean-to-distorted dynamic arc, Quiet stays heavy throughout. Demonstrates the band's range: same album includes BOTH dynamic-arc (Today) AND sustained-intensity (Quiet) approaches.",
+            "comparison_to_corgan_dynamic_arc_tracks": "Today/Mayonaise/Soma: clean intro → distorted explosion = DYNAMIC ARC compositional engine. Quiet: heavy from start = SUSTAINED INTENSITY engine. Both engines used by same songwriter on same album — shows compositional range.",
+            "comparison_to_corgan_atmospheric_tracks": "Soma (track 6): atmospheric long-form, dynamic arc. Quiet: tight heavy economy. Different paths to compositional impact within Siamese Dream."
+          }
         },
         "Soma": {
           "_status": "stub_pending_full_dissection_C3_2",
