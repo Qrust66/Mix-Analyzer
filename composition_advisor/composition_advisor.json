@@ -178,7 +178,202 @@
     }
   },
 
-  "_TBD_D2": "voice_leading + tension_release + voicings_recipes + silence_protocol",
+  "voice_leading": {
+    "purpose": "How voices (instruments treated as melodic lines) move in relation to each other. Modern grunge/industrial breaks classical rules deliberately — these rules document both the conventions AND the genre exceptions, so the advisor can grant exception permits with intent.",
+    "core_rules": [
+      {
+        "id": "step_motion_preferred",
+        "rule": "Inner voices (pad chord tones, counter-leads, sustained synths) should move by step (m2 or M2) when possible. Leaps > minor 3rd in inner voices sound jarring.",
+        "applies_to": ["pad", "counter_lead", "background_harmony"],
+        "exceptions": [
+          {"context": "bass_octave_jumps_for_emphasis", "reason": "octave displacement on bass = power move, not voice-leading violation"},
+          {"context": "lead_octave_displacement_at_peak", "reason": "lead jumping octave UP at section peak amplifies climax"}
+        ]
+      },
+      {
+        "id": "no_parallel_perfect_intervals",
+        "rule": "Two voices moving in PARALLEL 5ths or octaves between chord changes sounds 'thin' or 'primitive' in classical writing.",
+        "exceptions": [
+          {"context": "power_chords_grunge", "reason": "Cobain genre — root+5 IS the chord, parallel motion is the GENRE", "permit": "auto"},
+          {"context": "octave_doubling_for_thickness", "reason": "doubling the lead in octaves is standard production", "permit": "auto"},
+          {"context": "intentional_quartal_movement", "reason": "modern modal voicings move in 4ths/5ths intentionally", "permit": "manual"}
+        ]
+      },
+      {
+        "id": "common_tone_retention",
+        "rule": "When changing chords, keep any shared note in the SAME voice (don't move to a different instrument). Reduces motion, preserves continuity.",
+        "applies_to": ["pad", "drone", "sustained_voicings"],
+        "wow_lift": "smoothest chord changes the listener barely perceives — 'glue'"
+      },
+      {
+        "id": "contrary_motion_for_stability",
+        "rule": "When outer voices move opposite directions (bass UP while top voice DOWN, or inverse), the harmony feels grounded and inevitable.",
+        "applies_to": ["bass_vs_lead", "section_transitions"],
+        "wow_lift": "cadential motion sounds like resolution even when modal"
+      },
+      {
+        "id": "leading_tone_resolution_strict",
+        "rule": "In Harmonic Minor, the natural 7 (leading tone) MUST resolve UP to root within 2 beats. Otherwise the cadence breaks.",
+        "applies_to": ["harmonic_minor"],
+        "violation_penalty": "loss of cadential pull — chord progression sounds aimless"
+      },
+      {
+        "id": "drone_immobility",
+        "rule": "Drone voices NEVER move within a section. If a drone must change, do it AT THE SECTION BOUNDARY by sliding a half-step (chromatic shift, no bigger).",
+        "applies_to": ["drone_dark", "fx_drone", "fx_tension"],
+        "wow_lift": "the half-step drone shift at a boundary signals 'something has changed' subliminally"
+      }
+    ],
+    "between_instruments": {
+      "bass_vs_pad": "Bass moves while pad holds (or inverse) — never both move on same beat except at section change. Reduces clash, preserves clarity.",
+      "lead_vs_counter_lead": "If lead moves UP by step, counter-lead moves DOWN by step (contrary motion = independence). If both move parallel, they fuse into one voice.",
+      "drone_role": "Drone is the SPINE — every other voice references it. Moving voices should land on drone-compatible chord tones at downbeats.",
+      "kick_vs_sub_bass": "Kick LOCKS pitch with sub-bass on downbeats. Sub-bass holds pitch BETWEEN kicks (no clash). Ducking sub-bass on kick attack is OPTIONAL but recommended for clarity.",
+      "vocal_vs_lead_synth": "Vocal occupies 200-3kHz primarily. If lead synth shares this band, lead synth must drop -3 dB OR pan ≥ 30% off-center when vocal is present."
+    },
+    "anti_patterns_voice_leading": [
+      "All voices moving in parallel motion → sounds like one instrument doubled",
+      "Bass and pad both moving on every beat → muddy, no anchor",
+      "Lead and counter-lead doing the same melodic shape an interval apart → no independence, defeats the counter-lead purpose",
+      "Drone changing pitch mid-section → breaks the spine"
+    ]
+  },
+
+  "tension_release": {
+    "purpose": "Cadences and tension techniques — how to build expectation and either deliver or subvert it. The 'WOW' lift comes from CHOOSING when to resolve vs surprise.",
+    "cadence_inventory": {
+      "authentic": {
+        "form": "V (or V7) -> I (or i)",
+        "strength": "strongest resolution (classical)",
+        "use_for": ["section endings that fully resolve", "Final Drop landing if home key"],
+        "modes": ["harmonic_minor (only modal cadence with strong V)"],
+        "wow_factor": 0.4,
+        "comment": "Sounds 'classical' / safe. Reach for this when you want unmistakable arrival."
+      },
+      "modal_aeolian": {
+        "form": "bVII major -> i minor (descending whole step)",
+        "strength": "modal, rock-friendly, less classical",
+        "use_for": ["grunge verse endings", "rock cadences", "Aeolian/Dorian sections"],
+        "modes": ["aeolian", "dorian"],
+        "wow_factor": 0.5
+      },
+      "modal_phrygian": {
+        "form": "bII major -> i (descending half step)",
+        "strength": "Spanish/exotic, characteristic of Phrygian",
+        "use_for": ["dark verse endings", "exotic moments", "menacing pre-Drop"],
+        "modes": ["phrygian", "phrygian_dominant"],
+        "wow_factor": 0.7
+      },
+      "deceptive": {
+        "form": "V (build expectation of i) -> VI major (instead)",
+        "strength": "surprise twist — listener expects resolution, gets a major lift somewhere new",
+        "use_for": ["bridge ending that DOESN'T resolve to home", "modulation pivot via the unexpected chord"],
+        "modes": ["any minor"],
+        "wow_factor": 0.8,
+        "comment": "Most underused powerful cadence. Use ONCE per song max."
+      },
+      "interrupted_silence": {
+        "form": "build chord -> SILENCE (1 to 2 beats) -> resolution chord",
+        "strength": "silence-loaded surprise",
+        "use_for": ["right before Final Drop", "post-Bridge before drop", "max drama moments"],
+        "wow_factor": 0.95,
+        "silence_duration_beats": [0.5, 2.0],
+        "comment": "Combines tension_release WITH silence_protocol — the gap IS the cadence"
+      },
+      "suspended_unresolved": {
+        "form": "end on sus2 or sus4 (or open quartal voicing), never resolve to triad",
+        "strength": "open-ended, contemplative, modern",
+        "use_for": ["Outro", "Yorke ostinato endings", "modal hover that intentionally stays unfinished"],
+        "modes": ["any"],
+        "wow_factor": 0.6,
+        "comment": "Anti-classical — leaves the listener thinking the song could continue forever"
+      },
+      "plagal_modal": {
+        "form": "iv -> i (subdominant -> tonic, no V involvement)",
+        "strength": "gentle 'amen' resolution",
+        "use_for": ["Outro fade", "after a deceptive cadence to soothe"],
+        "wow_factor": 0.3
+      }
+    },
+    "tension_techniques": {
+      "neapolitan": {
+        "definition": "bII major chord built on flat 2 in a minor key (e.g. Db major in C minor)",
+        "function": "Subdominant substitute with chromatic flavor — in 1st inversion (bII6) is classic, in root position is more modern.",
+        "use_for": ["pre-chorus chord", "section just before deceptive cadence"],
+        "modes": ["aeolian (creates modal mixture)", "harmonic_minor (true neapolitan)"],
+        "wow_factor": 0.7,
+        "example_in_C_minor": "Db major chord — feels like a doorway"
+      },
+      "chromatic_mediant": {
+        "definition": "Sudden chord shift to a 3rd-related root (bIII, III, bVI, VI) without prep — feels surprising because no common-tone setup.",
+        "function": "Instant mood pivot WITHOUT modulation (returns to home key after).",
+        "use_for": ["bridge entry", "surprise chord at Pre-Drop", "post-silence return"],
+        "modes": ["any"],
+        "wow_factor": 0.85,
+        "comment": "Reznor / Yorke signature. The chord drops into the listener like an interruption from another world."
+      },
+      "pivot_half_step": {
+        "definition": "Whole arrangement shifts root by minor 2 (up or down). Every voice moves +1 or -1 semitone.",
+        "function": "The 'half-step modulation' shock — most striking in popular music.",
+        "use_for": ["Final Drop entry (UP for ascent)", "Final Drop ending crash-back DOWN to home"],
+        "modes": ["any"],
+        "wow_factor": 0.95,
+        "duration_recommendation": "First 4 bars of the section ONLY, then crash back home; OR sustain the new key to end (commits to it).",
+        "comment": "Used in Nemesis Final Drop. User loved this. Reuse strategically — it loses power if used twice in same song."
+      },
+      "tritone_substitution": {
+        "definition": "bII7 replaces V7 — same tritone interval but bass is a half-step above tonic instead of a 5th below.",
+        "function": "Jazz move that ADAPTS to metal — adds chromatic density without losing the V function.",
+        "use_for": ["pre-Drop chord that lands HARD on the Drop", "any V-to-i moment that wants more bite"],
+        "modes": ["any minor"],
+        "wow_factor": 0.6
+      },
+      "false_relation": {
+        "definition": "Two voices simultaneously play the SAME pitch class natural and altered (e.g. C natural in bass, C# in pad — at the same beat).",
+        "function": "Momentary clash that resolves within 1 beat to stable harmony — Reznor signature dissonance.",
+        "use_for": ["1-beat moments in Bridge", "Drop pre-roll for 1 beat of menace"],
+        "modes": ["any"],
+        "wow_factor": 0.7,
+        "duration_max_beats": 1.0,
+        "comment": "Don't sustain — dissonance must clear quickly or it sounds like a mistake."
+      },
+      "silence_as_dominant": {
+        "definition": "Replace the V (dominant) chord with literal silence of equivalent length. The expectation of V is so strong that absence ITSELF cadences.",
+        "function": "Silence borrows the function of V via expectation — Reznor / NIN trick.",
+        "use_for": ["pre-Drop where you'd normally place a sustained V chord"],
+        "wow_factor": 0.9,
+        "silence_duration_beats": [2.0, 4.0],
+        "comment": "Pairs with interrupted_silence cadence — same idea applied differently"
+      }
+    },
+    "decision_tree_when_to_resolve": {
+      "always_resolve": [
+        "Final Drop entry (the listener earned this)",
+        "song ending (unless intentional Yorke unresolved)"
+      ],
+      "never_resolve": [
+        "Outro if Yorke ≥ 25% (ostinato fade > authentic cadence)",
+        "Hollow ending (the void has its own logic — resolution would feel cheap)"
+      ],
+      "resolve_with_surprise": [
+        "Bridge ending → use deceptive cadence (V→VI not V→i)",
+        "Drop entry from Pre-Drop → use interrupted_silence (silence + landing)"
+      ],
+      "modulation_resolve": [
+        "If pivot_half_step UP at Final Drop bars 1-4, resolve back to home with authentic cadence at bar 5",
+        "If chromatic_mediant chord introduced, RETURN to home within 4 bars max"
+      ]
+    },
+    "anti_patterns_tension": [
+      "Using authentic cadence at every section boundary → predictable, no impact",
+      "Multiple deceptive cadences in same song → loses surprise value",
+      "Sustaining false_relation > 1 beat → sounds like a wrong note, not a feature",
+      "Modulating up half-step AND down half-step in same song → cancels emotional direction",
+      "Silence after silence → silence loses meaning if it's the default"
+    ]
+  },
+
+  "_TBD_D2bc": "voicings_recipes + silence_protocol (D2b) + rhythm_theory + density_curves (D2c)",
   "_TBD_D3": "genres (Cobain, Reznor, Yorke, Daft Punk) + per-genre conditional rules",
   "_TBD_D4": "energy_curves + frequency_space + wow_factors",
   "_TBD_D5": "conditional_rules (B1-B6) + anti_patterns",
