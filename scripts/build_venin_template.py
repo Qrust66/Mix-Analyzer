@@ -25,11 +25,19 @@ Design principles (per the brief):
    ("Hollow" section, 4 bars only) before rebuilding bigger. The Final
    Drop catches fire — closer clusters every beat + riser continuous.
 
-STEPS A1-C2/9 — Phase B done + automations. Volume sweeps on FX Riser
-(Bridge ramp 0->1 then sustain through Final Drop), FX Tension (multi-
-section crescendo Intro/Hollow/Bridge then Outro fade), SYN Drone Dark
-(Bridge crescendo echoing the Riser, Outro fade). Pan oscillation on
-VOX Lead during Bridge (growing amplitude — spatial tension).
+STEPS A1-C3/9 — COMPLETE (9/9). Final scaffold delivered:
+  - 15 tracks (15 = 6 drums + 2 basses + 3 synth + 1 vox + 3 fx)
+  - 65 MIDI clips, ~2250 notes, 9 locators
+  - Pure 4/4 throughout, 95 BPM, 4:13 duration
+  - C# Phrygian Dominant tonality with deliberate out-of-scale
+    chromatic moves (D#4 in Bridge motif, E1->F1 aug-2 in Drone)
+  - Serum stripped — track Annotation holds the stock-instrument hint
+  - 8 EQ Eight devices on drums + basses, pre-calibrated for venom mix
+  - 4 automation envelopes (Riser sweep, Tension cresc, Drone cresc,
+    VOX Pan oscillation in Bridge)
+  - Cluster stabs LOCKED across 6 tracks (kick + snare + perc-metal +
+    sub + bas-lead + syn-lead) on all 3 Drops with growing density
+    (4 -> 5 -> 8 hits/bar from Drop 1 to Final Drop)
 """
 
 from __future__ import annotations
