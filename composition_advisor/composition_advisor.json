@@ -632,7 +632,136 @@
     }
   },
 
-  "_TBD_D2c": "rhythm_theory + density_curves",
+  "rhythm_theory": {
+    "purpose": "Codifies the rhythmic dimension — polyrhythm, swing, groove feel — so the advisor can pick rhythmic devices that match section energy and genre. Without this, all generated patterns sit on a sterile mathematical grid.",
+    "polyrhythm": {
+      "definition": "Two or more rhythmic streams with different subdivisions playing simultaneously. The streams realign every N beats (the LCM of their cycles).",
+      "patterns": {
+        "3_against_2": {
+          "definition": "3 evenly-spaced hits in the time of 2 beats (or 6 against 4). Most common polyrhythm.",
+          "realignment_beats": 2,
+          "feel": "loose, flowing, slight tension between the two streams",
+          "best_for": ["arp over 4/4 drum", "Yorke ostinatos", "any moment that wants to break the grid without breaking the meter"],
+          "wow_factor": 0.6,
+          "concrete_recipe": "if 4/4 bar = 4 beats, place hits at 0, 0.6667, 1.3333, 2.0, 2.6667, 3.3333 (6 hits across 4 beats)",
+          "genre_affinity": {"yorke": 0.85, "reznor": 0.6, "cobain": 0.3, "daft_punk": 0.5}
+        },
+        "4_against_3": {
+          "definition": "4 evenly-spaced hits in the time of 3 beats (used over 3/4 or as a hemiola in 4/4)",
+          "realignment_beats": 3,
+          "feel": "very destabilizing — the 4 stream feels 'wrong' against 3",
+          "best_for": ["bridge moments that want metric ambiguity", "intro polyrhythm to disorient before locking in"],
+          "wow_factor": 0.75,
+          "concrete_recipe": "in 4/4 bar, place 4 evenly across 3 beats: 0, 0.75, 1.5, 2.25 (then beat 3 onwards is a different cycle)",
+          "warning": "use sparingly — extended use sounds like a meter mistake"
+        },
+        "5_against_4": {
+          "definition": "5 hits across 4 beats. Used in Bramure arp; realigns every 5 bars.",
+          "realignment_beats": 4,
+          "feel": "shifting groove that drifts in and out of phase with the downbeat",
+          "best_for": ["arp/sequencer in modern electronic sections", "moments that want continuous motion without locking"],
+          "wow_factor": 0.7,
+          "concrete_recipe": "5-note cell in 16ths cycles every 1.25 beats; over 4 bars (16 beats) the cell repeats 12.8 times — full realignment every 5 bars",
+          "genre_affinity": {"yorke": 0.7, "reznor": 0.6, "daft_punk": 0.65, "cobain": 0.2}
+        },
+        "7_against_4": {
+          "definition": "7 hits across 4 beats — extreme polyrhythm",
+          "realignment_beats": 4,
+          "feel": "almost arrhythmic, requires anchoring against straight 4/4 to be perceived as polyrhythm not chaos",
+          "best_for": ["bridge tension peaks (1-2 bars max)", "build moments that resolve to 4/4"],
+          "wow_factor": 0.65,
+          "warning": "Yorke would use this; Cobain never. Match to genre_blend before applying."
+        }
+      },
+      "anchoring_rule": "When using polyrhythm, ALWAYS keep the kick/snare on straight 4/4 grid. The polyrhythm sits OVER the grid — never replace the grid. Without an anchor, polyrhythm becomes noise."
+    },
+    "swing_ratios": {
+      "definition": "How a pair of 8th-notes is timed: the offbeat 8th can be exactly halfway (straight) or pushed later (swing).",
+      "ratios": {
+        "straight": {
+          "ratio": "50/50",
+          "first_8th_duration": 0.5,
+          "second_8th_duration": 0.5,
+          "feel": "mechanical, locked, electronic",
+          "best_for": ["industrial", "techno", "metal precision", "Daft Punk"],
+          "genre_affinity": {"reznor": 0.85, "daft_punk": 0.95, "cobain": 0.5, "yorke": 0.4}
+        },
+        "light_swing": {
+          "ratio": "54/46",
+          "first_8th_duration": 0.54,
+          "second_8th_duration": 0.46,
+          "feel": "subtle human laid-back, barely perceptible push",
+          "best_for": ["Yorke moments", "verse with breath", "any pattern that should sound 'slightly drunk'"],
+          "genre_affinity": {"yorke": 0.85, "reznor": 0.4, "cobain": 0.6, "daft_punk": 0.2}
+        },
+        "medium_swing": {
+          "ratio": "60/40",
+          "first_8th_duration": 0.6,
+          "second_8th_duration": 0.4,
+          "feel": "triplet-derived, jazzy, loose",
+          "best_for": ["6/8 sections", "ballad grooves", "Cobain unplugged moments"],
+          "genre_affinity": {"yorke": 0.7, "cobain": 0.5, "reznor": 0.3, "daft_punk": 0.1}
+        },
+        "shuffle": {
+          "ratio": "66/33",
+          "first_8th_duration": 0.6667,
+          "second_8th_duration": 0.3333,
+          "feel": "full triplet swing, blues/shuffle territory",
+          "best_for": ["bluesy verses (rare in our genres)", "intentional throwback moments"],
+          "genre_affinity": {"cobain": 0.4, "yorke": 0.3, "reznor": 0.1, "daft_punk": 0.05},
+          "warning": "Shuffle is rare in industrial/grunge/electronic — apply only if explicitly intended"
+        }
+      },
+      "decision_tree_swing": {
+        "if_genre_blend_daft_punk_pct >= 25": "force straight (mechanical = the genre)",
+        "if_genre_blend_yorke_pct >= 25": "prefer light_swing for verse, straight for build/drop",
+        "if_section == 'intro' OR section == 'outro'": "light_swing OK — gives breath",
+        "if_section == 'drop' OR section == 'final_drop'": "force straight — drops need precision for cluster impact",
+        "default": "straight"
+      }
+    },
+    "groove_feel": {
+      "definition": "Where hits land RELATIVE to the metronome. Same notation, different feel.",
+      "options": {
+        "ahead_of_beat": {
+          "offset_ms_at_120bpm": "-15 to -5",
+          "offset_beats": "-0.030 to -0.010",
+          "feel": "urgent, pushing, anxious — 'driving the beat'",
+          "best_for": ["build sections that want momentum", "Cobain desperate verses (vocal pushes ahead)"],
+          "apply_to": ["snare", "vocal", "lead synth"],
+          "do_not_apply_to": ["kick", "sub bass — these MUST stay on grid for low-end clarity"],
+          "genre_affinity": {"cobain": 0.7, "reznor": 0.5, "yorke": 0.3, "daft_punk": 0.05}
+        },
+        "on_beat": {
+          "offset_ms": "0",
+          "feel": "locked, solid, mechanical",
+          "best_for": ["drops where precision matters", "Daft Punk full-time", "any cluster stab moment"],
+          "apply_to": "all instruments"
+        },
+        "behind_beat": {
+          "offset_ms_at_120bpm": "+5 to +20",
+          "offset_beats": "+0.010 to +0.040",
+          "feel": "laid-back, drag, brooding, heavy — 'sitting in the pocket'",
+          "best_for": ["bridge moments", "Yorke contemplative sections", "doom/sludge feel"],
+          "apply_to": ["snare", "hihat"],
+          "do_not_apply_to": ["kick", "sub bass"],
+          "genre_affinity": {"yorke": 0.75, "reznor": 0.5, "cobain": 0.3, "daft_punk": 0.05}
+        }
+      },
+      "groove_feel_callback": "Within a section, varying the groove_feel is a WOW lever — e.g. Verse drags behind-beat, Pre-Drop snaps to on-beat (the sudden tightness telegraphs the drop)"
+    },
+    "tempo_perception_at_95_bpm": {
+      "comment": "Tempo and feel interact. At 95 BPM (Venin / our preferred slow burn), 8th notes feel 'comfortable' — neither fast nor slow. 16ths feel 'busy'. Triplet 8ths (3-against-2) feel 'loose'.",
+      "rules": [
+        "At 95 BPM, drum hi-hat 16ths sound aggressive (mechanical) — use sparingly",
+        "At 95 BPM, drum hi-hat 8ths feel restrained — best default",
+        "Triplet feels (6/8 or polyrhythm 3:2) at 95 BPM gravitate toward AIC / Yorke ballad territory",
+        "Cluster stabs at 95 BPM hit harder than at 120 — the slow tempo amplifies impact"
+      ]
+    }
+  },
+
+  "_TBD_D2c_continued": "rhythm_theory part 2 (syncopation/hemiola/breakbeat/stop-time) + density_curves",
   "_TBD_D3": "genres (Cobain, Reznor, Yorke, Daft Punk) + per-genre conditional rules",
   "_TBD_D4": "energy_curves + frequency_space + wow_factors",
   "_TBD_D5": "conditional_rules (B1-B6) + anti_patterns",
