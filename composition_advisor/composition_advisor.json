@@ -3205,9 +3205,78 @@
           "songs_to_dissect": ["Jesus_Christ_Pose", "Fell_On_Black_Days", "My_Wave", "Overfloater", "Head_Down"]
         },
         "Jesus_Christ_Pose": {
-          "_status": "stub_pending_full_dissection_C2_1",
+          "_status": "C2_1a_composition_arrangement_done",
           "album": "Badmotorfinger",
-          "year": 1991
+          "year": 1991,
+          "tempo_bpm_documented_range": [100, 110],
+          "time_signature": "4/4 primary with documented metric ambiguity in verses (some analyses identify alternating bar groupings that feel like 7/4 or compound meter)",
+          "key_area": "D minor area — drop D tuning common across Soundgarden's catalog, leverages low D as root power chord",
+          "tuning_documented": "Drop D (low E string detuned to D) — Kim Thayil and Chris Cornell guitars on Badmotorfinger documented in this tuning for tracks built around the low D",
+          "track_runtime": "~5:50 — LONG album track for an aggressive song; the runtime itself is part of the impact (sustained intensity over extended duration tests listener endurance deliberately)",
+          "_special_status": "Album opener-adjacent (track 2 on Badmotorfinger). Establishes the album's intensity baseline. Famously aggressive even by Soundgarden's standards; documented as a sustained workout for both performer and listener.",
+          "composition": {
+            "structural_blueprint": "intro_drum_groove_4bars (Cameron establishes the syncopated drum pattern alone, building anticipation) -> riff_entry_4bars (guitars + bass lock onto drum pattern) -> verse1_8bars -> pre_chorus_4bars -> chorus_8bars -> verse2_8bars -> pre_chorus_4bars -> chorus_8bars -> bridge_extended_16bars (instrumental section with guitar work) -> chorus_extended_outro_8plus_bars -> abrupt or fade ending. Total ~5:50.",
+            "section_count_and_lengths": {
+              "intro_drum_groove": "4 bars — Cameron's pattern establishes immediately",
+              "riff_entry": "4 bars — guitars + bass enter, locked with drums",
+              "verses": "8 bars each (2 verses)",
+              "pre_choruses": "4 bars each — tension build sections",
+              "choruses": "8 bars each (2 standard + extended outro chorus)",
+              "bridge": "Extended 16+ bars instrumental — guitar work showcased",
+              "outro_chorus": "Extended chorus repetition into ending"
+            },
+            "harmonic_motion": "Modal Aeolian / minor pentatonic vocabulary. The chord cycle stays minimal — drop D power chord movements emphasizing low D root with occasional movements to bVII (C major in D minor context) and other minor modal chord shapes. Harmonic content subordinate to RHYTHMIC identity.",
+            "modal_choice": "Aeolian (natural minor) with minor pentatonic vocabulary in lead lines",
+            "melodic_contour": "Cornell's vocal: HIGH-RANGE belted melody throughout. Verse contour: relatively static around upper-mid register. Chorus contour: ascending arcs to peak high notes (Cornell's documented multi-octave range exploited fully). Outro: continues high belted delivery with subtle pitch variations.",
+            "characteristic_compositional_choice": "RHYTHMIC IDENTITY OVER HARMONIC IDENTITY. The song's identity is the SYNCOPATED DRUM PATTERN that Cameron establishes in the intro and maintains throughout. Guitars and bass lock to this drum identity. The harmony is intentionally minimal so the rhythm carries the song. Anti-traditional songwriting where harmony defines identity.",
+            "harmonic_pacing": "Slow chord changes (~1-2 bars per chord). Pacing is rhythm-focused, not chord-progression-focused.",
+            "phrase_symmetry": "8-bar verses + 4-bar pre-choruses + 8-bar choruses are symmetric. The asymmetry is in the EXTENDED BRIDGE (16+ bars) and EXTENDED OUTRO CHORUS — the song refuses the typical 3-3.5 minute pop length, deliberately extending to 5:50.",
+            "documented_metric_complexity": "Some analyses identify Cameron's drum pattern as creating implied 7/4 feel within the 4/4 bar structure (the syncopation makes the bar feel longer or shorter than 4 beats depending on listener). This is characteristic of Cameron's compositional drumming approach — bar groupings feel ambiguous even when the underlying meter is straightforward 4/4."
+          },
+          "arrangement": {
+            "instrumentation_complete": [
+              "electric guitar 1 (Kim Thayil — heavy distortion, drop D, primary riff carrier)",
+              "electric guitar 2 (Chris Cornell — also playing rhythm guitar, doubles or harmonizes Thayil)",
+              "bass guitar (Hiro Yamamoto — locked with kick drum, foundation role)",
+              "drum kit (Matt Cameron — full kit, polyrhythmic vocabulary, complex syncopation)",
+              "lead vocal (Chris Cornell — high-range belted throughout)",
+              "minimal documented overdubs beyond the band's live tracking — Soundgarden tracked as a unit"
+            ],
+            "section_instrumentation": {
+              "intro_drum_groove": "DRUMS ALONE — Cameron's syncopated pattern establishes for 4 bars, no other instruments",
+              "riff_entry": "Guitars + bass lock onto drum pattern — band fully present from this point",
+              "verse_1": "Full band intensity sustained — distorted guitars, locked bass, complex drums, Cornell vocal entering",
+              "pre_chorus_1": "Slight intensity push — drums add cymbal presence, guitar texture builds, vocal climbs in pitch",
+              "chorus_1": "Maximum density — guitars at peak distortion, vocal at peak high register, drums full kit",
+              "verse_2": "Identical to verse 1",
+              "pre_chorus_2": "Identical to pre-chorus 1",
+              "chorus_2": "Identical to chorus 1, slight variation in cymbal use",
+              "bridge_extended": "Guitar work showcased — Thayil's lead lines over the rhythm section's continued groove. Vocal absent for portion of bridge, then re-enters",
+              "outro_chorus_extended": "Continues chorus chord cycle with vocal sustaining high notes, drums pushing further, abrupt or fade ending"
+            },
+            "vocal_layering_strategy": "Cornell vocal SINGLE-TRACKED in verses, possibly DOUBLED in choruses (documented Soundgarden practice for chorus emphasis but less aggressive layering than Pumpkins). The vocal performance carries the energy without heavy arrangement support — Cornell's range and power are sufficient.",
+            "dynamic_arc_overall": "FLAT-INTENSE for ~5:50. After the 4-bar drum-only intro, the song sustains maximum intensity throughout. Pre-choruses provide momentary lift before choruses, but no real verse-restraint. Bridge provides instrumental variation (vocal absent) but maintains intensity. Total: nearly 6 minutes of sustained aggression with internal variation only via section MARKERS not via section DYNAMICS.",
+            "instrumental_role_assignment": {
+              "drums_role": "PRIMARY identity carrier — Cameron's syncopated pattern IS the song. The drum pattern defines what makes JCP recognizable. This is unusual: most rock songs have guitar or vocal as primary identity carrier. Cameron's documented compositional drumming approach.",
+              "guitar_role": "Rhythmic/textural — guitars LOCK to the drum identity. Riff serves Cameron's pattern rather than competing with it. Bridge provides guitar showcase but bridges typically follow the song's rhythmic intent.",
+              "bass_role": "Foundation locked with kick — Yamamoto plays minimally to leave space for the drum complexity to register",
+              "vocal_role": "Intensity carrier — Cornell's high-range belted delivery layers onto the drum-defined groove. The vocal's emotional intensity matches the drum's rhythmic intensity — both are pushed to physical limits."
+            },
+            "harmonic_density_per_section": {
+              "intro_drum_groove": "1 element (drum kit alone) — minimum density via instrumentation count, but Cameron's playing fills the rhythmic space",
+              "riff_entry_through_outro": "5 instruments at sustained max intensity for ~5:30 — no real density variation",
+              "bridge": "5 instruments but with vocal absent for portions — slight density reduction allowing guitar work to surface"
+            },
+            "arrangement_anti_patterns_avoided_or_inverted": [
+              "Does NOT use loud-quiet-loud Pixies template — sustained intensity throughout",
+              "Does NOT use 3-minute pop length — extends to 5:50 deliberately",
+              "Does NOT center guitar or vocal as primary identity — DRUMS are the primary identity carrier (rare in rock)",
+              "Does NOT introduce new instruments mid-song — same 5-instrument palette throughout",
+              "Does NOT use abrupt fade like commercial radio — outro chorus extends until natural conclusion or hard ending"
+            ],
+            "what_makes_arrangement_unique_within_soundgarden_catalog": "Jesus Christ Pose is one of Soundgarden's most AGGRESSIVE tracks. The 5:50 runtime sustaining max intensity is structurally bold — most aggressive songs cap at 3-4 minutes. The DRUM-AS-PRIMARY-IDENTITY arrangement is rare even within their catalog (Cameron's playing always notable, but JCP makes it the explicit identity carrier).",
+            "comparison_to_nirvana_aggressive_tracks": "Where Territorial Pissings (Nirvana, ~1:50, 178 BPM) achieves aggression via SPEED + COMPACTNESS, Jesus Christ Pose (Soundgarden, ~5:50, ~105 BPM) achieves aggression via RHYTHMIC COMPLEXITY + EXTENDED DURATION. Two different paths to aggression. Where Very Ape (~1:55, ~106 BPM) is mid-tempo aggressive in compact form, JCP is mid-tempo aggressive in extended form."
+          }
         },
         "Fell_On_Black_Days": {
           "_status": "stub_pending_full_dissection_C2_2",
