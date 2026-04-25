@@ -2692,9 +2692,71 @@
           ]
         },
         "Very_Ape": {
-          "_status": "stub_pending_full_dissection_C1_4",
+          "_status": "C1_4a_composition_arrangement_done",
           "album": "In Utero",
-          "year": 1993
+          "year": 1993,
+          "tempo_bpm_documented_range": [104, 108],
+          "time_signature": "4/4",
+          "key_area": "B minor area (Aeolian) — guitars detuned 1/2 step on In Utero, so concert-pitch effective key is Bb minor",
+          "tuning_documented": "Detuned 1/2 step (Eb tuning) per In Utero session standard",
+          "track_runtime": "~1:55 — one of the shortest album tracks of its era, deliberately compact",
+          "composition": {
+            "structural_blueprint": "intro_riff_4bars (guitar establishes the descending power chord pattern alone) -> verse1_8bars -> chorus1_8bars -> verse2_8bars -> chorus2_8bars -> short_bridge_4bars (instrumental riff continuation) -> chorus3_outro_8bars -> abrupt end. Total ~1:55. Compact, riff-driven, no extended sections.",
+            "section_count_and_lengths": {
+              "intro": "4 bars guitar alone establishing the iconic descending power chord riff",
+              "verses": "8 bars each",
+              "choruses": "8 bars each (3 total — V1/C1 / V2/C2 / outro chorus)",
+              "bridge": "4 bars instrumental — riff continues without vocal",
+              "outro": "8-bar chorus into abrupt cut"
+            },
+            "harmonic_motion": "Modal Aeolian — riff is a DESCENDING power chord pattern (root motion descending by step or third). The harmony is rhythm-based: the rapidity of the descent IS the harmonic identity. No traditional chord changes between sections.",
+            "modal_choice": "Aeolian (natural minor)",
+            "melodic_contour": "Verse vocal: shouted phrases, descending contour matching the riff. Chorus vocal: opens slightly higher in pitch range, more sustained. Outro vocal: documented as more strained as Cobain pushes through the final chorus.",
+            "characteristic_compositional_choice": "RIFF-AS-SONG-IDENTITY. The descending power chord pattern is so insistent that the entire song is essentially a riff with vocal added. No verse-chorus harmonic distinction — the riff plays through everything. Compositionally simple to the point of minimalism, but at aggressive tempo with maximum distortion.",
+            "harmonic_pacing": "Fast: chord changes within the riff happen at 8th-note speed (descending pattern moves quickly). Macro chord level: same riff cycled bar after bar.",
+            "phrase_symmetry": "8-bar phrases verse + chorus, 4-bar intro and bridge — symmetric punk-rock structure. The asymmetry is in TOTAL RUNTIME (1:55) vs typical album track (3-4 min).",
+            "documented_song_history": "Cobain documented as having written Very Ape during the In Utero sessions — relatively quick composition, performed in essentially complete form during tracking. The riff identity was set early in the writing process."
+          },
+          "arrangement": {
+            "instrumentation_complete": [
+              "electric guitar (Cobain — heavy distortion, drop-tuned, riff-driven)",
+              "bass guitar (Krist Novoselic — locked with kick drum)",
+              "drum kit (Dave Grohl — aggressive but more measured than Territorial Pissings)",
+              "lead vocal (Kurt Cobain — shouted/strained throughout)",
+              "no documented backing vocals or overdubs as primary contributors — track is essentially band live"
+            ],
+            "section_instrumentation": {
+              "intro": "Guitar alone with the descending riff — bass and drums absent for 4 bars (similar fakeout-via-isolation as HSB but shorter and more aggressive)",
+              "verse_1": "Full band enters with riff continuing — drums + bass + vocal layer onto the established guitar identity",
+              "chorus_1": "Same instrumentation as verse, but slight intensity push (drums hit harder, vocal more strained). NOT a clean-to-distorted shift like SLTS — distortion is constant.",
+              "verse_2": "Identical to verse 1",
+              "chorus_2": "Identical to chorus 1",
+              "bridge": "Instrumental — riff continues but vocal absent. Brief breath in vocal absence.",
+              "outro": "Final chorus repeats with vocal becoming progressively more strained, then ABRUPT cut — no fade"
+            },
+            "vocal_layering_strategy": "SINGLE-tracked throughout — Cobain's voice exposed and direct. No chorus doubling (distinct from HSB). The aggressive vocal performance carries the energy without arrangement support.",
+            "dynamic_arc_overall": "FLAT-AGGRESSIVE — similar to Territorial Pissings, no dynamic peaks within the song. The 4-bar intro is the only moment of restraint (guitar alone). Post-intro: sustained max intensity for ~1:50.",
+            "instrumental_role_assignment": {
+              "guitar_role": "primary identity carrier — the riff IS the song. Not melodic per se but rhythmically distinct enough to function as the song's hook",
+              "bass_role": "locked with kick + guitar root — Novoselic plays minimally, leaves space for guitar riff to dominate",
+              "drums_role": "DRIVING but not at the hardcore tempo of TP. Grohl maintains aggressive but more controlled energy — rocks rather than thrashes.",
+              "vocal_role": "rhythmic + emotional carrier — strained shouted delivery layers onto the riff. Vocal serves the riff rather than vice versa."
+            },
+            "harmonic_density_per_section": {
+              "intro": "1 instrument (guitar) — riff established",
+              "post_intro_through_outro": "4 instruments at sustained max intensity — no variation",
+              "bridge": "3 instruments (guitar + bass + drums, vocal absent) — slight density reduction"
+            },
+            "arrangement_anti_patterns_avoided_or_inverted": [
+              "Does NOT use Pixies loud-quiet-loud template — sustained intensity throughout",
+              "Does NOT change harmonic content between verse and chorus — same riff plays everything",
+              "Does NOT introduce new instruments mid-song — same 4-instrument palette from intro to outro",
+              "Does NOT use vocal doubling — single-tracked vocal throughout",
+              "Does NOT use a fade-out — ends abruptly like Territorial Pissings"
+            ],
+            "what_makes_arrangement_unique_within_in_utero": "Very Ape is the SHORTEST aggressive track on In Utero. Where Territorial Pissings (Nevermind) is hardcore-punk speed at ~178 BPM, Very Ape is mid-tempo aggressive at ~106 BPM — aggression with measured tempo. The riff-as-identity approach is similar in DNA to QOTSA's later 'robot rock' but predates it and operates in grunge context.",
+            "comparison_to_territorial_pissings": "TP and Very Ape share aggressive intent + abrupt ending + single-tracked vocal, but differ in: TEMPO (TP ~178 vs Very Ape ~106), INTRO STRATEGY (TP uses a cappella fake-out; Very Ape uses guitar-alone riff), STRUCTURE (TP has band-slam after intro; Very Ape builds via instrumental layering)."
+          }
         },
         "All_Apologies": {
           "_status": "stub_pending_full_dissection_C1_5",
