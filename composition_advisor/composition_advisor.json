@@ -4840,7 +4840,7 @@
           }
         },
         "Soma": {
-          "_status": "C3_2a_composition_arrangement_done",
+          "_status": "C3_2b_performance_recording_done",
           "album": "Siamese Dream",
           "year": 1993,
           "tempo_bpm_documented_range": [82, 88],
@@ -4881,6 +4881,110 @@
             "what_makes_arrangement_unique_within_smashing_pumpkins": "Soma represents Corgan's MOST EXTENDED + PATIENT DYNAMIC ARC. Where Today compresses the arc into 3:21 and Mayonaise into ~5 min, Soma extends it across 6:39. Demonstrates that dynamic-arc compositional engine SCALES — the same engine works at multiple temporal scales depending on how much patience the song demands.",
             "comparison_to_quiet_arrangement": "Quiet: wall-of-density from start, no arc. Soma: density arc, sparse-to-wall over 6:39. Two completely different arrangement strategies on same album.",
             "comparison_to_corgan_atmospheric_long_form": "Soma + future tracks like Geek USA establish Corgan's capacity for extended-form arrangements. Soma's extended form is DYNAMIC-ARC-driven; other extended forms (e.g., Daydream) are atmospheric-meditation-driven."
+          },
+          "performance": {
+            "tempo_feel_description": "PATIENT ATMOSPHERIC — 82-88 BPM at restrained intensity for first half feels meditative; final explosion at same tempo feels cathartic. The PERCEPTUAL TEMPO shifts via density rather than via metronome change.",
+            "drum_style": {
+              "performer": "Jimmy Chamberlin",
+              "approach": "PATIENT BUILD + EXPLOSIVE RELEASE — Chamberlin demonstrates DYNAMIC RANGE rather than sustained technical density. Restraint in early sections, full power in explosion.",
+              "specifics_documented": [
+                "Intro/early verses: hi-hat or ride only, kick sparse, no snare or restrained snare on 4 only",
+                "Mid-song: kick + snare engage, hi-hat 8ths drive forward",
+                "Bridge buildup: density increases progressively, fills become more frequent",
+                "Explosion chorus: full kit at maximum power, crash cymbals on every section change",
+                "Outro: gradual reduction, return to ride/hi-hat patience"
+              ],
+              "comparison_to_chamberlin_quiet": "Quiet Chamberlin: sustained driving 4/4 with technical fills throughout. Soma Chamberlin: dynamic range across 6:39 — restraint to explosion to resolution. Same drummer demonstrating two different drumming approaches based on compositional intent."
+            },
+            "guitar_style": {
+              "performers": "Billy Corgan + James Iha",
+              "clean_guitar_role": "Arpeggiated single-note or two-note picking — patient atmospheric texture, melodic but restrained",
+              "distorted_guitar_role": "MULTI-LAYERED WALL during explosion sections — Corgan's documented Siamese Dream layering at peak density, similar to Quiet but DEPLOYED selectively",
+              "specifics_documented": [
+                "Half-step-down tuning (E-flat standard)",
+                "Clean guitar tone: clean amp + minimal effects, picked precisely",
+                "Distorted tone: Big Muff + tube amps (Marshall, Hiwatt) — Siamese Dream signature",
+                "Distortion DEPLOYED selectively across the dynamic arc — not present in intro, partial in first chorus, FULL in explosion",
+                "Multiple guitar layers at peak density (similar to Quiet but DELAYED until explosion)"
+              ],
+              "playing_style_versus_quiet": "Quiet guitars: wall-of-density from start, sustained intensity. Soma guitars: density arc, clean-to-wall progression. Same guitarist (Corgan), same gear, but COMPLETELY DIFFERENT DEPLOYMENT across the song's structure."
+            },
+            "bass_performance": {
+              "performer": "D'arcy Wretzky (Corgan also tracked some bass on Siamese Dream)",
+              "approach": "DYNAMIC-ARC SUPPORTING — restrained in early sections, full energy in explosion",
+              "specifics_documented": [
+                "Half-step-down-tuned bass",
+                "Intro/early verses: subtle root-note pulse, low energy",
+                "Bridge buildup: bass density increases, more melodic activity",
+                "Explosion: full energy driving the climax with kick"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Billy Corgan",
+              "verse_delivery": "REFLECTIVE + SUSTAINED — Corgan's nasal tenor in restrained mode, melodic precision without aggression. Long phrases breathing with the patient arrangement.",
+              "chorus_delivery": "Lifts to upper-mid register; first chorus moderate, explosion chorus FULL POWER",
+              "documented_vocal_quirks": [
+                "Vocal arc matches arrangement arc — restrained in intro/verses, full in explosion",
+                "Vocal layering on explosion choruses (doubles, octave doubles) for emphasis",
+                "Multiple complete takes selected/comped per Vig's documented Siamese Dream approach"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization or pitch correction",
+              "No drum sample replacement",
+              "No tempo changes (the dynamic arc operates within constant tempo)",
+              "No vocal explosion before instrumental explosion (vocal + arrangement explode TOGETHER)"
+            ]
+          },
+          "recording": {
+            "studio": "Triclops Sound Studios, Marietta, Georgia",
+            "session_dates": "1992-1993 sessions",
+            "primary_producer": "Butch Vig (co-producer with Billy Corgan)",
+            "primary_mix_engineer": "Andy Wallace (Siamese Dream mixed throughout)",
+            "co_producer_role_corgan": "Corgan as effective co-producer — documented Siamese Dream sessions involved Corgan's substantial input on layering decisions, vocal selection, song-level dynamic-arc shaping",
+            "drum_micing_approach": {
+              "philosophy_vig": "Multiple close mics + room mics + processed parallel compression",
+              "specifics_for_soma": [
+                "Chamberlin's full kit miced extensively at Triclops",
+                "Parallel compression on drum bus carries Vig's signature weight + transient detail through dynamic arc",
+                "Room mics blended for natural ambience — Triclops tracking room captures kit with controlled liveliness",
+                "Drum sound CALIBRATED to scale across dynamic arc — restrained sections still need clarity, explosion needs maximum impact"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_corgan_vig": "MULTIPLE TAKES LAYERED — but DEPLOYED selectively across song's dynamic arc",
+              "specifics_documented": [
+                "Half-step-down tuning",
+                "Clean guitar layers tracked carefully — picking precision required for intro patience",
+                "Distorted layers tracked separately, deployed at appropriate dynamic moments",
+                "Big Muff + Marshall/Hiwatt for distortion (Siamese Dream signature)",
+                "Each distorted guitar layer EQ-staggered + panned for stereo width at peak density"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "DI + amp blend per Vig's approach. Bass tracked across full dynamic arc — restrained early energy, full energy in explosion."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_vig": "Multiple complete takes selected/comped for long phrases. Layered doubles on choruses for emphasis.",
+              "specifics_documented": [
+                "Vocal isolation booth at Triclops",
+                "Multiple complete takes selected/comped",
+                "Selective vocal layering on explosion choruses (doubles, octave doubles)"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Big Muff fuzz pedal",
+              "Marshall + Hiwatt amps (distorted) + clean amp (intro/verses)",
+              "Half-step-down-tuned guitars + bass",
+              "Chamberlin's full kit at Triclops"
+            ],
+            "what_makes_vig_recording_distinct_for_soma": [
+              "Engineer-producer-style approach facilitating Corgan's extended-dynamic-arc vision",
+              "Multiple-takes-layered tracking but with DYNAMIC ARC DEPLOYMENT consideration — when does each layer enter?",
+              "Parallel compression on drums calibrated to handle dynamic range from restraint to explosion",
+              "Vocal tracking patient — long phrases require sustained delivery + careful capture"
+            ],
+            "comparison_to_quiet_recording": "Same studio, same producer, same gear, same album session — but DIFFERENT recording emphasis. Quiet tracked for sustained-intensity wall. Soma tracked for dynamic-arc with DEPLOYMENT consideration. Same engineer-producer (Vig) capable of supporting two opposite compositional engines on same album."
           }
         },
         "Bodies": {
