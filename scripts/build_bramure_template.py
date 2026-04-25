@@ -1178,8 +1178,8 @@ def inject_eq8(track_xml: str, eq8_xml: str) -> str:
 # AutomationTarget Id. Volume / Pan live in the track's Mixer (already present
 # on every cloned track with their own AutomationTarget Ids).
 #
-# Value conventions:
-#   Volume: 0.0 = -inf, ~0.85 = 0 dB unity, 1.0 = max
+# Value conventions (verified against Acid_Drops_Sections_TFP.als reference):
+#   Volume: 0.0003162 = -inf (Min) .. 1.0 = 0 dB unity .. 1.99526 = +6 dB max
 #   Pan:   -1.0 (left) .. 0.0 (center) .. +1.0 (right)
 #
 # An init event at Time=-63072000 sets the parameter's value BEFORE the song
@@ -1339,17 +1339,18 @@ EQ8_PRESETS: dict[str, list[tuple]] = {
 
 def build_volume_envelope_riser(env_id: int, target_id: int,
                                 event_id_base: int) -> str:
-    """FX Riser volume envelope — ramps up at each Pre-Drop + Final Drop."""
+    """FX Riser volume envelope — ramps up at each Pre-Drop + Final Drop.
+    Values on Live's Volume scale: 0.0003 = silent, 1.0 = unity (0 dB)."""
     events = [
-        (99.0,  0.85),   # rest before Pre-Drop 1
-        (100.0, 0.0),    # Pre-Drop 1 start: silent
-        (116.0, 0.85),   # Pre-Drop 1 end: peak into Drop 1
-        (281.0, 0.85),   # rest before Pre-Drop 2
-        (282.0, 0.0),    # Pre-Drop 2 start
-        (298.0, 0.85),   # Pre-Drop 2 end: peak into Drop 2
-        (385.0, 0.85),   # rest before Final Drop
-        (386.0, 0.4),    # Final Drop start: slight duck
-        (402.0, 0.85),   # Final Drop bar 4: back to peak (covers the up-shift)
+        (99.0,  1.0),    # rest at unity before Pre-Drop 1
+        (100.0, 0.0003), # Pre-Drop 1 start: silent
+        (116.0, 1.0),    # Pre-Drop 1 end: peak (unity) into Drop 1
+        (281.0, 1.0),    # rest before Pre-Drop 2
+        (282.0, 0.0003), # Pre-Drop 2 start: silent
+        (298.0, 1.0),    # Pre-Drop 2 end: peak into Drop 2
+        (385.0, 1.0),    # rest before Final Drop
+        (386.0, 0.5),    # Final Drop start: ~ -6 dB duck (audible)
+        (402.0, 1.0),    # Final Drop bar 4: back to unity
     ]
     return build_envelope(env_id, target_id, events, event_id_base)
 
@@ -1379,13 +1380,13 @@ def build_pan_envelope_bridge(env_id: int, target_id: int,
 
 def build_volume_envelope_pump(env_id: int, target_id: int,
                                event_id_base: int) -> str:
-    """Pad sidechain-pump envelope. Ducks to 0.4 on beat 1 of every bar
-    across Drop 1, Drop 2, and Final Drop. Each duck recovers over 1 beat.
+    """Pad sidechain-pump envelope. Ducks to 0.5 (~ -6 dB) on beat 1 of every
+    bar across Drop 1, Drop 2, Final Drop. Recovers to 1.0 (unity) over 1 beat.
 
-    Leading (0.0, 0.85) event keeps the init at 0.85 (rest) so the Pad
-    sits at unity before the first drop instead of being silent."""
-    events: list[tuple[float, float]] = [(0.0, 0.85)]     # rest at project start
-    # (start_beat, length_beats) — 4/4 drops
+    Leading (0.0, 1.0) event keeps the init at unity so the Pad sits at 0 dB
+    before the first drop instead of being silent. Values on Live's Volume
+    scale: 0.0003 silent, 0.5 ~ -6 dB, 1.0 unity 0 dB."""
+    events: list[tuple[float, float]] = [(0.0, 1.0)]    # rest at project start
     drops = [
         (116, 64),   # Drop 1
         (298, 64),   # Drop 2
@@ -1394,8 +1395,8 @@ def build_volume_envelope_pump(env_id: int, target_id: int,
     for start, length in drops:
         for bar in range(length // 4):
             beat1 = start + bar * 4
-            events.append((float(beat1),     0.4))    # duck
-            events.append((float(beat1 + 1), 0.85))   # recover
+            events.append((float(beat1),     0.5))     # duck ~ -6 dB
+            events.append((float(beat1 + 1), 1.0))     # recover unity
     return build_envelope(env_id, target_id, events, event_id_base)
 
 
