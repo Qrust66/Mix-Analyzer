@@ -3470,9 +3470,79 @@
           ]
         },
         "Fell_On_Black_Days": {
-          "_status": "stub_pending_full_dissection_C2_2",
+          "_status": "C2_2a_composition_arrangement_done",
           "album": "Superunknown",
-          "year": 1994
+          "year": 1994,
+          "tempo_bpm_documented_range": [82, 86],
+          "time_signature": "6/4 verses (commonly analyzed) with 4/4 chorus area — Soundgarden signature meter shift between sections",
+          "key_area": "B minor area (Aeolian) — drop D tuning leveraged for low end weight",
+          "tuning_documented": "Drop D tuning (Soundgarden Superunknown standard for many tracks); Cornell's open chord voicings exploit the dropped low string",
+          "track_runtime": "~4:42 — moderate length, deliberately patient",
+          "_special_status": "One of Superunknown's signature mid-tempo tracks. Single released from the album. Demonstrates Soundgarden's mature songwriting — slower than JCP, more melodic, harmonically richer.",
+          "composition": {
+            "structural_blueprint": "intro_4bars (clean guitar arpeggio in 6/4 establishes the patient tone) -> verse1_8bars_in_6/4 (sparse, vocal exposed) -> pre_chorus_4bars (build via dynamics) -> chorus_8bars_in_4/4 (fuller density, distortion engaged, vocal opens up) -> verse2_8bars_in_6/4 -> pre_chorus_4bars -> chorus_8bars_in_4/4 -> bridge_8bars (instrumental) -> chorus_extended_outro -> fade or natural ending. Total ~4:42.",
+            "section_count_and_lengths": {
+              "intro": "4 bars in 6/4 — establishes the asymmetric verse meter immediately",
+              "verses": "8 bars each in 6/4 (which means 8×6=48 beats, longer than 8×4=32 for a 4/4 verse — gives the verses extra breath)",
+              "pre_choruses": "4 bars (shorter, build mechanism)",
+              "choruses": "8 bars in 4/4 — meter shift to 4/4 RESOLVES the verse's 6/4 ambiguity",
+              "bridge": "8 bars instrumental",
+              "outro_chorus": "Extended cycling into fade or hard ending"
+            },
+            "harmonic_motion": "Modal Aeolian with sus chord coloring. The verse uses extended/sus chord voicings (notably exploiting drop D's open low string for sustained pedal tone under moving upper voices). The chorus moves to clearer minor power chords. Harmonic richness is more evident than in Soundgarden's more aggressive tracks (JCP's harmony is minimal, Fell On Black Days' harmony is sophisticated).",
+            "modal_choice": "Aeolian (natural minor) with extended/sus voicings",
+            "melodic_contour": "Verse vocal: descending melodic phrases, moderate range, lyrical intimacy. Chorus vocal: ascending arc to peak sustained note (Cornell's range opened up but not maxed like JCP). Outro: continues chorus contour with subtle vocal intensification.",
+            "characteristic_compositional_choice": "METER SHIFT VERSE-TO-CHORUS as structural device. Verses in 6/4 create patient asymmetric feel (each bar feels longer than 4/4); chorus shift to 4/4 RESOLVES the asymmetry — listener feels the meter resolution as part of the chorus emotional payoff. Distinct from Spoonman (7/4 verse → 4/4 chorus) but same Soundgarden technique applied differently.",
+            "harmonic_pacing": "Slow chord changes (~2 bars per chord in verses). Verse pacing matches the 6/4 meter's expanded feel.",
+            "phrase_symmetry": "8-bar phrases throughout (verse + chorus). The METER itself is the asymmetry — 6/4 verses are more beats per bar than 4/4 choruses, so phrases of equal bar count have unequal beat count.",
+            "documented_compositional_intent": "Cornell wrote the song about depression. The patient pacing + asymmetric meter + restrained dynamics in verses match the lyrical theme — the song's compositional choices reflect the subject matter."
+          },
+          "arrangement": {
+            "instrumentation_complete": [
+              "electric guitar 1 (Kim Thayil — clean tone in verses, distorted in chorus)",
+              "electric guitar 2 (Chris Cornell — also playing rhythm, harmony with Thayil)",
+              "bass guitar (Ben Shepherd — replaced Hiro Yamamoto for Superunknown era)",
+              "drum kit (Matt Cameron)",
+              "lead vocal (Chris Cornell)",
+              "backing vocals in chorus (Cornell self-doubled or with Thayil — Soundgarden's documented vocal harmony approach)"
+            ],
+            "section_instrumentation": {
+              "intro": "Clean guitar arpeggio + minimal drums + bass entering — establishes patient mood",
+              "verse_1": "Continued clean guitar texture, vocal exposed, bass + drums supporting subtly",
+              "pre_chorus_1": "Density build: drums engage cymbals, guitar adds texture, vocal climbs",
+              "chorus_1": "DISTORTION ENGAGES on guitars + drums hit fuller + vocal opens up to peak — clean-to-distorted dynamic shift between verse and chorus",
+              "verse_2": "Returns to clean texture (NOT continuing chorus distortion) — restraint reasserted",
+              "pre_chorus_2": "Identical build mechanism",
+              "chorus_2": "Identical to chorus 1",
+              "bridge": "Instrumental — guitar work over rhythm section continued",
+              "outro_chorus": "Returns to chorus distortion intensity, may extend or fade"
+            },
+            "vocal_layering_strategy": "VERSE: SINGLE-tracked Cornell vocal — exposed and intimate. CHORUS: DOUBLED or harmonized vocal (Cornell self-doubling, possibly with Thayil harmony — Soundgarden's documented vocal harmony approach). The chorus's emotional lift comes from BOTH dynamics AND vocal layering increase.",
+            "dynamic_arc_overall": "TRADITIONAL loud-quiet-loud SHIFT between verse (clean, restrained) and chorus (distorted, fuller). Distinct from JCP's flat-intense — Fell On Black Days uses traditional dynamic vocabulary. Also distinct from Cobain's HSB slow-burn (here the shifts are clear section markers, not gradual builds).",
+            "instrumental_role_assignment": {
+              "drums_role": "Cameron supports the song rather than featuring his playing — restrained verses, opens up in chorus. Less polyrhythmic than JCP. Serves the song's introspective character.",
+              "guitar_role": "Two guitars with CLEAR clean-to-distorted dynamic role. Verse: arpeggiated/strummed clean. Chorus: distorted power chords. The DYNAMIC SHIFT is the guitars' compositional contribution.",
+              "bass_role": "Shepherd plays melodically supportive bass — follows root motion but with subtle melodic interest, more active than Yamamoto's role on JCP",
+              "vocal_role": "Cornell's vocal carries the song's emotional content — verse is exposed and confessional, chorus is anthemic but melancholy. Mid-register melodic delivery (not the high-range exploitation of JCP)."
+            },
+            "harmonic_density_per_section": {
+              "intro": "3-4 instruments lightly (clean guitar + bass + drums entering)",
+              "verse": "4-5 instruments at MODERATE density (full band but restrained, vocal exposed)",
+              "pre_chorus": "Density building toward chorus (cymbal swells, guitar texture)",
+              "chorus": "5-6 instruments at FULLER density (distorted guitars + doubled vocals + full drums)",
+              "bridge": "5 instruments (vocal absent for portion)",
+              "outro_chorus": "Same as chorus density, extended"
+            },
+            "arrangement_anti_patterns_avoided_or_inverted": [
+              "Does NOT use sustained intensity like JCP — uses traditional dynamic shift instead",
+              "Does NOT use a 4-bar drum-only intro — opens with full ensemble in restrained mode",
+              "Does NOT extend to 5+ minutes — moderate 4:42 length",
+              "Does NOT use single-meter throughout — meter shift between verse (6/4) and chorus (4/4) is structural device",
+              "Does NOT use ABRUPT ending — fades or naturally ends from extended chorus"
+            ],
+            "what_makes_arrangement_unique_within_soundgarden_catalog": "Fell On Black Days demonstrates Soundgarden's MELODIC + MATURE side. Where JCP is the band's aggressive rhythmic peak, FOBD is their introspective melodic peak from Superunknown era. The clean-to-distorted shift is more conventional than JCP's sustained intensity but executed with sophistication (meter shift adding asymmetry to the convention).",
+            "comparison_to_jcp_arrangement": "JCP and FOBD are the same band but compositional opposites. JCP: sustained intensity, drums-as-identity, rhythmic complexity, 5:50 long. FOBD: traditional dynamic shift, vocal-as-identity, harmonic sophistication, 4:42 moderate. Both songs use Soundgarden signature meter shifts but for different ends — JCP's metric ambiguity creates AGGRESSION through unpredictability; FOBD's meter shift creates RELEASE through predictable resolution."
+          }
         },
         "My_Wave": {
           "_status": "stub_pending_full_dissection_C2_3",
