@@ -3973,9 +3973,74 @@
           ]
         },
         "Overfloater": {
-          "_status": "stub_pending_full_dissection_C2_4",
+          "_status": "C2_4a_composition_arrangement_done",
           "album": "Down on the Upside",
-          "year": 1996
+          "year": 1996,
+          "tempo_bpm_documented_range": [76, 84],
+          "time_signature": "4/4 throughout — meter shifts not used here, departure from Superunknown signature device",
+          "key_area": "B minor area (Aeolian)",
+          "tuning_documented": "Drop D tuning",
+          "track_runtime": "~6:42 — among the LONGEST Soundgarden album tracks. Extended atmospheric exploration over jam-band-influenced groove.",
+          "_special_status": "Late-career Soundgarden track. Down on the Upside (1996) was the band's last album before initial 1997 disbandment. Demonstrates the band's MATURE psychedelic side — extended jam form, atmospheric textures, less aggression, more rumination. Co-produced by Adam Kasper with the band itself.",
+          "composition": {
+            "structural_blueprint": "intro_atmospheric (clean guitar + cello-like sustained tones establishing mood) -> verse1_long (sustained vocal phrases, sparse instrumentation) -> chorus_subtle_lift -> verse2_long -> chorus -> EXTENDED_INSTRUMENTAL_BRIDGE (the song's structural centerpiece — multi-minute jam-influenced section) -> chorus_outro_extended -> long_fade. Total ~6:42, with extended bridge occupying significant portion.",
+            "section_count_and_lengths": {
+              "intro_atmospheric": "Extended ~8-12 bars establishing mood (longer than typical Soundgarden intros)",
+              "verses": "Long verses (12-16 bars)",
+              "choruses": "8 bars but with subtle lift (not the explosion of FOBD chorus)",
+              "extended_instrumental_bridge": "MULTI-MINUTE — the song's structural anchor",
+              "outro_chorus_extended": "Long cycling into fade"
+            },
+            "harmonic_motion": "Modal Aeolian with sustained chord textures. The verse uses slow chord changes (each chord held 2-4 bars), creating meditative harmonic pacing. Bridge introduces harmonic exploration via guitar work but stays modal. Drop D pedal tones underpin sustained voicings.",
+            "modal_choice": "Aeolian (natural minor)",
+            "melodic_contour": "Verse vocal: SUSTAINED long phrases with subtle melodic motion — Cornell's most LANGUOROUS vocal style. Chorus: subtle ascending arc, less dramatic than typical Soundgarden chorus. Extended bridge: vocal absent, guitar work carries melody. Outro: returns to verse-style sustained phrases.",
+            "characteristic_compositional_choice": "EXTENDED FORM WITH MEDITATIVE ATMOSPHERE — the song trades typical rock structural economy for jam-band-influenced exploration. The extended bridge is the song's identity. Where JCP achieves length via sustained intensity and FOBD achieves length via traditional pop-rock structure, Overfloater achieves length via atmospheric exploration.",
+            "harmonic_pacing": "VERY SLOW — 2-4 bars per chord. The harmonic stability supports the song's meditative quality.",
+            "phrase_symmetry": "Variable phrase lengths — verses 12-16 bars rather than standard 8. The song's pacing breaks symmetry deliberately to create atmospheric flow.",
+            "comparison_to_other_soundgarden_extended_tracks": "JCP (5:50): extended via SUSTAINED INTENSITY. Overfloater (6:42): extended via ATMOSPHERIC EXPLORATION + JAM BRIDGE. Two different paths to extended form within the same band's catalog."
+          },
+          "arrangement": {
+            "instrumentation_complete": [
+              "electric guitar 1 (Kim Thayil — atmospheric textures + lead lines in bridge)",
+              "electric guitar 2 (Chris Cornell — sustained chord textures)",
+              "bass guitar (Ben Shepherd — melodic + foundational)",
+              "drum kit (Matt Cameron — restrained, jam-influenced playing)",
+              "lead vocal (Chris Cornell)",
+              "minimal documented overdubs beyond the band's live tracking + bridge guitar layering"
+            ],
+            "section_instrumentation": {
+              "intro_atmospheric": "Sparse — clean/lightly distorted guitar + sustained tones, drums entering subtly, vocal absent",
+              "verse_1_long": "Full band at LOW intensity — clean/lightly overdriven guitars, restrained drums, vocal exposed",
+              "chorus_subtle_lift": "Density increases slightly but no aggressive shift — chorus is harmonic + melodic lift, not dynamic explosion",
+              "verse_2_long": "Returns to verse texture",
+              "extended_instrumental_bridge": "Vocal ABSENT for multiple minutes. Thayil's lead lines explore over rhythm section's continued atmospheric groove. The bridge is the song's structural showcase.",
+              "outro_chorus_extended": "Returns to chorus harmonic content with vocal sustained phrasing, fades naturally"
+            },
+            "vocal_layering_strategy": "Mostly SINGLE-tracked Cornell — exposed and atmospheric. Possible subtle doubling on certain phrases but not the chorus-doubling-as-dynamic-lever of FOBD or HSB. The vocal serves the song's meditative quality.",
+            "dynamic_arc_overall": "FLAT-TO-MODERATE intensity. The song does NOT use dynamic peaks — verse and chorus differ slightly in density but both stay in low-to-moderate intensity zone. Extended bridge maintains this flat dynamic with instrumental variation.",
+            "instrumental_role_assignment": {
+              "drums_role": "Cameron RESTRAINED throughout — jam-band-influenced playing rather than rock kit aggression. Supports atmosphere over driving the song.",
+              "guitar_role": "Texture + atmosphere primary. Bridge: Thayil's lead work showcased as the song's melodic centerpiece (vocal absent in bridge so guitar carries melody).",
+              "bass_role": "Shepherd plays melodic + atmospheric — supports the song's meditative quality with subtle melodic motion under the sustained guitars.",
+              "vocal_role": "Languid sustained delivery — Cornell at his most introspective. Vocal absent for entire extended bridge."
+            },
+            "harmonic_density_per_section": {
+              "intro_atmospheric": "Sparse (2-3 instruments, low intensity)",
+              "verse": "4-5 instruments at LOW intensity",
+              "chorus": "5 instruments at MODERATE intensity (subtle lift, not explosion)",
+              "extended_instrumental_bridge": "5 instruments minus vocal = 4 active. Density similar to verses but instrumental variation.",
+              "outro_chorus_extended": "Same as chorus density, sustained"
+            },
+            "arrangement_anti_patterns_avoided_or_inverted": [
+              "Does NOT use dramatic loud-quiet-loud — flat-to-moderate intensity throughout",
+              "Does NOT use meter shift (departure from Superunknown signature device)",
+              "Does NOT use chorus-explosion dynamic — chorus is harmonic + melodic lift only",
+              "Does NOT use compact form (~3-4 min) — extends to 6:42 for atmospheric exploration",
+              "Does NOT center vocal as primary driver — vocal absent for extended bridge"
+            ],
+            "what_makes_arrangement_unique_within_soundgarden": "Overfloater represents Soundgarden's PSYCHEDELIC + JAM-INFLUENCED side. Where most Soundgarden tracks feature clear sectional dynamics + Cornell's vocal as primary, Overfloater features ATMOSPHERIC EXPLORATION + EXTENDED INSTRUMENTAL BRIDGE. The vocal-absent multi-minute middle is structurally bold for a 'rock band' format.",
+            "comparison_to_jam_band_aesthetics": "Overfloater shows Soundgarden's connection to extended-form rock traditions (Pink Floyd, Led Zeppelin's longer tracks). Where Cornell could write tight pop songs (Black Hole Sun), this song demonstrates the band's capacity for sustained atmospheric exploration — a different musical lineage."
+          }
         },
         "Head_Down": {
           "_status": "stub_pending_full_dissection_C2_5",
