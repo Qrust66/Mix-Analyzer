@@ -1020,6 +1020,92 @@
     "reznor_pct": 30,
     "daft_punk_pct": 25,
     "yorke_pct": 15,
-    "_note": "Sum = 100. More Daft Punk than Yorke per user preference. Each genre's >=25% threshold triggers its conditional rules (D3)."
+    "_note": "Sum = 100. More Daft Punk than Yorke per user preference. Each genre's >=25% threshold triggers its conditional rules (D3). NOTE: each axis represents a CLUSTER of related artists (see reference_albums below) — 'cobain_pct' is shorthand for grunge/alt-rock 90s influence as a whole, not just Nirvana."
+  },
+
+  "reference_albums": {
+    "purpose": "User-provided reference albums that anchor the stylistic clusters. Each personality axis (Cobain/Reznor/Yorke/Daft Punk) is a CLUSTER LABEL — the actual influence is broader. The advisor will distill TECHNIQUES (rhythm, harmony, density, sound design choices) from these references during D3 — never specific melodies or lyrics.",
+    "by_cluster": {
+      "grunge_alt_rock_90s": {
+        "axis": "cobain_pct",
+        "reference_artists_albums": {
+          "Nirvana": ["In Utero", "Nevermind"],
+          "Soundgarden": ["Superunknown", "Down on the Upside", "Badmotorfinger"],
+          "Alice In Chains": ["Dirt"],
+          "Smashing Pumpkins": ["Gish", "Siamese Dream", "Mellon Collie and the Infinite Sadness"],
+          "Queens of the Stone Age": ["Songs for the Deaf", "Lullabies to Paralyze"]
+        },
+        "techniques_to_distill": [
+          "loud-quiet-loud dynamic shifts (Pixies-derived)",
+          "power chord verse / harmonized chorus dynamic",
+          "vocal as primary melodic carrier",
+          "dropped tunings (drop D / drop C# / drop C)",
+          "vocal harmonies in close 3rds and 6ths (AIC signature)",
+          "layered guitar takes panned for thickness (Pumpkins signature)",
+          "half-time chorus dynamic (QOTSA signature)",
+          "swagger groove + behind-beat drag (QOTSA signature)",
+          "odd time signatures used sparingly inside 4/4 contexts (Soundgarden — 7/4 verse, 4/4 chorus)",
+          "vocal melodic intervals favor minor 3rd / b5 / minor 6th over major intervals"
+        ]
+      },
+      "industrial_rock": {
+        "axis": "reznor_pct",
+        "reference_artists_albums": {
+          "Nine Inch Nails": ["The Downward Spiral", "The Fragile", "With Teeth"]
+        },
+        "techniques_to_distill": [
+          "sequenced sparse melodic lines",
+          "drone over moving voice as core texture",
+          "tape saturation + bit reduction on samples",
+          "sudden silence as cadence (silence_as_dominant)",
+          "vocal whisper-to-scream contrast within a section",
+          "machine-precise drums layered with organic vocal/piano contrast",
+          "minor-2nd dissonance as compositional feature, not accident",
+          "slow-build atmospheres that erupt without warning",
+          "atmospheric noise floor present continuously (FX Tension layer)"
+        ]
+      },
+      "art_rock_electronica": {
+        "axis": "yorke_pct",
+        "reference_artists_albums": {
+          "Radiohead": ["OK Computer", "Kid A", "Amnesiac"]
+        },
+        "techniques_to_distill": [
+          "modal hover (Aeolian/Dorian without committing to a clear cadence)",
+          "vocal ostinato repeating on 1-2 pitches",
+          "polyrhythm 3:2 over 4/4 grid",
+          "electronic textures placed OVER organic instruments (not under)",
+          "descending bass under static melody",
+          "lo-fi degradation / band-pass filter as compositional choice",
+          "irregular time signatures at structural pivots (5/4 bridge, etc.)",
+          "vocal placed low in mix — texture over feature in some sections",
+          "song endings that don't resolve (suspended unresolved cadence)"
+        ]
+      },
+      "electronic_filter_house": {
+        "axis": "daft_punk_pct",
+        "reference_artists_albums": {
+          "Daft Punk": ["Random Access Memories"]
+        },
+        "techniques_to_distill": [
+          "filter sweep automations on lead synths (the riser)",
+          "sidechain pump on pad/atmosphere tracks (kick-keyed)",
+          "vocoded melodies as melodic carrier",
+          "robotic repetition with 5% controlled variation (not random)",
+          "modular block arrangements (8-bar phrases that can be rearranged)",
+          "live instruments (real bass, real drums) routed through electronic processing",
+          "long-form arcs (5-7 min tracks) that earn their length via micro-development",
+          "tempo locked, no swing, mechanical precision"
+        ]
+      }
+    },
+    "cross_cluster_blends_observed_in_references": [
+      "NIN With Teeth blends industrial_rock + grunge_alt_rock (heavier guitars, vocal grit)",
+      "QOTSA Songs for the Deaf blends grunge + stoner (riff repetition + power chord + half-time chorus)",
+      "Radiohead Kid A blends art_rock + electronic (sequenced beats under modal vocals)",
+      "Daft Punk RAM blends electronic + retro live-instrument (real drums, real bass)",
+      "Smashing Pumpkins Mellon Collie blends grunge + symphonic (orchestrated quiet sections)"
+    ],
+    "_will_be_distilled_into": "D3a (cobain/reznor genre profiles will draw on grunge_alt_rock_90s + industrial_rock clusters), D3b (yorke/daft_punk profiles), D3c (cross_cluster blend rules)"
   }
 }
