@@ -2438,9 +2438,74 @@
           ]
         },
         "Territorial_Pissings": {
-          "_status": "stub_pending_full_dissection_C1_3",
+          "_status": "C1_3a_composition_arrangement_done",
           "album": "Nevermind",
-          "year": 1991
+          "year": 1991,
+          "tempo_bpm_documented_range": [175, 180],
+          "time_signature": "4/4",
+          "key_area": "A minor (Aeolian) — Nevermind tracks are documented as standard tuning, no detune",
+          "tuning_documented": "Standard E tuning (Nevermind sessions used standard tuning, in contrast to In Utero's 1/2 step detune)",
+          "track_runtime": "~2:22 — short, hardcore-punk-influenced compactness",
+          "composition": {
+            "structural_blueprint": "intro_a_cappella_4bars (Krist Novoselic vocal alone, no instruments) -> band_slam_into_verse_8bars (sudden full-band entry at maximum intensity) -> chorus_8bars -> verse_8bars -> chorus_8bars -> bridge_short_4bars -> chorus_extended_8bars -> outro_abrupt_2bars. Total ~2:22. The structure is FAST + COMPACT — no extended sections, no slow burn.",
+            "section_count_and_lengths": {
+              "intro_a_cappella": "4 bars — a single vocal phrase repeated by Novoselic, NO instruments at all",
+              "band_slam_entry": "Sudden — band crashes in at full force on the downbeat after the a cappella intro ends",
+              "verses": "8 bars each",
+              "choruses": "8 bars each, except final chorus extended to suit the abrupt outro",
+              "bridge": "Short 4-bar instrumental passage",
+              "outro": "2 bars — song ends abruptly, almost mid-phrase feel"
+            },
+            "harmonic_motion": "Modal Aeolian, simple chord cycle. The harmony is intentionally MINIMAL — at this tempo and aggression level, complex harmony would be inaudible. The verse and chorus use related but distinct chord cycles (minor power chord motion), but the ENERGY of the section comes from rhythm and distortion intensity, not harmonic surprise.",
+            "modal_choice": "Aeolian (natural minor) throughout — pure punk-rock harmonic vocabulary",
+            "melodic_contour": "Verse vocal: shouted/screamed phrases that don't have a melodic contour in the traditional sense — pitch-approximate hardcore punk delivery. Chorus vocal: even more screamed, pitch becomes almost noise-element. The melodic contour subordinates to RHYTHMIC delivery.",
+            "characteristic_compositional_choice": "The A CAPPELLA INTRO FAKE-OUT. The song begins with NO instruments — a single vocal phrase. Listener has no way to predict the band slam that follows. The contrast is the song's structural identity: maximum quiet → maximum loud, with no intermediate state. This is the loud-quiet-loud template REDUCED to its most extreme form.",
+            "harmonic_pacing": "Fast chord changes in choruses (1 chord per bar or faster), slower in verses but still propulsive",
+            "phrase_symmetry": "8-bar phrasing for verse and chorus — punk-standard. The asymmetry is in the INTRO (4 bars a cappella) which is NOT mirrored elsewhere in the song. The intro stands alone structurally.",
+            "documented_song_intent": "Cobain documented as writing the song quickly — the lyrical content and aggressive delivery were intentional confrontation. Compositionally simple, performatively extreme."
+          },
+          "arrangement": {
+            "instrumentation_complete": [
+              "electric guitar (Cobain — heavy distortion, sustained throughout)",
+              "bass guitar (Krist Novoselic — at performance speed, locked with kick)",
+              "drum kit (Dave Grohl — fast hardcore-punk vocabulary, full kit)",
+              "lead vocal (Kurt Cobain — screamed throughout)",
+              "a cappella vocal (Krist Novoselic — featured for intro only, then absent)",
+              "no overdubs documented as primary contributors — track is essentially band live + Novoselic intro overdub"
+            ],
+            "section_instrumentation": {
+              "intro": "VOCAL ONLY — Krist Novoselic singing a phrase a cappella (documented as a misquotation of a 1960s folk hit, lyrical content not reproduced here). Zero instruments.",
+              "band_slam_entry": "Drums + bass + guitar all enter SIMULTANEOUSLY on the downbeat after intro ends — no fade-in, no individual entries. The contrast is the impact.",
+              "verse_1": "Full band at maximum intensity: distorted guitar, locked bass, fast drums, screamed vocal — no restraint anywhere",
+              "chorus_1": "Same intensity as verse — there is NO dynamic distinction between verse and chorus in this song",
+              "verse_2": "Identical instrumentation/intensity to verse 1",
+              "chorus_2": "Identical to chorus 1",
+              "bridge": "Brief instrumental — guitar holds chord with feedback, drums continue, vocal absent for 4 bars",
+              "outro": "Abrupt cut — band stops mid-phrase, no fade, no resolution"
+            },
+            "vocal_layering_strategy": "INTRO: single Novoselic vocal a cappella. VERSES + CHORUSES: single Cobain vocal, screamed, no doubling, no harmony. The entire vocal arrangement is single-tracked (with the brief Novoselic intro feature). The ABSENCE of vocal layering reinforces the raw aesthetic.",
+            "dynamic_arc_overall": "EXTREME loud-quiet-loud reduced to its limit: 4 bars complete silence (a cappella intro = no band) then UNRELENTING maximum intensity for ~2:00. There is no traditional buildup. The contrast is intro-versus-rest-of-song, not within-song-dynamics.",
+            "instrumental_role_assignment": {
+              "guitar_role": "wall of distortion — provides harmonic content + texture density. NOT melodic carrier. Cobain plays power chord cycles with intentional minimal complexity.",
+              "bass_role": "locked with kick drum at performance speed — Novoselic plays root motion, no melodic flourishes",
+              "drums_role": "MOTOR — Grohl's most aggressive performance on Nevermind. Tempo and energy come from the kit. The drums DRIVE the song; everything else follows.",
+              "vocal_role": "rhythmic + emotional carrier — the screamed vocal IS the song's identity. Pitch is secondary to rhythmic delivery and emotional intensity."
+            },
+            "harmonic_density_per_section": {
+              "intro": "1 voice (a cappella) — minimum density",
+              "post_intro_through_outro": "Maximum density for entire ~2 minutes — 4 instruments at full force + screamed vocal. No variation.",
+              "outro": "Cuts to silence abruptly — no fade"
+            },
+            "arrangement_anti_patterns_avoided_or_inverted": [
+              "INVERTS slow burn approach (HSB) — uses extreme contrast instead of gradual build",
+              "INVERTS chamber-music restraint (Dumb) — uses maximum band intensity instead",
+              "Does NOT use vocal harmony or doubling — single screamed voice throughout",
+              "Does NOT use cymbal swells to telegraph sections — section transitions are abrupt",
+              "Does NOT use a fade-out — outro is abrupt cut (no commercial radio fade convention)",
+              "Does NOT use a pre-chorus build — verse cuts directly to chorus"
+            ],
+            "what_makes_arrangement_unique_within_nirvana_catalog": "Territorial Pissings is the band's most aggressively HARDCORE-PUNK-influenced track — closer to Black Flag or early Discharge than to Nirvana's pop-leaning material. The arrangement strategy (a cappella intro then unrelenting attack) is unique to this song in the Nevermind tracklist."
+          }
         },
         "Very_Ape": {
           "_status": "stub_pending_full_dissection_C1_4",
