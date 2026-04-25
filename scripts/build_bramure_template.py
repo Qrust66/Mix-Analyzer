@@ -1354,6 +1354,29 @@ def build_volume_envelope_riser(env_id: int, target_id: int,
     return build_envelope(env_id, target_id, events, event_id_base)
 
 
+def build_pan_envelope_bridge(env_id: int, target_id: int,
+                              event_id_base: int) -> str:
+    """Pan oscillation during the Bridge (beats 362..386). AUDACITY: three
+    cycles with growing amplitude (±0.5 -> ±0.7 -> ±0.9) so the spatial
+    motion INCREASES as tension rises into the Final Drop. Pan snaps back
+    to center (0.0) right at the Final Drop entry so the peak lands solid.
+
+    Pan value range: -1.0 (hard left) .. +1.0 (hard right). Init 0.0 =
+    center (rest outside Bridge)."""
+    events = [
+        (0.0,   0.0),      # init rest at project start = center
+        (361.0, 0.0),      # hold center up to Bridge
+        (362.0, -0.5),     # Bridge start: soft left (cycle 1 begin)
+        (366.0,  0.5),     # cycle 1 right
+        (370.0, -0.7),     # cycle 2 left, bigger
+        (374.0,  0.7),     # cycle 2 right
+        (378.0, -0.9),     # cycle 3 left, wider
+        (382.0,  0.9),     # cycle 3 right, widest
+        (386.0,  0.0),     # Final Drop: snap back center
+    ]
+    return build_envelope(env_id, target_id, events, event_id_base)
+
+
 def build_volume_envelope_pump(env_id: int, target_id: int,
                                event_id_base: int) -> str:
     """Pad sidechain-pump envelope. Ducks to 0.4 on beat 1 of every bar
@@ -1616,6 +1639,12 @@ def main() -> None:
                 env_xmls.append(build_volume_envelope_pump(
                     env_id=1, target_id=tid, event_id_base=event_id_base))
                 env_marker = " + Pump"
+        elif name == "16 SYN Lead Counter":
+            tid = find_param_target_id(clone, "Pan")
+            if tid is not None:
+                env_xmls.append(build_pan_envelope_bridge(
+                    env_id=1, target_id=tid, event_id_base=event_id_base))
+                env_marker = " + Pan-Bridge"
         if env_xmls:
             clone = inject_envelopes(clone, env_xmls)
 
