@@ -1946,9 +1946,68 @@
           "songs_to_dissect": ["Heart_Shaped_Box", "Dumb", "Territorial_Pissings", "Very_Ape", "All_Apologies"]
         },
         "Heart_Shaped_Box": {
-          "_status": "stub_pending_full_dissection_C1_1",
+          "_status": "C1_1a_composition_arrangement_done",
           "album": "In Utero",
-          "year": 1993
+          "year": 1993,
+          "tempo_bpm_documented_range": [100, 104],
+          "time_signature": "4/4",
+          "key_area": "A minor (Aeolian) — guitars detuned 1/2 step on In Utero per Cobain's documented practice, so concert-pitch effective key is Ab minor",
+          "tuning_documented": "Cobain detuned guitars 1/2 step (Eb standard, with relative key-area treated as if A minor for fingering purposes)",
+          "composition": {
+            "structural_blueprint": "intro_4bars_solo_guitar_riff -> verse1_8bars -> pre_chorus_4bars -> chorus1_8bars -> verse2_8bars -> pre_chorus_4bars -> chorus2_8bars -> bridge_8bars_guitar_solo_over_feedback -> chorus3_extended_outro_16bars. Total runtime ~4:40.",
+            "section_count_and_lengths": {
+              "intro": "4 bars of guitar alone — the bend riff establishes identity before any other instrument",
+              "verses": "8 bars each",
+              "pre_choruses": "4 bars each (build into chorus)",
+              "choruses": "8 bars each, except final chorus extended to 16 bars",
+              "bridge": "8 bars instrumental — guitar solo with sustained feedback bed underneath",
+              "outro": "extended final chorus, fade not abrupt"
+            },
+            "harmonic_motion": "Modal Aeolian cycle. Verse uses a 4-chord cycle in minor (i - bVI - bVII - i type motion is the documented family of moves). Chorus uses an elevated harmonic area but stays within Aeolian — the section identity shift is dynamic + timbre, NOT modulation. The harmony does not change key between sections.",
+            "modal_choice": "Aeolian (natural minor) throughout",
+            "melodic_contour": "Verse vocal: predominantly DESCENDING phrases — each vocal line starts higher and lands lower (the contour reinforces the broody verse mood). Chorus vocal: ASCENDING + landing on sustained held notes (the chorus shape is the lift). Outro vocal: anguished repetition of the chorus contour without the build — direct delivery.",
+            "characteristic_riff_construction": "Main guitar riff features a deliberate string-bend that lands the note slightly out of standard pitch — the microtonal 'wrongness' is a deliberate compositional choice (not a performance error). The bend is sustained long enough that listeners perceive it as a HARMONIC element, not an ornament. This is widely cited as the song's most identifiable hook.",
+            "harmonic_pacing": "Slow chord changes in verses (approximately 2 bars per chord). Faster motion in pre-chorus (1 bar per chord). Chorus returns to slower changes but at higher register/density.",
+            "phrase_symmetry": "Verses and choruses use 8-bar phrasing — symmetric, predictable. The asymmetry is in the BRIDGE (8 bars but feels longer due to feedback sustain) and OUTRO (16 bars vs the standard 8). Predictable phrasing makes the dynamic shifts hit harder."
+          },
+          "arrangement": {
+            "instrumentation_complete": [
+              "electric guitar (Cobain — Fender Mustang or Jaguar, documented Mustang for many In Utero parts)",
+              "bass guitar (Krist Novoselic)",
+              "drum kit (Dave Grohl — full kit with multiple cymbals, no electronic elements)",
+              "lead vocal (Kurt Cobain)",
+              "backing vocals (Cobain double-tracking himself in chorus and outro — no separate vocalist)"
+            ],
+            "section_instrumentation": {
+              "intro": "guitar alone with the bend riff — band silent for 4 bars (rare for grunge to delay rhythm section entry)",
+              "verse_1": "guitar continues riff cycle + bass enters + drums enter, all restrained — full band locked in but holding back force",
+              "pre_chorus": "guitar tension chord substitutions + drums add cymbal swells (no crashes yet, swells only — telegraphs the chorus without delivering it)",
+              "chorus_1": "guitar engages full distortion + vocal layer count doubles (single->doubled) + drums hit fully open with crashes + bass sustains",
+              "verse_2": "structurally identical to verse 1 but with subtle vocal phrasing variations (the LACK of arrangement variation focuses the listener on vocal nuance)",
+              "bridge": "instrumental — guitar solo plays melodic figures over a bed of sustained feedback (feedback is treated as compositional layer, not artifact)",
+              "outro": "chorus content repeats extended; vocal layering becomes denser as section progresses; ends in fade, not abrupt cut"
+            },
+            "vocal_layering_strategy": "VERSE: single-tracked close-mic vocal — exposed and intimate. CHORUS: doubled vocal (Cobain singing the same melody twice, both takes layered in mix) — produces the perceived 'size jump' more than volume change does. OUTRO: documented as adding backing vocals for further density in the final extended pass. Layer count is itself a dynamic LEVER.",
+            "dynamic_arc_overall": "SLOW-BURN structure, NOT loud-quiet-loud explosion. The song builds gradually across 4:40. Verse→chorus has dynamic lift but chorus does not DISPLACE the verse — it EXPANDS it. The Outro is the song's true peak (longest sustained section, densest vocal stack). The peak is ARRIVED AT, not detonated.",
+            "instrumental_role_assignment": {
+              "guitar_role": "primary melodic carrier via the bend riff — defines the song's identity from bar 1 of intro and never relinquishes it",
+              "bass_role": "harmonic anchor + secondary groove — Novoselic plays melodically (with documented melodic bass-line tendency) but stays clear of guitar's frequency range, never doubling guitar root",
+              "drums_role": "kit dynamics modulate the section feel — Grohl plays softer in verse, opens cymbals (swells then crashes) at chorus, unleashes in outro. The kit IS the dynamic envelope.",
+              "vocal_role": "co-equal melodic carrier with guitar — verse is conversational/intimate, chorus is anthemic/distant, outro is anguished/repetitive"
+            },
+            "harmonic_density_per_section": {
+              "intro": "1 instrument (guitar) — minimum density",
+              "verse": "4 instruments (guitar + bass + drums + vocal), all restrained in volume",
+              "chorus": "4 instruments at full volume + doubled vocal (effectively 5-voice texture)",
+              "bridge": "guitar + sustained feedback + drums — vocal absent (the absence is part of the bridge's design)",
+              "outro": "all instruments + multi-tracked vocal stack — maximum density, slow fade"
+            },
+            "arrangement_anti_patterns_avoided": [
+              "Does NOT use loud-quiet-loud Pixies explosion template (Cobain's earlier Nevermind-era staple) — deliberately chooses slow burn instead",
+              "Does NOT modulate keys between sections — keeps tonal continuity",
+              "Does NOT introduce new instruments after verse 1 — same 4-instrument palette throughout (only LAYER COUNT and DYNAMICS change)"
+            ]
+          }
         },
         "Dumb": {
           "_status": "stub_pending_full_dissection_C1_2",
