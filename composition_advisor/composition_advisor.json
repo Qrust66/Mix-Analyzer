@@ -1946,7 +1946,7 @@
           "songs_to_dissect": ["Heart_Shaped_Box", "Dumb", "Territorial_Pissings", "Very_Ape", "All_Apologies"]
         },
         "Heart_Shaped_Box": {
-          "_status": "C1_1a_composition_arrangement_done",
+          "_status": "C1_1b_performance_recording_done",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [100, 104],
@@ -2006,6 +2006,102 @@
               "Does NOT use loud-quiet-loud Pixies explosion template (Cobain's earlier Nevermind-era staple) — deliberately chooses slow burn instead",
               "Does NOT modulate keys between sections — keeps tonal continuity",
               "Does NOT introduce new instruments after verse 1 — same 4-instrument palette throughout (only LAYER COUNT and DYNAMICS change)"
+            ]
+          },
+          "performance": {
+            "tempo_feel_description": "Mid-tempo locked but humanized. Documented as tracked LIVE with the full band playing together — not overdubbed instrument-by-instrument — which produces natural micro-timing variations. No click track use is widely cited for In Utero sessions per Albini's general tracking philosophy (he prefers live capture without metronome when possible).",
+            "drum_style": {
+              "performer": "Dave Grohl",
+              "feel": "Verses played slightly RESTRAINED — Grohl deliberately holds back power, lets the song breathe. Chorus he opens up — cymbal crashes ring out, snare hits harder. Outro he drives the full kit. The dynamic envelope of the song lives in his playing.",
+              "techniques_documented": [
+                "Verse hi-hat closed and tight (8th notes), chorus opens up to crashes/cymbal swells",
+                "Cymbal SWELLS (rolled crashes that build) used in pre-choruses to telegraph chorus arrival — distinct from straight crash hits",
+                "No double-kick or extreme metal techniques — meat-and-potatoes rock vocabulary",
+                "Snare hits in chorus documented as physically HARDER (Grohl's strike intensity changes section to section)"
+              ],
+              "groove_feel_alignment": "ON beat — no documented push or drag tendency on this song specifically (in contrast to Sean Kinney's drag style on AIC)",
+              "fills_and_transitions": "Minimal fills; transitions between sections handled via cymbal swells rather than drum fills (less is more philosophy)"
+            },
+            "guitar_style": {
+              "performer": "Kurt Cobain",
+              "feel_per_section": {
+                "intro_riff": "Sustained bends with vibrato — the riff is played with deliberate microtonal pitch fluctuation",
+                "verse": "Power chord cycle, palm-muted slightly to control sustain — gives the verse rhythmic punch without filling the spectrum",
+                "pre_chorus": "Open chords, less palm-muting — texture begins to fill the space",
+                "chorus": "FULL distortion engaged, open power chords with maximum sustain — the rhythmic role becomes 'wash' more than 'punch'",
+                "bridge_solo": "Lead lines played over sustained feedback — Cobain's solos documented as melodic-and-economical rather than virtuosic"
+              },
+              "techniques_documented": [
+                "Deliberate string bend on the main riff that lands the note slightly out of pitch (not vibrato — a held bend at a specific microtonal interval)",
+                "Switching between palm-muted and open ringing as section dynamic lever",
+                "Use of feedback as compositional layer in bridge (sustaining a note long enough for natural pickup feedback to develop)"
+              ],
+              "playing_style_versus_other_grunge": "Cobain's style differs from Cantrell (Alice In Chains, more technical), Cornell-Thayil (Soundgarden, more atmospheric), Corgan (Pumpkins, layered/orchestral) — Cobain's strength is RHYTHMIC IDENTITY of the riff, not lead facility. The riff IS the solo."
+            },
+            "vocal_delivery": {
+              "performer": "Kurt Cobain",
+              "verse_delivery": "Whispered/intimate close-mic delivery — almost spoken, sometimes audibly inhaling or moving on mic. The verse vocal is a CONFESSIONAL register.",
+              "chorus_delivery": "Belted but not screamed — Cobain's chest voice + slight rasp. The chorus is anthemic but never operatic.",
+              "outro_delivery": "Anguished repetition with documented increasing rasp/strain across the outro — the vocal degrades intentionally as the song extends",
+              "documented_vocal_quirks": [
+                "Audible breath sounds in verse close-mic — kept in mix, not edited out (intimacy element)",
+                "Slight pitch flexibility (some notes sit slightly under pitch in the chorus, deliberately or via Cobain's untrained-vocalist authenticity — debate exists; Albini's approach was 'capture, don't tune')"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization or pitch correction (Albini's documented anti-correction philosophy)",
+              "No overdubbed bass — Novoselic plays live with band",
+              "Drums NOT replaced by samples in production (raw kit kept)",
+              "Vocal NOT comped from many takes — Cobain's takes captured as full passes"
+            ]
+          },
+          "recording": {
+            "studio": "Pachyderm Studios, Cannon Falls, Minnesota",
+            "session_dates": "Recorded February 1993",
+            "primary_engineer": "Steve Albini (tracking + initial mix)",
+            "subsequent_remix_engineer": "Scott Litt (REMIXED Heart-Shaped Box and All Apologies after Albini's mix; the released version is Litt's, not Albini's). The Litt remix added vocal compression, additional vocal delay/reverb, and adjusted instrument balance per documented label/band negotiation.",
+            "drum_micing_approach": {
+              "philosophy": "Steve Albini's signature room-mic-emphasized approach: large rooms, multiple distant room mics in addition to close mics, NO compression at tracking, capture of the natural acoustic space",
+              "specifics_documented": [
+                "Pachyderm's main tracking room is large — drum sound captures genuine room acoustic",
+                "Albini avoids close-only micing — wants drums to 'breathe' in their physical space",
+                "Albini's general practice: PZM mics on floor for kick room, distant overheads, plus close kick + snare mics",
+                "No drum triggers, no drum samples — pure acoustic capture"
+              ],
+              "result_in_mix_pre_litt_remix": "Albini's version had the drums sounding distinctly LIVE and ROOMY — bigger but less punchy than typical commercial rock production",
+              "result_in_mix_post_litt_remix": "Litt's remix tightened the drums via compression and EQ — released version has LESS room than Albini's tracking, more controlled punch"
+            },
+            "guitar_tracking_approach": {
+              "philosophy_albini": "Single take, full-band live tracking — guitar amp recorded with multiple mics (close + room) for tonal options at mix",
+              "specifics_documented": [
+                "Cobain's amp choices on In Utero have been documented as Mesa Boogie and Fender amps (specific rig per song not exhaustively logged in public sources)",
+                "Cobain's primary guitar on this song documented as a Fender Mustang (left-handed, modified — Cobain favored Mustangs throughout his late career)",
+                "Distortion via combination of amp gain and pedal (Boss DS-1 or similar — Cobain's documented pedalboard preferences)",
+                "Tracked LIVE with band — no isolation booth overdub for the rhythm guitar"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Krist Novoselic, tracked live with the band",
+              "specifics": "Documented as recorded direct (DI) AND through a bass amp, blended at mix — provides both clarity (DI) and warmth (amp)"
+            },
+            "vocal_tracking_approach": {
+              "philosophy_albini": "Close-mic capture, minimal processing at tracking, full takes (no comp from many short pieces)",
+              "specifics_documented": [
+                "Vocal recorded in tracking room (not isolated booth) — natural room ambience present in raw capture",
+                "Cobain documented as preferring single takes; multiple full takes recorded then best chosen, NOT comped piece-by-piece",
+                "Doubled chorus vocals = Cobain singing the same melody twice as separate full takes; both kept and layered"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Cobain's Fender Mustang (or Jaguar — sources vary on which exact instrument for this song specifically; Mustang heavily used on In Utero)",
+              "Cobain's pedalboard: Boss DS-1 distortion among documented elements; chorus and EHX Small Clone documented for clean/modulation tones (less applicable here as HSB is mostly distorted)",
+              "Albini's Pachyderm Neve console (the studio's API/Neve hybrid) used for tracking",
+              "Pachyderm's documented mic locker — Coles 4038, AKG C12 / 414 series, RCA ribbons (specific assignments per song not publicly logged)"
+            ],
+            "what_makes_pachyderm_recording_distinct": [
+              "Wide tracking room with stone walls — acoustic character that compressed/dry studios cannot replicate",
+              "Albini's NO-compression-at-tracking philosophy preserves dynamic range for mix decisions later",
+              "Live full-band tracking maintains performance energy that overdub-isolated tracking loses"
             ]
           }
         },
