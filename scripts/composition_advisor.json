@@ -1,0 +1,193 @@
+{
+  "version": "1.0",
+  "name": "composition_advisor",
+  "purpose": "JSON knowledge base + decision rules consulted before generating MIDI patterns. Encodes music theory primitives, genre-specific conventions, energy/frequency-space allocations, silence protocols, and conditional 'good->WOW' branches drawn from observed failure modes of prior attempts (Faust, Nemesis, Bramure, Venin).",
+
+  "philosophy": {
+    "core_principles": [
+      {
+        "id": "tension_earns_release",
+        "rule": "A drop only hits if the bar before STARVES the ear. Build hunger before payoff.",
+        "violation_seen_in": ["Bramure", "Venin"],
+        "concrete_test": "Last bar before Drop must have ≥ 1 element (drum, bass, or harmony) drop out OR thin to single track for ≥ 2 beats."
+      },
+      {
+        "id": "silence_is_content",
+        "rule": "Silence is the 4th compositional dimension after pitch/duration/timbre. Plant it deliberately, not by omission.",
+        "concrete_test": "Every section ≥ 8 bars contains at least one PLANNED silence (sub-bar to multi-bar) at a structural pivot."
+      },
+      {
+        "id": "callbacks_over_novelty",
+        "rule": "A Final Drop is more memorable when it RESTATES something from earlier (motif, single note, rhythmic idea) than when it adds new layers.",
+        "violation_seen_in": ["Bramure", "Venin"],
+        "concrete_test": "Final Drop must contain ≥ 1 callback (intro_drone, verse_motif octave-up, bridge_chord_resolution, or rhythmic quote)."
+      },
+      {
+        "id": "one_idea_per_section",
+        "rule": "Each section carries exactly ONE compositional idea (rhythmic OR melodic OR harmonic OR textural). Stacking ideas crowds; isolating one makes it audible.",
+        "violation_seen_in": ["Venin Final Drop"],
+        "concrete_test": "Identify each section's PRIMARY idea in 1 sentence. If multiple compete, simplify."
+      },
+      {
+        "id": "frequency_surrender",
+        "rule": "When ≥ 2 instruments share a critical band, exactly ONE leads; the other yields (-6 dB OR pan ≥ 40% off-center OR sidechain duck).",
+        "violation_seen_in": ["Venin Drop 2", "Venin Final Drop"],
+        "concrete_test": "Audit by band: at most 1 dominant per [sub, low, low-mid, mid, high-mid, high, air]."
+      },
+      {
+        "id": "microscopic_details",
+        "rule": "Velocity curves > velocity steps. Timing offsets ±1/64 humanize. Pitch wobble (±10 cents) adds desperate/menacing quality. Mathematically perfect = sterile.",
+        "concrete_test": "No pattern should use a single velocity value across all hits of one instrument in one section."
+      }
+    ],
+    "good_to_wow_meta": "Each conditional branch in this API encodes ONE specific lift from 'sounds OK' to 'memorable'. Apply branches conservatively — one well-executed WOW per section beats five competing ones."
+  },
+
+  "theory": {
+    "modes": {
+      "aeolian": {
+        "intervals": [0, 2, 3, 5, 7, 8, 10],
+        "scale_name": "Natural Minor",
+        "signature_intervals": ["b3 (minor third)", "b6", "b7"],
+        "chord_families": {
+          "i": "minor (1, b3, 5)",
+          "iv": "minor (4, b6, 1)",
+          "v": "minor (5, b7, 2)",
+          "VI": "major (b6, 1, b3)",
+          "VII": "major (b7, 2, 4)",
+          "ii_dim": "diminished (2, 4, b6)",
+          "III": "major (b3, 5, b7)"
+        },
+        "voicing_recipes": {
+          "i_power": "root + 5 only (no 3rd) — grunge default",
+          "i_sus2": "root + 2 + 5 — leaves the b3 implicit, dark but unresolved",
+          "VI_open": "b6 + 1 + b3 — wide open, classic Aeolian",
+          "VII_to_i": "VII major resolves down a whole step to i — the Aeolian cadence"
+        },
+        "use_for": ["grunge anchors", "slow burn ballads", "dark but accessible", "Cobain root mode"],
+        "avoid_for": ["overly bright", "EDM uplifters"],
+        "intensity_range": [0.3, 0.85],
+        "characteristic_dissonance": "VII_to_i (Aeolian cadence is itself the tension — feels modal, not Classical-tonal)"
+      },
+      "dorian": {
+        "intervals": [0, 2, 3, 5, 7, 9, 10],
+        "scale_name": "Dorian",
+        "signature_intervals": ["b3", "natural 6 (the raised 6 vs. Aeolian)", "b7"],
+        "chord_families": {
+          "i": "minor",
+          "ii": "minor (the natural 6 lives here as the chord's 5)",
+          "IV": "major (b3, 6, 1) — the SIGNATURE Dorian chord, lifted by raised-6",
+          "v": "minor",
+          "VII": "major"
+        },
+        "voicing_recipes": {
+          "i_to_IV": "the i->IV move is the Dorian payoff — the raised 6 is suddenly audible",
+          "i_add6": "root + b3 + 5 + 6 — Dorian without committing to chord IV"
+        },
+        "use_for": ["minor with hope", "slightly jazzy", "Yorke modal hover", "verse that wants relief without resolution"],
+        "avoid_for": ["pure menace", "pure desperation"],
+        "intensity_range": [0.4, 0.75],
+        "characteristic_dissonance": "natural 6 against b3 (a major 4th interval that shouldn't exist in pure minor) — the Dorian raised-6 tension"
+      },
+      "phrygian": {
+        "intervals": [0, 1, 3, 5, 7, 8, 10],
+        "scale_name": "Phrygian",
+        "signature_intervals": ["b2 (the half-step ABOVE the root — primary tension)", "b3", "b6", "b7"],
+        "chord_families": {
+          "i": "minor",
+          "bII": "major (b2, 4, b6) — the SIGNATURE Phrygian chord, tritone-laden push from i",
+          "biii": "minor",
+          "iv": "minor",
+          "v_dim": "diminished (5, b7, b2)"
+        },
+        "voicing_recipes": {
+          "i_with_b9": "root + b3 + 5 + b9 (the b2 pitched up an octave) — root + immediate dissonance",
+          "i_to_bII": "the half-step UP move from i to bII is the Phrygian signature — sounds Spanish/flamenco/menacing",
+          "i_sus_b2": "root + b2 + 5 — sus voicing where the b2 is the suspension"
+        },
+        "use_for": ["dark menacing", "tension verses", "industrial pads", "Spanish/exotic flavor"],
+        "avoid_for": ["any feeling of resolution", "uplifting moments"],
+        "intensity_range": [0.5, 0.95],
+        "characteristic_dissonance": "b2 against root = minor 2nd, the primary musical 'wrongness' interval. Use sparingly or mode loses identity."
+      },
+      "phrygian_dominant": {
+        "intervals": [0, 1, 4, 5, 7, 8, 10],
+        "scale_name": "Phrygian Dominant (5th mode of harmonic minor)",
+        "signature_intervals": ["b2", "MAJOR 3 (the maj-3 over b2 = aug-2 interval = snake-charmer)", "b6", "b7"],
+        "chord_families": {
+          "I": "major (1, 3, 5) — surprise major chord on the dark mode",
+          "bII": "major",
+          "iii_dim": "diminished",
+          "v_dim": "diminished",
+          "bvii": "minor"
+        },
+        "voicing_recipes": {
+          "I_dominant7_no5": "root + maj3 + b7 — the venom voicing, no 5 lets the maj3-vs-b7 tritone dominate",
+          "bII_to_I_to_bII": "the half-step ping-pong (Spanish cadence)",
+          "I_sus4": "root + 4 + 5 — avoid committing the maj-3 (lets bass deliver it)"
+        },
+        "use_for": ["snake-charmer venom", "metal/industrial drops", "exotic darkness", "Reznor menace"],
+        "avoid_for": ["soft moments", "pure grunge (too exotic)"],
+        "intensity_range": [0.6, 1.0],
+        "characteristic_dissonance": "aug-2 interval between b2 and maj-3 (D to F nat in C# Phr Dom) — the unmistakable signature."
+      },
+      "locrian": {
+        "intervals": [0, 1, 3, 5, 6, 8, 10],
+        "scale_name": "Locrian",
+        "signature_intervals": ["b2", "b3", "b5 (the diminished 5th — root chord is i°, NO stable consonance)", "b6", "b7"],
+        "chord_families": {
+          "i_dim": "diminished — the root chord itself is unstable",
+          "bII": "major",
+          "biii": "minor",
+          "iv": "minor",
+          "bV": "major"
+        },
+        "voicing_recipes": {
+          "i_dim_no5": "root + b3 — pseudo-stable by hiding the b5",
+          "i_with_b5": "root + b3 + b5 — full diminished, maximum instability"
+        },
+        "use_for": ["passing tonality", "moments of pure unrest", "very brief use only"],
+        "avoid_for": ["entire sections (root has no stability)", "anything melodic-anchored"],
+        "intensity_range": [0.7, 0.9],
+        "characteristic_dissonance": "Locrian has NO stable tonic — the root is itself a tritone away from the b5. Treat as a passing flavor, not a home key. Used wholesale = listener loses anchor.",
+        "warning": "Per user preference (less dissonance), prefer Phrygian or Phrygian Dominant instead of Locrian for most use cases."
+      },
+      "harmonic_minor": {
+        "intervals": [0, 2, 3, 5, 7, 8, 11],
+        "scale_name": "Harmonic Minor",
+        "signature_intervals": ["b3", "b6", "natural 7 (leading tone — this is what makes it 'harmonic')", "aug-2 between b6 and nat-7"],
+        "chord_families": {
+          "i": "minor",
+          "ii_dim": "diminished",
+          "III_aug": "augmented (b3, 5, 7) — exotic dark sparkle",
+          "iv": "minor",
+          "V": "MAJOR (5, 7, 2) — the SIGNATURE chord, contains the leading tone — Classical V-i cadence",
+          "VI": "major",
+          "vii_dim": "diminished"
+        },
+        "voicing_recipes": {
+          "V_to_i": "the dominant V to tonic i resolution — feels classical but with the b6 lurking",
+          "i_add_nat7": "root + b3 + 5 + nat7 — minor-major 7 chord, very brooding",
+          "iv_to_V_to_i": "ii->V->i but with both ii dim and V major — the harmonic minor cadence"
+        },
+        "use_for": ["dramatic resolution", "pre-cadence tension that fully resolves", "cinematic moments"],
+        "avoid_for": ["modal (use Aeolian/Dorian instead) — Harmonic Minor pulls toward classical resolution"],
+        "intensity_range": [0.4, 0.85],
+        "characteristic_dissonance": "the aug-2 between b6 and nat-7 — exoticism that resolves cleanly via the leading tone."
+      }
+    }
+  },
+
+  "_TBD_D2": "voice_leading + tension_release + voicings_recipes + silence_protocol",
+  "_TBD_D3": "genres (Cobain, Reznor, Yorke, Daft Punk) + per-genre conditional rules",
+  "_TBD_D4": "energy_curves + frequency_space + wow_factors",
+  "_TBD_D5": "conditional_rules (B1-B6) + anti_patterns",
+
+  "default_personality_blend": {
+    "cobain_pct": 30,
+    "reznor_pct": 30,
+    "daft_punk_pct": 25,
+    "yorke_pct": 15,
+    "_note": "Sum = 100. More Daft Punk than Yorke per user preference. Each genre's >=25% threshold triggers its conditional rules (D3)."
+  }
+}
