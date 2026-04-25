@@ -1113,6 +1113,168 @@
     "purpose": "Per-song concrete dissection of widely-documented production, structural, and textural choices. Sourced from interviews, production lore, mix-engineer commentary, and AES documentation — NEVER melodic transcription, NEVER lyrics. Each fiche translates into advisor_extract recipes the advisor applies to ORIGINAL compositions inspired by these techniques.",
     "scope_explicit": "We dissect: production choices (engineer, room, mic placement when documented), structural blueprints (section architecture, dynamic shifts), sonic textures (drum sound, guitar tone, vocal treatment), arrangement decisions (instrument entry/exit), instrument selection (specific guitars/synths cited in interviews), dynamic shifts (loud-quiet-loud blueprints). We do NOT dissect: specific melodies, lyrics, exact chord voicings as creative expression, or any element that constitutes substantive creative authorship.",
     "by_artist": {
+      "Alice_In_Chains": {
+        "_meta": {
+          "albums_dissected": ["Dirt"],
+          "primary_producers_cited": ["Dave Jerden (Dirt)"],
+          "documentation_sources": "Jerry Cantrell interviews, Dave Jerden interviews in Mix Magazine / Tape Op, Greg Prato 'Grunge Is Dead'",
+          "what_distinguishes_them": "Vocal harmony architecture — Cantrell + Staley sing CLOSE-INTERVAL harmonies (often a 3rd or perfect 4th apart) with Cantrell carrying the melodic top and Staley below. Drop-tuned guitars (drop D, sometimes drop C) lower the harmonic floor. Slow tempos compared to peers — Sean Kinney drums often behind the beat (drag feel). Dark thematic content matched by minor-key obsessive harmonic minimalism (sometimes 2-3 chord cycles for whole songs)."
+        },
+        "Them_Bones_Dirt": {
+          "tempo_bpm_approx": 124,
+          "time_signature": "7/8 intro/verse, 4/4 chorus",
+          "structural_blueprint": "intro_riff (7/8 — instantly destabilizing) -> verse (continues 7/8, vocals enter) -> chorus (RESOLVES to 4/4) -> verse 7/8 -> chorus 4/4 -> bridge_solo -> chorus -> outro. Album opener uses meter shift as 'WAKE UP' device — listener cannot settle.",
+          "signature_production_choices": [
+            "Drum sound dry-but-roomy — Jerden balances between Albini-style room and Wallace-style compression",
+            "Guitar layered (Cantrell would track 2-4 takes) — creates wide stereo image of distortion",
+            "Vocal harmony recorded with both singers in same room — natural blend, not overdubbed separately"
+          ],
+          "rhythmic_signature": "7/8 grouped 3+2+2 OR 2+2+3 — the riff phrasing makes the grouping clear. Kinney's kick locks the grouping.",
+          "harmonic_signature": "Drop D root chord cycle — minor key dirgy quality.",
+          "instrumental_signature": ["drop D guitar", "Cantrell + Staley vocal harmony stack from intro onward", "no clean breakdowns — sustained heaviness"],
+          "the_moment_people_remember": "the 7/8 intro hook — the riff is so memorable that listeners often don't realize they're hearing odd meter until told. The grouping FEELS natural despite being asymmetric.",
+          "advisor_extract": [
+            {
+              "recipe_name": "odd_meter_album_opener_wake_up",
+              "description": "Open the song (or a major section) in 7/8 (or 5/4 or 5/8) — the asymmetry forces listener attention immediately. Resolve to 4/4 only on chorus.",
+              "use_for": ["Intro that wants to grab attention without volume", "Verse 1 that establishes 'this isn't normal'"],
+              "wow_factor": 0.85
+            },
+            {
+              "recipe_name": "vocal_harmony_two_voices_same_room",
+              "description": "When tracking vocal harmony, both singers in same room same take — natural acoustic bleed creates a blend that overdubs cannot replicate. Translates to: in MIDI/sample context, USE THE SAME RAW VOCAL processing chain for harmony lines, no separate mix treatment.",
+              "use_for": ["Vocal harmony arrangements that need to FEEL like one source"],
+              "wow_factor": 0.65
+            }
+          ]
+        },
+        "Rooster_Dirt": {
+          "tempo_bpm_approx": 95,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (acoustic guitar + sparse vocal — almost folk feel) -> verse_quiet (continues clean, vocal exposed) -> chorus_explosion (heavy electric guitar + drums + vocal harmony stack) -> verse -> chorus -> bridge_breakdown -> long_chorus_outro. Slow burn structure — the song GROWS over 6+ minutes via gradual layer addition, not via abrupt dynamic shifts.",
+          "signature_production_choices": [
+            "Acoustic guitar primary in intro/verse, electric heavy in chorus — TWO different guitar PALETTES, not just dynamic shift",
+            "Vocal harmony enters AFTER first chorus — withheld for impact",
+            "Drum entry delayed — kicks in only when full band is ready",
+            "Cantrell wrote about his father's Vietnam experience (lyrical context informs the slow-burn structure)"
+          ],
+          "rhythmic_signature": "Mid-slow tempo. Kinney plays behind the beat in verses (drag feel), locks tighter in chorus.",
+          "harmonic_signature": "Modal minor (Aeolian) — repeated 4-chord cycle that doesn't resolve traditionally.",
+          "instrumental_signature": ["acoustic guitar (steel-string) in intro/verse", "electric heavy distortion in chorus", "vocal harmony introduced GRADUALLY"],
+          "the_moment_people_remember": "the gradual build — the song doesn't HIT, it ACCUMULATES. By the time the full band is playing in extended outro, the listener has been WALKED there.",
+          "advisor_extract": [
+            {
+              "recipe_name": "two_guitar_palettes_acoustic_to_electric",
+              "description": "Use ACOUSTIC guitar (or acoustic-feel clean electric) for verses, ELECTRIC distorted for choruses. The TIMBRE shift is the dynamic — not just volume. Same chord progression can be on both, but the palette change is the song's identity.",
+              "use_for": ["Verse-Chorus dynamic that wants timbral contrast more than dynamic contrast"],
+              "wow_factor": 0.75
+            },
+            {
+              "recipe_name": "harmony_vocal_withheld_until_section_2",
+              "description": "Vocal harmony is a RESERVED resource. First chorus = single vocal. Second chorus = harmony enters. Adds dimension without changing the score. Listeners notice the 'bigger' second chorus without being able to articulate why.",
+              "use_for": ["Songs with multiple choruses that want each to feel slightly bigger than the last"],
+              "wow_factor": 0.7
+            },
+            {
+              "recipe_name": "delayed_drum_entry_for_inevitability",
+              "description": "Drums DON'T enter at the start. Kit comes in only when full band is ready (e.g., bar 8 or chorus 1). When drums enter, they feel inevitable rather than introduced.",
+              "use_for": ["Slow-burn intros that want gravity"],
+              "wow_factor": 0.65
+            }
+          ]
+        },
+        "Would_Dirt": {
+          "tempo_bpm_approx": 100,
+          "time_signature": "4/4",
+          "structural_blueprint": "bass intro alone (4 bars — the BASS LINE is the hook) -> guitar enters with simple chord -> vocal enters -> chorus expansion -> verse -> chorus -> outro chorus repeats. Bass-line-as-hook is the song's identity — like Joy Division/post-punk DNA.",
+          "signature_production_choices": [
+            "Bass mixed forward and clean (not distorted, not buried) — Inez's bass line IS the song",
+            "Guitar relatively low in mix during bass intro and verse — gives bass space",
+            "Cantrell vocal lower in register than typical — broody, almost spoken in verses",
+            "Drum entry on chorus is the song's lift moment"
+          ],
+          "rhythmic_signature": "Steady 4/4, kick on 1, snare on 3 (uncommon — usually 2/4) — gives a STRIDING feel rather than a backbeat groove.",
+          "harmonic_signature": "Drop D guitar over moving bass line — bass defines harmonic motion while guitar holds drone.",
+          "instrumental_signature": ["clean bass forward in mix", "drop D guitar dropping to subdued role"],
+          "the_moment_people_remember": "the bass intro — the way the song STARTS with bass alone for several bars before any other instrument enters. Bass-as-lead is rare in grunge.",
+          "advisor_extract": [
+            {
+              "recipe_name": "bass_intro_hook_alone",
+              "description": "Open song with bass playing the central melodic hook ALONE for 4-8 bars. No drums, no guitar. Bass establishes identity. Other instruments enter as ADDITIONS to bass, not replacements.",
+              "use_for": ["Intros that want minimalist hook establishment", "songs where bass is the lead instrument"],
+              "wow_factor": 0.8
+            },
+            {
+              "recipe_name": "kick_1_snare_3_stride_pattern",
+              "description": "Place snare on beat 3 instead of beats 2 and 4 — creates a 'striding' feel (kick-snare-kick-snare every 2 beats) rather than the standard backbeat. Slower-feeling, doom-adjacent.",
+              "use_for": ["Verse grooves that want broody walk feel", "alternative to standard backbeat"],
+              "wow_factor": 0.6
+            },
+            {
+              "recipe_name": "drone_guitar_over_moving_bass",
+              "description": "Guitar sustains a single chord/drone, BASS carries the chord changes via root motion. Inverts the typical role (guitar drives chord changes, bass follows root).",
+              "use_for": ["Verse arrangements where guitar wants to be textural", "bass-led grooves"],
+              "wow_factor": 0.7
+            }
+          ]
+        },
+        "Down_In_A_Hole_Dirt": {
+          "tempo_bpm_approx": 80,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (acoustic-style clean electric arpeggios) -> verse (continues clean, vocal harmony from start) -> chorus (electric distortion enters but at modest level) -> verse -> chorus -> bridge_solo -> chorus -> outro. Slow ballad pace. Vocal harmony is FEATURED throughout, not reserved for chorus.",
+          "signature_production_choices": [
+            "Vocal harmony = primary melodic content (Cantrell + Staley locked in close intervals throughout)",
+            "Reverb on vocal — gives chamber/cathedral space",
+            "Electric guitar in chorus is BARELY heavier than verse — almost a continuous arrangement"
+          ],
+          "rhythmic_signature": "Slow 4/4 ballad. Drums minimal — kick + closed hi-hat + occasional snare on 3.",
+          "harmonic_signature": "Aeolian/minor — slow chord changes, sustained voicings.",
+          "instrumental_signature": ["clean electric arpeggio (no distortion in verse)", "vocal harmony as primary melody"],
+          "the_moment_people_remember": "the vocal harmony stack — Cantrell + Staley locked in close 3rds/4ths throughout. The blend of their two voices is the song's identity, and it's been imitated countless times.",
+          "advisor_extract": [
+            {
+              "recipe_name": "vocal_harmony_throughout_not_just_chorus",
+              "description": "Use vocal harmony as PRIMARY melodic content from the song's start — not as a chorus enhancement. Two voices locked in close intervals (3rds, 4ths) become the texture itself.",
+              "use_for": ["Songs that center vocal as the instrument", "ballads or slow-build sections"],
+              "wow_factor": 0.75
+            },
+            {
+              "recipe_name": "minimal_drums_for_vocal_focus",
+              "description": "Strip drums to bare minimum (kick + occasional snare + closed hat) when vocal is the song's focus. Sparse drums = vocal can breathe and harmonies stay audible.",
+              "use_for": ["Vocal-feature sections", "ballad-pace verses"],
+              "wow_factor": 0.55
+            }
+          ]
+        },
+        "Dirt_Title_Track_Dirt": {
+          "tempo_bpm_approx": 76,
+          "time_signature": "4/4",
+          "structural_blueprint": "slow heavy intro -> verse_dirgy (vocal forward, riff cycles) -> chorus_lift (slight expansion) -> verse -> chorus -> bridge -> chorus_extended. The whole song stays at SLOW tempo and HEAVY register — no dynamic shifts that release the weight. Punishing slow-burn.",
+          "signature_production_choices": [
+            "Drop D + downtuned half-step (effective drop C# or lower) — extreme low end",
+            "Drum hits VERY behind the beat (Kinney drag) — feels like the song is being slowed down by gravity",
+            "Vocal lower in register, less harmony than other Dirt tracks — emphasizes the dread"
+          ],
+          "rhythmic_signature": "Slow 4/4 dragged behind beat. Tempo 76 BPM is at the edge of perceivable as 'fast' or 'half-time slow' — lives in a uncomfortable middle.",
+          "harmonic_signature": "Modal minor with bVII — repetitive cycle, no real cadence.",
+          "the_moment_people_remember": "the unrelenting weight — the song refuses to lift. Even the chorus is heavy. There's no release valve.",
+          "advisor_extract": [
+            {
+              "recipe_name": "no_release_unrelenting_weight",
+              "description": "Refuse the loud-quiet-loud template entirely. Stay at HIGH density / LOW tempo / HEAVY register throughout. No section provides relief. The unrelenting quality IS the song.",
+              "use_for": ["Songs that want to FEEL like a slow descent", "doom-adjacent moments"],
+              "wow_factor": 0.75,
+              "warning": "Risky — needs strong vocal/melodic interest to keep the listener. Without that, it becomes monotonous."
+            },
+            {
+              "recipe_name": "extreme_drum_drag_at_slow_tempo",
+              "description": "At slow tempo (70-85 BPM), drag drums 15-25ms behind the grid. The drag is more perceivable at slow tempos — feels like gravity on the song.",
+              "use_for": ["Slow heavy sections wanting doom feel"],
+              "wow_factor": 0.65
+            }
+          ]
+        }
+      },
       "Soundgarden": {
         "_meta": {
           "albums_dissected": ["Superunknown", "Down on the Upside", "Badmotorfinger"],
