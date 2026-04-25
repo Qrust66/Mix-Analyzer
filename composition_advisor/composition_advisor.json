@@ -761,7 +761,134 @@
     }
   },
 
-  "_TBD_D2c_continued": "rhythm_theory part 2 (syncopation/hemiola/breakbeat/stop-time) + density_curves",
+  "rhythm_advanced": {
+    "purpose": "Advanced rhythmic devices that ELEVATE a pattern from competent to memorable. Each device is scored by wow_factor and explicit usage rules — overuse breaks the device's effect.",
+    "syncopation_typology": {
+      "definition": "Placing accents on weak beats or off-beats, displacing the listener's sense of where the downbeat is.",
+      "types": {
+        "anticipation_push": {
+          "definition": "An accented hit lands 1/8 or 1/16 EARLIER than expected (push the beat). Listener's expectation of the downbeat creates impact.",
+          "example_at_4_4": "snare expected on beat 3 (=2.0) lands at 1.75 instead — 1/16 push",
+          "feel": "urgent, anxious, propulsive",
+          "best_for": ["Cobain desperate verses", "drop entries that want momentum"],
+          "wow_factor": 0.65,
+          "warning": "If everything pushes, nothing pushes. Use on 1-2 specific hits per phrase."
+        },
+        "suspension_pull": {
+          "definition": "Accented hit lands 1/8 or 1/16 LATER than expected. Creates tension by withholding.",
+          "example_at_4_4": "snare expected on beat 3 lands at 2.25 instead — 1/16 drag",
+          "feel": "lazy, brooding, doom",
+          "best_for": ["Yorke moments", "bridge feel before resolution"],
+          "wow_factor": 0.6
+        },
+        "16th_displacement": {
+          "definition": "An entire phrase shifted by 1/16 from its expected grid position. Whole pattern feels off-kilter while remaining metric.",
+          "example_at_4_4": "kick pattern that should be [0, 1, 2, 3] becomes [0.25, 1.25, 2.25, 3.25] — same shape, displaced",
+          "feel": "alien, dub-influenced, very modern electronic",
+          "best_for": ["Reznor moments", "1-bar disorienting bridge"],
+          "wow_factor": 0.75,
+          "warning": "Apply to ONE bar then resolve to grid — extended displacement loses meter"
+        },
+        "and_of_2_push": {
+          "definition": "Cobain signature: snare/vocal accent on the '&' of beat 2 (1.5) instead of the strict beat 2",
+          "example_at_4_4": "snare on 1.5 instead of 1.0",
+          "feel": "rocking forward, drunken vitality",
+          "best_for": ["Aeolian/grunge verses"],
+          "wow_factor": 0.55,
+          "genre_affinity": {"cobain": 0.9, "yorke": 0.5, "reznor": 0.4, "daft_punk": 0.2}
+        },
+        "tresillo_3_3_2": {
+          "definition": "8th-note pattern grouped 3-3-2 within 4 beats (positions 0, 0.75, 1.5 in 8ths = 3+3+2). The Latin/dance hall building block.",
+          "example_at_4_4": "kick on positions 0, 1.5, 3.0 (8th-note grid steps 0, 3, 6 of 8)",
+          "feel": "natural pulse felt around the world",
+          "best_for": ["Daft Punk-flavored grooves", "any kick pattern that wants forward momentum without 4-on-the-floor"],
+          "wow_factor": 0.6,
+          "genre_affinity": {"daft_punk": 0.85, "yorke": 0.5, "reznor": 0.5, "cobain": 0.3}
+        }
+      }
+    },
+    "hemiola": {
+      "definition": "Short-duration polyrhythm: 3 groups of 2 against 2 groups of 3 (or vice-versa) within a small span (typically 2-4 bars).",
+      "examples": {
+        "3_groups_of_2_in_3_bars_4_4": "in 12 beats, group hits as [4 4 4] (whole notes) instead of [3 3 3 3] — feels like the bar shifted to 3/4 temporarily",
+        "2_groups_of_3_in_2_bars_3_4": "in 6 beats, group hits as [3 3] instead of [2 2 2]"
+      },
+      "feel": "metric ambiguity that resolves — listener almost forgets the meter, then it snaps back",
+      "best_for": ["bridge buildup (last 2 bars before drop)", "moments that want to break the grid temporarily"],
+      "wow_factor": 0.7,
+      "duration_max_bars": 4,
+      "genre_affinity": {"yorke": 0.85, "reznor": 0.7, "daft_punk": 0.5, "cobain": 0.3},
+      "warning": "Hemiola MUST resolve back to the original meter — if it doesn't, listener loses the meter entirely"
+    },
+    "breakbeat": {
+      "definition": "Chopping a continuous drum pattern into discrete segments separated by silence or different patterns. Each chop creates a micro-section.",
+      "techniques": {
+        "stutter": {
+          "description": "Repeat a tiny segment (1/16 to 1/4 beat) 2-4 times for glitch effect",
+          "best_for": ["pre-Drop last beat", "fill before bar transition"],
+          "wow_factor": 0.7
+        },
+        "drum_silence_drop": {
+          "description": "Cut ALL drums for 1-2 beats mid-pattern (often beats 3-4 of bar 4 of a phrase)",
+          "best_for": ["pre-Drop suspension", "Bridge buildup"],
+          "wow_factor": 0.75,
+          "comment": "Pairs with silence_protocol level beat_silence"
+        },
+        "snare_only_bar": {
+          "description": "1 bar where everything cuts except snare (which plays the standard 2/4 backbeat)",
+          "best_for": ["Hollow lead-in", "post-section reset"],
+          "wow_factor": 0.7
+        },
+        "kick_only_bar": {
+          "description": "1 bar where everything cuts except kick (continues the pulse)",
+          "best_for": ["intro buildup", "after a section_silence — kick re-establishes the pulse"],
+          "wow_factor": 0.65
+        }
+      }
+    },
+    "stop_time": {
+      "definition": "Cut the rhythm section (drums + bass) entirely while keeping melody/harmony moving. Inverts the listener's expectation of who carries pulse.",
+      "duration_beats": [2, 8],
+      "duration_bars_4_4": [0.5, 2],
+      "best_for": ["bridge moment that wants exposed melody", "vocal entry after drop"],
+      "wow_factor": 0.8,
+      "genre_affinity": {"yorke": 0.85, "cobain": 0.8, "reznor": 0.6, "daft_punk": 0.3},
+      "comment": "Stop-time is the rhythmic equivalent of false_relation — momentary suspension that resolves",
+      "callback_strategy": "stop_time at end of Verse 1 → callback at start of Final Drop with same melody but FULL rhythm section returns = payoff"
+    },
+    "subdivision_shifts": {
+      "definition": "Within a section, switching the dominant rhythmic subdivision (8ths -> 16ths -> triplets) — changes the perceived speed without changing tempo",
+      "shift_patterns": {
+        "8ths_to_16ths": {
+          "where": "transition from Verse to Pre-Drop (gives sense of acceleration)",
+          "wow_factor": 0.6
+        },
+        "16ths_to_triplets": {
+          "where": "Bridge — momentary loose feel before snapping back to straight 16ths in Final Drop",
+          "wow_factor": 0.7
+        },
+        "8ths_to_triplets_to_8ths": {
+          "where": "single bar of triplets sandwiched between 8th-note phrases — micro-disorientation",
+          "wow_factor": 0.65,
+          "duration_max_bars": 1
+        },
+        "subdivision_halving": {
+          "description": "Suddenly halve the subdivision rate — 16ths drop to 8ths, instant breath",
+          "where": "into a Hollow section",
+          "wow_factor": 0.75
+        }
+      }
+    },
+    "callback_through_rhythm": {
+      "principle": "A specific rhythmic motif (e.g., the and_of_2_push, or a 3-3-2 tresillo) that appears once in an early section CAN be restated in Final Drop for callback effect — even more powerful than a melodic callback because rhythm is felt physically.",
+      "examples": [
+        "Verse 1 has and_of_2_push on snare → Final Drop bar 5 reuses and_of_2_push verbatim → physical recognition",
+        "Bridge introduces a 3:2 hemiola → Final Drop closing 2 bars do the same hemiola → 'home stretch' feel"
+      ]
+    }
+  },
+
+  "_TBD_D2c_iii": "density_curves (notes/sec per section + polyphony budget)",
   "_TBD_D3": "genres (Cobain, Reznor, Yorke, Daft Punk) + per-genre conditional rules",
   "_TBD_D4": "energy_curves + frequency_space + wow_factors",
   "_TBD_D5": "conditional_rules (B1-B6) + anti_patterns",
