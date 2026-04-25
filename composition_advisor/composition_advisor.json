@@ -2183,9 +2183,71 @@
           ]
         },
         "Dumb": {
-          "_status": "stub_pending_full_dissection_C1_2",
+          "_status": "C1_2a_composition_arrangement_done",
           "album": "In Utero",
-          "year": 1993
+          "year": 1993,
+          "tempo_bpm_documented_range": [84, 87],
+          "time_signature": "4/4",
+          "key_area": "C minor (Aeolian) — guitars detuned 1/2 step on In Utero, so concert-pitch effective key is B minor",
+          "tuning_documented": "Detuned 1/2 step (Eb tuning), per In Utero session standard",
+          "track_runtime": "~2:32 — short for an album track of its era, deliberately concise",
+          "composition": {
+            "structural_blueprint": "intro_4bars (clean guitar + cello swell) -> verse1_8bars -> chorus_8bars -> verse2_8bars -> chorus_8bars -> outro_resolution_4bars. Total ~2:32. The structure is COMPACT and REPETITIVE — same chord cycle repeats throughout with no bridge, no pre-chorus, no extended sections.",
+            "section_count_and_lengths": {
+              "intro": "4 bars (clean guitar + cello establishes harmonic frame)",
+              "verses": "8 bars each (2 verses)",
+              "choruses": "8 bars each (2 choruses)",
+              "outro": "4 bars resolution, no extended fade"
+            },
+            "harmonic_motion": "Modal Aeolian — extremely simple. The song uses essentially a 3-chord cycle (i - bVI - bVII pattern family) repeated for the entire runtime. No harmonic surprises, no modulation. The HARMONY is intentionally minimal so the vocal + cello carry the song's identity.",
+            "modal_choice": "Aeolian (natural minor) — pure, no harmonic minor leading-tone moments",
+            "melodic_contour": "Verse vocal: relatively static contour, hovering around the minor 3rd (b3) of the key — the melody barely moves, emphasizing repetition. Chorus vocal: opens up to a wider range, ascending then descending arc. Outro: returns to the static verse contour. The contour is FLAT-then-arcing-then-flat again.",
+            "characteristic_compositional_choice": "DELIBERATE harmonic simplicity. The song uses fewer chord changes than nearly any other track on In Utero. The repetition is the point — the listener focuses on the cello + vocal interplay rather than chord progression. Anti-virtuosic by design.",
+            "harmonic_pacing": "Slow chord changes (each chord ~2 bars). No quick changes anywhere in the song. Pacing is deliberately stable.",
+            "phrase_symmetry": "8-bar phrases throughout — perfectly symmetric. Combined with the 3-chord cycle, this gives the song a CIRCULAR quality: each phrase sounds like it could continue forever or stop at any point.",
+            "documented_song_history": "Cobain documented as having performed Dumb solo acoustic for years before the In Utero session — the song existed in fully-formed acoustic version, and the In Utero arrangement is essentially a band/cello layering of that pre-existing core."
+          },
+          "arrangement": {
+            "instrumentation_complete": [
+              "electric guitar (Cobain — clean tone, not distorted — strummed open chords)",
+              "bass guitar (Krist Novoselic, restrained)",
+              "drum kit (Dave Grohl, ballad-pace minimal)",
+              "lead vocal (Kurt Cobain)",
+              "CELLO (Kera Schaley, overdub) — the signature element distinguishing this track",
+              "subtle backing vocal in chorus (Cobain double)"
+            ],
+            "section_instrumentation": {
+              "intro": "clean strummed guitar + cello sustain — bass and drums absent",
+              "verse_1": "guitar continues clean, bass enters with melodic root motion, drums enter restrained (kick + soft snare + closed hat), vocal enters, cello sustains underneath",
+              "chorus_1": "same instrumentation as verse — NO distortion engagement, NO drum cymbal opening, NO band density jump. The 'chorus' is harmonic and melodic, not dynamic.",
+              "verse_2": "structurally identical to verse 1",
+              "chorus_2": "same as chorus 1, possibly with slight backing-vocal addition",
+              "outro": "cello sustains as the song resolves to its final chord; drums and guitar sparse"
+            },
+            "vocal_layering_strategy": "Mostly SINGLE-TRACKED throughout — Cobain's vocal is exposed and intimate. Documented backing vocal in chorus is subtle (Cobain double) but not the dynamic-doubling-as-lift technique used in Heart-Shaped Box. The song deliberately AVOIDS the chorus-doubling strategy.",
+            "dynamic_arc_overall": "FLAT dynamic arc by design. The song does not build to a peak — it sustains a low-medium dynamic level throughout. Anti-loud-quiet-loud, anti-slow-burn-arrival. The song's emotional weight comes from VOCAL DELIVERY + CELLO TIMBRE, not arrangement dynamics.",
+            "instrumental_role_assignment": {
+              "guitar_role": "rhythmic/harmonic background — strummed open chords providing chord-cycle clarity, NOT melodic carrier (rare for Cobain)",
+              "bass_role": "melodic root motion — Novoselic's bass actually MOVES more than the guitar harmonically, providing subtle bass-line interest",
+              "drums_role": "ballad-pace timekeeping — minimum density, no fills, no opening up. Drums are a CONTAINER for the song, not a feature.",
+              "cello_role": "sustained pad — the CELLO carries the orchestral weight that drums would normally provide. Functions as harmonic foundation + emotional anchor.",
+              "vocal_role": "primary melodic carrier — the SONG IS the vocal. Everything else is accompaniment."
+            },
+            "harmonic_density_per_section": {
+              "intro": "2 instruments (guitar + cello) — sparse",
+              "verse": "5 instruments (guitar + bass + drums + vocal + cello) — but all restrained, perceived density is medium-low",
+              "chorus": "5 instruments (same palette) — NO density jump from verse",
+              "outro": "guitar + cello fade — back to sparse"
+            },
+            "arrangement_anti_patterns_avoided": [
+              "Does NOT use loud-quiet-loud Pixies template",
+              "Does NOT add distortion at chorus — clean tone throughout",
+              "Does NOT increase drum intensity at chorus — flat dynamic",
+              "Does NOT introduce new instruments mid-song — same palette from verse 1 to outro",
+              "Does NOT use vocal-doubling-as-chorus-lift (rejecting Heart-Shaped Box's own strategy)"
+            ],
+            "what_makes_arrangement_unique_within_in_utero": "Of all In Utero tracks, Dumb has the LEAST band-driven dynamic arc. While Heart-Shaped Box uses slow-burn build and Territorial Pissings uses unrelenting attack, Dumb sustains a single restrained intensity. The cello + minimal kit create a chamber-music quality rare in grunge."
+          }
         },
         "Territorial_Pissings": {
           "_status": "stub_pending_full_dissection_C1_3",
