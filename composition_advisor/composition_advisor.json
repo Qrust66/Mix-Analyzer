@@ -3728,7 +3728,7 @@
           ]
         },
         "My_Wave": {
-          "_status": "C2_3b_performance_recording_done",
+          "_status": "C2_3c_complete_exhaustive",
           "album": "Superunknown",
           "year": 1994,
           "tempo_bpm_documented_range": [115, 122],
@@ -3895,7 +3895,82 @@
               "Bass tracked with priority on rhythmic lock (vs FOBD's melodic clarity priority)",
               "Vocal tracked with attention to phrasing fit in 5/4 (multiple takes for placement)"
             ]
-          }
+          },
+          "mixing": {
+            "history_documented": "SINGLE released mix version: Brendan O'Brien at his mixing room. Same engineer as FOBD but different mix decisions per song's needs.",
+            "obrien_mix_characteristics_for_my_wave": [
+              "Drum bus compression TIGHTER than FOBD — kick + snare punch prioritized so the 5/4 groove reads clearly through the mix",
+              "Guitars panned wide with both takes engaged distortion — 5/4 riff dominates the stereo field",
+              "Bass slightly more forward in mix than FOBD (Shepherd's rhythmic precision deserved clarity)",
+              "Cornell vocal centered, present but not commercially-loud — sits in the band",
+              "5/4 verse: less reverb than FOBD's verses (clarity over atmosphere)",
+              "4/4 chorus: room ambience opens up slightly for the dynamic lift"
+            ],
+            "released_version_mix_engineer": "Brendan O'Brien (same as FOBD)",
+            "console_documented": "O'Brien's documented SSL G-series preference",
+            "compression_philosophy_obrien_for_my_wave": "TIGHTER drum compression than FOBD — the 5/4 groove demands kick + snare punch be locked-tight in the mix so the meter reads clearly. Vocal compression similar to FOBD. Master glue similar.",
+            "stereo_image_strategy": [
+              "Drums: kick + snare CENTERED, room mics blended NARROWER than aggressive Date approach",
+              "Guitar 1 (Thayil): panned MODERATELY left",
+              "Guitar 2 (Cornell rhythm): panned MODERATELY right",
+              "Bass CENTERED with kick — combined low end punch",
+              "Vocal CENTERED"
+            ],
+            "vocal_treatment": "Cornell vocal: moderate compression for consistency, subtle reverb. Less reverb than FOBD's chamber-style space — My Wave wants clarity for the meter to register.",
+            "drum_treatment": "Close-mic dominant balance with parallel compression for 5/4 groove punch. Less room ambience than FOBD.",
+            "what_obrien_mix_demonstrates_for_my_wave": "Same engineer adapting mix philosophy per song. FOBD: moderate compression preserving dynamic shift, light reverb for atmosphere. My Wave: tighter drum compression for meter readability, clearer mix for groove perception. The advisor should recognize that mix philosophy adapts not just per producer/engineer but per song.",
+            "comparison_to_fobd_mix": "Same O'Brien but DIFFERENT mix priorities. FOBD's verse texture preserved with light reverb (atmosphere); My Wave's verse needs CLARITY (meter readability). FOBD's drums room-ambient; My Wave's drums close-mic-tight. Same engineer, two compositions, two mix approaches."
+          },
+          "mastering": {
+            "mastering_engineer_album": "Stephen Marcussen at Marcussen Mastering (same as FOBD — full Superunknown album)",
+            "loudness_approach_documented": "1994 mid-loudness-war target preserved. Album-context mastering — My Wave fits with the album's overall loudness curve.",
+            "vinyl_vs_cd_documented": "Original CD master by Marcussen. Vinyl release used different mastering pass.",
+            "subsequent_remasters_documented": "25th anniversary edition (2014) remastered",
+            "tonal_balance_at_release": "Similar to FOBD's tonal balance — bright top, present mids, controlled low end. Album-consistent mastering."
+          },
+          "the_moment_people_remember": {
+            "primary": "The 5/4 GROOVE feeling NATURAL — listeners notice the unusual feel but rarely consciously identify it as 5/4. The groove is the song's identity.",
+            "secondary": "The METER RESOLUTION at chorus — the shift from 5/4 verse to 4/4 chorus feels like physical relief, even when listeners don't analyze why.",
+            "tertiary": "Cornell's PHRASING ADAPTATION to the 5/4 bar — vocal delivery that fits asymmetric meter without sounding awkward."
+          },
+          "advisor_extract": [
+            {
+              "recipe_name": "5_4_groove_natural_via_groove_construction",
+              "description": "Compose in 5/4 such that the meter FEELS natural (groovy) rather than awkward (academic). Achieved via: (1) drummer's confident pocket on the 5-beat bar (groupings 3+2 or 2+3 rather than 1+1+1+1+1 counting), (2) bass locked TIGHTLY with kick on the 5/4 pattern, (3) riff lands such that the 'extra beat' feels like a natural pickup rather than an interruption. Distinct from prog rock's deliberate 5/4 academic feel.",
+              "use_for": ["Songs wanting subtle metric sophistication that doesn't sound academic", "compositions where odd meter should feel groovy and physical rather than mathematical", "tracks targeting listeners who feel rather than count"],
+              "wow_factor": 0.80,
+              "implementation_for_modern_compositions": "In MIDI/sample context: set time signature to 5/4 for verse clip. Place kick + snare in groupings that feel natural (e.g., kick on beats 1 and 3, snare on 2 and 4 or beat 5 — varies per intent). The riff/lead must land such that the 5-beat completion feels like resolution, not interruption. Test by tapping foot to the groove — if it feels stilted, the 5/4 isn't working naturally.",
+              "comparison_to_other_meter_recipes": "5/4 (My Wave) = groovy + playful. 6/4 (FOBD) = patient + introspective. 7/4 (Spoonman verse) = destabilizing but resolves to 4/4. 7/4 (Outshined chorus) = destabilizing as chorus is unstable. Each odd meter has different emotional default per direction (V→C resolution vs V→C escape)."
+            },
+            {
+              "recipe_name": "drum_meter_pattern_groupings_natural_vs_academic",
+              "description": "When composing in odd meter (5/4, 7/4, 6/4), drum patterns must use NATURAL groupings (e.g., 5/4 as 3+2 or 2+3, NOT 1+1+1+1+1 sequential). Natural groupings make the meter feel like a slightly extended 4/4 rather than a counting exercise. The drummer's confidence and pocket are critical — academic playing kills the groove.",
+              "use_for": ["Drum programming for odd-meter compositions", "selecting drum patterns that make odd meter accessible", "any rhythmic context where odd meter is used"],
+              "wow_factor": 0.70,
+              "implementation_for_modern_compositions": "When programming drum patterns in DAW: explicitly think about kick + snare placement in NATURAL pairs/triples within the bar. For 5/4 = pair (2 beats) + triple (3 beats). For 7/4 = pair + pair + triple, or pair + triple + pair. Avoid uniform spacing of hits — the asymmetry of the meter must be expressed in the pattern's grouping."
+            },
+            {
+              "recipe_name": "same_team_different_mix_per_song",
+              "description": "When working with the same producer/engineer team across multiple songs on an album, mix decisions should ADAPT per song's compositional intent. FOBD wants moderate compression preserving dynamic shift + light reverb for atmosphere. My Wave wants tighter drum compression for meter readability + less reverb for clarity. Same team, different priorities per song's needs.",
+              "use_for": ["Album-context mixing where multiple songs need consistent overall character but distinct individual treatments", "recognizing when a song needs different mix decisions than another song on the same album"],
+              "wow_factor": 0.65,
+              "philosophical_note": "The advisor should NOT default to 'same producer = same mix approach across album'. Mix philosophy adapts per song's compositional intent even within a single producer's body of work."
+            },
+            {
+              "recipe_name": "bassist_dual_role_within_album",
+              "description": "When composing for a band with a versatile bassist, deploy the bassist DIFFERENTLY across different songs. Some songs showcase MELODIC bass (FOBD: Shepherd as melodically integrated). Other songs showcase RHYTHMIC PRECISION bass (My Wave: Shepherd locked tight with kick). Same player, two compositional faces.",
+              "use_for": ["Album arrangement decisions with capable bassists", "ensuring bass role variety across an album", "matching bass approach to song's compositional intent"],
+              "wow_factor": 0.60,
+              "philosophical_note": "Bass role is often defaulted to 'foundation locked with kick' regardless of song. Recognizing when bass should be MELODIC vs RHYTHMIC PRECISION is part of compositional sophistication."
+            },
+            {
+              "recipe_name": "tracking_priority_per_song_compositional_intent",
+              "description": "Within the same studio with the same producer, tracking decisions should prioritize different elements per song. Introspective songs prioritize vocal phrasing + clean texture clarity. Groove-driven songs prioritize kick-snare punch + bass-drum lock. The studio's resources adapt to the song's compositional intent.",
+              "use_for": ["Studio session planning when working on multiple songs", "recognizing tracking priorities that match compositional needs", "avoiding the default 'one-size-fits-all' tracking approach"],
+              "wow_factor": 0.60,
+              "philosophical_note": "Tracking priority is not just about producer's general approach but about per-song compositional needs. The advisor should help select what to capture cleanly vs what to leave atmospheric per song."
+            }
+          ]
         },
         "Overfloater": {
           "_status": "stub_pending_full_dissection_C2_4",
