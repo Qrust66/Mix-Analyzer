@@ -1113,6 +1113,165 @@
     "purpose": "Per-song concrete dissection of widely-documented production, structural, and textural choices. Sourced from interviews, production lore, mix-engineer commentary, and AES documentation — NEVER melodic transcription, NEVER lyrics. Each fiche translates into advisor_extract recipes the advisor applies to ORIGINAL compositions inspired by these techniques.",
     "scope_explicit": "We dissect: production choices (engineer, room, mic placement when documented), structural blueprints (section architecture, dynamic shifts), sonic textures (drum sound, guitar tone, vocal treatment), arrangement decisions (instrument entry/exit), instrument selection (specific guitars/synths cited in interviews), dynamic shifts (loud-quiet-loud blueprints). We do NOT dissect: specific melodies, lyrics, exact chord voicings as creative expression, or any element that constitutes substantive creative authorship.",
     "by_artist": {
+      "Queens_Of_The_Stone_Age": {
+        "_meta": {
+          "albums_dissected": ["Songs for the Deaf", "Lullabies to Paralyze"],
+          "primary_producers_cited": ["Adam Kasper / Eric Valentine (Songs for the Deaf, varies per track)", "Josh Homme + Joe Barresi (Lullabies to Paralyze)"],
+          "drummers": "Dave Grohl on Songs for the Deaf (key signature element); Joey Castellano on Lullabies",
+          "documentation_sources": "Homme interviews discussing 'robot rock' philosophy, Grohl drumming clinics, Joe Barresi engineering interviews",
+          "what_distinguishes_them": "Repetitive riff-based grooves Homme calls 'robot rock' — riffs that cycle with minimal variation, pulling forward via REPETITION rather than chord changes. 8th-note guitar pulses dominate (downstroke palm-muted patterns). Percussion-forward arrangements with cowbell, tambourine, hand percussion as primary rhythmic elements on some tracks. Half-time chorus dynamics — chorus FEELS slower than verse. Mark Lanegan's gravelly bass vocal adds counterpoint to Homme's higher voice. Songs often earn 5-7 minute lengths via micro-development of repeated material."
+        },
+        "No_One_Knows_Songs_For_The_Deaf": {
+          "tempo_bpm_approx": 138,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (drum + bass groove establishes — riff isn't introduced yet) -> verse_riff_enters (the iconic syncopated guitar riff joins the groove already in motion) -> chorus (vocal lift, riff continues) -> verse -> chorus -> bridge (different chord area) -> chorus -> outro_riff. The DRUM PATTERN, not the riff, is the song's hook.",
+          "signature_production_choices": [
+            "Dave Grohl's drumming forward in mix — kit feels physically forward",
+            "Bass + kick locked tight, drum room mics moderate (not Albini wide, not Wallace dry)",
+            "Guitar layered with wide stereo, slight detune between layers",
+            "Vocal is mid-mix, not features — the SONG is the groove"
+          ],
+          "rhythmic_signature": "Grohl's kick pattern uses syncopated 16th displacement — kick lands on the 'a' (16th note before downbeat) creating push. This pattern became famous and is widely cited.",
+          "harmonic_signature": "Repetitive riff in minor key — same chord cycle for whole song. The motion is rhythmic, not harmonic.",
+          "instrumental_signature": ["Dave Grohl drums as featured player", "Homme's repetitive riff", "bass locked with kick pattern"],
+          "the_moment_people_remember": "Grohl's drum hook — the kick pattern is so distinctive that the song is often referenced AS that drum pattern. The riff serves the drums, not vice versa.",
+          "advisor_extract": [
+            {
+              "recipe_name": "drum_pattern_as_song_hook",
+              "description": "Make the DRUM pattern the song's primary hook — not the riff or vocal. Build the riff to serve the drum pattern (locking with kick syncopation). Listener's body responds to the rhythm before the harmony.",
+              "use_for": ["Verses where rhythm > melody", "tracks centered on rhythmic identity"],
+              "wow_factor": 0.85
+            },
+            {
+              "recipe_name": "kick_on_a_of_4_syncopated_displacement",
+              "description": "Kick lands on the '16th-before-downbeat' (the 'a' of the previous beat) instead of the downbeat itself. Creates a forward push that anticipates the bar — listener's body wants to lean forward.",
+              "use_for": ["Verse grooves needing momentum without speed", "any pattern wanting forward push without acceleration"],
+              "wow_factor": 0.75
+            },
+            {
+              "recipe_name": "groove_first_riff_after",
+              "description": "Establish drums + bass groove FIRST (4-8 bars). THEN guitar riff enters joining the groove already in motion. Riff feels like an additive layer rather than the song's foundation.",
+              "use_for": ["Intros that center groove over melody"],
+              "wow_factor": 0.7
+            }
+          ]
+        },
+        "A_Song_For_The_Dead_Songs_For_The_Deaf": {
+          "tempo_bpm_approx": 168,
+          "time_signature": "4/4",
+          "structural_blueprint": "fast intro (drums + bass + riff at full force) -> verse (sustained intensity) -> chorus_breakdown (HALF-TIME — the chorus is SLOWER than the verse, inverting expectation) -> verse -> chorus_half_time -> long_instrumental_outro (extended jam, 2+ minutes). Half-time chorus contradicts the typical chorus-as-lift template.",
+          "signature_production_choices": [
+            "Drum kit recorded loud, room mics emphasized — Grohl's playing has size",
+            "Guitar layers thick — multiple distorted takes panned",
+            "Vocal pushed slightly back in mix — drums and guitar are equal/forward",
+            "Long instrumental sections allow drums to fully feature"
+          ],
+          "rhythmic_signature": "Verse: full speed driving 16th hihat with kick + snare backbeat. Chorus: HALVES the perceived tempo — same BPM but kick lands every 2 beats, snare every 4, hi-hat opens up to quarters. The half-time IS the chorus.",
+          "harmonic_signature": "Aeolian/Phrygian flavor minor key, repetitive cycle.",
+          "instrumental_signature": ["Grohl drums as primary feature", "guitar wall in chorus", "extended outro for instrumental jam"],
+          "the_moment_people_remember": "the chorus half-time — the song doesn't speed up, it SLOWS DOWN at the chorus. The contrast between verse drive and chorus weight inverts pop convention.",
+          "advisor_extract": [
+            {
+              "recipe_name": "half_time_chorus_inversion",
+              "description": "Chorus HALVES the perceived rhythmic activity (kick on every 2 beats instead of every 1, snare on every 4 instead of every 2). Same BPM, half-time feel. Chorus feels HEAVIER than verse, not lighter.",
+              "use_for": ["Choruses wanting weight without speed", "Drops that should feel like crashing-down rather than lifting-off"],
+              "wow_factor": 0.85
+            },
+            {
+              "recipe_name": "extended_instrumental_outro_2_plus_minutes",
+              "description": "Outro extends 2+ minutes past the last vocal line — pure instrumental jam with band locked on the groove. Listener gets to dwell in the song's identity without being told what to feel.",
+              "use_for": ["Long-form tracks (5+ min)", "songs where the groove is the emotional anchor"],
+              "wow_factor": 0.65
+            }
+          ]
+        },
+        "Go_With_The_Flow_Songs_For_The_Deaf": {
+          "tempo_bpm_approx": 153,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (drums + bass establishing groove) -> verse_riff (single repeated guitar riff, 8th-note pulse) -> chorus (riff continues, vocal lifts) -> verse -> chorus -> bridge (slight chord variation) -> chorus -> outro. Single riff cycles for nearly the entire song — 'robot rock' philosophy at its purest.",
+          "signature_production_choices": [
+            "Single guitar riff repeated 30+ times across the song — micro-variations only",
+            "Bass + kick locked perfectly tight",
+            "Vocal melody is the variable element on top of the static riff foundation"
+          ],
+          "rhythmic_signature": "8th-note palm-muted guitar pattern (downstrokes) drives the song. Drums lock to this — kick on 1 and 3, snare on 2 and 4 standard. The 8th-note guitar pulse IS the engine.",
+          "harmonic_signature": "Single repeated riff cycle, minor key — minimal harmonic motion. The song doesn't change chord, it changes texture.",
+          "instrumental_signature": ["8th-note palm-muted distorted guitar pulse", "locked bass", "drums in pocket"],
+          "the_moment_people_remember": "the relentless repetition — listener gets HOOKED by the way the riff doesn't develop. The mind expects change and is denied it; this becomes the song's mesmeric quality.",
+          "advisor_extract": [
+            {
+              "recipe_name": "riff_repetition_as_robot_rock",
+              "description": "Single riff (4-8 bars) repeated for the ENTIRE song with minimal variation. Vocal melody and arrangement layers change ON TOP — but the riff foundation is constant. Mesmeric, hypnotic. The constancy IS the hook.",
+              "use_for": ["Tracks centered on rhythmic/textural identity rather than harmonic motion", "long-form grooves"],
+              "wow_factor": 0.75
+            },
+            {
+              "recipe_name": "8th_note_palm_muted_pulse_engine",
+              "description": "Continuous 8th-note palm-muted (or short-staccato) guitar pattern as the song's RHYTHMIC ENGINE. Drums and bass lock to this 8th-note grid. The pulse never stops, creating relentless forward motion.",
+              "use_for": ["Driving verses", "any section needing constant momentum"],
+              "wow_factor": 0.7
+            }
+          ]
+        },
+        "Little_Sister_Lullabies_To_Paralyze": {
+          "tempo_bpm_approx": 116,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (cowbell + minimal drums establish groove — cowbell is THE primary rhythmic element) -> verse (vocal enters over cowbell foundation) -> chorus (slight expansion but cowbell maintains) -> verse -> chorus -> bridge -> chorus -> outro. Cowbell is structural, not ornamental.",
+          "signature_production_choices": [
+            "Cowbell mixed forward — primary rhythmic element, not background",
+            "Drums minimal — kick + snare + cowbell + hand percussion. Hi-hat reduced or absent.",
+            "Guitar more textural than featured",
+            "Vocal mid-mix"
+          ],
+          "rhythmic_signature": "Cowbell plays a steady 8th-note pattern. Kick + snare provide 4/4 backbeat over the cowbell pulse.",
+          "harmonic_signature": "Riff-based, single chord progression cycles.",
+          "instrumental_signature": ["cowbell as primary rhythmic element", "hand percussion", "minimal kit drums"],
+          "the_moment_people_remember": "the cowbell — it's not a joke or sweetener, it's the song's RHYTHMIC SPINE. Without it, the song doesn't exist.",
+          "advisor_extract": [
+            {
+              "recipe_name": "percussion_element_as_structural_spine",
+              "description": "Make a non-kit percussion element (cowbell, tambourine, woodblock, shaker) THE primary rhythmic spine of the song. Drums fold around it rather than vice versa.",
+              "use_for": ["Tracks wanting unique rhythmic identity", "sections that need a specific TIMBRAL marker"],
+              "wow_factor": 0.7
+            },
+            {
+              "recipe_name": "minimal_kit_with_max_aux_percussion",
+              "description": "Reduce drum kit to bare minimum (kick + snare + maybe hi-hat). Add 3-4 auxiliary percussion elements (cowbell, tambourine, congas, shaker, claves) to provide rhythmic interest. Density via percussion variety, not kit complexity.",
+              "use_for": ["Verses wanting groove without rock-kit weight", "tracks with multi-percussion arrangement"],
+              "wow_factor": 0.6
+            }
+          ]
+        },
+        "Burn_The_Witch_Lullabies_To_Paralyze": {
+          "tempo_bpm_approx": 95,
+          "time_signature": "4/4",
+          "structural_blueprint": "intro (clean guitar riff, sparse) -> verse (vocal forward, restrained band) -> chorus (gospel-style female backing vocals enter, full band lifts) -> verse -> chorus -> bridge -> chorus_extended_with_backing_vocals. The gospel backing vocals appearing in chorus are the song's identity-defining choice.",
+          "signature_production_choices": [
+            "GOSPEL-style female backing vocal section in chorus — multiple female singers in close harmony, recorded together",
+            "Vocal arrangement style imported from soul/gospel into rock context",
+            "Restrained instrumental arrangement — backing vocals get space",
+            "Slow blues-rock tempo"
+          ],
+          "rhythmic_signature": "Slow 4/4, kick + snare standard backbeat, hi-hat 8ths simple.",
+          "harmonic_signature": "Bluesy minor with bVII — modal blues feel.",
+          "instrumental_signature": ["clean and slightly distorted guitar layers", "GOSPEL FEMALE BACKING VOCAL SECTION (signature element)", "blues-rock band underneath"],
+          "the_moment_people_remember": "the gospel backing vocals entering on chorus — bringing soul/gospel vocal arrangement INTO a rock track creates immediate genre cross-pollination.",
+          "advisor_extract": [
+            {
+              "recipe_name": "gospel_style_backing_vocals_in_rock",
+              "description": "Hire (or sample) a gospel-style backing vocal section (3-4 voices, female, close harmony) and feature them in the chorus of an otherwise rock arrangement. Genre cross-pollination via vocal arrangement.",
+              "use_for": ["Choruses wanting unexpected lift", "songs that benefit from communal voice element"],
+              "wow_factor": 0.75
+            },
+            {
+              "recipe_name": "vocal_arrangement_as_genre_signal",
+              "description": "Use a vocal arrangement style from genre A (gospel, soul, opera, choir) inside a track from genre B (rock, electronic, metal). The arrangement TYPE becomes a signal of genre crossover.",
+              "use_for": ["Bridges that depart from song's main genre", "Final Drop wanting to elevate beyond rock context"],
+              "wow_factor": 0.7
+            }
+          ]
+        }
+      },
       "Smashing_Pumpkins": {
         "_meta": {
           "albums_dissected": ["Siamese Dream", "Mellon Collie and the Infinite Sadness"],
