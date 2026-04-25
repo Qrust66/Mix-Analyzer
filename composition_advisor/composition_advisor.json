@@ -4840,9 +4840,48 @@
           }
         },
         "Soma": {
-          "_status": "stub_pending_full_dissection_C3_2",
+          "_status": "C3_2a_composition_arrangement_done",
           "album": "Siamese Dream",
-          "year": 1993
+          "year": 1993,
+          "tempo_bpm_documented_range": [82, 88],
+          "time_signature": "4/4 throughout",
+          "key_area": "F-sharp minor area (with half-step-down tuning shifting feel)",
+          "tuning_documented": "Half-step-down (E-flat standard) — Siamese Dream-wide convention",
+          "track_runtime": "~6:39",
+          "_special_status": "Track 6 on Siamese Dream — album middle, longest non-Geek-USA track. Functions as the album's CINEMATIC EMOTIONAL CENTERPIECE — clean intro builds to dramatic distorted explosion. The track is widely cited as Siamese Dream's emotional peak. Demonstrates Corgan's documented DYNAMIC-ARC compositional philosophy at its most extended + most patient.",
+          "composition": {
+            "primary_compositional_signature": "EXTENDED DYNAMIC ARC — slow patient clean intro builds gradually to a massive distorted explosion, then resolves. The DYNAMIC SHIFT is the song's identity. Where Quiet stays heavy throughout, Soma uses DYNAMIC ARC AS COMPOSITIONAL ENGINE.",
+            "core_structural_arc": "Long clean intro (multiple measures of arpeggiated clean guitar + sparse drums) → verse 1 with restrained build → pre-chorus tension build → first chorus with partial distortion lift → verse 2 → second chorus with full distortion → BRIDGE BUILDUP (extended) → MASSIVE EXPLOSION CHORUS (peak distortion + density) → outro resolving back to clean. Total ~6:39 — long-form dynamic-arc demanding patience.",
+            "harmonic_motion_summary": "MINOR-MODAL with characteristic Corgan suspended-chord voicings. Tonic F-sharp minor area, with movement to relative major + flat-VI for chorus expansion. Voice-leading patient and deliberate — clean intro establishes harmonic vocabulary that distorted sections then RE-INHABIT at higher intensity.",
+            "characteristic_compositional_choice": "EXTENDED PATIENT BUILD + EXPLOSION RELEASE — the song trusts the listener to wait through the long clean intro for the explosion payoff. Where pop economy demands fast hook delivery, Soma demands LONG ATTENTIONAL INVESTMENT for cathartic release.",
+            "comparison_to_quiet_compositional_engine": "Quiet: SUSTAINED INTENSITY, no dynamic arc within song, tight 3:42. Soma: EXTENDED DYNAMIC ARC, patient build to explosion, long 6:39. Two opposite Corgan compositional engines on same album — demonstrates his range.",
+            "comparison_to_today_dynamic_arc": "Today (track 3, 3:21): COMPRESSED dynamic arc — clean intro brief, build relatively fast, explosion within tight runtime. Soma (track 6, 6:39): EXTENDED dynamic arc — clean intro long, build patient, explosion delayed for cathartic release. Two scales of dynamic-arc economy.",
+            "comparison_to_mayonaise_dynamic_arc": "Mayonaise: medium-length dynamic arc, more melodic-pop intent. Soma: extended dynamic arc, more cinematic-cathartic intent. Different emotional registers within same compositional engine.",
+            "compositional_economy": "6:39 length is justified by the patient build necessary for the explosion to land emotionally. Compositional 'movement' is SLOW + DELIBERATE — listeners are invested in the build via subtle escalations.",
+            "innovation_for_genre_context": "1993 alt-rock context: dynamic arc was Nirvana-template common, but EXTENDED dynamic arc (6+ minutes patient build) was less common in commercial alt-rock. Soma's contribution: PROOF that mainstream-rock-album track can demand patient long-form attention if the explosion payoff is large enough."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "DENSITY ARC — arrangement starts SPARSE (clean guitar + sparse drums) and gradually adds layers/intensity until peak density at explosion chorus. Each section adds ELEMENTS rather than reshuffling.",
+            "intro_arrangement": "Clean arpeggiated guitar (often picked single notes or two-note intervals), sparse drum entry (initial measures may be drumless), atmospheric sustain. Long enough to establish patience as the listening mode.",
+            "verse_1_arrangement": "Clean guitar continues, drums enter with restrained pattern (kick + ride or hi-hat, no aggressive snare), bass enters root-note support, vocal enters quiet/reflective.",
+            "pre_chorus_arrangement": "Slight density addition — additional clean guitar layer, drum pattern slightly more active, vocal lifts slightly. Tension builds without breaking the clean texture yet.",
+            "first_chorus_arrangement": "PARTIAL DISTORTION LIFT — distorted guitars enter but at moderate density, vocal sustains without explosion. The first chorus is a 'preview' of the explosion to come.",
+            "verse_2_arrangement": "May return to mostly-clean with hint of distortion residue. Vocal slightly more invested than verse 1.",
+            "second_chorus_arrangement": "FULL DISTORTION — all guitar layers active, drums full power, vocal projects.",
+            "bridge_buildup_arrangement": "EXTENDED INSTRUMENTAL BUILD — sustained tension, additional guitar layers entering progressively, drums building density, harmonic tension mounting. Listener feels the explosion coming.",
+            "explosion_chorus_arrangement": "PEAK DENSITY — wall of guitars at maximum layering (Quiet-level density), drums at full power, vocal at full intensity. The catharsis the entire song has been building toward.",
+            "outro_arrangement": "Resolution back to clean — distorted layers fade, drums reduce, returning to the patient atmosphere of the intro. Brings emotional cycle to close.",
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained 82-88 BPM)",
+              "No premature explosion (the build is the song)",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No sectional tempo shifts (the dynamic arc operates within constant tempo)"
+            ],
+            "what_makes_arrangement_unique_within_smashing_pumpkins": "Soma represents Corgan's MOST EXTENDED + PATIENT DYNAMIC ARC. Where Today compresses the arc into 3:21 and Mayonaise into ~5 min, Soma extends it across 6:39. Demonstrates that dynamic-arc compositional engine SCALES — the same engine works at multiple temporal scales depending on how much patience the song demands.",
+            "comparison_to_quiet_arrangement": "Quiet: wall-of-density from start, no arc. Soma: density arc, sparse-to-wall over 6:39. Two completely different arrangement strategies on same album.",
+            "comparison_to_corgan_atmospheric_long_form": "Soma + future tracks like Geek USA establish Corgan's capacity for extended-form arrangements. Soma's extended form is DYNAMIC-ARC-driven; other extended forms (e.g., Daydream) are atmospheric-meditation-driven."
+          }
         },
         "Bodies": {
           "_status": "stub_pending_full_dissection_C3_3",
