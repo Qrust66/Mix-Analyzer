@@ -3205,7 +3205,7 @@
           "songs_to_dissect": ["Jesus_Christ_Pose", "Fell_On_Black_Days", "My_Wave", "Overfloater", "Head_Down"]
         },
         "Jesus_Christ_Pose": {
-          "_status": "C2_1a_composition_arrangement_done",
+          "_status": "C2_1b_performance_recording_done",
           "album": "Badmotorfinger",
           "year": 1991,
           "tempo_bpm_documented_range": [100, 110],
@@ -3276,6 +3276,112 @@
             ],
             "what_makes_arrangement_unique_within_soundgarden_catalog": "Jesus Christ Pose is one of Soundgarden's most AGGRESSIVE tracks. The 5:50 runtime sustaining max intensity is structurally bold — most aggressive songs cap at 3-4 minutes. The DRUM-AS-PRIMARY-IDENTITY arrangement is rare even within their catalog (Cameron's playing always notable, but JCP makes it the explicit identity carrier).",
             "comparison_to_nirvana_aggressive_tracks": "Where Territorial Pissings (Nirvana, ~1:50, 178 BPM) achieves aggression via SPEED + COMPACTNESS, Jesus Christ Pose (Soundgarden, ~5:50, ~105 BPM) achieves aggression via RHYTHMIC COMPLEXITY + EXTENDED DURATION. Two different paths to aggression. Where Very Ape (~1:55, ~106 BPM) is mid-tempo aggressive in compact form, JCP is mid-tempo aggressive in extended form."
+          },
+          "performance": {
+            "tempo_feel_description": "~105 BPM with documented FEEL FASTER than the BPM suggests due to Cameron's busy 16th-note hi-hat work and syncopated kick patterns. Tracked LIVE per Terry Date's documented Soundgarden session approach — the band needed to play the song through to capture the locked-in groove between Cameron's complex pattern and Yamamoto's bass.",
+            "drum_style": {
+              "performer": "Matt Cameron",
+              "feel": "Documented as one of Cameron's signature performances. He plays at near-physical-limit but with PRECISION rather than force-only. The pattern is so syncopated and busy that any timing slip would dissolve the groove identity.",
+              "techniques_documented": [
+                "Continuous busy 16th-note hi-hat with kick pattern that creates polyrhythmic feel within 4/4",
+                "Snare displaced from typical 2/4 backbeat — Cameron's snare lands at unexpected positions creating the song's signature 'wrong-feeling-but-right' quality",
+                "Tom fills used as section transitions, but more frequent than typical rock fills (Cameron's jazz-influenced fill vocabulary)",
+                "Cymbal work: ride bell + crash combinations marking phrase boundaries within continuous hi-hat",
+                "Documented as recorded LIVE with band — cannot be programmed/quantized due to inherent feel"
+              ],
+              "groove_feel_alignment": "ON beat in absolute terms but the syncopation creates AMBIGUOUS feel — listener cannot easily predict where the next hit will land. This is a Cameron signature.",
+              "fills_and_transitions": "Active throughout — Cameron's drumming approaches melodic/compositional role rather than just timekeeping. Fills mark internal phrase boundaries."
+            },
+            "guitar_style": {
+              "performer_thayil": "Kim Thayil — primary lead guitar lines, atmospheric textures",
+              "performer_cornell": "Chris Cornell — rhythm guitar paired with Thayil",
+              "feel_per_section": {
+                "intro": "GUITARS ABSENT — Cameron's 4-bar drum-only intro before guitar entry",
+                "riff_entry": "Both guitars enter locked with the drum pattern, distorted power chords",
+                "verses_choruses": "Continuous distorted texture, Thayil + Cornell layered for thickness",
+                "bridge": "Thayil's lead work showcased — atmospheric distorted lead lines over the rhythm section's continued groove",
+                "outro_chorus": "Returns to layered rhythm guitars"
+              },
+              "techniques_documented": [
+                "Drop D tuning facilitates the low D power chord vocabulary",
+                "Distortion via tube amp (Mesa Boogie or Marshall — Soundgarden's documented amp options)",
+                "Two-guitar approach: Thayil and Cornell tracked separately, panned for stereo width and layered thickness (Date's approach to rock guitar tracking)",
+                "Atmospheric lead lines in bridge use sustain + slight feedback — not virtuosic shred but melodic phrasing"
+              ],
+              "playing_style_distinct_from_other_grunge": "Where Cobain's playing is rhythm-focused (HSB bend riff, Very Ape descending pattern), Thayil's playing is more ATMOSPHERIC — creating texture and color rather than just rhythmic identity. Cornell as second guitarist (in addition to vocalist) gives Soundgarden a thicker guitar layering than Nirvana's single guitar."
+            },
+            "bass_performance": {
+              "performer": "Hiro Yamamoto",
+              "role": "Locked with kick drum at the song's busy tempo. The bass line follows root motion of the chord cycle, leaving space for Cameron's drumming to dominate the rhythmic foreground. Yamamoto's playing is technically demanding (the song is fast and busy) but compositionally restrained."
+            },
+            "vocal_delivery": {
+              "performer": "Chris Cornell",
+              "verse_delivery": "HIGH-RANGE belted — Cornell's documented multi-octave range is on full display. Verses sit in his upper-mid register",
+              "chorus_delivery": "PEAK high-range — Cornell pushes to the top of his range, sustained held notes",
+              "outro_delivery": "Continued high range with subtle pitch variations, occasional vocal grit",
+              "documented_vocal_quirks": [
+                "Cornell's vocal range exceeded most rock vocalists of his era — this song exploits the full range",
+                "Documented as physically demanding to perform — Cornell rarely played JCP back-to-back live due to vocal strain",
+                "Multiple complete vocal takes recorded then best chosen, not comped piece-by-piece"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization — Cameron's complex pattern requires natural feel preservation",
+              "No drum sample replacement — kit kept as Cameron played",
+              "No vocal pitch correction (1991 era + Cornell's range made correction unnecessary)",
+              "No second-take overdubs replacing live tracking — band's lock-in captured live"
+            ]
+          },
+          "recording": {
+            "studio": "Studio D Recording, Sausalito, California (documented Soundgarden Badmotorfinger session location)",
+            "session_dates": "1991 sessions",
+            "primary_engineer_producer": "Terry Date (producer) — Date's documented portfolio includes Pantera, White Zombie, Deftones; brings METAL production sensibility to Soundgarden's grunge",
+            "subsequent_remix": "NONE documented — Date's mix was the released version",
+            "drum_micing_approach": {
+              "philosophy_date": "Multiple close mics + room mics + overheads. Date's approach captures both the kit's punch AND the room's character — between Albini's room emphasis and Vig's compressed tightness.",
+              "specifics_documented": [
+                "Studio D's tracking room used for kit — large enough to capture room ambience but not as large as Pachyderm",
+                "Cameron's complex pattern required PRECISE close mics (especially snare and hi-hat) to capture the syncopation clearly",
+                "Compression applied at tracking on certain elements (Date's metal-influenced approach is more compressed than Albini's pure capture)",
+                "No drum sample reinforcement — Cameron's playing tracked clean"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_date": "TWO-guitar approach essential to Soundgarden's sound — Thayil + Cornell both tracked separately, then panned for stereo width",
+              "specifics_documented": [
+                "Both guitars in drop D tuning",
+                "Multiple takes per guitar tracked, layered for chorus thickness",
+                "Tube amps (Mesa Boogie / Marshall — Soundgarden's documented amp options for Badmotorfinger era)",
+                "Distortion via amp gain primarily, with possible pedal coloration",
+                "Thayil's lead lines tracked separately from rhythm guitars"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Hiro Yamamoto",
+              "specifics": "Direct DI + amp blended — standard rock bass tracking approach. Date's documented preference for bass clarity in mix (vs the murkier Albini bass)"
+            },
+            "vocal_tracking_approach": {
+              "philosophy_date": "Vocal booth isolation for clean capture (Date's approach more isolated than Albini's tracking room, less aggressive than Wallace's mix-forward processing)",
+              "specifics_documented": [
+                "Cornell tracked in vocal booth at Studio D",
+                "Microphone documented as a dynamic mic capable of handling Cornell's high SPL (similar to Shure SM7 or AKG D series)",
+                "Multiple complete takes recorded for each section; best chosen",
+                "Cornell's high-range delivery required vocal cord rest between takes — documented as physically demanding sessions"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Drop D tuned guitars (Thayil and Cornell)",
+              "Mesa Boogie or Marshall amps (Soundgarden's Badmotorfinger-era options)",
+              "Studio D Recording's tracking room and console (Studio D documented as having Neve consoles in its main rooms)",
+              "Cameron's drum kit (full kit with multiple cymbals and toms — fundamental to JCP's signature)"
+            ],
+            "what_makes_terry_date_recording_distinct": [
+              "BETWEEN Albini's pure capture and Wallace's heavy compression — Date applies SELECTIVE compression at tracking for elements that need control (kick, snare) while leaving others natural (room mics, ambient guitar)",
+              "Date's METAL influence shows in heavier guitar tracking philosophy — multiple tracks layered, panned for width, compressed at tracking for consistency",
+              "Drum tracking precision: Date's approach captures complex drumming clearly (Cameron's syncopation must be audible) — close mics + careful balance with room",
+              "Vocal isolation: more isolated than Albini's room approach (matches Cornell's high-range demands which need clean capture without room reflections muddying)"
+            ],
+            "date_vs_albini_vs_vig_philosophical_position": "Three production philosophies on these grunge-era recordings: ALBINI (pure capture, room emphasis, no tracking comp, vocal in tracking room) → captures live performance integrity. VIG (multi-take layering, compression at tracking, vocal isolation booth) → builds polished commercial product. DATE (between the two — selective compression for control, two-guitar layering for thickness, vocal isolation for high-SPL clarity) → balances aggression containment with performance preservation. Each philosophy serves a different aesthetic intent."
           }
         },
         "Fell_On_Black_Days": {
