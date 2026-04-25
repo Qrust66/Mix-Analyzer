@@ -2183,7 +2183,7 @@
           ]
         },
         "Dumb": {
-          "_status": "C1_2b_performance_recording_done",
+          "_status": "C1_2c_complete_exhaustive",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [84, 87],
@@ -2355,7 +2355,87 @@
               "Slow tempo lets Pachyderm's room ambience contribute more than on faster tracks",
               "Low gain stages (clean guitar, restrained drums, clean vocal) make the room sound more apparent in the mix"
             ]
-          }
+          },
+          "mixing": {
+            "history_documented": "Single mix version exists for Dumb — Albini's original. Unlike Heart-Shaped Box and All Apologies (which were Litt remixed for the album release), Dumb was deemed acceptable in Albini's mix and went out as recorded.",
+            "albini_mix_characteristics_documented_for_dumb": [
+              "Drums sit naturally in the room — not pushed forward, not buried; they simply ARE in the space",
+              "Vocal forward but not compressed to commercial loudness — natural dynamics preserved",
+              "Cello mixed prominently (it's a key timbral element) but not louder than the band — sits as equal voice rather than featured solo",
+              "No bus compression on master — dynamics fully preserved",
+              "No additional reverb beyond the natural Pachyderm room — what you hear is the actual acoustic of the room, not added space"
+            ],
+            "released_version_mix_engineer": "Steve Albini (no remix)",
+            "console_documented": "Pachyderm's Neve console — Albini tracked AND mixed on the same console at the same studio",
+            "compression_philosophy": "Pure Albini — capture-not-shape. Track-level compression rare or absent. No master bus glue compression. The mix preserves the actual dynamic range of the performance.",
+            "stereo_image_strategy": [
+              "Cello documented as panned slightly off-center to give it space (specific position not exhaustively logged)",
+              "Drums: kick + snare center, hi-hat slightly off-center, room overheads spread wide",
+              "Bass center",
+              "Vocal center",
+              "Guitar: panned modestly — not extreme stereo widening (Albini's preference for moderate stereo over wide)"
+            ],
+            "vocal_treatment": "Minimal. Close-mic capture preserved with natural Pachyderm room ambience. No added plate reverb, no chamber, no artificial intimacy — what you hear is Cobain in the actual tracking room.",
+            "drum_treatment": "Pure Albini room mix — close mics balanced with room mics, no parallel compression, no enhancement. Drums sound 'live' rather than 'produced'.",
+            "what_dumb_mix_demonstrates": "Dumb is a SHOWCASE of what Albini's pure mix philosophy produces when not overruled by remix. The track sounds like the band performing in a room with a single listener present — that intimacy is the mix's intent.",
+            "comparison_to_litt_remixes": "If Heart-Shaped Box and All Apologies were 'commercialized' via Litt's remix, Dumb is the OPPOSITE control case — same album, same band, same studio, same tracking philosophy, but no remix. Listening to Dumb after HSB reveals exactly what Litt's intervention added (or removed)."
+          },
+          "mastering": {
+            "mastering_engineer_album": "Bob Ludwig (Gateway Mastering, Maine) — same as entire In Utero album",
+            "loudness_approach_documented": "1993 pre-loudness-war norms. Dumb's natural dynamic range is preserved more than the radio-prepared HSB single. As an album track (not a single), Dumb received standard album-context mastering rather than radio-target mastering.",
+            "vinyl_vs_cd_documented": "Original CD release mastered by Ludwig. Vinyl release used different mastering pass.",
+            "subsequent_remasters_documented": "20th anniversary edition (2013) remastered (specific engineer attribution to verify per release)",
+            "tonal_balance_at_release": "Open and natural — the mastering preserved the dynamic range of Albini's mix rather than compressing it to commercial loudness. Dumb is one of the most DYNAMICALLY OPEN tracks on the album."
+          },
+          "the_moment_people_remember": {
+            "primary": "The CELLO presence underneath the band — an orchestral element rare in grunge. Listeners may not always notice the cello consciously but its absence would be immediately felt; the cello provides the song's emotional weight that minimal drums + clean guitar cannot supply alone.",
+            "secondary": "The vocal RESTRAINT — Cobain singing without rasp, without strain, in a comfortable register. The vulnerability of the delivery contrasts with his more aggressive vocal takes elsewhere on the album.",
+            "tertiary": "The COMPACT runtime — at ~2:32, the song is over almost as soon as it establishes itself. Listeners often want it to continue, but its brevity is part of its perfection."
+          },
+          "advisor_extract": [
+            {
+              "recipe_name": "cello_orchestral_pad_in_rock",
+              "description": "Add a sustained CELLO part (or bowed string equivalent — viola, violin section, even a synth pad emulating bowed strings) UNDERNEATH a rock band arrangement. Cello provides chord-tone harmonic foundation with a warm low-mid register that no rock instrument can match. Functions as orchestral PAD without sounding 'orchestrated'.",
+              "use_for": ["Ballad tracks needing emotional weight without volume", "Verse arrangements wanting body without distortion", "Bridge sections departing from rock palette"],
+              "wow_factor": 0.75,
+              "implementation_for_modern_compositions": "In MIDI/electronic context: use a cello sample library (or layered viola) to play sustained chord roots/thirds. Avoid melodic counterpoint — keep it as PAD function."
+            },
+            {
+              "recipe_name": "flat_dynamic_arc_anti_buildup",
+              "description": "Compose a song with NO dynamic peak. Verse and chorus at SAME intensity. No bridge build. No outro climax. The emotional impact comes from VOCAL DELIVERY + arrangement TIMBRE, not arrangement DYNAMICS. Flat-by-design.",
+              "use_for": ["Slow burn tracks where dynamic shifts would feel cheap", "songs prioritizing texture and vocal nuance over architecture", "tracks following a more aggressive piece on an album (gives breathing room)"],
+              "wow_factor": 0.70,
+              "warning": "Requires VERY strong vocal melody and lyrical content to sustain listener interest without dynamic variation. Without that, it becomes monotonous. Use only when the song's content can carry it."
+            },
+            {
+              "recipe_name": "harmonic_minimalism_one_cycle_repeated",
+              "description": "Use the SAME 3-4 chord cycle for the ENTIRE song. No bridge changing chord, no chorus elevation, no key shift. The repetition creates a meditative, circular quality. Listener focuses on melodic and timbral nuance because harmony is stable.",
+              "use_for": ["Songs where vocal delivery is the centerpiece", "tracks with strong textural identity (cello, distinctive guitar tone) where harmony would compete", "ballad-format songs aiming for hypnotic restraint"],
+              "wow_factor": 0.70,
+              "implementation_for_modern_compositions": "In our advisor's modal framework: pick one mode (Aeolian for grunge feel, Dorian for slight lift), define a 3-chord cycle (i, bVI, bVII for Aeolian), repeat for entire song. Resist the urge to add a bridge chord."
+            },
+            {
+              "recipe_name": "compact_runtime_2_to_3_minutes",
+              "description": "Restrict song length to 2:30-3:00. Resist the urge to add a bridge or extended outro. Listener leaves the song wanting more — which is more powerful than full satisfaction. Compact form is its own kind of complete.",
+              "use_for": ["Album tracks that don't need to be singles", "songs with limited harmonic content (compact length matches compact harmony)", "tracks meant as 'breath' between heavier album moments"],
+              "wow_factor": 0.65,
+              "implementation_for_modern_compositions": "Section budget for compact form: intro 4 bars / V 8 / C 8 / V 8 / C 8 / outro 4 = 40 bars total. At 85 BPM 4/4 = ~1:55. Add a small lengthening (verse 12 instead of 8) to reach 2:30."
+            },
+            {
+              "recipe_name": "albini_mix_pure_capture_no_remix",
+              "description": "When mixing, REJECT the radio-commercial template. No master bus compression, no vocal compression beyond minimal taming, no added reverb beyond what the recording room provided naturally, no parallel drum compression. The mix sounds like the band performing in a room with one listener present.",
+              "use_for": ["Tracks where intimacy is the artistic goal", "songs whose performance IS the production (no enhancement needed)", "intentionally raw/uncommercial moments on an album"],
+              "wow_factor": 0.70,
+              "warning": "Requires great recording room + great mics + great performance. If any of those are weak, the mix will expose them. Litt-style remixing exists to compensate for tracking weaknesses."
+            },
+            {
+              "recipe_name": "vocal_intimacy_without_rasp",
+              "description": "Deliver vocal at LOW intensity throughout. No screaming, no rasp escalation, no belted chorus. Pitch-stable, conversational, close-mic. The song's emotional weight comes from RESTRAINT, not power. Anti-virtuosic vocal performance.",
+              "use_for": ["Sections requiring vulnerability", "verses or bridges where vocal is exposed", "songs centered on a single sustained emotional state"],
+              "wow_factor": 0.65,
+              "implementation_for_modern_compositions": "In MIDI vocal-synth context: avoid velocity peaks above 95, keep pitch wobble minimal (no extreme vibrato), use breath-noise sample triggers between phrases for intimacy"
+            }
+          ]
         },
         "Territorial_Pissings": {
           "_status": "stub_pending_full_dissection_C1_3",
