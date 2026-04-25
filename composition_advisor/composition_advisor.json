@@ -4277,9 +4277,45 @@
           }
         },
         "Head_Down": {
-          "_status": "stub_pending_full_dissection_C2_5",
+          "_status": "C2_5a_composition_arrangement_done",
           "album": "Superunknown",
-          "year": 1994
+          "year": 1994,
+          "tempo_bpm_documented_range": [86, 92],
+          "time_signature": "Predominantly 7/4 (documented odd-meter — different from My Wave's 5/4 lilt; 7/4 creates a longer asymmetric cycle)",
+          "key_area": "B minor area (Aeolian / drone-modal)",
+          "tuning_documented": "Drop D + flat tunings explored on Superunknown — Head Down operates with low drone-friendly tuning",
+          "track_runtime": "~6:08",
+          "_special_status": "Co-written by Ben Shepherd (bassist) — credited with substantial input on Head Down's compositional structure. Demonstrates Soundgarden's collective writing approach on Superunknown where multiple members contributed primary writing credits. The 7/4 time signature, drone-bass approach, and atmospheric textures are documented as Shepherd-driven compositional choices.",
+          "composition": {
+            "primary_compositional_signature": "ASYMMETRIC 7/4 METER WITH SHEPHERD-DRIVEN DRONE BASS — the song's identity is its long 7/4 cycle (different from 4/4 or 5/4) combined with a sustained low-drone foundation. Where My Wave uses 5/4 as playful lilt, Head Down uses 7/4 as STATELY + HYPNOTIC structural device.",
+            "core_structural_arc": "Slow drone-build intro → 7/4 verse establishing drone modal motion → atmospheric chorus expanding harmonic field → instrumental bridge with sustained drone foundation → return to verse → extended outro with drone resolution. Total ~6:08, atmospheric long-form similar to Overfloater but with DIFFERENT compositional engine (asymmetric meter + drone vs. atmospheric jam exploration).",
+            "harmonic_motion_summary": "MODAL + DRONE-CENTERED. Tonic B minor area as drone anchor; harmonic motion happens via SUSPENDED VOICINGS over sustained low B foundation rather than via traditional chord progression. Aeolian + occasional Phrygian inflection. The drone is the song's harmonic gravity well.",
+            "characteristic_compositional_choice": "DRONE-AS-COMPOSITIONAL-FOUNDATION — Shepherd's bass establishes a sustained low-frequency anchor that all other harmonic motion happens RELATIVE TO. This differs from typical rock harmonic motion (chord-to-chord progression) and aligns more with raga or drone-doom traditions.",
+            "comparison_to_my_wave_odd_meter": "My Wave uses 5/4 as PLAYFUL LILT — meter as groove device. Head Down uses 7/4 as STATELY HYPNOTIC CYCLE — meter as structural device. Both are odd-meter Soundgarden tracks but with totally different compositional intents: My Wave is groove-driven, Head Down is meditation-driven.",
+            "comparison_to_overfloater_atmospheric": "Overfloater achieves atmospheric quality via JAM-BAND extended form + extended bridge. Head Down achieves atmospheric quality via DRONE-CENTERED HARMONY + asymmetric meter. Two paths to atmospheric long-form Soundgarden writing.",
+            "compositional_economy": "Head Down's 6:08 length is justified by HARMONIC MEDITATION on the drone — listeners are invited to inhabit the harmonic space. Compositional 'movement' is subtle (suspended voicing shifts, modal inflections) rather than dramatic.",
+            "innovation_for_genre_context": "1994 mainstream rock context: most singles/album tracks were 3-5 min in straightforward 4/4 with verse-chorus pop structure. Head Down at 6:08 in 7/4 with drone-modal harmony was COMPOSITIONALLY ADVENTUROUS for its commercial context (Superunknown sold 5M+ copies in US — this song reached that audience)."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "DRONE-FOUNDATION + ASYMMETRIC METER — bass holds sustained low drone, drums establish 7/4 cycle, guitars provide atmospheric harmonic texture above the drone, vocal floats over the architecture.",
+            "intro_arrangement": "Slow drone-build — bass establishes low foundation, drums enter with 7/4 cycle, guitars layer atmospheric texture. Several measures of meter establishment before vocal entry.",
+            "verse_arrangement": "Bass DRONE on tonic B (sustained low frequency anchor). Drums in 7/4 (kick/snare pattern adapted to asymmetric cycle). Two guitars: one rhythm with sustained chord voicings, one atmospheric texture. Cornell vocal sustained-melodic over the drone foundation.",
+            "chorus_arrangement": "Slight harmonic expansion — chord motion ABOVE the drone (drone remains constant) rather than full chord progression. Cornell vocal lifts to upper mid register. Drums maintain 7/4 cycle.",
+            "bridge_arrangement": "Extended instrumental section with INTENSIFIED drone (bass + low guitars together emphasize the low foundation). Atmospheric guitar leads/textures above. Drums maintain 7/4 throughout.",
+            "outro_arrangement": "Return to verse-style arrangement with extended fade — drone resolves slowly, atmospheric texture continues until song fades.",
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained 86-92 BPM throughout)",
+              "No meter changes (sustained 7/4 cycle)",
+              "No traditional verse-chorus dynamic contrast (atmospheric continuity)",
+              "No drum sample replacement or loops",
+              "No vocal pitch correction"
+            ],
+            "what_makes_arrangement_unique_within_soundgarden": "Head Down represents Soundgarden's DRONE-MODAL + ASYMMETRIC METER side. Where most Soundgarden tracks operate within 4/4 rock paradigm (or 5/4 playful), Head Down inhabits a meditation-music harmonic space within rock instrumentation. Closest to Black Sabbath's drone-doom influence but with Cornell's melodic vocal sensibility above.",
+            "comparison_to_jcp_arrangement": "JCP arrangement is RIFF-DRIVEN sustained intensity. Head Down arrangement is DRONE-DRIVEN sustained meditation. Two opposite arrangement aesthetics within same band's catalog.",
+            "comparison_to_fobd_arrangement": "FOBD arrangement is QUIET-LOUD DYNAMIC CONTRAST verse-chorus pop-rock. Head Down arrangement is ATMOSPHERIC CONTINUITY drone-modal meditation. Different arrangement engines.",
+            "comparison_to_my_wave_arrangement": "My Wave arrangement is GROOVE-DRIVEN 5/4 playful + harmonic motion. Head Down arrangement is DRONE-FOUNDATION 7/4 hypnotic + harmonic stasis. Both odd-meter but opposite arrangement philosophies.",
+            "comparison_to_overfloater_arrangement": "Overfloater arrangement is JAM-BAND atmospheric + extended bridge as centerpiece. Head Down arrangement is DRONE-MODAL meditation + asymmetric meter as structural anchor. Different paths to long-form atmospheric Soundgarden."
+          }
         }
       },
       "Smashing_Pumpkins": {
