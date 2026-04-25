@@ -3973,7 +3973,7 @@
           ]
         },
         "Overfloater": {
-          "_status": "C2_4b_performance_recording_done",
+          "_status": "C2_4c_complete_exhaustive",
           "album": "Down on the Upside",
           "year": 1996,
           "tempo_bpm_documented_range": [76, 84],
@@ -4144,6 +4144,136 @@
             ],
             "kasper_vs_beinhorn_for_soundgarden": "Beinhorn (Superunknown 1994): more PRODUCER-DRIVEN, paired with O'Brien for separate mixing. Kasper (Down on the Upside 1996): more BAND-DRIVEN, handled both engineering + mixing. The shift from Beinhorn-to-Kasper across Soundgarden's catalog reflects the band's growing self-direction in their late period.",
             "production_philosophy_progression_across_soundgarden_catalog": "DATE (1991 Badmotorfinger): tracker-mixer dual role, capture-focused, raw. BEINHORN (1994 Superunknown): producer-driven with separate O'Brien mixer, more shaped/polished. KASPER (1996 Down on the Upside): band-driven, engineer/co-producer dual role, natural + atmospheric. Three production approaches across three Soundgarden albums — the same band's relationship to producers evolved across their catalog."
+          },
+          "mixing": {
+            "mix_engineer": "Adam Kasper (mixed at Studio Litho — engineer/co-producer/mixer ROLE UNIFIED, distinct from Beinhorn+O'Brien split on Superunknown)",
+            "mixing_studio": "Studio Litho, Seattle",
+            "mixing_philosophy_kasper": "BAND-DRIVEN MIX. Kasper's documented approach favored preserving the band's tracking decisions rather than imposing external sonic shaping. Mixes prioritize NATURAL + ATMOSPHERIC over polished + punchy.",
+            "drum_mix_balance": [
+              "Room mics PROMINENT in mix — natural ambience preserved, kit feels in-room rather than close-mic-stacked",
+              "Cameron's restrained playing means hi-hat + ride cymbal articulation is audible in mid-range rather than buried",
+              "Kick + snare punchy but NOT over-compressed — dynamic range preserved for the song's atmospheric character",
+              "Toms with natural decay — bridge sections allow drum tail to bloom"
+            ],
+            "guitar_mix_treatment": [
+              "Two guitars panned hard L/R for stereo width across the song's atmospheric spread",
+              "EQ EMPHASIZES upper-mid sustain (~1-3 kHz) for chord clarity over the slow harmonic motion",
+              "Less aggressive compression than Beinhorn's Superunknown — preserves natural sustain decay",
+              "Bridge lead guitar floats forward in mix briefly before retreating into texture — dynamic mix automation"
+            ],
+            "vocal_mix_treatment": [
+              "Cornell vocal centered, slightly forward but NOT crowding the atmospheric texture",
+              "Plate reverb + medium hall reverb blend — gives vocal SPACE matching the song's contemplative mood",
+              "Light compression preserves Cornell's sustained held notes (long phrases breathe naturally)",
+              "Vocal absent for entire extended bridge — mix opens up to instrumental texture without vocal anchor"
+            ],
+            "bass_mix_treatment": [
+              "Shepherd's bass clearly audible in low-mid (~120-300 Hz) — bass functions melodically not just rhythmically",
+              "Light compression preserves natural envelope of plucked notes",
+              "Bass + kick relationship: complementary frequency placement (kick fundamentals ~60Hz, bass fundamentals ~80-120Hz)"
+            ],
+            "spatial_treatment_atmosphere": [
+              "Reverb usage MORE than typical Soundgarden — the song's atmospheric quality requires spatial depth",
+              "Plate reverbs on guitars + drums provide 'room' feel without artificial-sounding hall ambience",
+              "Bridge section uses MORE reverb than verses — spatial expansion mirrors structural opening up",
+              "Stereo field is WIDE (guitars hard L/R) but vocals + bass + kick anchor center for solidity"
+            ],
+            "automation_used_in_mix": [
+              "Vocal level rides — Cornell's dynamic phrases compensated for via mix automation rather than over-compression",
+              "Bridge instrument level rides — guitars + drums lift slightly during bridge, then retreat for outro",
+              "Reverb send automation — bridge has more reverb, verses tighter for vocal clarity"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No hyper-compression (preserves dynamic range that the song's atmospheric character requires)",
+              "No drum sample replacement (acoustic kit sound preserved)",
+              "No vocal pitch correction or layering as dynamic device",
+              "No genre-typical 'rock loudness' aesthetic that would compress the song's natural breathing"
+            ],
+            "comparison_to_jcp_mix": "JCP mix is COMPRESSED + INTENSE + tight stereo for sustained pressure. Overfloater mix is OPEN + ATMOSPHERIC + wide spatial spread for contemplative breathing. Same band, same engineer-class (Date/Kasper both engineer-mixer hybrids), but mix philosophy serves the song's compositional intent.",
+            "comparison_to_fobd_mix": "FOBD mix (Beinhorn + O'Brien) is dynamic-shift-driven with quiet/loud contrast as mix axis. Overfloater mix (Kasper unified) is atmospheric continuity with subtle structural lifts. Different mix philosophies for different compositional intents.",
+            "what_makes_kasper_mix_distinct_in_catalog": "Where Beinhorn+O'Brien polished Superunknown for radio impact, Kasper mixed Down on the Upside for BAND AUTHENTICITY. The mix sounds closer to how the band sounded in the room — less sonic shaping, more capture-fidelity. This is a band-late-period choice valuing AUTHENTICITY over MARKET-OPTIMIZATION."
+          },
+          "mastering": {
+            "mastering_engineer_album": "Down on the Upside (1996) mastered by Stephen Marcussen (documented as continuing Soundgarden's Marcussen-mastered catalog from Superunknown)",
+            "mastering_studio": "Marcussen Mastering (Hollywood, California)",
+            "mastering_philosophy_for_overfloater": [
+              "Marcussen's documented approach: high-end clarity + low-end weight + preserves dynamics",
+              "1996 album-level mastering — Down on the Upside SLIGHTLY pre-loudness-war, preserves more dynamic range than late-90s/early-2000s rock masters",
+              "Overfloater's atmospheric character requires preserving dynamic range — mastering does not over-compress"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS integrated estimate (1996 mastering, pre-aggressive-loudness-war). Overfloater specifically slightly quieter than album peak tracks.",
+            "spectral_signature": "Marcussen's documented sound: present mid-range, smooth top end, tight low end. Less hyped than mid-2000s rock mastering.",
+            "what_mastering_preserves_for_overfloater": [
+              "Dynamic range across verse-chorus-bridge-outro structure",
+              "Natural drum decay (kick + snare envelopes preserved)",
+              "Sustained guitar texture clarity in the long bridge section",
+              "Cornell's dynamic vocal phrasing (long held notes preserved)"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "THE EXTENDED INSTRUMENTAL BRIDGE (~3:00 onward) — multi-minute vocal-absent atmospheric exploration. Listeners remember the bridge as the song's identity, not the verses or choruses.",
+            "level_2_arrangement_signature": "JAM-BAND-INFLUENCED EXTENDED FORM in a hard-rock context. Soundgarden trades typical rock structural economy for sustained atmospheric exploration — psychedelic + meditative feel rare in their catalog.",
+            "level_3_compositional_signature": "EXTENDED FORM (6:42) achieved via ATMOSPHERIC EXPLORATION rather than via SUSTAINED INTENSITY (JCP) or via TRADITIONAL POP-ROCK STRUCTURE (FOBD). A third path to long-form rock writing within the same band's catalog. Demonstrates that LENGTH IS A COMPOSITIONAL CHOICE that must serve a specific function — Overfloater's length serves contemplative immersion."
+          },
+          "advisor_extract": {
+            "recipe_name": "atmospheric_extended_form_with_jam_bridge_centerpiece",
+            "applicability": "Long-form rock/post-rock/psychedelic compositions where the listener should be carried through extended instrumental exploration. Use when the SONG'S IDENTITY is the bridge, not the verses/choruses.",
+            "core_compositional_recipes": [
+              {
+                "id": "extended_atmospheric_form_6_minutes_plus",
+                "rule": "Build a 6+ minute rock track around an EXTENDED MIDDLE SECTION (3+ minutes of instrumental exploration). Verses + choruses become FRAMING for the central instrumental statement. Vocal absent for substantial duration trusts the band to carry listener attention via texture + harmonic motion.",
+                "wow_factor": 0.83,
+                "documented_example": "Overfloater (Soundgarden, Down on the Upside 1996, 6:42) — extended instrumental bridge is the song's identity",
+                "trade_offs": "Requires excellent musicians + atmospheric instrumental writing. Won't work in radio-format contexts.",
+                "personality_fit": "Yorke 50 / Cobain 20 / Reznor 15 / Daft Punk 15 (Yorke for atmospheric trust + length tolerance)"
+              },
+              {
+                "id": "instrumental_bridge_as_song_centerpiece_not_solo_section",
+                "rule": "Make the BRIDGE the song's structural center (longest section, peak moment) rather than treating it as a transition. Bridge length should EXCEED chorus or verse length combined. Bridge harmonic motion should DIVERGE from verse/chorus pattern (modal, suspended, exploratory).",
+                "wow_factor": 0.81,
+                "documented_example": "Overfloater extended bridge — multiple minutes long, harmonically distinct from verse/chorus",
+                "trade_offs": "Requires bridge to STAND on its own as compelling music — can't just be 'the part between sections'",
+                "personality_fit": "Yorke 45 / Cobain 25 / Reznor 15 / Daft Punk 15"
+              },
+              {
+                "id": "jam_band_influence_in_rock_format",
+                "rule": "Borrow extended-form rock traditions (Pink Floyd, Led Zeppelin's longer tracks, Phish-adjacent jam sensibility) into a hard-rock or alt-rock context. Allow space for instrumental exploration without rushing back to vocal sections. The BAND's collective improvisation/arrangement carries the listener.",
+                "wow_factor": 0.78,
+                "documented_example": "Overfloater bridge — jam-band-influenced extended texture in a hard-rock catalog",
+                "trade_offs": "Genre-crossing; risk alienating listeners expecting tight rock economy",
+                "personality_fit": "Yorke 35 / Cobain 30 / Reznor 15 / Daft Punk 20"
+              },
+              {
+                "id": "vocal_absent_extended_section_trust_the_band",
+                "rule": "Have NO VOCAL for an extended section (2+ minutes) in a vocal-driven song. The instrumental texture must be compelling enough to hold attention without lyrical anchor. Used as DRAMATIC choice — the absence of voice becomes a structural statement.",
+                "wow_factor": 0.80,
+                "documented_example": "Overfloater multi-minute vocal-absent bridge — listener trusts band to carry them through",
+                "trade_offs": "Listeners conditioned to expect vocal hooks may disengage. Requires confident instrumental writing.",
+                "personality_fit": "Yorke 50 / Cobain 20 / Reznor 15 / Daft Punk 15"
+              },
+              {
+                "id": "kasper_band_driven_unified_engineering_mixing",
+                "rule": "Use UNIFIED engineering + mixing roles (one person tracks AND mixes) to preserve recording-stage decisions through to final master. Avoid the producer-driven external-mixer split when the band's tracking aesthetic IS the desired final aesthetic. Result: more authentic, less sonically-shaped final product.",
+                "wow_factor": 0.74,
+                "documented_example": "Adam Kasper engineered + co-produced + mixed Down on the Upside (1996) — band-driven, engineer-mixer unified role",
+                "trade_offs": "Less external sonic shaping; less radio-optimized; more authenticity-leaning. Requires excellent tracking decisions upfront.",
+                "personality_fit": "Cobain 35 / Yorke 30 / Reznor 20 / Daft Punk 15"
+              },
+              {
+                "id": "atmospheric_continuity_over_dynamic_contrast",
+                "rule": "Build a song where SUSTAINED ATMOSPHERIC CONTINUITY is the primary aesthetic, NOT quiet/loud dynamic contrast. Sections shift via harmonic + textural variation rather than via volume + intensity changes. Reverb + sustain + spacious mix support this.",
+                "wow_factor": 0.76,
+                "documented_example": "Overfloater — atmospheric continuity across 6:42, no quiet/loud dynamic contrast as structural device",
+                "trade_offs": "Less obvious 'rock dynamics' for listeners conditioned to verse/chorus contrast. Requires harmonic + textural interest to sustain.",
+                "personality_fit": "Yorke 55 / Cobain 15 / Reznor 15 / Daft Punk 15"
+              }
+            ],
+            "production_philosophy_signature_kasper": {
+              "philosophy": "Band-driven engineer-mixer unified role. Producer/engineer/mixer in ONE person, working WITH the band rather than over them. Preserves tracking decisions, avoids over-shaping in mix. Authenticity-leaning.",
+              "applicability": "Late-career bands who know their sound, capture-focused projects, projects where authenticity matters more than commercial polish.",
+              "documented_lineage": "Adam Kasper at Studio Litho — Soundgarden Down on the Upside, Pearl Jam Yield-era work. Distinct from Beinhorn+O'Brien producer-mixer split + from Date's tracker-mixer dual role within external-producer paradigm."
+            },
+            "structural_choice_summary": "Extended atmospheric form, jam bridge as centerpiece, vocal-absent extended section, atmospheric continuity over dynamic contrast — Overfloater demonstrates Soundgarden's MATURE psychedelic + jam-influenced side, a structurally bold late-period choice within their catalog."
           }
         },
         "Head_Down": {
