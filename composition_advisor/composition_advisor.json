@@ -2931,9 +2931,78 @@
           ]
         },
         "All_Apologies": {
-          "_status": "stub_pending_full_dissection_C1_5",
+          "_status": "C1_5a_composition_arrangement_done",
           "album": "In Utero",
-          "year": 1993
+          "year": 1993,
+          "tempo_bpm_documented_range": [115, 118],
+          "time_signature": "4/4",
+          "key_area": "A minor (Aeolian) — guitars detuned 1/2 step on In Utero, so concert-pitch effective key is Ab minor",
+          "tuning_documented": "Detuned 1/2 step (Eb tuning) per In Utero session standard",
+          "track_runtime": "~3:50 (album version) — moderate length but with significant outro extension",
+          "_special_status": "Album CLOSER. Final track on In Utero. Functions structurally as the album's resolution.",
+          "composition": {
+            "structural_blueprint": "intro_brief (clean guitar + cello establishes tone) -> verse1_8bars -> chorus1_8bars -> verse2_8bars -> chorus2_8bars -> bridge_instrumental -> chorus3_8bars -> EXTENDED_OUTRO_CHANT (repeated phrase cycled with subtle layering build for extended duration). Total ~3:50, with the outro chant occupying the final third of the song.",
+            "section_count_and_lengths": {
+              "intro": "Brief, ~4 bars (clean guitar + cello swell setting harmonic frame)",
+              "verses": "8 bars each",
+              "choruses": "8 bars each (3 total — V1/C1, V2/C2, post-bridge C3)",
+              "bridge": "Instrumental, ~8 bars",
+              "outro_chant": "EXTENDED — single phrase repeated and layered for the final ~1:00+ of the song. The chant cycles maintain the song's tempo and harmony but build subliminally via vocal layering."
+            },
+            "harmonic_motion": "Modal Aeolian — simple cycle similar to Dumb but with slightly more chord variety. The verse and chorus harmony shift subtly (not just same cycle throughout). The extended outro uses the chorus cycle repeatedly — same chords but the EFFECT shifts via layering not harmony.",
+            "modal_choice": "Aeolian (natural minor)",
+            "melodic_contour": "Verse vocal: descending phrases with melodic interest (not as static as Dumb). Chorus vocal: ascending arc to a peak note, sustained. Outro chant: a SINGLE PHRASE repeated for the extended outro — pitch and rhythm fixed, only the layering varies.",
+            "characteristic_compositional_choice": "OUTRO CHANT EXTENSION VIA REPETITION (not via fade). The song's emotional weight lives in the outro: a single phrase repeated indefinitely until the song fades. Anti-cathartic ending — the repetition becomes meditative rather than building to a peak. Unique within Nirvana's catalog as a structural device.",
+            "harmonic_pacing": "Slow chord changes (~2 bars per chord) throughout. The pacing is meditative, supporting the chant outro's circular feel.",
+            "phrase_symmetry": "Verses and choruses use 8-bar phrasing. The OUTRO breaks symmetry via extended cycling — listener loses count of how many cycles have occurred, which is the point.",
+            "documented_song_history": "Cobain documented as having performed All Apologies in solo acoustic form before recording (similar to Dumb's pre-existence). The In Utero recording sessions added the band arrangement + Schaley's cello to the pre-existing acoustic core. The track was specifically chosen as the album closer — its function as resolution is intentional."
+          },
+          "arrangement": {
+            "instrumentation_complete": [
+              "electric guitar (Cobain — clean tone, strummed open chords, no heavy distortion)",
+              "bass guitar (Krist Novoselic — melodic role, more pronounced than on most In Utero tracks)",
+              "drum kit (Dave Grohl — ballad-pace restrained throughout)",
+              "lead vocal (Kurt Cobain)",
+              "CELLO (Kera Schaley overdub, more melodic role than on Dumb)",
+              "backing vocals stacked on outro chant (Cobain layering himself — the chant grows via vocal layer count)"
+            ],
+            "section_instrumentation": {
+              "intro": "clean guitar + cello sustain — bass and drums absent for first few bars",
+              "verse_1": "guitar continues clean, bass enters with melodic motion, drums enter restrained, vocal enters, cello sustains underneath",
+              "chorus_1": "subtle intensity lift but NO distortion engagement — clean tone preserved. Drums slightly more present, but not chorus-explosion. The chorus is melodic + harmonic, not dynamic.",
+              "verse_2": "structurally identical to verse 1",
+              "chorus_2": "identical to chorus 1",
+              "bridge": "instrumental — clean guitar + cello + drums continue the chord cycle without vocal",
+              "chorus_3": "post-bridge chorus, slightly more sustained vocal phrasing",
+              "outro_chant": "the SINGLE PHRASE repeats. Vocal layers BUILD over the cycles — first single voice, then doubled, then progressively stacked. Cello sustains. Drums continue ballad pace. Guitar continues cycle. The outro builds via VOCAL LAYERING + sustained intensity, not via dynamic peak."
+            },
+            "vocal_layering_strategy": "Verse + Chorus: SINGLE-tracked Cobain (similar to Dumb's strategy). Outro chant: PROGRESSIVE VOCAL LAYERING — single voice on first cycle, doubled by second cycle, stacked layers by final cycles. The vocal stack IS the outro's build mechanism. Differs from HSB's chorus-doubling (HSB doubles for chorus then returns; All Apologies builds layers without returning).",
+            "dynamic_arc_overall": "GENTLE BUILD across 3:50. The song does not detonate, does not feature loud-quiet-loud. The dynamic arc is: restrained intro → settled verses/choruses → accumulating outro chant. The outro is the song's true peak via accumulation, not peak via volume.",
+            "instrumental_role_assignment": {
+              "guitar_role": "rhythmic/harmonic background — chord cycle clarity, occasional melodic doubling of vocal phrases",
+              "bass_role": "MELODIC bass line — Novoselic plays more melodically here than on aggressive tracks, contributing to the song's accessibility",
+              "drums_role": "ballad-pace timekeeping with subtle dynamic build into outro",
+              "cello_role": "MELODIC counterpoint AND harmonic pad. Schaley plays sustained chord tones (pad function, like Dumb) but ALSO occasional melodic responses to vocal phrases. More active role than on Dumb.",
+              "vocal_role": "primary melodic carrier, anthemic in chorus, meditative in outro chant"
+            },
+            "harmonic_density_per_section": {
+              "intro": "2 instruments (guitar + cello) — sparse",
+              "verse": "5 instruments (guitar + bass + drums + vocal + cello) — moderate density",
+              "chorus": "5 instruments same as verse, slight intensity shift but no density jump",
+              "bridge": "4 instruments (no vocal) — slight density reduction",
+              "outro_chant_first_cycles": "5 instruments + single vocal",
+              "outro_chant_final_cycles": "5 instruments + 3-4 stacked vocal layers — maximum density via layering, not volume"
+            },
+            "arrangement_anti_patterns_avoided_or_inverted": [
+              "Does NOT use loud-quiet-loud Pixies template",
+              "Does NOT engage distortion at any point — clean throughout",
+              "Does NOT use commercial-radio fade-out (the song fades but via chant repetition, not abrupt level cut)",
+              "Does NOT build to dramatic climax — outro accumulates rather than peaks",
+              "Does NOT introduce new instruments after verse 1 — same 5-instrument palette throughout"
+            ],
+            "what_makes_arrangement_unique_within_in_utero": "All Apologies is the ALBUM CLOSER — its structural function is summary/resolution. The outro chant is the album's emotional resolution: after the aggression of In Utero's other tracks, the album ENDS via meditative repetition rather than another explosion. The chant outro functions like a coda for the entire album, not just the song.",
+            "comparison_to_dumb_arrangement": "Both tracks share: slow tempo, clean guitar, cello (Schaley), vocal forward, restraint. Differences: All Apologies is LONGER (~3:50 vs Dumb's ~2:32), has a more PRONOUNCED outro chant (Dumb ends abruptly, All Apologies extends), has more MELODIC bass, has more ACTIVE cello role. All Apologies could be heard as 'expanded Dumb' or 'Dumb's structural cousin'."
+          }
         }
       },
       "Soundgarden": {
