@@ -2031,6 +2031,86 @@
           "album": "Mellon Collie and the Infinite Sadness",
           "year": 1995
         }
+      },
+      "Nine_Inch_Nails": {
+        "_meta": {
+          "albums_in_scope": ["The Downward Spiral (1994)", "The Fragile (1999)", "With Teeth (2005)", "Hesitation Marks (2013) — for Copy of A"],
+          "primary_engineers": ["Trent Reznor + Sean Beavan (Downward Spiral, Tate house recording)", "Alan Moulder (Fragile mix)", "Atticus Ross (production partner from With Teeth onward)", "Tom Baker (mastering, multiple albums)"],
+          "documentation_sources": "Reznor interviews in Sound on Sound / Tape Op / Mix Magazine, Alan Moulder mixing interviews, Atticus Ross production notes, AES papers on industrial production techniques",
+          "songs_to_dissect": ["March_Of_The_Pigs", "The_Day_The_World_Went_Away", "Were_In_This_Together", "The_Wretched", "The_Hand_That_Feeds", "Copy_Of_A"]
+        },
+        "March_Of_The_Pigs": {
+          "_status": "stub_pending_full_dissection_C4_1",
+          "album": "The Downward Spiral",
+          "year": 1994
+        },
+        "The_Day_The_World_Went_Away": {
+          "_status": "stub_pending_full_dissection_C4_2",
+          "album": "The Fragile",
+          "year": 1999
+        },
+        "Were_In_This_Together": {
+          "_status": "stub_pending_full_dissection_C4_3",
+          "album": "The Fragile",
+          "year": 1999,
+          "_canonical_title": "We're In This Together"
+        },
+        "The_Wretched": {
+          "_status": "stub_pending_full_dissection_C4_4",
+          "album": "The Fragile",
+          "year": 1999
+        },
+        "The_Hand_That_Feeds": {
+          "_status": "stub_pending_full_dissection_C4_5",
+          "album": "With Teeth",
+          "year": 2005
+        },
+        "Copy_Of_A": {
+          "_status": "stub_pending_full_dissection_C4_6",
+          "album": "Hesitation Marks",
+          "year": 2013,
+          "_note": "Outside the original 3-album scope (Spiral/Fragile/With Teeth) but explicitly requested by user. Worth dissecting — Reznor's most evolved 'modular electronic' approach."
+        }
+      },
+      "Queens_Of_The_Stone_Age": {
+        "_meta": {
+          "albums_in_scope": ["Songs for the Deaf (2002)", "Lullabies to Paralyze (2005)"],
+          "primary_engineers": ["Adam Kasper / Eric Valentine (Songs for the Deaf, varies per track)", "Josh Homme + Joe Barresi (Lullabies to Paralyze)"],
+          "drummers": "Dave Grohl on Songs for the Deaf; Joey Castellano on Lullabies",
+          "documentation_sources": "Homme interviews on 'robot rock' philosophy, Grohl drumming clinics, Joe Barresi engineering interviews, Eric Valentine production notes",
+          "songs_to_dissect": ["First_It_Giveth", "Six_Shooter", "A_Song_For_The_Dead", "Medication", "Everybody_Knows_That_Youre_Insane", "Little_Sister"]
+        },
+        "First_It_Giveth": {
+          "_status": "stub_pending_full_dissection_C5_1",
+          "album": "Songs for the Deaf",
+          "year": 2002
+        },
+        "Six_Shooter": {
+          "_status": "stub_pending_full_dissection_C5_2",
+          "album": "Songs for the Deaf",
+          "year": 2002,
+          "_note": "Vocals primarily by Nick Oliveri (his hardcore/punk-style screamed delivery contrasts with Homme's elsewhere on album)"
+        },
+        "A_Song_For_The_Dead": {
+          "_status": "stub_pending_full_dissection_C5_3",
+          "album": "Songs for the Deaf",
+          "year": 2002
+        },
+        "Medication": {
+          "_status": "stub_pending_full_dissection_C5_4",
+          "album": "Songs for the Deaf",
+          "year": 2002
+        },
+        "Everybody_Knows_That_Youre_Insane": {
+          "_status": "stub_pending_full_dissection_C5_5",
+          "album": "Lullabies to Paralyze",
+          "year": 2005
+        },
+        "Little_Sister": {
+          "_status": "stub_pending_full_dissection_C5_6",
+          "album": "Lullabies to Paralyze",
+          "year": 2005
+        }
       }
     }
   }
