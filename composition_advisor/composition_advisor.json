@@ -3728,9 +3728,174 @@
           ]
         },
         "My_Wave": {
-          "_status": "stub_pending_full_dissection_C2_3",
+          "_status": "C2_3b_performance_recording_done",
           "album": "Superunknown",
-          "year": 1994
+          "year": 1994,
+          "tempo_bpm_documented_range": [115, 122],
+          "time_signature": "5/4 verses (commonly analyzed) with 4/4 chorus area — meter shift signature",
+          "key_area": "E minor area (Aeolian) — drop D tuning common Superunknown standard",
+          "tuning_documented": "Drop D tuning",
+          "track_runtime": "~5:11",
+          "_special_status": "Track 2 on Superunknown (post-Let Me Drown opener). Mid-tempo aggressive but with playful 5/4 lilt — different mood from FOBD's introspective patience. Demonstrates Soundgarden's ability to make ODD METER FEEL NATURAL via groove construction.",
+          "composition": {
+            "structural_blueprint": "intro_4bars (riff in 5/4 establishes meter) -> verse1_8bars_in_5/4 -> chorus_8bars_in_4/4 (meter resolves) -> verse2_8bars_in_5/4 -> chorus_8bars_in_4/4 -> bridge_8bars (instrumental, returns to 5/4 or hybrid feel) -> chorus_extended_outro_in_4/4 -> abrupt or fade. Total ~5:11.",
+            "section_count_and_lengths": {
+              "intro": "4 bars in 5/4 establishing the riff",
+              "verses": "8 bars each in 5/4 (5 beats × 8 bars = 40 beats per verse)",
+              "choruses": "8 bars each in 4/4 (32 beats per chorus — feels SHORTER than verse despite same bar count)",
+              "bridge": "8 bars instrumental",
+              "outro_chorus": "Extended cycling in 4/4"
+            },
+            "harmonic_motion": "Modal Aeolian — minor key power chord vocabulary. The riff is harmonically simple (root + bVII or i + bVI cycle family) — the COMPOSITIONAL identity is the meter, not the harmony. Drop D tuning emphasized via low D root.",
+            "modal_choice": "Aeolian (natural minor)",
+            "melodic_contour": "Verse vocal: phrases that fit the 5-beat bar feel — slightly elongated phrasing matching the asymmetric meter. Chorus vocal: more conventional ascending arc fitting 4/4. Outro: continues chorus contour.",
+            "characteristic_compositional_choice": "5/4 VERSE THAT FEELS NATURAL. Where many odd-meter songs sound prog-y or academic, My Wave's 5/4 verse feels GROOVY — like a slightly stretched 4/4 rather than a deliberate metric oddity. This is achieved via groove construction (the riff lands such that the 'extra beat' feels like a natural pickup rather than an interruption). Sophisticated odd-meter implementation.",
+            "harmonic_pacing": "Moderate — chord changes within riff structure",
+            "phrase_symmetry": "8-bar phrasing throughout. The asymmetry is in the METER (5/4 vs 4/4) not in phrase length.",
+            "comparison_to_other_soundgarden_meter_shifts": "Spoonman (7/4 V → 4/4 C — odd meter feels DESTABILIZING). Outshined (4/4 V → 7/4 C — chorus feels DESTABILIZING). FOBD (6/4 V → 4/4 C — patient + introspective). My Wave (5/4 V → 4/4 C — GROOVY + playful). Same family of meter-shift devices applied with different emotional intents per song."
+          },
+          "arrangement": {
+            "instrumentation_complete": [
+              "electric guitar 1 (Kim Thayil)",
+              "electric guitar 2 (Chris Cornell)",
+              "bass guitar (Ben Shepherd)",
+              "drum kit (Matt Cameron)",
+              "lead vocal (Chris Cornell)",
+              "minimal documented overdubs beyond live tracking"
+            ],
+            "section_instrumentation": {
+              "intro": "Riff alone or with subtle drum entry — establishes 5/4 meter immediately",
+              "verse": "Full band locked to 5/4 riff, vocal enters",
+              "chorus": "Meter shifts to 4/4, full band intensity, vocal opens up",
+              "verse_2": "Returns to 5/4 verse intensity",
+              "bridge": "Instrumental — guitar work over rhythm section",
+              "outro_chorus": "Extended 4/4 chorus into ending"
+            },
+            "vocal_layering_strategy": "VERSE: SINGLE-tracked Cornell. CHORUS: doubled or harmonized (Soundgarden standard).",
+            "dynamic_arc_overall": "MODERATE-to-FULL intensity throughout. Verse and chorus both engage distortion — distinct from FOBD's clean-to-distorted shift. The METER shift is the primary section marker, not dynamic shift. Sustained intensity but with metric variation.",
+            "instrumental_role_assignment": {
+              "drums_role": "Cameron's drumming locks the 5/4 verse groove — kick + snare patterns adapted to 5-beat feel. Critical for making the odd meter feel natural rather than awkward.",
+              "guitar_role": "Riff carrier — the 5/4 riff IS the verse identity. Two-guitar layering as standard Soundgarden approach.",
+              "bass_role": "Shepherd locks with kick on the 5/4 groove",
+              "vocal_role": "Cornell's vocal adapts to the 5/4 phrasing — phrases stretched slightly to fit the asymmetric bar"
+            },
+            "harmonic_density_per_section": {
+              "intro": "Moderate (riff + sparse drums)",
+              "verse": "Full band (5 instruments + vocal) at moderate-to-high density",
+              "chorus": "Full band at high density (slight intensity push from verse)",
+              "bridge": "5 instruments without vocal",
+              "outro_chorus": "Extended high density"
+            },
+            "arrangement_anti_patterns_avoided_or_inverted": [
+              "Does NOT use clean-to-distorted dynamic shift like FOBD — both V and C engage distortion",
+              "Does NOT have introspective slow tempo like FOBD — mid-tempo aggressive",
+              "Does NOT use sustained intensity like JCP — uses meter shift as section marker",
+              "Does NOT make 5/4 sound prog/academic — groove construction makes it feel natural"
+            ],
+            "what_makes_unique_within_soundgarden": "My Wave's 5/4 verse demonstrates Soundgarden's mastery of GROOVE-NATURAL ODD METER. While Spoonman uses 7/4 destabilizingly and FOBD uses 6/4 patiently, My Wave makes 5/4 feel like a slightly extended 4/4 — the asymmetry registers but doesn't disrupt body movement. This requires precise groove construction by the rhythm section."
+          },
+          "performance": {
+            "tempo_feel_description": "~118 BPM mid-tempo. Tracked LIVE per Beinhorn's Superunknown approach. The 5/4 verse demands TIGHT lock between Cameron and Shepherd — any timing slip would dissolve the groove. Documented as one of the more rehearsed grooves on the album.",
+            "drum_style": {
+              "performer": "Matt Cameron",
+              "feel": "Cameron's playing is the foundation that MAKES the 5/4 feel natural. He plays with confidence and groove rather than treating the meter as a counting exercise.",
+              "techniques_documented": [
+                "Verse 5/4: kick + snare pattern adapted to 5-beat bar — likely grouped 3+2 or 2+3 depending on phrase",
+                "The 'extra beat' (vs 4/4) is incorporated into the groove naturally rather than highlighted",
+                "Chorus 4/4: returns to standard backbeat — listener feels the meter resolution as physical relief",
+                "Hi-hat and ride patterns adapted per section meter",
+                "Sparse fills — Cameron serves the groove over showcasing"
+              ],
+              "groove_feel_alignment": "ON beat with confident pocket — the 5/4 demands precision",
+              "fills_and_transitions": "Minimal; section transitions handled via meter shift itself rather than drum fills"
+            },
+            "guitar_style": {
+              "performer_thayil": "Kim Thayil — primary riff carrier in 5/4 verse, distorted",
+              "performer_cornell": "Chris Cornell — second guitar layered with Thayil",
+              "feel_per_section": {
+                "intro": "5/4 riff established with distortion",
+                "verse": "Riff continues, vocals layered over",
+                "chorus": "Meter shifts to 4/4, riff variant in 4/4 feel",
+                "bridge": "Lead lines or riff variations",
+                "outro": "Returns to 4/4 chorus intensity"
+              },
+              "techniques_documented": [
+                "Drop D tuning with low D pedal tone in riff",
+                "Both guitars distorted throughout (vs FOBD's clean-to-distorted shift)",
+                "Riff lands such that the 5-beat bar feels groovy rather than asymmetric",
+                "Two-guitar stereo layering standard Soundgarden approach"
+              ],
+              "playing_style_versus_fobd": "FOBD = clean-to-distorted dynamic shift between sections. My Wave = sustained distortion, meter shift as section marker. Same album, same production team, same band — different compositional approach."
+            },
+            "bass_performance": {
+              "performer": "Ben Shepherd",
+              "role": "Locked TIGHTLY with Cameron's kick on the 5/4 groove. The 5/4 verse requires bass-drum lock to feel natural — any drift would expose the asymmetry as awkward. Shepherd's playing here is documented as some of his most precise rhythmic work.",
+              "context": "Where FOBD showcased Shepherd's MELODIC capability, My Wave showcases his RHYTHMIC PRECISION. Two faces of the same player on the same album."
+            },
+            "vocal_delivery": {
+              "performer": "Chris Cornell",
+              "verse_delivery": "Mid-register, fitting phrases into the 5/4 bar. Cornell's phrasing slightly stretched to match meter.",
+              "chorus_delivery": "Opens up to upper-mid register, more conventional 4/4 phrasing",
+              "outro_delivery": "Continues chorus intensity",
+              "documented_vocal_quirks": [
+                "Less vocal strain than JCP — moderate range deployment matching the song's groove-oriented character",
+                "Vocal phrasing adapts to meter without sounding awkward — Cornell's compositional skill on display",
+                "Multiple complete takes selected per Beinhorn approach"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization (would destroy the 5/4's natural groove feel)",
+              "No vocal pitch correction",
+              "No drum sample replacement",
+              "Tracked LIVE — band lock essential for 5/4 to function"
+            ]
+          },
+          "recording": {
+            "studio": "Bad Animals Studio, Seattle, Washington (same as FOBD)",
+            "session_dates": "1993 sessions (Superunknown sessions)",
+            "primary_engineer_producer": "Michael Beinhorn (producer) — same as FOBD",
+            "subsequent_remix": "Brendan O'Brien mixed Superunknown — same as FOBD, separate engineer from producer",
+            "drum_micing_approach": {
+              "philosophy_beinhorn": "Same as FOBD — close mics + room mics + overheads at Bad Animals's medium-sized tracking room",
+              "specifics_for_my_wave": [
+                "5/4 groove demands clean drum capture so the meter pattern reads clearly",
+                "Cameron's pattern recorded with priority on kick + snare clarity",
+                "Subtle compression at tracking — Beinhorn's preference"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_beinhorn": "Two-guitar layering (Thayil + Cornell tracked separately, panned wide)",
+              "specifics_documented": [
+                "Both guitars in drop D with distortion engaged throughout (vs FOBD's clean-verse approach)",
+                "Multiple takes per guitar for chorus thickness",
+                "Tube amps (Mesa Boogie / Marshall variations from Superunknown era)"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Ben Shepherd",
+              "specifics": "DI + amp blend. Shepherd's RHYTHMIC PRECISION on the 5/4 groove demanded clean capture for tight lock with kick."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_beinhorn": "Vocal isolation booth, multiple complete takes",
+              "specifics_documented": [
+                "Cornell tracked in vocal booth at Bad Animals",
+                "5/4 verse phrasing required multiple takes to find optimal vocal placement within asymmetric bars",
+                "Chorus self-doubling tracked as separate complete passes"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Drop D tuned guitars",
+              "Tube amps (Soundgarden Superunknown era options)",
+              "Bad Animals Studio Neve console",
+              "Cameron's full kit (critical for 5/4 groove feel)"
+            ],
+            "what_makes_recording_distinct_from_fobd": [
+              "Same album + production team but DIFFERENT compositional intent — recording emphasizes RHYTHMIC PRECISION (5/4 lock) over INTROSPECTIVE TEXTURE (FOBD's sus voicings + clean arpeggios)",
+              "Drums tracked with priority on kick-snare clarity for meter readability",
+              "Bass tracked with priority on rhythmic lock (vs FOBD's melodic clarity priority)",
+              "Vocal tracked with attention to phrasing fit in 5/4 (multiple takes for placement)"
+            ]
+          }
         },
         "Overfloater": {
           "_status": "stub_pending_full_dissection_C2_4",
