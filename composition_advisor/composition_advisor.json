@@ -2183,7 +2183,7 @@
           ]
         },
         "Dumb": {
-          "_status": "C1_2a_composition_arrangement_done",
+          "_status": "C1_2b_performance_recording_done",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [84, 87],
@@ -2247,6 +2247,114 @@
               "Does NOT use vocal-doubling-as-chorus-lift (rejecting Heart-Shaped Box's own strategy)"
             ],
             "what_makes_arrangement_unique_within_in_utero": "Of all In Utero tracks, Dumb has the LEAST band-driven dynamic arc. While Heart-Shaped Box uses slow-burn build and Territorial Pissings uses unrelenting attack, Dumb sustains a single restrained intensity. The cello + minimal kit create a chamber-music quality rare in grunge."
+          },
+          "performance": {
+            "tempo_feel_description": "Slow ballad pace at ~85 BPM. Tracked LIVE with the rhythm section (per Albini's general session protocol on In Utero); cello overdubbed separately by Kera Schaley after the band tracking. Tempo feels REGULAR with minimal humanization — the song's restraint requires precision, not loose feel.",
+            "drum_style": {
+              "performer": "Dave Grohl",
+              "feel": "Documented as deliberately MINIMAL on this track — Grohl playing well below his typical force level. Restraint is the technique here.",
+              "techniques_documented": [
+                "Kick + snare backbeat at ballad pace, no cymbal swells, no fills",
+                "Closed hi-hat steady 8ths or quarters — minimal articulation",
+                "No transitions or section markers from drums — section boundaries handled by vocal/cello, not drum cues",
+                "Crash cymbal absent or very sparse — the song never opens up the kit"
+              ],
+              "groove_feel_alignment": "ON beat, locked — at slow tempo, behind-beat drag would feel sluggish; ahead-of-beat would feel rushed. Grohl plays to the grid.",
+              "fills_and_transitions": "None. Documented absence of drum fills is unusual for Grohl — a deliberate restraint choice."
+            },
+            "guitar_style": {
+              "performer": "Kurt Cobain",
+              "feel_per_section": {
+                "intro": "Clean strummed open chords — chord cycle established without ornament",
+                "verse": "Same clean strumming continues — no palm-muting, no power chord transitions to distortion",
+                "chorus": "Same clean strumming — guitar role does NOT change between verse and chorus (key difference from most In Utero tracks)",
+                "outro": "Sustained chord with slight ringing decay"
+              },
+              "techniques_documented": [
+                "Clean tone throughout — NO distortion engagement at any point in the song",
+                "Open chords (full 5-6-string strums) rather than power chord palm-muted shapes",
+                "No bend riff, no signature lead — guitar serves the rhythm/harmony, not the melody",
+                "Anti-virtuosic playing: Cobain deliberately serves the song over showcasing technique"
+              ],
+              "playing_style_versus_other_in_utero_tracks": "Inverse of Heart-Shaped Box approach: Dumb has clean-only tone where HSB has distorted bend riff. Cobain plays the LEAST guitar-prominent song on the album here."
+            },
+            "cello_performance": {
+              "performer": "Kera Schaley (overdubbed)",
+              "technique": "Bowed sustains primarily — long held notes that follow chord changes. The cello does not play melodic counterpoint to the vocal; it provides harmonic PAD function (similar to a sustained synth pad in electronic music).",
+              "documented_role": "The cello replaces what an electric organ or pad synth would do in pop arrangement — provides sustained harmonic foundation. In a grunge context, this orchestral element feels surprising even though its function is conventional.",
+              "documented_overdub_session": "Schaley tracked overdub after band session — the cello was layered onto the existing band tracking. Documented in In Utero album credits and in interviews."
+            },
+            "vocal_delivery": {
+              "performer": "Kurt Cobain",
+              "verse_delivery": "Intimate, close-mic — Cobain's quietest delivery on the album. Almost conversational. Pitched fairly low in his range (his chest-voice register, comfortable rather than strained).",
+              "chorus_delivery": "Slightly more open than verse but still NOT belted. Cobain stays within an intimate dynamic — the chorus is harmonic, not vocal-power-based.",
+              "outro_delivery": "Sustained final phrase, gentle release — not anguished or screamed",
+              "documented_vocal_quirks": [
+                "Audible breath sounds in close-mic verse (kept in mix per Albini's preserve-everything philosophy)",
+                "Cobain's pitch is more centered on this track than on more aggressive In Utero tracks (less rasp = less pitch flexibility)",
+                "Documented as one of Cobain's most VOCAL-FORWARD performances — confidence in the song's vocal melody"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization or pitch correction (Albini standard)",
+              "No drum fills or cymbal washes — restraint maintained",
+              "No section-marking dynamics — song stays at one intensity level throughout",
+              "No vocal screaming or rasp escalation in outro — gentle landing"
+            ]
+          },
+          "recording": {
+            "studio": "Pachyderm Studios, Cannon Falls, Minnesota",
+            "session_dates": "Recorded February 1993",
+            "primary_engineer": "Steve Albini (tracking + mix — NO Litt remix on this track)",
+            "subsequent_remix_engineer": "NONE — Dumb retains Albini's original mix (only Heart-Shaped Box and All Apologies were Litt remixed)",
+            "drum_micing_approach": {
+              "philosophy": "Same Albini room-mic approach as elsewhere on In Utero — large room captured, distant overheads + close kick + snare mics, no compression at tracking",
+              "specifics_for_dumb": [
+                "At slow tempo with minimal Grohl playing, the room mics capture more of the natural decay between hits",
+                "The DRUM sound has notable air around it — the room contributes more to the perceived tone than on faster tracks",
+                "No drum trigger or sample reinforcement — pure acoustic capture preserved"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_albini": "Live full-band tracking, multiple mics on amp",
+              "specifics_documented": [
+                "Cobain's guitar tracked clean — amp gain set low, no pedal distortion",
+                "Likely tracked with Cobain's typical Mustang/Jaguar setup but the clean tone here makes specific guitar identification less essential to the sound",
+                "Tracked LIVE with band rhythm section (cello added later)"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Krist Novoselic, tracked live with band",
+              "specifics": "Documented as recorded direct (DI) AND through bass amp blended at mix — same approach as throughout In Utero"
+            },
+            "cello_tracking_approach": {
+              "performer": "Kera Schaley, OVERDUB session",
+              "specifics_documented": [
+                "Tracked separately from band — Schaley came in to record cello after band session",
+                "Multiple cello takes layered for thickness (same approach as on All Apologies — Schaley plays multiple parts)",
+                "Recorded with close mic AND room mic per Albini's standard approach to acoustic instruments",
+                "The overdub philosophy: even though cello is overdubbed, Albini still captures with full room ambience to maintain consistency with band's room sound"
+              ]
+            },
+            "vocal_tracking_approach": {
+              "philosophy_albini": "Close-mic capture, full takes, minimal processing at tracking",
+              "specifics_documented": [
+                "Vocal recorded in tracking room (not isolated booth) — natural ambience preserved",
+                "Documented as one of Cobain's CLEANEST vocal takes on the album — less rasp, more pitch stability",
+                "Single-tracked primarily; minimal layering"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Cobain's Fender Mustang or Jaguar (clean tone — distortion pedals bypassed)",
+              "Pachyderm's Neve console for tracking",
+              "Cello (Kera Schaley's instrument — specific cello make not exhaustively documented but performance is on standard 4-string acoustic cello)"
+            ],
+            "what_makes_dumb_recording_distinct_within_in_utero": [
+              "ONE OF FEW IN UTERO TRACKS with cello — the orchestral element is rare in the album",
+              "Albini mix retained (most of album is Albini, but specifically NO Litt intervention here)",
+              "Slow tempo lets Pachyderm's room ambience contribute more than on faster tracks",
+              "Low gain stages (clean guitar, restrained drums, clean vocal) make the room sound more apparent in the mix"
+            ]
           }
         },
         "Territorial_Pissings": {
