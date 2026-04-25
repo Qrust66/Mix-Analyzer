@@ -1171,7 +1171,103 @@ def inject_eq8(track_xml: str, eq8_xml: str) -> str:
     return track_xml[:closing] + reindented + '\n' + indent + track_xml[closing:]
 
 
-# Per-track EQ8 band recipes — drums + basses only (12 tracks).
+# --- Automation envelope helpers (C3a) -------------------------------------
+#
+# Live stores automations per-TRACK inside <AutomationEnvelopes><Envelopes>.
+# Each <AutomationEnvelope> points at a parameter via PointeeId = the param's
+# AutomationTarget Id. Volume / Pan live in the track's Mixer (already present
+# on every cloned track with their own AutomationTarget Ids).
+#
+# Value conventions:
+#   Volume: 0.0 = -inf, ~0.85 = 0 dB unity, 1.0 = max
+#   Pan:   -1.0 (left) .. 0.0 (center) .. +1.0 (right)
+#
+# An init event at Time=-63072000 sets the parameter's value BEFORE the song
+# starts; Live requires this as the first event of every envelope.
+
+def find_param_target_id(track_xml: str, param: str) -> int | None:
+    """Find the AutomationTarget Id for a Mixer parameter by name.
+
+    `param` should match the XML tag, e.g. 'Volume', 'Pan', 'SendsListWrapper'.
+    Returns None if not found (track has no Mixer or no such param).
+    """
+    m = re.search(
+        rf'<Mixer>.*?<{param}>.*?<AutomationTarget Id="(\d+)"',
+        track_xml, re.DOTALL,
+    )
+    return int(m.group(1)) if m else None
+
+
+def build_envelope(env_id: int, target_id: int,
+                   events: list[tuple[float, float]],
+                   event_id_base: int) -> str:
+    """Build one <AutomationEnvelope> XML block.
+
+    Args:
+        env_id: Unique Id for the envelope itself (within the track).
+        target_id: PointeeId — must match the parameter's AutomationTarget Id.
+        events: [(time_beat, value), ...] — project-absolute beats.
+        event_id_base: First FloatEvent Id; subsequent events use base+1, +2, ...
+    """
+    if not events:
+        return ""
+    init_val = events[0][1]
+    lines = [
+        f'<AutomationEnvelope Id="{env_id}">',
+        '\t<EnvelopeTarget>',
+        f'\t\t<PointeeId Value="{target_id}" />',
+        '\t</EnvelopeTarget>',
+        '\t<Automation>',
+        '\t\t<Events>',
+        f'\t\t\t<FloatEvent Id="{event_id_base}" Time="-63072000" Value="{init_val}" />',
+    ]
+    for i, (t, v) in enumerate(events):
+        lines.append(
+            f'\t\t\t<FloatEvent Id="{event_id_base + i + 1}" Time="{t}" Value="{v}" />'
+        )
+    lines += [
+        '\t\t</Events>',
+        '\t\t<AutomationTransformViewState>',
+        '\t\t\t<IsTransformPending Value="false" />',
+        '\t\t\t<TimeAndValueTransforms />',
+        '\t\t</AutomationTransformViewState>',
+        '\t</Automation>',
+        '</AutomationEnvelope>',
+    ]
+    return '\n'.join(lines)
+
+
+def inject_envelopes(track_xml: str, envelope_xmls: list[str]) -> str:
+    """Replace `<AutomationEnvelopes><Envelopes /></AutomationEnvelopes>` with
+    a populated form containing all envelopes. No-op if the track has no
+    self-closing Envelopes tag (already populated or structure unexpected)."""
+    if not envelope_xmls:
+        return track_xml
+    pat = re.compile(
+        r'(<AutomationEnvelopes>\s*)<Envelopes />(\s*</AutomationEnvelopes>)',
+        re.DOTALL,
+    )
+    m = pat.search(track_xml)
+    if not m:
+        return track_xml
+
+    # Find the indent of the <Envelopes /> tag specifically
+    env_tag_start = m.start(0) + len(m.group(1))
+    line_start = track_xml.rfind('\n', 0, env_tag_start) + 1
+    outer_indent = track_xml[line_start:env_tag_start]
+    inner_indent = outer_indent + '\t'
+
+    reindented = [reindent(env, inner_indent) for env in envelope_xmls]
+    replacement = (
+        m.group(1) + '<Envelopes>\n' +
+        '\n'.join(reindented) + '\n' +
+        outer_indent + '</Envelopes>' +
+        m.group(2)
+    )
+    return track_xml[:m.start(0)] + replacement + track_xml[m.end(0):]
+
+
+
 # Tuple per band: (band_idx, mode, freq_hz, gain_dB, q, on).
 # Modes: 0=LC48 1=LC12 2=LowShelf 3=Bell 4=Notch 5=HighShelf 6=HC12 7=HC48.
 EQ8_PRESETS: dict[str, list[tuple]] = {
