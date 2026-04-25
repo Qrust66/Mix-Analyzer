@@ -1246,8 +1246,30 @@ def main() -> None:
             eq8_count += 1
             eq_marker = " + EQ8"
 
+        # C2b: inject volume automation envelopes (3 specific tracks)
+        env_marker = ""
+        env_xmls: list[str] = []
+        eid_base = 9_000_000 + i * 10_000
+        if name == "13 FX Riser":
+            tid = find_param_target_id(clone, "Volume")
+            if tid is not None:
+                env_xmls.append(volume_envelope_riser(1, tid, eid_base))
+                env_marker += " + Riser-sweep"
+        elif name == "15 FX Tension":
+            tid = find_param_target_id(clone, "Volume")
+            if tid is not None:
+                env_xmls.append(volume_envelope_tension(1, tid, eid_base))
+                env_marker += " + Tension-cresc"
+        elif name == "10 SYN Drone Dark":
+            tid = find_param_target_id(clone, "Volume")
+            if tid is not None:
+                env_xmls.append(volume_envelope_drone_dark(1, tid, eid_base))
+                env_marker += " + Drone-cresc"
+        if env_xmls:
+            clone = inject_envelopes(clone, env_xmls)
+
         new_tracks.append(clone)
-        print(f"  #{i+1:2d} {name:<20} clips={len(clips):2d} notes={note_total:4d}{eq_marker}  -> {preset_hint}")
+        print(f"  #{i+1:2d} {name:<20} clips={len(clips):2d} notes={note_total:4d}{eq_marker}{env_marker}  -> {preset_hint}")
     print(f"  Injected {eq8_count} EQ8 devices")
 
     xml = xml[:t12_pos] + "".join(new_tracks) + xml[r2_pos:]
