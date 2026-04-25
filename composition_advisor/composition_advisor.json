@@ -4562,7 +4562,7 @@
           "songs_to_dissect": ["Quiet", "Soma", "Bodies", "Zero"]
         },
         "Quiet": {
-          "_status": "C3_1b_performance_recording_done",
+          "_status": "C3_1c_complete_exhaustive",
           "album": "Siamese Dream",
           "year": 1993,
           "tempo_bpm_documented_range": [96, 102],
@@ -4710,6 +4710,133 @@
             ],
             "comparison_to_vig_nevermind_recording": "Same producer (Vig), totally different aesthetic. Nevermind: punk-rock-with-polish, Grohl drums prominent, single guitar layer per side. Siamese Dream: wall-of-sound layered guitars, Chamberlin drums prominent, MULTIPLE guitar layers per side. Vig's documented adaptability — same engineer producing very different sonic worlds for different bands' visions.",
             "comparison_to_in_utero_albini_recording": "In Utero (Albini, 1993): pure capture, minimal shaping, room-prominent drums, raw tone. Siamese Dream (Vig, 1993): meticulous layering, processed drum bus, wall-of-sound shaping. Two completely opposite recording philosophies in same year — establishes the 1993 alt-rock recording polarity (capture vs. shape)."
+          },
+          "mixing": {
+            "mix_engineer": "Andy Wallace (Siamese Dream mixed throughout — same Wallace as Nevermind, providing 1993 alt-rock-mix continuity)",
+            "mixing_studio": "Soundtrack Studios, New York (Wallace's documented mix base)",
+            "mixing_philosophy_wallace_for_quiet": "WALL-OF-SOUND DENSITY MANAGEMENT + COMMERCIAL IMPACT. Wallace's documented Siamese Dream approach: handle Corgan's massive guitar layer count without mud, deliver radio-compatible commercial impact while preserving the band's intended wall-of-sound aesthetic.",
+            "drum_mix_balance": [
+              "Kick + snare PUNCHY + present — Wallace signature drum-forward mix approach (also heard on Nevermind)",
+              "Parallel-compressed drum bus carries weight from Vig's tracking through to mix",
+              "Cymbals (hi-hat + ride + crashes) prominent in upper mid (~3-8 kHz) — drives the song's forward motion",
+              "Toms with natural decay — fills clearly articulated for Chamberlin's technical playing"
+            ],
+            "guitar_mix_treatment": [
+              "MASSIVE STEREO WIDTH — multiple guitar layers panned across full L/R range for maximum width",
+              "Frequency-spread layering means each layer occupies different EQ slot — wall reads as ONE giant guitar rather than as cluttered multiple guitars",
+              "Compression on guitar bus glues layers together",
+              "Bridge sections may briefly reduce some layers for dynamic relief, then return to full density"
+            ],
+            "vocal_mix_treatment": [
+              "Corgan vocal centered + slightly forward — must read clearly above the wall of guitars",
+              "Plate reverb + short delay on vocal for spatial depth without losing intelligibility",
+              "Compression preserves Corgan's sustained phrases without artifacts",
+              "EQ carve in low-mid (~200-400Hz) avoids vocal clashing with guitar density",
+              "Chorus vocal layers (doubles, octave doubles) blended subtly for emphasis without crowding"
+            ],
+            "bass_mix_treatment": [
+              "Bass clearly audible in low-mid (~80-250Hz) — must read under the dense guitars",
+              "Light compression preserves natural envelope",
+              "Bass + kick coordinated via complementary frequency placement"
+            ],
+            "spatial_treatment_wall_of_sound": [
+              "STEREO FIELD MAXIMIZED — guitars panned hard L/R + center-L/R + center for FULL stereo coverage",
+              "Reverb usage moderate — wall-of-sound aesthetic doesn't need much reverb (the layering itself provides spatial depth)",
+              "Plate reverbs on drums + vocal for warmth without losing tightness",
+              "Bridge sections may use slightly more reverb for dynamic shift"
+            ],
+            "automation_used_in_mix": [
+              "Vocal level rides — Corgan's dynamic phrases compensated for via mix automation",
+              "Bridge guitar layer rides — selective layer reduction for dynamic relief, then return",
+              "Reverb send automation — bridges may have more reverb than verses"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression of full mix (would destroy guitar layer detail)",
+              "No drum sample replacement",
+              "No vocal pitch correction or excessive layering as dynamic device",
+              "No genre-typical 'rock loudness' that would destroy dynamic detail"
+            ],
+            "comparison_to_nevermind_mix_wallace": "Same mixer (Wallace), totally different aesthetic. Nevermind: 3-piece power-trio mix, Grohl drums prominent, single guitar layer per side. Siamese Dream Quiet: wall-of-sound layered guitars, Chamberlin drums prominent, MULTIPLE guitar layers per side. Wallace's documented adaptability across same year (1991 Nevermind vs. 1993 Siamese Dream).",
+            "what_makes_wallace_mix_distinct_for_quiet": [
+              "Stereo width MAXIMIZED for wall-of-sound impact",
+              "Frequency-spread layer management — wall reads clearly without becoming mud",
+              "Vocal forward in mix (Wallace signature) — Corgan reads clearly above the guitars",
+              "Drum-bus weight + transient detail balanced (carries Vig's parallel-compression tracking through)"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Howie Weinberg (Siamese Dream mastered — same Weinberg as Nevermind + Badmotorfinger, documented album-level mastering engineer)",
+            "mastering_studio": "Masterdisk, New York (Weinberg's documented mastering base)",
+            "mastering_philosophy_for_quiet": [
+              "Weinberg's documented approach: high-end clarity + low-end punch + commercial loudness without destroying dynamics",
+              "Quiet's wall-of-sound aesthetic requires preserved STEREO WIDTH + frequency balance — mastering must not narrow stereo image",
+              "1993 album-level mastering — Siamese Dream slightly pre-aggressive-loudness-war, but commercially-loud-enough for radio impact"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS integrated estimate. Quiet specifically near album peak loudness due to sustained intensity character.",
+            "spectral_signature": "Weinberg's documented sound: present mid-range, smooth top end, tight low end. Quiet benefits — wall-of-sound clarity preserved through master.",
+            "what_mastering_preserves_for_quiet": [
+              "Stereo width across guitar layers",
+              "Drum punch + transient detail",
+              "Vocal clarity above the guitar wall",
+              "Bass + kick low-frequency coordination"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "THE OPENING RIFF + IMMEDIATE FULL-BAND ENTRY — listeners hear aggressive intent declared in first 2 measures. No gradual build, just the riff hitting hard.",
+            "level_2_arrangement_signature": "WALL-OF-LAYERED-GUITARS DENSITY — Corgan's documented Siamese Dream approach at peak intensity. Multiple guitar tracks panned + EQ-staggered create dense harmonic field that reads as ONE BIG GUITAR.",
+            "level_3_compositional_signature": "SUSTAINED INTENSITY + RIFF-AS-HOOK in heavy guitar-anthem economy. Corgan demonstrates his HEAVY pole within Siamese Dream's compositional range (album also includes dynamic-arc Today and atmospheric-long-form Soma). Demonstrates that LAYERED-GUITAR-DENSITY can serve commercial-radio-rock economy when paired with strong hook + tight runtime."
+          },
+          "advisor_extract": {
+            "recipe_name": "wall_of_layered_guitars_with_sustained_intensity_economy",
+            "applicability": "Heavy alt-rock or modern-rock compositions where dense guitar layering serves a tight commercial economy. Use when the SONG'S IDENTITY is the riff + the wall, not dynamic arc.",
+            "core_compositional_recipes": [
+              {
+                "id": "wall_of_layered_guitars_frequency_spread_layering",
+                "rule": "Layer multiple guitar tracks (5-15+) panned across stereo field + EQ-staggered to occupy DIFFERENT FREQUENCY SLOTS (low-mid, mid-range, upper-mid, high). Result: wall reads as ONE BIG GUITAR rather than as cluttered multiple guitars. Each layer can have different distortion character (different amps/pedals) for textural variation.",
+                "wow_factor": 0.85,
+                "documented_example": "Quiet (Smashing Pumpkins, Siamese Dream 1993) + entire Siamese Dream album — Corgan's documented multi-layered guitar philosophy",
+                "trade_offs": "Time-intensive to track + mix correctly. Risk of mud if EQ-staggering not careful. Requires patient producer/mixer (Vig + Wallace)",
+                "personality_fit": "Reznor 30 / Cobain 25 / Yorke 20 / Daft Punk 25 (Reznor for layering density, Daft Punk for stacking philosophy)"
+              },
+              {
+                "id": "riff_as_both_hook_and_structural_backbone",
+                "rule": "Write a guitar riff that is SIMULTANEOUSLY the song's hook AND its structural backbone (continues through verses + reappears in choruses). Guitar riff carries melodic + harmonic + rhythmic identity. Vocal hook becomes secondary to riff hook.",
+                "wow_factor": 0.81,
+                "documented_example": "Quiet opening riff — both hook and structure",
+                "trade_offs": "Requires strong riff-writing capacity. Listeners conditioned to vocal-hook pop may need adjustment.",
+                "personality_fit": "Cobain 35 / Reznor 25 / Yorke 15 / Daft Punk 25"
+              },
+              {
+                "id": "sustained_intensity_no_dynamic_arc_economy",
+                "rule": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge. Sustained intensity for full runtime (3-4 minutes for tight commercial economy). Choruses can EXPAND density but should not REDUCE intensity.",
+                "wow_factor": 0.79,
+                "documented_example": "Quiet 3:42 sustained heavy intensity — no dynamic arc within song, but album includes dynamic-arc tracks for variety",
+                "trade_offs": "Less obvious 'song peak' for listeners conditioned to verse-chorus dynamic build. Requires strong sustained material to prevent monotony.",
+                "personality_fit": "Cobain 30 / Reznor 35 / Yorke 10 / Daft Punk 25"
+              },
+              {
+                "id": "vig_meticulous_layering_recording_philosophy",
+                "rule": "When recording multi-layered guitar arrangements, capture EACH LAYER cleanly (different mic placement, amp, pedal) so that subsequent mix layering reads clearly. Use parallel compression on drum bus for weight + transient detail. Engineer-producer role facilitates band's vision rather than imposing producer's template.",
+                "wow_factor": 0.77,
+                "documented_example": "Butch Vig's documented Siamese Dream approach — meticulous layering capture, parallel-compressed drum bus",
+                "trade_offs": "Time-intensive sessions; perfectionism extends timelines",
+                "personality_fit": "Reznor 30 / Cobain 30 / Yorke 15 / Daft Punk 25"
+              },
+              {
+                "id": "wallace_stereo_width_maximization_mix",
+                "rule": "When mixing wall-of-sound arrangements, maximize STEREO WIDTH via aggressive L/R panning of guitar layers + frequency-spread EQ. Vocal forward in mix to read clearly above density. Drums punchy + present (carry tracking-stage parallel compression through). Reverb moderate — layering itself provides spatial depth.",
+                "wow_factor": 0.78,
+                "documented_example": "Andy Wallace mix on Siamese Dream Quiet — stereo width maximization, frequency-spread layer management",
+                "trade_offs": "Mono-compatibility risk if width pushed too far; requires careful phase management",
+                "personality_fit": "Reznor 30 / Cobain 25 / Yorke 15 / Daft Punk 30"
+              }
+            ],
+            "production_philosophy_signature_vig_wallace_pumpkins": {
+              "philosophy": "ENGINEER-PRODUCER + ENGINEER-MIXER pair (Vig + Wallace) facilitating band's wall-of-sound vision through meticulous capture + width-maximized mix. Same pair worked on Nevermind but produced totally different sonic world for Pumpkins — demonstrates pair's adaptability to band vision.",
+              "applicability": "Bands with strong wall-of-sound vision needing meticulous layering capture + commercial-impact mix",
+              "lineage_within_dissection": "DATE (1991 Badmotorfinger): tracker-mixer dual role. VIG+WALLACE (1991 Nevermind, 1993 Siamese Dream): producer+mixer split with Vig's parallel-compressed drums + Wallace's stereo width. BEINHORN+O'BRIEN (1994 Superunknown): producer+mixer split with Beinhorn's polish. KASPER (1996 Down on the Upside): unified band-driven engineer/mixer. ALBINI (1993 In Utero): pure capture, no shaping. SIX distinct production approaches now established in dissection."
+            },
+            "structural_choice_summary": "Wall-of-layered-guitars density, riff-as-hook-and-structure, sustained-intensity heavy economy — Quiet demonstrates Corgan's HEAVY pole within Siamese Dream's range. Tight 3:42 runtime + dense layering + driving Chamberlin rhythm = commercial-radio-rock economy with maximum sonic ambition."
           }
         },
         "Soma": {
