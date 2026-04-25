@@ -2931,7 +2931,7 @@
           ]
         },
         "All_Apologies": {
-          "_status": "C1_5a_composition_arrangement_done",
+          "_status": "C1_5b_performance_recording_done",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [115, 118],
@@ -3002,6 +3002,121 @@
             ],
             "what_makes_arrangement_unique_within_in_utero": "All Apologies is the ALBUM CLOSER — its structural function is summary/resolution. The outro chant is the album's emotional resolution: after the aggression of In Utero's other tracks, the album ENDS via meditative repetition rather than another explosion. The chant outro functions like a coda for the entire album, not just the song.",
             "comparison_to_dumb_arrangement": "Both tracks share: slow tempo, clean guitar, cello (Schaley), vocal forward, restraint. Differences: All Apologies is LONGER (~3:50 vs Dumb's ~2:32), has a more PRONOUNCED outro chant (Dumb ends abruptly, All Apologies extends), has more MELODIC bass, has more ACTIVE cello role. All Apologies could be heard as 'expanded Dumb' or 'Dumb's structural cousin'."
+          },
+          "performance": {
+            "tempo_feel_description": "Mid-tempo at ~117 BPM, comfortable ballad-adjacent pace. Tracked LIVE with rhythm section (Albini protocol); cello overdubbed by Schaley after band tracking. The tempo feels SETTLED — neither pushed nor dragged — supporting the song's meditative quality.",
+            "drum_style": {
+              "performer": "Dave Grohl",
+              "feel": "Restrained throughout (similar to Dumb's approach). Mid-tempo ballad pace lets the kit breathe. No aggressive playing, no fills, no cymbal explosions — Grohl serves the song's meditative character.",
+              "techniques_documented": [
+                "Standard kick + snare backbeat at 117 BPM, hi-hat 8ths",
+                "Cymbal swells used to mark section transitions (verse to chorus, chorus to bridge)",
+                "Subtle tom hits documented in chorus build, but no fills proper",
+                "Outro chant: drums maintain steady ballad pace through all chant cycles — no tempo or intensity build despite the vocal layering"
+              ],
+              "groove_feel_alignment": "ON beat — locked precision",
+              "fills_and_transitions": "Minimal fills. Transitions handled via cymbal swells rather than drum fills (similar to HSB approach)"
+            },
+            "guitar_style": {
+              "performer": "Kurt Cobain",
+              "feel_per_section": {
+                "intro": "Clean strummed open chords, gentle attack — establishes the song's tonal world",
+                "verse": "Same clean strumming continues — no palm-muting, no power chord transitions",
+                "chorus": "Same clean strumming — guitar role does NOT change between verse and chorus (key shared trait with Dumb)",
+                "bridge": "Clean continued, slight melodic doubling of vocal absent during bridge",
+                "outro_chant": "Same clean cycle continues throughout the extended outro — guitar maintains the song's harmonic anchor as vocal layers build above"
+              },
+              "techniques_documented": [
+                "Clean tone throughout — NO distortion engagement at any point in the song",
+                "Open ringing chords (full strums)",
+                "No bend riff, no signature lead — guitar serves rhythm/harmony",
+                "Anti-virtuosic: same clean cycle for the entire 3:50, no variation"
+              ],
+              "playing_style_versus_other_in_utero_tracks": "Like Dumb, this is Cobain's CLEAN-TONE / UNDERSTATED approach — opposite of Heart-Shaped Box's bend riff or Very Ape's distorted descending pattern. Cobain's compositional range is fully demonstrated across In Utero's tracklist."
+            },
+            "bass_performance": {
+              "performer": "Krist Novoselic",
+              "role": "MELODIC bass line, more pronounced than on most In Utero tracks. Novoselic plays interlocking melodic phrases with the vocal — the bass line itself is hummable. Provides the song's melodic accessibility beyond just root motion."
+            },
+            "cello_performance": {
+              "performer": "Kera Schaley (overdubbed)",
+              "technique": "MELODIC + harmonic pad role. Unlike Dumb where cello functioned purely as harmonic pad, here Schaley plays sustained chord tones AND occasional melodic responses to Cobain's vocal phrases. The cello is more compositionally active.",
+              "documented_overdub_session": "Schaley tracked overdub session after band tracking — same approach as on Dumb. Multiple cello takes layered for sustained chord tone density.",
+              "role_in_outro_chant": "During the extended outro, cello sustains long held notes that anchor the chant cycles harmonically. The cello does NOT layer up like the vocal does — cello provides stable foundation while vocal stack builds above."
+            },
+            "vocal_delivery": {
+              "performer": "Kurt Cobain",
+              "verse_delivery": "Melodic, mid-register, expressive — Cobain's vocal range fully utilized. Less strain than aggressive tracks; more melodic accessibility.",
+              "chorus_delivery": "Anthemic — chorus melody opens up to the song's peak vocal range with sustained held notes",
+              "outro_chant_delivery": "Repeated phrase delivered with subtle dynamic variation across cycles. First cycles: single voice, melodic. Final cycles: stacked self-doubled vocals — Cobain harmonizing with himself across multiple takes layered in mix.",
+              "documented_vocal_quirks": [
+                "One of Cobain's most MELODIC vocal performances on the album — pitch stable, accessible melody",
+                "Outro chant: documented as one of Cobain's last great vocal moments captured on tape (the song was performed live frequently after In Utero's release)",
+                "Doubled/stacked outro vocals: Cobain singing the chant phrase multiple times as separate full takes; Litt's remix layered them"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization or pitch correction (Albini standard)",
+              "No drum fills — restraint maintained",
+              "No vocal screaming or rasp escalation — gentle delivery throughout",
+              "No outro tempo change or dynamic crescendo — accumulation via layering only"
+            ]
+          },
+          "recording": {
+            "studio": "Pachyderm Studios, Cannon Falls, Minnesota",
+            "session_dates": "Recorded February 1993",
+            "primary_engineer": "Steve Albini (tracking + initial mix)",
+            "subsequent_remix_engineer": "Scott Litt (REMIXED All Apologies and Heart-Shaped Box after Albini's mixes were deemed too raw for radio. The released album version is Litt's remix. Same scenario as HSB.)",
+            "drum_micing_approach": {
+              "philosophy": "Same Albini room-emphasis approach as throughout In Utero — large room captured, distant overheads + close kick + snare mics, no compression at tracking",
+              "specifics_for_all_apologies": [
+                "Mid-tempo + restrained Grohl playing means room mics capture both kit hits AND natural decay between hits — drums sound LIVE and breathing",
+                "No drum trigger or sample reinforcement",
+                "Pre-Litt-remix: drums sat naturally in room; Litt remix tightened balance and added compression"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_albini": "Live full-band tracking, multiple mics on amp",
+              "specifics_documented": [
+                "Cobain's guitar tracked clean — amp gain set low, no pedal distortion engaged",
+                "Likely Mustang/Jaguar instrument (specific not exhaustively logged for this track)",
+                "Tracked LIVE with band rhythm section; cello added later as overdub"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Krist Novoselic, tracked live with band",
+              "specifics": "Novoselic's melodic role on this song means his bass take is as much a 'lead' as a rhythm take — documented as recorded with care for melodic clarity. DI + amp blend per In Utero standard."
+            },
+            "cello_tracking_approach": {
+              "performer": "Kera Schaley, OVERDUB session (same as Dumb)",
+              "specifics_documented": [
+                "Tracked separately from band — Schaley came to Pachyderm to record cello after band session",
+                "Multiple cello takes layered for thickness (more layered than on Dumb due to All Apologies' melodic + pad dual role)",
+                "Recorded with close mic AND room mic per Albini's acoustic-instrument standard",
+                "The MELODIC counter-line phrases Schaley plays during verses required precise placement — likely multiple takes to find best phrasing"
+              ]
+            },
+            "vocal_tracking_approach": {
+              "philosophy_albini": "Close-mic capture in tracking room (not isolated booth)",
+              "specifics_documented": [
+                "Vocal recorded in tracking room — natural ambience preserved",
+                "Outro chant documented as recorded as multiple complete passes — Cobain singing the phrase repeatedly until enough passes existed for layering",
+                "Each pass kept as a complete take rather than comped from many short pieces"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Cobain's Fender Mustang or Jaguar (clean tone — distortion bypassed)",
+              "Pachyderm Neve console for tracking",
+              "Cello (Schaley's instrument — documented as standard 4-string acoustic cello)",
+              "No additional notable gear — the song's identity is in performance and arrangement, not signature gear"
+            ],
+            "what_makes_all_apologies_recording_distinct_within_in_utero": [
+              "ALBUM CLOSER position influenced production decisions — the track was treated with care for resolution function",
+              "DUAL mix versions exist (Albini original + Litt remix released) like HSB — but here Litt's intervention was less aggressive than on HSB",
+              "Cello more featured than on Dumb — Schaley's playing is genuinely melodic, not just pad",
+              "Outro chant: vocal layering captured as full takes, then layered in Litt's remix — the layering is a MIX decision built from raw multi-take vocal"
+            ],
+            "production_lineage_within_in_utero_album": "All Apologies pairs with Dumb as the album's chamber-music tracks (cello + clean guitar + restraint), pairs with Heart-Shaped Box as the Litt-remixed tracks (commercial polish on Albini's tracking). It is a UNIQUE intersection: the only In Utero track that combines BOTH chamber arrangement AND Litt remix philosophy."
           }
         }
       },
