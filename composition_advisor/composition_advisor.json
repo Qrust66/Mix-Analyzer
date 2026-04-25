@@ -888,7 +888,129 @@
     }
   },
 
-  "_TBD_D2c_iii": "density_curves (notes/sec per section + polyphony budget)",
+  "density_curves": {
+    "purpose": "Notes-per-second and simultaneous-voice budgets per section type. The advisor uses these to ENFORCE the 'one idea per section' principle and to calibrate density-as-tension lever (gradual density increase = anticipation; sudden density inversion = WOW).",
+    "principle_density_vs_intensity": "Density (notes/sec) and intensity (perceived energy) are correlated but NOT identical. A Verse can be DENSE but LOW-energy (busy hi-hat + soft chord). A Drop can be SPARSE but HIGH-intensity (single huge cluster stab + silence). Density is a tool, intensity is the goal.",
+    "notes_per_second_targets_at_95_bpm": {
+      "comment": "These are SECTION-LEVEL averages, not bar-level. At 95 BPM, 1 beat = 0.632s. A 4/4 bar = 2.53s. An 8th-note pattern = ~3.16 hits/sec.",
+      "by_section_type": {
+        "intro_atmospheric": {
+          "nps_target_range": [0.5, 2.0],
+          "max_simultaneous_voices": 4,
+          "max_active_tracks": 4,
+          "feel": "barely-there texture, single sustained tones",
+          "anti_pattern": "more than 6 voices = not an intro anymore"
+        },
+        "verse_groove": {
+          "nps_target_range": [3, 8],
+          "max_simultaneous_voices": 6,
+          "max_active_tracks": 7,
+          "feel": "established pulse, room for vocal/lead to breathe",
+          "anti_pattern": "more than 12 nps = chorus territory"
+        },
+        "pre_drop_buildup": {
+          "nps_target_range": [5, 15],
+          "max_simultaneous_voices": 7,
+          "max_active_tracks": 8,
+          "feel": "density INCREASING toward drop entry — riser + drum stutter",
+          "rule": "the LAST bar of pre-drop should hit max nps for the section, then DROP to silence or single hit"
+        },
+        "drop_main": {
+          "nps_target_range": [4, 10],
+          "max_simultaneous_voices": 8,
+          "max_active_tracks": 8,
+          "feel": "cluster stabs SHARED across 6+ tracks — this counts as ONE rhythmic event, not 6",
+          "key_insight": "Drop nps lower than Pre-Drop because of NEGATIVE SPACE between cluster stabs — the silence between hits is the design"
+        },
+        "hollow_void": {
+          "nps_target_range": [0.1, 1.0],
+          "max_simultaneous_voices": 2,
+          "max_active_tracks": 3,
+          "feel": "near-silence, drone + isolated tom only",
+          "rule": "must be UNDER intro nps — otherwise not a true hollow"
+        },
+        "bridge_modal": {
+          "nps_target_range": [3, 8],
+          "max_simultaneous_voices": 5,
+          "max_active_tracks": 7,
+          "feel": "modal hover, vocal/lead exposed",
+          "rule": "lower density than Verse 2 (Bridge SHOULD feel less busy than what came before)"
+        },
+        "final_drop_fire": {
+          "nps_target_range": [6, 14],
+          "max_simultaneous_voices": 9,
+          "max_active_tracks": 10,
+          "feel": "highest density of the song BUT every voice has its lane (frequency_surrender enforced)",
+          "key_insight": "Final Drop nps higher than Drop because density itself is part of the climax — but cluster_density of stabs is also higher (8 hits/bar vs 4-5)"
+        },
+        "outro_decay": {
+          "nps_target_range": [0.2, 1.5],
+          "max_simultaneous_voices": 3,
+          "max_active_tracks": 4,
+          "feel": "thinning, fading, single sustained voice carries last note",
+          "rule": "must end UNDER intro nps — outro is a mirror of intro but LESS"
+        }
+      }
+    },
+    "polyphony_budget": {
+      "purpose": "Hard cap on simultaneous voices per track type — enforces frequency_surrender by reducing collision possibilities.",
+      "by_track_role": {
+        "kick": {"max_simultaneous": 1, "comment": "kick is monophonic — never 2 kicks at same time except cluster sync"},
+        "sub_bass": {"max_simultaneous": 1, "comment": "monophonic — 2 sub notes simultaneously = mud"},
+        "bass_lead": {"max_simultaneous": 2, "comment": "octave doubling OK, never chord"},
+        "snare": {"max_simultaneous": 1, "comment": "monophonic — claps/snares stacked count as 1 event via cluster"},
+        "pad": {"max_simultaneous": 4, "comment": "chord voicing, 3-4 voices typical"},
+        "drone": {"max_simultaneous": 1, "comment": "single sustained note is the spine"},
+        "lead_synth": {"max_simultaneous": 2, "comment": "monophonic with octave double for emphasis"},
+        "vocal": {"max_simultaneous": 1, "comment": "monophonic vocal line — harmonies count as separate vocal_layer track"},
+        "fx_riser": {"max_simultaneous": 1, "comment": "single sustained pitch, timbre via automation"}
+      },
+      "section_total_polyphony_max": {
+        "intro": 8,
+        "verse": 14,
+        "drop": 18,
+        "hollow": 4,
+        "bridge": 14,
+        "final_drop": 22,
+        "outro": 6,
+        "comment": "Sum across all active tracks. Exceeding = freq_collision_warning fired by advisor."
+      }
+    },
+    "density_as_tension_lever": {
+      "purpose": "Density is a PROGRESSIVE lever — the most reliable way to build anticipation without adding new musical content.",
+      "techniques": {
+        "gradual_increase": {
+          "description": "Across a 4-bar Pre-Drop, nps grows from 4 to 12. Each bar adds ~2 nps.",
+          "example": "Pre-Drop bar 1: kick + sub (4 nps), bar 2: + snare (6 nps), bar 3: + hihat 16ths (10 nps), bar 4: + roll/stutter (14 nps), then Drop entry RESETS to 8 nps with negative space",
+          "wow_factor": 0.7
+        },
+        "density_inversion_drop": {
+          "description": "After Pre-Drop max density, Drop entry is SPARSER not denser. The contrast hits harder.",
+          "example": "Pre-Drop bar 4 = 14 nps stutter, Drop bar 1 = 4 huge cluster stabs (3-4 nps but each stab is 6 tracks aligned)",
+          "wow_factor": 0.85,
+          "comment": "Counter-intuitive: density DECREASE at the drop = more impact than density INCREASE"
+        },
+        "negative_space_within_density": {
+          "description": "In a high-density section, plant 1 bar of low-density (subbar_silence on hihat) — listener hears the breath",
+          "example": "Final Drop bar 13: hihat mutes for 1 bar while everything else continues = listener feels the gap subliminally",
+          "wow_factor": 0.6
+        }
+      }
+    },
+    "callback_through_density": {
+      "principle": "A specific density profile in an early section can be RESTATED later for callback effect.",
+      "example": "Verse 1 has a unique density signature (e.g., kick + tom_low + sus pad = 5 nps). Bridge uses this exact density signature mid-section = listener subliminally recognizes 'we were here before'."
+    },
+    "anti_patterns_density": [
+      "Drop denser than Final Drop (Final Drop must be PEAK density)",
+      "Hollow denser than Intro (Hollow MUST be the lowest density of the song)",
+      "Verse 2 less dense than Verse 1 (when V2 should ADD complexity to V1)",
+      "Continuous density from Pre-Drop into Drop (the contrast IS the impact)",
+      "All sections at similar density (no shape, no journey)"
+    ]
+  },
+
+  "_TBD_D3": "genres (Cobain, Reznor, Yorke, Daft Punk) + per-genre conditional rules",
   "_TBD_D3": "genres (Cobain, Reznor, Yorke, Daft Punk) + per-genre conditional rules",
   "_TBD_D4": "energy_curves + frequency_space + wow_factors",
   "_TBD_D5": "conditional_rules (B1-B6) + anti_patterns",
