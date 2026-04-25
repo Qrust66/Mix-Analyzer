@@ -25,10 +25,11 @@ Design principles (per the brief):
    ("Hollow" section, 4 bars only) before rebuilding bigger. The Final
    Drop catches fire — closer clusters every beat + riser continuous.
 
-STEPS A1-B2/9 — drums + basses + pad + drone + tension. Bass Sub joins
-the cluster grid on Drops (locks with kick); Bass Lead joins on Drops +
-delivers the snake-charmer maj-3 (F nat) on Verse 2 / Bridge. Pad uses
-sus4 (no commitment to maj/min) to leave the maj-3 to the bass.
+STEPS A1-B3/9 — Phase B done: drums + basses + pad + drone + tension +
+leads + voice + FX. SYN Lead climbs OUT of scale on Bridge (4-note motif
+that half-steps up each iteration); VOX Lead Bridge skips through the
+scale to land on D5 just before the fire. FX Impact triple-hit announces
+the Final Drop ignition.
 """
 
 from __future__ import annotations
@@ -445,6 +446,138 @@ NOTE_GENERATORS["08 BAS Lead"]      = _bas_lead
 NOTE_GENERATORS["09 SYN Pad"]       = _pad
 NOTE_GENERATORS["10 SYN Drone Dark"] = _drone_dark
 NOTE_GENERATORS["15 FX Tension"]    = _fx_tension
+
+
+# --- Leads + Voice + FX (B3) ----------------------------------------------
+#
+# Lead pitch reference (mid-high register, C4=60 convention):
+#   C#4=61  D4=62  E4=64  F4=65  F#4=66  G#4=68  A4=69  B4=71
+#   C#5=73  D5=74  E5=76  F5=77  F#5=78  G#5=80  A5=81  C#6=85
+# F nat in lead register = the maj-3 = snake-charmer venom note.
+
+def _syn_lead(section: str, length: int) -> list[Note]:
+    """Sparse lead. Verse 2: held F4 (the venom maj-3) with one chromatic
+    descent to E4 mid-section. Bridge: 4-note motif [low-high-low-high]
+    that half-steps UP each iteration — AUDACITY: climbs OUT of scale via
+    D# in iter 3 (C# Phrygian Dom doesn't have D#). Drops: cluster sync at
+    C#5 alternating with F5 (root-vs-maj3 venom oscillation)."""
+    notes: list[Note] = []
+    bars = length // 4
+    cluster = cluster_beats(section)
+
+    if section == "Verse 2":
+        # 16 bars: F4 (32) -> E4 (16) -> F4 (16). Three long notes total.
+        notes += [(0.0,  65, 32.0, 100),    # F4 held 8 bars
+                  (32.0, 64, 16.0, 95),     # E4 chromatic descent 4 bars
+                  (48.0, 65, 16.0, 100)]    # F4 return 4 bars
+    elif section == "Bridge":
+        # 8 bars = 4 iterations of 2-bar motif. Climbs half-step each iter.
+        # Iteration N: [low, high, low, high] held 2 beats each.
+        # iter 1: C#4 / F4   (root + maj-3)
+        # iter 2: D4  / F4   (b2 + maj-3)
+        # iter 3: D#4 / F#4  (OUT-OF-SCALE chromatic push)
+        # iter 4: F4  / G#4  (maj-3 + 5 — peak before fire)
+        iters = [(61, 65), (62, 65), (63, 66), (65, 68)]
+        for i, (lo, hi) in enumerate(iters):
+            t = i * 8
+            notes += [(t + 0.0, lo, 2.0, 100),
+                      (t + 2.0, hi, 2.0, 105),
+                      (t + 4.0, lo, 2.0, 100),
+                      (t + 6.0, hi, 2.0, 110)]   # rising velocity per iter end
+    elif section == "Drop 2" and cluster:
+        # 12 bars: 4-bar phrases alternating C#5 / F5
+        for bar in range(bars):
+            t = bar * 4
+            base = 73 if (bar // 4) % 2 == 0 else 77      # C#5 / F5
+            for c in cluster:
+                vel = 115 if c in (0.0, 2.5) else 100
+                notes.append((t + c, base, 0.25, vel))
+    elif section == "Final Drop" and cluster:
+        # 20 bars: cluster sync at C#5; bar-4 of each phrase = octave up C#6
+        for bar in range(bars):
+            t = bar * 4
+            phrase_pos = bar % 4
+            if phrase_pos == 3:
+                base = 85    # C#6 — accent octave-up
+            elif (bar // 4) % 2 == 1:
+                base = 77    # F5 — venom on alternate phrases
+            else:
+                base = 73    # C#5
+            for c in cluster:
+                vel = 118 if c in (0.0, 2.5) else 102
+                notes.append((t + c, base, 0.25, vel))
+    return notes
+
+
+def _vox_lead(section: str, length: int) -> list[Note]:
+    """Sustained vocal voice. Verse 2: held A4 (the 6, planante) -> G#4
+    (5) at end. Bridge: slow crescendo half-step climb F4 -> F#4 -> G#4 ->
+    B4 -> D5 (peak). AUDACITY: skips A and C, jumps straight from G# to B
+    then B to D — anticipates the fire. Final Drop: held wail alternating
+    C#5 / D5 every 4 bars."""
+    notes: list[Note] = []
+
+    if section == "Verse 2":
+        # 16 bars: A4 hold 12, G#4 hold 4
+        notes += [(0.0,  69, 48.0, 95),
+                  (48.0, 68, 16.0, 100)]
+    elif section == "Bridge":
+        # 8-bar climb: 2+2+2+1+1 bars
+        notes += [(0.0,  65, 8.0,  90),     # F4 bars 1-2
+                  (8.0,  66, 8.0,  95),     # F#4 bars 3-4
+                  (16.0, 68, 8.0, 100),     # G#4 bars 5-6 (skip G — in-scale)
+                  (24.0, 71, 4.0, 110),     # B4 bar 7 (skip A, audacity)
+                  (28.0, 74, 4.0, 118)]     # D5 bar 8 (skip C, peak)
+    elif section == "Final Drop":
+        # 20 bars: alternate C#5 / D5 every 4 bars
+        bars = length // 4
+        for phrase in range(bars // 4 + (1 if bars % 4 else 0)):
+            t = phrase * 16
+            if t >= length:
+                break
+            pitch = 73 if phrase % 2 == 0 else 74
+            dur = min(16.0, length - t)
+            notes.append((t, pitch, dur, 105))
+    elif section == "Outro":
+        # F4 held entire section — maj-3 lingering fade
+        notes.append((0.0, 65, float(length), 80))
+    return notes
+
+
+def _fx_riser(section: str, length: int) -> list[Note]:
+    """Single sustained note covering the whole section — synth patch /
+    Volume automation in C2 makes the actual riser timbre."""
+    return [(0.0, 60, float(length), 90)]
+
+
+def _fx_impact(section: str, length: int) -> list[Note]:
+    """Transition impact hits. Drop 1 / Drop 2 enter with a single punch.
+    AUDACITY: Final Drop opens with THREE CLOSE HITS (beats 0, 1, 2 of
+    bar 1) — a triple-trigger ignition that mirrors the cluster density
+    of the section. Then sparse marker hits every 4 bars."""
+    notes: list[Note] = []
+    bars = length // 4
+    if section == "Drop 1":
+        notes.append((0.0, 60, 1.0, 120))
+    elif section == "Drop 2":
+        notes += [(0.0, 60, 1.0, 120),
+                  (16.0, 60, 1.0, 115)]
+    elif section == "Final Drop":
+        # Triple-hit ignition (beats 0, 1, 2 of bar 1)
+        notes += [(0.0, 60, 0.75, 124),
+                  (1.0, 60, 0.75, 122),
+                  (2.0, 60, 0.75, 120)]
+        # Sparse markers at bar 5, 9, 17
+        for bar in (4, 8, 16):
+            if bar < bars:
+                notes.append((bar * 4, 60, 1.0, 115))
+    return notes
+
+
+NOTE_GENERATORS["11 SYN Lead"]      = _syn_lead
+NOTE_GENERATORS["12 VOX Lead"]      = _vox_lead
+NOTE_GENERATORS["13 FX Riser"]      = _fx_riser
+NOTE_GENERATORS["14 FX Impact"]     = _fx_impact
 
 
 def gen_notes(track: str, section: str, length: int) -> list[Note]:
