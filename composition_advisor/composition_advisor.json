@@ -1919,5 +1919,119 @@
         }
       }
     }
+  },
+
+  "song_dissection_exhaustive": {
+    "purpose": "Augmented per-song dissection following the user's specific song list. Schema covers ALL releasable mechanics: composition (sheet-music level — sections, harmony, modes, melodic contour), arrangement, performance, recording (studio/engineer/micing/instruments), mixing (engineer, processing, treatments), mastering when documented. Drawn from interviews, production lore, AES papers — never melodic transcription, never lyrics. Each fiche extracts 4-6 advisor recipes scored by wow_factor.",
+    "schema_template": {
+      "_documentation": "Each song fiche follows this layout. Fields populated only when widely documented; left as 'undocumented' otherwise to avoid invention.",
+      "fields": [
+        "tempo_bpm + time_signature + key + tuning_documented",
+        "composition: structural_blueprint, harmonic_motion, modal_choice, melodic_contour",
+        "arrangement: instrumentation, section_instrumentation, vocal_layering, dynamic_arc",
+        "performance: tempo_feel, drum_style, guitar_style, vocal_delivery",
+        "recording: studio, engineer, drum_micing, guitar_tracking, vocal_tracking, notable_instruments",
+        "mixing: mix_engineer, console, compression, stereo_image, vocal_treatment, drum_treatment",
+        "mastering: mastering_engineer, loudness_approach when documented",
+        "the_moment_people_remember: effect description, not transcription",
+        "advisor_extract: 4-6 recipes with wow_factors"
+      ]
+    },
+    "by_artist": {
+      "Nirvana": {
+        "_meta": {
+          "albums_in_scope": ["In Utero (1993)", "Nevermind (1991)"],
+          "primary_engineers": ["Steve Albini (In Utero tracking)", "Scott Litt (In Utero remix on Heart-Shaped Box and All Apologies)", "Butch Vig (Nevermind tracking)", "Andy Wallace (Nevermind mix)"],
+          "documentation_sources": "Cross 'Heavier Than Heaven', Azerrad 'Come As You Are', Albini interviews on Pachyderm sessions, Vig + Wallace interviews in Mix Magazine / Tape Op",
+          "songs_to_dissect": ["Heart_Shaped_Box", "Dumb", "Territorial_Pissings", "Very_Ape", "All_Apologies"]
+        },
+        "Heart_Shaped_Box": {
+          "_status": "stub_pending_full_dissection_C1_1",
+          "album": "In Utero",
+          "year": 1993
+        },
+        "Dumb": {
+          "_status": "stub_pending_full_dissection_C1_2",
+          "album": "In Utero",
+          "year": 1993
+        },
+        "Territorial_Pissings": {
+          "_status": "stub_pending_full_dissection_C1_3",
+          "album": "Nevermind",
+          "year": 1991
+        },
+        "Very_Ape": {
+          "_status": "stub_pending_full_dissection_C1_4",
+          "album": "In Utero",
+          "year": 1993
+        },
+        "All_Apologies": {
+          "_status": "stub_pending_full_dissection_C1_5",
+          "album": "In Utero",
+          "year": 1993
+        }
+      },
+      "Soundgarden": {
+        "_meta": {
+          "albums_in_scope": ["Badmotorfinger (1991)", "Superunknown (1994)", "Down on the Upside (1996)"],
+          "primary_engineers": ["Terry Date (Badmotorfinger)", "Michael Beinhorn (Superunknown)", "Adam Kasper (Down on the Upside)"],
+          "documentation_sources": "Beinhorn / Date / Kasper interviews in Mix Magazine, Greg Prato 'Grunge Is Dead', Cornell interviews, Matt Cameron drum clinics",
+          "songs_to_dissect": ["Jesus_Christ_Pose", "Fell_On_Black_Days", "My_Wave", "Overfloater", "Head_Down"]
+        },
+        "Jesus_Christ_Pose": {
+          "_status": "stub_pending_full_dissection_C2_1",
+          "album": "Badmotorfinger",
+          "year": 1991
+        },
+        "Fell_On_Black_Days": {
+          "_status": "stub_pending_full_dissection_C2_2",
+          "album": "Superunknown",
+          "year": 1994
+        },
+        "My_Wave": {
+          "_status": "stub_pending_full_dissection_C2_3",
+          "album": "Superunknown",
+          "year": 1994
+        },
+        "Overfloater": {
+          "_status": "stub_pending_full_dissection_C2_4",
+          "album": "Down on the Upside",
+          "year": 1996
+        },
+        "Head_Down": {
+          "_status": "stub_pending_full_dissection_C2_5",
+          "album": "Superunknown",
+          "year": 1994
+        }
+      },
+      "Smashing_Pumpkins": {
+        "_meta": {
+          "albums_in_scope": ["Siamese Dream (1993)", "Mellon Collie and the Infinite Sadness (1995)"],
+          "primary_engineers": ["Butch Vig (Siamese Dream)", "Flood + Alan Moulder (Mellon Collie)"],
+          "documentation_sources": "Vig interviews, Flood + Moulder mix engineering notes, Corgan interviews on guitar layering philosophy",
+          "songs_to_dissect": ["Quiet", "Soma", "Bodies", "Zero"]
+        },
+        "Quiet": {
+          "_status": "stub_pending_full_dissection_C3_1",
+          "album": "Siamese Dream",
+          "year": 1993
+        },
+        "Soma": {
+          "_status": "stub_pending_full_dissection_C3_2",
+          "album": "Siamese Dream",
+          "year": 1993
+        },
+        "Bodies": {
+          "_status": "stub_pending_full_dissection_C3_3",
+          "album": "Mellon Collie and the Infinite Sadness",
+          "year": 1995
+        },
+        "Zero": {
+          "_status": "stub_pending_full_dissection_C3_4",
+          "album": "Mellon Collie and the Infinite Sadness",
+          "year": 1995
+        }
+      }
+    }
   }
 }
