@@ -3973,7 +3973,7 @@
           ]
         },
         "Overfloater": {
-          "_status": "C2_4a_composition_arrangement_done",
+          "_status": "C2_4b_performance_recording_done",
           "album": "Down on the Upside",
           "year": 1996,
           "tempo_bpm_documented_range": [76, 84],
@@ -4040,6 +4040,110 @@
             ],
             "what_makes_arrangement_unique_within_soundgarden": "Overfloater represents Soundgarden's PSYCHEDELIC + JAM-INFLUENCED side. Where most Soundgarden tracks feature clear sectional dynamics + Cornell's vocal as primary, Overfloater features ATMOSPHERIC EXPLORATION + EXTENDED INSTRUMENTAL BRIDGE. The vocal-absent multi-minute middle is structurally bold for a 'rock band' format.",
             "comparison_to_jam_band_aesthetics": "Overfloater shows Soundgarden's connection to extended-form rock traditions (Pink Floyd, Led Zeppelin's longer tracks). Where Cornell could write tight pop songs (Black Hole Sun), this song demonstrates the band's capacity for sustained atmospheric exploration — a different musical lineage."
+          },
+          "performance": {
+            "tempo_feel_description": "Slow ~80 BPM with documented LANGUID feel — tempo lets every element breathe and sustain. Tracked LIVE per Down on the Upside's documented self-produced approach with Adam Kasper. The slow tempo demands precision (any drift exposed) but invites atmospheric playing rather than tight rhythmic precision.",
+            "drum_style": {
+              "performer": "Matt Cameron",
+              "feel": "Cameron's most JAM-INFLUENCED playing on the album. Restrained, atmospheric, supports the song's exploratory quality rather than driving it forward.",
+              "techniques_documented": [
+                "Slow 4/4 with kick + snare backbeat at ballad-adjacent pace",
+                "Hi-hat 8ths or quarter notes — minimal articulation",
+                "Cymbal washes (slow swells, bell rolls) used texturally rather than as section markers",
+                "Bridge: drums maintain steady atmosphere through the extended instrumental — no fills as variation, just sustained groove",
+                "Tom hits sparse and intentional"
+              ],
+              "groove_feel_alignment": "On beat, slight LAID-BACK feel matches the song's atmospheric character",
+              "fills_and_transitions": "Minimal — atmospheric continuity priority over section markers. The song's flow comes from sustained groove, not drum punctuation."
+            },
+            "guitar_style": {
+              "performer_thayil": "Kim Thayil — atmospheric textures + bridge lead lines (the bridge is Thayil's compositional showcase)",
+              "performer_cornell": "Chris Cornell — sustained chord textures supporting Thayil",
+              "feel_per_section": {
+                "intro_atmospheric": "Clean/lightly overdriven sustained tones, slow chord changes",
+                "verse": "Continued sustained guitar texture, vocal-supportive",
+                "chorus": "Slight density increase via guitar layering",
+                "extended_bridge": "Thayil's lead lines explore over rhythm section's continued atmosphere — multi-minute melodic guitar work",
+                "outro": "Returns to chorus texture, fades naturally"
+              },
+              "techniques_documented": [
+                "Drop D tuning with sustained chord voicings",
+                "Atmospheric guitar approach — sustain + slight feedback used texturally",
+                "Bridge lead lines: melodic phrasing, not virtuosic shred — Thayil's documented style",
+                "Two-guitar layering for sustained chord thickness"
+              ],
+              "playing_style_versus_other_soundgarden": "Where JCP guitars provide aggressive distortion identity and FOBD guitars use clean-to-distorted dynamic shift, Overfloater guitars create ATMOSPHERIC TEXTURE that serves as the song's continuous fabric. Guitars as ATMOSPHERE rather than as RIFF or as DYNAMIC LEVER."
+            },
+            "bass_performance": {
+              "performer": "Ben Shepherd",
+              "role": "Atmospheric + melodic bass. Shepherd plays slow melodic root motion that supports the sustained guitars without rushing the harmonic pacing. The bass contributes to the song's meditative quality rather than driving rhythmic energy."
+            },
+            "vocal_delivery": {
+              "performer": "Chris Cornell",
+              "verse_delivery": "LANGUOROUS — Cornell's most sustained, contemplative vocal style on the album. Phrases held longer than typical Soundgarden, breath-supported delivery without strain.",
+              "chorus_delivery": "Subtle lift to upper-mid register, sustained held notes. Less dramatic than FOBD or JCP — the chorus is harmonic + melodic atmosphere, not explosion.",
+              "outro_delivery": "Returns to verse-style sustained delivery, fades naturally with the song",
+              "documented_vocal_quirks": [
+                "Cornell at his most ATMOSPHERIC vocal — different from his aggressive (JCP) or dynamic-shift (FOBD) approaches",
+                "Vocal absent for entire extended instrumental bridge — the song trusts the band to carry the listener through the bridge without vocal anchor",
+                "Multiple complete takes recorded; best chosen per Down on the Upside's documented approach"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization or pitch correction (preserves natural feel)",
+              "No drum sample replacement",
+              "No vocal layering as dynamic device — single voice carries the atmospheric quality",
+              "No drum fills used as section markers — atmospheric continuity priority"
+            ]
+          },
+          "recording": {
+            "studio": "Studio Litho, Seattle, Washington (Stone Gossard's studio — documented Down on the Upside primary tracking location)",
+            "session_dates": "1995-1996 sessions",
+            "primary_engineer_producer": "Adam Kasper (co-producer with Soundgarden — the album was famously SELF-PRODUCED with Kasper as engineer/co-producer rather than external producer-driven)",
+            "subsequent_remix": "Adam Kasper mixed (the band + Kasper handled mixing rather than separating producer + mix engineer roles like Beinhorn/O'Brien)",
+            "drum_micing_approach": {
+              "philosophy_kasper": "Multiple close mics + room mics. Studio Litho's tracking room captures kit with controlled ambience. Kasper's approach more BAND-DRIVEN than producer-imposed — the band had final say on tracking decisions.",
+              "specifics_for_overfloater": [
+                "Slow tempo + restrained Cameron playing means room mics capture extensive natural decay",
+                "Drum sound NATURAL and breathing — closer to Albini's room emphasis than Date's compression-tracking",
+                "Light compression at tracking, but more dynamic range preserved than Beinhorn's Superunknown work"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_kasper_with_band": "Two-guitar approach standard, but with EMPHASIS on TEXTURE over distortion punch",
+              "specifics_documented": [
+                "Drop D tuned guitars",
+                "Sustained chord voicings recorded with priority on natural sustain — minimal compression at tracking",
+                "Bridge lead lines tracked with care for Thayil's atmospheric phrasing",
+                "Tube amps (Soundgarden Down on the Upside era options)"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Ben Shepherd",
+              "specifics": "DI + amp blend per Studio Litho approach. Shepherd's melodic + atmospheric role required clarity for the slow harmonic motion to read."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_kasper": "Vocal isolation booth at Studio Litho, but with attention to natural feel preservation",
+              "specifics_documented": [
+                "Cornell tracked in vocal booth, dynamic mic for high SPL capability",
+                "Sustained languid delivery captured cleanly — long held notes preserved without compression artifacts",
+                "Multiple complete takes selected (Kasper's documented approach matches Beinhorn's selection-not-comping philosophy)"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Drop D tuned guitars",
+              "Tube amps (Soundgarden's documented Down on the Upside era options)",
+              "Studio Litho's console (Studio Litho documented as having Neve console in main room)",
+              "Cameron's full kit"
+            ],
+            "what_makes_kasper_recording_distinct": [
+              "BAND-DRIVEN production approach — the band had final say on tracking decisions, Kasper as engineer/co-producer rather than authoritative producer",
+              "More NATURAL recording aesthetic than Beinhorn's Superunknown (which had more producer-shaping)",
+              "Light compression at tracking — preserves dynamic range for the song's atmospheric character",
+              "Engineer + mixer roles unified (Kasper handled both) — closer to Date's Badmotorfinger approach than Beinhorn/O'Brien split"
+            ],
+            "kasper_vs_beinhorn_for_soundgarden": "Beinhorn (Superunknown 1994): more PRODUCER-DRIVEN, paired with O'Brien for separate mixing. Kasper (Down on the Upside 1996): more BAND-DRIVEN, handled both engineering + mixing. The shift from Beinhorn-to-Kasper across Soundgarden's catalog reflects the band's growing self-direction in their late period.",
+            "production_philosophy_progression_across_soundgarden_catalog": "DATE (1991 Badmotorfinger): tracker-mixer dual role, capture-focused, raw. BEINHORN (1994 Superunknown): producer-driven with separate O'Brien mixer, more shaped/polished. KASPER (1996 Down on the Upside): band-driven, engineer/co-producer dual role, natural + atmospheric. Three production approaches across three Soundgarden albums — the same band's relationship to producers evolved across their catalog."
           }
         },
         "Head_Down": {
