@@ -1946,7 +1946,7 @@
           "songs_to_dissect": ["Heart_Shaped_Box", "Dumb", "Territorial_Pissings", "Very_Ape", "All_Apologies"]
         },
         "Heart_Shaped_Box": {
-          "_status": "C1_1b_performance_recording_done",
+          "_status": "C1_1c_complete_exhaustive_gold_standard",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [100, 104],
@@ -2103,7 +2103,84 @@
               "Albini's NO-compression-at-tracking philosophy preserves dynamic range for mix decisions later",
               "Live full-band tracking maintains performance energy that overdub-isolated tracking loses"
             ]
-          }
+          },
+          "mixing": {
+            "history_documented": "TWO mix versions exist for Heart-Shaped Box. Albini's original mix was tracked + mixed by Albini at Pachyderm. The label and band found this mix too raw, particularly on this single. Scott Litt was brought in to remix Heart-Shaped Box and All Apologies for the released album version. Album balance: 11 of 13 tracks are Albini's original mix, only HSB and All Apologies are Litt remixes.",
+            "albini_original_mix_characteristics_documented": [
+              "Drums prominent and roomy (Albini room-mic philosophy)",
+              "No bus compression on master — dynamics preserved",
+              "Vocal less prominent than typical commercial mix — sits in band, not above it",
+              "Minimal time-domain processing (delay, reverb) — what's there is the room, not added effects"
+            ],
+            "litt_remix_characteristics_documented": [
+              "VOCAL processing added: compression for consistency, slight delay/reverb for space and intimacy in verse, slight short-room ambience in chorus",
+              "Drum balance adjusted: less room, more close-mic punch — drums tighter and more focused",
+              "Guitar EQ adjustments to add presence and bite (specific frequencies not exhaustively documented)",
+              "Overall mix is COMMERCIAL — radio-ready vs Albini's purist live-document approach"
+            ],
+            "released_version_mix_engineer": "Scott Litt (R.E.M. producer, brought in for HSB and All Apologies)",
+            "console_documented": "Litt's mixing room console at the time was an SSL — specific room not exhaustively documented, but Litt's documented preference is SSL-style consoles",
+            "compression_philosophy_albini_vs_litt": {
+              "albini": "Capture-not-shape — no master bus comp, individual track compression rare or absent",
+              "litt": "Standard commercial mixing comp on individual tracks (vocal comp prominent), bus compression for glue"
+            },
+            "stereo_image_strategy": "Guitar tracked likely with stereo room mics, panned wide. Bass center. Drums: kick + snare center, hi-hat slightly off-center, overheads spread, room mics wide. Vocal center.",
+            "vocal_treatment_litt_remix": "Compression for consistency (Cobain's dynamic delivery range was wide). Subtle plate or chamber reverb adding 'depth' without obvious room sound. The Litt remix version's vocal ambience is significantly different from Albini's drier original.",
+            "drum_treatment_litt_remix": "Tightened with parallel compression (documented as common Litt approach), close-mic balance favored over Albini's room mics, snare possibly enhanced with sample reinforcement (not confirmed exhaustively but matches era practice)",
+            "what_was_lost_vs_albini_original": "Some of the original RAW live-band-in-a-room quality. The released HSB is more polished; the Albini mix preserved the actual sound of the band playing together in the Pachyderm room.",
+            "what_was_gained_via_litt_remix": "Radio playability. Vocal intelligibility. Commercial loudness and presence. Listenability on the era's standard playback systems."
+          },
+          "mastering": {
+            "mastering_engineer_album": "Bob Ludwig (Gateway Mastering, Maine) — documented mastering engineer for In Utero",
+            "loudness_approach_documented": "1993 mastering era — pre-loudness-war norms. Dynamic range was preserved compared to post-2000 masters. The album sits at moderate apparent loudness for the era.",
+            "vinyl_vs_cd_documented": "Original CD release mastered by Ludwig. Vinyl release used different mastering pass (vinyl requires different EQ + level decisions).",
+            "subsequent_remasters_documented": "20th anniversary edition (2013) remastered (potentially by other engineers — exact attribution to verify per release)",
+            "tonal_balance_at_release": "1993 grunge mastering era — full bass, present mids, brighter top than typical previous-decade masters. The In Utero master is consistent with mid-90s alt-rock loudness target."
+          },
+          "the_moment_people_remember": {
+            "primary": "The microtonal bent guitar riff that opens the song. The bend lands the note slightly OUT of standard pitch — listeners experience it as 'broken' or 'wrong' but are unable to look away. This 4-bar instrumental intro before any other instrument enters is iconic; the riff is so identifiable that listeners often remember it as the song itself.",
+            "secondary": "The chorus dynamic expansion — the chorus does not detonate (unlike SLTS) but BLOOMS. Vocal layer doubles, distortion engages, drums open up. The bloom feels INEVITABLE rather than surprising.",
+            "tertiary": "The outro extension — the song does not END, it continues until it fades. The repetition + degradation of vocal across the outro creates the song's emotional weight."
+          },
+          "advisor_extract": [
+            {
+              "recipe_name": "microtonal_bend_as_signature_riff",
+              "description": "A central instrumental hook can be made unforgettable by a deliberate MICROTONAL element (string bend that lands slightly out of pitch, or a synth detune of ~10-15 cents on a sustained note). The 'wrongness' becomes the identifier. Use on the song's main hook only — not throughout.",
+              "use_for": ["Signature guitar/synth riffs", "any single line that needs immediate identification", "intros that establish identity in 4 bars"],
+              "wow_factor": 0.85,
+              "warning": "If overused (every line is microtonal), the effect becomes random rather than deliberate"
+            },
+            {
+              "recipe_name": "slow_burn_arrival_not_explosion",
+              "description": "Build from intro through verse 1 / chorus 1 / verse 2 / chorus 2 / bridge / outro WITHOUT any single section being a detonation. The song's true peak is the OUTRO — the song is ARRIVED AT, not detonated. Each section adds slightly more layer/density.",
+              "use_for": ["Ballad-format dark songs", "Songs that want mature weight rather than youthful explosion", "tracks 4+ minutes long that need internal pacing"],
+              "wow_factor": 0.8
+            },
+            {
+              "recipe_name": "vocal_layer_count_as_dynamic_lever",
+              "description": "Verse: SINGLE vocal. Chorus: DOUBLED vocal. Outro: STACKED multiple vocals. The perceived 'size' of each section is layer count, not just volume. Listener responds to layer count subliminally — feels chorus 'bigger' even if absolute volume difference is small.",
+              "use_for": ["Verse-Chorus dynamics that should feel 'bigger' without louder mastering", "any section transition wanting density shift"],
+              "wow_factor": 0.75
+            },
+            {
+              "recipe_name": "feedback_as_compositional_layer_in_bridge",
+              "description": "Bridge has SUSTAINED guitar feedback (or synth pad equivalent) underneath the lead instrument's solo. Feedback is treated as harmonic FOUNDATION, not transition artifact. Provides drone-like continuity across the bridge.",
+              "use_for": ["Bridge moments needing 'broken' atmospheric texture", "instrumental sections wanting underlying tension"],
+              "wow_factor": 0.7
+            },
+            {
+              "recipe_name": "albini_vs_litt_two_mix_versions",
+              "description": "When mixing, consider whether the song wants RAW LIVE-DOCUMENT character (Albini approach: room mics emphasized, no master comp, vocal sits in band) OR COMMERCIAL POLISH character (Litt approach: close-mic punch, vocal compression and intelligibility, master glue comp). The two are different aesthetics — pick deliberately, don't default to commercial.",
+              "use_for": ["Mix decisions on tracks where rawness vs polish is the artistic choice", "alternative mix philosophy when commercial template doesn't serve the song"],
+              "wow_factor": 0.7
+            },
+            {
+              "recipe_name": "delayed_rhythm_section_entry_4_bars",
+              "description": "Open the song with the LEAD MELODIC INSTRUMENT alone for 4 bars (in HSB's case, guitar with the bend riff). Bass + drums delayed entry by 4 full bars. Establishes the riff's identity before listener's body locks into a groove.",
+              "use_for": ["Intros that center a melodic hook over groove", "songs where the riff IS the song"],
+              "wow_factor": 0.75
+            }
+          ]
         },
         "Dumb": {
           "_status": "stub_pending_full_dissection_C1_2",
