@@ -2438,7 +2438,7 @@
           ]
         },
         "Territorial_Pissings": {
-          "_status": "C1_3b_performance_recording_done",
+          "_status": "C1_3c_complete_exhaustive",
           "album": "Nevermind",
           "year": 1991,
           "tempo_bpm_documented_range": [175, 180],
@@ -2613,7 +2613,83 @@
               "The Vig-Wallace combination produced THE Nevermind sound: drier compressed drums, bright guitars, vocal forward with consistency"
             ],
             "vig_vs_albini_philosophical_contrast": "Vig represents the PRODUCED rock approach — multi-take guitar layers, compression at tracking, vocal in isolated booth. Albini represents the CAPTURED rock approach — single-take live tracking, no tracking compression, vocal in tracking room. Cobain documented as ambivalent about Nevermind's polish, leading to In Utero's deliberate move to Albini for an opposite aesthetic."
-          }
+          },
+          "mixing": {
+            "history_documented": "SINGLE released mix version: Andy Wallace's commercial mix at Scream Studios. Wallace was brought in after Vig's tracking because Geffen Records wanted a more radio-ready commercial sound than Vig's rougher tracking mixes. Wallace's mix defined the famous 'Nevermind sound' that became the standard for 90s alternative rock.",
+            "wallace_mix_characteristics_documented": [
+              "Heavy compression — both individual tracks and master bus glue compression. The mix sounds DENSE and CONTROLLED.",
+              "BRIGHT EQ — Wallace pushes high-mid and high-frequency presence. The album sounds bright compared to early-90s alt-rock peers.",
+              "Drums tightened: snare HEAVILY compressed (the famous Wallace snare crack), kick punchy, room mics blended subtly rather than featured",
+              "Guitars layered Vig-style but mixed with significant high-mid presence — the chorus walls have brightness, not just thickness",
+              "Vocal forward and compressed — Cobain's vocal sits ON TOP of the band rather than in it (anti-Albini approach)",
+              "Stereo image WIDE — guitar panning aggressive, room/reverb panned wide, vocal centered for radio mono compatibility"
+            ],
+            "released_version_mix_engineer": "Andy Wallace at Scream Studios, Studio City, California",
+            "console_documented": "Wallace's mixing room at Scream Studios — typically used SSL G-series consoles for his mid-90s mixes (specific room console at the time documented in Wallace interviews)",
+            "compression_philosophy_wallace_specifically_for_territorial_pissings": "At this song's tempo and aggression, Wallace's compression actually CONTAINS the chaos — without it, the screamed vocal + maxed distortion + fast drums would be unmixable. The compression makes the song listenable while preserving its aggression. This is one of the most extreme mixing tasks on the album.",
+            "stereo_image_strategy_for_this_song": [
+              "Drums: kick + snare center, hi-hat slightly off-center, overheads spread, room mics blended in (less wide than Sound City room would suggest)",
+              "Guitar layered takes panned hard left and hard right — contributes to the wall-of-sound feel",
+              "Bass center",
+              "Cobain vocal center, slightly compressed forward",
+              "Krist Novoselic intro vocal: documented as centered, dry, exposed (no reverb/delay) — minimal processing for the intro that contrasts with the post-slam compressed band sound"
+            ],
+            "vocal_treatment": "Cobain's screamed vocal: heavy compression (3-4dB GR likely), de-essing applied to control screamed sibilance, slight high-mid presence boost, minimal reverb/delay — the vocal sits forward and DRY rather than spaced",
+            "drum_treatment": "Wallace's signature parallel compression on drum bus, snare possibly enhanced with sample reinforcement (era-standard practice — not exhaustively confirmed for this specific song but matches Wallace approach), kick with click/sub layered for radio playback consistency",
+            "what_wallace_mix_demonstrates_for_this_song": "Territorial Pissings is the song where Wallace's commercial-mix approach is most NECESSARY. The aggression at this tempo cannot be tracked-and-released-raw — without mix compression, the song would be unlistenable. Wallace's intervention preserves the band's intent while making the song fit consumer playback systems.",
+            "comparison_to_in_utero_aesthetic": "If In Utero's tracks live in a ROOM (Pachyderm), Nevermind's tracks live in a SPEAKER STACK (Wallace mix). Different ontologies. The same band, two years apart, sounds like two different bands largely because of mixing philosophy."
+          },
+          "mastering": {
+            "mastering_engineer_album": "Howie Weinberg at Masterdisk, New York (Nevermind original master) — different mastering engineer from In Utero (which was Bob Ludwig at Gateway). Weinberg's approach for Nevermind set radio-ready loudness for the early-90s alt-rock target.",
+            "loudness_approach_documented": "1991 mastering — early loudness-war era. Weinberg's master pushed Nevermind LOUDER than typical 1991 alt-rock releases, contributing to the album's radio dominance. Dynamic range is more compressed than In Utero's master.",
+            "vinyl_vs_cd_documented": "Original CD master by Weinberg (1991). Vinyl release used different mastering pass. Subsequent reissues (20th anniversary 2011) remastered by other engineers per release liner notes.",
+            "subsequent_remasters_documented": "20th anniversary edition (2011) remastered — specific engineer attribution in album liner notes. The remaster increased perceived loudness further per loudness-war era practice.",
+            "tonal_balance_at_release": "Bright top end (Wallace mix already bright; mastering preserved this), present mids, controlled bass. Weinberg's master is documented as one of the louder alt-rock masters of its era — contributed to the album's radio impact.",
+            "weinberg_vs_ludwig_philosophical_contrast": "Weinberg (Nevermind master): louder, more compressed, radio-target. Ludwig (In Utero master): more dynamic range preserved, less compressed, album-context. Same band, different mastering engineers, different release-year norms — the masters reflect both."
+          },
+          "the_moment_people_remember": {
+            "primary": "The A CAPPELLA INTRO INTO BAND SLAM — the contrast between solo unaccompanied voice and full-band maximum-distortion entry is the song's structural identity. Listener has zero preparation for the slam — no drum count-in, no fade-in. The slam IS the moment.",
+            "secondary": "The UNRELENTING SPEED + AGGRESSION — for ~2 minutes after the intro, the song does not let up. No bridge for breath, no chorus dynamic shift. The lack of variation IS the variation.",
+            "tertiary": "The ABRUPT END — song stops mid-phrase, no fade, no resolution. Anti-pop convention. The listener is left in silence after maximum chaos."
+          },
+          "advisor_extract": [
+            {
+              "recipe_name": "a_cappella_fakeout_intro_into_band_slam",
+              "description": "Open the song with a SINGLE VOCAL phrase, a cappella (no instruments), for 2-4 bars. Voice MUST be casual/restrained. Then ALL INSTRUMENTS enter SIMULTANEOUSLY at maximum intensity on the next downbeat — no fade-in, no individual entries, no drum count-in. The contrast between zero-density and max-density is the impact. Listener has no way to predict the slam.",
+              "use_for": ["Drop entries that must surprise (more impactful than interrupted_silence cadence at high tempos)", "songs that want to subvert listener pattern-recognition", "tracks targeting hardcore-punk-influenced aesthetics"],
+              "wow_factor": 0.90,
+              "implementation_for_modern_compositions": "In MIDI/electronic context: 4 bars of a single sustained vocal sample (or vocoder), all other tracks empty. Bar 5 downbeat: ALL TRACKS simultaneously enter at max velocity/density. The transition must be a hard cut, not a fade.",
+              "warning": "Use ONCE per song. The fakeout's surprise is single-use; if attempted again later, listener will brace for it."
+            },
+            {
+              "recipe_name": "unrelenting_aggression_no_dynamic_arc",
+              "description": "After the initial slam, sustain MAXIMUM band density and intensity for the song's entire ~2 minutes. No bridge for breath. No chorus dynamic shift. No verse restraint. The LACK of variation IS the variation — listener experiences the section as a single sustained intensity.",
+              "use_for": ["Hardcore punk-influenced tracks", "songs under 3 minutes", "Drops that prefer sustained intensity over peak-and-release"],
+              "wow_factor": 0.75,
+              "warning": "Requires VERY short runtime (under 3 min). At 4+ minutes, the lack of variation becomes monotonous. Pair with COMPACT FORM (recipe from Dumb)."
+            },
+            {
+              "recipe_name": "abrupt_song_end_no_fade",
+              "description": "Cut the song mid-phrase or on the last beat of a chorus — NO fade-out, NO sustained final chord, NO resolution. The listener is left in silence after the song ends. Anti-commercial-radio convention.",
+              "use_for": ["Album tracks (not radio singles)", "songs that want to leave listener unsettled", "tracks where resolution would feel cheap"],
+              "wow_factor": 0.70,
+              "implementation_for_modern_compositions": "In Ableton context: use a hard edit at the end of the final bar, no automation fade, no reverb tail in the master output. The audio CUTS to silence."
+            },
+            {
+              "recipe_name": "wallace_compressed_brightness_vs_albini_room",
+              "description": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room capture. The compression is REQUIRED to make the song listenable on consumer playback — the mix is a CONTAINER for the chaos. This is the OPPOSITE of the cello-ballad recipe (albini_mix_pure_capture_no_remix).",
+              "use_for": ["Aggressive drops where mix clarity matters", "tracks where the listener needs to perceive structure within max density", "anything mastering for radio-target loudness"],
+              "wow_factor": 0.65,
+              "philosophical_note": "The advisor must KNOW which mix philosophy a section needs. Slow-burn intimate sections want Albini approach; aggressive max-density sections want Wallace approach. The choice is part of composition."
+            },
+            {
+              "recipe_name": "screamed_single_take_vocal_no_doubling",
+              "description": "Track the vocal as SINGLE-TAKE screamed delivery. No doubling, no harmony, no comping from many short pieces. The PERFORMANCE INTEGRITY is preserved — listener hears Cobain as a complete physical event, not a constructed assembly.",
+              "use_for": ["Aggressive tracks where physical performance authenticity is the goal", "vocal moments that should feel like ONE moment, not a layered moment"],
+              "wow_factor": 0.65,
+              "implementation_for_modern_compositions": "In MIDI vocal-synth context: use velocity randomization to simulate screaming variation, but DO NOT layer multiple synth voices. One voice. Allow pitch wobble (not pitch correction) for authenticity."
+            }
+          ]
         },
         "Very_Ape": {
           "_status": "stub_pending_full_dissection_C1_4",
