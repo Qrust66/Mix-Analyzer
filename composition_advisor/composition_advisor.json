@@ -3205,7 +3205,7 @@
           "songs_to_dissect": ["Jesus_Christ_Pose", "Fell_On_Black_Days", "My_Wave", "Overfloater", "Head_Down"]
         },
         "Jesus_Christ_Pose": {
-          "_status": "C2_1b_performance_recording_done",
+          "_status": "C2_1c_complete_exhaustive",
           "album": "Badmotorfinger",
           "year": 1991,
           "tempo_bpm_documented_range": [100, 110],
@@ -3382,7 +3382,92 @@
               "Vocal isolation: more isolated than Albini's room approach (matches Cornell's high-range demands which need clean capture without room reflections muddying)"
             ],
             "date_vs_albini_vs_vig_philosophical_position": "Three production philosophies on these grunge-era recordings: ALBINI (pure capture, room emphasis, no tracking comp, vocal in tracking room) → captures live performance integrity. VIG (multi-take layering, compression at tracking, vocal isolation booth) → builds polished commercial product. DATE (between the two — selective compression for control, two-guitar layering for thickness, vocal isolation for high-SPL clarity) → balances aggression containment with performance preservation. Each philosophy serves a different aesthetic intent."
-          }
+          },
+          "mixing": {
+            "history_documented": "SINGLE released mix version: Terry Date mixed his own production (standard Date practice — he tracks AND mixes). The released album version of JCP is Date's only mix; no remix versions exist for this track.",
+            "date_mix_characteristics_documented": [
+              "Heavy COMPRESSION on drum bus — contains Cameron's complex pattern within a controlled level envelope so the syncopation reads clearly without dynamic chaos",
+              "TWO-GUITAR STEREO SEPARATION — Thayil panned hard left, Cornell guitar panned hard right (standard 2-guitar wide-panning approach, gives each guitar its own stereo lane)",
+              "Bass center, locked with kick — combined low-frequency punch fundamental to the song's weight",
+              "Cornell vocal CENTERED, forward in mix — high-range delivery sits above the wall of distorted guitars",
+              "Bright EQ — high-mid presence push on guitars and vocal, contributing to the song's piercing aggression",
+              "Master bus compression for glue — contains the album's aggressive content within a consistent level"
+            ],
+            "released_version_mix_engineer": "Terry Date at Studio D (same facility as tracking)",
+            "console_documented": "Studio D's Neve console used for both tracking and mixing — Date often mixed on the same console used for tracking (less translation problems)",
+            "compression_philosophy_date": "Date applies SELECTIVE heavy compression — drums compressed for control of Cameron's busy pattern, vocal compressed for consistency of Cornell's dynamic range, master bus glue for album consistency. NOT pure capture (Albini) and NOT mix-driven processing (Wallace) — Date's compression is INFORMED by the source material's needs.",
+            "stereo_image_strategy_for_jcp": [
+              "Drums: kick + snare CENTERED, hi-hat slightly off-center, room mics SPREAD WIDE to capture Studio D's room character",
+              "Guitar 1 (Thayil): panned HARD LEFT — separation from guitar 2",
+              "Guitar 2 (Cornell rhythm): panned HARD RIGHT — distinct stereo lane",
+              "Bass CENTERED with kick — combined low-end weight",
+              "Vocal CENTERED, slightly forward in mix — Cornell's range cuts through",
+              "Lead lines (Thayil bridge): typically panned slightly off-center (not hard) so leads don't compete with rhythm guitar position"
+            ],
+            "vocal_treatment": "Cornell vocal: heavy compression for consistency (his dynamic range was wide), de-essing for high-SPL screamed sibilance, slight high-mid presence boost for cut-through, modest reverb for space without losing intimacy",
+            "drum_treatment": "Date's signature: parallel compression on drum bus (adds body without crushing transients), close-mic balance dominant, room mics blended for ambient context. Snare typically enhanced subtly — possibly with sample reinforcement (era-standard practice in Date's metal-leaning productions, though not exhaustively confirmed for this specific track).",
+            "what_date_mix_demonstrates_for_aggressive_long_form": "JCP at 5:50 with sustained max intensity REQUIRES Date's compression containment to remain listenable. Without the compression, the song would fatigue the listener within 2 minutes. Date's mix is what allows the extended duration to function — the compression makes the relentless intensity TOLERABLE while preserving its identity.",
+            "comparison_to_other_aggressive_mix_philosophies": "WALLACE (TP, ~1:50): heavy compression + bright + commercial — the song is so short that Wallace's processing intensity matches the song's brief duration. ALBINI (Very Ape, ~1:55): minimal compression, room natural — works because Very Ape is short enough that listener doesn't need protection from sustained intensity. DATE (JCP, ~5:50): selective heavy compression — because the song is LONG, compression is necessary to make extended intensity bearable. The mix philosophy MUST match the song's duration as much as its content."
+          },
+          "mastering": {
+            "mastering_engineer_album": "Howie Weinberg at Masterdisk, New York (documented Badmotorfinger mastering engineer — same Weinberg who mastered Nevermind released the same year)",
+            "loudness_approach_documented": "1991 early loudness-war era — Weinberg pushed Badmotorfinger to commercial-loud levels matching the era's alt-metal target. The album sits at moderate-to-high loudness for 1991 (less compressed than late-90s peak loudness but louder than typical 1991 rock).",
+            "vinyl_vs_cd_documented": "Original CD master by Weinberg. Vinyl release used different mastering pass.",
+            "subsequent_remasters_documented": "Various reissues over the decades — specific engineer attributions per release liner notes",
+            "tonal_balance_at_release": "Bright top end (matches Date's mix brightness), present mids for Cornell's vocal cut-through, controlled low-end (kick + bass don't overwhelm the busy mid-range arrangement). The master preserves Date's mix character rather than reshaping it.",
+            "weinberg_consistency_across_grunge_era": "Weinberg mastered both Nevermind (Nirvana, 1991) and Badmotorfinger (Soundgarden, 1991). His consistent mastering choices contributed to the early-90s alt-rock SOUND that defined the era — bright, present, moderately compressed, radio-ready while preserving rock punch."
+          },
+          "the_moment_people_remember": {
+            "primary": "The DRUM INTRO. Cameron's 4-bar syncopated pattern alone establishes the song's identity before any other instrument enters. The pattern is so complex and distinct that listeners can identify the song from the drums alone. This is one of the rare rock songs where the drummer is the first voice the listener hears.",
+            "secondary": "Cornell's VOCAL RANGE EXPLOITATION — his multi-octave range pushed to its peak across the song's 5:50 duration. The sustained high-register delivery is physically impressive and emotionally exhausting (in the song's intended aggressive context).",
+            "tertiary": "The EXTENDED DURATION at sustained intensity. Most aggressive songs cap at 3-4 minutes; JCP commits to 5:50 of relentless aggression. The runtime itself is the song's structural statement — refusing the typical pop length convention."
+          },
+          "advisor_extract": [
+            {
+              "recipe_name": "drum_only_intro_4_bars_establishes_identity",
+              "description": "Open the song with DRUMS ALONE for 4 bars. Drum pattern must be DISTINCT enough that it identifies the song. Other instruments enter on bar 5. Inverts the typical convention where guitar or vocal opens the song. Drums become PRIMARY identity carrier, not just timekeeper.",
+              "use_for": ["Songs where drumming is compositionally significant", "intros that want to feature rhythmic complexity", "openers establishing rhythmic identity before harmonic identity"],
+              "wow_factor": 0.80,
+              "implementation_for_modern_compositions": "In MIDI/sample context: 4 bars of drum kit alone with a syncopated, distinctive pattern (NOT a generic 8th-note groove — the pattern must be hummable rhythmically). Other tracks empty for those 4 bars. Bar 5: full band enters locked to the drum pattern.",
+              "comparison_to_other_intros": "Distinct from a-cappella-fakeout (TP — vocal alone), guitar-alone (HSB, Very Ape — melodic instrument alone), bass-alone (Would? — bass as melodic), drum solo intro (Cherub Rock — but that has a different structural function as drummer showcase). Drum-only-establishes-identity is its own category: drums as PRIMARY compositional voice."
+            },
+            {
+              "recipe_name": "syncopated_kick_creates_implied_meter_within_4_4",
+              "description": "Within a straight 4/4 meter, place kick drum hits at SYNCOPATED positions that create an implied alternative meter feel (e.g., implied 7/4 or 5/4 within the 4/4 bar). The bar still measures 4 beats, but the kick's syncopation makes listener perceive bar groupings as non-standard. Anchored by snare on standard backbeat or displaced positions.",
+              "use_for": ["Songs wanting metric ambiguity without committing to odd meter", "rhythmic complexity that doesn't require listener to count odd time", "compositions where the drummer is creating compositional material via groove choices"],
+              "wow_factor": 0.75,
+              "implementation_for_modern_compositions": "In MIDI: define a 4/4 bar but place kick at e.g. beat 1, 1.75, 2.5, 3.5 (syncopated 16th positions creating implied 7/4 grouping). Snare on standard 2 or 3 (backbeat reference) or displaced for further ambiguity."
+            },
+            {
+              "recipe_name": "two_guitar_stereo_separation_distinct_players",
+              "description": "Use TWO guitar players (or two separate distorted guitar tracks performed differently) panned HARD LEFT and HARD RIGHT. Each guitar plays slightly different but harmonically related parts — not just identical parts panned (which would be doubling). Distinct from Pumpkins' multi-take wall (multiple takes of same part) — here the parts are MUSICALLY distinct.",
+              "use_for": ["Heavy rock arrangements wanting wide stereo guitar field", "songs needing thicker guitar texture than single-guitar provides", "arrangements where lead/rhythm distinction is built into the stereo image"],
+              "wow_factor": 0.65,
+              "implementation_for_modern_compositions": "In sample context: two separate distorted synth/sample tracks playing related-but-not-identical parts. Pan one hard left, one hard right. NOT mono-summed identical material panned wide — the parts must have musical distinctness."
+            },
+            {
+              "recipe_name": "extended_aggressive_track_5_min_plus",
+              "description": "Compose an aggressive song at extended length (5+ minutes) with sustained max intensity. Refuses the typical 3-4 min pop length convention. Requires careful internal pacing (verse / pre-chorus / chorus / bridge / extended outro structure) and instrumental variation within sustained intensity. Pairs with mix philosophy that contains the aggression (Date-style compression, not Albini-style raw capture).",
+              "use_for": ["Album tracks where length commits to intensity rather than restraint", "songs structurally rejecting commercial radio length", "compositions where the duration is part of the artistic statement"],
+              "wow_factor": 0.70,
+              "warning": "Requires excellent musicianship and arrangement variation to sustain listener attention for 5+ minutes of max intensity. Without that, the song becomes monotonous. Anti-pattern: don't extend just for the sake of length.",
+              "philosophical_note": "Inverse of compact_aggressive_under_2_minutes (Very Ape). Both are valid — choice depends on the song's content's ability to fill the chosen duration."
+            },
+            {
+              "recipe_name": "vocal_high_range_exploitation_as_signature",
+              "description": "When the vocalist has a multi-octave range, use the FULL range across the song — verses in mid-upper register, choruses at peak high register, sustained held notes pushed to the vocalist's physical limits. The vocal range itself becomes the song's signature. Requires a vocalist with the actual range (cannot be faked — pitch correction would defeat the purpose).",
+              "use_for": ["Songs centered on vocal as primary instrument", "tracks where the vocalist's range is part of the band's identity", "compositions wanting emotional intensity via vocal physical performance"],
+              "wow_factor": 0.65,
+              "warning": "Physically demanding for the performer — Cornell rarely played JCP back-to-back live. The advisor should flag songs whose vocal demands exceed typical performer capability."
+            },
+            {
+              "recipe_name": "date_compression_balance_for_long_aggressive",
+              "description": "When mixing LONG aggressive material (5+ minutes), apply Terry Date-style SELECTIVE compression: heavy on drums (containment of complex patterns), heavy on vocals (consistency through dynamic delivery), moderate master glue (album-context loudness without crushing), but PRESERVE room mics + ambient elements for character. Different from Wallace's all-bright commercial template (TP's 1:50 doesn't need long-form pacing) and from Albini's pure capture (which would fatigue listeners over 5+ minutes).",
+              "use_for": ["Mix decisions on long aggressive tracks", "albums where multiple long aggressive songs need consistent treatment", "songs where the mix philosophy must enable the runtime to function"],
+              "wow_factor": 0.65,
+              "philosophical_note": "Mix philosophy must match the song's DURATION as much as its content. Compact aggressive = Albini or raw works. Extended aggressive = Date-style selective compression required. The advisor should select mix approach based on duration + intensity, not just intensity alone."
+            }
+          ]
         },
         "Fell_On_Black_Days": {
           "_status": "stub_pending_full_dissection_C2_2",
