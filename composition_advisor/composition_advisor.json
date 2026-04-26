@@ -8802,9 +8802,49 @@
           }
         },
         "Little_Sister": {
-          "_status": "stub_pending_full_dissection_C5_6",
+          "_status": "C5_6a_composition_arrangement_done",
           "album": "Lullabies to Paralyze",
-          "year": 2005
+          "year": 2005,
+          "tempo_bpm_documented_range": [114, 120],
+          "time_signature": "4/4 throughout",
+          "key_area": "A minor area / B minor area (Homme baritone-friendly)",
+          "tuning_documented": "Drop D tuning",
+          "track_runtime": "~2:54",
+          "_special_status": "Track 7 on Lullabies to Paralyze (2005) — first single from album. Functions as the album's COWBELL-ANCHORED SINGLE — built around a documented prominent cowbell pattern that becomes the song's signature percussion identity. Demonstrates Homme's documented WILLINGNESS TO USE UNUSUAL PERCUSSION as compositional centerpiece. Tight 2:54 commercial-single economy.",
+          "composition": {
+            "primary_compositional_signature": "COWBELL-PERCUSSION-ANCHORED RIFF GROOVE + COMMERCIAL-SINGLE ECONOMY — built around prominent cowbell pattern that establishes the song's rhythmic identity from intro onward. Demonstrates UNUSUAL PERCUSSION ELEMENT as compositional centerpiece.",
+            "core_structural_arc": "Cowbell pattern intro → riff entry with cowbell continuing → verse → chorus hook → riff return → verse 2 → chorus → bridge → final chorus + outro. Tight 2:54 — commercial-single economy.",
+            "harmonic_motion_summary": "MINOR-MODAL with chromatic riff motion + Homme suspended voicings. Tonic A/B minor area.",
+            "characteristic_compositional_choice": "COWBELL AS COMPOSITIONAL CENTERPIECE — Homme uses an UNUSUAL PERCUSSION ELEMENT (cowbell) as the song's signature identity. Demonstrates compositional willingness to embrace overlooked percussion instruments. Cowbell pattern is what listeners remember.",
+            "comparison_to_other_qotsa_dissection_singles": "First It Giveth (Songs for the Deaf 2002 first single): mid-tempo robot-rock groove with Lanegan harmony. Little Sister (Lullabies to Paralyze 2005 first single): cowbell-anchored mid-tempo groove with Homme-centric vocal. Two different first-single approaches across QOTSA eras.",
+            "comparison_to_unusual_percussion_in_dissection": "Within dissection most tracks use standard rock kit + sample triggers. Little Sister stakes the UNUSUAL PERCUSSION CENTERPIECE position — cowbell as signature element rather than as ornamental color.",
+            "compositional_economy": "2:54 tight commercial-single. Compositional movement compact + efficient.",
+            "innovation_for_genre_context": "2005 alt-rock context: cowbell associated with classic-rock (Don't Fear the Reaper) + parody (SNL 'more cowbell'). Little Sister rehabilitates cowbell as serious compositional element. Influences subsequent indie/alt-rock willingness to embrace overlooked percussion."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "COWBELL FOUNDATION + POWER-TRIO + HOMME-CENTRIC VOCAL — same Lullabies-era trio with cowbell as added percussion centerpiece.",
+            "intro_arrangement": "Cowbell pattern enters first — establishes rhythmic identity before band entry",
+            "verse_arrangement": "Cowbell continues as rhythmic anchor, riff continues, Homme vocal enters",
+            "chorus_arrangement": "Hook expansion, density increases, cowbell may continue or shift",
+            "verse_2_arrangement": "Returns to verse density",
+            "second_chorus_arrangement": "Slight intensification",
+            "bridge_arrangement": "Brief textural shift",
+            "outro_arrangement": "Final chorus + ending statement",
+            "cowbell_as_arrangement_anchor_implications": [
+              "Cowbell PATTERN establishes song's rhythmic identity from first measure",
+              "Cowbell continues throughout song — listeners hear it as constant rhythmic anchor",
+              "Drum kit adapts to support cowbell pattern rather than competing",
+              "Cowbell becomes the SIGNATURE element listeners remember"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No extended sections (commercial-single economy)"
+            ],
+            "what_makes_arrangement_unique_within_qotsa": "Little Sister represents QOTSA's UNUSUAL PERCUSSION CENTERPIECE arrangement — cowbell as compositional anchor rather than ornamental color. Demonstrates Homme's willingness to embrace overlooked percussion as compositional signature.",
+            "comparison_to_other_dissection_signature_percussion": "Most other dissection tracks use standard rock kit + sample triggers as primary percussion. Little Sister stakes the UNUSUAL-INSTRUMENT-AS-CENTERPIECE position — cowbell as signature element."
+          }
         }
       },
       "Daft_Punk": {
