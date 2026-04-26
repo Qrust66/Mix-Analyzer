@@ -106,6 +106,24 @@ L'agent est défini en français et référence `ableton/ALS_MANIPULATION_GUIDE.
 + la section "Pièges critiques" du présent CLAUDE.md comme source de vérité.
 Mettre à jour ces deux documents propage automatiquement aux validations.
 
+### version-sync-checker (`.claude/agents/version-sync-checker.md`)
+
+**Invoquer automatiquement** dans ces cas :
+
+1. **Avant tout commit qui touche `mix_analyzer.py`** — la constante canonique
+   `VERSION` peut avoir bougé sans que les 7 autres docstrings suivent.
+2. **Avant tout commit dont le message contient `bump`, `version` ou `release`**
+   — il s'agit explicitement d'un bump de version, validation obligatoire.
+3. **Avant un push sur `main`** — dernière vérif avant publication.
+
+L'agent compare la constante `VERSION` dans `mix_analyzer.py` aux docstrings
+des 7 autres fichiers listés en section "Versioning" plus haut. Reporte un
+tableau PASS/FAIL et refuse de patcher (read-only).
+
+Si verdict = OUT-OF-SYNC, **ne pas push** sans aligner manuellement les
+fichiers en drift. La règle projet est explicite : *"Ne jamais laisser des
+versions désynchronisées entre fichiers."*
+
 ## Fichiers de production (8 fichiers, même dossier)
 
 | Fichier | Rôle |
