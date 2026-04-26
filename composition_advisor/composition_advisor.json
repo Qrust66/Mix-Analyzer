@@ -12067,6 +12067,8 @@
       "outro_chant_extension_via_repetition_not_fade": {
         "id": "outro_chant_extension_via_repetition_not_fade",
         "rule": "End the song via a single PHRASE (vocal, instrumental, or both) repeated for an extended duration (~1:00+ minutes). Repetition is the build mechanism — vocal layers stack, instruments build density, but the underlying phrase stays static. Listener leaves the song hypnotized rather than satisfied. Album-closer-grade ending.",
+        "electronic_translation": "Vocoded or pitched-down vocal phrase (or arpeggiated synth motif) looped for 60-90+ seconds at song's outro. Build over the loop via PROGRESSIVE LAYER ADDITION not via volume: at start of outro, single phrase + minimal pad. Every 8 bars add another layer (second vocoded harmony at 5th, atmospheric pad in upper register, granular-shimmer above, tape-saturation drive on bus, side-chain pump intensifies, reverb send increases). Stop adding 16 bars before end + start STRIPPING layers in reverse — leaves listener with single phrase + reverb tail. NO FADE-OUT — final phrase ends abruptly OR resolves into single sustained reverb. Apply for: techno breakdown-resolutions, deep-house outros, ambient album-closers, downtempo emotional closers, dub-techno extended endings. Daft Punk / Caribou / Floating Points tradition.",
+        "electronic_target_genres": ["deep_house", "techno", "ambient", "downtempo"],
         "applicability_text": "Album closers needing resolution function; songs wanting meditative weight as the ending; tracks where listener should leave the song hypnotized rather than satisfied.",
         "wow_factor": 0.85,
         "tier": "top",
@@ -13233,6 +13235,8 @@
       "auteur_producer_single_creator_driven_production": {
         "id": "auteur_producer_single_creator_driven_production",
         "rule": "Have ONE PERSON handle writing + most performance + production + much engineering — the auteur-producer model. Single creative vision unified across all production decisions. No band democracy, no producer-band collaboration. Suits artists with strong solo creative vision + technical capacity.",
+        "electronic_translation": "ELECTRONIC MUSIC IS NATURALLY AUTEUR-FRIENDLY: solo bedroom-producer working in Live/Logic/FL Studio handles writing + sound design + performance (everything via MIDI/automation) + tracking (no live mics needed for synths) + mixing in-the-box. The auteur-producer is the DEFAULT mode for solo electronic projects (Aphex Twin, Burial, Four Tet, Jon Hopkins). Make a deliberate choice though: auteur model = total creative control + slow iteration / collab model = external ear + faster iteration. For dark-electronic / IDM / glitch / experimental projects, auteur model preserves idiosyncrasy. For commercial techno / deep house targeting club rotation, hire an external mixing engineer at the end (preserves auteur composition + benefits from external mix perspective on club-system translation). Tooling: build a standardized template (Live racks, custom drum kits, signature reverb chains) so the auteur-mode session is repeatable.",
+        "electronic_target_genres": ["IDM", "ambient", "dark_electronic", "glitch"],
         "applicability_text": "Solo artists with broad technical+creative capacity; projects where single creative vision is paramount; industrial/electronic-rock contexts.",
         "wow_factor": 0.81,
         "tier": "gold",
