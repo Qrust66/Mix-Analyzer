@@ -5683,7 +5683,7 @@
           "songs_to_dissect": ["March_Of_The_Pigs", "The_Day_The_World_Went_Away", "Were_In_This_Together", "The_Wretched", "The_Hand_That_Feeds", "Copy_Of_A"]
         },
         "March_Of_The_Pigs": {
-          "_status": "C4_1b_performance_recording_done",
+          "_status": "C4_1c_complete_exhaustive",
           "album": "The Downward Spiral",
           "year": 1994,
           "tempo_bpm_documented_range": [262, 270],
@@ -5833,6 +5833,152 @@
             ],
             "comparison_to_rock_dissection_peers_recording": "Albini (In Utero): pure capture, room-prominent, minimal shaping. Vig+Wallace (Nevermind/Siamese Dream): meticulous tracking + width-maximized mixing. Date (Badmotorfinger): tracker-mixer dual role. Beinhorn+O'Brien (Superunknown): producer-mixer split with shaping. Kasper (Down on the Upside): unified band-driven engineer-mixer. Flood+Moulder+Corgan (Mellon Collie): textural-experimental three-way. REZNOR (Downward Spiral): AUTEUR-PRODUCER + programmed-sampled foundation. SEVENTH production philosophy in dissection — single-creator-driven industrial paradigm.",
             "production_philosophy_setup_for_other_nin_dissection": "March of the Pigs establishes Reznor's 1994 auteur-producer paradigm. Later NIN dissection tracks will demonstrate evolution: The Fragile (1999) tracks show MORE COLLABORATIVE approach with Alan Moulder mixing. With Teeth (2005) shows more LIVE-DRUMS approach (Dave Grohl drumming on some tracks). Hesitation Marks (2013) shows MODULAR-ELECTRONIC evolution. Reznor's production philosophy EVOLVES across his catalog within his auteur framework."
+          },
+          "mixing": {
+            "mix_engineer": "Trent Reznor + Sean Beavan (in-house mixing for many Downward Spiral tracks; some tracks mixed by Alan Moulder)",
+            "mixing_studio": "Le Pig Studio + outboard mix locations",
+            "mixing_philosophy_reznor_for_march_of_the_pigs": "TEXTURAL AGGRESSION + DYNAMIC CONTRAST + INDUSTRIAL CLARITY. Reznor's documented Downward Spiral mix approach: each layer must read clearly within the dense industrial texture, sudden chorus dynamic shifts must be DRAMATIC, low-end aggression preserved, vocal must cut through.",
+            "drum_mix_balance": [
+              "Programmed kick + snare PUNCHY + present — industrial-style drum forwardness",
+              "Sample-triggered industrial percussion blended for textural aggression without becoming clutter",
+              "Drum bus possibly parallel-saturated + heavily compressed for industrial weight",
+              "Cymbal samples articulated for asymmetric meter accents",
+              "First chorus drum REDUCTION carefully preserved — dynamic contrast crucial"
+            ],
+            "guitar_mix_treatment": [
+              "Processed guitars positioned as TEXTURAL AGGRESSION layers, not as harmonic-melodic primary",
+              "Heavy compression + saturation glues processed guitars together",
+              "Stereo placement aggressive — distorted guitars hard L/R for width",
+              "Sustained noise/feedback layers blended at moderate level — present but not dominating",
+              "Brief clean guitar (or synth-pad replacement) in melodic chorus — clear sonic shift from verse aggression"
+            ],
+            "vocal_mix_treatment": [
+              "Verse vocal: SATURATION + DISTORTION + aggressive compression — vocal as TEXTURAL element matching the aggression",
+              "Chorus vocal: CLEANER + REVERB + slight delay — dramatic shift from verse aggression",
+              "Vocal MUST cut through dense industrial texture — Reznor documented as prioritizing vocal intelligibility despite aggression",
+              "Multiple vocal layers in chorus blended subtly"
+            ],
+            "bass_mix_treatment": [
+              "Distorted bass synth FORWARD — provides industrial-style aggressive low-frequency presence",
+              "Bass + kick coordinated tightly via complementary frequency placement",
+              "Saturation + harmonic content keeps bass audible on small speakers (aggressive bass tone is part of song's identity)"
+            ],
+            "spatial_treatment_industrial": [
+              "Stereo field aggressive — guitars hard L/R, bass + drums center, vocal centered",
+              "Reverb usage MINIMAL on aggressive elements — industrial precision favors dry punch",
+              "Reverb on melodic chorus elements creates dramatic shift",
+              "Plate + room reverbs deployed selectively for textural variety"
+            ],
+            "automation_used_in_mix": [
+              "DRAMATIC mix automation between verse aggression + melodic chorus — drum bus, guitar levels, vocal processing all shift",
+              "Vocal level rides for sustained phrases",
+              "Reverb send automation for chorus sonic shift",
+              "Brief bridge automation for textural intensification"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression flattening dynamic contrast (the hard-soft-hard contrast is the song)",
+              "No sample-replacement of programmed drums (programming IS the drumming)",
+              "No vocal pitch correction",
+              "No fade-out (hard ending)"
+            ],
+            "comparison_to_zero_industrial_mix": "Zero (Pumpkins, Moulder mix 1995): industrial-leaning rock aesthetic, retained rock-mix paradigm. March of the Pigs (NIN, Reznor+Beavan mix 1994): industrial-source aesthetic, programmed-foundation mix paradigm. Two industrial-related mixes at completely different scales of industrial commitment.",
+            "what_makes_reznor_beavan_mix_distinct_for_march_of_the_pigs": [
+              "Auteur-producer mix model — Reznor mixes his own production",
+              "Programmed-foundation mix paradigm — drum bus treated as composed element, not as 'drum kit captured live'",
+              "DRAMATIC dynamic contrast preservation — verse-chorus-verse hard-soft-hard maintained",
+              "Industrial precision over rock-wall width — texture-aggression over stereo-impressiveness"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Tom Baker (Downward Spiral mastered — documented Reznor mastering collaborator across multiple NIN albums)",
+            "mastering_studio": "Precision Mastering, Hollywood (Tom Baker's documented base)",
+            "mastering_philosophy_for_march_of_the_pigs": [
+              "Baker's documented approach: industrial-clarity + commercial loudness without destroying dynamic contrast",
+              "March of the Pigs requires preserved DYNAMIC CONTRAST between verse aggression + melodic chorus — mastering must NOT compress contrast",
+              "1994 album-level mastering — Downward Spiral pre-aggressive-loudness-war, dynamic detail survives master"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS integrated estimate. March of the Pigs specifically near album peak loudness due to sustained-aggressive character.",
+            "spectral_signature": "Baker's documented sound: industrial-clarity, present mid-range, aggressive low-end, smooth high-end. March of the Pigs benefits — industrial textures clearly defined through master.",
+            "what_mastering_preserves_for_march_of_the_pigs": [
+              "Dynamic contrast between verse aggression + melodic chorus",
+              "Drum punch + industrial-percussion textural articulation",
+              "Distorted bass synth aggressive low-frequency presence",
+              "Vocal clarity above industrial density"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "THE ASYMMETRIC METER + EXTREME TEMPO + SUDDEN MELODIC CHORUS — listeners are constantly off-balance from the meter, relentlessly pressed by the tempo, then briefly released into the melodic chorus before being thrown back into aggression. The HARD-SOFT-HARD CONTRAST is the song's emotional engine.",
+            "level_2_arrangement_signature": "PROGRAMMED + SAMPLED FOUNDATION + AGGRESSIVE TEXTURE LAYERING + DRAMATIC DYNAMIC SHIFTS — Reznor's documented 1994 industrial-rock arrangement at maximum extremity.",
+            "level_3_compositional_signature": "ASYMMETRIC METER + EXTREME TEMPO + HARD-SOFT-HARD CONTRAST WITHIN SECTIONS — Reznor's deployment of three signature compositional moves SIMULTANEOUSLY. Demonstrates that EXTREME composition + MELODIC RELIEF can coexist within 2:58 commercial single. Single charted on alternative radio, proving industrial extremity can reach mainstream when balanced with melodic anchor."
+          },
+          "advisor_extract": {
+            "recipe_name": "asymmetric_meter_at_extreme_tempo_with_hard_soft_hard_contrast",
+            "applicability": "Industrial-rock or extreme-metal compositions where asymmetric meter + extreme tempo + dynamic-contrast-within-sections together serve aggressive intent. Use when the LISTENER'S OFF-BALANCE FEEL + INTERMITTENT MELODIC RELIEF together create the song's identity.",
+            "core_compositional_recipes": [
+              {
+                "id": "asymmetric_meter_at_extreme_tempo",
+                "rule": "Use 7/8 + 8/8 alternation (or other asymmetric groupings) at TEMPOS ABOVE 200 BPM. The asymmetric grouping creates constant rhythmic tension; the extreme tempo creates relentless forward pressure. Together they create a UNIQUE FEEL — neither pure groove nor pure complexity, but SUSTAINED OFF-BALANCE.",
+                "wow_factor": 0.86,
+                "documented_example": "March of the Pigs (NIN, Downward Spiral 1994, 7/8+8/8 at ~265 BPM)",
+                "trade_offs": "Live performance challenging — programming required for sustained tempo. Listeners conditioned to 4/4 may need adjustment.",
+                "personality_fit": "Reznor 50 / Cobain 15 / Yorke 15 / Daft Punk 20"
+              },
+              {
+                "id": "hard_soft_hard_contrast_within_song",
+                "rule": "Build a song where the AGGRESSIVE-MELODIC-AGGRESSIVE contrast happens WITHIN section transitions, not just between separate songs. Verse aggressive → chorus suddenly melodic + clean → verse returns to aggression. Brief (4-8 measures) chorus melodic relief amid sustained aggression. Compositional weapon for emotional impact.",
+                "wow_factor": 0.84,
+                "documented_example": "March of the Pigs verse-aggression to brief melodic chorus to verse-aggression — Reznor signature compositional move",
+                "trade_offs": "Risk of jarring transitions if execution off. Requires composing TWO opposed musical materials and integrating them.",
+                "personality_fit": "Reznor 45 / Cobain 30 / Yorke 15 / Daft Punk 10"
+              },
+              {
+                "id": "programmed_drums_as_compositional_engine",
+                "rule": "Treat programmed drums + sampled percussion as COMPOSITIONAL INSTRUMENTS — programming choices ARE composition. Use programming to enable tempos + meters live drumming cannot sustain. Layer multiple percussion elements (kick + snare foundation + industrial samples + textural percussion) as composed sonic field.",
+                "wow_factor": 0.82,
+                "documented_example": "March of the Pigs Reznor-programmed drums at extreme tempo + asymmetric meter",
+                "trade_offs": "Demands programming skill; requires shift from drummer-band paradigm. Live performance requires careful planning.",
+                "personality_fit": "Reznor 50 / Daft Punk 35 / Cobain 5 / Yorke 10"
+              },
+              {
+                "id": "auteur_producer_single_creator_driven_production",
+                "rule": "Have ONE PERSON handle writing + most performance + production + much engineering — the auteur-producer model. Single creative vision unified across all production decisions. No band democracy, no producer-band collaboration. Suits artists with strong solo creative vision + technical capacity.",
+                "wow_factor": 0.81,
+                "documented_example": "Trent Reznor's Downward Spiral auteur-producer model (with Sean Beavan engineering)",
+                "trade_offs": "Demands single creator's technical + creative competence at high level. Loses external perspective. Risk of insular creative work.",
+                "personality_fit": "Reznor 60 / Yorke 20 / Daft Punk 15 / Cobain 5"
+              },
+              {
+                "id": "scream_to_sing_vocal_contrast_as_compositional_weapon",
+                "rule": "Have vocalist execute SCREAM-TO-SING contrast within same song — verse screamed, chorus sung melodically, return to screamed. Vocal contrast as EMOTIONAL ENGINE. Different processing chains for screamed vs. sung sections (saturated vs. clean).",
+                "wow_factor": 0.83,
+                "documented_example": "Reznor's March of the Pigs vocal scream-to-sing contrast",
+                "trade_offs": "Requires vocalist with both capacities. Production must support both with different processing.",
+                "personality_fit": "Reznor 50 / Cobain 25 / Yorke 15 / Daft Punk 10"
+              },
+              {
+                "id": "industrial_textural_aggression_via_processed_guitar_layers",
+                "rule": "Use guitars as TEXTURAL AGGRESSION layers rather than as harmonic-melodic primary. Heavy distortion + saturation + possibly re-amping + sustained noise/feedback elements. Bass synth + programmed drums carry harmonic-rhythmic primary; guitars provide AGGRESSIVE COLOR.",
+                "wow_factor": 0.78,
+                "documented_example": "March of the Pigs guitars — textural aggression rather than harmonic primary",
+                "trade_offs": "Reverses rock guitar paradigm; may feel wrong to rock guitarists. Demands strong synthesizer + sample programming to compensate.",
+                "personality_fit": "Reznor 50 / Daft Punk 25 / Yorke 15 / Cobain 10"
+              },
+              {
+                "id": "auteur_recording_environment_house_studio_with_atmosphere",
+                "rule": "Record in a NON-COMMERCIAL space with documented atmospheric/historical character. The space CONTRIBUTES to the album's mood + mythology. Examples: home studios, converted houses, historical buildings. Auteur producer can choose space matching artistic vision.",
+                "wow_factor": 0.76,
+                "documented_example": "Le Pig Studio at 10050 Cielo Drive (Tate house) for Downward Spiral — documented dark mythology contribution",
+                "trade_offs": "Acoustic challenges of non-commercial spaces; requires technical skill to overcome. Mythology can overshadow music.",
+                "personality_fit": "Reznor 45 / Yorke 30 / Cobain 15 / Daft Punk 10"
+              }
+            ],
+            "production_philosophy_signature_reznor_auteur": {
+              "philosophy": "AUTEUR-PRODUCER + PROGRAMMED-SAMPLED FOUNDATION + INDUSTRIAL TEXTURE-AGGRESSION. Single-creator-driven production paradigm — Reznor handles writing + most performance + production + much engineering, with Sean Beavan as primary engineer collaborator. Industrial-rock auteur model.",
+              "applicability": "Solo artists with strong creative + technical capacity, electronic-rock fusion, industrial-rock projects",
+              "lineage_within_dissection_seventh_distinct_approach": "1) Albini capture, 2) Vig+Wallace layered-wide, 3) Date tracker-mixer, 4) Beinhorn+O'Brien shaped-polished, 5) Kasper unified-band-driven, 6) Flood+Moulder+Corgan textural-experimental-three-way, 7) REZNOR auteur-producer industrial. Each philosophy serves different compositional intents.",
+              "evolution_thread_within_nin_catalog": "March of the Pigs (1994): pure auteur. Fragile (1999): more Moulder collaboration in mix. With Teeth (2005): live drums (Grohl), more rock-paradigm. Hesitation Marks (2013): modular-electronic evolution. Reznor's auteur framework EVOLVES across catalog without abandoning auteur identity."
+            },
+            "structural_choice_summary": "Asymmetric meter at extreme tempo, hard-soft-hard contrast, programmed-drums as compositional engine, auteur-producer single-creator model — March of the Pigs demonstrates Reznor's MOST EXTREME industrial-rock compositional + production approach. 2:58 of compressed industrial extremity proves extreme composition can reach mainstream when balanced with melodic relief."
           }
         },
         "The_Day_The_World_Went_Away": {
