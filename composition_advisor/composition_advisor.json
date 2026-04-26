@@ -13079,6 +13079,8 @@
       "fast_tempo_148_156_bpm_aggressive_heavy_rock": {
         "id": "fast_tempo_148_156_bpm_aggressive_heavy_rock",
         "rule": "Push tempo into 145-160 BPM territory for a heavy rock track — faster than mainstream alt-rock standard (90-130 BPM) but retaining wall-of-density sonics. Fast tempo + sustained intensity + chromatic riff motion = punk-influenced heavy rock economy.",
+        "electronic_translation": "Push tempo into 145-160 BPM territory while retaining FULL DENSITY (wall-of-pads/wall-of-synths sonic vocabulary) rather than thinning out for the speed. Fast tempo + sustained intensity + chromatic bass-line motion = punk-influenced electronic economy. The challenge: density at 150 BPM smears unless rhythmic articulation is precise — every kick needs micro-timing tightness, every hi-hat pattern needs velocity contour. Apply for: hard-techno (150-155 BPM tradition — Surgeon, Perc, Charlotte de Witte), industrial-techno fast-tempo punishment tracks, hardcore/gabber (150+ BPM with wall-density), aggressive synthwave (145-155 BPM dark synthwave like Perturbator), drum-and-bass-leaning electronic with full-density chord-pads. Different from `mid_tempo_aggression_not_hardcore_speed` (slower body-rock pace) — this is tempo-driven punk-velocity aggression. AVOID for techno-house (130 BPM standard), trip-hop (90-100 BPM), ambient.",
+        "electronic_target_genres": ["techno", "dark_electronic", "EBM"],
         "applicability_text": "Heavy rock tracks wanting punk-leaning fast tempo without abandoning wall-of-density; bands with rhythm sections capable at fast tempo; commercial-rock contexts wanting tempo-driven aggression.",
         "wow_factor": 0.79,
         "tier": "silver",
@@ -13099,6 +13101,8 @@
       "fast_tempo_layered_guitar_density_management": {
         "id": "fast_tempo_layered_guitar_density_management",
         "rule": "When layering multiple guitars at fast tempo (140+ BPM), prioritize RHYTHMIC ARTICULATION over maximum stereo width. EQ-staggered layers must align rhythmically — picking precision required across all takes. Mix tighter stereo than at slower tempos to preserve transient detail.",
+        "electronic_translation": "When layering multiple synth/percussion layers at fast tempo (140+ BPM), prioritize RHYTHMIC ARTICULATION over maximum stereo width. EQ-staggered layers must align RHYTHMICALLY — every percussion-onset, every synth-arpeggio note quantized tight (95-100% strength quantization to grid, not loose-quantize). Tighter stereo placement (panning at 60-70% rather than 100% extremes) so transient detail isn't lost in stereo-spread. Less reverb than slower atmospheric mixes — reverb smears rhythm at 150 BPM. Apply for: hard-techno layered productions (Surgeon-style precision), drum-and-bass complex programming (Photek tradition rhythm-clarity at 170 BPM), industrial-techno fast-tempo precision (Perc layered drums at 150 BPM), aggressive synthwave fast-tempo layering. The DISCIPLINE: at fast tempo, transient clarity > stereo impressiveness. Pair with `fast_tempo_148_156_bpm_aggressive_heavy_rock` and `moulder_mix_rhythmic_aggression_priority_over_width`.",
+        "electronic_target_genres": ["techno", "dark_electronic", "synthwave"],
         "applicability_text": "Fast-tempo wall-of-sound recordings; bands with picking precision; mix sessions where rhythmic clarity matters more than stereo impressiveness.",
         "wow_factor": 0.76,
         "tier": "silver",
@@ -13119,6 +13123,8 @@
       "deliberate_sonic_evolution_between_albums_via_producer_change": {
         "id": "deliberate_sonic_evolution_between_albums_via_producer_change",
         "rule": "DELIBERATELY change producer/engineer team between albums to evolve sonic identity. Same band, different production team = different sonic palette. Avoids stagnation; demonstrates band's willingness to push their sound. Strategic for bands with multi-album arc.",
+        "electronic_translation": "Across an electronic-music release arc (multiple albums/EPs), DELIBERATELY EVOLVE your production approach by changing collaborative partners (mixing engineer, mastering engineer, co-producer) and/or signature gear/plugin choice between releases. Same artistic identity, different sonic palette per release. Album 1: bedroom production + self-mastering aesthetic. Album 2: bring in external mix-engineer for sonic depth. Album 3: full-studio collaboration with named producer. Avoids stagnation; signals to listener that the artist is evolving. Apply for: established electronic artists planning multi-release arc (Aphex Twin's documented evolution from 'Selected Ambient Works II' bedroom aesthetic to later collaborator-rich releases, Daft Punk's Discovery → Human After All → Random Access Memories arc with documented production-philosophy shifts). The discipline: each release announces ITS sonic identity, the catalog shows EVOLUTION rather than repetition. Pair with `auteur_framework_evolution_across_decades_with_retained_identity`.",
+        "electronic_target_genres": ["electronic_pop", "techno", "ambient"],
         "applicability_text": "Established bands risking stagnation; multi-album catalog planning; bands willing to challenge audience expectations via production evolution.",
         "wow_factor": 0.75,
         "tier": "silver",
