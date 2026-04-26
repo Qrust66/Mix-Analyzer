@@ -232,6 +232,151 @@ HARMONIC_PROGRESSIONS['lydian_brightness_color'] = {
 
 
 # ============================================================================
+# CLASSICAL-INFLUENCED PROGRESSIONS — descending bass, voice-leading, chromatic
+# ============================================================================
+
+HARMONIC_PROGRESSIONS['pachelbel_descending_bass_8'] = {
+    'id': 'pachelbel_descending_bass_8',
+    'sources': [
+        ('Daft Punk', 'Veridis Quo', 'Pachelbel-adjacent classical-electronic descending bass anchor'),
+        ('Smashing Pumpkins', 'Soma', 'extended pre-explosion descent with Pachelbel-tradition voice-leading'),
+        ('Radiohead', 'Optimistic', 'rock-format with classical-influenced descending bass-line'),
+    ],
+    'advisor_recipes': [
+        'classical_influenced_chord_progression_in_electronic_context',
+        'classical_electronic_crossover_via_duo_auteur_framework',
+        'voice_leading_clarity_via_synth_pad_layers',
+        'bass_line_first_compositional_method',
+    ],
+    'mode': 'minor_or_major_dual',   # Pachelbel works in both; we render in D minor here
+    # In D minor: Dm – A – Bb – F – Gm – Dm – Gm – A
+    # Bass-line: D - A - Bb - F - G - D - G - A (descending then ascending steps)
+    # Root intervals: 0, 7, 8, 5, 5(but minor), 0, 5(min), 7
+    # Wait: rethink as D minor key:
+    # D(i) - A(v in Dm) - Bb(♭VI) - F(♭III) - Gm(iv) - D(i) - Gm(iv) - A(V or v)
+    # Root intervals: 0, 7, 8, 3, 5, 0, 5, 7
+    'chords': [
+        {'root_interval': 0, 'voicing': 'min_triad', 'duration_beats': 2.0, 'roman': 'i',  'inversion': 0},
+        {'root_interval': 7, 'voicing': 'maj_triad', 'duration_beats': 2.0, 'roman': 'V',  'inversion': 0},
+        {'root_interval': 8, 'voicing': 'maj_triad', 'duration_beats': 2.0, 'roman': '♭VI','inversion': 0},
+        {'root_interval': 3, 'voicing': 'maj_triad', 'duration_beats': 2.0, 'roman': '♭III','inversion': 0},
+        {'root_interval': 5, 'voicing': 'min_triad', 'duration_beats': 2.0, 'roman': 'iv', 'inversion': 0},
+        {'root_interval': 0, 'voicing': 'min_triad', 'duration_beats': 2.0, 'roman': 'i',  'inversion': 0},
+        {'root_interval': 5, 'voicing': 'min_triad', 'duration_beats': 2.0, 'roman': 'iv', 'inversion': 0},
+        {'root_interval': 7, 'voicing': 'maj_triad', 'duration_beats': 2.0, 'roman': 'V',  'inversion': 0},
+    ],
+    'duration_total_beats': 16.0,   # 4 bars (2-beat chords × 8)
+    'time_sig': (4, 4),
+    'character_tags': ['classical_influenced', 'descending_bass', 'voice_leading', 'extended_form', 'cinematic'],
+    'transformations_allowed': [
+        'transpose', 'voicing_swap', 'inversion_swap',
+        'augment_diminish',          # ×0.5 = 8-beat compressed, ×2 = 32-beat slow-cinematic
+        # NOT retrograde — voice-leading direction matters
+    ],
+    'notes_on_use': (
+        'Use as compositional FOUNDATION (bass_line_first_compositional_method). At 80-100 '
+        'BPM feels classical/cinematic; at 120-128 feels filter-house-classical-crossover '
+        '(Veridis Quo territory). Pair with melodic motif aeolian_descending_4_steps OR '
+        'pachelbel_descending_bass_8_chord (the bass-line counterpart in Phase 1a). For '
+        'inversion variation: alternate root and 1st-inversion chords for smoother voice-'
+        'leading top-line — apply inversion_swap on chords 1, 3, 5, 7 (the V chords).'
+    ),
+}
+
+
+HARMONIC_PROGRESSIONS['circle_of_fifths_4_chord'] = {
+    'id': 'circle_of_fifths_4_chord',
+    'sources': [
+        ('Daft Punk', 'Harder Better Faster Stronger', 'pop-electronic with classical voice-leading'),
+        ('Smashing Pumpkins', 'Soma', 'pre-chorus tension via dominant chain'),
+        ('NIN', "We're In This Together", 'anthemic build with V-of-V tonal pull'),
+    ],
+    'advisor_recipes': [
+        'classical_influenced_chord_progression_in_electronic_context',
+        'pop_song_structure_within_electronic_vocabulary',
+        'multiple_chorus_iterations_with_intensification',
+    ],
+    'mode': 'major',
+    # Circle-of-fifths motion (each chord moves DOWN a fifth = up a fourth)
+    # In D major: D - G - C - F - D (each chord 4 beats — dominant tension chain)
+    # But we want a 4-chord LOOP, so: D → G → C → F (then loop back to D)
+    # Root intervals from D: 0, 5, 10, 3 (each step is descending fifth = +5 semitones up an octave / -7 down)
+    # Equivalently: 0, -7+12=5, -14+12=10? Let me recompute.
+    # D = 0; descending fifth → G = -7+12 = 5 (or 7-12 = -5, same pitch class)
+    # G to C = descending fifth → C = 5-7+12 = 10
+    # C to F = descending fifth → F = 10-7+12 = 15-12 = 3
+    'chords': [
+        {'root_interval': 0,  'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': 'I',   'inversion': 0},
+        {'root_interval': 5,  'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': 'IV',  'inversion': 0},
+        {'root_interval': 10, 'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': '♭VII','inversion': 0},
+        {'root_interval': 3,  'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': '♭III','inversion': 0},
+    ],
+    'duration_total_beats': 16.0,
+    'time_sig': (4, 4),
+    'character_tags': ['circle_of_fifths', 'classical_voice_leading', 'major_modal', 'cyclic'],
+    'transformations_allowed': [
+        'transpose', 'voicing_swap', 'augment_diminish',
+        # NOT retrograde — fifths motion direction matters
+    ],
+    'notes_on_use': (
+        'CYCLIC progression — each chord pulls toward the next via descending-fifth motion. '
+        'Loops naturally (chord 4 pulls back to chord 1). Voice-leading is automatic in this '
+        'motion: each chord shares 2 common tones with the next. Use as VERSE foundation '
+        '(stays harmonically interesting without modulating). For pop-electronic: voice with '
+        'sus_4_with_9 voicing on chords 1-2 (open + cyclic), revert to maj_triad on 3-4 for '
+        'arrival.'
+    ),
+}
+
+
+HARMONIC_PROGRESSIONS['chromatic_descending_bass_4'] = {
+    'id': 'chromatic_descending_bass_4',
+    'sources': [
+        ('Radiohead', 'Pyramid Song', 'piano chord-roots descending chromatically'),
+        ('NIN', 'The Wretched', 'chromatic-passing-tone in atmospheric verses'),
+        ('Smashing Pumpkins', 'Soma', 'pre-explosion chromatic tension'),
+        ('Daft Punk', 'Veridis Quo', 'classical-influenced chromatic passing'),
+    ],
+    'advisor_recipes': [
+        'piano_composition_with_chromatic_harmony',
+        'mingus_freedom_chromatic_harmony_inspiration',
+        'classical_influenced_chord_progression_in_electronic_context',
+    ],
+    'mode': 'minor_chromatic',
+    # Bass descends chromatically: D → C# → C → B (in Dm key)
+    # Chord qualities chosen for maximum tension-resolution flavor:
+    # Dm (i) → A/C# (1st inv V) → C maj (♭VII) → B dim (vii°)
+    # Bass intervals from D tonic: 0, -1, -2, -3
+    # Voicings reflect each chord's character
+    'chords': [
+        {'root_interval': 0,  'voicing': 'min_triad', 'duration_beats': 4.0, 'roman': 'i',     'inversion': 0},
+        # A major chord with C# in bass = inversion 1 of V (V/i)
+        {'root_interval': 7,  'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': 'V_inv', 'inversion': 1},
+        # C major (♭VII)
+        {'root_interval': 10, 'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': '♭VII',  'inversion': 0},
+        # B diminished (vii°) — leading-tone tension before resolution
+        {'root_interval': 9,  'voicing': 'dim_triad', 'duration_beats': 4.0, 'roman': 'vii°',  'inversion': 0},
+    ],
+    'duration_total_beats': 16.0,
+    'time_sig': (4, 4),
+    'character_tags': ['chromatic', 'descending', 'classical_voice_leading', 'tension', 'piano_tradition'],
+    'transformations_allowed': [
+        'transpose', 'voicing_swap', 'augment_diminish',
+    ],
+    'notes_on_use': (
+        'The CHROMATIC BASS-LINE D-C#-C-B is the focal point — voice with explicit bass-line '
+        'in low octave (sub-bass or piano left-hand). The vii° on chord 4 creates strong pull '
+        'back to i (Dm) for next loop iteration — this is classical-tradition leading-tone '
+        'resolution. At slow tempo (60-80 BPM) feels Mingus-Freedom-tradition (Yorke '
+        'inspiration). At faster tempo the chromatic detail blurs. Pair with piano-Rhodes '
+        'voicing on top + sub-bass D pedal underneath (drone foundation) — the descending '
+        'CHROMATIC bass + sustained tonic drone creates the "two-bass-lines" tension that '
+        'makes Pyramid Song work.'
+    ),
+}
+
+
+# ============================================================================
 # Render API — turn a harmonic progression into concrete MIDI notes
 # ============================================================================
 
