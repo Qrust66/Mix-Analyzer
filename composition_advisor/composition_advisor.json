@@ -12023,6 +12023,8 @@
       "mid_tempo_aggression_not_hardcore_speed": {
         "id": "mid_tempo_aggression_not_hardcore_speed",
         "rule": "Aggression does not require fast tempo. At 100-115 BPM with full distortion + locked rhythm + strained vocal, the song achieves max aggressive identity while remaining headbangable rather than hardcore-fast. Mid-tempo aggression as compositional alternative to punk-speed.",
+        "electronic_translation": "Resist the techno-default 130-140 BPM imperative. Lock tempo at 100-115 BPM with FULL DENSITY (heavy bass synth, saturated kick, distorted percussive layers) — the slower tempo lets each kick/snare LAND with weight rather than blur. The aggression comes from density + saturation + harmonic friction, not velocity. Apply for: industrial-techno head-nod tracks (Perc, Ancient Methods slower side), dark-electronic mid-tempo grit, EBM signature tempo (Front 242 'Headhunter' lineage, ~106 BPM aggressive identity), trip-hop-meets-industrial fusion. Pair with `descending_riff_as_song_identity` for synth-bass-driven mid-tempo aggression. AVOID for hardcore-techno (genre demands 150+ BPM), gabber, peak-time festival drops.",
+        "electronic_target_genres": ["dark_electronic", "EBM", "techno"],
         "applicability_text": "Aggressive sections where headbang feel matters more than speed; tracks targeting QOTSA-style measured aggression; sections that pair with slow burns elsewhere on the album.",
         "wow_factor": 0.65,
         "tier": "supporting",
@@ -12043,6 +12045,8 @@
       "compact_aggressive_under_2_minutes": {
         "id": "compact_aggressive_under_2_minutes",
         "rule": "Aggressive tracks should resist the urge to extend. Restrict total runtime to under 2 minutes. The brevity prevents the relentless intensity from becoming monotonous; listener leaves wanting another hit rather than fatigued.",
+        "electronic_translation": "Lock arrangement-view length at 1:30-1:55 for aggressive electronic tracks. NO breakdown, NO 32-bar buildup, NO extended outro. Cold-start intro → locked aggression → abrupt end (or 4-bar outro tail). The brevity prevents listener fatigue at peak density. Apply for: industrial-techno album-tracks (palette punctuation between 6-8 min epics), EBM punk-energy bursts, dark-electronic short statements, glitch/IDM compact violence (Aphex Twin 'Come To Daddy' EP-track economy ~2 min). The track ends BEFORE listener exhaustion — delete the temptation to extend. AVOID for ambient (genre incompatible with brevity), neo-classical-electronic (form demands development), peak-time DJ-tools (need 6+ min for mixing). Pair with `unrelenting_aggression_no_dynamic_arc` and `abrupt_song_end_no_fade` for tightest compressed-aggression statement.",
+        "electronic_target_genres": ["dark_electronic", "EBM", "IDM"],
         "applicability_text": "Album tracks of aggressive nature (not radio singles); tracks meant as 'punctuation' between longer songs; sections where the same intensity over 4 minutes would feel exhausting.",
         "wow_factor": 0.65,
         "tier": "supporting",
@@ -12063,6 +12067,8 @@
       "guitar_alone_intro_4_bars_no_a_cappella": {
         "id": "guitar_alone_intro_4_bars_no_a_cappella",
         "rule": "Open the song with the GUITAR ALONE for 4 bars (riff established without other instruments). Distinct from HSB's similar approach because Very Ape's intro is at AGGRESSIVE INTENSITY rather than restrained — guitar enters at full distortion + tempo from bar 1. Riff identity established before band lock-in.",
+        "electronic_translation": "Open track with LEAD SYNTH OR BASS-RIFF ALONE for 4 bars at full intensity (full distortion, full saturation, no fade-in, no filter sweep). The motif is established BEFORE drums/bass arrive — riff IS the introduction. Different from cold-drop intros: the synth enters at full character from bar 1, not as a slowly revealing layer. Apply on Massive / Sub 37 / Diva with character-first patches (saw stack + drive + chorus). Apply for: industrial-techno riff-driven intros (the synth bass-line starts naked, kick joins at bar 5), dark-electronic motif-establishment intros, EBM signature-riff openers (the riff IS the song's calling card), IDM aggressive riff-led pieces. The 4-bar establishment teaches the listener the motif before adding rhythmic weight. Pair with `descending_riff_as_song_identity` for synth-bass-led aggressive intros, OR `delayed_rhythm_section_entry_4_bars` for paced full-band entry.",
+        "electronic_target_genres": ["dark_electronic", "techno", "IDM"],
         "applicability_text": "Aggressive tracks needing immediate identity; songs where the riff IS the introduction; alternative to a-cappella fakeout for songs where vocal isn't the centerpiece.",
         "wow_factor": 0.65,
         "tier": "supporting",
