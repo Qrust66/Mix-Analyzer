@@ -6288,7 +6288,7 @@
           }
         },
         "Were_In_This_Together": {
-          "_status": "C4_3a_composition_arrangement_done",
+          "_status": "C4_3b_performance_recording_done",
           "album": "The Fragile",
           "year": 1999,
           "_canonical_title": "We're In This Together",
@@ -6328,6 +6328,113 @@
             ],
             "what_makes_arrangement_unique_within_nin": "We're In This Together represents NIN's MOST ANTHEMIC arrangement — industrial vocabulary deployed in service of emotional anthem rock structure. Within NIN catalog this is the ANTHEMIC pole, distinct from March of the Pigs (extremity), TDTWWA (vulnerability), Wretched (aggressive-atmospheric hybrid).",
             "comparison_to_other_extended_form_dissection_tracks": "Soma (Pumpkins): rock-anthem dynamic-arc with guitar wall, 6:39. Overfloater (Soundgarden): jam-band atmospheric extended bridge, 6:42. We're In This Together (NIN): industrial-anthem with extended form + multiple chorus iterations, 7:16. Three different production-vocabulary approaches to extended-form anthem-arc composition."
+          },
+          "performance": {
+            "tempo_feel_description": "DRIVING ANTHEMIC FORWARD MOTION — 114-122 BPM at sustained intensity feels powerful + emotionally invested. Tempo enables anthemic-rock pulse without going extreme.",
+            "drum_style": {
+              "performer_or_programmer": "Trent Reznor (programming + sample triggering — Fragile drum approach varies by track, We're In This Together uses fuller programmed kit)",
+              "approach": "PROGRAMMED ROCK-ANTHEM DRUMS WITH INDUSTRIAL TEXTURAL OVERLAYS — Reznor builds a programmed drum track that EVOKES live rock drumming while retaining industrial-sample textural variety",
+              "specifics_documented": [
+                "Programmed kick + snare backbone driving at ~118 BPM — rock-anthem-style",
+                "Hi-hat 8ths or 16ths driving forward",
+                "Industrial percussion samples layered for textural variety (less aggressive than March of the Pigs)",
+                "Drum density INCREASES through arc — verse moderate, chorus full, bridge expansion possible",
+                "Cymbal samples articulate chorus moments + transitions"
+              ],
+              "comparison_to_other_nin_drumming_in_dissection": "March of the Pigs: MAXIMUM aggressive industrial at extreme tempo. TDTWWA: MINIMAL atmospheric sparse. We're In This Together: ANTHEMIC FULL programmed at moderate tempo. Three different programming approaches within NIN catalog."
+            },
+            "guitar_style": {
+              "performers": "Trent Reznor (primary) — guitars more present in We're In This Together than in TDTWWA",
+              "rhythm_guitar_role": "PROCESSED ROCK-ANTHEM RIFF + textural support — guitars provide rhythmic-harmonic primary alongside synth elements",
+              "specifics_documented": [
+                "Distorted guitar amps + heavy pedal-chain processing (similar to March of the Pigs but deployed for anthemic rock rather than industrial extremity)",
+                "Riff-driven verse guitar establishing harmonic motion",
+                "Sustained chord voicings in chorus expansion",
+                "Possible additional textural layers (heavily-processed cleans, ambient guitar) for atmospheric depth",
+                "Stereo placement aggressive — distorted guitars hard L/R for anthemic width"
+              ],
+              "playing_style_versus_other_nin_in_dissection": "March of the Pigs guitars: TEXTURAL AGGRESSION layers, not melodic-primary. TDTWWA guitars: MINIMAL/ABSENT, atmospheric textural color. We're In This Together guitars: ROCK-ANTHEM RHYTHMIC-HARMONIC PRIMARY (more traditional rock guitar role). Three different guitar deployments within Reznor's catalog."
+            },
+            "bass_performance": {
+              "performer": "Trent Reznor (synthesis + possibly some live bass)",
+              "approach": "DISTORTED BASS SYNTH PROVIDING ROCK-ANTHEM HARMONIC FOUNDATION + RHYTHMIC PUNCH",
+              "specifics_documented": [
+                "Bass synth distorted (less extreme than March of the Pigs but more present than TDTWWA)",
+                "Bass-kick coordination tight for anthemic rhythmic foundation",
+                "Possible live bass layering for combined texture in chorus expansion"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Trent Reznor",
+              "verse_delivery": "MODERATE INTENSITY — between aggressive (March of the Pigs verses) and reflective (TDTWWA verses) Reznor poles. Vocal projects with rock-anthem energy without screaming.",
+              "chorus_delivery": "FULL EMOTIONAL PROJECTION — anthemic vocal release. Possible vocal layering for emphasis (doubles, octave doubles, possibly background vocal chorus elements)",
+              "extended_bridge_delivery": "Brief vocal pause during instrumental expansion section",
+              "final_chorus_delivery": "INTENSIFYING vocal commitment across multiple chorus repetitions — emotional weight increases through repetition",
+              "documented_vocal_quirks": [
+                "Reznor demonstrates middle-register vocal capacity — between scream-aggression and atmospheric-vulnerability poles",
+                "Multiple vocal takes selected/comped per Reznor approach",
+                "Chorus vocal layering more prominent than other Reznor tracks",
+                "Possible additional chorus harmonies/background-vocal elements for anthemic fullness"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization-corrected programming",
+              "No vocal pitch correction",
+              "No tempo changes",
+              "No abrupt ending (gradual atmospheric fade)"
+            ]
+          },
+          "recording": {
+            "studio": "Nothing Studios (New Orleans) + various Fragile sessions",
+            "session_dates": "1996-1999 sessions",
+            "primary_producer": "Trent Reznor",
+            "primary_engineer": "Multiple Fragile engineers including Sean Beavan + others",
+            "primary_mix_engineer": "Alan Moulder",
+            "production_philosophy_for_were_in_this_together": "Reznor auteur-producer + Moulder mix collaboration framework deployed for ANTHEMIC INDUSTRIAL-ROCK material — same Fragile production framework as TDTWWA but applied to opposite-pole compositional intent (anthemic vs. atmospheric).",
+            "drum_micing_approach": {
+              "philosophy_reznor": "Programmed + sampled drums built in DAW environment — fuller drum kit programming for anthemic intent compared to TDTWWA's sparse atmospheric approach",
+              "specifics_for_were_in_this_together": [
+                "Programmed kit fuller than TDTWWA — kick + snare + hi-hat + cymbal samples + occasional industrial percussion",
+                "Drum bus processing balanced — punch + transient detail + some atmospheric reverb on selected hits",
+                "Possible occasional live percussion overdubs miced for textural variety",
+                "Programming designed to EVOKE live rock-anthem drumming while retaining industrial-sample textural variety"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_reznor": "Heavier guitar role than TDTWWA — guitars provide rock-anthem rhythmic-harmonic primary alongside synth elements",
+              "specifics_documented": [
+                "Distorted guitar amps + heavy pedal chains (similar palette to March of the Pigs but deployed for rock-anthem)",
+                "Multiple guitar layers tracked separately for stereo width",
+                "Each layer with different mic placement / amp / pedal for textural variety",
+                "Rock-anthem riff guitars + sustained chord textures + possible ambient guitar layers"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "Bass synthesis + possibly live bass layered. Distorted but less extreme than March of the Pigs."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_reznor": "Vocal tracking at Nothing Studios with attention to anthemic-rock projection — middle-register Reznor vocal capacity captured cleanly",
+              "specifics_documented": [
+                "Vocal isolation booth at Nothing Studios",
+                "Multiple complete takes selected/comped",
+                "Chorus vocal layering — additional doubles + octave-doubles tracked separately",
+                "Possible chorus harmonies / background vocal elements"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Multiple synthesizers (Reznor's Fragile-era expanded synth palette)",
+              "Programmed drum tracks built in sequencer (Pro Tools era)",
+              "Distorted guitar amps + heavy pedal chains",
+              "Bass synthesis with distortion + possible live bass",
+              "Nothing Studios documented setup at New Orleans"
+            ],
+            "what_makes_reznor_recording_distinct_for_were_in_this_together": [
+              "AUTEUR-PRODUCER + MOULDER MIX collaboration framework deployed for anthemic intent",
+              "Programming designed for ROCK-ANTHEM PULSE rather than industrial extremity",
+              "Heavier guitar role than other Fragile atmospheric tracks",
+              "Multiple chorus vocal layering for anthemic emphasis"
+            ],
+            "comparison_to_tdtwwa_recording": "Same album (Fragile 1999), same studios (Nothing Studios + Moulder mix), same auteur framework — but DIFFERENT recording emphasis. TDTWWA tracked for atmospheric vulnerability with minimum elements. We're In This Together tracked for anthemic emotional power with full elements + chorus vocal layering. Same auteur framework supporting opposite compositional intents within same album session."
           }
         },
         "The_Wretched": {
