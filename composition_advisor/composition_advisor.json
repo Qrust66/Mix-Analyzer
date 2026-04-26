@@ -8550,7 +8550,7 @@
           }
         },
         "Everybody_Knows_That_Youre_Insane": {
-          "_status": "C5_5b_performance_recording_done",
+          "_status": "C5_5c_complete_exhaustive",
           "album": "Lullabies to Paralyze",
           "year": 2005,
           "tempo_bpm_documented_range": [110, 116],
@@ -8688,6 +8688,117 @@
             ],
             "comparison_to_valentine_songs_for_the_deaf_recording": "Eric Valentine (Songs for the Deaf 2002): unified-role with commercial-rock impact + groove-rock specialization. Joe Barresi (Lullabies to Paralyze 2005): unified-role with heavy-rock specialization + Tool/Melvins lineage. Same role-philosophy across two albums, different sonic palettes — Barresi's heavy-rock palette gives Lullabies a different texture than Songs for the Deaf.",
             "production_philosophy_ninth_distinct_approach_in_dissection": "NINE distinct production approaches now: 1) Albini, 2) Vig+Wallace, 3) Date, 4) Beinhorn+O'Brien, 5) Kasper, 6) Flood+Moulder+Corgan, 7) Reznor auteur, 8) Valentine unified-role groove-rock, 9) BARRESI unified-role heavy-rock specialization."
+          },
+          "mixing": {
+            "mix_engineer": "Joe Barresi",
+            "mixing_studio": "Various Lullabies to Paralyze mix locations",
+            "mixing_philosophy_barresi_for_everybody_knows": "HEAVY-ROCK GROOVE CLARITY + HOMME-CENTRIC VOCAL FORWARDNESS. Barresi's documented heavy-rock mix approach: deliver heavy-rock impact while preserving robot-rock groove + Homme's vocal as melodic anchor.",
+            "drum_mix_balance": [
+              "Kick + snare punchy + present — heavy-rock drum forwardness",
+              "Hi-hat articulation prominent for tempo clarity",
+              "Drum bus weight balanced — Castellano's groove-priority playing preserved",
+              "Cymbal accents articulate transitions"
+            ],
+            "guitar_mix_treatment": [
+              "STEREO WIDTH HEAVY-ROCK — guitars hard L/R for stereo width",
+              "Heavy distortion preserved",
+              "Compression on guitar bus moderate — preserves picking precision + groove feel",
+              "Frequency-spread layering for power-trio guitars"
+            ],
+            "vocal_mix_treatment": [
+              "Homme vocal CENTERED + FORWARD",
+              "Plate reverb + short delay for spatial depth",
+              "Compression preserves Homme's sustained baritone phrases",
+              "Possible secondary vocal harmony blended subtly"
+            ],
+            "bass_mix_treatment": [
+              "Bass forward with tight low-frequency response",
+              "Bass-kick coordination tight"
+            ],
+            "spatial_treatment_heavy_rock_groove": [
+              "Stereo field WIDE for heavy-rock impact",
+              "Reverb usage MODERATE",
+              "Plate reverbs on drums + vocal for warmth"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying groove feel",
+              "No drum sample replacement",
+              "No vocal pitch correction"
+            ],
+            "comparison_to_valentine_songs_for_the_deaf_mix": "Eric Valentine (Songs for the Deaf 2002): commercial-rock impact + groove clarity + multi-vocalist integration. Joe Barresi (Lullabies to Paralyze 2005): heavy-rock impact + groove clarity + Homme-centric vocal forwardness. Different sonic palettes for similar role-philosophy.",
+            "what_makes_barresi_mix_distinct_for_everybody_knows": [
+              "HEAVY-ROCK GROOVE CLARITY — Barresi's heavy-rock specialization",
+              "Homme-centric vocal forwardness (post-Oliveri era)",
+              "Different sonic palette than Valentine's Songs for the Deaf",
+              "Same role-philosophy across both QOTSA producers"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Bob Ludwig (documented Lullabies to Paralyze mastering — note: same Bob Ludwig as In Utero mastering engineer, cross-band production-philosophy thread)",
+            "mastering_studio": "Gateway Mastering, Portland, Maine (Bob Ludwig's documented base)",
+            "mastering_philosophy_for_everybody_knows": [
+              "Ludwig's documented approach: high-end clarity + low-end weight + dynamic detail preservation",
+              "2005 album-level mastering — Lullabies at peak loudness-war era",
+              "Heavy-rock groove benefits from Ludwig's punch + clarity emphasis"
+            ],
+            "loudness_observed": "Album average around -8 to -9 LUFS (2005 loudness-war era).",
+            "spectral_signature": "Ludwig's documented sound: clear top-end, present mid-range, controlled aggressive low-end.",
+            "what_mastering_preserves_for_everybody_knows": [
+              "Heavy-rock groove + transient detail",
+              "Drum punch + cymbal articulation",
+              "Vocal clarity above density",
+              "Stereo image"
+            ],
+            "cross_album_ludwig_thread_within_dissection": "Bob Ludwig mastered: Nirvana In Utero (1993, with Albini engineering) + QOTSA Lullabies to Paralyze (2005, with Barresi engineering). Two documented Ludwig mastering points within dissection — different bands, different production approaches, same mastering engineer."
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "HOMME-CENTRIC ROBOT-ROCK GROOVE + ABSURDIST LYRICAL FRAME — listeners hear post-Oliveri QOTSA at Homme's mature compositional voice.",
+            "level_2_arrangement_signature": "POWER-TRIO + HOMME-CENTRIC VOCAL — without Oliveri's vocal democracy contribution, arrangement balance shifts toward Homme-led tracks dominantly.",
+            "level_3_compositional_signature": "POST-OLIVERI HOMME-CENTRIC ERA QOTSA — demonstrates how band lineup changes shift compositional voice. Without competing punk-aggression contribution, Homme's robot-rock + desert-rock voice dominates."
+          },
+          "advisor_extract": {
+            "recipe_name": "post_lineup_change_compositional_voice_evolution",
+            "applicability": "Bands experiencing key member departures, seeking to maintain compositional identity while evolving balance. Use when LINEUP CHANGE shifts compositional voice + production approach evolves accordingly.",
+            "core_compositional_recipes": [
+              {
+                "id": "post_lineup_change_compositional_voice_dominance",
+                "rule": "When key band member departs, allow remaining primary songwriter's COMPOSITIONAL VOICE to dominate without forcing replacement of departed member's contribution. Album represents primary-voice-without-competing-influence rather than band-as-before with substitute.",
+                "wow_factor": 0.78,
+                "documented_example": "Lullabies to Paralyze (QOTSA 2005, post-Oliveri) — Homme compositional voice dominant without Oliveri's punk-aggression contribution",
+                "trade_offs": "Loses former member's distinct contribution. Risk of sounding diminished if voice-balance was critical to band's identity.",
+                "personality_fit": "Cobain 30 / Reznor 30 / Yorke 25 / Daft Punk 15"
+              },
+              {
+                "id": "production_approach_evolution_with_lineup_change",
+                "rule": "When lineup changes, consider PRODUCTION APPROACH EVOLUTION (different producer, different engineer, different studio) to mark new era. New production approach helps establish new band identity rather than continuing former era.",
+                "wow_factor": 0.76,
+                "documented_example": "QOTSA evolution: Songs for the Deaf 2002 (Valentine, The Sound Factory) → Lullabies to Paralyze 2005 (Barresi, Studio 606). Different production approaches mark different eras.",
+                "trade_offs": "Risk of disorienting fans expecting continuity. Demands willingness to rebuild creative pipeline.",
+                "personality_fit": "Reznor 35 / Cobain 25 / Yorke 25 / Daft Punk 15"
+              },
+              {
+                "id": "barresi_heavy_rock_specialist_unified_role_production",
+                "rule": "Hire ENGINEER-PRODUCER unified role with documented HEAVY-ROCK SPECIALIZATION (Tool, Melvins, Kyuss-related lineage) for desert-rock or stoner-rock projects. Specialist's documented prior work informs sonic palette + tracking decisions.",
+                "wow_factor": 0.74,
+                "documented_example": "Joe Barresi on QOTSA Lullabies to Paralyze (2005) — heavy-rock specialist unified role",
+                "trade_offs": "Specialists may impose template-from-prior-projects. Demands specialist with adaptability + band-specific sensibility.",
+                "personality_fit": "Cobain 30 / Reznor 30 / Daft Punk 20 / Yorke 20"
+              },
+              {
+                "id": "mature_compositional_voice_after_collaborative_period",
+                "rule": "After collaborative-band period (e.g., guest contributors, multi-vocalist albums), develop MATURE COMPOSITIONAL VOICE under primary songwriter alone. Demonstrates artistic evolution beyond collaborative phase.",
+                "wow_factor": 0.75,
+                "documented_example": "Homme's post-Songs for the Deaf evolution into Homme-centric Lullabies — mature compositional voice without competing influences",
+                "trade_offs": "Loses collaborative dimensional color. Risk of sound-narrowing if primary voice not strong enough alone.",
+                "personality_fit": "Reznor 35 / Yorke 30 / Cobain 20 / Daft Punk 15"
+              }
+            ],
+            "production_philosophy_signature_barresi_heavy_rock_specialization": {
+              "philosophy": "Engineer-producer unified role with documented heavy-rock specialization (Tool, Melvins, Kyuss-related lineage). Same role-philosophy as Valentine but with different sonic palette + heavy-rock specialist's documented prior-work informing tracking decisions.",
+              "applicability": "Desert-rock + stoner-rock + heavy-rock projects seeking specialist producer with documented genre lineage",
+              "lineage_within_dissection": "NINTH distinct production philosophy: 1-8 plus BARRESI heavy-rock specialist unified role."
+            },
+            "structural_choice_summary": "Post-Oliveri Homme-centric era + Barresi heavy-rock production + power-trio mid-tempo heavy desert-rock — Everybody Knows demonstrates QOTSA's POST-LINEUP-CHANGE COMPOSITIONAL VOICE EVOLUTION pole. Lineup change as compositional pivot."
           }
         },
         "Little_Sister": {
