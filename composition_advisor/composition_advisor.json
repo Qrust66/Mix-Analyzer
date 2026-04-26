@@ -13167,6 +13167,8 @@
       "asymmetric_meter_at_extreme_tempo": {
         "id": "asymmetric_meter_at_extreme_tempo",
         "rule": "Use 7/8 + 8/8 alternation (or other asymmetric groupings) at TEMPOS ABOVE 200 BPM. The asymmetric grouping creates constant rhythmic tension; the extreme tempo creates relentless forward pressure. Together they create a UNIQUE FEEL — neither pure groove nor pure complexity, but SUSTAINED OFF-BALANCE.",
+        "electronic_translation": "Program drums in DAW step-sequencer at the asymmetric grouping (e.g., 5 bars of 7/8 followed by 1 bar of 8/8) — Live's signature/time-grid lets you define non-4/4 meters. Use AGGRESSIVE PROGRAMMED DRUMS (TR-909 + 808 + sample-triggered metallic hits) at 200-265 BPM, not live drums. Bass: distorted Operator/Massive bass synth on tonic, locked to kick. Texture: heavy saturation + bit-crush on percussion bus, sidechain everything to kick. The asymmetric cycle becomes the song's identity — listeners feel 'wrong-but-driving'. Apply for industrial-techno breakdowns, dark-electronic peak sections, EBM intensity statements, IDM rhythmic showpieces. Avoid in deep-house or ambient (incompatible with their meditative pulse).",
+        "electronic_target_genres": ["dark_electronic", "EBM", "IDM"],
         "applicability_text": "Industrial-rock or extreme-metal contexts wanting rhythmic extremity; programmed-drum capacity required for sustained extreme tempo.",
         "wow_factor": 0.86,
         "tier": "top",
@@ -14487,6 +14489,8 @@
       "filter_modulation_as_compositional_engine": {
         "id": "filter_modulation_as_compositional_engine",
         "rule": "Use ANALOG FILTER MODULATION (sweeping filter cutoff up/down across song's runtime) as PRIMARY COMPOSITIONAL ENGINE substituting for traditional harmonic motion. Filter at lower cutoff = harmonic compression / closed feel; filter opening = harmonic expansion / open feel. Filter modulation IS movement.",
+        "electronic_translation": "Place an analog-modeled FILTER (Diva, Cytomic Filter, Kirchhoff, or hardware Moog/MS-20 ladder) on a sustained synth-pad bus or full-track bus. Automate filter cutoff over LONG TIMESCALES (30 sec to 2+ min sweeps, not per-bar wobbles). Filter cutoff at ~200 Hz = closed/compressed; sweeping toward 8 kHz = opening/expanding. The cutoff curve IS the song's harmonic narrative — there's no chord progression underneath, just one tonic + a bass-line. Pair with resonance modulation (slight Q lift mid-sweep adds character) + drive/saturation that BLOOMS as filter opens. Apply heavily in: filter house, deep house, dub-techno breakdowns, melodic-techno arrangements, ambient harmonic-evolution. The technique IS the genre in French house tradition. Hardware option: Moog Sub 37 LFO-to-cutoff with very slow LFO; software: Kirchhoff or Diva with tempo-synced LFO at 1/64 note rate or longer.",
+        "electronic_target_genres": ["filter_house", "deep_house", "dub_techno"],
         "applicability_text": "Filter house, French house, deep-house, electronic dance music; productions with analog filter equipment + understanding of filter character.",
         "wow_factor": 0.85,
         "tier": "top",
