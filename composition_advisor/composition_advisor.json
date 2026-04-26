@@ -8802,7 +8802,7 @@
           }
         },
         "Little_Sister": {
-          "_status": "C5_6b_performance_recording_done",
+          "_status": "C5_6c_complete_exhaustive",
           "album": "Lullabies to Paralyze",
           "year": 2005,
           "tempo_bpm_documented_range": [114, 120],
@@ -8946,6 +8946,115 @@
               "Heavy-rock specialist's careful attention to unusual-percussion-element capture",
               "Demonstrates Barresi's range within Lullabies session"
             ]
+          },
+          "mixing": {
+            "mix_engineer": "Joe Barresi",
+            "mixing_studio": "Various Lullabies mix locations",
+            "mixing_philosophy_barresi_for_little_sister": "COWBELL FORWARD + COMMERCIAL-SINGLE GROOVE CLARITY + HOMME-CENTRIC VOCAL FORWARDNESS. Cowbell as compositional centerpiece requires forward placement; commercial-single intent requires radio-friendly clarity.",
+            "drum_mix_balance": [
+              "Cowbell PROMINENTLY FORWARD — compositional centerpiece status",
+              "Kick + snare punchy + supporting cowbell pattern",
+              "Hi-hat articulation prominent",
+              "Drum bus weight balanced for commercial-single impact"
+            ],
+            "guitar_mix_treatment": [
+              "Stereo width commercial — guitars hard L/R for radio impact",
+              "Distortion preserved",
+              "Compression on guitar bus moderate",
+              "Frequency-spread layering"
+            ],
+            "vocal_mix_treatment": [
+              "Homme vocal CENTERED + FORWARD",
+              "Plate reverb + short delay for spatial depth",
+              "Compression preserves Homme's commercial-single delivery",
+              "Possible secondary vocal harmony blended subtly"
+            ],
+            "bass_mix_treatment": [
+              "Bass forward",
+              "Bass-kick coordination tight"
+            ],
+            "spatial_treatment": [
+              "Stereo field WIDE for commercial impact",
+              "Reverb usage MODERATE",
+              "Plate reverbs on drums + vocal for warmth"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying transient detail",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No reduction of cowbell prominence"
+            ],
+            "what_makes_barresi_mix_distinct_for_little_sister": [
+              "COWBELL FORWARD as compositional centerpiece",
+              "Commercial-single groove clarity",
+              "Homme-centric vocal forwardness"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Bob Ludwig (Lullabies to Paralyze mastered — same as Everybody Knows)",
+            "mastering_studio": "Gateway Mastering, Portland, Maine",
+            "mastering_philosophy_for_little_sister": [
+              "Ludwig's documented approach: high-end clarity + low-end weight + commercial-single impact",
+              "Cowbell character preserved through master",
+              "2005 album-level mastering at peak loudness-war era"
+            ],
+            "loudness_observed": "Album average around -8 to -9 LUFS.",
+            "spectral_signature": "Ludwig's documented sound: clear top-end, present mid-range, controlled aggressive low-end.",
+            "what_mastering_preserves_for_little_sister": [
+              "Cowbell character + transient detail",
+              "Drum punch + groove feel",
+              "Vocal clarity",
+              "Stereo image"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "THE COWBELL PATTERN — listeners remember the cowbell as the song's defining element. Unusual-instrument-as-compositional-centerpiece success.",
+            "level_2_arrangement_signature": "COWBELL FOUNDATION + POWER-TRIO + HOMME-CENTRIC VOCAL — commercial-single arrangement with unusual-percussion centerpiece.",
+            "level_3_compositional_signature": "UNUSUAL-INSTRUMENT-AS-COMPOSITIONAL-CENTERPIECE — Homme demonstrates that overlooked percussion (cowbell) can be COMPOSITIONAL ANCHOR rather than ornamental color. Influences subsequent indie/alt-rock willingness to embrace overlooked instruments."
+          },
+          "advisor_extract": {
+            "recipe_name": "unusual_instrument_as_compositional_centerpiece_via_dedicated_capture",
+            "applicability": "Commercial-single contexts where compositional differentiation requires UNUSUAL INSTRUMENT establishing rhythmic identity. Use when an overlooked percussion or melodic instrument can serve as song's signature element.",
+            "core_compositional_recipes": [
+              {
+                "id": "unusual_instrument_as_compositional_centerpiece",
+                "rule": "Use OVERLOOKED OR UNUSUAL INSTRUMENT (cowbell, glockenspiel, tambourine, etc.) as COMPOSITIONAL CENTERPIECE rather than as ornamental color. Pattern continuous through song, establishing rhythmic identity. Listeners remember the unusual element as song's signature.",
+                "wow_factor": 0.81,
+                "documented_example": "Little Sister (QOTSA, Lullabies to Paralyze 2005, 2:54) — cowbell as compositional centerpiece",
+                "trade_offs": "Risk of feeling gimmicky if execution off. Demands careful integration with rest of arrangement.",
+                "personality_fit": "Cobain 30 / Daft Punk 30 / Reznor 20 / Yorke 20"
+              },
+              {
+                "id": "dedicated_microphone_capture_for_compositional_centerpiece_instrument",
+                "rule": "When unusual instrument is compositional centerpiece, allocate DEDICATED MICROPHONE for clean capture. Don't rely on overhead/room bleed. Possible separate overdub for precision. Capture quality serves compositional importance.",
+                "wow_factor": 0.74,
+                "documented_example": "Cowbell capture on QOTSA Little Sister — dedicated mic + possible overdub for clean centerpiece status",
+                "trade_offs": "Adds tracking complexity. Requires recognition that the unusual instrument is centerpiece (not afterthought).",
+                "personality_fit": "Cobain 30 / Reznor 30 / Daft Punk 25 / Yorke 15"
+              },
+              {
+                "id": "compositional_signature_via_continuous_unusual_pattern",
+                "rule": "Maintain unusual-instrument pattern CONTINUOUSLY through song (not just intro or chorus). Continuity establishes rhythmic identity; listeners hear it as constant anchor. Pattern may shift slightly between sections but pattern presence remains constant.",
+                "wow_factor": 0.78,
+                "documented_example": "Little Sister cowbell pattern continuous through 2:54",
+                "trade_offs": "Risk of feeling repetitive if pattern not interesting enough. Demands strong unusual-instrument pattern composition.",
+                "personality_fit": "Daft Punk 35 / Cobain 30 / Reznor 20 / Yorke 15"
+              },
+              {
+                "id": "rehabilitating_overlooked_instrument_as_serious_compositional_element",
+                "rule": "Take an instrument associated with classic-rock cliché or parody (cowbell from 'Don't Fear the Reaper' / 'more cowbell' SNL) and use it SERIOUSLY as compositional centerpiece. Confidence + execution rehabilitates the instrument's compositional credibility.",
+                "wow_factor": 0.79,
+                "documented_example": "Little Sister rehabilitates cowbell as serious compositional element after SNL parody association",
+                "trade_offs": "Risk of audience hearing parody association rather than serious composition. Demands strong material.",
+                "personality_fit": "Cobain 35 / Daft Punk 30 / Reznor 20 / Yorke 15"
+              }
+            ],
+            "production_philosophy_signature_barresi_unusual_percussion_capture": {
+              "philosophy": "Same Barresi heavy-rock-specialist unified-role framework with attention to unusual-percussion centerpiece capture. Demonstrates production's responsibility to compositional centerpiece — production serves composition.",
+              "applicability": "Bands seeking commercial-single differentiation via unusual-instrument compositional centerpiece + dedicated production capture",
+              "key_insight": "Production framework adapts to compositional centerpiece. Even unusual instruments deserve dedicated capture when compositionally central."
+            },
+            "structural_choice_summary": "Cowbell as compositional centerpiece + commercial-single economy + dedicated capture + Barresi heavy-rock production — Little Sister demonstrates QOTSA's UNUSUAL-INSTRUMENT-COMMERCIAL-DIFFERENTIATION pole. Compositional differentiation via overlooked-instrument rehabilitation."
           }
         }
       },
