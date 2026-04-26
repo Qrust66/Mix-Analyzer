@@ -5395,9 +5395,43 @@
           }
         },
         "Zero": {
-          "_status": "stub_pending_full_dissection_C3_4",
+          "_status": "C3_4a_composition_arrangement_done",
           "album": "Mellon Collie and the Infinite Sadness",
-          "year": 1995
+          "year": 1995,
+          "tempo_bpm_documented_range": [126, 134],
+          "time_signature": "4/4 throughout",
+          "key_area": "C-sharp minor area / B-flat minor area (with documented Mellon Collie tuning standardized to E-flat tuning)",
+          "tuning_documented": "Half-step-down (E-flat standard) — Mellon Collie convention",
+          "track_runtime": "~2:40",
+          "_special_status": "Track 19 on Mellon Collie and the Infinite Sadness (1995) — disc 1 'Dawn to Dusk' track. Single from the album. Functions as one of the album's MOST INDUSTRIAL-LEANING + RHYTHMICALLY-EMPHASIZED tracks. Demonstrates Flood+Moulder's SONIC INFLUENCE on the band's evolution — Corgan's compositional sensibility meets industrial-adjacent textures via Moulder's NIN-mix-engineer experience. Compact 2:40 runtime is shorter than typical Pumpkins, demonstrating compositional economy.",
+          "composition": {
+            "primary_compositional_signature": "INDUSTRIAL-LEANING RIFF-DRIVEN ROCK with COMPRESSED ECONOMY — 2:40 runtime is short by Pumpkins standards. Built around a powerful chromatic riff with heavy rhythmic emphasis. Where Bodies pushes punk speed, Zero pushes INDUSTRIAL TEXTURE.",
+            "core_structural_arc": "Riff intro → verse with sustained rhythmic riff + vocal entry → pre-chorus build → chorus with hook expansion → riff return → second verse → chorus → brief bridge → final chorus + outro. Tight ~2:40 — extremely compact by Mellon Collie standards (album avg ~5 min including epic Tonight Tonight + Geek USA-equivalents).",
+            "harmonic_motion_summary": "MINOR-MODAL with chromatic riff motion + characteristic Corgan suspended voicings. Chromatic descending or ascending lines drive the riff identity. Less harmonic 'movement' than typical Pumpkins (Today's progressions, Soma's expansions) — more harmonic STASIS as platform for rhythmic emphasis.",
+            "characteristic_compositional_choice": "RHYTHMIC EMPHASIS OVER HARMONIC MOVEMENT — the riff's rhythmic identity carries the song. Where most Pumpkins tracks balance harmonic motion + rhythmic drive, Zero foregrounds rhythm. This shift toward rhythm-as-primary-compositional-axis aligns with industrial influence (NIN, Ministry's rhythmic emphasis) absorbed via Moulder's documented influence.",
+            "comparison_to_quiet_compositional_engine": "Quiet (Siamese Dream 1993): SUSTAINED INTENSITY at mid-tempo with HARMONIC RICHNESS + wall-of-density. Zero (Mellon Collie 1995): SUSTAINED INTENSITY at medium-fast tempo with RHYTHMIC EMPHASIS + industrial-leaning textures. Two heavy Pumpkins tracks but with different compositional emphases.",
+            "comparison_to_bodies_compositional_engine": "Bodies (Mellon Collie 1995): FAST PUNK-INFLUENCED aggression. Zero (Mellon Collie 1995): MEDIUM-FAST INDUSTRIAL-INFLUENCED rhythmic emphasis. Both heavy Mellon Collie tracks with different sub-genre influences.",
+            "compositional_economy": "2:40 is EXTREMELY tight — among the shortest Pumpkins songs. Compositional 'movement' is hyper-dense — every section delivers material efficiently, no extended development. Demonstrates compositional economy capacity within an album that ALSO includes 9+ minute epic tracks.",
+            "innovation_for_genre_context": "1995 alt-rock context: industrial-rock crossover was emerging (NIN's Downward Spiral 1994, Ministry continuing). Zero's contribution: alt-rock band CONFIDENTLY INCORPORATING industrial textures + rhythmic emphasis without abandoning rock identity. Demonstrates genre-blend willingness via Flood+Moulder production team."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "RHYTHM-EMPHASIZED RIFF-DRIVEN with INDUSTRIAL-ADJACENT TEXTURES — drums + rhythmic emphasis foregrounded; guitars layered but with more rhythmic articulation priority than Siamese Dream's harmonic-density priority.",
+            "intro_arrangement": "Riff opens with full-band entry — drums + guitars + bass at full intensity. Rhythmic statement immediate.",
+            "verse_arrangement": "Riff continues + Corgan vocal enters. Multiple guitar layers but with RHYTHMIC ARTICULATION priority — picking precision more important than harmonic-spread density. Drums (Chamberlin) drive with industrial-leaning kick + snare emphasis.",
+            "pre_chorus_arrangement": "Slight density build + rhythmic intensification — drum fill more pronounced than typical Pumpkins, leading into chorus.",
+            "chorus_arrangement": "Hook expansion + slight harmonic widening, but rhythm remains foregrounded. Vocal lifts to upper-register.",
+            "bridge_arrangement": "Brief shift — may include sonic experimentation (industrial-textured break, momentary density reduction). Short and tight given the 2:40 runtime.",
+            "outro_arrangement": "Final chorus + riff statement to close, hard ending or short fade.",
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained 126-134 BPM)",
+              "No drum sample replacement (Chamberlin's playing is the song's rhythmic identity)",
+              "No vocal pitch correction",
+              "No extended sections (the compressed economy is essential)"
+            ],
+            "what_makes_arrangement_unique_within_smashing_pumpkins": "Zero represents Pumpkins' MOST INDUSTRIAL-LEANING arrangement. Within Mellon Collie's broad range (orchestral Tonight Tonight, atmospheric Geek USA, intimate 1979, fast-aggressive Bodies, epic Cupid de Locke), Zero stakes the INDUSTRIAL-ADJACENT RHYTHMIC pole. Demonstrates the band's genre-blend willingness.",
+            "comparison_to_bodies_arrangement": "Bodies: fast punk aggression with retained Pumpkins layering. Zero: medium-fast industrial textures with rhythmic emphasis. Different sub-genre influences expressed through different arrangement priorities.",
+            "comparison_to_nin_industrial_arrangement_within_dissection_context": "Zero's industrial-leaning arrangement begins to overlap territory that NIN's catalog will demonstrate fully (March of the Pigs, etc. — to be dissected in C4 block). Zero is Pumpkins INFLUENCED BY industrial; March of the Pigs will be NIN MAKING industrial. Useful cross-band comparison emerging."
+          }
         }
       },
       "Nine_Inch_Nails": {
