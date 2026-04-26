@@ -1,0 +1,54 @@
+{
+  "descending_riff_as_song_identity": {
+    "status": "PASS",
+    "evidence": "BASS pitches=[33, 34, 36, 38, 45], expected [33, 34, 36, 38]"
+  },
+  "mid_tempo_aggression_not_hardcore_speed": {
+    "status": "PASS",
+    "evidence": "tempo=108.0 (target 100-115)"
+  },
+  "hard_soft_hard_contrast_within_song": {
+    "status": "PASS",
+    "evidence": "KICK notes: VERSE_A=64, BREAKDOWN=0, VERSE_B=64"
+  },
+  "unrelenting_aggression_no_dynamic_arc": {
+    "status": "PASS",
+    "evidence": "DROP total notes across all tracks = 394"
+  },
+  "compressed_economy_under_three_minutes_in_long_album": {
+    "status": "PASS",
+    "evidence": "runtime=142s = 2:22"
+  },
+  "bass_line_first_compositional_method": {
+    "status": "PASS",
+    "evidence": "BASS bars 1-4: 16 notes, KICK: 0"
+  },
+  "density_arc_arrangement_sparse_to_wall": {
+    "status": "PASS",
+    "evidence": "INTRO=47, DROP=394, OUTRO=22"
+  },
+  "industrial_textural_aggression_via_processed_guitar_layers": {
+    "status": "PASS",
+    "evidence": "LEAD synth as textural-aggression layer in DROP: 48 notes (instrument routing left for user)"
+  },
+  "abrupt_song_end_no_fade": {
+    "status": "PASS",
+    "evidence": "max_note_end_beat=256.0 (clip ends at 256)"
+  },
+  "programmed_drums_as_compositional_engine": {
+    "status": "PASS",
+    "evidence": "KICK=198, SNARE=92, HATS=451"
+  },
+  "tr_909_drum_machine_as_compositional_instrument": {
+    "status": "PASS",
+    "evidence": "KICK=[36], SNARE=[38], HATS=[42, 46] (909 GM pitches: 36/38/42/46)"
+  },
+  "rhythmic_emphasis_over_harmonic_movement_industrial_lesson": {
+    "status": "PASS",
+    "evidence": "rhythm-tracks notes=741, harmonic-tracks notes=370"
+  },
+  "compositional_movement_via_filter_not_via_chord_change": {
+    "status": "PARTIAL",
+    "evidence": "PAD pitches=[46, 50, 53, 57, 60] — chord-stasis maintained except 1 modal-shift to Bb in breakdown (filter automation left for user)"
+  }
+}
