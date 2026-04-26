@@ -11693,6 +11693,8 @@
       "feedback_as_compositional_layer_in_bridge": {
         "id": "feedback_as_compositional_layer_in_bridge",
         "rule": "Bridge has SUSTAINED guitar feedback (or synth pad equivalent) underneath the lead instrument's solo. Feedback is treated as harmonic FOUNDATION, not transitional artifact — it sits in the mix as a compositional layer for the bridge's full duration.",
+        "electronic_translation": "In the bridge/breakdown section, place a SUSTAINED HIGH-RESONANCE FILTER FEEDBACK (resonance pushed near self-oscillation on a Moog ladder / Diva / Cytomic) or a TUNED FEEDBACK LOOP (output of a delay routed to its input through a high-pass) under the lead synth/vocal. The feedback sits at the song's tonic + 5th, sustains the entire bridge duration, builds slowly. Alternative: granular sustain with cloud/freezer (Output Portal, Granulator II) frozen on a single note. Or noise-bed pitched to tonic + filtered. Apply for: dark-electronic bridges (NIN-adjacent), IDM atmospheric breaks, ambient long-form sustain, dub-techno breakdown harmonic field. The feedback isn't an accident — it's the bridge's HARMONIC BED, replacing chord changes with sustained tension.",
+        "electronic_target_genres": ["dark_electronic", "ambient", "IDM"],
         "applicability_text": "Bridge moments needing 'broken' atmospheric texture; instrumental sections wanting underlying tension.",
         "wow_factor": 0.70,
         "tier": "bronze",
@@ -11713,6 +11715,8 @@
       "albini_vs_litt_two_mix_versions": {
         "id": "albini_vs_litt_two_mix_versions",
         "rule": "When mixing, consider whether the song wants RAW LIVE-DOCUMENT character (Albini approach: room mics emphasized, no master comp, vocal sits in band) OR COMMERCIAL POLISH character (Litt approach: subtle EQ + reverb + vocal forward + light master compression). The same recording can be mixed two ways; choose per song's artistic intent rather than imposing one philosophy across the album.",
+        "electronic_translation": "Render TWO MIX VERSIONS of the same arrangement: (1) RAW capture-style: minimal master-bus processing (no master compressor / no sub-bass-EQ / no master limiter beyond peak-protection at -1 dBTP). Sounds at -14 LUFS integrated, dynamic, slightly under-loud vs. commercial. Best for ambient / dub-techno / downtempo / neo-classical-electronic releases targeting attentive listening / vinyl / Bandcamp. (2) COMMERCIAL polish: aggressive bus-compressor (Vari-Mu or SSL G), master-EQ tilt + presence boost, multi-band glue, soft-clip + limiter to -8 to -9 LUFS. Best for techno / EBM / dark-electronic / electronic-pop targeting club rotation / Spotify / streaming-loudness-normalization-aware playlists. Choose per track's artistic context. Some artists release BOTH versions (album-mix + club-mix). Apply meta-decision before mastering hand-off.",
+        "electronic_target_genres": ["ambient", "techno", "downtempo", "electronic_pop"],
         "applicability_text": "Mix decisions on tracks where rawness vs polish is the artistic choice; alternative mix philosophy when commercial template doesn't serve the song.",
         "wow_factor": 0.70,
         "tier": "bronze",
@@ -11733,6 +11737,8 @@
       "delayed_rhythm_section_entry_4_bars": {
         "id": "delayed_rhythm_section_entry_4_bars",
         "rule": "Open the song with the LEAD MELODIC INSTRUMENT alone for 4 bars (in HSB's case, guitar with the bend riff). Bass + drums delayed entry by 4 full bars. Establishes melodic identity before rhythmic foundation arrives — listener focuses on the riff before lock-in.",
+        "electronic_translation": "Open with LEAD synth motif / arpeggio / vocoded phrase alone for 4-8 bars (8-16 seconds at 120 BPM). Drums + bass DELAYED to bar 5 or bar 9. Listener locks onto melodic identity before lock-in. Variant for ambient: lead alone for 16-32 bars, kick never enters. Variant for techno: lead alone 4 bars, kick enters bar 5 with full pattern (classic Berghain opener pattern). Apply for: techno opener tracks, ambient track introductions, IDM melodic-foreground intros, downtempo gentle-arrival starts, electronic-pop hook-first openings. Solid arrangement-view discipline: NEVER lead all instruments enter on bar 1.",
+        "electronic_target_genres": ["techno", "IDM", "ambient", "downtempo"],
         "applicability_text": "Intros that center a melodic hook over groove; songs where the riff IS the song.",
         "wow_factor": 0.75,
         "tier": "silver",
