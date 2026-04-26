@@ -13211,6 +13211,8 @@
       "compressed_economy_under_three_minutes_in_long_album": {
         "id": "compressed_economy_under_three_minutes_in_long_album",
         "rule": "Within an album that includes long-form tracks (5+ minutes), include a SHORT (under 3 min) HIGH-INTENSITY track that demonstrates compositional economy. The short track reads as RELENTLESSLY EFFICIENT against the album's longer pieces. Compositional 'movement' hyper-dense.",
+        "electronic_translation": "Within an electronic album/EP that includes long-form tracks (6-9+ min ambient pieces, extended techno workouts, neo-classical-electronic epics), include a SHORT (under 3 min) HIGH-INTENSITY track that demonstrates compositional economy. The short track reads as RELENTLESSLY EFFICIENT against the album's longer pieces — a palette-cleanser proving compositional discipline. Apply for: techno albums with one 2-min compressed-aggression track between 7-min DJ-tools (Surgeon 'Force + Form' tradition), ambient albums with one 3-min beat-track interlude (Aphex Twin 'Selected Ambient Works II' compressed sketches between long pieces), neo-classical-electronic albums with one 2-min compressed piece, IDM concept albums with mixed-runtime compositions. The DISCIPLINE: the short track must demonstrate the artist's range — not feel like a filler, but like an INTENTIONAL compressed statement. Pair with `compact_aggressive_under_2_minutes` for tightest version.",
+        "electronic_target_genres": ["techno", "ambient", "IDM"],
         "applicability_text": "Multi-track albums with diverse runtime ambitions; tracks meant as palette-cleansers; songs proving compositional discipline within ambitious albums.",
         "wow_factor": 0.76,
         "tier": "silver",
@@ -13231,6 +13233,8 @@
       "rhythmic_emphasis_over_harmonic_movement_industrial_lesson": {
         "id": "rhythmic_emphasis_over_harmonic_movement_industrial_lesson",
         "rule": "Foreground RHYTHM over harmonic motion — riff's rhythmic identity carries the song, harmonic stasis acceptable as platform for rhythmic emphasis. Borrowed from industrial influence (NIN, Ministry, Front 242) where rhythmic precision is primary compositional axis.",
+        "electronic_translation": "Foreground RHYTHMIC PRECISION over harmonic motion — the bass-line/riff rhythmic identity carries the track, harmonic STASIS (single tonic with subtle modal color shifts) is acceptable as PLATFORM for rhythmic emphasis. Build on a single chord (e.g., D minor sustained throughout) and let rhythmic complexity (programmed-drum precision, sidechain-pumping bass-line, percussion-detail variation) become the compositional engine. Apply for: industrial-techno (NIN / Ministry / Front 242 lineage where rhythm IS the composition), techno generally (4/4 grid as rhythmic-identity platform), EBM (rhythmic precision as primary axis), drum-and-bass (rhythm-design as PRIMARY composition), IDM rhythm-design tracks (Autechre programmed-rhythm-as-everything). The harmony serves the rhythm; the rhythm IS the song. Pair with `programmed_drums_as_compositional_engine` and `harmonic_minimalism_one_cycle_repeated` (which complement the rhythm-primary aesthetic).",
+        "electronic_target_genres": ["techno", "EBM", "IDM"],
         "applicability_text": "Industrial-leaning rock or electronic-rock contexts; tracks where rhythm is primary compositional axis; bands willing to subordinate harmonic movement to rhythmic identity.",
         "wow_factor": 0.78,
         "tier": "silver",
@@ -13251,6 +13255,8 @@
       "tighter_layering_for_rhythmic_clarity_genre_blend": {
         "id": "tighter_layering_for_rhythmic_clarity_genre_blend",
         "rule": "When blending genres (rock + industrial), REDUCE layering count compared to pure-rock-wall approach. Tighter layering serves rhythmic clarity (industrial aesthetic) while retaining rock textural variety. Each layer EQ-staggered + panned for stereo width but not maxed.",
+        "electronic_translation": "When blending electronic genres (techno + ambient, EBM + dub-techno, IDM + house), REDUCE layer count compared to pure-genre maximalist approach. Tighter layering (4-6 elements rather than 10-15) serves cross-genre rhythmic clarity while retaining textural variety. Each layer EQ-staggered + panned for stereo width but NOT maxed. The discipline: identify the 4-6 elements that serve BOTH genres' aesthetic (e.g., a single Diva pad that reads ambient AND can be filtered for techno-build, a single drum bus that reads both EBM-precision AND dub-techno-spatial). Apply for: techno-ambient hybrids (Donato Dozzy lineage), EBM-dub-techno crossovers (Vatican Shadow tradition), IDM-with-house-influence (Plaid 'Restproof Clockwork' adjacent), trip-hop-meets-techno fusion. Pair with `industrial_leaning_rhythmic_emphasis_with_rock_identity` for genre-blend compositions.",
+        "electronic_target_genres": ["techno", "dub_techno", "IDM"],
         "applicability_text": "Genre-blend recordings where rhythmic clarity matters more than wall-of-density; bands transitioning from pure rock to industrial-influenced; mix sessions for hybrid material.",
         "wow_factor": 0.75,
         "tier": "silver",
