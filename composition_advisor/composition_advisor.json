@@ -22575,6 +22575,175 @@
           "drum_meter_pattern_groupings_natural_vs_academic",
           "compositional_uncertainty_as_artistic_choice"
         ]
+      },
+      "piano_composition_with_chromatic_harmony": {
+        "id": "piano_composition_with_chromatic_harmony",
+        "rule": "Compose track ON PIANO with deliberate CHROMATIC HARMONY (chord-progression includes chromatic passing-chords + non-diatonic chord choices). Piano as compositional source-instrument; chromatic motion as harmonic foundation. Demonstrates classical/jazz-tradition compositional ambition transferred to rock context.",
+        "electronic_translation": "Compose track ON ACTUAL PIANO (or weighted-keys MIDI controller for tactile feedback) using deliberate CHROMATIC HARMONY (chord-progression includes chromatic passing-chords like F#m → Fm → Em → Ebm descending chromatically, OR non-diatonic chord choices like Aeolian-with-borrowed-Phrygian-flat-2). The piano's TACTILE constraint shapes harmonic decisions differently than DAW-piano-roll composition. Translate the piano-composition into electronic context via Spitfire LABS Soft Piano + Diva pads voicing each chord-tone + sub-bass pedal. Apply for: neo-classical-electronic compositions with classical/jazz-harmonic ambition (Olafur Arnalds 'For Now I Am Winter' chromatic-piano tradition, Nils Frahm chromatic-piano works, Max Richter chromatic-classical compositions), trip-hop ballads with sophisticated harmony, ambient with chromatic-harmonic depth (Brian Eno + Harold Budd 'Plateaux of Mirror' chromatic-piano tradition), electronic-pop with classical-influenced harmony. Pair with `mingus_freedom_chromatic_harmony_inspiration` and `classical_influenced_chord_progression_in_electronic_context`.",
+        "electronic_target_genres": [
+          "neo_classical_electronic",
+          "ambient",
+          "trip_hop"
+        ],
+        "applicability_text": "Compositions with piano-source + classical/jazz-harmonic ambition; productions valuing chromatic-harmony depth; tracks bridging classical-tradition + electronic-context.",
+        "wow_factor": 0.83,
+        "tier": "gold",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Pyramid_Song",
+          "album": "Amnesiac",
+          "year": 2001
+        },
+        "composition_stage": "composition",
+        "compositional_axis": [
+          "harmony",
+          "melody"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "classical_influenced",
+          "modular_electronic"
+        ],
+        "applicability_tags": [
+          "chromatic_harmony",
+          "classical_influenced_voice_leading"
+        ],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 55,
+          "reznor": 20,
+          "daft_punk": 15,
+          "cobain": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands piano + harmonic-theory literacy. Risk of feeling academic if execution lacks emotional weight.",
+        "documented_example": "Pyramid Song (Radiohead, Amnesiac 2001) — Yorke composed on piano with chromatic chord movement (F#m / Em / G / A / Bm / C / Dm / Em-with-modal-inflection). Documented influence: Charles Mingus 'Freedom'.",
+        "synergy_recipes": [
+          "intentionally_ambiguous_rhythm_felt_not_counted",
+          "mingus_freedom_chromatic_harmony_inspiration",
+          "ondes_martenot_or_rare_classical_instrument_for_spectral_color",
+          "classical_influenced_chord_progression_in_electronic_context",
+          "voice_leading_clarity_via_synth_pad_layers"
+        ],
+        "conflict_recipes": [
+          "filter_modulation_as_compositional_engine",
+          "harmonic_minimalism_one_cycle_repeated",
+          "drone_foundation_as_compositional_anchor"
+        ],
+        "evolution_recipes": [
+          "fender_rhodes_electric_piano_as_compositional_foundation",
+          "modal_voicings_above_drone_replace_chord_progression"
+        ]
+      },
+      "late_drum_entry_mid_song_for_perceptual_shift": {
+        "id": "late_drum_entry_mid_song_for_perceptual_shift",
+        "rule": "Drums DELAY their entry until mid-song (around 1:30-2:30 mark in a 4-5 min track). Listener experiences PRE-DRUMS section as 'floating piano-and-vocal,' POST-DRUMS as 'anchored composition' — perceptual shift mid-track. Different from intro-only delay (4-bar guitar-alone start) — this is STRUCTURAL MID-SONG SHIFT.",
+        "electronic_translation": "Drums DELAY their entry until MID-TRACK (around 1:30-2:30 mark in a 4-5 min electronic piece). Build pre-drums section from sustained pads + Rhodes/piano + vocal/lead — listener experiences this as FLOATING / RUBATO / NON-GRIDDED. Drums enter at structural mid-point — listener experiences post-drums as ANCHORED / GRIDDED / TIME-LOCKED. The PERCEPTUAL SHIFT mid-track is the compositional event. Apply for: neo-classical-electronic compositions with delayed-rhythm-section structural moment (Olafur Arnalds 'Near Light' tradition, Nils Frahm extended-builds), trip-hop emotional pieces (Massive Attack 'Teardrop' adjacent — sustained intro before rhythmic foundation enters), ambient-with-form pieces, downtempo emotional pieces, IDM compositions with late-drum-entry as compositional event. Different from `delayed_rhythm_section_entry_4_bars` (intro-only ~30 sec delay) — this is STRUCTURAL mid-song event around 50% of runtime. Pair with `selway_ambiguous_drum_phrasing_interpreting_meter_not_locking`.",
+        "electronic_target_genres": [
+          "neo_classical_electronic",
+          "trip_hop",
+          "ambient"
+        ],
+        "applicability_text": "Compositions where pre-drums and post-drums sections create perceptual contrast; tracks valuing structural mid-song shift; productions willing to commit to extended pre-rhythm setup.",
+        "wow_factor": 0.81,
+        "tier": "gold",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Pyramid_Song",
+          "album": "Amnesiac",
+          "year": 2001
+        },
+        "composition_stage": "arrangement",
+        "compositional_axis": [
+          "rhythm",
+          "structure"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "modular_electronic"
+        ],
+        "applicability_tags": [
+          "late_drum_entry"
+        ],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 50,
+          "reznor": 25,
+          "cobain": 15,
+          "daft_punk": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands strong pre-drums material to hold attention. Risk of feeling sectional if shift not earned compositionally.",
+        "documented_example": "Pyramid Song — drums (Phil Selway) enter at 1:50 in 4:49 song. Pre-drums = piano + vocal floating; post-drums = ambiguously-anchored composition.",
+        "synergy_recipes": [
+          "intentionally_ambiguous_rhythm_felt_not_counted",
+          "selway_ambiguous_drum_phrasing_interpreting_meter_not_locking",
+          "piano_composition_with_chromatic_harmony",
+          "funeral_march_tempo_70_bpm_for_solemnity"
+        ],
+        "conflict_recipes": [
+          "drum_only_intro_4_bars_establishes_identity",
+          "a_cappella_fakeout_intro_into_band_slam",
+          "guitar_alone_intro_4_bars_no_a_cappella"
+        ],
+        "evolution_recipes": [
+          "delayed_rhythm_section_entry_4_bars",
+          "vocal_absent_extended_section_trust_the_band"
+        ]
+      },
+      "ondes_martenot_or_rare_classical_instrument_for_spectral_color": {
+        "id": "ondes_martenot_or_rare_classical_instrument_for_spectral_color",
+        "rule": "Use RARE CLASSICAL/EARLY-ELECTRONIC INSTRUMENT (ondes martenot, theremin, glass harmonica, mellotron, etc.) for SPECTRAL COLOR not available from standard instruments. Rare instrument as SIGNATURE TIMBRE-ELEMENT recurring across catalog. Documented as Greenwood's ondes martenot tradition for Radiohead.",
+        "electronic_translation": "Use RARE CLASSICAL/EARLY-ELECTRONIC INSTRUMENT samples (Spitfire LABS Ondes Martenot, Spitfire BBCSO Ondes / Theremin, Output Substance for esoteric textures, Native Instruments Glass Harmonica from Komplete, mellotron-emulation via UVI Mello or M-Tron Pro) for SPECTRAL COLOR not available from standard synth-design or piano. The rare-instrument's SIGNATURE TIMBRE recurring across multiple tracks of an album = artist's identity-anchor. Apply for: neo-classical-electronic with signature-rare-instrument tradition (Olafur Arnalds with chamber-organ tradition, Nils Frahm with prepared-piano), ambient with rare-instrument color (Eno + ambient tradition with mellotron / strange acoustic instruments), trip-hop with featured-rare-instrument (Massive Attack with featured ondes-martenot-adjacent textures), IDM with esoteric instrument-sample integration. The DISCIPLINE: choose ONE rare-instrument as your signature; deploy across multiple album-tracks to establish identity-thread; resist using it as gimmick. Pair with `external_contributor_for_distinct_dimensional_color`.",
+        "electronic_target_genres": [
+          "neo_classical_electronic",
+          "ambient",
+          "trip_hop"
+        ],
+        "applicability_text": "Productions seeking distinctive timbre identity; multi-album catalogs with signature-instrument tradition; tracks valuing spectral-color beyond standard synth-design.",
+        "wow_factor": 0.82,
+        "tier": "gold",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Pyramid_Song",
+          "album": "Amnesiac",
+          "year": 2001
+        },
+        "composition_stage": "arrangement",
+        "compositional_axis": [
+          "texture",
+          "voice"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "classical_influenced",
+          "modular_electronic"
+        ],
+        "applicability_tags": [],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 50,
+          "reznor": 25,
+          "daft_punk": 15,
+          "cobain": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands access to rare instrument or quality emulation. Risk of feeling gimmicky if not integrated compositionally.",
+        "documented_example": "Greenwood's ondes martenot (1928 French electronic-classical instrument) used across multiple Radiohead pieces, including Pyramid Song. Signature timbre-element of Radiohead's post-OK-Computer catalog.",
+        "synergy_recipes": [
+          "piano_composition_with_chromatic_harmony",
+          "intentionally_ambiguous_rhythm_felt_not_counted",
+          "external_contributor_for_distinct_dimensional_color",
+          "cello_orchestral_pad_in_rock",
+          "cello_dual_role_pad_plus_melodic_response"
+        ],
+        "conflict_recipes": [
+          "minimum_element_electronic_experimental_arrangement"
+        ],
+        "evolution_recipes": [
+          "fender_rhodes_electric_piano_as_compositional_foundation",
+          "rehabilitating_overlooked_instrument_as_serious_compositional_element"
+        ]
       }
     },
     "lenses": {
