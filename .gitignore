@@ -18,3 +18,9 @@ smoke_test_*.py
 # graph.html / graph.json / GRAPH_REPORT.md / cache/ all go here.
 graphify-out/
 .graphify_*
+
+# Obsidian vault — local note-taking, not source of truth.
+Obsidian/
+
+# Claude Code local settings (per-machine permissions, not portable).
+.claude/
