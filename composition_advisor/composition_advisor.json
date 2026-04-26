@@ -9809,7 +9809,7 @@
           }
         },
         "Giorgio_By_Moroder": {
-          "_status": "C6_4b_performance_recording_done",
+          "_status": "C6_4c_complete_exhaustive",
           "album": "Random Access Memories",
           "year": 2013,
           "_note": "9-minute multi-section composition with spoken-word interview audio of Giorgio Moroder narrating his career",
@@ -9968,6 +9968,156 @@
             ],
             "comparison_to_other_daft_punk_recording_evolution": "Around the World (Homework 1997, home studio, programmed-only): pure DIY duo. HBFS (Discovery 2001, home studio, sample-based): pop-electronic duo. Veridis Quo (Discovery 2001, home studio, classical-electronic): harmonic ambition duo. Giorgio (RAM 2013, MULTIPLE LEGENDARY ANALOG STUDIOS + LIVE BAND + EXTERNAL MIX): massively-expanded duo-with-collaborators. FOUR documented points in Daft Punk production evolution.",
             "production_philosophy_eleventh_distinct_approach_in_dissection": "ELEVEN distinct production approaches now: 1) Albini, 2) Vig+Wallace, 3) Date, 4) Beinhorn+O'Brien, 5) Kasper, 6) Flood+Moulder+Corgan, 7) Reznor solo-auteur, 8) Valentine, 9) Barresi, 10) Daft Punk DUO AUTEUR home-studio (Homework + Discovery), 11) DAFT PUNK + GUZAUSKI + LIVE MUSICIANS + LEGENDARY ANALOG STUDIOS RAM-era massively-expanded production paradigm. Same auteur identity, opposite-pole production scale."
+          },
+          "mixing": {
+            "mix_engineer": "Mick Guzauski (legendary mix engineer — Eric Clapton, Mariah Carey, Brian McKnight, many sessions; FIRST EXTERNAL MIXER in Daft Punk catalog)",
+            "mixing_studio": "Mick Guzauski's documented mix room (likely Barking Doctor Recording, New York)",
+            "mixing_philosophy_guzauski_for_giorgio": "MULTI-SECTION ARRANGEMENT INTEGRATION + LIVE MUSICIAN CLARITY + ELECTRONIC + ORCHESTRAL BALANCE + ANALOG WARMTH PRESERVATION. Guzauski's documented approach: handle complex multi-section arrangements with multiple textural stages, integrate live + electronic + orchestral elements, preserve analog tracking warmth.",
+            "drum_mix_balance": [
+              "Robinson live drums punchy + present + analog-warm — disco-tradition drum forwardness",
+              "Drum bus parallel processing for weight + transient detail",
+              "Cymbal articulation prominent",
+              "Live drums integrated with electronic arpeggio foundation"
+            ],
+            "synth_mix_treatment": [
+              "Synth arpeggio FORWARD as compositional foundation",
+              "Multiple synth layers EQ-staggered for clarity",
+              "Analog synth warmth preserved through analog-tape tracking",
+              "Less filter modulation than Daft Punk dance tracks — composition-driven mix"
+            ],
+            "live_band_mix_treatment": [
+              "Bass (East) FORWARD with analog warmth",
+              "Guitar (Jackson Jr.) blended for textural color",
+              "Keyboards (Caswell) layered with synths"
+            ],
+            "orchestral_mix_treatment": [
+              "Strings spread across stereo for orchestral spatial depth",
+              "Reverb on strings for film-score-adjacent orchestral context",
+              "Strings integrated with electronic + live band at peak section"
+            ],
+            "spoken_word_audio_mix_treatment": [
+              "Moroder's spoken-word audio CENTERED + intimate — documentary integration",
+              "Reverb minimal during spoken-word for intelligibility",
+              "Audio spans across early sections, integrating with arrangement build"
+            ],
+            "spatial_treatment_film_score_adjacent": [
+              "Stereo field WIDE for orchestral + arrangement-rich scope",
+              "Reverb usage VARIED across multi-section structure — minimal in spoken-word, expansive in orchestral peak",
+              "Plate + hall reverbs for analog warmth + orchestral depth",
+              "Mix automation extensive for multi-section arrangement evolution"
+            ],
+            "automation_used_in_mix": [
+              "EXTENSIVE multi-section automation across 9-minute runtime",
+              "Layer level rides for arrangement evolution (electronic → live band → orchestral)",
+              "Reverb send automation for section-specific depth",
+              "Vocal level rides for spoken-word + later vocal-element balance"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying analog warmth + dynamic detail",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No genre-template imposed (multi-section composition adaptation priority)"
+            ],
+            "comparison_to_other_daft_punk_self_mixed_tracks": "Around the World + HBFS + Veridis Quo (1997 + 2001 self-mixed by Daft Punk in home studio): duo-auteur compositional intent preserved through self-mixing. Giorgio (2013 mixed by Mick Guzauski externally): duo-auteur compositional intent INTERPRETED by external legendary mix engineer. First time Daft Punk trusted external mix engineer with their material.",
+            "what_makes_guzauski_mix_distinct_for_giorgio": [
+              "MULTI-SECTION ARRANGEMENT INTEGRATION across 9-minute runtime",
+              "LIVE + ELECTRONIC + ORCHESTRAL BALANCE — three elemental categories integrated",
+              "ANALOG WARMTH PRESERVATION through analog-tape source",
+              "DOCUMENTARY SPOKEN-WORD INTEGRATION as compositional element",
+              "First external Daft Punk mix — Guzauski's documented disco/pop tradition informs his approach"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Bob Ludwig (RAM mastered — extending Ludwig + Daft Punk collaboration since Discovery 2001)",
+            "mastering_studio": "Gateway Mastering, Portland, Maine",
+            "mastering_philosophy_for_giorgio": [
+              "Ludwig's documented approach: high-end clarity + low-end weight + dynamic detail preservation",
+              "RAM documented as DELIBERATELY LOWER-LOUDNESS than typical 2013 commercial releases — Daft Punk's compositional intent included dynamic preservation",
+              "9-minute multi-section composition requires preserved dynamic detail across runtime"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS — DELIBERATELY LESS LOUD than 2013 typical releases. Daft Punk requested dynamic preservation. Giorgio specifically dynamic across runtime.",
+            "spectral_signature": "Ludwig's documented sound: clear top-end, present mid-range, controlled aggressive low-end + analog warmth preserved.",
+            "what_mastering_preserves_for_giorgio": [
+              "Multi-section arrangement dynamics",
+              "Live drums + analog warmth",
+              "Orchestral peak impact",
+              "Spoken-word intelligibility",
+              "Stereo image (preserving Guzauski's mix decisions)"
+            ],
+            "ludwig_thread_culmination_within_dissection": "Bob Ludwig mastered: Nirvana In Utero (1993, Albini), QOTSA Lullabies to Paralyze (2005, Barresi), Daft Punk Discovery (2001, self-produced), Daft Punk Random Access Memories (2013, Daft Punk + Guzauski). FOUR documented Ludwig mastering points within dissection — different bands, different production approaches, same mastering engineer's documented dynamic-preservation skill."
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "GIORGIO MORODER'S SPOKEN-WORD NARRATION + ELECTRONIC ARPEGGIO + LIVE DRUMS BUILD + ORCHESTRAL PEAK — listeners experience 9-minute journey through Daft Punk's tribute to Moroder's pioneering electronic-disco legacy.",
+            "level_2_arrangement_signature": "MULTI-SECTION EVOLVING ARRANGEMENT FROM SPOKEN-WORD + ELECTRONIC TO LIVE BAND TO ORCHESTRA — film-score-adjacent compositional ambition.",
+            "level_3_compositional_signature": "EXTENDED MULTI-SECTION COMPOSITION + DOCUMENTARY INTEGRATION + ELECTRONIC-TO-ORCHESTRAL EVOLUTION + MASSIVE PRODUCTION SHIFT FROM HOME-STUDIO TO LEGENDARY-ANALOG-STUDIO PARADIGM. Demonstrates same auteur duo can EVOLVE production scale massively while retaining auteur identity. Influences subsequent electronic-music ambition + return-to-analog tradition + 2013-era anti-EDM compositional ambition."
+          },
+          "advisor_extract": {
+            "recipe_name": "extended_multi_section_film_score_adjacent_composition_with_massive_production_shift",
+            "applicability": "Established artists seeking ANTI-MAINSTREAM compositional ambition + return-to-analog production + film-score-adjacent extended-form. Use when artistic identity supports ambitious multi-section composition + collaboration with legendary session musicians + external mix engineer.",
+            "core_compositional_recipes": [
+              {
+                "id": "extended_multi_section_film_score_adjacent_composition",
+                "rule": "Compose EXTENDED MULTI-SECTION TRACK (8+ minutes) with FILM-SCORE-ADJACENT AMBITION — different sections deploy different vocabularies (intimate, electronic, live band, orchestral), arrangement EVOLVES across runtime. Compositional 'movement' includes section-to-section transformation. Demonstrates ambition beyond song-form.",
+                "wow_factor": 0.86,
+                "documented_example": "Giorgio by Moroder (Daft Punk, RAM 2013, 9:04) — multi-section film-score-adjacent composition",
+                "trade_offs": "Demands extended runtime + listener patience. Won't work in commercial-single contexts. Demands compositional + production capacity for multi-section integration.",
+                "personality_fit": "Yorke 35 / Daft Punk 30 / Reznor 25 / Cobain 10"
+              },
+              {
+                "id": "massive_production_shift_from_home_studio_to_legendary_analog_studio_paradigm",
+                "rule": "After established home-studio era, EXPAND production paradigm to LEGENDARY ANALOG STUDIOS + LIVE SESSION MUSICIANS + ANALOG TAPE + EXTERNAL MIX ENGINEER. Same auteur identity at MASSIVELY-EXPANDED production scale. Demonstrates artist's range; expands creative resources without abandoning auteur framework.",
+                "wow_factor": 0.84,
+                "documented_example": "Daft Punk's RAM 2013 production shift from home-studio (Homework + Discovery) to Capitol/Henson + JR Robinson + Nathan East + Mick Guzauski",
+                "trade_offs": "Massive budget required. Risk of identity dilution if shift too radical. Demands willingness to trust collaborators with auteur material.",
+                "personality_fit": "Daft Punk 45 / Reznor 30 / Yorke 20 / Cobain 5"
+              },
+              {
+                "id": "documentary_spoken_word_audio_as_compositional_element",
+                "rule": "Integrate DOCUMENTARY SPOKEN-WORD AUDIO (interview, narration, found-recording) as COMPOSITIONAL ELEMENT, not just intro voiceover. Spoken-word continues across multiple sections, integrates with arrangement build. Documentary integration adds narrative dimension impossible from instrumental composition alone.",
+                "wow_factor": 0.83,
+                "documented_example": "Giorgio Moroder spoken-word interview audio integrated across opening sections of Giorgio by Moroder",
+                "trade_offs": "Requires available documentary audio source. Genre commitment to non-purely-instrumental composition.",
+                "personality_fit": "Yorke 40 / Daft Punk 30 / Reznor 25 / Cobain 5"
+              },
+              {
+                "id": "legendary_session_musicians_for_specific_genre_homage",
+                "rule": "Hire LEGENDARY SESSION MUSICIANS with documented genre-credentials (e.g., disco-era session players for disco homage, classical players for classical-influenced work) to legitimize + authenticate genre homage. Their documented prior work brings authenticity that programmed-only or non-credentialed players cannot.",
+                "wow_factor": 0.80,
+                "documented_example": "Daft Punk's RAM hiring JR Robinson (Off the Wall, Thriller drummer), Nathan East (legendary bassist), Paul Jackson Jr. (Michael Jackson sessions) — disco-era session musicians for disco-homage tribute to Moroder",
+                "trade_offs": "Massive budget for top-tier session musicians. Demands artistic clarity about which genre is being honored.",
+                "personality_fit": "Daft Punk 45 / Reznor 25 / Yorke 20 / Cobain 10"
+              },
+              {
+                "id": "analog_tape_tracking_for_warmth_preservation",
+                "rule": "Track to ANALOG TAPE (rather than digital DAW capture) when warmth + harmonic-saturation character are desired. Analog tape's documented compression + saturation characteristics preserve through to mix + master. Particularly suited for genre-homage projects honoring analog-era recording traditions.",
+                "wow_factor": 0.77,
+                "documented_example": "Daft Punk's RAM documented as analog-tape-tracked — first Daft Punk album fully analog",
+                "trade_offs": "Tape requires maintenance + budget. Less editing flexibility than digital. Demands engineer with analog experience.",
+                "personality_fit": "Daft Punk 35 / Cobain 25 / Yorke 25 / Reznor 15"
+              },
+              {
+                "id": "deliberate_dynamic_preservation_mastering_request_for_extended_composition",
+                "rule": "When mastering extended multi-section compositions, EXPLICITLY REQUEST dynamic preservation rather than competitive loudness. Modern mastering can accommodate -10 to -11 LUFS instead of -8 to -9 LUFS when artist requests. Dynamic preservation supports compositional intent.",
+                "wow_factor": 0.78,
+                "documented_example": "Daft Punk's RAM 2013 — deliberately less loud than typical 2013 releases (around -10 to -11 LUFS), Bob Ludwig's mastering preserves dynamic detail",
+                "trade_offs": "Tracks may sound quieter on commercial playlists. Demands artistic confidence to reject loudness-war competition.",
+                "personality_fit": "Daft Punk 35 / Yorke 30 / Reznor 20 / Cobain 15"
+              },
+              {
+                "id": "auteur_identity_preserved_across_massive_production_expansion",
+                "rule": "When expanding production paradigm massively (home-studio to legendary-analog-studio + live band + external mix), PRESERVE AUTEUR IDENTITY through compositional + arrangement decisions. Auteur framework guides expanded production rather than expanded production replacing auteur identity.",
+                "wow_factor": 0.82,
+                "documented_example": "Daft Punk RAM auteur identity preserved despite massive production expansion — Bangalter + de Homem-Christo's compositional + arrangement decisions guide JR Robinson + Nathan East + Mick Guzauski's contributions",
+                "trade_offs": "Requires auteur with confidence + clear creative direction. Risk of dilution if auteur framework not strong enough.",
+                "personality_fit": "Daft Punk 50 / Reznor 30 / Yorke 15 / Cobain 5"
+              }
+            ],
+            "production_philosophy_signature_daft_punk_ram_massively_expanded": {
+              "philosophy": "MASSIVELY-EXPANDED DUO AUTEUR + LIVE SESSION MUSICIANS + LEGENDARY ANALOG STUDIOS + EXTERNAL MIX ENGINEER + ANALOG TAPE + FILM-SCORE-ADJACENT AMBITION. Daft Punk's RAM-era production paradigm. Same auteur identity at opposite-pole production scale from Homework/Discovery home-studio paradigm.",
+              "applicability": "Established artists seeking ambitious production expansion while retaining auteur identity",
+              "evolution_thread_completion_within_daft_punk": "Homework 1997 (filter-house DIY home-studio) → Discovery 2001 (pop-electronic + classical-electronic home-studio) → Random Access Memories 2013 (massively-expanded analog-studio + live band + external mix). FOUR documented points across Daft Punk's catalog production-philosophy evolution. Auteur identity preserved across maximum production scale evolution within dissection."
+            },
+            "structural_choice_summary": "Extended multi-section + film-score-adjacent + spoken-word integration + live session musicians + legendary analog studios + analog tape + external mix engineer (Guzauski) + dynamic-preservation mastering (Ludwig) — Giorgio by Moroder demonstrates Daft Punk's MAXIMUM PRODUCTION-EXPANSION pole. Massive production shift from Homework/Discovery home-studio paradigm. Demonstrates auteur identity preservation across opposite-pole production scale."
           }
         }
       },
