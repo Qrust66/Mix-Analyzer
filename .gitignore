@@ -22,5 +22,6 @@ graphify-out/
 # Obsidian vault — local note-taking, not source of truth.
 Obsidian/
 
-# Claude Code local settings (per-machine permissions, not portable).
-.claude/
+# Claude Code: ignore only the per-machine permissions file.
+# .claude/agents/, .claude/commands/, .claude/settings.json (shared) stay tracked.
+.claude/settings.local.json
