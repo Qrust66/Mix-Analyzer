@@ -8802,7 +8802,7 @@
           }
         },
         "Little_Sister": {
-          "_status": "C5_6a_composition_arrangement_done",
+          "_status": "C5_6b_performance_recording_done",
           "album": "Lullabies to Paralyze",
           "year": 2005,
           "tempo_bpm_documented_range": [114, 120],
@@ -8844,6 +8844,108 @@
             ],
             "what_makes_arrangement_unique_within_qotsa": "Little Sister represents QOTSA's UNUSUAL PERCUSSION CENTERPIECE arrangement — cowbell as compositional anchor rather than ornamental color. Demonstrates Homme's willingness to embrace overlooked percussion as compositional signature.",
             "comparison_to_other_dissection_signature_percussion": "Most other dissection tracks use standard rock kit + sample triggers as primary percussion. Little Sister stakes the UNUSUAL-INSTRUMENT-AS-CENTERPIECE position — cowbell as signature element."
+          },
+          "performance": {
+            "tempo_feel_description": "MID-TEMPO COWBELL-PROPELLED GROOVE — 114-120 BPM at sustained intensity feels propelled by the cowbell pattern. Tempo enables danceable mid-tempo without rushing.",
+            "drum_style": {
+              "performer": "Joey Castellano (drums) + Homme (possible cowbell performance — documented as Homme often performing percussion overdubs himself)",
+              "approach": "GROOVE FOUNDATION ADAPTED TO COWBELL PATTERN — drum kit supports cowbell rather than competing for rhythmic identity",
+              "specifics_documented": [
+                "Kick + snare backbone supporting cowbell pattern",
+                "Hi-hat 8ths driving forward",
+                "Snare strong on 2+4",
+                "Cowbell pattern integrated with drum kit — cowbell may be performed live or overdubbed",
+                "Cymbal accents articulate transitions"
+              ],
+              "cowbell_performance_specifics": [
+                "Cowbell pattern likely overdubbed separately for precision",
+                "Pattern continuous through song — establishes rhythmic identity",
+                "Cowbell may shift slightly between sections for variation"
+              ]
+            },
+            "guitar_style": {
+              "performers": "Josh Homme",
+              "rhythm_guitar_role": "RIFF SUPPORTING COWBELL ANCHOR — guitars adapt to cowbell rhythmic foundation",
+              "specifics_documented": [
+                "Drop D tuning",
+                "Tube amps with moderate distortion",
+                "Riff motion supports cowbell pattern rather than competing",
+                "Possible double-tracked rhythm for stereo width"
+              ]
+            },
+            "bass_performance": {
+              "performer": "Lullabies-era bassist (Alain Johannes documented contributor)",
+              "approach": "GROOVE-LOCK WITH KICK + COWBELL FOUNDATION",
+              "specifics_documented": [
+                "Drop D-tuned bass",
+                "Tight rhythmic locking with kick + cowbell",
+                "Pick attack for rhythmic clarity"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Josh Homme",
+              "verse_delivery": "BARITONE MELODIC HOMME — continued mature vocal delivery",
+              "chorus_delivery": "Hook expansion with vocal projection + possible secondary harmony",
+              "documented_vocal_quirks": [
+                "Multiple takes per Barresi production",
+                "Possible secondary vocal harmony for chorus emphasis"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No tempo changes"
+            ]
+          },
+          "recording": {
+            "studio": "Studio 606 + various Lullabies to Paralyze locations",
+            "session_dates": "2004-2005 sessions",
+            "primary_producers": "Joe Barresi + Josh Homme",
+            "primary_engineer": "Joe Barresi",
+            "primary_mix_engineer": "Joe Barresi",
+            "production_philosophy_for_little_sister": "Same Barresi unified-role framework as Everybody Knows applied to COWBELL-ANCHORED COMMERCIAL-SINGLE intent. Demonstrates Barresi's range within Lullabies session.",
+            "drum_micing_approach": {
+              "philosophy_barresi": "Multiple close mics + room mics for kit + DEDICATED COWBELL CAPTURE — cowbell pattern requires careful capture for compositional centerpiece status",
+              "specifics_for_little_sister": [
+                "Castellano's full kit miced extensively at Studio 606",
+                "DEDICATED COWBELL MIC for clean cowbell capture",
+                "Possible cowbell overdub for precision",
+                "Drum bus + cowbell coordinated for groove + commercial-single impact"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_barresi_homme": "Riff-supporting guitar tracking — guitars adapt to cowbell foundation",
+              "specifics_documented": [
+                "Drop D tuning",
+                "Tube amps + heavy pedal chains",
+                "Possible double-tracked rhythm guitars",
+                "Tight transient detail emphasis"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "DI + amp blend per Barresi. Tight low-frequency response."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_barresi": "Homme baritone vocal tracking with commercial-single projection emphasis",
+              "specifics_documented": [
+                "Vocal isolation booth at Studio 606",
+                "Multiple complete takes selected/comped",
+                "Possible secondary vocal harmony tracked separately"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Drop D tuned guitars + bass",
+              "Cowbell (compositional centerpiece)",
+              "Castellano's full kit at Studio 606",
+              "Tube amps + heavy pedal chains"
+            ],
+            "what_makes_barresi_recording_distinct_for_little_sister": [
+              "DEDICATED COWBELL CAPTURE for compositional centerpiece status",
+              "Same unified-role framework as Everybody Knows applied to commercial-single context",
+              "Heavy-rock specialist's careful attention to unusual-percussion-element capture",
+              "Demonstrates Barresi's range within Lullabies session"
+            ]
           }
         }
       },
