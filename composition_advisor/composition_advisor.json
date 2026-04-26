@@ -4840,7 +4840,7 @@
           }
         },
         "Soma": {
-          "_status": "C3_2b_performance_recording_done",
+          "_status": "C3_2c_complete_exhaustive",
           "album": "Siamese Dream",
           "year": 1993,
           "tempo_bpm_documented_range": [82, 88],
@@ -4985,6 +4985,138 @@
               "Vocal tracking patient — long phrases require sustained delivery + careful capture"
             ],
             "comparison_to_quiet_recording": "Same studio, same producer, same gear, same album session — but DIFFERENT recording emphasis. Quiet tracked for sustained-intensity wall. Soma tracked for dynamic-arc with DEPLOYMENT consideration. Same engineer-producer (Vig) capable of supporting two opposite compositional engines on same album."
+          },
+          "mixing": {
+            "mix_engineer": "Andy Wallace (Siamese Dream throughout)",
+            "mixing_studio": "Soundtrack Studios, New York",
+            "mixing_philosophy_wallace_for_soma": "DYNAMIC ARC PRESERVATION + EXPLOSION IMPACT MAXIMIZATION. Wallace's documented approach: preserve the patience of intro/early sections through to the explosion's full impact. Mix must NOT compress dynamic range so much that the explosion fails to feel cathartic.",
+            "drum_mix_balance": [
+              "Restrained sections: kick + hi-hat/ride forward, snare relatively quiet, room mics moderate",
+              "Bridge buildup: drum bus level rides up progressively",
+              "Explosion: kick + snare punchy at full power, parallel compression carries weight, cymbals crash through mix",
+              "Outro: drum bus returns to restrained level"
+            ],
+            "guitar_mix_treatment": [
+              "Clean guitar layers: spacious, slight reverb for atmospheric depth, panned for stereo width but not maxed",
+              "Distorted layers DEPLOYED at appropriate dynamic moments — first chorus partial, explosion full L/R wall",
+              "Frequency-spread layering at peak density (similar to Quiet) — wall reads clearly during explosion",
+              "Mix automation rides distorted guitar levels during dynamic arc"
+            ],
+            "vocal_mix_treatment": [
+              "Vocal centered, reverb space matches dynamic moment — more reverb in restrained sections, slightly less in explosion (explosion needs vocal intelligibility above wall)",
+              "Compression preserves Corgan's sustained restraint phrases without artifacts",
+              "Vocal layering on explosion choruses (doubles, octave doubles) blended subtly for emphasis"
+            ],
+            "bass_mix_treatment": [
+              "Bass clearly audible throughout — must read in restrained sections AND under explosion wall",
+              "Light compression preserves natural envelope",
+              "Bass + kick coordinated via complementary frequency placement, MORE coordination needed at explosion to prevent low-end mud"
+            ],
+            "spatial_treatment_dynamic_arc": [
+              "Spatial depth EXPANDS through arc — restrained sections use moderate reverb, explosion uses MAXIMUM stereo width + slightly more reverb for impact",
+              "Reverb tails preserved across section transitions for emotional continuity",
+              "Plate reverbs on drums + vocal for warmth without losing explosion impact"
+            ],
+            "automation_used_in_mix": [
+              "Drum bus level rides through dynamic arc — restrained early, full at explosion, restrained outro",
+              "Distorted guitar level rides — DEPLOYED at appropriate moments",
+              "Reverb send automation — more reverb in restrained sections for atmosphere, slightly less in explosion for impact",
+              "Vocal level rides for sustained phrases"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression of full mix (would destroy dynamic arc — the explosion would not feel like an explosion)",
+              "No drum sample replacement",
+              "No vocal pitch correction or excessive layering as dynamic device",
+              "No 'mid-90s rock loudness war' aesthetic that would flatten the dynamic arc"
+            ],
+            "comparison_to_quiet_mix": "Same mixer, same album, same studio. Quiet mix: sustained wall density, no dynamic automation needed, stereo width maximized throughout. Soma mix: dynamic arc preserved, mix automation rides through arc, stereo width EXPANDS toward explosion. Two different mix philosophies for two different compositional engines on same album.",
+            "what_makes_wallace_mix_distinct_for_soma": [
+              "DYNAMIC ARC PRESERVATION — Wallace's mix carries the song's compositional intent through to final master",
+              "Explosion impact MAXIMIZED via stereo width expansion + drum bus weight + guitar wall density",
+              "Restrained sections preserved as RESTRAINED — not compressed up to explosion level",
+              "Mix as INTERPRETATION of compositional intent rather than as imposition of template"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Howie Weinberg (Masterdisk, New York)",
+            "mastering_philosophy_for_soma": [
+              "Weinberg's documented approach: preserve dynamic range while delivering commercial loudness",
+              "Soma's dynamic arc REQUIRES preserved dynamic range — mastering MUST NOT compress restraint up to explosion level",
+              "1993 album-level mastering — Siamese Dream slightly pre-aggressive-loudness-war, dynamic arc survives master"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS integrated estimate. Soma specifically has WIDER dynamic range than Quiet — restrained sections quieter, explosion at album peak. The dynamic range is preserved through master.",
+            "spectral_signature": "Weinberg's documented sound: present mid-range, smooth top end, tight low end. Soma benefits — dynamic arc clarity preserved across spectral balance.",
+            "what_mastering_preserves_for_soma": [
+              "Dynamic range across the song's arc",
+              "Stereo width during explosion",
+              "Drum punch + transient detail at peak moments",
+              "Vocal clarity above the explosion wall"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "THE EXPLOSION CHORUS — after multiple minutes of patient build, the song detonates into peak guitar wall density + drum power + vocal projection. The catharsis the entire song has been building toward.",
+            "level_2_arrangement_signature": "EXTENDED DYNAMIC ARC — sparse clean intro builds gradually through verse-chorus iterations to massive explosion, then resolves. Density arc is the song's identity.",
+            "level_3_compositional_signature": "DYNAMIC ARC AS COMPOSITIONAL ENGINE AT EXTENDED SCALE — Soma demonstrates that the arc engine SCALES across multiple temporal economies. 6:39 patient build proves listeners will INVEST attention if the explosion payoff is large enough. Demonstrates that COMPOSITIONAL PATIENCE can create CATHARTIC RELEASE that compressed pop economy cannot."
+          },
+          "advisor_extract": {
+            "recipe_name": "extended_dynamic_arc_with_patient_build_and_cathartic_explosion",
+            "applicability": "Long-form rock/post-rock compositions where slow patient build to massive explosion is the song's identity. Use when the LISTENER'S INVESTMENT in the build is the foundation for the explosion's emotional impact.",
+            "core_compositional_recipes": [
+              {
+                "id": "extended_dynamic_arc_six_plus_minutes_patient_build",
+                "rule": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1.5 min) → MASSIVE EXPLOSION CHORUS (1-2 min) → resolution back to clean (30s-1 min). The patience IS the engine — listeners must INVEST attention for the explosion to land.",
+                "wow_factor": 0.88,
+                "documented_example": "Soma (Smashing Pumpkins, Siamese Dream 1993, 6:39) — extended dynamic arc as composition's emotional engine",
+                "trade_offs": "Demands listener patience; risks attentional loss in compressed listening contexts. Requires excellent material in restrained sections to keep listener engaged.",
+                "personality_fit": "Yorke 35 / Cobain 25 / Reznor 25 / Daft Punk 15 (Yorke for patience tolerance, Reznor for explosion impact)"
+              },
+              {
+                "id": "density_arc_arrangement_sparse_to_wall",
+                "rule": "Arrange so density GROWS across the song — start with minimum elements (clean guitar + sparse drums), add layers progressively, peak at maximum density during explosion, resolve to minimum at outro. Each section ADDS rather than reshuffles.",
+                "wow_factor": 0.84,
+                "documented_example": "Soma arrangement — clean intro to maximum-density explosion to clean outro",
+                "trade_offs": "Requires patience in early sections; layering must be deployed at right moments",
+                "personality_fit": "Yorke 35 / Cobain 25 / Reznor 25 / Daft Punk 15"
+              },
+              {
+                "id": "selective_distortion_deployment_across_arc",
+                "rule": "DEPLOY distortion selectively across the song's dynamic arc — clean in intro/early verses, partial distortion in first chorus (preview), FULL distortion in explosion. Distortion as COMPOSITIONAL CHOICE, not as constant texture.",
+                "wow_factor": 0.82,
+                "documented_example": "Soma guitars — clean to partial-distortion to FULL wall-of-distortion in explosion",
+                "trade_offs": "Requires multiple guitar tracks tracked separately; requires mix discipline to deploy correctly",
+                "personality_fit": "Yorke 30 / Cobain 30 / Reznor 25 / Daft Punk 15"
+              },
+              {
+                "id": "explosion_chorus_as_cathartic_release_not_just_loud_section",
+                "rule": "Treat the EXPLOSION CHORUS as the song's emotional + cathartic CULMINATION, not just as a loud section. Build prepared listener via patient earlier sections. Explosion should feel INEVITABLE + EARNED. Maximum density (guitar wall + full drums + vocal projection) deployed only here.",
+                "wow_factor": 0.86,
+                "documented_example": "Soma's explosion chorus after 4+ minutes of build — feels cathartic, not gratuitous",
+                "trade_offs": "If build doesn't earn it, explosion sounds gratuitous. Risk of anti-climax if execution falters.",
+                "personality_fit": "Cobain 30 / Reznor 30 / Yorke 25 / Daft Punk 15"
+              },
+              {
+                "id": "dynamic_arc_mix_preservation_via_automation",
+                "rule": "When mixing dynamic-arc compositions, use mix automation to RIDE LEVELS across the arc — drum bus, guitar layers, vocal, reverb sends all ride up + down through the arc. Avoid full-mix compression that would flatten the arc. Restrained sections stay RESTRAINED in the master.",
+                "wow_factor": 0.80,
+                "documented_example": "Andy Wallace's Soma mix — dynamic arc preservation via extensive automation",
+                "trade_offs": "Time-intensive mixing; requires mixer who understands compositional intent. May read 'quieter' than over-compressed contemporary masters.",
+                "personality_fit": "Reznor 30 / Yorke 30 / Cobain 25 / Daft Punk 15"
+              },
+              {
+                "id": "patience_demand_as_compositional_choice",
+                "rule": "Make a long song where the LISTENER'S PATIENCE is itself part of the compositional contract. Trust the audience to invest attention if the material in early sections is strong enough to hold them. PATIENCE-DEMANDING composition is a structural choice that creates a different listener-relationship than economy-driven compression.",
+                "wow_factor": 0.81,
+                "documented_example": "Soma 6:39 trusting listener to wait through patient build for explosion",
+                "trade_offs": "Won't work in radio/playlist contexts. Demands artistic confidence.",
+                "personality_fit": "Yorke 50 / Cobain 20 / Reznor 15 / Daft Punk 15"
+              }
+            ],
+            "production_philosophy_signature_vig_wallace_dynamic_arc": {
+              "philosophy": "Engineer-producer + engineer-mixer pair (Vig + Wallace) facilitating Corgan's extended-dynamic-arc vision — same pair that supported Quiet's sustained-intensity wall on same album. Demonstrates pair's capacity to support two opposite compositional engines.",
+              "applicability": "Bands with strong dynamic-arc vision needing patient layering deployment + arc-preserving mix",
+              "key_insight": "Same engineer-producer team can support OPPOSITE compositional engines (sustained intensity vs. extended dynamic arc) by adapting tracking + mix priorities to compositional intent. Production philosophy is INTERPRETATION of compositional intent, not imposition of template."
+            },
+            "structural_choice_summary": "Extended dynamic arc, density arc arrangement, selective distortion deployment, explosion as catharsis — Soma demonstrates Corgan's MOST EXTENDED + PATIENT compositional engine. The 6:39 length is JUSTIFIED by the cathartic explosion that the build earns. Establishes dynamic-arc engine at extended scale within Siamese Dream's range."
           }
         },
         "Bodies": {
