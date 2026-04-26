@@ -10131,7 +10131,7 @@
           "songs_to_dissect": ["Everything_In_Its_Right_Place", "The_National_Anthem", "Optimistic", "Pyramid_Song", "Packt_Like_Sardines_In_A_Crushd_Tin_Box"]
         },
         "Everything_In_Its_Right_Place": {
-          "_status": "C7_2b_performance_recording_done",
+          "_status": "C7_2c_complete_exhaustive",
           "album": "Kid A",
           "year": 2000,
           "_note": "Album opener; Rhodes piano + manipulated vocal samples; 10/4 time signature",
@@ -10269,6 +10269,130 @@
               "Same Godrich 'sixth member' role applied to electronic-experimental context"
             ],
             "comparison_to_pyramid_song_recording": "Pyramid Song (Amnesiac 2001): multi-instrument tracking (piano + drums + Ondes Martenot + strings + vocal). EIRP (Kid A 2000): minimum-element tracking (Rhodes + vocal) + extensive electronic processing stage. Same Godrich + Radiohead session period, opposite recording emphases."
+          },
+          "mixing": {
+            "mix_engineer": "Nigel Godrich",
+            "mixing_studio": "Various Kid A mix locations",
+            "mixing_philosophy_godrich_for_eirp": "ELECTRONIC-EXPERIMENTAL TEXTURE INTEGRATION + MINIMUM-ELEMENT FORWARDNESS + SAMPLE MANIPULATION SPATIAL DEPTH. Mix delivers Rhodes piano + vocal + manipulated samples in balanced electronic-experimental mix.",
+            "rhodes_piano_mix_treatment": [
+              "Rhodes CENTERED + FORWARD as compositional foundation",
+              "Slight stereo width via subtle effects",
+              "Compression preserves Rhodes character"
+            ],
+            "vocal_mix_treatment": [
+              "Yorke vocal CENTERED + FORWARD as melodic anchor",
+              "Reverb chain calibrated for intimate yet electronically-textured context",
+              "Compression preserves sustained phrases"
+            ],
+            "manipulated_vocal_samples_mix_treatment": [
+              "Manipulated samples spread across stereo for textural color",
+              "Effects (delay, reverb, granular processing) applied at mix stage",
+              "Samples integrated as instrumental texture rather than as background-vocal"
+            ],
+            "spatial_treatment_electronic_experimental": [
+              "Stereo field WIDE for sample-manipulation textural spread",
+              "Reverb usage MODERATE — electronic-experimental aesthetic balanced",
+              "Plate + electronic reverbs for sample processing"
+            ],
+            "automation_used_in_mix": [
+              "Sample level rides for textural evolution",
+              "Vocal level rides for melodic emphasis",
+              "Reverb send automation for compositional development"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No drum sample replacement (no drums to replace)",
+              "No vocal pitch correction",
+              "No traditional rock-mix template",
+              "No imposed-clarity mix (electronic-experimental ambiguity priority)"
+            ],
+            "what_makes_godrich_mix_distinct_for_eirp": [
+              "ELECTRONIC-EXPERIMENTAL TEXTURE INTEGRATION across minimum elements",
+              "Sample manipulation + Rhodes + vocal balanced",
+              "Same unified-role framework deployed for genre-reinvention context",
+              "Album-opener role — mix sets tone for entire Kid A reinvention"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Chris Blair (Kid A mastered at Abbey Road Mastering)",
+            "mastering_studio": "Abbey Road Mastering, London",
+            "mastering_philosophy_for_eirp": [
+              "Blair's documented approach: high-end clarity + low-end weight + dynamic detail preservation suitable for electronic-experimental material",
+              "EIRP's electronic-experimental intent benefits from preserved dynamic detail",
+              "2000 album-level mastering — Kid A documented as DYNAMIC PRESERVATION priority despite peak loudness-war era"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS (less compressed than typical 2000 commercial — art-rock dynamic preservation).",
+            "spectral_signature": "Blair's documented Abbey Road sound: clear top-end, present mid-range, controlled aggressive low-end.",
+            "what_mastering_preserves_for_eirp": [
+              "Sample manipulation textural detail",
+              "Rhodes piano character",
+              "Vocal melodic clarity",
+              "10/4 meter feel"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "RHODES PIANO + 10/4 ASYMMETRIC METER + MANIPULATED VOCAL SAMPLES + YORKE VOCAL — listeners hear Radiohead's KID A REINVENTION DECLARATION as album opener.",
+            "level_2_arrangement_signature": "MINIMUM-ELEMENT ELECTRONIC-EXPERIMENTAL ARRANGEMENT — Rhodes + vocal + manipulated samples + asymmetric meter.",
+            "level_3_compositional_signature": "COMPLETE GENRE REINVENTION VIA ELECTRONIC-EXPERIMENTAL VOCABULARY + ASYMMETRIC METER + SAMPLE MANIPULATION — Radiohead demonstrate that established rock-band can ABANDON rock-band format entirely + EMBRACE electronic-experimental vocabulary. Influences subsequent rock-band willingness to genre-reinvent."
+          },
+          "advisor_extract": {
+            "recipe_name": "complete_genre_reinvention_via_electronic_experimental_vocabulary_with_asymmetric_meter",
+            "applicability": "Established rock or art-rock bands seeking COMPLETE GENRE REINVENTION via electronic-experimental vocabulary. Use when rock-band format should be ABANDONED + electronic processing + asymmetric meter + sample manipulation become primary compositional engine.",
+            "core_compositional_recipes": [
+              {
+                "id": "complete_genre_reinvention_within_band_catalog",
+                "rule": "After established genre identity, ABANDON genre format entirely + EMBRACE OPPOSITE genre vocabulary. Album opener can DECLARE the reinvention. Demonstrates artist's range; expands beyond genre constraints. Demands artistic confidence + listener tolerance.",
+                "wow_factor": 0.86,
+                "documented_example": "Radiohead's Kid A reinvention from OK Computer rock-band (1997) to electronic-experimental (Kid A 2000). EIRP as opener declares this.",
+                "trade_offs": "Risk of fan alienation. Demands strong material in new genre. Loses former genre's audience.",
+                "personality_fit": "Yorke 60 / Reznor 25 / Daft Punk 10 / Cobain 5"
+              },
+              {
+                "id": "asymmetric_meter_as_album_opener_statement_of_intent",
+                "rule": "Use ASYMMETRIC METER (10/4, 7/8, 11/8) as compositional foundation in ALBUM OPENER. Asymmetric meter signals compositional ambition + departure from genre-typical 4/4. Listener immediately encounters compositional sophistication.",
+                "wow_factor": 0.81,
+                "documented_example": "EIRP 10/4 meter as Kid A opener — declaration of compositional reinvention",
+                "trade_offs": "Demands listener tolerance for asymmetric meter at album opening. Risk of alienating listeners conditioned to 4/4.",
+                "personality_fit": "Yorke 50 / Reznor 25 / Daft Punk 20 / Cobain 5"
+              },
+              {
+                "id": "manipulated_vocal_samples_as_textural_color",
+                "rule": "Sample own vocal + PROCESS ELECTRONICALLY (granular synthesis, pitch-shifting, time-stretching) + integrate as TEXTURAL COLOR in arrangement. Vocal becomes both narrative element + instrumental texture. Sampling self provides authentic source material.",
+                "wow_factor": 0.82,
+                "documented_example": "EIRP — Yorke's vocal sampled, processed by Greenwood + Godrich + Yorke, integrated as textural color",
+                "trade_offs": "Demands sample manipulation skill + DAW environment. Risk of vocal becoming unrecognizable.",
+                "personality_fit": "Yorke 50 / Reznor 30 / Daft Punk 15 / Cobain 5"
+              },
+              {
+                "id": "drumless_arrangement_as_compositional_choice",
+                "rule": "Compose track WITHOUT DRUMS — rhythm conveyed via electric piano + vocal + sample manipulations. Drumless arrangement DELIBERATE COMPOSITIONAL CHOICE, not absence-by-default. Demonstrates rhythm need not be drum-driven.",
+                "wow_factor": 0.79,
+                "documented_example": "EIRP — drumless arrangement with Rhodes + vocal + samples providing rhythm",
+                "trade_offs": "Demands strong rhythmic content from non-drum elements. Loses dance-floor function.",
+                "personality_fit": "Yorke 50 / Daft Punk 25 / Reznor 20 / Cobain 5"
+              },
+              {
+                "id": "fender_rhodes_electric_piano_as_compositional_foundation",
+                "rule": "Use FENDER RHODES ELECTRIC PIANO as compositional foundation — Rhodes character (electric piano warmth + sustain + harmonic blur via pedaling) provides distinct sonic identity from acoustic piano + synthesizer. Suited for jazz-influenced + art-rock + electronic-experimental contexts.",
+                "wow_factor": 0.76,
+                "documented_example": "EIRP Rhodes piano as compositional foundation",
+                "trade_offs": "Requires Rhodes access (vintage instrument). Specific aesthetic commitment.",
+                "personality_fit": "Yorke 45 / Daft Punk 25 / Reznor 20 / Cobain 10"
+              },
+              {
+                "id": "minimum_element_electronic_experimental_arrangement",
+                "rule": "Build electronic-experimental arrangement on MINIMUM ELEMENT COUNT — keyboard + vocal + processed samples sufficient. Each element gets MAXIMUM compositional weight. Electronic processing provides what additional instruments would deliver in rock-band format.",
+                "wow_factor": 0.78,
+                "documented_example": "EIRP minimum-element arrangement (Rhodes + vocal + manipulated samples)",
+                "trade_offs": "Demands strong material since elements scrutinized. Risk of feeling thin.",
+                "personality_fit": "Yorke 50 / Daft Punk 25 / Reznor 20 / Cobain 5"
+              }
+            ],
+            "production_philosophy_signature_godrich_kid_a_reinvention": {
+              "philosophy": "Same Godrich engineer-producer-mixer unified-role with band-creative-partnership framework deployed for COMPLETE GENRE REINVENTION compositional intent. Demonstrates Godrich's range across rock-band paradigm (OK Computer) + electronic-experimental paradigm (Kid A) within same producer-band partnership.",
+              "applicability": "Producer-band partnerships seeking genre reinvention while preserving creative partnership identity",
+              "key_insight": "Long-term producer-band partnerships can survive + support genre reinvention. Producer's creative input on reinvention process is valuable; band-as-team includes producer."
+            },
+            "structural_choice_summary": "Complete genre reinvention + asymmetric 10/4 meter + manipulated vocal samples + drumless arrangement + Rhodes piano + minimum-element electronic-experimental — EIRP demonstrates Radiohead's KID A REINVENTION DECLARATION as album opener. Compositional ambition beyond genre constraints."
           }
         },
         "The_National_Anthem": {
