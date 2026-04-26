@@ -79,6 +79,33 @@ propage à >130 voisins — toujours vérifier via `/graphify explain` avant.
 - **Ne jamais commit `graphify-out/`** : c'est un artefact local, déjà
   ignoré dans `.gitignore`.
 
+## Agents automatiques
+
+Le projet déclare des subagents Claude Code dans `.claude/agents/`. Certains
+doivent être invoqués proactivement aux moments listés ci-dessous, sans
+attendre que l'utilisateur les demande.
+
+### als-safety-guardian (`.claude/agents/als-safety-guardian.md`)
+
+**Invoquer automatiquement** dans ces cas :
+
+1. **Après l'exécution d'un script qui produit un `.als`** : tout script de
+   `composition_engine/`, `scripts/build_*`, `ableton/build_*`, ou tout
+   appel à `als_utils.compress_to_als()` qui écrit un nouveau fichier.
+2. **Avant un commit qui modifie ou ajoute un `.als`** (`git status`
+   montre un `.als` staged ou modified).
+3. **Avant de livrer un `.als` à l'utilisateur** (par exemple : "voilà ton
+   Banger_v3.als") — passer la checklist en silence avant la livraison.
+
+L'agent est read-only (tools restreints à `Read, Bash, Grep, Glob`) — aucun
+risque qu'il modifie le fichier. Il reporte PASS / FAIL / WARN par règle
+puis un verdict global. Si verdict = FAIL, **ne pas livrer le `.als`** sans
+fix manuel.
+
+L'agent est défini en français et référence `ableton/ALS_MANIPULATION_GUIDE.md`
++ la section "Pièges critiques" du présent CLAUDE.md comme source de vérité.
+Mettre à jour ces deux documents propage automatiquement aux validations.
+
 ## Fichiers de production (8 fichiers, même dossier)
 
 | Fichier | Rôle |

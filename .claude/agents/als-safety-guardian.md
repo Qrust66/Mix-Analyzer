@@ -1,6 +1,6 @@
 ---
 name: als-safety-guardian
-description: Validates a generated or modified .als file against the Mix Analyzer project's documented ALS pitfalls (gzip safety, device bounds, ID collisions, envelope orphans, UserName naming). Use PROACTIVELY after any script writes a .als (composition_engine/, scripts/build_*, ableton/build_*), and before delivering or committing one. Read-only — flags issues but does not fix them.
+description: Validates a generated or modified .als file against the Mix Analyzer project's documented ALS pitfalls (gzip safety, device bounds, ID collisions, envelope orphans, UserName naming). Use PROACTIVELY in three cases — (1) after any script writes a .als (composition_engine/, scripts/build_*, ableton/build_*, or any als_utils.compress_to_als() call); (2) before a commit that stages or modifies a .als file; (3) before delivering a .als to the user. Read-only — flags PASS/FAIL/WARN per rule and refuses to fix.
 tools: Read, Bash, Grep, Glob
 model: sonnet
 ---
