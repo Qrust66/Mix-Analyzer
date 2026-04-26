@@ -7767,7 +7767,7 @@
           }
         },
         "Six_Shooter": {
-          "_status": "C5_2b_performance_recording_done",
+          "_status": "C5_2c_complete_exhaustive",
           "album": "Songs for the Deaf",
           "year": 2002,
           "_note": "Vocals primarily by Nick Oliveri (his hardcore/punk-style screamed delivery contrasts with Homme's elsewhere on album)",
@@ -7910,6 +7910,131 @@
               "Demonstrates Valentine's range within same album session (mid-tempo groove FIG vs. punk-speed Six Shooter)"
             ],
             "comparison_to_albini_capture_approach_in_dissection": "Steve Albini (Nirvana In Utero 1993): pure capture, room-prominent, minimal shaping for aggressive Nirvana material. Eric Valentine (QOTSA Six Shooter 2002): unified-role with shaping, tighter stereo than Albini, more transient-detail emphasis. Two opposite production approaches to PUNK-AGGRESSIVE rock material — capture-philosophy vs. shape-philosophy."
+          },
+          "mixing": {
+            "mix_engineer": "Eric Valentine",
+            "mixing_studio": "The Sound Factory + Valentine's documented mix locations",
+            "mixing_philosophy_valentine_for_six_shooter": "PUNK-AGGRESSION CLARITY + TRANSIENT DETAIL + SCREAMED VOCAL FORWARDNESS. Valentine's documented unified-role approach adapted to punk-speed context: deliver punk-aggressive impact + transient detail at fast tempo + Oliveri's screamed vocal forward.",
+            "drum_mix_balance": [
+              "Kick + snare PUNCHY at fast tempo — articulation critical for listener to track punk-speed",
+              "Hi-hat articulation prominent in upper mid for tempo clarity",
+              "Drum bus weight balanced with transient detail — Grohl's punk-speed playing preserved",
+              "Cymbal accents articulate transitions"
+            ],
+            "guitar_mix_treatment": [
+              "STEREO WIDTH POWER-TRIO — guitars hard L/R for punk-rock stereo impact",
+              "Aggressive distortion preserved through mix",
+              "Compression on guitar bus tighter than mid-tempo tracks — punk-speed favors compressed punch",
+              "Less ambient layering than First It Giveth (punk economy aesthetic)"
+            ],
+            "vocal_mix_treatment": [
+              "Oliveri screamed vocal CENTERED + FORWARD — punk-aggressive intelligibility priority",
+              "Saturated processing preserved (matches Reznor's industrial-vocal philosophy)",
+              "Plate reverb + short delay for spatial depth without softening aggression",
+              "Compression preserves Oliveri's screamed projection",
+              "Less vocal layering than First It Giveth (no Lanegan harmony — punk-economy aesthetic)"
+            ],
+            "bass_mix_treatment": [
+              "Oliveri bass FORWARD with pick attack character preserved",
+              "Bass-kick coordination tight (punk-speed priority)",
+              "Light compression preserves natural envelope"
+            ],
+            "spatial_treatment_punk_aggression": [
+              "Stereo field WIDE for punk-rock impact",
+              "Reverb usage MINIMAL — punk-aggression favors dry punch",
+              "Plate reverbs on drums + vocal for warmth without losing tightness"
+            ],
+            "automation_used_in_mix": [
+              "Vocal level rides for screamed delivery",
+              "Brief bridge mix automation for intensification",
+              "Less extensive automation than dynamic-arc tracks (punk-economy aesthetic)"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying transient detail at fast tempo",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No reverb-heavy treatments (punk-aggression dry-punch priority)"
+            ],
+            "comparison_to_first_it_giveth_mix": "First It Giveth mix (Valentine): power-trio groove clarity + Lanegan harmony integration + commercial-single impact. Six Shooter mix (Valentine): punk-aggression clarity + screamed vocal forwardness + transient detail. Same mixer + same album, OPPOSITE compositional intents.",
+            "what_makes_valentine_mix_distinct_for_six_shooter": [
+              "PUNK-AGGRESSION CLARITY — punk-speed transient detail preserved",
+              "Saturated screamed vocal forward",
+              "Tighter stereo than First It Giveth — punk-economy aesthetic",
+              "Same unified-role framework deployed for opposite-pole material"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Brian Gardner (Songs for the Deaf mastered)",
+            "mastering_studio": "Bernie Grundman Mastering, Hollywood",
+            "mastering_philosophy_for_six_shooter": [
+              "Gardner's documented approach: punk-aggression loudness + transient detail preservation",
+              "2002 album-level mastering — Songs for the Deaf at peak loudness-war era"
+            ],
+            "loudness_observed": "Album average around -8 to -9 LUFS. Six Shooter near album peak loudness due to punk-aggression character.",
+            "spectral_signature": "Gardner's documented sound: clear top-end, present mid-range, controlled aggressive low-end. Six Shooter benefits — punk-aggression transient detail preserved.",
+            "what_mastering_preserves_for_six_shooter": [
+              "Punk-speed transient detail",
+              "Drum punch + rhythmic articulation",
+              "Saturated vocal aggression",
+              "Stereo image (preserving Valentine's punk-economy mix)"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "OLIVERI'S SCREAMED HARDCORE-PUNK VOCAL + FAST AGGRESSIVE TEMPO — listeners hear QOTSA at punk-aggression peak. Demonstrates album's tonal range (mid-tempo groove FIG vs. punk-aggression Six Shooter on adjacent tracks).",
+            "level_2_arrangement_signature": "AGGRESSIVE POWER-TRIO PUNK-HARDCORE arrangement — same Homme + Oliveri + Grohl trio at punk-speed without atmospheric layers or guest harmony.",
+            "level_3_compositional_signature": "OLIVERI-LED HARDCORE-PUNK VOCAL DEMOCRACY — demonstrates QOTSA's compositional approach allows entrusting vocal lead to non-frontman where suited. Compositional democracy within band framework. Influences subsequent stoner-rock bands willing to share vocal-lead duties."
+          },
+          "advisor_extract": {
+            "recipe_name": "punk_aggression_track_within_groove_rock_album_via_band_member_vocal_democracy",
+            "applicability": "Stoner-rock or alt-rock albums seeking tonal range expansion via PUNK-AGGRESSION TRACKS led by non-frontman band member with documented hardcore vocabulary. Use when album benefits from punk-aggression pole adjacent to mid-tempo groove pole.",
+            "core_compositional_recipes": [
+              {
+                "id": "vocal_lead_democracy_band_member_with_hardcore_vocabulary",
+                "rule": "Allow band member with documented HARDCORE-PUNK VOCABULARY (e.g., bassist with side-project hardcore credentials) to lead vocals on PUNK-AGGRESSION tracks. Frontman steps aside; band-member-vocalist's distinct identity legitimizes the punk-aggression pole. Compositional democracy within band framework.",
+                "wow_factor": 0.80,
+                "documented_example": "Six Shooter (QOTSA 2002) — Nick Oliveri (bassist, with documented Mondo Generator hardcore credentials) leads vocal",
+                "trade_offs": "Requires band member with distinct vocal identity. Risk of disorientation if band-member-vocalist's identity unfamiliar to audience.",
+                "personality_fit": "Cobain 40 / Reznor 25 / Yorke 15 / Daft Punk 20"
+              },
+              {
+                "id": "punk_aggression_pole_adjacent_to_mid_tempo_groove_pole_in_album_sequence",
+                "rule": "Sequence album to place PUNK-AGGRESSION track immediately ADJACENT to MID-TEMPO GROOVE track. Adjacency reveals band's tonal range; listeners experience compositional contrast directly. Demonstrates album's range without requiring listener to scan whole album.",
+                "wow_factor": 0.78,
+                "documented_example": "Songs for the Deaf (QOTSA 2002): track 5 First It Giveth (mid-tempo robot-rock groove) → track 6 Six Shooter (punk-aggression). Adjacent tracks demonstrate range.",
+                "trade_offs": "Album sequence must be carefully designed. Risk of jarring transitions if execution off.",
+                "personality_fit": "Cobain 35 / Reznor 30 / Daft Punk 20 / Yorke 15"
+              },
+              {
+                "id": "drummer_punk_speed_capacity_within_diverse_album",
+                "rule": "Within an album of diverse compositional intents, ensure drummer can deliver PUNK-SPEED CAPACITY (180+ BPM) on aggressive tracks while also delivering MID-TEMPO GROOVE on robot-rock tracks. Drummer's range enables album's tonal range.",
+                "wow_factor": 0.76,
+                "documented_example": "Dave Grohl on Songs for the Deaf — punk-speed Six Shooter + mid-tempo First It Giveth + extended Song for the Dead. Drummer's range enabling album's range.",
+                "trade_offs": "Demands drummer with multi-tempo + multi-style range. Many drummers specialize in single tempo zone.",
+                "personality_fit": "Cobain 35 / Reznor 25 / Daft Punk 25 / Yorke 15"
+              },
+              {
+                "id": "punk_economy_arrangement_no_atmospheric_layers",
+                "rule": "When composing punk-aggression tracks, REJECT atmospheric layers + guest harmonies + extended sections. Lean power-trio arrangement at fast tempo. Every element earns its presence; atmosphere is rejected as inappropriate to punk-aggression.",
+                "wow_factor": 0.74,
+                "documented_example": "Six Shooter — power-trio only, no Lanegan harmony, no atmospheric layers, 3:08 punk-economy",
+                "trade_offs": "Less obvious 'sonic ambition' — may feel thin to listeners conditioned to wall-of-sound. Demands strong material since fewer layers to hide behind.",
+                "personality_fit": "Cobain 45 / Reznor 25 / Daft Punk 15 / Yorke 15"
+              },
+              {
+                "id": "vocal_saturation_for_hardcore_punk_aesthetic",
+                "rule": "When tracking + mixing screamed hardcore-punk vocals, use SATURATION + DISTORTION processing chains. Vocal as TEXTURAL AGGRESSION element, not as clean-melodic primary. Different processing chains than melodic-vocal tracks. Preserves raw screamed quality without taming it.",
+                "wow_factor": 0.78,
+                "documented_example": "Oliveri's Six Shooter screamed vocal — saturated processing for hardcore-punk aesthetic",
+                "trade_offs": "Demands vocalist with screaming capacity. Production must commit to saturated aesthetic.",
+                "personality_fit": "Reznor 35 / Cobain 35 / Daft Punk 15 / Yorke 15"
+              }
+            ],
+            "production_philosophy_signature_valentine_punk_speed": {
+              "philosophy": "Same Valentine engineer-producer-mixer unified-role framework as First It Giveth applied to PUNK-AGGRESSION compositional intent. Demonstrates unified-role producer's range within same album session.",
+              "applicability": "Bands seeking unified-role production across diverse compositional intents (mid-tempo groove + punk-aggression + extended-form within same album)",
+              "key_insight": "Unified-role producers can support OPPOSITE compositional intents within same album when the producer has stylistic range. Production framework is COMPOSER-INTENT-RESPONSIVE, not template-imposing."
+            },
+            "structural_choice_summary": "Punk-aggression at fast tempo, Oliveri-led screamed vocal, power-trio punk-economy arrangement, saturated vocal processing — Six Shooter demonstrates QOTSA's PUNK-AGGRESSION pole within Songs for the Deaf's tonal range. Vocal-lead democracy as compositional principle."
           }
         },
         "A_Song_For_The_Dead": {
