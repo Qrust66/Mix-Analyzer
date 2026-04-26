@@ -11825,6 +11825,8 @@
       "compact_runtime_2_to_3_minutes": {
         "id": "compact_runtime_2_to_3_minutes",
         "rule": "Restrict song length to 2:30-3:00. Resist the urge to add a bridge or extended outro. Listener leaves the song wanting more — which is more powerful than full satisfaction. Compositional discipline via brevity.",
+        "electronic_translation": "Lock arrangement-view length at 2:30-3:00. NO breakdown, NO bridge, NO extended outro. Verse A → Chorus → Verse B → Chorus → ABRUPT END or short outro. Demands every section earn its place — no extension for length's sake. Apply for: electronic-pop singles (Justice / Daft Punk Discovery 'Aerodynamic' compact economy), interludes within longer albums (palette-cleansers between 6-7 min epics), trip-hop compact tracks. Compositional discipline = compositional power. Pair with `compact_aggressive_under_2_minutes` for even tighter punk-electronic statement, OR `compressed_economy_under_three_minutes_in_long_album` for diversity within longer-track albums.",
+        "electronic_target_genres": ["electronic_pop", "trip_hop", "downtempo"],
         "applicability_text": "Album tracks that don't need to be singles; songs with limited harmonic content (compact length matches compact harmony); tracks meant as 'breath' between heavier album moments.",
         "wow_factor": 0.65,
         "tier": "supporting",
@@ -11845,6 +11847,8 @@
       "albini_mix_pure_capture_no_remix": {
         "id": "albini_mix_pure_capture_no_remix",
         "rule": "When mixing, REJECT the radio-commercial template. No master bus compression, no vocal compression beyond minimal taming, no added reverb beyond what the recording room provides. The mix IS the recording — no sweetening, no shaping. Trust the band + room + mics + performance.",
+        "electronic_translation": "Pure-capture electronic mix philosophy: NO master-bus compressor, NO master-bus EQ, NO multi-band glue, NO post-mix limiter beyond peak protection at -1 dBTP. Use only IN-TRACK processing during composition (synth-internal saturation, individual bus EQ to carve frequency space). Master peaks at -14 to -16 LUFS integrated — significantly under commercial loudness. Ambient + dub-techno + neo-classical-electronic releases benefit from this — listener attention rewards dynamic detail. The 'recording IS the mix': decisions made during synthesis/sampling stage cannot be undone in mix. Demands disciplined sound-design upstream. Apply for: ambient album releases targeting Bandcamp/vinyl, dub-techno 12-inches, neo-classical-electronic ECM-style albums, IDM auteur-fidelity statements (Aphex Twin Selected Ambient Works II tradition).",
+        "electronic_target_genres": ["ambient", "dub_techno", "neo_classical_electronic", "IDM"],
         "applicability_text": "Tracks where intimacy is the artistic goal; songs whose performance IS the production (no enhancement needed); intentionally raw/uncommercial moments on an album.",
         "wow_factor": 0.70,
         "tier": "bronze",
@@ -11865,6 +11869,8 @@
       "vocal_intimacy_without_rasp": {
         "id": "vocal_intimacy_without_rasp",
         "rule": "Deliver vocal at LOW intensity throughout. No screaming, no rasp escalation, no belted chorus. Pitch-stable, conversational, close-mic. The song's emotional weight comes from VOCAL RESTRAINT, not vocal exertion. Yorke-adjacent territory within rock context.",
+        "electronic_translation": "Track CLOSE-MIC vocal at low intensity (Neumann TLM 102 / U87 / cheaper SM7B at 4-6 inches). Vocalist whispers / speaks / sings just-above-conversation. Pitch-stable — no rasp, no air, no escalation. Mix processing: light compression (3-5 dB max with 4:1 ratio), de-esser, plate reverb @ 1.5-2.5s decay subtle send (-15 to -20 dB), maybe slap-delay 60-80ms at -25 dB for spatial depth. Apply for: trip-hop (Massive Attack, Portishead, Tricky tradition — whispered intimate vocals over heavy beats), downtempo introspective vocals, neo-classical-electronic art-song (Olafur Arnalds collabs), dark-electronic vulnerable moments (NIN 'The Day the World Went Away'). The compositional power is in restraint — the LACK of exertion makes listeners lean in.",
+        "electronic_target_genres": ["trip_hop", "downtempo", "neo_classical_electronic"],
         "applicability_text": "Sections requiring vulnerability; verses or bridges where vocal is exposed; songs centered on a single sustained emotional state.",
         "wow_factor": 0.65,
         "tier": "supporting",
