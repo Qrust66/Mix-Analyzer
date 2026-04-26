@@ -6866,7 +6866,7 @@
           }
         },
         "The_Hand_That_Feeds": {
-          "_status": "C4_5a_composition_arrangement_done",
+          "_status": "C4_5b_performance_recording_done",
           "album": "With Teeth",
           "year": 2005,
           "tempo_bpm_documented_range": [122, 128],
@@ -6910,6 +6910,118 @@
             "what_makes_arrangement_unique_within_nin": "The Hand That Feeds represents NIN's MOST ROCK-SINGLE-ACCESSIBLE arrangement within this dissection. With LIVE DRUMS (Grohl) + commercial-single economy + retained industrial-production vocabulary, demonstrates Reznor's accessibility-leaning pole within his catalog.",
             "comparison_to_zero_industrial_leaning_pumpkins": "Zero (Pumpkins 1995): industrial-INFLUENCED rock at moderate tempo, LIVE drums (Chamberlin), retained rock structure. Hand That Feeds (NIN 2005): industrial-ROCK with LIVE drums (Grohl), commercial-single economy. Both industrial-leaning rock tracks with live drums — Zero is rock-band-with-industrial-leanings; Hand That Feeds is industrial-artist-with-rock-band-elements. Different starting points converging toward similar industrial-rock territory.",
             "comparison_to_other_grohl_dissection_appearances": "Grohl on Nirvana In Utero (Albini capture 1993): pure-capture aggressive rock. Grohl on QOTSA Songs for the Deaf (2002): polished rock with technical complexity. Grohl on NIN With Teeth (2005): industrial-rock-adapted live drumming. Three documented Grohl drumming contexts within dissection — different productions extracting different sides of his drumming identity."
+          },
+          "performance": {
+            "tempo_feel_description": "DRIVING ROCK-SINGLE FORWARD MOTION — 122-128 BPM at sustained intensity feels rock-physical (live drums) + industrial-textured (programmed elements). Tempo enables commercial-single accessibility.",
+            "drum_style": {
+              "performer": "Dave Grohl (live drums on multiple With Teeth tracks documented — including likely The Hand That Feeds; Reznor + sample triggers also active)",
+              "approach": "LIVE ROCK-PHYSICAL DRUMMING ADAPTED TO INDUSTRIAL CONTEXT — Grohl plays his rock-physical drumming style within Reznor's industrial-production framework",
+              "specifics_documented": [
+                "Live kick + snare backbone driving 4/4 rock at ~125 BPM — Grohl's documented power approach",
+                "Hi-hat 8ths or 16ths driving forward",
+                "Snare placement strong on 2+4",
+                "Fills more rock-physical than typical NIN — Grohl's drumming personality preserved within Reznor's framework",
+                "Sample triggers + industrial percussion samples blended subtly with live drums",
+                "Cymbal accents articulate chorus moments"
+              ],
+              "comparison_to_other_grohl_drumming_in_dissection": "Grohl Nirvana (Albini capture): pure aggressive rock with full kit room sound. Grohl QOTSA (polished rock): more technical but still rock-band-physical. Grohl NIN (industrial-context): rock-physical adapted to industrial framework with sample-trigger overlay. Same drummer, three different production contexts.",
+              "live_drumming_versus_programmed_implications": [
+                "Grohl's live drumming changes NIN's PHYSICAL FEEL — listeners feel the drummer's presence",
+                "Sample triggers + programmed industrial percussion BLEND with live drums rather than replacing them",
+                "Different feel from pure programmed NIN — more rock-band physical feel",
+                "Grohl's drumming brings ROCK-PHYSICAL energy that programmed-only Reznor catalog couldn't replicate"
+              ]
+            },
+            "guitar_style": {
+              "performers": "Trent Reznor (primary)",
+              "rhythm_guitar_role": "PROCESSED ROCK-SINGLE RIFF + textural support — guitars provide rock-anthem rhythmic-harmonic primary alongside synth elements",
+              "specifics_documented": [
+                "Distorted guitar amps + heavy pedal chains (continued Reznor palette)",
+                "Riff-driven verse guitar establishing harmonic motion",
+                "Chord-emphasized chorus guitars",
+                "Possible additional ambient/textural layers blended subtly",
+                "Stereo placement aggressive — distorted guitars hard L/R for commercial-single impact"
+              ],
+              "playing_style_versus_other_nin_in_dissection": "Hand That Feeds guitars MORE ROCK-TRADITIONAL than Spiral/Fragile NIN guitars. Where earlier NIN guitars functioned as TEXTURAL AGGRESSION or were minimal/atmospheric, With Teeth-era NIN guitars play more traditional rock-band rhythmic-harmonic role."
+            },
+            "bass_performance": {
+              "performer": "Trent Reznor (synthesis + possibly some live bass)",
+              "approach": "DISTORTED BASS SYNTH PROVIDING ROCK-SINGLE HARMONIC FOUNDATION + RHYTHMIC PUNCH",
+              "specifics_documented": [
+                "Bass synth distorted (similar palette to Spiral but deployed for rock-single not industrial extremity)",
+                "Bass-kick coordination tight for rock-single rhythmic foundation — Grohl's live kick + Reznor's bass synth collaborate",
+                "Possible live bass layering for combined texture"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Trent Reznor",
+              "verse_delivery": "MODERATE-AGGRESSION ROCK-SINGLE VOCAL — between Reznor's scream + sing poles, projected for commercial-single accessibility",
+              "chorus_delivery": "FULL EMOTIONAL PROJECTION + HOOK EMPHASIS — chorus vocal designed to hook listener",
+              "documented_vocal_quirks": [
+                "Reznor demonstrates rock-single vocal capacity — between his industrial-extremity + atmospheric-vulnerability poles",
+                "Multiple vocal takes selected/comped",
+                "Chorus vocal hooks designed for radio impact",
+                "Less vocal layering than We're In This Together's anthemic approach (commercial-single tighter aesthetic)"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization-corrected programming",
+              "No vocal pitch correction",
+              "No tempo changes",
+              "No extended sections (commercial-single economy priority)"
+            ]
+          },
+          "recording": {
+            "studio": "Various With Teeth recording locations — documented Reznor production at multiple studios for With Teeth",
+            "session_dates": "2003-2005 sessions",
+            "primary_producer": "Trent Reznor (with Atticus Ross as documented production partner emerging on With Teeth — Ross became co-producer credit on subsequent NIN albums)",
+            "primary_engineer": "Various With Teeth engineers including Alan Moulder",
+            "primary_mix_engineer": "Alan Moulder (continuing NIN mix collaboration from Fragile)",
+            "production_philosophy_evolution_reznor_at_with_teeth": "Reznor's auteur-producer model EVOLVED for With Teeth (2005) — same auteur framework but with INCREASED COLLABORATION via live drums (Grohl) + emerging Atticus Ross production partnership. Less programmed-only than Spiral; more rock-band-with-industrial-overlay aesthetic. With Teeth era documented as Reznor's RECALIBRATION toward accessibility while retaining identity.",
+            "drum_micing_approach": {
+              "philosophy_reznor_with_grohl": "LIVE DRUMS CAPTURED + INDUSTRIAL OVERLAY — Grohl's kit miced traditionally (multiple close mics + room mics), with sample triggers + industrial percussion layered onto live drums",
+              "specifics_for_hand_that_feeds": [
+                "Grohl's full kit miced extensively — kick (in/out), snare (top/bottom), hi-hat, multiple toms, overheads, room mics",
+                "Live drums + sample triggers blended for hybrid feel",
+                "Possible drum bus parallel processing (continued from Reznor's programmed-drum techniques)",
+                "First major NIN tracking with live drums as foundation rather than as occasional overlay"
+              ],
+              "philosophy_shift_within_nin_catalog": "Spiral (1994): pure programmed drums. Fragile (1999): programmed primary with possible live percussion overdubs. With Teeth (2005): LIVE DRUMS PRIMARY (Grohl) with programmed/sample overlay. Reznor's drum philosophy EVOLVED across catalog — increased live integration."
+            },
+            "guitar_tracking_approach": {
+              "philosophy_reznor": "Heavier guitar role than Fragile atmospheric tracks — guitars provide rock-single rhythmic-harmonic primary",
+              "specifics_documented": [
+                "Distorted guitar amps + heavy pedal chains",
+                "Multiple guitar layers tracked separately for stereo width (continued Reznor layering philosophy)",
+                "Each layer with different mic placement / amp / pedal for textural variety",
+                "Rock-single riff guitars + sustained chord textures"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "Bass synthesis + possibly live bass layered. Distorted but commercial-single-balanced — less extreme than Spiral, more present than Fragile atmospheric tracks."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_reznor": "Vocal tracked with attention to rock-single projection + commercial accessibility while retaining Reznor identity",
+              "specifics_documented": [
+                "Vocal isolation booth at recording locations",
+                "Multiple complete takes selected/comped",
+                "Less vocal layering than Fragile's We're In This Together (commercial-single tighter aesthetic)"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Multiple synthesizers (Reznor's With Teeth-era expanded synth palette)",
+              "Programmed sample triggers + industrial percussion",
+              "Distorted guitar amps + heavy pedal chains",
+              "Bass synthesis with distortion",
+              "Grohl's full kit (documented as Grohl drumming on multiple With Teeth tracks)"
+            ],
+            "what_makes_reznor_recording_distinct_for_hand_that_feeds": [
+              "AUTEUR-PRODUCER + LIVE DRUMS + ROSS PARTNERSHIP EMERGING — Reznor's auteur framework expanded to include MORE COLLABORATION than ever",
+              "Live drums (Grohl) as foundation rather than as occasional overlay — Reznor's drum-philosophy evolution",
+              "Atticus Ross production partnership beginning to emerge (becomes full co-producer on subsequent albums)",
+              "Commercial-single recording approach — tighter timeline, less extended-form ambition than Fragile"
+            ],
+            "comparison_to_other_nin_recording_approaches": "March of the Pigs (1994 Le Pig): pure auteur, programmed-foundation, Tate house atmosphere. TDTWWA + WITT + Wretched (1999 Nothing Studios): auteur + Moulder mix collaboration, programmed-foundation, multi-year prolonged sessions. Hand That Feeds (2005 With Teeth): auteur + Moulder + EMERGING Ross + LIVE DRUMS (Grohl), commercial-single tightened framework. Reznor's framework EVOLVED across catalog — from pure auteur to expanded collaboration with retained creative identity."
           }
         },
         "Copy_Of_A": {
