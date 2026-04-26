@@ -7163,7 +7163,7 @@
           }
         },
         "Copy_Of_A": {
-          "_status": "C4_6a_composition_arrangement_done",
+          "_status": "C4_6b_performance_recording_done",
           "album": "Hesitation Marks",
           "year": 2013,
           "_note": "Outside the original 3-album scope (Spiral/Fragile/With Teeth) but explicitly requested by user. Worth dissecting — Reznor's most evolved 'modular electronic' approach.",
@@ -7207,6 +7207,113 @@
             ],
             "what_makes_arrangement_unique_within_nin": "Copy of A represents NIN's MOST MODULAR-ELECTRONIC arrangement within this dissection. Where earlier NIN arrangements used sampler-based industrial (Spiral) or atmospheric synth pads (Fragile) or live drums + industrial overlay (With Teeth), Copy of A uses MODULAR ELECTRONIC PATTERNS as primary arrangement engine. 2013 production-vocabulary evolution.",
             "comparison_to_daft_punk_arrangement_within_dissection_setup": "Copy of A's modular-electronic foundation begins to overlap territory that Daft Punk's catalog will demonstrate fully (Around the World, Veridis Quo, etc. — to be dissected in C6 block). Copy of A is NIN-INFLUENCED-BY-MODULAR-ELECTRONIC; Daft Punk is MODULAR-ELECTRONIC AT ITS SOURCE within dance-music tradition. Useful cross-band comparison emerging for production-philosophy evolution."
+          },
+          "performance": {
+            "tempo_feel_description": "EVOLVING ELECTRONIC PATTERN-DRIVEN — 114-120 BPM at sustained groove feels both ELECTRONIC-DANCE-ADJACENT (steady pulse) and ATMOSPHERIC (pattern evolution via filter modulation). Tempo enables danceable pulse + pattern development.",
+            "drum_style": {
+              "performer_or_programmer": "Trent Reznor + Atticus Ross (programming + sample triggering — Hesitation Marks fully co-produced)",
+              "approach": "ELECTRONIC-STYLED PROGRAMMED DRUMS WITH MODULAR INTEGRATION — drums programmed in modular-electronic-music aesthetic rather than industrial-rock-aesthetic",
+              "specifics_documented": [
+                "Programmed kick + snare backbone aligned with electronic-pattern foundation",
+                "Hi-hat / cymbal samples driving the ~117 BPM pulse",
+                "Sample triggers + electronic percussion layered for textural variety",
+                "Drum patterns INTEGRATE with modular synth patterns rather than dominating",
+                "Possible occasional live percussion for textural color",
+                "Less aggressive than Spiral programming, less atmospheric-restraint than Fragile, less rock-physical than With Teeth Grohl drums"
+              ],
+              "comparison_to_other_nin_drumming_evolution": "March of the Pigs (1994): aggressive industrial extremity. TDTWWA (1999): atmospheric sparse. WITT (1999): anthemic full programmed. Wretched (1999): hybrid switching. Hand That Feeds (2005): live (Grohl) + programmed overlay. Copy of A (2013): electronic-modular integrated. SIX different NIN drumming approaches across 19 years.",
+              "philosophy_modular_drumming_integration": "Drums + modular synth patterns COMPOSED TOGETHER as integrated electronic-music foundation, rather than drums supporting separately-composed song. Reznor + Ross's film-scoring discipline (where music is composed as integrated whole) audible in this approach."
+            },
+            "guitar_style": {
+              "performers": "Trent Reznor (primary) + Adrian Belew (King Crimson guitarist, documented contributor on Hesitation Marks)",
+              "rhythm_guitar_role": "MINIMAL/TEXTURAL — guitars secondary to electronic palette in Copy of A",
+              "lead_guitar_role": "Possible Adrian Belew contribution providing AVANT-ROCK guitar texture (Belew's documented King Crimson + Bowie-era + Talking Heads work brings distinct guitar vocabulary)",
+              "specifics_documented": [
+                "Standard tuning",
+                "Possible processed clean guitar textures used selectively for atmospheric color",
+                "Belew's contributions documented as bringing avant-rock guitar dimension to specific Hesitation Marks tracks",
+                "Less guitar wall-of-sound than other NIN tracks — electronic palette primary"
+              ],
+              "playing_style_versus_other_nin_guitar_evolution": "March of the Pigs: textural aggression. Wretched: hybrid section-specific. Hand That Feeds: rock-single rhythm-harmony. Copy of A: minimal/atmospheric with possible Belew avant-rock contribution. FOUR different NIN guitar approaches within dissection."
+            },
+            "bass_performance": {
+              "performer": "Trent Reznor (synthesis primary)",
+              "approach": "DISTORTED BASS SYNTH INTEGRATED WITH MODULAR ELECTRONIC FOUNDATION — bass synthesis evolved beyond Spiral-era heavy distortion to more nuanced electronic bass aesthetic",
+              "specifics_documented": [
+                "Bass synth less heavily distorted than Spiral material",
+                "Bass-kick coordination tight for danceable electronic groove",
+                "Possible filtering / modulation on bass synth for texture variety",
+                "Bass integrated with modular-electronic foundation rather than as separate rock-band-bass element"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Trent Reznor",
+              "verse_delivery": "MELODIC + RESTRAINED — Reznor's vocal mature evolution at 2013, less aggressive than Spiral verses, less atmospheric-vulnerable than TDTWWA, more melodic-deliberate",
+              "chorus_delivery": "MELODIC LIFT + EMOTIONAL ENGAGEMENT — chorus designed for melodic memorability without commercial-single hook obviousness",
+              "documented_vocal_quirks": [
+                "Reznor's 2013 vocal MATURE — recovery period (sober since ~2002), film-scoring discipline reflected in vocal restraint",
+                "Multiple complete takes selected/comped per Reznor approach",
+                "Less vocal layering than We're In This Together (modular-electronic prefers tighter vocal element-count)"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization-corrected programming",
+              "No vocal pitch correction (continued Reznor approach)",
+              "No tempo changes",
+              "No abrupt section-cuts (modular-electronic favors evolving transitions)"
+            ]
+          },
+          "recording": {
+            "studio": "Various Hesitation Marks recording locations — documented at Reznor's home studio + various locations",
+            "session_dates": "2012-2013 sessions",
+            "primary_producers": "Trent Reznor + Atticus Ross + Alan Moulder (Hesitation Marks documented as Reznor + Ross full co-production with Moulder mixing)",
+            "additional_contributors": "Adrian Belew (King Crimson guitarist, documented contributor on multiple Hesitation Marks tracks)",
+            "primary_mix_engineer": "Alan Moulder",
+            "production_philosophy_evolution_reznor_at_hesitation_marks": "Reznor's auteur-producer model EVOLVED MAXIMALLY for Hesitation Marks — Atticus Ross now FULL CO-PRODUCER (after emerging on With Teeth, partnership through 2008 NIN material + film scores 2010-2012, full co-producer status by 2013). Reznor + Ross + Moulder pipeline established. Auteur-CO-AUTEUR-MIXER pipeline.",
+            "drum_micing_approach": {
+              "philosophy_reznor_ross": "Programmed drums + sample triggers + electronic percussion samples integrated with modular synth foundation. Less rock-band kit micing than With Teeth.",
+              "specifics_for_copy_of_a": [
+                "Programmed kit elements + electronic percussion samples for modular-electronic aesthetic",
+                "Drum bus processing electronic-styled — possibly filter modulation, modular envelope shaping",
+                "Possible occasional live percussion overdubs for textural variety",
+                "Less aggressive than Spiral programming, more nuanced than With Teeth live drums + overlay"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_reznor_ross": "Minimal guitar role — synth-modular foundation primary. Belew's contributions tracked separately for selective deployment.",
+              "specifics_documented": [
+                "Possible processed clean guitar textures recorded with atmospheric chains",
+                "Belew's tracking documented as substantive contributor — King Crimson + Bowie-era + Talking Heads vocabulary informing his approach",
+                "Tracking philosophy: build modular-electronic foundation, add guitar textural color selectively"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "Bass synthesis primary — programmed synth bass with subtle filtering + modulation for textural variety. Less distorted than Spiral, less atmospheric than Fragile."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_reznor_ross": "Reznor self-tracking with attention to mature melodic delivery — 2013 vocal aesthetic less aggressive than 1994 Spiral, less vulnerable than 1999 Fragile",
+              "specifics_documented": [
+                "Vocal isolation booth at recording locations",
+                "Multiple complete takes selected/comped",
+                "Different processing chains than aggressive vocal tracks — clean + reverb-balanced for mature melodic delivery"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Multiple analog synthesizers (Reznor + Ross's Hesitation Marks-era expanded modular palette)",
+              "Modular synth elements + Eurorack-era patches",
+              "Programmed drum tracks built in DAW environment",
+              "Distorted bass synth with subtle filtering + modulation",
+              "Adrian Belew's documented guitar gear (Roland synth-guitar, treated guitars)"
+            ],
+            "what_makes_reznor_ross_recording_distinct_for_copy_of_a": [
+              "AUTEUR-CO-AUTEUR-MIXER pipeline — Reznor + Ross + Moulder as established production team",
+              "MODULAR-ELECTRONIC foundation — 2013 production-vocabulary evolution beyond earlier NIN palettes",
+              "Adrian Belew avant-rock guitar contribution as documented external dimension",
+              "Film-scoring discipline (Reznor + Ross's Social Network + Dragon Tattoo work) audible in compositional integration",
+              "Hesitation Marks documented as Reznor's most CONSIDERED + DELIBERATE production after 2008-2013 hiatus + recovery period"
+            ],
+            "comparison_to_full_nin_evolution_recording": "Spiral 1994 (Le Pig pure auteur, sampler-based industrial extremity). Fragile 1999 (Nothing Studios auteur + Moulder mix, programmed-foundation extended-form). With Teeth 2005 (multi-studio auteur + emerging Ross + Grohl drums, commercial-recalibration). Hesitation Marks 2013 (multi-location Reznor + Ross full co-production + Moulder + Belew, modular-electronic evolution). FOUR documented points in Reznor's auteur framework evolution — from pure auteur to expanded co-production while retaining auteur identity.",
+            "production_philosophy_completion_within_dissection": "Reznor's auteur-framework EVOLUTION across 19 years (1994-2013) is the most extensively documented single-artist production-philosophy arc within this dissection. Six distinct NIN tracks across four albums demonstrate framework's adaptability + evolution. Auteur identity preserved + expanded across catalog."
           }
         }
       },
