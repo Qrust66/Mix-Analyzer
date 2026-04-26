@@ -6578,7 +6578,7 @@
           }
         },
         "The_Wretched": {
-          "_status": "C4_4b_performance_recording_done",
+          "_status": "C4_4c_complete_exhaustive",
           "album": "The Fragile",
           "year": 1999,
           "tempo_bpm_documented_range": [100, 108],
@@ -6724,6 +6724,145 @@
               "Same auteur framework supporting hybrid-integration compositional intent"
             ],
             "comparison_to_other_fragile_recording_approaches": "TDTWWA (Fragile atmospheric): minimum elements, maximum restraint. We're In This Together (Fragile anthemic): full elements, multiple chorus layering. Wretched (Fragile hybrid): variable elements adapting to section, hybrid-vocabulary tracking. Same Fragile framework supporting THREE different compositional intents within same album sessions."
+          },
+          "mixing": {
+            "mix_engineer": "Alan Moulder",
+            "mixing_studio": "Various Fragile mix locations",
+            "mixing_philosophy_moulder_for_wretched": "HYBRID-VOCABULARY MIX MANAGEMENT + INTEGRATED TRANSITIONS + DUAL-CHARACTER PRESERVATION. Moulder's documented approach for Wretched: handle aggressive + atmospheric vocabularies within same mix session, preserve dual-character of each section, ensure transitions feel INTEGRATED rather than abrupt-cuts.",
+            "drum_mix_balance": [
+              "Verse drums: punchy + present + industrial percussion forward — aggressive vocabulary mix",
+              "Chorus drums: atmospheric processing applied — possibly long reverb tails on selected hits, kick simplified, snare atmospheric/filtered",
+              "Drum bus AUTOMATION shifts character between sections",
+              "Cymbal samples articulate transitions clearly without abrupt cuts",
+              "Density rides up + down across hybrid arc"
+            ],
+            "guitar_mix_treatment": [
+              "Verse guitars: aggressive distortion forward, hard L/R panning",
+              "Chorus guitars: clean/atmospheric layers more prominent, wider stereo, more reverb",
+              "Mix automation manages section-specific guitar layer levels",
+              "Bridge instrumental: BOTH guitar vocabularies active simultaneously for hybrid integration",
+              "Compression varies — aggressive on verse layers, lighter on atmospheric chorus layers"
+            ],
+            "vocal_mix_treatment": [
+              "Verse vocal: SATURATED + AGGRESSIVE compression — urgency emphasis",
+              "Chorus vocal: CLEANER + DEEPER REVERB — atmospheric emotional emphasis",
+              "Vocal level rides between sections to manage dynamic balance",
+              "Chorus vocal layering blended subtly for emotional fullness",
+              "Final chorus: vocal level rides up for emotional intensification"
+            ],
+            "bass_mix_treatment": [
+              "Verse bass: distorted + driving forward",
+              "Chorus bass: less distorted, more sustained, atmospheric",
+              "Bass-kick coordination tighter in verses, more spacious in choruses"
+            ],
+            "spatial_treatment_hybrid": [
+              "Stereo field WIDER in choruses (atmospheric) than in verses (aggressive precision)",
+              "Reverb usage VARIES — minimal on aggressive verse elements, maximized on atmospheric chorus elements",
+              "Plate + hall reverb blends deployed selectively for atmospheric chorus depth",
+              "Bridge instrumental: hybrid spatial treatment — both wide + tight elements simultaneously"
+            ],
+            "automation_used_in_mix": [
+              "EXTENSIVE section-specific mix automation — drum bus character, guitar layer levels, vocal processing all shift between aggressive + atmospheric sections",
+              "Reverb send automation for section transitions",
+              "Synth-pad layer rides for chorus atmospheric expansion",
+              "Vocal level + processing rides for dynamic phrase emphasis"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No abrupt mix-cuts at section transitions (integrated transitions priority)",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No genre-template mix imposed (mix adapts to compositional hybrid intent)"
+            ],
+            "comparison_to_other_fragile_mixes": "TDTWWA (Moulder Fragile): pure atmospheric sustain preservation. We're In This Together (Moulder Fragile): anthemic emotional power with multiple chorus layering. Wretched (Moulder Fragile): HYBRID-VOCABULARY MANAGEMENT with extensive section-specific automation. Same Moulder Fragile mix engineer adapting to three different compositional intents.",
+            "what_makes_moulder_mix_distinct_for_wretched": [
+              "HYBRID-VOCABULARY MANAGEMENT — handles aggressive + atmospheric vocabularies within same mix",
+              "Extensive section-specific automation for character shifts",
+              "Integrated transitions rather than abrupt-section-cuts",
+              "Different processing chains for vocal in different sections",
+              "Reverb usage varies dramatically across the song's hybrid arc"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Tom Baker",
+            "mastering_studio": "Precision Mastering, Hollywood",
+            "mastering_philosophy_for_wretched": [
+              "Baker's documented approach: hybrid-character preservation + dynamic-arc preservation",
+              "Wretched's hybrid intent requires preserved character variation between sections — mastering must NOT compress to single character",
+              "1999 album-level mastering — Fragile dynamic detail preserved"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS integrated estimate. Wretched specifically variable — verse sections near album peak, chorus sections quieter due to atmospheric character.",
+            "spectral_signature": "Baker's documented sound: clear top-end, present mid-range, controlled aggressive low-end. Hybrid-character preserved through master.",
+            "what_mastering_preserves_for_wretched": [
+              "Hybrid section-character variation",
+              "Dynamic arc across 5:25 runtime",
+              "Aggressive verse density + atmospheric chorus space distinction",
+              "Vocal character variation between sections"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "THE INTEGRATED HYBRID — listeners hear NIN moving fluidly between aggressive + atmospheric vocabularies within a single song, with INTEGRATED TRANSITIONS rather than abrupt section-cuts. The hybrid integration is the song's identity.",
+            "level_2_arrangement_signature": "HYBRID-VOCABULARY ARRANGEMENT — programmed drums + processed guitars + distorted bass synth + atmospheric synth pads + Reznor vocals all coexist + transform across the song's arc. Density + texture shift WITHIN sections + ACROSS sections.",
+            "level_3_compositional_signature": "AGGRESSION-ATMOSPHERE HYBRID INTEGRATION — Reznor demonstrates that two opposite genre-vocabularies can COEXIST + TRANSFORM into each other within a single song, rather than alternating as separate sections. Compositional sophistication: not just combining vocabularies but making them FLOW INTO each other. Influences subsequent industrial-electronic-rock fusion artists who follow this hybrid-integration path."
+          },
+          "advisor_extract": {
+            "recipe_name": "aggression_atmosphere_hybrid_integration_within_single_song",
+            "applicability": "Industrial-rock or electronic-rock-fusion compositions where the song integrates two opposite genre-vocabularies (aggressive + atmospheric) WITHIN sections rather than alternating them as separate sections. Use when GENRE-FLUIDITY + INTEGRATED TRANSFORMATION are the song's identity.",
+            "core_compositional_recipes": [
+              {
+                "id": "hybrid_vocabulary_integration_within_sections",
+                "rule": "Within a single song, INTEGRATE two opposite genre-vocabularies (e.g., industrial aggressive + atmospheric sustain) so they coexist + transform within sections rather than alternating as separate sections. Sections may emphasize one vocabulary but contain elements from the other. Transitions feel INTEGRATED rather than ALTERNATING.",
+                "wow_factor": 0.86,
+                "documented_example": "Wretched (NIN, Fragile 1999, 5:25) — aggressive-atmospheric hybrid integration",
+                "trade_offs": "Risk of feeling unfocused if integration weak. Demands compositional + production sophistication.",
+                "personality_fit": "Reznor 45 / Yorke 30 / Cobain 15 / Daft Punk 10"
+              },
+              {
+                "id": "section_specific_processing_chains_per_genre_vocabulary",
+                "rule": "Track + mix elements with DIFFERENT PROCESSING CHAINS for different sections of same song — vocal saturated in verses + clean in choruses, drums punchy in verses + atmospheric in choruses, etc. The processing IS the vocabulary signal to the listener.",
+                "wow_factor": 0.82,
+                "documented_example": "Wretched verse vs. chorus processing — Reznor's adaptive processing approach",
+                "trade_offs": "Time-intensive tracking + mixing; requires production planning. Risk of processing inconsistency.",
+                "personality_fit": "Reznor 45 / Yorke 25 / Cobain 15 / Daft Punk 15"
+              },
+              {
+                "id": "extensive_section_specific_mix_automation_for_character_shifts",
+                "rule": "When mixing hybrid-vocabulary songs, use EXTENSIVE section-specific mix automation — drum bus character, guitar layer levels, vocal processing, reverb sends all SHIFT between sections. Mix automation IS COMPOSITION at the production stage.",
+                "wow_factor": 0.80,
+                "documented_example": "Alan Moulder's Wretched mix — extensive section-specific automation for hybrid character management",
+                "trade_offs": "Time-intensive mixing; requires mixer who understands compositional intent",
+                "personality_fit": "Reznor 40 / Yorke 30 / Cobain 15 / Daft Punk 15"
+              },
+              {
+                "id": "integrated_transitions_not_abrupt_cuts",
+                "rule": "Build section transitions as INTEGRATED TRANSFORMATIONS rather than ABRUPT CUTS. Section A vocabulary BLEEDS INTO section B; section B retains residue from section A. The two vocabularies INTERPENETRATE rather than DISPLACE each other. Listener experience: gradual shift rather than jump-cut.",
+                "wow_factor": 0.83,
+                "documented_example": "Wretched verse-chorus transitions — integrated rather than abrupt",
+                "trade_offs": "Demands compositional confidence + production patience. Risk of muddiness if not executed precisely.",
+                "personality_fit": "Yorke 40 / Reznor 35 / Cobain 15 / Daft Punk 10"
+              },
+              {
+                "id": "auteur_framework_third_compositional_intent_within_same_album",
+                "rule": "Demonstrate auteur range by exploring THREE OR MORE compositional intents within same album session — atmospheric vulnerability + anthemic emotional power + hybrid integration + aggressive extremity. Same auteur framework, multiple opposite-pole intents, single album.",
+                "wow_factor": 0.84,
+                "documented_example": "The Fragile (NIN 1999) — TDTWWA atmospheric + We're In This Together anthemic + Wretched hybrid + multiple aggressive tracks. Reznor framework supporting 4+ compositional intents.",
+                "trade_offs": "Demands extended album form. Risk of audience confusion if range too wide. Demands artistic confidence to challenge audience expectations.",
+                "personality_fit": "Reznor 45 / Yorke 35 / Cobain 15 / Daft Punk 5"
+              },
+              {
+                "id": "vocal_hybrid_delivery_within_single_song",
+                "rule": "Have vocalist execute HYBRID DELIVERY within same song — urgent moderate-aggression in verses + melodic sustained in choruses. Different vocal techniques + processing chains for different sections. Vocal hybrid carries song's emotional integration.",
+                "wow_factor": 0.79,
+                "documented_example": "Reznor's Wretched vocal hybrid — urgent verses + melodic choruses",
+                "trade_offs": "Requires vocalist with both capacities. Demands production fluidity",
+                "personality_fit": "Reznor 50 / Cobain 25 / Yorke 15 / Daft Punk 10"
+              }
+            ],
+            "production_philosophy_signature_reznor_moulder_hybrid": {
+              "philosophy": "Same Reznor+Moulder Fragile auteur framework deployed for HYBRID-VOCABULARY material — third compositional intent supported by same framework alongside atmospheric (TDTWWA) and anthemic (We're In This Together) intents.",
+              "applicability": "Genre-fusion artists seeking integrated hybrid composition rather than alternating sections, established auteur-producers exploring genre-fluidity",
+              "key_insight": "Auteur frameworks support GENRE-FLUIDITY when the auteur's intent is hybrid-integration. Production philosophy adapts to compositional hybrid intent rather than imposing single-genre template."
+            },
+            "structural_choice_summary": "Aggression-atmosphere hybrid integration within sections, integrated transitions, section-specific processing chains, hybrid vocal delivery — Wretched demonstrates Reznor's GENRE-FLUIDITY pole. Production-vocabulary independence (industrial × atmospheric coexisting + transforming) as compositional axis. Influences subsequent hybrid-integration genre-fusion artists."
           }
         },
         "The_Hand_That_Feeds": {
