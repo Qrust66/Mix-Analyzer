@@ -24676,8 +24676,1223 @@
       "_generated_from_atom_count": 173
     },
     "synergy_clusters": {
-      "_note": "Empty placeholder; will be populated in step A11. Each cluster is an evidence-backed bundle of 3-5 recipes that co-appear in a song's advisor_extract or share documented compositional logic. Clusters are SEMANTIC GROUPS, not just pointer lists — each has a description + personality_fit + parent_song reference.",
-      "evidence_rule": "A cluster is valid if AT LEAST 2 of its recipes appear in the same song's advisor_extract OR if dissection text explicitly compares them as a coherent compositional approach."
+      "_note": "Evidence-backed co-presence bundles. 32 song-clusters (atoms sharing source.song) + 12 philosophy-clusters (atoms sharing production_philosophy_lineage). Each cluster lists recipe_ids without duplicating atom data. avg_personality_fit and avg_wow_factor enable cluster-level filtering for compositional palette selection.",
+      "_generated_from_atom_count": 173,
+      "_song_cluster_count": 32,
+      "_philosophy_cluster_count": 12,
+      "evidence_rule": "A cluster is valid if its recipes share documented compositional context — same song.advisor_extract (song_cluster) or same production_philosophy_lineage (philosophy_cluster). NOT aesthetic similarity, documented co-presence.",
+      "clusters": {
+        "song__nirvana__heart_shaped_box": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Nirvana",
+            "song": "Heart_Shaped_Box",
+            "album": "In Utero",
+            "year": 1993
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "albini_vs_litt_two_mix_versions",
+            "delayed_rhythm_section_entry_4_bars",
+            "feedback_as_compositional_layer_in_bridge",
+            "microtonal_bend_as_signature_riff",
+            "slow_burn_arrival_not_explosion",
+            "vocal_layer_count_as_dynamic_lever"
+          ],
+          "avg_personality_fit": {
+            "cobain": 38,
+            "reznor": 24,
+            "daft_punk": 12,
+            "yorke": 26
+          },
+          "avg_wow_factor": 0.76,
+          "peak_wow_factor": 0.85,
+          "description": "Atoms documented within Nirvana's 'Heart Shaped Box' (In Utero, 1993). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__nirvana__dumb": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Nirvana",
+            "song": "Dumb",
+            "album": "In Utero",
+            "year": 1993
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "albini_mix_pure_capture_no_remix",
+            "cello_orchestral_pad_in_rock",
+            "compact_runtime_2_to_3_minutes",
+            "flat_dynamic_arc_anti_buildup",
+            "harmonic_minimalism_one_cycle_repeated",
+            "vocal_intimacy_without_rasp"
+          ],
+          "avg_personality_fit": {
+            "cobain": 36,
+            "reznor": 17,
+            "daft_punk": 14,
+            "yorke": 33
+          },
+          "avg_wow_factor": 0.69,
+          "peak_wow_factor": 0.75,
+          "description": "Atoms documented within Nirvana's 'Dumb' (In Utero, 1993). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__nirvana__territorial_pissings": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Nirvana",
+            "song": "Territorial_Pissings",
+            "album": "Nevermind",
+            "year": 1991
+          },
+          "recipe_count": 5,
+          "recipe_ids": [
+            "a_cappella_fakeout_intro_into_band_slam",
+            "abrupt_song_end_no_fade",
+            "screamed_single_take_vocal_no_doubling",
+            "unrelenting_aggression_no_dynamic_arc",
+            "wallace_compressed_brightness_vs_albini_room"
+          ],
+          "avg_personality_fit": {
+            "cobain": 45,
+            "reznor": 30,
+            "daft_punk": 14,
+            "yorke": 11
+          },
+          "avg_wow_factor": 0.73,
+          "peak_wow_factor": 0.9,
+          "description": "Atoms documented within Nirvana's 'Territorial Pissings' (Nevermind, 1991). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__nirvana__very_ape": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Nirvana",
+            "song": "Very_Ape",
+            "album": "In Utero",
+            "year": 1993
+          },
+          "recipe_count": 5,
+          "recipe_ids": [
+            "albini_mix_vs_wallace_mix_for_aggression",
+            "compact_aggressive_under_2_minutes",
+            "descending_riff_as_song_identity",
+            "guitar_alone_intro_4_bars_no_a_cappella",
+            "mid_tempo_aggression_not_hardcore_speed"
+          ],
+          "avg_personality_fit": {
+            "cobain": 45,
+            "reznor": 26,
+            "daft_punk": 18,
+            "yorke": 11
+          },
+          "avg_wow_factor": 0.67,
+          "peak_wow_factor": 0.75,
+          "description": "Atoms documented within Nirvana's 'Very Ape' (In Utero, 1993). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__nirvana__all_apologies": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Nirvana",
+            "song": "All_Apologies",
+            "album": "In Utero",
+            "year": 1993
+          },
+          "recipe_count": 5,
+          "recipe_ids": [
+            "album_closer_resolution_function",
+            "cello_dual_role_pad_plus_melodic_response",
+            "litt_subtle_remix_for_chamber_arrangements",
+            "outro_chant_extension_via_repetition_not_fade",
+            "vocal_layering_as_chant_build_mechanism"
+          ],
+          "avg_personality_fit": {
+            "cobain": 31,
+            "reznor": 17,
+            "daft_punk": 12,
+            "yorke": 40
+          },
+          "avg_wow_factor": 0.72,
+          "peak_wow_factor": 0.85,
+          "description": "Atoms documented within Nirvana's 'All Apologies' (In Utero, 1993). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__soundgarden__jesus_christ_pose": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Soundgarden",
+            "song": "Jesus_Christ_Pose",
+            "album": "Badmotorfinger",
+            "year": 1991
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "date_compression_balance_for_long_aggressive",
+            "drum_only_intro_4_bars_establishes_identity",
+            "extended_aggressive_track_5_min_plus",
+            "syncopated_kick_creates_implied_meter_within_4_4",
+            "two_guitar_stereo_separation_distinct_players",
+            "vocal_high_range_exploitation_as_signature"
+          ],
+          "avg_personality_fit": {
+            "cobain": 32,
+            "reznor": 28,
+            "daft_punk": 20,
+            "yorke": 20
+          },
+          "avg_wow_factor": 0.7,
+          "peak_wow_factor": 0.8,
+          "description": "Atoms documented within Soundgarden's 'Jesus Christ Pose' (Badmotorfinger, 1991). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__soundgarden__fell_on_black_days": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Soundgarden",
+            "song": "Fell_On_Black_Days",
+            "album": "Superunknown",
+            "year": 1994
+          },
+          "recipe_count": 5,
+          "recipe_ids": [
+            "clean_to_distorted_dynamic_shift_traditional",
+            "meter_shift_6_4_verse_to_4_4_chorus",
+            "obrien_moderate_compression_for_dynamic_shift_songs",
+            "sus_voicings_verse_with_drop_tuning_pedal",
+            "vocal_subselective_range_use"
+          ],
+          "avg_personality_fit": {
+            "cobain": 32,
+            "reznor": 25,
+            "daft_punk": 13,
+            "yorke": 30
+          },
+          "avg_wow_factor": 0.69,
+          "peak_wow_factor": 0.8,
+          "description": "Atoms documented within Soundgarden's 'Fell On Black Days' (Superunknown, 1994). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__soundgarden__my_wave": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Soundgarden",
+            "song": "My_Wave",
+            "album": "Superunknown",
+            "year": 1994
+          },
+          "recipe_count": 5,
+          "recipe_ids": [
+            "bassist_dual_role_within_album",
+            "drum_meter_pattern_groupings_natural_vs_academic",
+            "five_four_groove_natural_via_groove_construction",
+            "same_team_different_mix_per_song",
+            "tracking_priority_per_song_compositional_intent"
+          ],
+          "avg_personality_fit": {
+            "cobain": 27,
+            "reznor": 26,
+            "daft_punk": 22,
+            "yorke": 25
+          },
+          "avg_wow_factor": 0.67,
+          "peak_wow_factor": 0.8,
+          "description": "Atoms documented within Soundgarden's 'My Wave' (Superunknown, 1994). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__soundgarden__overfloater": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Soundgarden",
+            "song": "Overfloater",
+            "album": "Down on the Upside",
+            "year": 1996
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "atmospheric_continuity_over_dynamic_contrast",
+            "extended_atmospheric_form_6_minutes_plus",
+            "instrumental_bridge_as_song_centerpiece_not_solo_section",
+            "jam_band_influence_in_rock_format",
+            "kasper_band_driven_unified_engineering_mixing",
+            "vocal_absent_extended_section_trust_the_band"
+          ],
+          "avg_personality_fit": {
+            "cobain": 24,
+            "reznor": 16,
+            "daft_punk": 16,
+            "yorke": 44
+          },
+          "avg_wow_factor": 0.79,
+          "peak_wow_factor": 0.83,
+          "description": "Atoms documented within Soundgarden's 'Overfloater' (Down on the Upside, 1996). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__soundgarden__head_down": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Soundgarden",
+            "song": "Head_Down",
+            "album": "Superunknown",
+            "year": 1994
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "bassist_driven_compositional_identity",
+            "drone_foundation_as_compositional_anchor",
+            "long_asymmetric_cycle_for_meditation_not_complexity",
+            "low_frequency_clarity_priority_in_drone_mix",
+            "modal_voicings_above_drone_replace_chord_progression",
+            "seven_four_asymmetric_meter_as_structural_device"
+          ],
+          "avg_personality_fit": {
+            "cobain": 24,
+            "reznor": 25,
+            "daft_punk": 18,
+            "yorke": 33
+          },
+          "avg_wow_factor": 0.79,
+          "peak_wow_factor": 0.83,
+          "description": "Atoms documented within Soundgarden's 'Head Down' (Superunknown, 1994). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__smashing_pumpkins__quiet": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Smashing_Pumpkins",
+            "song": "Quiet",
+            "album": "Siamese Dream",
+            "year": 1993
+          },
+          "recipe_count": 5,
+          "recipe_ids": [
+            "riff_as_both_hook_and_structural_backbone",
+            "sustained_intensity_no_dynamic_arc_economy",
+            "vig_meticulous_layering_recording_philosophy",
+            "wall_of_layered_guitars_frequency_spread_layering",
+            "wallace_stereo_width_maximization_mix"
+          ],
+          "avg_personality_fit": {
+            "cobain": 29,
+            "reznor": 30,
+            "daft_punk": 26,
+            "yorke": 15
+          },
+          "avg_wow_factor": 0.8,
+          "peak_wow_factor": 0.85,
+          "description": "Atoms documented within Smashing Pumpkins's 'Quiet' (Siamese Dream, 1993). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__smashing_pumpkins__soma": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Smashing_Pumpkins",
+            "song": "Soma",
+            "album": "Siamese Dream",
+            "year": 1993
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "density_arc_arrangement_sparse_to_wall",
+            "dynamic_arc_mix_preservation_via_automation",
+            "explosion_chorus_as_cathartic_release_not_just_loud_section",
+            "extended_dynamic_arc_six_plus_minutes_patient_build",
+            "patience_demand_as_compositional_choice",
+            "selective_distortion_deployment_across_arc"
+          ],
+          "avg_personality_fit": {
+            "cobain": 26,
+            "reznor": 25,
+            "daft_punk": 15,
+            "yorke": 34
+          },
+          "avg_wow_factor": 0.83,
+          "peak_wow_factor": 0.88,
+          "description": "Atoms documented within Smashing Pumpkins's 'Soma' (Siamese Dream, 1993). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__smashing_pumpkins__bodies": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Smashing_Pumpkins",
+            "song": "Bodies",
+            "album": "Mellon Collie and the Infinite Sadness",
+            "year": 1995
+          },
+          "recipe_count": 5,
+          "recipe_ids": [
+            "deliberate_sonic_evolution_between_albums_via_producer_change",
+            "fast_tempo_148_156_bpm_aggressive_heavy_rock",
+            "fast_tempo_layered_guitar_density_management",
+            "moulder_mix_rhythmic_aggression_priority_over_width",
+            "three_way_producer_collective_band_member_included"
+          ],
+          "avg_personality_fit": {
+            "cobain": 29,
+            "reznor": 31,
+            "daft_punk": 21,
+            "yorke": 19
+          },
+          "avg_wow_factor": 0.75,
+          "peak_wow_factor": 0.79,
+          "description": "Atoms documented within Smashing Pumpkins's 'Bodies' (Mellon Collie and the Infinite Sadness, 1995). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__smashing_pumpkins__zero": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Smashing_Pumpkins",
+            "song": "Zero",
+            "album": "Mellon Collie and the Infinite Sadness",
+            "year": 1995
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "compressed_economy_under_three_minutes_in_long_album",
+            "industrial_drum_processing_on_live_drums",
+            "industrial_leaning_rhythmic_emphasis_with_rock_identity",
+            "moulder_industrial_translation_alt_rock_production",
+            "rhythmic_emphasis_over_harmonic_movement_industrial_lesson",
+            "tighter_layering_for_rhythmic_clarity_genre_blend"
+          ],
+          "avg_personality_fit": {
+            "cobain": 23,
+            "reznor": 37,
+            "daft_punk": 24,
+            "yorke": 16
+          },
+          "avg_wow_factor": 0.77,
+          "peak_wow_factor": 0.79,
+          "description": "Atoms documented within Smashing Pumpkins's 'Zero' (Mellon Collie and the Infinite Sadness, 1995). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__nine_inch_nails__march_of_the_pigs": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Nine_Inch_Nails",
+            "song": "March_Of_The_Pigs",
+            "album": "The Downward Spiral",
+            "year": 1994
+          },
+          "recipe_count": 7,
+          "recipe_ids": [
+            "asymmetric_meter_at_extreme_tempo",
+            "auteur_producer_single_creator_driven_production",
+            "auteur_recording_environment_house_studio_with_atmosphere",
+            "hard_soft_hard_contrast_within_song",
+            "industrial_textural_aggression_via_processed_guitar_layers",
+            "programmed_drums_as_compositional_engine",
+            "scream_to_sing_vocal_contrast_as_compositional_weapon"
+          ],
+          "avg_personality_fit": {
+            "cobain": 15,
+            "reznor": 50,
+            "daft_punk": 18,
+            "yorke": 17
+          },
+          "avg_wow_factor": 0.81,
+          "peak_wow_factor": 0.86,
+          "description": "Atoms documented within Nine Inch Nails's 'March Of The Pigs' (The Downward Spiral, 1994). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__nine_inch_nails__the_day_the_world_went_away": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Nine_Inch_Nails",
+            "song": "The_Day_The_World_Went_Away",
+            "album": "The Fragile",
+            "year": 1999
+          },
+          "recipe_count": 7,
+          "recipe_ids": [
+            "atmospheric_sustain_as_compositional_foundation",
+            "auteur_framework_serving_opposite_emotional_intents",
+            "drum_machine_serving_atmospheric_emotional_not_aggressive",
+            "gradual_subtle_build_not_dynamic_arc_explosion",
+            "minimum_viable_element_count_for_emotional_impact",
+            "moulder_atmospheric_mix_sustain_preservation",
+            "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction"
+          ],
+          "avg_personality_fit": {
+            "cobain": 13,
+            "reznor": 36,
+            "daft_punk": 11,
+            "yorke": 40
+          },
+          "avg_wow_factor": 0.82,
+          "peak_wow_factor": 0.85,
+          "description": "Atoms documented within Nine Inch Nails's 'The Day The World Went Away' (The Fragile, 1999). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__nine_inch_nails__were_in_this_together": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Nine_Inch_Nails",
+            "song": "Were_In_This_Together",
+            "album": "The Fragile",
+            "year": 1999
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "auteur_framework_supporting_opposite_intents_within_same_album",
+            "extended_form_anthem_seven_plus_minutes",
+            "industrial_vocabulary_in_anthemic_rock_structure",
+            "moulder_anthemic_industrial_mix_hybrid_balance",
+            "multiple_chorus_iterations_with_intensification",
+            "production_vocabulary_compositional_structure_independence"
+          ],
+          "avg_personality_fit": {
+            "cobain": 21,
+            "reznor": 40,
+            "daft_punk": 13,
+            "yorke": 26
+          },
+          "avg_wow_factor": 0.82,
+          "peak_wow_factor": 0.85,
+          "description": "Atoms documented within Nine Inch Nails's 'Were In This Together' (The Fragile, 1999). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__nine_inch_nails__the_wretched": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Nine_Inch_Nails",
+            "song": "The_Wretched",
+            "album": "The Fragile",
+            "year": 1999
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "auteur_framework_third_compositional_intent_within_same_album",
+            "extensive_section_specific_mix_automation_for_character_shifts",
+            "hybrid_vocabulary_integration_within_sections",
+            "integrated_transitions_not_abrupt_cuts",
+            "section_specific_processing_chains_per_genre_vocabulary",
+            "vocal_hybrid_delivery_within_single_song"
+          ],
+          "avg_personality_fit": {
+            "cobain": 17,
+            "reznor": 43,
+            "daft_punk": 11,
+            "yorke": 29
+          },
+          "avg_wow_factor": 0.82,
+          "peak_wow_factor": 0.86,
+          "description": "Atoms documented within Nine Inch Nails's 'The Wretched' (The Fragile, 1999). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__nine_inch_nails__the_hand_that_feeds": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Nine_Inch_Nails",
+            "song": "The_Hand_That_Feeds",
+            "album": "With Teeth",
+            "year": 2005
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "auteur_framework_expanded_collaboration_for_accessibility_recalibration",
+            "commercial_single_economy_three_minutes_thirty_one",
+            "live_drums_with_programmed_overlay_hybrid",
+            "loudness_war_mastering_balanced_with_dynamic_detail",
+            "production_partnership_emerging_after_solo_auteur_period",
+            "rock_drummer_in_industrial_production_context"
+          ],
+          "avg_personality_fit": {
+            "cobain": 28,
+            "reznor": 39,
+            "daft_punk": 15,
+            "yorke": 18
+          },
+          "avg_wow_factor": 0.79,
+          "peak_wow_factor": 0.83,
+          "description": "Atoms documented within Nine Inch Nails's 'The Hand That Feeds' (With Teeth, 2005). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__nine_inch_nails__copy_of_a": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Nine_Inch_Nails",
+            "song": "Copy_Of_A",
+            "album": "Hesitation Marks",
+            "year": 2013
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "auteur_co_auteur_mixer_pipeline_for_mature_collaboration",
+            "auteur_framework_evolution_across_decades_with_retained_identity",
+            "external_contributor_for_distinct_dimensional_color",
+            "film_scoring_discipline_integrated_into_song_composition",
+            "mature_vocal_aesthetic_post_aggression_post_vulnerability",
+            "modular_electronic_patterns_as_compositional_foundation"
+          ],
+          "avg_personality_fit": {
+            "cobain": 11,
+            "reznor": 42,
+            "daft_punk": 18,
+            "yorke": 28
+          },
+          "avg_wow_factor": 0.81,
+          "peak_wow_factor": 0.85,
+          "description": "Atoms documented within Nine Inch Nails's 'Copy Of A' (Hesitation Marks, 2013). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__queens_of_the_stone_age__first_it_giveth": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Queens_Of_The_Stone_Age",
+            "song": "First_It_Giveth",
+            "album": "Songs for the Deaf",
+            "year": 2002
+          },
+          "recipe_count": 7,
+          "recipe_ids": [
+            "drop_d_tuning_for_chromatic_riff_capability_plus_low_end_weight",
+            "groove_over_complexity_compositional_priority",
+            "guest_drummer_adapting_to_band_philosophy",
+            "lanegan_style_whiskey_baritone_harmony_dimensional_vocal_color",
+            "power_trio_plus_guest_harmony_arrangement",
+            "robot_rock_hypnotic_repetitive_riff_with_micro_variations",
+            "valentine_engineer_producer_mixer_unified_role_for_groove_rock"
+          ],
+          "avg_personality_fit": {
+            "cobain": 34,
+            "reznor": 23,
+            "daft_punk": 24,
+            "yorke": 19
+          },
+          "avg_wow_factor": 0.79,
+          "peak_wow_factor": 0.83,
+          "description": "Atoms documented within Queens Of The Stone Age's 'First It Giveth' (Songs for the Deaf, 2002). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__queens_of_the_stone_age__six_shooter": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Queens_Of_The_Stone_Age",
+            "song": "Six_Shooter",
+            "album": "Songs for the Deaf",
+            "year": 2002
+          },
+          "recipe_count": 5,
+          "recipe_ids": [
+            "drummer_punk_speed_capacity_within_diverse_album",
+            "punk_aggression_pole_adjacent_to_mid_tempo_groove_pole_in_album_sequence",
+            "punk_economy_arrangement_no_atmospheric_layers",
+            "vocal_lead_democracy_band_member_with_hardcore_vocabulary",
+            "vocal_saturation_for_hardcore_punk_aesthetic"
+          ],
+          "avg_personality_fit": {
+            "cobain": 38,
+            "reznor": 28,
+            "daft_punk": 19,
+            "yorke": 15
+          },
+          "avg_wow_factor": 0.77,
+          "peak_wow_factor": 0.8,
+          "description": "Atoms documented within Queens Of The Stone Age's 'Six Shooter' (Songs for the Deaf, 2002). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__queens_of_the_stone_age__a_song_for_the_dead": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Queens_Of_The_Stone_Age",
+            "song": "A_Song_For_The_Dead",
+            "album": "Songs for the Deaf",
+            "year": 2002
+          },
+          "recipe_count": 4,
+          "recipe_ids": [
+            "compositional_drum_feature_within_heavy_rock_arc",
+            "drum_clinic_quality_drumming_within_song_context",
+            "extensive_dynamic_break_mix_automation_for_drum_feature",
+            "song_structure_serving_performer_capacity"
+          ],
+          "avg_personality_fit": {
+            "cobain": 32,
+            "reznor": 25,
+            "daft_punk": 24,
+            "yorke": 19
+          },
+          "avg_wow_factor": 0.81,
+          "peak_wow_factor": 0.83,
+          "description": "Atoms documented within Queens Of The Stone Age's 'A Song For The Dead' (Songs for the Deaf, 2002). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__queens_of_the_stone_age__medication": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Queens_Of_The_Stone_Age",
+            "song": "Medication",
+            "album": "Songs for the Deaf",
+            "year": 2002
+          },
+          "recipe_count": 4,
+          "recipe_ids": [
+            "compressed_economy_drumming_restrained_precision",
+            "extreme_compressed_economy_under_two_minutes",
+            "guest_vocalist_lead_for_distinct_identity_track",
+            "vocal_democracy_three_lead_vocalists_within_album"
+          ],
+          "avg_personality_fit": {
+            "cobain": 35,
+            "reznor": 25,
+            "daft_punk": 21,
+            "yorke": 19
+          },
+          "avg_wow_factor": 0.79,
+          "peak_wow_factor": 0.83,
+          "description": "Atoms documented within Queens Of The Stone Age's 'Medication' (Songs for the Deaf, 2002). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__queens_of_the_stone_age__everybody_knows_that_youre_insane": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Queens_Of_The_Stone_Age",
+            "song": "Everybody_Knows_That_Youre_Insane",
+            "album": "Lullabies to Paralyze",
+            "year": 2005
+          },
+          "recipe_count": 4,
+          "recipe_ids": [
+            "barresi_heavy_rock_specialist_unified_role_production",
+            "mature_compositional_voice_after_collaborative_period",
+            "post_lineup_change_compositional_voice_dominance",
+            "production_approach_evolution_with_lineup_change"
+          ],
+          "avg_personality_fit": {
+            "cobain": 26,
+            "reznor": 32,
+            "daft_punk": 16,
+            "yorke": 25
+          },
+          "avg_wow_factor": 0.76,
+          "peak_wow_factor": 0.78,
+          "description": "Atoms documented within Queens Of The Stone Age's 'Everybody Knows That Youre Insane' (Lullabies to Paralyze, 2005). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__queens_of_the_stone_age__little_sister": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Queens_Of_The_Stone_Age",
+            "song": "Little_Sister",
+            "album": "Lullabies to Paralyze",
+            "year": 2005
+          },
+          "recipe_count": 4,
+          "recipe_ids": [
+            "compositional_signature_via_continuous_unusual_pattern",
+            "dedicated_microphone_capture_for_compositional_centerpiece_instrument",
+            "rehabilitating_overlooked_instrument_as_serious_compositional_element",
+            "unusual_instrument_as_compositional_centerpiece"
+          ],
+          "avg_personality_fit": {
+            "cobain": 31,
+            "reznor": 22,
+            "daft_punk": 30,
+            "yorke": 16
+          },
+          "avg_wow_factor": 0.78,
+          "peak_wow_factor": 0.81,
+          "description": "Atoms documented within Queens Of The Stone Age's 'Little Sister' (Lullabies to Paralyze, 2005). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__daft_punk__around_the_world": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Daft_Punk",
+            "song": "Around_The_World",
+            "album": "Homework",
+            "year": 1997
+          },
+          "recipe_count": 7,
+          "recipe_ids": [
+            "compositional_movement_via_filter_not_via_chord_change",
+            "duo_auteur_self_produced_home_studio_paradigm",
+            "filter_modulation_as_compositional_engine",
+            "four_on_the_floor_120_bpm_house_foundation",
+            "progressive_layering_arrangement_arc",
+            "tr_909_drum_machine_as_compositional_instrument",
+            "vocoded_vocal_phrase_as_instrument_not_lyric"
+          ],
+          "avg_personality_fit": {
+            "cobain": 6,
+            "reznor": 25,
+            "daft_punk": 60,
+            "yorke": 9
+          },
+          "avg_wow_factor": 0.81,
+          "peak_wow_factor": 0.85,
+          "description": "Atoms documented within Daft Punk's 'Around The World' (Homework, 1997). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__daft_punk__harder_better_faster_stronger": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Daft_Punk",
+            "song": "Harder_Better_Faster_Stronger",
+            "album": "Discovery",
+            "year": 2001
+          },
+          "recipe_count": 4,
+          "recipe_ids": [
+            "compositional_evolution_within_duo_catalog_homework_to_discovery",
+            "pop_song_structure_within_electronic_vocabulary",
+            "sample_based_compositional_foundation_with_documented_clearance",
+            "vocoded_vocal_as_primary_melodic_carrier_full_song"
+          ],
+          "avg_personality_fit": {
+            "cobain": 15,
+            "reznor": 21,
+            "daft_punk": 52,
+            "yorke": 11
+          },
+          "avg_wow_factor": 0.8,
+          "peak_wow_factor": 0.85,
+          "description": "Atoms documented within Daft Punk's 'Harder Better Faster Stronger' (Discovery, 2001). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__daft_punk__veridis_quo": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Daft_Punk",
+            "song": "Veridis_Quo",
+            "album": "Discovery",
+            "year": 2001
+          },
+          "recipe_count": 4,
+          "recipe_ids": [
+            "anomalous_album_track_compositional_range_demonstration",
+            "classical_electronic_crossover_via_duo_auteur_framework",
+            "classical_influenced_chord_progression_in_electronic_context",
+            "voice_leading_clarity_via_synth_pad_layers"
+          ],
+          "avg_personality_fit": {
+            "cobain": 10,
+            "reznor": 20,
+            "daft_punk": 31,
+            "yorke": 39
+          },
+          "avg_wow_factor": 0.8,
+          "peak_wow_factor": 0.84,
+          "description": "Atoms documented within Daft Punk's 'Veridis Quo' (Discovery, 2001). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__daft_punk__giorgio_by_moroder": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Daft_Punk",
+            "song": "Giorgio_By_Moroder",
+            "album": "Random Access Memories",
+            "year": 2013
+          },
+          "recipe_count": 7,
+          "recipe_ids": [
+            "analog_tape_tracking_for_warmth_preservation",
+            "auteur_identity_preserved_across_massive_production_expansion",
+            "deliberate_dynamic_preservation_mastering_request_for_extended_composition",
+            "documentary_spoken_word_audio_as_compositional_element",
+            "extended_multi_section_film_score_adjacent_composition",
+            "legendary_session_musicians_for_specific_genre_homage",
+            "massive_production_shift_from_home_studio_to_legendary_analog_studio_paradigm"
+          ],
+          "avg_personality_fit": {
+            "cobain": 11,
+            "reznor": 24,
+            "daft_punk": 39,
+            "yorke": 26
+          },
+          "avg_wow_factor": 0.81,
+          "peak_wow_factor": 0.86,
+          "description": "Atoms documented within Daft Punk's 'Giorgio By Moroder' (Random Access Memories, 2013). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__radiohead__everything_in_its_right_place": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Radiohead",
+            "song": "Everything_In_Its_Right_Place",
+            "album": "Kid A",
+            "year": 2000
+          },
+          "recipe_count": 6,
+          "recipe_ids": [
+            "asymmetric_meter_as_album_opener_statement_of_intent",
+            "complete_genre_reinvention_within_band_catalog",
+            "drumless_arrangement_as_compositional_choice",
+            "fender_rhodes_electric_piano_as_compositional_foundation",
+            "manipulated_vocal_samples_as_textural_color",
+            "minimum_element_electronic_experimental_arrangement"
+          ],
+          "avg_personality_fit": {
+            "cobain": 6,
+            "reznor": 23,
+            "daft_punk": 20,
+            "yorke": 51
+          },
+          "avg_wow_factor": 0.8,
+          "peak_wow_factor": 0.86,
+          "description": "Atoms documented within Radiohead's 'Everything In Its Right Place' (Kid A, 2000). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__radiohead__the_national_anthem": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Radiohead",
+            "song": "The_National_Anthem",
+            "album": "Kid A",
+            "year": 2000
+          },
+          "recipe_count": 2,
+          "recipe_ids": [
+            "live_brass_section_recording_for_jazz_interaction",
+            "locked_rock_groove_with_free_jazz_brass_genre_clash"
+          ],
+          "avg_personality_fit": {
+            "cobain": 12,
+            "reznor": 25,
+            "daft_punk": 15,
+            "yorke": 48
+          },
+          "avg_wow_factor": 0.82,
+          "peak_wow_factor": 0.84,
+          "description": "Atoms documented within Radiohead's 'The National Anthem' (Kid A, 2000). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "philosophy__albini_capture": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "albini_capture",
+          "recipe_count": 22,
+          "recipe_ids": [
+            "albini_mix_pure_capture_no_remix",
+            "albini_mix_vs_wallace_mix_for_aggression",
+            "albini_vs_litt_two_mix_versions",
+            "album_closer_resolution_function",
+            "cello_dual_role_pad_plus_melodic_response",
+            "cello_orchestral_pad_in_rock",
+            "compact_aggressive_under_2_minutes",
+            "compact_runtime_2_to_3_minutes",
+            "delayed_rhythm_section_entry_4_bars",
+            "descending_riff_as_song_identity",
+            "feedback_as_compositional_layer_in_bridge",
+            "flat_dynamic_arc_anti_buildup",
+            "guitar_alone_intro_4_bars_no_a_cappella",
+            "harmonic_minimalism_one_cycle_repeated",
+            "litt_subtle_remix_for_chamber_arrangements",
+            "microtonal_bend_as_signature_riff",
+            "mid_tempo_aggression_not_hardcore_speed",
+            "outro_chant_extension_via_repetition_not_fade",
+            "slow_burn_arrival_not_explosion",
+            "vocal_intimacy_without_rasp",
+            "vocal_layer_count_as_dynamic_lever",
+            "vocal_layering_as_chant_build_mechanism"
+          ],
+          "avg_personality_fit": {
+            "cobain": 37,
+            "reznor": 21,
+            "daft_punk": 14,
+            "yorke": 28
+          },
+          "avg_wow_factor": 0.71,
+          "peak_wow_factor": 0.85,
+          "description": "Atoms grouped under shared production-philosophy lineage 'albini_capture'. Cluster represents coherent sonic/workflow approach."
+        },
+        "philosophy__barresi_unified_heavy_rock": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "barresi_unified_heavy_rock",
+          "recipe_count": 8,
+          "recipe_ids": [
+            "barresi_heavy_rock_specialist_unified_role_production",
+            "compositional_signature_via_continuous_unusual_pattern",
+            "dedicated_microphone_capture_for_compositional_centerpiece_instrument",
+            "mature_compositional_voice_after_collaborative_period",
+            "post_lineup_change_compositional_voice_dominance",
+            "production_approach_evolution_with_lineup_change",
+            "rehabilitating_overlooked_instrument_as_serious_compositional_element",
+            "unusual_instrument_as_compositional_centerpiece"
+          ],
+          "avg_personality_fit": {
+            "cobain": 29,
+            "reznor": 28,
+            "daft_punk": 23,
+            "yorke": 21
+          },
+          "avg_wow_factor": 0.77,
+          "peak_wow_factor": 0.81,
+          "description": "Atoms grouped under shared production-philosophy lineage 'barresi_unified_heavy_rock'. Cluster represents coherent sonic/workflow approach."
+        },
+        "philosophy__beinhorn_obrien_shaped": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "beinhorn_obrien_shaped",
+          "recipe_count": 16,
+          "recipe_ids": [
+            "bassist_driven_compositional_identity",
+            "bassist_dual_role_within_album",
+            "clean_to_distorted_dynamic_shift_traditional",
+            "drone_foundation_as_compositional_anchor",
+            "drum_meter_pattern_groupings_natural_vs_academic",
+            "five_four_groove_natural_via_groove_construction",
+            "long_asymmetric_cycle_for_meditation_not_complexity",
+            "low_frequency_clarity_priority_in_drone_mix",
+            "meter_shift_6_4_verse_to_4_4_chorus",
+            "modal_voicings_above_drone_replace_chord_progression",
+            "obrien_moderate_compression_for_dynamic_shift_songs",
+            "same_team_different_mix_per_song",
+            "seven_four_asymmetric_meter_as_structural_device",
+            "sus_voicings_verse_with_drop_tuning_pedal",
+            "tracking_priority_per_song_compositional_intent",
+            "vocal_subselective_range_use"
+          ],
+          "avg_personality_fit": {
+            "cobain": 28,
+            "reznor": 25,
+            "daft_punk": 18,
+            "yorke": 30
+          },
+          "avg_wow_factor": 0.72,
+          "peak_wow_factor": 0.83,
+          "description": "Atoms grouped under shared production-philosophy lineage 'beinhorn_obrien_shaped'. Cluster represents coherent sonic/workflow approach."
+        },
+        "philosophy__daft_punk_duo_auteur_home_studio": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "daft_punk_duo_auteur_home_studio",
+          "recipe_count": 15,
+          "recipe_ids": [
+            "anomalous_album_track_compositional_range_demonstration",
+            "classical_electronic_crossover_via_duo_auteur_framework",
+            "classical_influenced_chord_progression_in_electronic_context",
+            "compositional_evolution_within_duo_catalog_homework_to_discovery",
+            "compositional_movement_via_filter_not_via_chord_change",
+            "duo_auteur_self_produced_home_studio_paradigm",
+            "filter_modulation_as_compositional_engine",
+            "four_on_the_floor_120_bpm_house_foundation",
+            "pop_song_structure_within_electronic_vocabulary",
+            "progressive_layering_arrangement_arc",
+            "sample_based_compositional_foundation_with_documented_clearance",
+            "tr_909_drum_machine_as_compositional_instrument",
+            "vocoded_vocal_as_primary_melodic_carrier_full_song",
+            "vocoded_vocal_phrase_as_instrument_not_lyric",
+            "voice_leading_clarity_via_synth_pad_layers"
+          ],
+          "avg_personality_fit": {
+            "cobain": 10,
+            "reznor": 23,
+            "daft_punk": 50,
+            "yorke": 17
+          },
+          "avg_wow_factor": 0.8,
+          "peak_wow_factor": 0.85,
+          "description": "Atoms grouped under shared production-philosophy lineage 'daft_punk_duo_auteur_home_studio'. Cluster represents coherent sonic/workflow approach."
+        },
+        "philosophy__daft_punk_ram_massively_expanded": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "daft_punk_ram_massively_expanded",
+          "recipe_count": 7,
+          "recipe_ids": [
+            "analog_tape_tracking_for_warmth_preservation",
+            "auteur_identity_preserved_across_massive_production_expansion",
+            "deliberate_dynamic_preservation_mastering_request_for_extended_composition",
+            "documentary_spoken_word_audio_as_compositional_element",
+            "extended_multi_section_film_score_adjacent_composition",
+            "legendary_session_musicians_for_specific_genre_homage",
+            "massive_production_shift_from_home_studio_to_legendary_analog_studio_paradigm"
+          ],
+          "avg_personality_fit": {
+            "cobain": 11,
+            "reznor": 24,
+            "daft_punk": 39,
+            "yorke": 26
+          },
+          "avg_wow_factor": 0.81,
+          "peak_wow_factor": 0.86,
+          "description": "Atoms grouped under shared production-philosophy lineage 'daft_punk_ram_massively_expanded'. Cluster represents coherent sonic/workflow approach."
+        },
+        "philosophy__date_tracker_mixer": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "date_tracker_mixer",
+          "recipe_count": 6,
+          "recipe_ids": [
+            "date_compression_balance_for_long_aggressive",
+            "drum_only_intro_4_bars_establishes_identity",
+            "extended_aggressive_track_5_min_plus",
+            "syncopated_kick_creates_implied_meter_within_4_4",
+            "two_guitar_stereo_separation_distinct_players",
+            "vocal_high_range_exploitation_as_signature"
+          ],
+          "avg_personality_fit": {
+            "cobain": 32,
+            "reznor": 28,
+            "daft_punk": 20,
+            "yorke": 20
+          },
+          "avg_wow_factor": 0.7,
+          "peak_wow_factor": 0.8,
+          "description": "Atoms grouped under shared production-philosophy lineage 'date_tracker_mixer'. Cluster represents coherent sonic/workflow approach."
+        },
+        "philosophy__flood_moulder_corgan_three_way": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "flood_moulder_corgan_three_way",
+          "recipe_count": 11,
+          "recipe_ids": [
+            "compressed_economy_under_three_minutes_in_long_album",
+            "deliberate_sonic_evolution_between_albums_via_producer_change",
+            "fast_tempo_148_156_bpm_aggressive_heavy_rock",
+            "fast_tempo_layered_guitar_density_management",
+            "industrial_drum_processing_on_live_drums",
+            "industrial_leaning_rhythmic_emphasis_with_rock_identity",
+            "moulder_industrial_translation_alt_rock_production",
+            "moulder_mix_rhythmic_aggression_priority_over_width",
+            "rhythmic_emphasis_over_harmonic_movement_industrial_lesson",
+            "three_way_producer_collective_band_member_included",
+            "tighter_layering_for_rhythmic_clarity_genre_blend"
+          ],
+          "avg_personality_fit": {
+            "cobain": 26,
+            "reznor": 34,
+            "daft_punk": 23,
+            "yorke": 17
+          },
+          "avg_wow_factor": 0.76,
+          "peak_wow_factor": 0.79,
+          "description": "Atoms grouped under shared production-philosophy lineage 'flood_moulder_corgan_three_way'. Cluster represents coherent sonic/workflow approach."
+        },
+        "philosophy__godrich_unified_sixth_member": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "godrich_unified_sixth_member",
+          "recipe_count": 8,
+          "recipe_ids": [
+            "asymmetric_meter_as_album_opener_statement_of_intent",
+            "complete_genre_reinvention_within_band_catalog",
+            "drumless_arrangement_as_compositional_choice",
+            "fender_rhodes_electric_piano_as_compositional_foundation",
+            "live_brass_section_recording_for_jazz_interaction",
+            "locked_rock_groove_with_free_jazz_brass_genre_clash",
+            "manipulated_vocal_samples_as_textural_color",
+            "minimum_element_electronic_experimental_arrangement"
+          ],
+          "avg_personality_fit": {
+            "cobain": 8,
+            "reznor": 24,
+            "daft_punk": 19,
+            "yorke": 50
+          },
+          "avg_wow_factor": 0.81,
+          "peak_wow_factor": 0.86,
+          "description": "Atoms grouped under shared production-philosophy lineage 'godrich_unified_sixth_member'. Cluster represents coherent sonic/workflow approach."
+        },
+        "philosophy__kasper_unified_band_driven": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "kasper_unified_band_driven",
+          "recipe_count": 6,
+          "recipe_ids": [
+            "atmospheric_continuity_over_dynamic_contrast",
+            "extended_atmospheric_form_6_minutes_plus",
+            "instrumental_bridge_as_song_centerpiece_not_solo_section",
+            "jam_band_influence_in_rock_format",
+            "kasper_band_driven_unified_engineering_mixing",
+            "vocal_absent_extended_section_trust_the_band"
+          ],
+          "avg_personality_fit": {
+            "cobain": 24,
+            "reznor": 16,
+            "daft_punk": 16,
+            "yorke": 44
+          },
+          "avg_wow_factor": 0.79,
+          "peak_wow_factor": 0.83,
+          "description": "Atoms grouped under shared production-philosophy lineage 'kasper_unified_band_driven'. Cluster represents coherent sonic/workflow approach."
+        },
+        "philosophy__reznor_solo_auteur": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "reznor_solo_auteur",
+          "recipe_count": 38,
+          "recipe_ids": [
+            "asymmetric_meter_at_extreme_tempo",
+            "atmospheric_sustain_as_compositional_foundation",
+            "auteur_co_auteur_mixer_pipeline_for_mature_collaboration",
+            "auteur_framework_evolution_across_decades_with_retained_identity",
+            "auteur_framework_expanded_collaboration_for_accessibility_recalibration",
+            "auteur_framework_serving_opposite_emotional_intents",
+            "auteur_framework_supporting_opposite_intents_within_same_album",
+            "auteur_framework_third_compositional_intent_within_same_album",
+            "auteur_producer_single_creator_driven_production",
+            "auteur_recording_environment_house_studio_with_atmosphere",
+            "commercial_single_economy_three_minutes_thirty_one",
+            "drum_machine_serving_atmospheric_emotional_not_aggressive",
+            "extended_form_anthem_seven_plus_minutes",
+            "extensive_section_specific_mix_automation_for_character_shifts",
+            "external_contributor_for_distinct_dimensional_color",
+            "film_scoring_discipline_integrated_into_song_composition",
+            "gradual_subtle_build_not_dynamic_arc_explosion",
+            "hard_soft_hard_contrast_within_song",
+            "hybrid_vocabulary_integration_within_sections",
+            "industrial_textural_aggression_via_processed_guitar_layers",
+            "industrial_vocabulary_in_anthemic_rock_structure",
+            "integrated_transitions_not_abrupt_cuts",
+            "live_drums_with_programmed_overlay_hybrid",
+            "loudness_war_mastering_balanced_with_dynamic_detail",
+            "mature_vocal_aesthetic_post_aggression_post_vulnerability",
+            "minimum_viable_element_count_for_emotional_impact",
+            "modular_electronic_patterns_as_compositional_foundation",
+            "moulder_anthemic_industrial_mix_hybrid_balance",
+            "moulder_atmospheric_mix_sustain_preservation",
+            "multiple_chorus_iterations_with_intensification",
+            "production_partnership_emerging_after_solo_auteur_period",
+            "production_vocabulary_compositional_structure_independence",
+            "programmed_drums_as_compositional_engine",
+            "rock_drummer_in_industrial_production_context",
+            "scream_to_sing_vocal_contrast_as_compositional_weapon",
+            "section_specific_processing_chains_per_genre_vocabulary",
+            "vocal_hybrid_delivery_within_single_song",
+            "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction"
+          ],
+          "avg_personality_fit": {
+            "cobain": 17,
+            "reznor": 42,
+            "daft_punk": 14,
+            "yorke": 26
+          },
+          "avg_wow_factor": 0.81,
+          "peak_wow_factor": 0.86,
+          "description": "Atoms grouped under shared production-philosophy lineage 'reznor_solo_auteur'. Cluster represents coherent sonic/workflow approach."
+        },
+        "philosophy__valentine_unified_groove_rock": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "valentine_unified_groove_rock",
+          "recipe_count": 20,
+          "recipe_ids": [
+            "compositional_drum_feature_within_heavy_rock_arc",
+            "compressed_economy_drumming_restrained_precision",
+            "drop_d_tuning_for_chromatic_riff_capability_plus_low_end_weight",
+            "drum_clinic_quality_drumming_within_song_context",
+            "drummer_punk_speed_capacity_within_diverse_album",
+            "extensive_dynamic_break_mix_automation_for_drum_feature",
+            "extreme_compressed_economy_under_two_minutes",
+            "groove_over_complexity_compositional_priority",
+            "guest_drummer_adapting_to_band_philosophy",
+            "guest_vocalist_lead_for_distinct_identity_track",
+            "lanegan_style_whiskey_baritone_harmony_dimensional_vocal_color",
+            "power_trio_plus_guest_harmony_arrangement",
+            "punk_aggression_pole_adjacent_to_mid_tempo_groove_pole_in_album_sequence",
+            "punk_economy_arrangement_no_atmospheric_layers",
+            "robot_rock_hypnotic_repetitive_riff_with_micro_variations",
+            "song_structure_serving_performer_capacity",
+            "valentine_engineer_producer_mixer_unified_role_for_groove_rock",
+            "vocal_democracy_three_lead_vocalists_within_album",
+            "vocal_lead_democracy_band_member_with_hardcore_vocabulary",
+            "vocal_saturation_for_hardcore_punk_aesthetic"
+          ],
+          "avg_personality_fit": {
+            "cobain": 35,
+            "reznor": 25,
+            "daft_punk": 22,
+            "yorke": 18
+          },
+          "avg_wow_factor": 0.79,
+          "peak_wow_factor": 0.83,
+          "description": "Atoms grouped under shared production-philosophy lineage 'valentine_unified_groove_rock'. Cluster represents coherent sonic/workflow approach."
+        },
+        "philosophy__vig_wallace_layered_wide": {
+          "cluster_type": "production_philosophy_cluster",
+          "parent_philosophy": "vig_wallace_layered_wide",
+          "recipe_count": 16,
+          "recipe_ids": [
+            "a_cappella_fakeout_intro_into_band_slam",
+            "abrupt_song_end_no_fade",
+            "density_arc_arrangement_sparse_to_wall",
+            "dynamic_arc_mix_preservation_via_automation",
+            "explosion_chorus_as_cathartic_release_not_just_loud_section",
+            "extended_dynamic_arc_six_plus_minutes_patient_build",
+            "patience_demand_as_compositional_choice",
+            "riff_as_both_hook_and_structural_backbone",
+            "screamed_single_take_vocal_no_doubling",
+            "selective_distortion_deployment_across_arc",
+            "sustained_intensity_no_dynamic_arc_economy",
+            "unrelenting_aggression_no_dynamic_arc",
+            "vig_meticulous_layering_recording_philosophy",
+            "wall_of_layered_guitars_frequency_spread_layering",
+            "wallace_compressed_brightness_vs_albini_room",
+            "wallace_stereo_width_maximization_mix"
+          ],
+          "avg_personality_fit": {
+            "cobain": 33,
+            "reznor": 28,
+            "daft_punk": 18,
+            "yorke": 21
+          },
+          "avg_wow_factor": 0.79,
+          "peak_wow_factor": 0.9,
+          "description": "Atoms grouped under shared production-philosophy lineage 'vig_wallace_layered_wide'. Cluster represents coherent sonic/workflow approach."
+        }
+      }
     },
     "conflict_pairs": {
       "_note": "Empty placeholder; will be populated in step A12. Each conflict pair is a logical contradiction between two recipes' rule premises. Used by future advisor tooling to prevent suggesting incompatible recipes within the same composition path.",
