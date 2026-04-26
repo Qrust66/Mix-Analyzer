@@ -28225,7 +28225,9 @@
       ]
     },
     "composition_path_templates": {
-      "_note": "Empty placeholder; will be populated in step A13. Each template is a coherent recipe bundle spanning composition→arrangement→performance→recording→mixing→mastering stages, designed as a self-contained 'recipe for a song' the user can follow.",
+      "_note": "8 self-contained composition path templates spanning composition→arrangement→performance→recording→mixing→mastering. Each template targets specific electronic-music sub-genres and a personality-blend signature. Recipe IDs are pointer-references into recipes_index.recipes — no data duplication. Use templates as starting palettes; substitute or add atoms via lenses + projection scoring.",
+      "_generated_from_atom_count": 173,
+      "_template_count": 8,
       "template_schema": {
         "name": "snake_case template id",
         "description": "What the template produces",
@@ -28236,7 +28238,355 @@
         "documented_song_inspirations": "Array of source songs whose composition the template generalizes",
         "trade_offs": "String describing what the template DEMANDS of the user (gear, skills, runtime, audience tolerance)"
       },
-      "expected_template_count": 8
+      "expected_template_count": 8,
+      "templates": {
+        "industrial_techno_aggression_track": {
+          "name": "industrial_techno_aggression_track",
+          "description": "Compressed-economy aggressive dark/industrial techno track (140-150 BPM, 3-4 min, max-density). Punishment-floor DJ-tool aesthetic with Reznor-Cobain compositional pull and Surgeon/Perc/Charlotte-de-Witte production lineage.",
+          "blend_signature": "reznor_40_cobain_30_daft_punk_20_yorke_10",
+          "target_electronic_genres": [
+            "techno",
+            "dark_electronic",
+            "EBM"
+          ],
+          "starting_recipes": [
+            "explosion_chorus_as_cathartic_release_not_just_loud_section",
+            "asymmetric_meter_at_extreme_tempo",
+            "hybrid_vocabulary_integration_within_sections",
+            "modular_electronic_patterns_as_compositional_foundation"
+          ],
+          "next_stage_recipes": {
+            "arrangement": [
+              "a_cappella_fakeout_intro_into_band_slam",
+              "density_arc_arrangement_sparse_to_wall",
+              "live_drums_with_programmed_overlay_hybrid"
+            ],
+            "performance": [
+              "scream_to_sing_vocal_contrast_as_compositional_weapon",
+              "rock_drummer_in_industrial_production_context"
+            ],
+            "recording": [
+              "wall_of_layered_guitars_frequency_spread_layering",
+              "section_specific_processing_chains_per_genre_vocabulary"
+            ],
+            "mixing": [
+              "dynamic_arc_mix_preservation_via_automation",
+              "extensive_section_specific_mix_automation_for_character_shifts"
+            ],
+            "mastering": [
+              "loudness_war_mastering_balanced_with_dynamic_detail"
+            ]
+          },
+          "wow_factor_total": 11.65,
+          "documented_song_inspirations": [
+            "NIN March of the Pigs",
+            "Nirvana Territorial Pissings",
+            "QOTSA Six Shooter"
+          ],
+          "trade_offs": "Demands aggressive sound-design fluency, mix-bus saturation chain (Decapitator + Vari-Mu), commitment to hard-techno aesthetic. Won't work for ambient/atmospheric goals."
+        },
+        "filter_house_extended_dance_track": {
+          "name": "filter_house_extended_dance_track",
+          "description": "Extended-form (5-9 min) filter-house DJ track at 120-128 BPM with progressive-layering arrangement, vocoded-vocal hook, and filter-modulation as compositional engine. Daft Punk Homework / Around the World tradition.",
+          "blend_signature": "daft_punk_50_reznor_25_cobain_15_yorke_10",
+          "target_electronic_genres": [
+            "filter_house",
+            "deep_house",
+            "electronic_pop"
+          ],
+          "starting_recipes": [
+            "filter_modulation_as_compositional_engine",
+            "vocoded_vocal_as_primary_melodic_carrier_full_song",
+            "robot_rock_hypnotic_repetitive_riff_with_micro_variations",
+            "compositional_movement_via_filter_not_via_chord_change"
+          ],
+          "next_stage_recipes": {
+            "arrangement": [
+              "power_trio_plus_guest_harmony_arrangement",
+              "vocoded_vocal_phrase_as_instrument_not_lyric",
+              "vocal_absent_extended_section_trust_the_band"
+            ],
+            "performance": [
+              "tr_909_drum_machine_as_compositional_instrument",
+              "syncopated_kick_creates_implied_meter_within_4_4"
+            ],
+            "recording": [],
+            "mixing": [
+              "wallace_stereo_width_maximization_mix",
+              "moulder_anthemic_industrial_mix_hybrid_balance"
+            ],
+            "mastering": [
+              "loudness_war_mastering_balanced_with_dynamic_detail"
+            ]
+          },
+          "wow_factor_total": 9.58,
+          "documented_song_inspirations": [
+            "Daft Punk Around the World",
+            "Daft Punk Harder Better Faster Stronger"
+          ],
+          "trade_offs": "Demands TR-909 drum-machine access (or quality emulation) + analog-modeled filter (Diva/Cytomic) + vocoder chain. Genre commitment to dance-floor function. Won't work for compressed singles or non-dance contexts."
+        },
+        "ambient_atmospheric_meditation_piece": {
+          "name": "ambient_atmospheric_meditation_piece",
+          "description": "Extended-form (6-10+ min) atmospheric ambient piece. Drone-foundation + sustained-pad layers + minimum-element-count + atmospheric-continuity over dynamic-contrast. Eno / Stars of the Lid / Olafur Arnalds tradition.",
+          "blend_signature": "yorke_60_reznor_20_daft_punk_15_cobain_5",
+          "target_electronic_genres": [
+            "ambient",
+            "neo_classical_electronic",
+            "dub_techno"
+          ],
+          "starting_recipes": [
+            "explosion_chorus_as_cathartic_release_not_just_loud_section",
+            "extended_multi_section_film_score_adjacent_composition",
+            "outro_chant_extension_via_repetition_not_fade",
+            "modular_electronic_patterns_as_compositional_foundation"
+          ],
+          "next_stage_recipes": {
+            "arrangement": [
+              "minimum_viable_element_count_for_emotional_impact",
+              "density_arc_arrangement_sparse_to_wall",
+              "live_drums_with_programmed_overlay_hybrid"
+            ],
+            "performance": [
+              "drum_clinic_quality_drumming_within_song_context"
+            ],
+            "recording": [
+              "wall_of_layered_guitars_frequency_spread_layering"
+            ],
+            "mixing": [
+              "dynamic_arc_mix_preservation_via_automation",
+              "moulder_atmospheric_mix_sustain_preservation"
+            ],
+            "mastering": [
+              "deliberate_dynamic_preservation_mastering_request_for_extended_composition"
+            ]
+          },
+          "wow_factor_total": 9.98,
+          "documented_song_inspirations": [
+            "NIN The Day The World Went Away",
+            "Soundgarden Head Down",
+            "Soundgarden Overfloater",
+            "Radiohead Everything In Its Right Place"
+          ],
+          "trade_offs": "Demands restraint, patience, mature compositional voice. -14 LUFS master target (NOT competitive loudness). Won't work for dance-floor or peak-time contexts."
+        },
+        "electronic_pop_anthemic_single": {
+          "name": "electronic_pop_anthemic_single",
+          "description": "Pop-format (3:30-4:00) electronic single with verse-chorus structure, vocoded-or-clean lead, anthemic chorus density. Daft Punk Discovery / Justice / Madeon tradition translated to playlist-targeted contemporary aesthetic.",
+          "blend_signature": "daft_punk_45_yorke_25_cobain_20_reznor_10",
+          "target_electronic_genres": [
+            "electronic_pop",
+            "synthwave",
+            "filter_house"
+          ],
+          "starting_recipes": [
+            "vocoded_vocal_as_primary_melodic_carrier_full_song",
+            "song_structure_serving_performer_capacity",
+            "unusual_instrument_as_compositional_centerpiece",
+            "five_four_groove_natural_via_groove_construction"
+          ],
+          "next_stage_recipes": {
+            "arrangement": [
+              "vocoded_vocal_phrase_as_instrument_not_lyric",
+              "vocal_absent_extended_section_trust_the_band",
+              "multiple_chorus_iterations_with_intensification"
+            ],
+            "performance": [
+              "legendary_session_musicians_for_specific_genre_homage"
+            ],
+            "recording": [
+              "wall_of_layered_guitars_frequency_spread_layering"
+            ],
+            "mixing": [
+              "dynamic_arc_mix_preservation_via_automation",
+              "extensive_dynamic_break_mix_automation_for_drum_feature"
+            ],
+            "mastering": [
+              "loudness_war_mastering_balanced_with_dynamic_detail"
+            ]
+          },
+          "wow_factor_total": 9.66,
+          "documented_song_inspirations": [
+            "Daft Punk Harder Better Faster Stronger",
+            "Daft Punk Veridis Quo"
+          ],
+          "trade_offs": "Demands hook-craft + accessible song-form. -7 LUFS playlist-loudness master. Won't work for ambient/extended forms."
+        },
+        "dark_electronic_hybrid_album_centerpiece": {
+          "name": "dark_electronic_hybrid_album_centerpiece",
+          "description": "Extended-form (6-9 min) dark-electronic concept-album centerpiece with hybrid-vocabulary integration (aggression + atmosphere coexisting), vocal-hybrid delivery, section-specific processing. NIN The Fragile / Wretched tradition translated to electronic context.",
+          "blend_signature": "reznor_40_yorke_30_cobain_20_daft_punk_10",
+          "target_electronic_genres": [
+            "dark_electronic",
+            "IDM",
+            "EBM"
+          ],
+          "starting_recipes": [
+            "extended_dynamic_arc_six_plus_minutes_patient_build",
+            "asymmetric_meter_at_extreme_tempo",
+            "hybrid_vocabulary_integration_within_sections",
+            "extended_multi_section_film_score_adjacent_composition"
+          ],
+          "next_stage_recipes": {
+            "arrangement": [
+              "a_cappella_fakeout_intro_into_band_slam",
+              "live_drums_with_programmed_overlay_hybrid",
+              "documentary_spoken_word_audio_as_compositional_element"
+            ],
+            "performance": [
+              "scream_to_sing_vocal_contrast_as_compositional_weapon",
+              "drum_clinic_quality_drumming_within_song_context"
+            ],
+            "recording": [
+              "section_specific_processing_chains_per_genre_vocabulary"
+            ],
+            "mixing": [
+              "extensive_section_specific_mix_automation_for_character_shifts",
+              "extensive_dynamic_break_mix_automation_for_drum_feature"
+            ],
+            "mastering": [
+              "deliberate_dynamic_preservation_mastering_request_for_extended_composition"
+            ]
+          },
+          "wow_factor_total": 10.86,
+          "documented_song_inspirations": [
+            "NIN The Wretched",
+            "NIN We're In This Together",
+            "NIN The Day The World Went Away"
+          ],
+          "trade_offs": "Demands sophisticated arrangement + section-specific processing chains + extensive automation. Album-track context (not radio/playlist)."
+        },
+        "idm_rhythm_design_showpiece": {
+          "name": "idm_rhythm_design_showpiece",
+          "description": "Mid-form (4-7 min) IDM/glitch composition where rhythm-design IS the spotlight. Programmed-drums-as-engine, asymmetric meter, controlled-variation pattern evolution, intricate percussion-layer choreography. Aphex Twin / Autechre / Squarepusher tradition.",
+          "blend_signature": "reznor_30_daft_punk_30_yorke_25_cobain_15",
+          "target_electronic_genres": [
+            "IDM",
+            "glitch",
+            "techno"
+          ],
+          "starting_recipes": [
+            "extended_dynamic_arc_six_plus_minutes_patient_build",
+            "explosion_chorus_as_cathartic_release_not_just_loud_section",
+            "asymmetric_meter_at_extreme_tempo",
+            "hybrid_vocabulary_integration_within_sections"
+          ],
+          "next_stage_recipes": {
+            "arrangement": [
+              "density_arc_arrangement_sparse_to_wall",
+              "selective_distortion_deployment_across_arc",
+              "manipulated_vocal_samples_as_textural_color"
+            ],
+            "performance": [
+              "drum_clinic_quality_drumming_within_song_context",
+              "tr_909_drum_machine_as_compositional_instrument"
+            ],
+            "recording": [
+              "wall_of_layered_guitars_frequency_spread_layering"
+            ],
+            "mixing": [
+              "dynamic_arc_mix_preservation_via_automation",
+              "extensive_section_specific_mix_automation_for_character_shifts"
+            ],
+            "mastering": [
+              "deliberate_dynamic_preservation_mastering_request_for_extended_composition"
+            ]
+          },
+          "wow_factor_total": 10.75,
+          "documented_song_inspirations": [
+            "Soundgarden Head Down",
+            "NIN March of the Pigs",
+            "QOTSA A Song for the Dead"
+          ],
+          "trade_offs": "Demands advanced drum-programming + sample-design fluency + asymmetric-meter composition. Niche audience (IDM-literate listeners)."
+        },
+        "trip_hop_ballad_emotional_centerpiece": {
+          "name": "trip_hop_ballad_emotional_centerpiece",
+          "description": "Mid-form (4-6 min) trip-hop / neo-classical-electronic ballad with vulnerable-vocal intimacy, Rhodes-piano foundation, sustained-pad atmosphere, gradual subtle build. Massive Attack Teardrop / Nirvana All Apologies / NIN The Day The World Went Away tradition.",
+          "blend_signature": "yorke_50_cobain_25_reznor_15_daft_punk_10",
+          "target_electronic_genres": [
+            "trip_hop",
+            "neo_classical_electronic",
+            "downtempo"
+          ],
+          "starting_recipes": [
+            "extended_dynamic_arc_six_plus_minutes_patient_build",
+            "explosion_chorus_as_cathartic_release_not_just_loud_section",
+            "extended_multi_section_film_score_adjacent_composition",
+            "outro_chant_extension_via_repetition_not_fade"
+          ],
+          "next_stage_recipes": {
+            "arrangement": [
+              "minimum_viable_element_count_for_emotional_impact",
+              "density_arc_arrangement_sparse_to_wall",
+              "live_drums_with_programmed_overlay_hybrid"
+            ],
+            "performance": [
+              "drum_clinic_quality_drumming_within_song_context",
+              "rock_drummer_in_industrial_production_context"
+            ],
+            "recording": [
+              "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction"
+            ],
+            "mixing": [
+              "dynamic_arc_mix_preservation_via_automation",
+              "extensive_section_specific_mix_automation_for_character_shifts"
+            ],
+            "mastering": [
+              "deliberate_dynamic_preservation_mastering_request_for_extended_composition"
+            ]
+          },
+          "wow_factor_total": 10.82,
+          "documented_song_inspirations": [
+            "Nirvana All Apologies",
+            "NIN The Day The World Went Away",
+            "Soundgarden Fell On Black Days"
+          ],
+          "trade_offs": "Demands available vulnerable vocalist + restraint + intimate recording environment. Won't work for dance/peak-time contexts."
+        },
+        "dub_techno_extended_meditation_track": {
+          "name": "dub_techno_extended_meditation_track",
+          "description": "Extended-form (7-12+ min) dub-techno meditation with drone-foundation, modal pad voicings above pedal, micro-variation hypnotic loops, extreme spatial-mix preservation. Basic Channel / Pole / Vladislav Delay tradition.",
+          "blend_signature": "reznor_30_yorke_30_daft_punk_25_cobain_15",
+          "target_electronic_genres": [
+            "dub_techno",
+            "ambient",
+            "techno"
+          ],
+          "starting_recipes": [
+            "hybrid_vocabulary_integration_within_sections",
+            "extended_multi_section_film_score_adjacent_composition",
+            "microtonal_bend_as_signature_riff",
+            "modular_electronic_patterns_as_compositional_foundation"
+          ],
+          "next_stage_recipes": {
+            "arrangement": [
+              "minimum_viable_element_count_for_emotional_impact",
+              "density_arc_arrangement_sparse_to_wall",
+              "documentary_spoken_word_audio_as_compositional_element"
+            ],
+            "performance": [
+              "tr_909_drum_machine_as_compositional_instrument"
+            ],
+            "recording": [
+              "wall_of_layered_guitars_frequency_spread_layering"
+            ],
+            "mixing": [
+              "extensive_section_specific_mix_automation_for_character_shifts",
+              "moulder_atmospheric_mix_sustain_preservation"
+            ],
+            "mastering": [
+              "deliberate_dynamic_preservation_mastering_request_for_extended_composition"
+            ]
+          },
+          "wow_factor_total": 9.92,
+          "documented_song_inspirations": [
+            "Soundgarden Head Down",
+            "NIN The Day The World Went Away"
+          ],
+          "trade_offs": "Demands deep low-end clarity discipline (60-130 Hz frequency-slot management), patience, dynamic-preservation mastering. Niche audience."
+        }
+      }
     }
   }
 }
