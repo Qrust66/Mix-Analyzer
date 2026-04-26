@@ -9337,7 +9337,7 @@
           }
         },
         "Harder_Better_Faster_Stronger": {
-          "_status": "C6_2a_composition_arrangement_done",
+          "_status": "C6_2b_performance_recording_done",
           "album": "Discovery",
           "year": 2001,
           "_note": "Vocoded vocal as primary melodic carrier",
@@ -9381,6 +9381,94 @@
             ],
             "what_makes_arrangement_unique_within_daft_punk": "HBFS represents Daft Punk's POP-ELECTRONIC + SAMPLE-BASED arrangement evolution. Within their catalog, this track stakes the COMMERCIAL-POP-ACCESSIBILITY pole.",
             "comparison_to_around_the_world_arrangement_evolution": "Around the World: filter-modulation + extended-form + hypnotic-repetition. HBFS: sample-foundation + pop-structure + vocoded-lead. Daft Punk's arrangement evolution from Homework to Discovery."
+          },
+          "performance": {
+            "tempo_feel_description": "DRIVING POP-ELECTRONIC FORWARD MOTION — 122-124 BPM at sustained intensity feels driving + danceable + radio-friendly.",
+            "drum_style": {
+              "performer_or_programmer": "Bangalter + de Homem-Christo (programming + sample triggering)",
+              "approach": "PROGRAMMED + SAMPLED HOUSE FOUNDATION ADAPTED TO POP-SONG STRUCTURE",
+              "specifics_documented": [
+                "Programmed kick + snare backbone driving 4/4",
+                "Hi-hat + clap articulation",
+                "Drum pattern adapted to pop-song verse-chorus structure",
+                "Less filter modulation than Around the World — sample provides primary harmonic motion",
+                "Possible sample-derived percussion elements"
+              ]
+            },
+            "synth_and_sample_style": {
+              "performers": "Bangalter + de Homem-Christo",
+              "edwin_birdsong_sample_role": "Documented Edwin Birdsong 'Cola Bottle Baby' sample loops as compositional foundation — provides chord progression + groove",
+              "specifics_documented": [
+                "Sample looped + processed for arrangement integration",
+                "Additional synth layers above sample for texture variety",
+                "Bass-line either sample-derived or synthesized",
+                "Less analog filter modulation than Homework — Discovery aesthetic shifts toward sample-based + pop-electronic"
+              ]
+            },
+            "vocoded_vocal_delivery": {
+              "performer": "Bangalter + de Homem-Christo (vocal recorded then vocoded)",
+              "approach": "VOCODED VOCAL AS PRIMARY MELODIC CARRIER — vocoder applied to recorded vocal performing full melodic-narrative content",
+              "documented_specifics": [
+                "Vocal recorded into vocoder",
+                "Full melodic-lyrical content delivered through vocoder",
+                "Multiple vocoder takes selected for different sections",
+                "Vocoder character distinct from Around the World's repeated-phrase usage",
+                "Vocal essentially BECOMES the lead instrument"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No live drums",
+              "No tempo changes",
+              "No human vocal performance (vocoder lead priority)",
+              "No extended sections"
+            ]
+          },
+          "recording": {
+            "studio": "Bangalter + de Homem-Christo's home studio (continued from Homework era — Discovery primarily recorded in their home studio)",
+            "session_dates": "1999-2001 sessions",
+            "primary_producers": "Thomas Bangalter + Guy-Manuel de Homem-Christo (always self-produced)",
+            "primary_engineer": "Bangalter + de Homem-Christo (self-engineered)",
+            "primary_mix_engineer": "Bangalter + de Homem-Christo (self-mixed for Discovery)",
+            "production_philosophy_for_hbfs": "Same Daft Punk DUO AUTEUR self-produced framework as Around the World applied to POP-ELECTRONIC + SAMPLE-BASED compositional evolution. Demonstrates duo's range across Homework (filter-house) and Discovery (pop-electronic).",
+            "drum_micing_approach": {
+              "philosophy_daft_punk": "Programmed drums + sampled percussion — no microphone needed",
+              "specifics_for_hbfs": [
+                "Programmed beats integrated with Edwin Birdsong sample",
+                "Possible additional sample-triggered percussion",
+                "Drum bus processing balanced for pop-electronic accessibility"
+              ]
+            },
+            "sample_processing_approach": {
+              "philosophy_daft_punk": "Edwin Birdsong sample looped + processed + integrated with original Daft Punk content",
+              "specifics_documented": [
+                "Sample loops (4-bar or 8-bar) extracted from source",
+                "Sample processed (filtered, EQ'd, possibly time-stretched)",
+                "Sample integrated as foundation; original content layered above",
+                "Sample-clearance documentation: Edwin Birdsong's 'Cola Bottle Baby' documented as cleared sample"
+              ]
+            },
+            "vocoder_recording_approach": {
+              "philosophy_daft_punk": "Vocal recorded into vocoder for full melodic-narrative content",
+              "specifics_documented": [
+                "Vocoder unit (analog or digital)",
+                "Multiple vocal takes processed through vocoder",
+                "Vocoder character preserved as compositional element"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Edwin Birdsong sample source",
+              "Vocoder",
+              "Analog synthesizers",
+              "Programmed drum machines + samplers",
+              "Bangalter + de Homem-Christo's home studio"
+            ],
+            "what_makes_daft_punk_recording_distinct_for_hbfs": [
+              "SAMPLE-BASED FOUNDATION + VOCODED LEAD VOCAL paradigm",
+              "Same duo-auteur self-produced framework",
+              "Discovery-era aesthetic shift toward pop-electronic + sample-based vs. Homework filter-house",
+              "Compositional evolution within same duo's catalog"
+            ],
+            "comparison_to_around_the_world_recording": "Around the World (Homework 1997): filter-house + extended-form + filter-modulation primary. HBFS (Discovery 2001): sample-based + pop-structure + vocoded-lead primary. Same duo, same home studio, evolved compositional + production approach."
           }
         },
         "Veridis_Quo": {
