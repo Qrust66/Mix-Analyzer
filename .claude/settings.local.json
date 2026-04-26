@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xxd)",
+      "Bash(python .graphify_strip.py)",
+      "Bash(python .graphify_bigfiles.py)",
+      "Bash(python .graphify_filter.py)",
+      "Bash(python *)"
+    ]
+  }
+}

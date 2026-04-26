@@ -40,6 +40,45 @@ Ne jamais laisser des versions désynchronisées entre fichiers.
   2. Je push sur GitHub quand c'est prêt
   3. L'utilisateur fait **Pull** dans GitHub Desktop → fichiers locaux à jour
 
+## Knowledge Graph (graphify)
+
+Le projet a un knowledge graph persistant à `graphify-out/graph.json` (4334 nœuds,
+10757 arêtes, 96 communautés). Couvre code Python + docs + briefs + composition_engine.
+
+### Quand consulter le graph (réflexe à adopter)
+
+- **Avant d'explorer le code par grep/Glob/Read** pour répondre à une question
+  d'architecture ou trouver "qui appelle quoi" — `13×` moins de tokens en moyenne,
+  jusqu'à `100×+` pour les questions cross-module.
+- **Avant de modifier un fichier de production** : vérifier ses connexions sortantes
+  (qui en dépend) pour estimer le rayon de blast.
+- **Quand l'utilisateur référence un concept abstrait** (ex. "le moteur CDE",
+  "les sections", "TFP") plutôt qu'un fichier précis — le graph trouve le bon
+  point d'entrée.
+
+### Commandes
+
+- `/graphify query "<question>"` — réponse cross-fichiers via traversée BFS
+- `/graphify query "<question>" --dfs` — trace une chaîne de dépendances précise
+- `/graphify path "X" "Y"` — chemin le plus court entre deux concepts
+- `/graphify explain "X"` — tout ce qui se connecte au nœud X
+
+### God nodes (abstractions centrales — toucher avec précaution)
+
+`Section`, `CorrectionDiagnostic`, `CorrectionRecipe`, `ProblemMeasurement`,
+`PeakTrajectory`, `TFPContext`, `SectionContext`. Modifier l'un de ces types
+propage à >130 voisins — toujours vérifier via `/graphify explain` avant.
+
+### Maintenance du graph
+
+- **Code modifié** : si un commit a été fait, le post-commit hook (s'il est
+  installé via `graphify hook install`) recalcule l'AST automatiquement —
+  rien à faire. Sinon, `/graphify . --update` après une session de modifs.
+- **Docs / briefs / features modifiés ou ajoutés** : nécessite re-extraction
+  sémantique (LLM). Lancer `/graphify . --update` manuellement.
+- **Ne jamais commit `graphify-out/`** : c'est un artefact local, déjà
+  ignoré dans `.gitignore`.
+
 ## Fichiers de production (8 fichiers, même dossier)
 
 | Fichier | Rôle |
