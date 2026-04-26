@@ -11957,6 +11957,8 @@
       "wallace_compressed_brightness_vs_albini_room": {
         "id": "wallace_compressed_brightness_vs_albini_room",
         "rule": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room emphasis. The compressed brightness translates intensity to small speakers + commercial playback contexts. Album-level mix philosophy choice.",
+        "electronic_translation": "For aggressive electronic tracks targeting club/Spotify, apply HEAVY MIX-BUS COMPRESSION (Vari-Mu or SSL-style 4:1 with 2-3dB GR) + BRIGHTNESS EQ (high-shelf +2-3dB at 8kHz, master-bus tilt) + master limiter to -7 to -8 LUFS. The compressed brightness translates the aggression to small speakers (phones, laptops, club tops). Bright signal cuts through. Apply for: industrial-techno radio/streaming masters, EBM commercial releases, dark-electronic peak-time tracks, gabber/hard-techno club masters. AVOID for ambient (kills dynamic detail), neo-classical-electronic (incompatible with classical-tradition warmth), dub-techno (kills spatial decay).",
+        "electronic_target_genres": ["dark_electronic", "EBM", "techno"],
         "applicability_text": "Aggressive drops where mix clarity matters; tracks where the listener needs to perceive structure within max density; anything mastering for radio-target loudness.",
         "wow_factor": 0.65,
         "tier": "supporting",
@@ -11977,6 +11979,8 @@
       "screamed_single_take_vocal_no_doubling": {
         "id": "screamed_single_take_vocal_no_doubling",
         "rule": "Track the vocal as SINGLE-TAKE screamed delivery. No doubling, no harmony, no comping from many short pieces. The PERFORMANCE INTEGRITY is preserved — listener hears ONE moment of vocal commitment rather than a constructed-from-fragments illusion.",
+        "electronic_translation": "Track aggressive vocal in ONE COMPLETE TAKE — no comping syllables from multiple takes, no doubling, no harmony layers. Heavy saturation (Decapitator on full vocal, or SansAmp-style amp-modeling for grit) preserved as DELIVERY ARTIFACT. The performance integrity matters: the listener hears one moment of vocal commitment. Apply for: industrial-techno screamed vocals (one-shot Reznor-style aggression), EBM front-man delivery, dark-electronic peak-vocal moments, glitch-corruption single-take captures. Pair with vocal_saturation_for_hardcore_punk_aesthetic processing chain. The recording session: single 2-min take, mic at 4-6 inches with high-pass-filter on vocal chain, comp settings already locked (don't track-then-process — process while tracking so vocalist hears the saturation in ear-mix).",
+        "electronic_target_genres": ["dark_electronic", "EBM", "glitch"],
         "applicability_text": "Aggressive tracks where physical performance authenticity is the goal; vocal moments that should feel like ONE moment, not a layered moment.",
         "wow_factor": 0.65,
         "tier": "supporting",
@@ -11997,6 +12001,8 @@
       "descending_riff_as_song_identity": {
         "id": "descending_riff_as_song_identity",
         "rule": "Build the entire song around a single DESCENDING power chord (or pitched motif) pattern. The descent should move in steps or thirds and complete within 1-2 bars. The riff IS the song — verses, choruses, bridge all variations on this single descending shape.",
+        "electronic_translation": "Build entire track around DESCENDING SYNTH MOTIF — bass-line or lead synth phrase that descends step-wise or in thirds across 1-2 bars (e.g., A → G → F → E within Aeolian mode). The descent loops continuously with micro-variations (octave shifts, rhythmic displacement, filter modulation). Apply on a Massive / Diva / Sub 37 with strong character (square + saw stack, pulse-width modulation, slight FM, drive). Apply for: industrial-techno (descending bass-lines as track-identity — Surgeon, Perc tradition), dark-electronic riff-driven tracks, IDM motif-obsession compositions, EBM signature bass-lines. The descending shape IS the song — verses, breakdowns, drops all variations on this single shape, never escaping its gravitational pull.",
+        "electronic_target_genres": ["dark_electronic", "techno", "IDM", "EBM"],
         "applicability_text": "Riff-centered tracks where the riff IS the song; compositions where harmonic motion would compete with rhythmic identity; drop-tuned aggressive material.",
         "wow_factor": 0.75,
         "tier": "silver",
