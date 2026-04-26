@@ -22906,6 +22906,170 @@
           "compressed_economy_drumming_restrained_precision",
           "drum_machine_serving_atmospheric_emotional_not_aggressive"
         ]
+      },
+      "broken_metallic_percussion_loop_as_compositional_foundation": {
+        "id": "broken_metallic_percussion_loop_as_compositional_foundation",
+        "rule": "Build composition on DISTINCTIVE BROKEN-METALLIC PERCUSSION LOOP — found-object percussion, processed metallic-sample, or programmed-glitch-percussion at the FOUNDATION of arrangement. Loop has identifiable sonic character (broken/clattering/metallic) different from standard kit. Rest of arrangement built around the loop.",
+        "electronic_translation": "Build composition on DISTINCTIVE BROKEN-METALLIC PERCUSSION LOOP at arrangement foundation. Sources: found-object recordings (metal-pipe hits, factory-machine clatter, industrial debris), processed industrial-percussion samples (Iceworks Vol. 1, Spitfire Percussion + heavy distortion + bit-crush), programmed-glitch percussion (Reaktor Razor patches, Oval-tradition CD-corruption-derived percussion, granular-percussion via Granulator II on metallic source-samples). The loop has IDENTIFIABLE BROKEN/CLATTERING/METALLIC sonic character DIFFERENT from standard 808/909 kit. Rest of arrangement (bass, lead-melody, vocal/lead-elements) built AROUND the loop's groove + character. Apply for: glitch compositions (FUNDAMENTAL — Oval / Pole / Vladislav Delay tradition built on broken/processed-percussion foundations), IDM with industrial-percussion identity (Aphex Twin 'Drukqs' broken-percussion tradition), industrial-techno with metallic-percussion identity (Vatican Shadow / Ancient Methods tradition), dark-electronic with found-percussion foundation, dub-techno with industrial-percussion-color (Pole 'Fragmented' tradition). Pair with `programmed_drums_as_compositional_engine`.",
+        "electronic_target_genres": [
+          "glitch",
+          "IDM",
+          "dark_electronic"
+        ],
+        "applicability_text": "Compositions valuing distinctive percussion-character; productions with found-object recording capacity or sophisticated sample-processing; tracks where percussion-loop is foundation, not background.",
+        "wow_factor": 0.81,
+        "tier": "gold",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Packt_Like_Sardines_In_A_Crushd_Tin_Box",
+          "album": "Amnesiac",
+          "year": 2001
+        },
+        "composition_stage": "composition",
+        "compositional_axis": [
+          "rhythm",
+          "texture"
+        ],
+        "genre_vocabulary": [
+          "modular_electronic",
+          "art_rock"
+        ],
+        "applicability_tags": [
+          "programmed_drums_as_composition",
+          "hypnotic_repetition"
+        ],
+        "personality_dominance": "balanced",
+        "personality_fit_breakdown": {
+          "yorke": 45,
+          "reznor": 30,
+          "daft_punk": 20,
+          "cobain": 5
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands distinctive-percussion sourcing or sample-design fluency. Risk of feeling gimmicky if loop-character is forced rather than emergent.",
+        "documented_example": "Packt Like Sardines in a Crushd Tin Box (Radiohead, Amnesiac 2001) — broken metallic percussion loop opens album as compositional foundation. Documented 'snake-charmer'-adjacent textural identity.",
+        "synergy_recipes": [
+          "pitch_shifted_vocal_as_compositional_element",
+          "album_opener_via_textural_disorientation",
+          "production_philosophy_signature_godrich_amnesiac_continuation",
+          "programmed_drums_as_compositional_engine",
+          "manipulated_vocal_samples_as_textural_color"
+        ],
+        "conflict_recipes": [
+          "four_on_the_floor_120_bpm_house_foundation",
+          "drum_only_intro_4_bars_establishes_identity"
+        ],
+        "evolution_recipes": [
+          "industrial_drum_processing_on_live_drums",
+          "tr_909_drum_machine_as_compositional_instrument"
+        ]
+      },
+      "pitch_shifted_vocal_as_compositional_element": {
+        "id": "pitch_shifted_vocal_as_compositional_element",
+        "rule": "Apply PITCH-SHIFTING (formant + pitch manipulation) to vocal as COMPOSITIONAL ELEMENT — preserves vocalist's identifiable voice but shifts register/character. Different from vocoded vocal (masks idiosyncrasies) — pitch-shifted vocal RETAINS the singer's grain while transforming pitch.",
+        "electronic_translation": "Apply PITCH-SHIFTING to vocal — formant-corrected pitch shift (Soundtoys Crystallizer, Ableton's Pitch utility, Logic's Pitch-Shifter II, hardware Eventide H3000) shifts the register up/down 6-12 semitones while PRESERVING the singer's identifiable vocal grain. Different from vocoded-vocal (which masks delivery via carrier-modulation) — pitch-shifted vocal RETAINS the singer's character while transforming pitch-register. Apply on the lead vocal (one octave down for sub-baritone gravity, one octave up for ethereal-falsetto effect, formant-shifted up but pitch-stable for chipmunk-voice character). Apply for: glitch with pitch-shifted vocal-fragments (Oval / RJD2 tradition), IDM with pitch-manipulated vocal-as-instrument (Aphex Twin 'Come To Daddy' processed-vocal tradition), trip-hop with pitch-shifted vocal-color (Burial 'Untrue' tradition with pitch-down vocals), dark-electronic with sub-baritone shifted-vocal, electronic-pop with featured pitch-shift moments. Different from `manipulated_vocal_samples_as_textural_color` (broader umbrella including granular + spectral) — this is specifically the pitch-shift technique. Pair with `manipulated_vocal_samples_as_textural_color`.",
+        "electronic_target_genres": [
+          "glitch",
+          "IDM",
+          "trip_hop"
+        ],
+        "applicability_text": "Compositions valuing vocal pitch-character manipulation; productions with pitch-shifting tools; tracks where vocal-as-compositional-color matters more than vocal-as-narrative.",
+        "wow_factor": 0.78,
+        "tier": "silver",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Packt_Like_Sardines_In_A_Crushd_Tin_Box",
+          "album": "Amnesiac",
+          "year": 2001
+        },
+        "composition_stage": "arrangement",
+        "compositional_axis": [
+          "voice",
+          "texture"
+        ],
+        "genre_vocabulary": [
+          "modular_electronic",
+          "art_rock"
+        ],
+        "applicability_tags": [
+          "manipulated_vocal_samples"
+        ],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 50,
+          "reznor": 30,
+          "daft_punk": 15,
+          "cobain": 5
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Risk of vocal becoming unrecognizable if shift too aggressive. Demands pitch-shifting tools + judgment about appropriate shift amount.",
+        "documented_example": "Packt Like Sardines (Radiohead, Amnesiac 2001) — Yorke's vocal pitch-shifted as compositional element while retaining his recognizable vocal-grain.",
+        "synergy_recipes": [
+          "broken_metallic_percussion_loop_as_compositional_foundation",
+          "manipulated_vocal_samples_as_textural_color",
+          "album_opener_via_textural_disorientation",
+          "vocoded_vocal_phrase_as_instrument_not_lyric"
+        ],
+        "conflict_recipes": [
+          "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "screamed_single_take_vocal_no_doubling"
+        ],
+        "evolution_recipes": [
+          "vocoded_vocal_as_primary_melodic_carrier_full_song",
+          "vocal_hybrid_delivery_within_single_song"
+        ]
+      },
+      "album_opener_via_textural_disorientation": {
+        "id": "album_opener_via_textural_disorientation",
+        "rule": "OPEN ALBUM with TEXTURAL DISORIENTATION — broken percussion + unusual sonic palette + non-rock instrumentation as immediate listener-recalibration. Different from `complete_genre_reinvention_within_band_catalog` (album-level statement) — this is the OPENER's STRUCTURAL FUNCTION within the reinvention, immediately repositioning listener expectations from bar 1.",
+        "electronic_translation": "OPEN ALBUM/EP with TEXTURAL DISORIENTATION — broken/unusual percussion foundation + unusual sonic palette + non-conventional instrumentation immediately RECALIBRATES listener expectations from bar 1. The opener's structural function = MARK THE NEW TERRITORY for the album/EP. Apply on Granulator II for granular-vocal textures, Reaktor blocks for esoteric synthesis, found-percussion samples for foundation, processed lead-elements for foreground. Apply for: ambient album-openers with disorienting sonic palette (Tim Hecker 'Ravedeath, 1972' tradition), IDM concept-album openers (Aphex Twin 'Drukqs' opener tradition with corrupted-textures), dark-electronic concept-album openers, glitch album-openers (Oval / Pole tradition), electronic-experimental EP openers, neo-classical-electronic openers with jarring-piece (challenging classical-listener-expectations). Different from `asymmetric_meter_as_album_opener_statement_of_intent` (rhythmic-statement opener) — this is TEXTURAL-statement opener. Pair with `complete_genre_reinvention_within_band_catalog`.",
+        "electronic_target_genres": [
+          "IDM",
+          "ambient",
+          "glitch"
+        ],
+        "applicability_text": "Album openers wanting immediate listener-recalibration; multi-track concept albums valuing strong opener-statement; productions willing to challenge listeners from bar 1.",
+        "wow_factor": 0.83,
+        "tier": "gold",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Packt_Like_Sardines_In_A_Crushd_Tin_Box",
+          "album": "Amnesiac",
+          "year": 2001
+        },
+        "composition_stage": "philosophy",
+        "compositional_axis": [
+          "structure",
+          "texture"
+        ],
+        "genre_vocabulary": [
+          "modular_electronic",
+          "art_rock"
+        ],
+        "applicability_tags": [],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 55,
+          "reznor": 25,
+          "daft_punk": 15,
+          "cobain": 5
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Risk of alienating listeners who skip the opener. Demands strong opening material that earns the disorientation.",
+        "documented_example": "Packt Like Sardines as Amnesiac opener (Radiohead 2001) — broken metallic percussion + pitch-shifted vocal opens album, immediately repositioning listener expectations after Kid A.",
+        "synergy_recipes": [
+          "broken_metallic_percussion_loop_as_compositional_foundation",
+          "pitch_shifted_vocal_as_compositional_element",
+          "complete_genre_reinvention_within_band_catalog",
+          "asymmetric_meter_as_album_opener_statement_of_intent"
+        ],
+        "conflict_recipes": [
+          "commercial_single_economy_three_minutes_thirty_one"
+        ],
+        "evolution_recipes": [
+          "anomalous_album_track_compositional_range_demonstration",
+          "auteur_framework_third_compositional_intent_within_same_album"
+        ]
       }
     },
     "lenses": {
