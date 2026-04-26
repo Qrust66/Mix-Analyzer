@@ -23070,6 +23070,58 @@
           "anomalous_album_track_compositional_range_demonstration",
           "auteur_framework_third_compositional_intent_within_same_album"
         ]
+      },
+      "production_philosophy_signature_godrich_amnesiac_continuation": {
+        "id": "production_philosophy_signature_godrich_amnesiac_continuation",
+        "rule": "DEPLOY same engineer-producer-mixer-with-band-partnership framework across MULTIPLE ALBUMS that explore DIFFERENT compositional vocabularies. Producer's range demonstrated by sustaining same partnership-philosophy across genre-experimentation. Long-term producer-band relationship enables multi-album evolution.",
+        "electronic_translation": "DEPLOY the same producer-engineer-mixer + integrated-creative-partnership framework across MULTIPLE ALBUMS that explore DIFFERENT compositional vocabularies. Album N: techno-experimental palette with producer-collaborator. Album N+1: ambient palette with SAME producer. Album N+2: neo-classical-electronic palette with SAME producer. Producer's RANGE demonstrated by sustaining the same partnership-philosophy across multi-album genre-experimentation. Long-term producer-collaborator relationship ENABLES multi-album evolution rather than constraining it. Apply for: established electronic-artist + producer-collaborator multi-album arcs (Aphex Twin + Mike Marsh mastering tradition, Olafur Arnalds + various-producer multi-album evolution), neo-classical-electronic projects with sustained producer-relationship across stylistic shifts, ambient projects with deep producer-partnership across catalogs, techno-experimental artists with named producer across multiple releases. The DISCIPLINE: pick a producer whose RANGE matches your evolutionary ambitions; commit to multi-album partnership rather than single-album hire. Pair with `auteur_framework_evolution_across_decades_with_retained_identity` and `godrich_engineer_producer_mixer_unified_role_with_band_partnership`.",
+        "electronic_target_genres": [
+          "neo_classical_electronic",
+          "ambient",
+          "IDM"
+        ],
+        "applicability_text": "Multi-album electronic projects with sustained producer-partnership; productions valuing producer-as-evolutionary-partner; tracks within multi-album-arc context.",
+        "wow_factor": 0.79,
+        "tier": "silver",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Packt_Like_Sardines_In_A_Crushd_Tin_Box",
+          "album": "Amnesiac",
+          "year": 2001
+        },
+        "composition_stage": "philosophy",
+        "compositional_axis": [
+          "texture"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "modular_electronic"
+        ],
+        "applicability_tags": [
+          "production_partnership_evolution"
+        ],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 45,
+          "reznor": 25,
+          "daft_punk": 20,
+          "cobain": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands sustained producer-collaborator availability + creative compatibility across multiple albums. Risk of partnership stagnation if both parties don't evolve.",
+        "documented_example": "Nigel Godrich's continuation across Radiohead's Kid A (2000) + Amnesiac (2001) — same producer-engineer-mixer-with-band-partnership framework deployed for both Kid A's electronic-experimental palette and Amnesiac's broken-metallic / pitch-shifted-vocal evolution.",
+        "synergy_recipes": [
+          "godrich_engineer_producer_mixer_unified_role_with_band_partnership",
+          "broken_metallic_percussion_loop_as_compositional_foundation",
+          "pitch_shifted_vocal_as_compositional_element",
+          "complete_genre_reinvention_within_band_catalog",
+          "auteur_framework_evolution_across_decades_with_retained_identity"
+        ],
+        "conflict_recipes": [],
+        "evolution_recipes": [
+          "auteur_co_auteur_mixer_pipeline_for_mature_collaboration",
+          "deliberate_sonic_evolution_between_albums_via_producer_change"
+        ]
       }
     },
     "lenses": {
