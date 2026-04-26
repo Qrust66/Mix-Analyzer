@@ -11491,6 +11491,92 @@
           "hybrid_classical_electronic": "Classical harmonic progression in electronic context (Daft Punk Veridis Quo, Radiohead Pyramid Song).",
           "hybrid_genre_clash": "Two opposed genre vocabularies co-existing within single song (Radiohead National Anthem rock + free-jazz-brass)."
         }
+      },
+      "applicability_tags": {
+        "description": "Fine-grained semantic tags that describe specific compositional/production techniques. A recipe carries multiple tags; tags enable cross-recipe pattern matching beyond the broader axes.",
+        "values": {
+          "asymmetric_meter": "5/4, 7/4, 7/8, 10/4, 11/8 — non-4/4 meters as compositional device.",
+          "extreme_tempo": "Tempos above ~200 BPM or below ~70 BPM — outside typical rock-pop range.",
+          "compressed_economy": "Track runtime < 3 minutes — compositional density via brevity.",
+          "extended_form": "Track runtime > 6 minutes — compositional ambition via length.",
+          "drone_foundation": "Sustained low-frequency drone as harmonic anchor.",
+          "modal_voicings": "Suspended/quartal/quintal voicings replacing traditional chord progression.",
+          "chromatic_harmony": "Classical-tradition chromatic chord motion + voice-leading.",
+          "hypnotic_repetition": "Riff/pattern repeated near-identically with micro-variations for hypnotic groove.",
+          "dynamic_arc_explosive": "Patient build to massive cathartic explosion (Soma-style).",
+          "dynamic_arc_subtle": "Patient build to gentle emotional release (TDTWWA-style).",
+          "hard_soft_hard_contrast": "Aggressive verse → melodic chorus → aggressive verse within single song.",
+          "wall_of_sound_layering": "Many guitar/synth layers EQ-staggered + panned for dense harmonic field.",
+          "minimum_element_count": "Few elements, each earning maximum compositional weight.",
+          "drum_feature_section": "Compositionally-integrated drum spotlight (A Song for the Dead-style).",
+          "late_drum_entry": "Drums absent at song-start, enter mid-song for perceptual shift (Pyramid Song-style).",
+          "drumless_arrangement": "No drums at all — rhythm conveyed via piano/bass/samples (EIRP-style).",
+          "ambiguous_meter": "Rhythm intentionally hard to count — felt rather than measured.",
+          "filter_modulation_as_motion": "Analog filter sweep substitutes for traditional harmonic motion (Around the World-style).",
+          "vocoded_vocal_as_instrument": "Vocoder applied to vocal making it textural rather than narrative.",
+          "pitch_shifted_vocal": "Pitch-shifting processing applied as compositional element.",
+          "scream_to_sing_contrast": "Single vocalist deploys aggressive scream + melodic sing within one song.",
+          "vocal_democracy": "Multiple band members lead vocals on different tracks within an album.",
+          "guest_vocal_harmony": "Documented guest vocalist contributes harmony or lead (Lanegan-style).",
+          "documentary_spoken_word": "Interview/narration audio integrated as compositional element.",
+          "live_band_in_electronic_context": "Session musicians playing in electronic-music production paradigm.",
+          "programmed_drums_as_composition": "Drum machine programming as compositional instrument, not stand-in for live drums.",
+          "live_drums_with_programmed_overlay": "Live drummer with sample triggers + electronic percussion blended.",
+          "sample_based_foundation": "Composition built on cleared sample loop from prior recording.",
+          "manipulated_vocal_samples": "Vocal sampled then granular/pitch/time-processed as instrumental texture.",
+          "metallic_percussion_loop": "Sample-based metallic/found-sound percussion as rhythmic foundation.",
+          "ondes_martenot_or_rare_classical": "Rare classical-orchestral instrument used for spectral color.",
+          "free_jazz_brass": "Brass section playing free-jazz expressionism over locked rhythm.",
+          "extensive_mix_automation": "Section-specific automation rides drum bus, guitar layers, vocals, reverbs.",
+          "dynamic_preservation_mastering": "Mastering deliberately less compressed than commercial standard.",
+          "auteur_recording_environment": "Non-commercial recording space with documented atmospheric character.",
+          "analog_tape_tracking": "Recording to analog tape rather than digital DAW capture.",
+          "deliberate_genre_reinvention": "Album-level genre reinvention from prior catalog identity.",
+          "anchor_track_within_reinvention": "Former-genre track retained within reinvention album for listener anchor.",
+          "production_partnership_evolution": "Auteur-producer expands partnership across multi-album catalog.",
+          "classical_influenced_voice_leading": "Multi-voice tracking with classical-tradition voice-leading craft.",
+          "groove_over_complexity": "Pocket + feel prioritized over technical demonstration.",
+          "atmospheric_continuity": "Sustained atmosphere as primary aesthetic, not quiet/loud contrast.",
+          "rhythmic_emphasis_over_harmony": "Rhythm as primary compositional axis, harmonic stasis acceptable."
+        }
+      },
+      "personality_dominance": {
+        "description": "Computed: max(personality_fit_breakdown) wins. If two are within 5 points → 'balanced'. Used to filter recipes by personality lean. The four personalities (Cobain, Reznor, Daft Punk, Yorke) are taken from the user's documented advisor framework.",
+        "values": {
+          "cobain_dominant": "Punk/grunge sensibility: raw, unpolished, emotionally direct, riff-driven, capture-philosophy.",
+          "reznor_dominant": "Industrial/auteur sensibility: programmed, textural, scream-to-sing, single-creator-driven.",
+          "daft_punk_dominant": "Electronic/dance sensibility: programmed-foundation, filter-modulation, hypnotic-cyclic, duo-auteur.",
+          "yorke_dominant": "Art-rock/intentional-ambiguity sensibility: classical-influenced, atmospheric, falsetto, compositional uncertainty.",
+          "balanced": "No single personality > 5 points above the second-highest. Recipe spans multiple sensibilities equally."
+        },
+        "computation_rule": "personality_dominance = argmax(personality_fit_breakdown) if (max - second_max) > 5 else 'balanced'"
+      },
+      "wow_factor_tiers": {
+        "description": "Fixed bands for wow_factor scoring. Each recipe pre-tagged with its tier for quick filtering. Bands chosen to roughly correspond to: top = once-in-a-decade compositional choices; gold = highly ambitious; silver = strong; bronze = solid; supporting = useful but not standalone-impressive.",
+        "values": {
+          "top": "wow_factor >= 0.85 — exceptional compositional ambition, the rarest payoffs.",
+          "gold": "wow_factor 0.80 to 0.849 — highly ambitious, well-documented impact.",
+          "silver": "wow_factor 0.75 to 0.799 — strong compositional value.",
+          "bronze": "wow_factor 0.70 to 0.749 — solid, supporting role within larger recipe set.",
+          "supporting": "wow_factor < 0.70 — useful in combination, rarely standalone."
+        }
+      },
+      "production_philosophy_lineage": {
+        "description": "Which of the 12 documented production philosophies the recipe derives from. Each philosophy has its own aesthetic + workflow signature; tagging recipes by lineage enables filtering for production-philosophy coherence in composition path templates.",
+        "values": {
+          "albini_capture": "Pure capture, room-prominent, minimal shaping (Nirvana In Utero 1993).",
+          "vig_wallace_layered_wide": "Meticulous tracking + width-maximized mixing (Nevermind 1991, Siamese Dream 1993).",
+          "date_tracker_mixer": "Tracker-mixer dual role (Soundgarden Badmotorfinger 1991).",
+          "beinhorn_obrien_shaped": "Producer-mixer split with shaping (Soundgarden Superunknown 1994).",
+          "kasper_unified_band_driven": "Unified engineer/producer/mixer + band-driven (Soundgarden Down on the Upside 1996).",
+          "flood_moulder_corgan_three_way": "Textural-experimental three-way producer credit (Pumpkins Mellon Collie 1995).",
+          "reznor_solo_auteur": "Solo auteur-producer + programmed-sampled industrial (NIN Spiral 1994 → Hesitation Marks 2013).",
+          "valentine_unified_groove_rock": "Engineer-producer-mixer unified for power-trio groove rock (QOTSA Songs for the Deaf 2002).",
+          "barresi_unified_heavy_rock": "Engineer-producer-mixer unified with heavy-rock specialization (QOTSA Lullabies 2005).",
+          "daft_punk_duo_auteur_home_studio": "Duo auteur fully self-produced in home studio (Homework 1997 + Discovery 2001).",
+          "daft_punk_ram_massively_expanded": "Duo auteur + live session musicians + analog studios + external mixer (RAM 2013).",
+          "godrich_unified_sixth_member": "Engineer-producer-mixer unified with band-creative-partnership (Radiohead OK Computer 1997 → Amnesiac 2001)."
+        }
       }
     }
   }
