@@ -9584,10 +9584,44 @@
           }
         },
         "Veridis_Quo": {
-          "_status": "stub_pending_full_dissection_C6_3",
+          "_status": "C6_3a_composition_arrangement_done",
           "album": "Discovery",
           "year": 2001,
-          "_note": "Anomalous track on Discovery — slow, harmonically rich, classical-influenced"
+          "_note": "Anomalous track on Discovery — slow, harmonically rich, classical-influenced",
+          "tempo_bpm_documented_range": [114, 118],
+          "time_signature": "4/4 throughout",
+          "key_area": "F-sharp minor area / G-sharp minor area (with classical-influenced chord progression — Pachelbel-adjacent harmonic motion documented)",
+          "tuning_documented": "N/A — synthesizer-based",
+          "track_runtime": "~5:44",
+          "_special_status": "Track 11 on Discovery (2001) — ANOMALOUS within Discovery for its SLOW + HARMONICALLY RICH + CLASSICAL-INFLUENCED character. Functions as the album's MOST COMPOSITIONALLY-AMBITIOUS track in traditional-harmonic terms. Where HBFS uses sample-based + pop-structure, Veridis Quo uses ORIGINAL CLASSICAL-INFLUENCED CHORD PROGRESSION + slow tempo + harmonic richness. Demonstrates Daft Punk's range beyond filter-house + pop-electronic into CLASSICAL-INFORMED ELECTRONIC.",
+          "composition": {
+            "primary_compositional_signature": "CLASSICAL-INFLUENCED HARMONIC PROGRESSION + SLOW TEMPO + ELECTRONIC ARRANGEMENT — documented as harmonically related to Pachelbel's Canon (descending bass-line + chord progression evoking baroque harmonic tradition). Demonstrates compositional ambition beyond dance-music vocabulary.",
+            "core_structural_arc": "Slow harmonic intro → arrangement build with classical-influenced chord progression → vocoded vocal phrases + atmospheric synth pads → harmonic + textural development across runtime → outro fade. Total ~5:44 — extended-form for harmonic development.",
+            "harmonic_motion_summary": "CLASSICAL-INFLUENCED PROGRESSION — descending bass-line (similar to Pachelbel's Canon documented) + traditional Western harmonic motion (i-V-vi-iii-IV-I-IV-V or similar variation). Voice-leading classical-craft. Different harmonic vocabulary from Daft Punk's typical electronic minimalism.",
+            "characteristic_compositional_choice": "CLASSICAL HARMONY IN ELECTRONIC CONTEXT — Daft Punk demonstrate that dance-music duo can compose with TRADITIONAL CLASSICAL HARMONIC VOCABULARY. The track's beauty derives from harmonic richness + voice-leading craft typical of baroque/classical tradition, applied to electronic instrumentation.",
+            "comparison_to_other_daft_punk_dissection_tracks": "Around the World: filter-house abstraction. HBFS: sample-based pop-electronic. Veridis Quo: CLASSICAL-INFLUENCED HARMONIC ELECTRONIC. Three different compositional approaches within Daft Punk catalog (across Homework + Discovery).",
+            "comparison_to_other_dissection_classical_influenced_tracks": "Most rock dissection tracks use modal-rock harmonic vocabulary. Pyramid Song (Radiohead — to be dissected C7) uses classical-influenced harmony in art-rock context. Veridis Quo (Daft Punk) uses classical-influenced harmony in electronic context. Both transcend genre vocabulary via classical harmonic ambition.",
+            "compositional_economy": "5:44 extended-form for harmonic development. Classical-influenced harmony requires room to breathe + develop voice-leading. Compositional 'movement' is harmonic + textural.",
+            "innovation_for_genre_context": "2001 dance music context: Discovery represented Daft Punk's pop-electronic evolution but Veridis Quo demonstrated their CLASSICAL-INFORMED ambition. Track demonstrates electronic music's capacity for traditional harmonic sophistication. Influences subsequent classical-electronic crossover artists."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "ELECTRONIC ARRANGEMENT WITH CLASSICAL HARMONIC FOUNDATION — synth pads providing harmonic richness, programmed drums supporting (less foregrounded than dance-music tracks), vocoded vocal phrases adding melodic-textural color, classical-influenced bass-line + chord progression as compositional anchor.",
+            "intro_arrangement": "Slow harmonic intro — bass-line + initial chord progression establishes classical-influenced foundation",
+            "synth_layer_build_arrangement": "Synth pads enter progressively, establishing harmonic field above bass-line",
+            "vocoded_vocal_entry": "Vocoded vocal phrases enter as melodic-textural color",
+            "drum_entry_subtle": "Programmed drums enter subtly — less foregrounded than dance-music tracks, supporting harmonic foundation",
+            "harmonic_development_section": "Chord progression develops + reharmonizes, voice-leading provides 'movement' typical of classical tradition",
+            "peak_density_section": "All layers active simultaneously — harmonic richness at maximum",
+            "outro_arrangement": "Gradual layer reduction + harmonic resolution to fade",
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained slow tempo)",
+              "No 4-on-the-floor dance-music drum pattern (anomalous within Discovery)",
+              "No human vocal (vocoder texture priority)",
+              "No filter modulation as primary engine (classical harmony provides motion instead)"
+            ],
+            "what_makes_arrangement_unique_within_daft_punk": "Veridis Quo represents Daft Punk's MOST CLASSICAL-INFLUENCED + LEAST DANCE-MUSIC-AESTHETIC arrangement. Within Discovery's range, this track stakes the CLASSICAL-INFORMED ELECTRONIC pole.",
+            "comparison_to_other_classical_influenced_dissection_arrangements_setup": "Pyramid Song (Radiohead — C7 to be dissected): classical-influenced art-rock arrangement with piano + asymmetric meter. Veridis Quo: classical-influenced electronic arrangement with synth pads + slow tempo. Both classical-informed but in different genre contexts."
+          }
         },
         "Giorgio_By_Moroder": {
           "_status": "stub_pending_full_dissection_C6_4",
