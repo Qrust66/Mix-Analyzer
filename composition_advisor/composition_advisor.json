@@ -10149,7 +10149,7 @@
           "_note": "One of the few rock-band-format songs on Kid A"
         },
         "Pyramid_Song": {
-          "_status": "C7_1b_performance_recording_done",
+          "_status": "C7_1c_complete_exhaustive",
           "album": "Amnesiac",
           "year": 2001,
           "_note": "Notoriously difficult-to-count rhythmic feel (often analyzed as 16/8 with Phil Selway's deliberately ambiguous drum entry)",
@@ -10304,6 +10304,151 @@
               "Classical-influenced compositional intent supported through tracking + production"
             ],
             "production_philosophy_twelfth_distinct_approach_in_dissection": "TWELVE distinct production approaches now: 1) Albini, 2) Vig+Wallace, 3) Date, 4) Beinhorn+O'Brien, 5) Kasper, 6) Flood+Moulder+Corgan, 7) Reznor solo-auteur, 8) Valentine, 9) Barresi, 10) Daft Punk DUO AUTEUR home-studio, 11) Daft Punk + Guzauski + live musicians + analog studios RAM, 12) GODRICH engineer-producer-mixer unified-role with band-creative-partnership ('sixth member' role)."
+          },
+          "mixing": {
+            "mix_engineer": "Nigel Godrich (continuing engineer-producer-mixer unified role)",
+            "mixing_studio": "Various Kid A/Amnesiac mix locations including Radiohead studios",
+            "mixing_philosophy_godrich_for_pyramid_song": "MULTI-INSTRUMENT INTEGRATION + AMBIGUOUS-RHYTHM PRESERVATION + CLASSICAL-INFORMED SPATIAL DEPTH + FALSETTO INTIMACY. Godrich's documented approach: integrate piano + Ondes Martenot + strings + drums + vocal across multi-instrument arrangement, preserve Selway's deliberately ambiguous drumming, maintain Yorke's falsetto intimacy.",
+            "drum_mix_balance": [
+              "Selway drums BLENDED — not foregrounded as in rock-band mixes, supporting the felt-rhythm character",
+              "Late drum entry mixed for impact without dominating arrangement",
+              "Cymbal articulation preserved for ambiguous-pattern character"
+            ],
+            "piano_mix_treatment": [
+              "Yorke piano CENTERED + FORWARD as compositional foundation",
+              "Pedaling sustains preserved for harmonic blur character",
+              "Slight reverb for spatial depth without losing intimacy"
+            ],
+            "ondes_martenot_mix_treatment": [
+              "Greenwood Ondes Martenot blended as spectral color",
+              "Pure-tone character preserved",
+              "Spatial depth via reverb"
+            ],
+            "string_mix_treatment": [
+              "Multi-track strings spread across stereo for orchestral depth",
+              "Reverb on strings for orchestral spatial context",
+              "Strings integrated with piano + Ondes Martenot harmonic field"
+            ],
+            "vocal_mix_treatment": [
+              "Yorke falsetto CENTERED + INTIMATE — vocal placement priority for emotional vulnerability",
+              "Reverb chain calibrated for falsetto character (not aggressive reverb)",
+              "Compression preserves long sustained falsetto phrases"
+            ],
+            "spatial_treatment_classical_art_rock": [
+              "Stereo field WIDE for orchestral + arrangement-rich scope",
+              "Reverb usage MORE than rock-band tracks — classical-informed spatial depth",
+              "Plate + hall reverbs for orchestral character",
+              "Spatial depth across multi-instrument arrangement"
+            ],
+            "automation_used_in_mix": [
+              "Layer level rides for arrangement build (drums entering mid-song, strings entering later)",
+              "Vocal level rides for sustained falsetto phrases",
+              "Reverb send automation for section-specific depth"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying classical-arrangement dynamics",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No imposed-clarity mix template (ambiguous-rhythm priority)"
+            ],
+            "what_makes_godrich_mix_distinct_for_pyramid_song": [
+              "MULTI-INSTRUMENT INTEGRATION across piano + drums + Ondes Martenot + strings + vocal",
+              "Ambiguous-rhythm preservation through mix",
+              "Classical-informed spatial depth via reverb",
+              "Falsetto vocal intimacy preserved",
+              "Engineer-producer-mixer unified role across all stages"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Chris Blair (Amnesiac mastered — documented at Abbey Road Mastering, London)",
+            "mastering_studio": "Abbey Road Mastering, London",
+            "mastering_philosophy_for_pyramid_song": [
+              "Blair's documented approach: high-end clarity + low-end weight + dynamic detail preservation suitable for art-rock + classical-influenced material",
+              "Pyramid Song's classical + ambiguous-rhythm character requires preserved dynamic detail",
+              "2001 album-level mastering — Amnesiac at peak loudness-war era but Blair's Abbey Road tradition preserves dynamics"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS (less compressed than typical 2001 commercial releases — art-rock dynamic preservation).",
+            "spectral_signature": "Blair's documented sound: clear top-end, present mid-range, controlled aggressive low-end. Abbey Road tradition emphasis on classical + orchestral preservation.",
+            "what_mastering_preserves_for_pyramid_song": [
+              "Multi-instrument arrangement dynamics",
+              "Selway's ambiguous-rhythm character",
+              "Yorke falsetto intimacy",
+              "Ondes Martenot spectral color",
+              "Stereo image (preserving Godrich's mix decisions)"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "PHIL SELWAY'S DELIBERATELY AMBIGUOUS LATE-ENTRY DRUMS + YORKE FALSETTO + ONDES MARTENOT — listeners hear Radiohead at peak compositional ambiguity + classical-informed art-rock + most sophisticated rhythm-as-feel philosophy.",
+            "level_2_arrangement_signature": "PIANO + VOCAL + LATE-ENTRY DRUMS + ORCHESTRAL ELEMENTS (STRINGS + ONDES MARTENOT) — multi-instrument classical-informed arrangement.",
+            "level_3_compositional_signature": "RHYTHM-AS-FELT-NOT-COUNTED + CLASSICAL-INFLUENCED HARMONIC PROGRESSION + INTENTIONAL AMBIGUITY — Radiohead demonstrate that compositional sophistication can include INTENTIONAL UNCERTAINTY rather than CLARITY. Influences subsequent art-rock willingness to embrace rhythmic ambiguity + classical-influenced harmony."
+          },
+          "advisor_extract": {
+            "recipe_name": "intentionally_ambiguous_rhythm_with_classical_influenced_harmony_in_art_rock",
+            "applicability": "Art-rock, post-rock, or classical-influenced rock compositions where compositional sophistication includes INTENTIONAL RHYTHMIC AMBIGUITY + CLASSICAL HARMONIC INFLUENCE. Use when rhythm should be FELT not COUNTED + when classical-tradition harmony serves rock context.",
+            "core_compositional_recipes": [
+              {
+                "id": "intentionally_ambiguous_rhythm_felt_not_counted",
+                "rule": "Compose rhythm to be INTENTIONALLY DIFFICULT TO COUNT — listener feels pulse without locking onto meter. Late-entry drums, swung subdivisions, ambiguous emphasis points all contribute. Drummer's task is to make meter UNCLEAR rather than CLEAR.",
+                "wow_factor": 0.86,
+                "documented_example": "Pyramid Song (Radiohead, Amnesiac 2001) — Phil Selway's deliberately ambiguous drum entry + swung pattern",
+                "trade_offs": "Listeners conditioned to clear meter may struggle. Demands drummer with patience + ambiguity sensitivity.",
+                "personality_fit": "Yorke 60 / Reznor 20 / Daft Punk 15 / Cobain 5"
+              },
+              {
+                "id": "late_drum_entry_mid_song_for_perceptual_shift",
+                "rule": "Begin song with MINIMUM ARRANGEMENT (piano + vocal alone) and have DRUMS ENTER MID-SONG creating perceptual shift. Late drum entry establishes new dimension; listener experiences compositional surprise. Drums NOT obligatory at song-start.",
+                "wow_factor": 0.82,
+                "documented_example": "Pyramid Song — drums enter mid-song after piano + vocal intimate opening",
+                "trade_offs": "Demands strong compositional opening that holds attention without drums. Risk of feeling delayed if drum entry timing off.",
+                "personality_fit": "Yorke 50 / Reznor 25 / Daft Punk 15 / Cobain 10"
+              },
+              {
+                "id": "classical_influenced_chord_progression_in_art_rock_context",
+                "rule": "Use TRADITIONAL CLASSICAL HARMONIC PROGRESSION (chromatic descending, voice-leading, suspensions) in ART-ROCK context. Composer's classical-harmonic literacy provides depth typical rock vocabulary cannot. Documented influences (Mingus, Messiaen, etc.) legitimize approach.",
+                "wow_factor": 0.83,
+                "documented_example": "Pyramid Song chord progression documented as influenced by Charles Mingus's 'Freedom Rider'",
+                "trade_offs": "Demands classical-harmonic understanding from composer. Less viable for performers without classical-harmonic literacy.",
+                "personality_fit": "Yorke 50 / Daft Punk 20 / Reznor 20 / Cobain 10"
+              },
+              {
+                "id": "ondes_martenot_or_rare_classical_instrument_for_spectral_color",
+                "rule": "Use RARE CLASSICAL OR EARLY-ELECTRONIC INSTRUMENT (Ondes Martenot, theremin, etc.) for SPECTRAL COLOR distinct from synthesizer + traditional orchestral instruments. Connects rock context to classical-orchestral tradition. Documented use by classical composers (Messiaen) legitimizes inclusion.",
+                "wow_factor": 0.81,
+                "documented_example": "Greenwood's Ondes Martenot on Pyramid Song + multiple Kid A/Amnesiac tracks",
+                "trade_offs": "Rare instrument access difficulty. Demands player with documented learning. Genre-flexibility required.",
+                "personality_fit": "Yorke 50 / Reznor 25 / Daft Punk 15 / Cobain 10"
+              },
+              {
+                "id": "godrich_engineer_producer_mixer_unified_role_with_band_partnership",
+                "rule": "Hire ENGINEER-PRODUCER-MIXER unified-role producer who BECOMES band's 'sixth member' creative partner. Producer's creative input on compositional decisions makes them genuine collaborator, not technical service provider. Long-term partnership across multiple albums.",
+                "wow_factor": 0.79,
+                "documented_example": "Nigel Godrich + Radiohead since OK Computer (1997) — documented 'sixth member' role across multiple albums",
+                "trade_offs": "Demands producer with creative + technical capacity. Risk of producer-band conflict if dynamic strained.",
+                "personality_fit": "Yorke 50 / Reznor 25 / Cobain 15 / Daft Punk 10"
+              },
+              {
+                "id": "yorke_falsetto_vocal_aesthetic_intimate_emotional",
+                "rule": "Use FALSETTO VOCAL DELIVERY for emotional vulnerability + classical-melodic-tradition phrasing. Pure falsetto distinct from chest-voice rock vocal. Suited for ballad-form + classical-influenced material. Mix preserves falsetto intimacy.",
+                "wow_factor": 0.78,
+                "documented_example": "Yorke's Pyramid Song falsetto + extensive Kid A/Amnesiac falsetto delivery",
+                "trade_offs": "Demands vocalist with falsetto capacity. Less viable for traditional rock-vocal contexts.",
+                "personality_fit": "Yorke 60 / Reznor 20 / Daft Punk 15 / Cobain 5"
+              },
+              {
+                "id": "compositional_uncertainty_as_artistic_choice",
+                "rule": "Embrace COMPOSITIONAL UNCERTAINTY as artistic choice — ambiguous rhythm, harmonic ambiguity, structural unpredictability. Demonstrates compositional sophistication beyond clarity-emphasizing rock tradition. Listeners experience song multiple times to perceive different dimensions.",
+                "wow_factor": 0.84,
+                "documented_example": "Pyramid Song's uncountable rhythm + ambiguous structure rewards multiple listens",
+                "trade_offs": "Demands listener patience. Risk of feeling pretentious if uncertainty not earned. Demands artistic confidence.",
+                "personality_fit": "Yorke 60 / Reznor 25 / Daft Punk 10 / Cobain 5"
+              }
+            ],
+            "production_philosophy_signature_godrich_unified_role_band_partnership": {
+              "philosophy": "ENGINEER-PRODUCER-MIXER UNIFIED ROLE WITH BAND-CREATIVE-PARTNERSHIP. Godrich as Radiohead's 'sixth member' since OK Computer (1997). Different from straight unified-role producers (Valentine, Barresi) — Godrich's role includes creative input on compositional decisions.",
+              "applicability": "Established art-rock or experimental bands seeking long-term producer partnership beyond technical service",
+              "lineage_within_dissection": "TWELFTH distinct production philosophy: 1-11 plus GODRICH unified-role with band-creative-partnership. Demonstrates producer-as-band-member paradigm distinct from external-producer paradigms."
+            },
+            "structural_choice_summary": "Intentionally ambiguous rhythm + classical-influenced harmony + late drum entry + Ondes Martenot spectral color + Godrich unified-role band-partnership — Pyramid Song demonstrates Radiohead's CLASSICAL-INFLUENCED ART-ROCK + COMPOSITIONAL AMBIGUITY pole. Compositional sophistication beyond clarity-emphasizing rock tradition."
           }
         },
         "Packt_Like_Sardines_In_A_Crushd_Tin_Box": {
