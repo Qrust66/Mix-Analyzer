@@ -29676,8 +29676,8 @@
       ]
     },
     "composition_path_templates": {
-      "_note": "8 self-contained composition path templates spanning composition→arrangement→performance→recording→mixing→mastering. Each template targets specific electronic-music sub-genres and a personality-blend signature. Recipe IDs are pointer-references into recipes_index.recipes — no data duplication. Use templates as starting palettes; substitute or add atoms via lenses + projection scoring.",
-      "_generated_from_atom_count": 173,
+      "_note": "8 self-contained composition path templates spanning composition→arrangement→performance→recording→mixing→mastering. Recipe IDs are pointer-references — no data duplication.",
+      "_generated_from_atom_count": 189,
       "_template_count": 8,
       "template_schema": {
         "name": "snake_case template id",
@@ -29734,11 +29734,11 @@
             "Nirvana Territorial Pissings",
             "QOTSA Six Shooter"
           ],
-          "trade_offs": "Demands aggressive sound-design fluency, mix-bus saturation chain (Decapitator + Vari-Mu), commitment to hard-techno aesthetic. Won't work for ambient/atmospheric goals."
+          "trade_offs": "Demands aggressive sound-design fluency, mix-bus saturation chain (Decapitator + Vari-Mu), commitment to hard-techno aesthetic."
         },
         "filter_house_extended_dance_track": {
           "name": "filter_house_extended_dance_track",
-          "description": "Extended-form (5-9 min) filter-house DJ track at 120-128 BPM with progressive-layering arrangement, vocoded-vocal hook, and filter-modulation as compositional engine. Daft Punk Homework / Around the World tradition.",
+          "description": "Extended-form (5-9 min) filter-house DJ track at 120-128 BPM with progressive-layering arrangement, vocoded-vocal hook, filter-modulation as compositional engine. Daft Punk Homework / Around the World tradition.",
           "blend_signature": "daft_punk_50_reznor_25_cobain_15_yorke_10",
           "target_electronic_genres": [
             "filter_house",
@@ -29775,7 +29775,7 @@
             "Daft Punk Around the World",
             "Daft Punk Harder Better Faster Stronger"
           ],
-          "trade_offs": "Demands TR-909 drum-machine access (or quality emulation) + analog-modeled filter (Diva/Cytomic) + vocoder chain. Genre commitment to dance-floor function. Won't work for compressed singles or non-dance contexts."
+          "trade_offs": "Demands TR-909 access (or quality emulation) + analog-modeled filter (Diva/Cytomic) + vocoder chain."
         },
         "ambient_atmospheric_meditation_piece": {
           "name": "ambient_atmospheric_meditation_piece",
@@ -29799,7 +29799,8 @@
               "live_drums_with_programmed_overlay_hybrid"
             ],
             "performance": [
-              "drum_clinic_quality_drumming_within_song_context"
+              "drum_clinic_quality_drumming_within_song_context",
+              "rock_drummer_in_industrial_production_context"
             ],
             "recording": [
               "wall_of_layered_guitars_frequency_spread_layering"
@@ -29812,18 +29813,18 @@
               "deliberate_dynamic_preservation_mastering_request_for_extended_composition"
             ]
           },
-          "wow_factor_total": 9.98,
+          "wow_factor_total": 10.79,
           "documented_song_inspirations": [
             "NIN The Day The World Went Away",
             "Soundgarden Head Down",
             "Soundgarden Overfloater",
-            "Radiohead Everything In Its Right Place"
+            "Radiohead Pyramid Song"
           ],
-          "trade_offs": "Demands restraint, patience, mature compositional voice. -14 LUFS master target (NOT competitive loudness). Won't work for dance-floor or peak-time contexts."
+          "trade_offs": "Demands restraint, patience, mature compositional voice. -14 LUFS master target."
         },
         "electronic_pop_anthemic_single": {
           "name": "electronic_pop_anthemic_single",
-          "description": "Pop-format (3:30-4:00) electronic single with verse-chorus structure, vocoded-or-clean lead, anthemic chorus density. Daft Punk Discovery / Justice / Madeon tradition translated to playlist-targeted contemporary aesthetic.",
+          "description": "Pop-format (3:30-4:00) electronic single with verse-chorus structure, vocoded-or-clean lead, anthemic chorus density. Daft Punk Discovery / Justice / Madeon tradition.",
           "blend_signature": "daft_punk_45_yorke_25_cobain_20_reznor_10",
           "target_electronic_genres": [
             "electronic_pop",
@@ -29861,11 +29862,11 @@
             "Daft Punk Harder Better Faster Stronger",
             "Daft Punk Veridis Quo"
           ],
-          "trade_offs": "Demands hook-craft + accessible song-form. -7 LUFS playlist-loudness master. Won't work for ambient/extended forms."
+          "trade_offs": "Demands hook-craft + accessible song-form. -7 LUFS playlist-loudness master."
         },
         "dark_electronic_hybrid_album_centerpiece": {
           "name": "dark_electronic_hybrid_album_centerpiece",
-          "description": "Extended-form (6-9 min) dark-electronic concept-album centerpiece with hybrid-vocabulary integration (aggression + atmosphere coexisting), vocal-hybrid delivery, section-specific processing. NIN The Fragile / Wretched tradition translated to electronic context.",
+          "description": "Extended-form (6-9 min) dark-electronic concept-album centerpiece with hybrid-vocabulary integration, vocal-hybrid delivery, section-specific processing. NIN The Fragile / Wretched tradition.",
           "blend_signature": "reznor_40_yorke_30_cobain_20_daft_punk_10",
           "target_electronic_genres": [
             "dark_electronic",
@@ -29905,11 +29906,11 @@
             "NIN We're In This Together",
             "NIN The Day The World Went Away"
           ],
-          "trade_offs": "Demands sophisticated arrangement + section-specific processing chains + extensive automation. Album-track context (not radio/playlist)."
+          "trade_offs": "Demands sophisticated arrangement + section-specific processing chains + extensive automation."
         },
         "idm_rhythm_design_showpiece": {
           "name": "idm_rhythm_design_showpiece",
-          "description": "Mid-form (4-7 min) IDM/glitch composition where rhythm-design IS the spotlight. Programmed-drums-as-engine, asymmetric meter, controlled-variation pattern evolution, intricate percussion-layer choreography. Aphex Twin / Autechre / Squarepusher tradition.",
+          "description": "Mid-form (4-7 min) IDM/glitch composition where rhythm-design IS the spotlight. Programmed-drums-as-engine, asymmetric meter, intricate percussion-layer choreography. Aphex Twin / Autechre / Squarepusher tradition.",
           "blend_signature": "reznor_30_daft_punk_30_yorke_25_cobain_15",
           "target_electronic_genres": [
             "IDM",
@@ -29947,13 +29948,14 @@
           "documented_song_inspirations": [
             "Soundgarden Head Down",
             "NIN March of the Pigs",
-            "QOTSA A Song for the Dead"
+            "QOTSA A Song for the Dead",
+            "Radiohead Packt Like Sardines"
           ],
-          "trade_offs": "Demands advanced drum-programming + sample-design fluency + asymmetric-meter composition. Niche audience (IDM-literate listeners)."
+          "trade_offs": "Demands advanced drum-programming + sample-design fluency + asymmetric-meter composition."
         },
         "trip_hop_ballad_emotional_centerpiece": {
           "name": "trip_hop_ballad_emotional_centerpiece",
-          "description": "Mid-form (4-6 min) trip-hop / neo-classical-electronic ballad with vulnerable-vocal intimacy, Rhodes-piano foundation, sustained-pad atmosphere, gradual subtle build. Massive Attack Teardrop / Nirvana All Apologies / NIN The Day The World Went Away tradition.",
+          "description": "Mid-form (4-6 min) trip-hop / neo-classical-electronic ballad with vulnerable-vocal intimacy, Rhodes-piano foundation, sustained-pad atmosphere, gradual subtle build. Massive Attack Teardrop / Nirvana All Apologies / NIN The Day The World Went Away / Radiohead Pyramid Song tradition.",
           "blend_signature": "yorke_50_cobain_25_reznor_15_daft_punk_10",
           "target_electronic_genres": [
             "trip_hop",
@@ -29991,9 +29993,10 @@
           "documented_song_inspirations": [
             "Nirvana All Apologies",
             "NIN The Day The World Went Away",
-            "Soundgarden Fell On Black Days"
+            "Soundgarden Fell On Black Days",
+            "Radiohead Pyramid Song"
           ],
-          "trade_offs": "Demands available vulnerable vocalist + restraint + intimate recording environment. Won't work for dance/peak-time contexts."
+          "trade_offs": "Demands available vulnerable vocalist + restraint + intimate recording environment."
         },
         "dub_techno_extended_meditation_track": {
           "name": "dub_techno_extended_meditation_track",
@@ -30017,7 +30020,7 @@
               "documentary_spoken_word_audio_as_compositional_element"
             ],
             "performance": [
-              "tr_909_drum_machine_as_compositional_instrument"
+              "selway_ambiguous_drum_phrasing_interpreting_meter_not_locking"
             ],
             "recording": [
               "wall_of_layered_guitars_frequency_spread_layering"
@@ -30030,12 +30033,12 @@
               "deliberate_dynamic_preservation_mastering_request_for_extended_composition"
             ]
           },
-          "wow_factor_total": 9.92,
+          "wow_factor_total": 9.95,
           "documented_song_inspirations": [
             "Soundgarden Head Down",
             "NIN The Day The World Went Away"
           ],
-          "trade_offs": "Demands deep low-end clarity discipline (60-130 Hz frequency-slot management), patience, dynamic-preservation mastering. Niche audience."
+          "trade_offs": "Demands deep low-end clarity discipline (60-130 Hz frequency-slot management), patience, dynamic-preservation mastering."
         }
       }
     }
