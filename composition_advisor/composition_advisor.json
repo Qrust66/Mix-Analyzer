@@ -12683,6 +12683,8 @@
       "atmospheric_continuity_over_dynamic_contrast": {
         "id": "atmospheric_continuity_over_dynamic_contrast",
         "rule": "Build a song where SUSTAINED ATMOSPHERIC CONTINUITY is the primary aesthetic, NOT quiet/loud dynamic contrast. Sections shift via harmonic + textural variation rather than via volume + intensity changes. Reverb + sustain + spacious mix support this.",
+        "electronic_translation": "Build a track where SUSTAINED ATMOSPHERIC CONTINUITY is the primary aesthetic — NO quiet/loud dynamic contrast. Sections shift via HARMONIC + TEXTURAL VARIATION (chord-color shift from Aeolian to Dorian, texture-density change from 4 layers to 7 layers, timbre evolution via filter modulation) rather than via volume/intensity changes. Sustain everything via long reverb tails (4-12s convolution reverb on pads), preserved decay (no aggressive gate), spacious mix that breathes. Apply for: ambient pieces (Eno, Stars of the Lid, William Basinski lineage), dub-techno extended workouts (Basic Channel/Pole — section change via texture not volume), dark-ambient compositions (Lustmord, Atrium Carceri), neo-classical-electronic sustained pieces (Olafur Arnalds 'Found Songs' atmospheric continuity), drone-techno meditative tracks. Different from `extended_dynamic_arc` — this REJECTS dynamic-arc as the structural mechanism and substitutes textural continuity. Pair with `harmonic_minimalism_one_cycle_repeated` for sustained-atmosphere compositions.",
+        "electronic_target_genres": ["ambient", "dub_techno", "neo_classical_electronic"],
         "applicability_text": "Atmospheric tracks where dynamic shifts would feel cheap; songs prioritizing texture/harmony over architecture; bands with mix engineer who can sustain atmospheric depth.",
         "wow_factor": 0.76,
         "tier": "silver",
@@ -12703,6 +12705,8 @@
       "seven_four_asymmetric_meter_as_structural_device": {
         "id": "seven_four_asymmetric_meter_as_structural_device",
         "rule": "Use 7/4 (or other long asymmetric meters: 11/8, 13/8) as STRUCTURAL DEVICE rather than as decorative complexity. The long asymmetric cycle should feel HYPNOTIC + STATELY — listeners inhabit the cycle. 7-beat groupings can subdivide as 4+3, 3+4, 3+2+2, or 2+3+2 depending on rhythmic emphasis.",
+        "electronic_translation": "Use 7/4 (or 11/8, 13/8) as STRUCTURAL DEVICE — slow tempo (80-95 BPM), long cycle, HYPNOTIC + STATELY feel, listener inhabits the cycle rather than counts it. Set DAW time-sig to 7/4. Choose grouping that fits intent: 4+3 (rolling, dance-friendly), 3+4 (off-balance, prog-tradition), 3+2+2 (riff-spelling), 2+3+2 (lilting). Program drum patterns + bass-line + chord-pad changes that AUDIBLY spell the chosen grouping. Apply for: drone-techno meditative pieces (Donato Dozzy / Voices From The Lake-tradition long cycles in odd meter), ambient with rhythmic foundation (Aphex Twin 'Ambient Works II'-adjacent slow pulses in 7/4), IDM compositional ambition (Autechre 'Garbagemx36'-tradition long-cycle pieces), neo-classical-electronic with classical odd-meter heritage. Different from `five_four_groove_natural` — this is meter-as-MEDITATION rather than meter-as-LILT. Pair with `drone_foundation_as_compositional_anchor`.",
+        "electronic_target_genres": ["techno", "ambient", "IDM"],
         "applicability_text": "Atmospheric rock/post-rock/drone-doom-adjacent compositions where asymmetric meter + drone harmony serve meditative or hypnotic intent.",
         "wow_factor": 0.83,
         "tier": "gold",
@@ -12723,6 +12727,8 @@
       "drone_foundation_as_compositional_anchor": {
         "id": "drone_foundation_as_compositional_anchor",
         "rule": "Build a song where SUSTAINED LOW-FREQUENCY DRONE is the harmonic gravity well. All other harmonic motion happens ABOVE the drone (suspended voicings, modal inflections) rather than via traditional chord progression. Drone should be present 80%+ of song duration.",
+        "electronic_translation": "Build a track around a SUSTAINED LOW-FREQUENCY DRONE as harmonic gravity-well. Layer the drone from: (a) Diva or Sub 37 sub-osc held on root (Eb1 or D1), (b) Spitfire LABS Soft Piano sustained low note, (c) field-recording rumble (industrial-machinery low end), (d) bass synth pad with very slow LFO modulation. Drone present 80%+ of track duration. All other harmonic motion happens ABOVE the drone — suspended voicings, modal inflections, slowly shifting upper-pad colors — rather than via traditional chord progression. The drone's psychoacoustic effect: listener's body locks to the low frequency, perceiving harmonic motion above as RELATIVE rather than absolute. Apply for: dark-ambient compositions (Lustmord, Thomas Köner — drone IS the piece), drone-techno (Mika Vainio, Pan Sonic tradition), neo-classical-electronic with sustained tonic foundation (Stars of the Lid extended drones), dub-techno with low-bass-anchor (Basic Channel signature low pedal), industrial-techno meditative tracks. Pair with `modal_voicings_above_drone_replace_chord_progression`.",
+        "electronic_target_genres": ["ambient", "dub_techno", "dark_electronic"],
         "applicability_text": "Atmospheric rock or drone-doom-adjacent compositions; tracks where harmonic stasis + textural exploration serve compositional intent.",
         "wow_factor": 0.81,
         "tier": "gold",
