@@ -11578,6 +11578,72 @@
           "godrich_unified_sixth_member": "Engineer-producer-mixer unified with band-creative-partnership (Radiohead OK Computer 1997 → Amnesiac 2001)."
         }
       }
+    },
+    "recipe_atom_schema": {
+      "_description": "Reference schema for each recipe atom inside `recipes`. Documented here for human readers + future tooling; not duplicated per-atom.",
+      "fields": {
+        "id": "snake_case identifier, globally unique within recipes_index. Inherited from advisor_extract.core_compositional_recipes[].id.",
+        "rule": "The rule text — single sentence describing what the recipe prescribes. Inherited verbatim.",
+        "wow_factor": "Float 0.0-1.0. Inherited verbatim from source recipe.",
+        "tier": "Computed: top/gold/silver/bronze/supporting per wow_factor_tiers axis.",
+        "source": "Object: {artist, song, album, year}. Provenance preserved.",
+        "composition_stage": "Single value from composition_stage axis.",
+        "compositional_axis": "Array of 1-3 values from compositional_axis axis (primary first).",
+        "genre_vocabulary": "Array of 1-2 values from genre_vocabulary axis.",
+        "applicability_tags": "Array of 2-5 values from applicability_tags axis.",
+        "personality_dominance": "Computed value from personality_dominance axis (argmax + tie-break).",
+        "personality_fit_breakdown": "Object: {cobain, reznor, daft_punk, yorke} with integer percentages summing to 100.",
+        "production_philosophy_lineage": "Single value from production_philosophy_lineage axis.",
+        "trade_offs": "String — inherited verbatim. Costs / risks / tradeoffs of using this recipe.",
+        "documented_example": "String — inherited verbatim. Source song that exemplifies the recipe.",
+        "synergy_recipes": "Array of recipe ids that COMBINE WELL with this one (evidence: co-presence in same song's advisor_extract).",
+        "conflict_recipes": "Array of recipe ids that CONTRADICT this one (logical conflict in rule premises).",
+        "evolution_recipes": "Array of recipe ids that represent VARIATIONS of the same idea at different scales / contexts."
+      }
+    },
+    "recipes": {
+      "_note": "Empty placeholder; will be populated in steps A2-A8 (one artist block per step, three sub-steps each). Each recipe atom keyed by its id, value is full atom per recipe_atom_schema."
+    },
+    "lenses": {
+      "_note": "Empty placeholder; will be populated in step A9. Each lens is an object whose keys are axis values and whose values are arrays of recipe ids matching that axis value. No data duplication — lenses are pointer collections.",
+      "expected_lenses": [
+        "by_personality_dominance",
+        "by_wow_factor_tier",
+        "by_composition_stage",
+        "by_compositional_axis",
+        "by_genre_vocabulary",
+        "by_applicability_tag",
+        "by_production_philosophy_lineage"
+      ]
+    },
+    "default_blend_projection": {
+      "_note": "Empty placeholder; will be populated in step A10. Computes top 30 recipes ranked by fit_score for the user's documented default personality blend.",
+      "blend_signature": "cobain_30_reznor_30_daft_punk_25_yorke_15",
+      "blend_vector": {"cobain": 30, "reznor": 30, "daft_punk": 25, "yorke": 15},
+      "fit_score_formula": "fit_score = sum(blend_vector[k] * recipe.personality_fit_breakdown[k] for k in [cobain, reznor, daft_punk, yorke]) / 10000.0  # normalized to 0.0-1.0 range",
+      "ranking_secondary_key": "wow_factor (descending) — used as tiebreaker when fit_scores within 0.01 of each other"
+    },
+    "synergy_clusters": {
+      "_note": "Empty placeholder; will be populated in step A11. Each cluster is an evidence-backed bundle of 3-5 recipes that co-appear in a song's advisor_extract or share documented compositional logic. Clusters are SEMANTIC GROUPS, not just pointer lists — each has a description + personality_fit + parent_song reference.",
+      "evidence_rule": "A cluster is valid if AT LEAST 2 of its recipes appear in the same song's advisor_extract OR if dissection text explicitly compares them as a coherent compositional approach."
+    },
+    "conflict_pairs": {
+      "_note": "Empty placeholder; will be populated in step A12. Each conflict pair is a logical contradiction between two recipes' rule premises. Used by future advisor tooling to prevent suggesting incompatible recipes within the same composition path.",
+      "logical_conflict_rule": "Two recipes conflict if their rules contain mutually exclusive premises (e.g., 'extreme_compressed_economy' rule premise: runtime < 3min; 'extended_form' rule premise: runtime > 6min). NOT aesthetic conflict — recipes that simply 'feel different' do not conflict."
+    },
+    "composition_path_templates": {
+      "_note": "Empty placeholder; will be populated in step A13. Each template is a coherent recipe bundle spanning composition→arrangement→performance→recording→mixing→mastering stages, designed as a self-contained 'recipe for a song' the user can follow.",
+      "template_schema": {
+        "name": "snake_case template id",
+        "description": "What the template produces",
+        "blend_signature": "Personality blend the template targets",
+        "starting_recipes": "Array of composition-stage recipe ids",
+        "next_stage_recipes": "Object keyed by stage (arrangement/performance/recording/mixing/mastering), each value an array of recipe ids",
+        "wow_factor_total": "Sum of wow_factors of all included recipes (rough quality budget)",
+        "documented_song_inspirations": "Array of source songs whose composition the template generalizes",
+        "trade_offs": "String describing what the template DEMANDS of the user (gear, skills, runtime, audience tolerance)"
+      },
+      "expected_template_count": 8
     }
   }
 }
