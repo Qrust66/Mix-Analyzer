@@ -8307,9 +8307,41 @@
           }
         },
         "Medication": {
-          "_status": "stub_pending_full_dissection_C5_4",
+          "_status": "C5_4a_composition_arrangement_done",
           "album": "Songs for the Deaf",
-          "year": 2002
+          "year": 2002,
+          "tempo_bpm_documented_range": [126, 134],
+          "time_signature": "4/4 throughout",
+          "key_area": "F-sharp minor area / G-sharp minor area",
+          "tuning_documented": "Drop D tuning",
+          "track_runtime": "~1:55",
+          "_special_status": "Track 14 on Songs for the Deaf (2002) — EXTREMELY SHORT track at 1:55. Functions as the album's MOST COMPRESSED-ECONOMY statement, demonstrating that QOTSA can deliver impact at extreme brevity. Vocals primarily Mark Lanegan (his lead-vocal QOTSA contribution beyond harmony role on other tracks). Demonstrates album's vocal democracy: Homme + Oliveri + Lanegan all lead vocals on different tracks.",
+          "composition": {
+            "primary_compositional_signature": "EXTREME COMPRESSED ECONOMY + LANEGAN-LED WHISKEY-BARITONE VOCAL — built around brief verse-chorus-bridge structure compressed into 1:55. Demonstrates QOTSA's MAXIMUM compositional discipline.",
+            "core_structural_arc": "Brief intro → verse with Lanegan vocal → chorus → bridge transition → final chorus → abrupt ending. Total ~1:55 — among shortest QOTSA songs.",
+            "harmonic_motion_summary": "MINOR-MODAL with chromatic riff motion. Tonic F-sharp/G-sharp minor area.",
+            "characteristic_compositional_choice": "EXTREME COMPRESSED ECONOMY + LANEGAN VOCAL DEMOCRACY — track demonstrates compositional discipline: every section delivered at maximum compression. Lanegan as lead vocalist (not just harmony) demonstrates album's vocal democracy beyond Homme/Oliveri pairs.",
+            "comparison_to_other_qotsa_dissection_compressed_tracks": "First It Giveth: 3:19 commercial single. Six Shooter: 3:08 punk economy. A Song for the Dead: 5:51 extended epic. Medication: 1:55 EXTREME compression. Four different scales of QOTSA compositional ambition.",
+            "comparison_to_zero_compressed_economy_pumpkins": "Zero (Pumpkins 1995): 2:40 industrial-leaning compressed. Medication (QOTSA 2002): 1:55 desert-rock compressed. Two different compressed-economy approaches across bands.",
+            "compositional_economy": "1:55 is EXTREME — among shortest tracks in dissection. Compositional movement hyper-dense.",
+            "innovation_for_genre_context": "2002 alt-rock context: most singles 3-4 min. Medication's <2 min length is statement against bloat, demonstrating compositional discipline."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "MINIMAL POWER-TRIO + LANEGAN VOCAL — same Homme + Oliveri + Grohl trio with Lanegan as featured lead vocalist. Minimal element count.",
+            "intro_arrangement": "Brief riff statement with full-band entry",
+            "verse_arrangement": "Riff continues, Lanegan whiskey-baritone vocal enters",
+            "chorus_arrangement": "Hook expansion, Lanegan vocal projects, possible Homme harmony backing",
+            "bridge_arrangement": "Brief textural shift",
+            "outro_arrangement": "Final chorus + abrupt ending",
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No extended sections (extreme compression aesthetic)"
+            ],
+            "what_makes_arrangement_unique_within_qotsa": "Medication represents QOTSA's MAXIMUM COMPRESSED-ECONOMY pole + LANEGAN-LED VOCAL pole. Within Songs for the Deaf range, Medication stakes the SHORT-FORM + LANEGAN-LEAD position.",
+            "comparison_to_other_lanegan_contributions_in_dissection": "First It Giveth: Lanegan as harmony GUEST. Medication: Lanegan as LEAD VOCAL. Demonstrates Lanegan's range from harmony contributor to lead vocalist within same album."
+          }
         },
         "Everybody_Knows_That_Youre_Insane": {
           "_status": "stub_pending_full_dissection_C5_5",
