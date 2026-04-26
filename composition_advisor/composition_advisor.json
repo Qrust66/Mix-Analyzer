@@ -8307,7 +8307,7 @@
           }
         },
         "Medication": {
-          "_status": "C5_4b_performance_recording_done",
+          "_status": "C5_4c_complete_exhaustive",
           "album": "Songs for the Deaf",
           "year": 2002,
           "tempo_bpm_documented_range": [126, 134],
@@ -8441,6 +8441,112 @@
               "Same unified-role framework deployed for compression-economy + vocal-democracy compositional intent",
               "Demonstrates Valentine's range across Songs for the Deaf"
             ]
+          },
+          "mixing": {
+            "mix_engineer": "Eric Valentine",
+            "mixing_studio": "The Sound Factory + Valentine's documented locations",
+            "mixing_philosophy_valentine_for_medication": "COMPRESSED ECONOMY MIX + LANEGAN VOCAL FORWARDNESS. Tight stereo + minimal automation + Lanegan whiskey-baritone forward.",
+            "drum_mix_balance": [
+              "Kick + snare punchy + tight",
+              "Hi-hat articulation prominent",
+              "Drum bus weight balanced for compressed-economy aesthetic",
+              "Less reverb than extended-form tracks"
+            ],
+            "guitar_mix_treatment": [
+              "Stereo width moderate — power-trio compressed",
+              "Less ambient layering than First It Giveth",
+              "Compression on guitar bus tight"
+            ],
+            "vocal_mix_treatment": [
+              "Lanegan vocal CENTERED + FORWARD — whiskey-baritone projection priority",
+              "Plate reverb + short delay for spatial depth",
+              "Compression preserves Lanegan's sustained baritone phrases"
+            ],
+            "bass_mix_treatment": [
+              "Oliveri bass forward",
+              "Bass-kick tight coordination"
+            ],
+            "spatial_treatment": [
+              "Stereo field tighter than First It Giveth (compression aesthetic)",
+              "Reverb usage minimal",
+              "Plate reverbs on drums + vocal for warmth"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying transient detail",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No extended mix automation (compression aesthetic)"
+            ],
+            "what_makes_valentine_mix_distinct_for_medication": [
+              "Lanegan whiskey-baritone forward — distinct vocal placement from Homme tracks",
+              "Compressed-economy mix balance",
+              "Same unified-role framework for compression-economy compositional intent"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Brian Gardner",
+            "mastering_studio": "Bernie Grundman Mastering, Hollywood",
+            "mastering_philosophy_for_medication": [
+              "Gardner's documented approach: rock-radio-impact loudness + compressed-economy clarity",
+              "Compressed-economy track benefits from punch + clarity emphasis",
+              "2002 album-level mastering"
+            ],
+            "loudness_observed": "Album average around -8 to -9 LUFS. Medication near album average.",
+            "spectral_signature": "Gardner's documented sound: clear top-end, present mid-range, controlled aggressive low-end.",
+            "what_mastering_preserves_for_medication": [
+              "Compressed-economy transient detail",
+              "Lanegan whiskey-baritone vocal clarity",
+              "Stereo image (preserving Valentine's mix)"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "LANEGAN'S WHISKEY-BARITONE VOCAL + 1:55 EXTREME COMPRESSED ECONOMY — listeners hear QOTSA at maximum compression with distinct vocal identity.",
+            "level_2_arrangement_signature": "MINIMAL POWER-TRIO + LANEGAN LEAD VOCAL — same trio with vocal democracy beyond Homme/Oliveri pairs.",
+            "level_3_compositional_signature": "EXTREME COMPRESSED ECONOMY + VOCAL DEMOCRACY — demonstrates that compositional impact can be delivered at <2 min runtime when material is strong + vocalist identity is distinct. Lanegan-led tracks expand QOTSA's vocal range beyond binary Homme/Oliveri."
+          },
+          "advisor_extract": {
+            "recipe_name": "extreme_compressed_economy_with_guest_vocal_lead_democracy",
+            "applicability": "Bands seeking maximum compositional discipline + vocal range expansion via guest vocalist with documented distinct identity. Use when COMPRESSED ECONOMY + DISTINCT VOCAL IDENTITY together create the song's identity.",
+            "core_compositional_recipes": [
+              {
+                "id": "extreme_compressed_economy_under_two_minutes",
+                "rule": "Compose track at EXTREME COMPRESSED ECONOMY (<2 min) within an album that includes longer tracks. Demonstrates compositional discipline; provides palette-cleanser within longer album. Compositional movement hyper-dense.",
+                "wow_factor": 0.78,
+                "documented_example": "Medication (QOTSA, Songs for the Deaf 2002, 1:55) — extreme compressed economy",
+                "trade_offs": "Demands strong material since duration doesn't allow development. Risk of feeling like sketch rather than song.",
+                "personality_fit": "Cobain 40 / Reznor 25 / Daft Punk 20 / Yorke 15"
+              },
+              {
+                "id": "guest_vocalist_lead_for_distinct_identity_track",
+                "rule": "Allow GUEST VOCALIST with documented distinct identity to LEAD vocals on specific tracks (not just harmony). Different vocal identity = different emotional territory. Vocal democracy expands band's range.",
+                "wow_factor": 0.81,
+                "documented_example": "Mark Lanegan lead vocal on Medication (QOTSA Songs for the Deaf 2002) — Lanegan range from harmony GUEST (First It Giveth) to LEAD VOCAL (Medication)",
+                "trade_offs": "Risk of audience disorientation if guest vocalist's identity unfamiliar. Demands available guest with distinct identity.",
+                "personality_fit": "Cobain 30 / Reznor 30 / Yorke 25 / Daft Punk 15"
+              },
+              {
+                "id": "vocal_democracy_three_lead_vocalists_within_album",
+                "rule": "Allow THREE OR MORE band members + guests to lead vocals within same album, depending on song's compositional needs. Songs for the Deaf: Homme leads most tracks, Oliveri leads punk-aggression tracks (Six Shooter), Lanegan leads compression-economy tracks (Medication). Vocal democracy as compositional principle.",
+                "wow_factor": 0.83,
+                "documented_example": "Songs for the Deaf (QOTSA 2002) — Homme + Oliveri + Lanegan vocal democracy",
+                "trade_offs": "Risk of inconsistent album identity if vocal-democracy too varied. Requires strong individual vocal identities for each lead.",
+                "personality_fit": "Cobain 35 / Reznor 25 / Yorke 20 / Daft Punk 20"
+              },
+              {
+                "id": "compressed_economy_drumming_restrained_precision",
+                "rule": "When drumming on compressed-economy tracks (<2 min), restrain technical display + extended fills. Every hit purposeful. Drummer's discipline serves compositional discipline.",
+                "wow_factor": 0.74,
+                "documented_example": "Grohl's Medication drumming — restrained compressed precision distinct from his A Song for the Dead drum-feature",
+                "trade_offs": "Demands drummer with discipline + ego subordination. Risk of feeling underwhelming if drummer expects spotlight.",
+                "personality_fit": "Cobain 35 / Daft Punk 30 / Reznor 20 / Yorke 15"
+              }
+            ],
+            "production_philosophy_signature_valentine_compressed_economy": {
+              "philosophy": "Same Valentine engineer-producer-mixer unified-role framework as FIG + Six Shooter + A Song for the Dead applied to COMPRESSED ECONOMY + VOCAL DEMOCRACY compositional intent. FOUR documented Valentine compositional-intent supports within Songs for the Deaf alone.",
+              "applicability": "Bands seeking unified-role production across diverse compositional intents including extreme compression + vocal democracy",
+              "key_insight": "Unified-role producers can support FOUR opposite-pole compositional intents within same album: mid-tempo groove + punk-aggression + extended-epic + compressed-economy. Production framework adapts to compositional intent."
+            },
+            "structural_choice_summary": "Extreme compressed economy + Lanegan-led whiskey-baritone vocal + power-trio minimal arrangement — Medication demonstrates QOTSA's COMPRESSED ECONOMY + VOCAL DEMOCRACY pole. Vocal democracy as compositional principle expanding band's range."
           }
         },
         "Everybody_Knows_That_Youre_Insane": {
