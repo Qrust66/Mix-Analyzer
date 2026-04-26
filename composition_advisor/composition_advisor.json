@@ -9067,7 +9067,7 @@
           "songs_to_dissect": ["Harder_Better_Faster_Stronger", "Giorgio_By_Moroder", "Veridis_Quo", "Around_The_World"]
         },
         "Around_The_World": {
-          "_status": "C6_1b_performance_recording_done",
+          "_status": "C6_1c_complete_exhaustive",
           "album": "Homework",
           "year": 1997,
           "_note": "Earliest of the 4 — pure analog filter house era",
@@ -9197,6 +9197,143 @@
             ],
             "comparison_to_reznor_auteur_recording_in_dissection": "Reznor (NIN): SOLO AUTEUR + programmed-sampled foundation in industrial-rock context, with engineer collaborator (Beavan, etc.). Daft Punk (Homework): DUO AUTEUR + programmed-sampled foundation in dance-music context, fully self-engineered/mixed. Two different auteur paradigms — solo vs. duo, industrial-rock vs. dance-music, with-engineer-collaborator vs. fully-self-engineered.",
             "production_philosophy_tenth_distinct_approach_in_dissection": "TEN distinct production approaches now: 1) Albini, 2) Vig+Wallace, 3) Date, 4) Beinhorn+O'Brien, 5) Kasper, 6) Flood+Moulder+Corgan, 7) Reznor solo-auteur, 8) Valentine, 9) Barresi, 10) BANGALTER + DE HOMEM-CHRISTO duo-auteur + home-studio + fully-self-produced + electronic-music paradigm."
+          },
+          "mixing": {
+            "mix_engineer": "Thomas Bangalter + Guy-Manuel de Homem-Christo (self-mixed)",
+            "mixing_studio": "Paris home studio",
+            "mixing_philosophy_daft_punk_for_around_the_world": "FILTER HOUSE MIX AESTHETIC + DANCE-FLOOR FUNCTION + HOME-STUDIO INTIMATE + ANALOG WARMTH. Daft Punk's documented self-mixing approach: deliver dance-floor function (kick + bass forward, claps articulated, vocoder centered) + analog filter warmth + filter modulation as audible compositional element.",
+            "drum_mix_balance": [
+              "TR-909 kick FORWARD + present — house-tradition kick prominence",
+              "Hi-hat + clap articulation prominent in mid-upper range",
+              "Drum bus filter modulation applied alongside other elements",
+              "Compression on kick + drum bus for dance-floor weight"
+            ],
+            "synth_mix_treatment": [
+              "Bass-line bass synth FORWARD — provides hypnotic harmonic anchor",
+              "Synth pads spread across stereo field for analog warmth",
+              "Filter modulation applied to multiple elements (drum bus, synth pads, possibly bass) for compositional movement",
+              "Reverb usage moderate — analog-house aesthetic"
+            ],
+            "vocoded_vocal_mix_treatment": [
+              "Vocoded 'Around the world' phrase CENTERED + present",
+              "Effects (delay, reverb) on vocoded phrase for spatial depth",
+              "Compression preserves vocoded character without crushing"
+            ],
+            "spatial_treatment_filter_house": [
+              "Stereo field WIDE for dance-music spatial impact",
+              "Reverb usage MODERATE — analog-house aesthetic favors controlled spatial",
+              "Filter modulation provides PERCEIVED spatial movement via frequency content sweep",
+              "Plate or analog reverbs on selected elements for warmth"
+            ],
+            "automation_used_in_mix": [
+              "FILTER MODULATION AUTOMATION across full song runtime — primary compositional element via mix automation",
+              "Layer level rides for progressive layering arrangement",
+              "Reverb send automation for section transitions",
+              "Vocoder phrase level rides"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying dance-floor weight",
+              "No drum sample replacement (TR-909 IS the drums)",
+              "No vocal pitch correction (vocoder masks vocal performance)",
+              "No traditional rock-mix template (filter-house aesthetic priority)"
+            ],
+            "comparison_to_rock_dissection_mixes": "Rock mixes use guitar wall + vocal forward + drum bus weight as primary elements. Daft Punk filter-house mix uses kick + bass + synth pads + filter modulation as primary elements. Different mix aesthetic for different genre context.",
+            "what_makes_daft_punk_mix_distinct_for_around_the_world": [
+              "FILTER MODULATION AS AUDIBLE COMPOSITIONAL ELEMENT — mix preserves filter sweep across full runtime",
+              "Dance-floor function priority — kick + bass + clap articulation",
+              "Analog-house warmth aesthetic — opposed to digital-pristine modern mix",
+              "Self-mixed by composers — compositional intent preserved"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Nilesh Patel (documented Homework mastering — at The Exchange Mastering, London)",
+            "mastering_studio": "The Exchange Mastering, London",
+            "mastering_philosophy_for_around_the_world": [
+              "Patel's documented approach: dance-music club-system loudness + analog-house warmth preservation",
+              "1997 album-level mastering — Homework pre-aggressive-loudness-war, dynamic detail preserved",
+              "House tradition: track must work on club sound systems (large-format speakers + sub-bass)"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS (1997 era). Around the World extended runtime allows dynamic shifts.",
+            "spectral_signature": "Patel's documented sound: clear top-end, present mid-range, robust low-end suitable for club playback.",
+            "what_mastering_preserves_for_around_the_world": [
+              "Filter modulation across runtime",
+              "Dance-floor kick + bass weight",
+              "Vocoded phrase clarity",
+              "Stereo image (preserving Daft Punk's mix decisions)"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "VOCODED 'AROUND THE WORLD' REPETITION + FILTER MODULATION ARC + 4-ON-THE-FLOOR HOUSE FOUNDATION — listeners hear filter house at peak hypnotic-repetition + analog-warmth.",
+            "level_2_arrangement_signature": "FILTER HOUSE LAYERED ARRANGEMENT — programmed drums + bass-line + vocoded phrase + analog synth pads + filter modulation arc + progressive layering across 7:09.",
+            "level_3_compositional_signature": "FILTER MODULATION AS COMPOSITIONAL ENGINE — Daft Punk demonstrate that ANALOG FILTER MODULATION can SUBSTITUTE for traditional harmonic motion as compositional movement. Influences subsequent filter-house + electronic-dance-music + filter-modulation-as-composition tradition. Pure French house philosophy."
+          },
+          "advisor_extract": {
+            "recipe_name": "filter_house_hypnotic_repetition_with_filter_modulation_as_compositional_engine",
+            "applicability": "Electronic dance music, filter-house, French house, deep-house, or any genre seeking hypnotic-repetition + filter-modulation as compositional movement engine. Use when COMPOSITIONAL MOVEMENT VIA FILTER MODULATION + ARRANGEMENT LAYERING substitutes for traditional harmonic progression.",
+            "core_compositional_recipes": [
+              {
+                "id": "filter_modulation_as_compositional_engine",
+                "rule": "Use ANALOG FILTER MODULATION (sweeping filter cutoff up/down across song's runtime) as PRIMARY COMPOSITIONAL ENGINE substituting for traditional harmonic motion. Filter at lower cutoff = harmonic compression / closed feel; filter opening = harmonic expansion / open feel. Filter modulation IS movement.",
+                "wow_factor": 0.85,
+                "documented_example": "Around the World (Daft Punk, Homework 1997, 7:09) — filter modulation across runtime as primary compositional engine",
+                "trade_offs": "Demands analog filter equipment or quality digital filter emulation. Requires understanding of filter character. Less viable in pure-acoustic contexts.",
+                "personality_fit": "Daft Punk 60 / Reznor 25 / Yorke 10 / Cobain 5"
+              },
+              {
+                "id": "four_on_the_floor_120_bpm_house_foundation",
+                "rule": "Use 4-ON-THE-FLOOR drum pattern (kick on every beat) at 120-128 BPM as house-tradition compositional foundation. Pattern provides DANCE-FLOOR FUNCTION + LISTENER LOCK-IN. Foundation supports any genre ambition above (deep-house, filter-house, French-house, tech-house, etc.).",
+                "wow_factor": 0.78,
+                "documented_example": "Around the World — 4-on-the-floor 120 BPM TR-909 foundation",
+                "trade_offs": "Genre commitment to dance-music tradition. Less viable in rock or art-music contexts.",
+                "personality_fit": "Daft Punk 60 / Reznor 20 / Cobain 10 / Yorke 10"
+              },
+              {
+                "id": "vocoded_vocal_phrase_as_instrument_not_lyric",
+                "rule": "Use VOCODED VOCAL PHRASE repeated hypnotically as INSTRUMENT not as LYRIC. Vocoder masks vocal idiosyncrasies; phrase becomes textural-melodic element rather than narrative-emotional element. Listener hears it as instrument.",
+                "wow_factor": 0.81,
+                "documented_example": "Around the World — vocoded 'Around the world' phrase repeated as instrument",
+                "trade_offs": "Loses vocal narrative + emotional dimension. Demands strong phrase + vocoder character.",
+                "personality_fit": "Daft Punk 60 / Reznor 25 / Yorke 10 / Cobain 5"
+              },
+              {
+                "id": "progressive_layering_arrangement_arc",
+                "rule": "Build extended-form (5+ minutes) electronic track via PROGRESSIVE LAYERING ARRANGEMENT — start with kick + bass-line foundation, add layers progressively across runtime, peak density section, strip layers progressively, return to foundation. Dance-music tradition allows extended runtime via this arrangement structure.",
+                "wow_factor": 0.79,
+                "documented_example": "Around the World 7:09 progressive layering arc",
+                "trade_offs": "Demands extended-form runtime. Won't work in commercial-single contexts.",
+                "personality_fit": "Daft Punk 55 / Reznor 25 / Yorke 15 / Cobain 5"
+              },
+              {
+                "id": "duo_auteur_self_produced_home_studio_paradigm",
+                "rule": "DUO AUTEUR self-produced + self-engineered + self-mixed paradigm in HOME STUDIO. No external producer, no external engineer, no external mixer. Two creators sharing creative + technical work. Pure compositional intent preserved across all production stages.",
+                "wow_factor": 0.83,
+                "documented_example": "Daft Punk (Bangalter + de Homem-Christo) Homework 1997 — duo auteur fully self-produced in Paris home studio",
+                "trade_offs": "Demands two creators with broad technical + creative skills. Loses external perspective. Demands compatible duo dynamic.",
+                "personality_fit": "Daft Punk 65 / Reznor 25 / Yorke 5 / Cobain 5"
+              },
+              {
+                "id": "tr_909_drum_machine_as_compositional_instrument",
+                "rule": "Treat ROLAND TR-909 (or equivalent classic drum machine) as PRIMARY COMPOSITIONAL INSTRUMENT — its character + sound + programming workflow IS compositional. Drum machine programming choices ARE composition.",
+                "wow_factor": 0.76,
+                "documented_example": "TR-909 documented as Daft Punk's Homework primary drum machine, including Around the World",
+                "trade_offs": "Requires TR-909 access (vintage) or quality emulation. Genre commitment to electronic-music tradition.",
+                "personality_fit": "Daft Punk 60 / Reznor 25 / Cobain 10 / Yorke 5"
+              },
+              {
+                "id": "compositional_movement_via_filter_not_via_chord_change",
+                "rule": "Achieve compositional movement via FILTER MODULATION + ARRANGEMENT DENSITY rather than via TRADITIONAL CHORD PROGRESSION. Bass-line + tonic establishes harmonic anchor; filter sweep + layering provides perceived motion. Voice-leading minimal; movement is textural + filter-driven.",
+                "wow_factor": 0.82,
+                "documented_example": "Around the World — minimal chord motion, extensive filter modulation as compositional motion",
+                "trade_offs": "Demands genre context where listeners accept non-progression-based composition. Less viable in song-tradition genres.",
+                "personality_fit": "Daft Punk 60 / Reznor 30 / Yorke 5 / Cobain 5"
+              }
+            ],
+            "production_philosophy_signature_daft_punk_duo_auteur_filter_house": {
+              "philosophy": "DUO AUTEUR + HOME STUDIO + FULLY SELF-PRODUCED + FILTER HOUSE COMPOSITIONAL APPROACH. Bangalter + de Homem-Christo handle all creative + technical roles. Filter modulation as compositional engine.",
+              "applicability": "Electronic dance music duos seeking pure compositional control + filter-house tradition",
+              "lineage_within_dissection": "TENTH distinct production philosophy: 1-9 plus DUO AUTEUR ELECTRONIC-MUSIC paradigm. Proves auteur paradigm scales to duos as well as solo creators."
+            },
+            "structural_choice_summary": "Filter house hypnotic repetition + filter modulation as compositional engine + vocoded phrase + 4-on-the-floor + duo auteur self-produced — Around the World demonstrates Daft Punk's PURE FILTER HOUSE pole. Pure French house compositional philosophy."
           }
         },
         "Harder_Better_Faster_Stronger": {
