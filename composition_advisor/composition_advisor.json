@@ -5982,7 +5982,7 @@
           }
         },
         "The_Day_The_World_Went_Away": {
-          "_status": "C4_2b_performance_recording_done",
+          "_status": "C4_2c_complete_exhaustive",
           "album": "The Fragile",
           "year": 1999,
           "tempo_bpm_documented_range": [80, 86],
@@ -6136,6 +6136,155 @@
             ],
             "comparison_to_march_of_the_pigs_recording": "March of the Pigs (1994, Le Pig, Reznor+Beavan in-house mixing): pure auteur, programmed-aggression foundation, dark mythology recording site. TDTWWA (1999, Nothing Studios + Moulder mix): auteur with expanded collaboration, atmospheric-foundation, longer recording timeline. SAME ARTIST'S RECORDING APPROACH EVOLVED across 5 years and across opposite-pole compositional intents.",
             "production_philosophy_evolution_within_nin_catalog": "Downward Spiral (1994): Reznor pure auteur, in-house mix. Fragile (1999): Reznor auteur with Moulder mixing, expanded collaboration. With Teeth (2005): Reznor auteur with Atticus Ross production partner emerging + Dave Grohl on drums. Hesitation Marks (2013): Reznor + Ross modular-electronic evolution. Reznor's auteur framework expands to MORE COLLABORATION across catalog while retaining auteur identity."
+          },
+          "mixing": {
+            "mix_engineer": "Alan Moulder (Fragile mix throughout — Moulder's prominent role on Fragile vs. limited role on Downward Spiral)",
+            "mixing_studio": "Various Fragile mix locations including Nothing Studios + Moulder's preferred rooms",
+            "mixing_philosophy_moulder_for_tdtwwa": "ATMOSPHERIC SUSTAIN PRESERVATION + EMOTIONAL CLARITY + MINIMAL ELEMENT FORWARDNESS. Moulder's documented Fragile mix approach: each minimal element gets MAXIMUM emotional weight via mix placement, atmospheric textures preserved with full spatial depth, vocal forward but emotionally embedded.",
+            "drum_mix_balance": [
+              "Sparse programmed kick + percussion forward but RESTRAINED — drums serve atmospheric pulse, not aggressive foundation",
+              "Possible long reverb tails on selected percussion hits for atmospheric extension",
+              "No drum bus aggressive parallel saturation (opposite of March of the Pigs mix approach)",
+              "Cymbal/atmospheric percussion samples blended subtly for textural color",
+              "Minimum-element-count approach — each drum element earns its presence in mix"
+            ],
+            "guitar_or_synth_mix_treatment": [
+              "Atmospheric synth pads spread WIDE across stereo field for harmonic field depth",
+              "Multiple synth-pad layers EQ-staggered for frequency-spread (similar layering principle to rock guitar walls but for synth pads)",
+              "Reverb on synth pads MORE than typical mix — atmospheric extension priority",
+              "Minimal compression on synth-pad bus — preserves natural sustain character",
+              "If guitars present, processed for atmospheric color, low in mix"
+            ],
+            "vocal_mix_treatment": [
+              "Reznor vocal CENTERED + FORWARD — emotional vulnerability requires intimate placement",
+              "REVERB CHAIN: plate + hall reverb blend for spatial depth without losing intelligibility",
+              "Compression preserves long sustained phrases without artifacts",
+              "EQ carve in low-mid avoids vocal clashing with synth-pad foundation",
+              "Vocal CLEAN + INTIMATE — opposite of March of the Pigs distorted-aggressive vocal",
+              "Possible subtle vocal layering in chorus expansion (doubles, octave ghost-doubles) for emphasis"
+            ],
+            "bass_mix_treatment": [
+              "Sub-bass synth subtle — provides harmonic anchor without dominating",
+              "Light compression preserves natural envelope",
+              "Bass + kick coordinated via complementary frequency placement, less aggressive than March of the Pigs"
+            ],
+            "spatial_treatment_atmospheric_vulnerability": [
+              "REVERB MAXIMIZED on atmospheric elements — long tails, hall + plate blends, spatial depth priority",
+              "Stereo field WIDE — synth pads spread for harmonic field expansion",
+              "Vocal centered for emotional anchor amid wide atmospheric field",
+              "No aggressive industrial-precision treatments — atmospheric vulnerability requires SPACE"
+            ],
+            "automation_used_in_mix": [
+              "Subtle gradual mix automation across the song's gentle build",
+              "Vocal level rides for emotional phrase emphasis",
+              "Reverb send automation — possibly more reverb in chorus expansion than verses",
+              "Synth-pad layer rides — additional pads enter as the song builds"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying atmospheric breathing",
+              "No drum sample replacement (programmed elements ARE the drums)",
+              "No vocal pitch correction",
+              "No aggressive industrial mix treatments — atmospheric vulnerability requires opposite mix approach",
+              "No abrupt level shifts — gradual atmospheric flow priority"
+            ],
+            "comparison_to_march_of_the_pigs_mix": "March of the Pigs (Reznor+Beavan in-house mix 1994): industrial precision, dramatic dynamic-contrast, aggressive vocal saturation, hard ending. TDTWWA (Moulder mix 1999): atmospheric sustain, gradual gentle build, intimate clean vocal, gradual fade. Same artist's catalog at opposite mix poles.",
+            "what_makes_moulder_mix_distinct_for_tdtwwa": [
+              "ATMOSPHERIC SUSTAIN PRESERVATION — Moulder's documented Fragile approach gives synth pads maximum spatial depth",
+              "Vocal intimacy preserved through forward placement + clean processing",
+              "Minimum-element-count emphasis — each element earns its mix presence",
+              "Long reverb tails preserved — atmospheric extension priority",
+              "Moulder's NIN-association evolution: from Downward Spiral select-track mixing to Fragile full-album mixing — increased collaborative role"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Tom Baker (Fragile mastered — same Baker as Downward Spiral, NIN mastering continuity)",
+            "mastering_studio": "Precision Mastering, Hollywood",
+            "mastering_philosophy_for_tdtwwa": [
+              "Baker's documented approach: preserve atmospheric character + emotional dynamics",
+              "TDTWWA's atmospheric sustain requires PRESERVED reverb tails + dynamic breathing — mastering must NOT compress atmospheric extension",
+              "1999 album-level mastering — Fragile near loudness-war but Baker preserves dynamic detail for atmospheric tracks"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS integrated estimate. TDTWWA specifically QUIETER than album peak tracks — atmospheric character requires preserved dynamic range.",
+            "spectral_signature": "Baker's documented sound: clear top-end, present mid-range, controlled low-end. TDTWWA benefits — atmospheric textures clearly defined through master.",
+            "what_mastering_preserves_for_tdtwwa": [
+              "Atmospheric reverb tails + spatial depth",
+              "Vocal intimacy + emotional dynamics",
+              "Synth-pad layer clarity (frequency-spread layering reads through master)",
+              "Subtle gradual build (no compression flattening)"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "REZNOR'S MOST VULNERABLE VOCAL + ATMOSPHERIC SYNTH-PAD FOUNDATION — listeners hear NIN's auteur-producer at his most emotionally exposed. The song's CONTRAST WITH NIN's industrial reputation is part of its impact.",
+            "level_2_arrangement_signature": "ATMOSPHERIC SUSTAIN-DRIVEN BALLAD with MINIMAL ELEMENT COUNT + GRADUAL SUBTLE BUILD. Reznor's compositional restraint deployed as emotional weapon.",
+            "level_3_compositional_signature": "EMOTIONAL VULNERABILITY VIA ATMOSPHERIC SUSTAIN — Reznor demonstrates that the SAME AUTEUR-PRODUCER WHO MADE INDUSTRIAL EXTREMITY can ALSO make atmospheric ballads. Range demonstration: established artists can DELIBERATELY OPPOSE audience expectations via opposite-pole material. The auteur framework adapts to opposite emotional intents."
+          },
+          "advisor_extract": {
+            "recipe_name": "atmospheric_emotional_vulnerability_via_minimum_element_sustain",
+            "applicability": "Atmospheric ballad or post-rock compositions where emotional vulnerability is the song's identity. Use when MINIMAL ELEMENT COUNT + SUSTAIN + RESTRAINT together create maximum emotional impact.",
+            "core_compositional_recipes": [
+              {
+                "id": "minimum_viable_element_count_for_emotional_impact",
+                "rule": "Strip arrangement to FEWEST POSSIBLE ELEMENTS while maintaining emotional impact. Each element must EARN its presence. Synth-pad foundation + sparse percussion + vocal + bass = often sufficient. Density discipline = emotional clarity.",
+                "wow_factor": 0.85,
+                "documented_example": "TDTWWA (NIN, Fragile 1999) — minimum-viable-element-count atmospheric ballad",
+                "trade_offs": "Demands strong material since each element scrutinized. No 'hide in density' option. Risk of feeling thin if material weak.",
+                "personality_fit": "Yorke 45 / Reznor 30 / Cobain 15 / Daft Punk 10"
+              },
+              {
+                "id": "atmospheric_sustain_as_compositional_foundation",
+                "rule": "Build composition on SUSTAINED SYNTH-PAD textures providing harmonic field. Pads layered (multiple pads EQ-staggered) for frequency-spread depth. Pad sustain replaces traditional rhythmic-harmonic-foundation role of guitar/piano in band format.",
+                "wow_factor": 0.82,
+                "documented_example": "TDTWWA atmospheric synth-pad foundation",
+                "trade_offs": "Requires synthesizer + sample expertise. Less viable in pure-band-format contexts.",
+                "personality_fit": "Yorke 40 / Reznor 35 / Daft Punk 20 / Cobain 5"
+              },
+              {
+                "id": "auteur_framework_serving_opposite_emotional_intents",
+                "rule": "Use SAME auteur-producer framework to make OPPOSITE-POLE compositions on different albums or different songs within an album. Industrial extremity AND atmospheric ballad from same creator framework. Demonstrates artist's range; expands audience expectations.",
+                "wow_factor": 0.83,
+                "documented_example": "Reznor auteur framework: March of the Pigs (1994 industrial extremity) AND TDTWWA (1999 atmospheric ballad). Opposite poles, same auteur.",
+                "trade_offs": "Risk of audience confusion if range too wide. Demands artistic confidence to challenge audience expectations.",
+                "personality_fit": "Reznor 45 / Yorke 35 / Cobain 15 / Daft Punk 5"
+              },
+              {
+                "id": "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+                "rule": "When recording emotionally vulnerable vocal, use CLEAN PROCESSING (no saturation/distortion), DEEP REVERB (plate + hall), NO PITCH CORRECTION (preserves raw emotional quality), MULTIPLE COMPLETE TAKES (best emotional moment selected, not comped per-syllable). Recording environment must be intimate + comfortable.",
+                "wow_factor": 0.84,
+                "documented_example": "Reznor's TDTWWA vocal — most vulnerable in NIN catalog, clean processing, full reverb, raw take selection",
+                "trade_offs": "Demands vocalist comfortable with vulnerability. Demands engineer/producer who can preserve intimacy.",
+                "personality_fit": "Yorke 40 / Reznor 35 / Cobain 20 / Daft Punk 5"
+              },
+              {
+                "id": "gradual_subtle_build_not_dynamic_arc_explosion",
+                "rule": "Build emotional climax via VERY GRADUAL density addition rather than via dramatic dynamic-arc explosion. Subtle escalations across 4-5 minute song — additional synth layer, drum density slightly more active, vocal slightly more invested. Emotional release is FELT MORE THAN HEARD.",
+                "wow_factor": 0.81,
+                "documented_example": "TDTWWA gradual subtle build vs. Soma's explosive dynamic-arc — two different scales of emotional payoff",
+                "trade_offs": "Less obvious 'song peak' for listeners conditioned to dynamic-arc rock structure. Demands compositional confidence.",
+                "personality_fit": "Yorke 50 / Reznor 30 / Cobain 15 / Daft Punk 5"
+              },
+              {
+                "id": "drum_machine_serving_atmospheric_emotional_not_aggressive",
+                "rule": "Use programmed drums + samples for ATMOSPHERIC composition, not just for aggressive industrial-tempo extremity. Sparse kick pulse + atmospheric percussion samples + processed treatments = drum-machine-serving-atmosphere. Demonstrates programming's emotional range.",
+                "wow_factor": 0.78,
+                "documented_example": "TDTWWA programmed drums — minimal sparse atmospheric vs. March of the Pigs maximum aggressive industrial",
+                "trade_offs": "Demands restraint with programming tools (temptation to 'fill the grid' must be resisted)",
+                "personality_fit": "Reznor 45 / Yorke 30 / Daft Punk 20 / Cobain 5"
+              },
+              {
+                "id": "moulder_atmospheric_mix_sustain_preservation",
+                "rule": "When mixing atmospheric compositions, MAXIMIZE reverb on atmospheric elements (long tails, hall + plate blends), SPREAD synth-pad layers wide for harmonic field depth, place vocal centered + forward for emotional anchor, AVOID aggressive compression that would flatten atmospheric breathing.",
+                "wow_factor": 0.79,
+                "documented_example": "Alan Moulder's TDTWWA mix — atmospheric sustain preservation, intimate vocal placement",
+                "trade_offs": "Requires patience + trust in sustained elements. May read 'quieter' than aggressive contemporary masters.",
+                "personality_fit": "Yorke 40 / Reznor 35 / Cobain 15 / Daft Punk 10"
+              }
+            ],
+            "production_philosophy_signature_reznor_moulder_atmospheric": {
+              "philosophy": "Reznor auteur-producer framework EXPANDED to include Moulder mixing — atmospheric pole of NIN catalog. Single auteur creative vision + expanded mix collaboration = same auteur identity at expanded production scale.",
+              "applicability": "Established auteur-producers seeking expanded collaboration without losing creative identity, atmospheric/emotional projects",
+              "evolution_thread": "Spiral 1994 (pure auteur, in-house mix) → Fragile 1999 (auteur + Moulder mix collaboration) — Reznor's framework EVOLVES toward more collaboration while retaining auteur identity. Continues across With Teeth (Atticus Ross emerges) and Hesitation Marks (Ross full partner)."
+            },
+            "structural_choice_summary": "Atmospheric sustain-driven, minimum-viable-element-count, gradual subtle build, vulnerable vocal — TDTWWA demonstrates Reznor's MOST RESTRAINED + MOST EMOTIONALLY-VULNERABLE pole. Opposite of March of the Pigs's industrial extremity. Same auteur, opposite tools for opposite emotional intents. Proves established artists can DELIBERATELY CHALLENGE audience expectations via opposite-pole material."
           }
         },
         "Were_In_This_Together": {
