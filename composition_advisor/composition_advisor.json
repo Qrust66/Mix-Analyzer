@@ -12859,6 +12859,8 @@
       "riff_as_both_hook_and_structural_backbone": {
         "id": "riff_as_both_hook_and_structural_backbone",
         "rule": "Write a guitar riff that is SIMULTANEOUSLY the song's hook AND its structural backbone (continues through verses + reappears in choruses). Guitar riff carries melodic + harmonic + rhythmic identity. Vocal hook becomes secondary to riff hook.",
+        "electronic_translation": "Write a SYNTH-RIFF (lead-bass line, acid-bass pattern, or melodic-synth motif) that is SIMULTANEOUSLY the track's hook AND its structural backbone — riff continues through verses, returns at peak. The riff carries melodic + harmonic + rhythmic identity. Voice/lead-melody becomes secondary to riff-identity. Build on TB-303 acid-line (Phoscyon, AudioRealism), Sub 37 character-bass, Massive aggressive lead, or Operator FM bell-pattern. Apply for: acid-techno where 303-line IS the song (Hardfloor 'Acperience'-tradition, Plastikman lineage), industrial-techno riff-driven tracks (Surgeon, Perc), EBM signature-bass tracks (Front 242 'Headhunter'), synthwave hook-riff compositions (Kavinsky 'Nightcall' — synth-riff IS the song), electro-funk (Daft Punk 'Da Funk' Moog riff IS the track). Listener associates the track with its riff first, lyrics/lead-vocal second. Pair with `descending_riff_as_song_identity` and `wall_of_layered_guitars_frequency_spread_layering` (synth-stack version).",
+        "electronic_target_genres": ["techno", "synthwave", "EBM"],
         "applicability_text": "Heavy rock songs where the riff IS the song; tracks where guitar identity supersedes vocal identity; commercial-rock contexts wanting riff-driven memorability.",
         "wow_factor": 0.81,
         "tier": "gold",
@@ -12879,6 +12881,8 @@
       "sustained_intensity_no_dynamic_arc_economy": {
         "id": "sustained_intensity_no_dynamic_arc_economy",
         "rule": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge. Sustained intensity for full runtime (3-4 minutes for tight commercial economy). Choruses can EXPAND density but should not REDUCE intensity.",
+        "electronic_translation": "Build a track that stays at FULL DENSITY throughout (3-4 min compressed-economy form) — no breakdown, no atmospheric intro, no quiet bridge. Drop happens at bar 1 and never releases until track end. Choruses/peaks can ADD density (more layers, more saturation) but never REDUCE intensity. Apply for: industrial-techno punishment tracks within compressed runtime (Perc, Ancient Methods 3-min hard-techno), peak-time festival drops (Charlotte de Witte / Adam Beyer 4-min DJ-tools designed for max impact across full duration), EBM unrelenting tracks (Front 242 'Welcome to Paradise'), gabber/hard-techno crossovers, dark-electronic punk-energy bursts. Different from `extended_aggressive_track_5_min_plus` (which extends the runtime) — this COMPRESSES the form so the unrelenting density doesn't fatigue the listener. Pair with `compact_aggressive_under_2_minutes` for tightest version, or `compact_runtime_2_to_3_minutes` for slightly more breathing room.",
+        "electronic_target_genres": ["techno", "EBM", "dark_electronic"],
         "applicability_text": "Commercial-rock contexts wanting sustained intensity; tracks following Quiet/JCP-lineage compositional approach; songs where heaviness IS the identity.",
         "wow_factor": 0.79,
         "tier": "silver",
@@ -12899,6 +12903,8 @@
       "vig_meticulous_layering_recording_philosophy": {
         "id": "vig_meticulous_layering_recording_philosophy",
         "rule": "When recording multi-layered guitar arrangements, capture EACH LAYER cleanly (different mic placement, amp, pedal) so that subsequent mix layering reads clearly. Use parallel compression on drum bus for weight + transient detail. Engineer-producer role facilitates band's vision rather than imposing producer's template.",
+        "electronic_translation": "When PRODUCING multi-layered electronic arrangements, RECORD each layer cleanly + separately rather than freezing into a single bus prematurely. Each synth-pad layer to its own track (no submixing during creation). Each drum layer (kick, sub, snare, clap, hats, perc) on its own track with no shared bus comp during tracking. Parallel compression bus for drums (Drum Buss + Glue Comp 4:1, 6dB GR fed via send) provides weight + transient detail simultaneously. The DISCIPLINE: keep layers ATOMIC during production so the mix stage has complete control. This serves the BAND'S/ARTIST'S VISION rather than imposing template-glue prematurely. Apply for: complex layered electronic productions (synthwave wall-of-pads, ambient deep-layered works, electronic-pop multi-stem productions), techno tracks with intricate percussion design, IDM compositions with many sound-design layers. Pair with `wall_of_layered_guitars_frequency_spread_layering` (synth-stack version) for full meticulous-layering aesthetic.",
+        "electronic_target_genres": ["synthwave", "ambient", "electronic_pop"],
         "applicability_text": "Wall-of-sound recording sessions; bands with strong layering vision needing meticulous capture; producer role configured as facilitator.",
         "wow_factor": 0.77,
         "tier": "silver",
