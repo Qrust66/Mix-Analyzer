@@ -315,6 +315,138 @@ MELODIC_MOTIFS['modal_voice_leading_smooth_pad'] = {
 
 
 # ============================================================================
+# STATIC / OSCILLATING MOTIFS — minimal-element, asymmetric meters, pedal foundations
+# ============================================================================
+
+MELODIC_MOTIFS['eirp_floating_arpeggio_10_4'] = {
+    'id': 'eirp_floating_arpeggio_10_4',
+    'sources': [
+        ('Radiohead', 'Everything In Its Right Place', 'Rhodes electric piano floating arpeggio in 10/4'),
+        ('Radiohead', 'Pyramid Song', 'piano figure floating across ambiguous meter'),
+        ('NIN', 'Copy of A', 'modular pattern repeating with subtle micro-variations'),
+    ],
+    'advisor_recipes': [
+        'asymmetric_meter_as_album_opener_statement_of_intent',
+        'fender_rhodes_electric_piano_as_compositional_foundation',
+        'manipulated_vocal_samples_as_textural_color',
+        'minimum_element_electronic_experimental_arrangement',
+        'intentionally_ambiguous_rhythm_felt_not_counted',
+    ],
+    # 4-note arpeggio cell that reads in 10/4 as 5+5 OR 4+4+2 OR 2+3+2+3:
+    # 1 → 3 → 5 → 3 → ♭7 → 5 → 3 → 1 → 5 → 3
+    # Semitones from tonic in F minor (the actual EIRP key reference, but transposable):
+    # F-Ab-C-Ab-Eb-C-Ab-F-C-Ab in 10 hits across 10 beats = 1 hit/beat
+    # Intervals from tonic: 0, +3, +7, +3, +10, +7, +3, 0, +7, +3
+    'pitch_intervals_from_tonic': [0, 3, 7, 3, 10, 7, 3, 0, 7, 3],
+    # Each note 1 beat exactly = 10 beats total = 1 bar in 10/4
+    'rhythm_beats': [(float(i), 1.0) for i in range(10)],
+    # Subtle velocity contour — each new arpeggio peak slightly accented
+    'velocity_contour': [88, 80, 92, 78, 95, 82, 78, 88, 90, 78],
+    'character_tags': ['arpeggio', 'asymmetric_meter', 'floating', 'rhodes', 'minimal_element', 'ambiguous'],
+    'duration_total_beats': 10.0,
+    'time_sig': (10, 4),
+    'transformations_allowed': [
+        'transpose', 'fragment', 'rhythmic_displace',
+        # NOT invert/retrograde — pattern character is in the contour
+    ],
+    'notes_on_use': (
+        'Loop continuously across an entire section (8-16 bars in 10/4). The 10/4 grouping '
+        '(perceived as 5+5 by most listeners) creates the asymmetric-felt-not-counted floating '
+        'quality. Voice on Rhodes/electric-piano sample — NOT on saw-lead synth (kills the '
+        'character). Pair with sustained tonic drone underneath (e.g. F1 if rendering in F). '
+        'Apply micro-variations every 4-bar repetition: random velocity ±10, occasionally swap '
+        'note positions 4 and 5 for variety. The repetition IS the song foundation.'
+    ),
+}
+
+
+MELODIC_MOTIFS['head_down_modal_above_drone_7_4'] = {
+    'id': 'head_down_modal_above_drone_7_4',
+    'sources': [
+        ('Soundgarden', 'Head Down', 'modal voicings shifting in 7/4 above sustained B drone'),
+        ('Radiohead', 'Pyramid Song', 'modal motion above sustained piano roots'),
+        ('NIN', 'The Day The World Went Away', 'sustained pad above held tonic'),
+    ],
+    'advisor_recipes': [
+        'seven_four_asymmetric_meter_as_structural_device',
+        'modal_voicings_above_drone_replace_chord_progression',
+        'drone_foundation_as_compositional_anchor',
+        'long_asymmetric_cycle_for_meditation_not_complexity',
+    ],
+    # 7/4 grouped as 4+3 (rolling). Modal motion: 5 → ♭7 → 1(oct) → 5 → ♭7 → 5 → 4
+    # Each cell uses upper modal-tones above tonic
+    # Semitones: +7, +10, +12, +7, +10, +7, +5
+    'pitch_intervals_from_tonic': [7, 10, 12, 7, 10, 7, 5],
+    # Long-short-long-short-medium-medium-long pattern ALIGNED with 4+3 grouping
+    # Group 1 (4 beats): 2-1-1
+    # Group 2 (3 beats): 1-0.5-1.5
+    'rhythm_beats': [(0.0, 2.0), (2.0, 1.0), (3.0, 1.0),
+                     (4.0, 1.0), (5.0, 0.5), (5.5, 0.5), (6.0, 1.0)],
+    'velocity_contour': [88, 95, 100, 85, 92, 88, 75],
+    'character_tags': ['modal', 'asymmetric_meter', 'drone_above', 'meditative', 'stately'],
+    'duration_total_beats': 7.0,   # 1 bar in 7/4
+    'time_sig': (7, 4),
+    'transformations_allowed': [
+        'transpose', 'fragment', 'rhythmic_displace',
+    ],
+    'notes_on_use': (
+        'Voice as upper synth-pad melodic-line above sustained root drone (which lives in '
+        'the SUB or BASS track). Feels meditative-stately at 80-95 BPM. The 4+3 grouping '
+        '(beat 1, beat 5 = strong) makes the asymmetric meter FEEL natural rather than '
+        'counted. Loop for 16 bars in 7/4 = 112 beats = ~84 sec at 80 BPM (a meditation '
+        'cycle). At higher tempos the meditation breaks; better to fragment to 3-beat or '
+        '4-beat sub-phrases.'
+    ),
+}
+
+
+MELODIC_MOTIFS['national_anthem_pedal_bass_walking'] = {
+    'id': 'national_anthem_pedal_bass_walking',
+    'sources': [
+        ('Radiohead', 'The National Anthem', 'D-rooted bass-line that Yorke wrote at age 16'),
+        ('NIN', 'March of the Pigs', 'tonic-pedal anchored aggressive bass'),
+        ('Daft Punk', 'Around the World', 'four-on-floor bass with pedal anchor'),
+    ],
+    'advisor_recipes': [
+        'bass_line_first_compositional_method',
+        'drone_foundation_as_compositional_anchor',
+        'mingus_locked_rhythm_plus_free_horn_compositional_template',
+        'rhythmic_emphasis_over_harmonic_movement_industrial_lesson',
+    ],
+    # Walking bass anchored on tonic D, with chromatic surprises
+    # Pattern: 1 → 1 → ♭3 → 5 → 1 → 1 → ♭7 → ♭2 (the ♭2 is the Phrygian inflection / chromatic surprise)
+    # Semitones: 0, 0, 3, 7, 0, 0, -2, 1 (or +1 = Eb, which becomes Phrygian color)
+    'pitch_intervals_from_tonic': [0, 0, 3, 7, 0, 0, -2, 1],
+    # Mostly 16th-notes locked-tight with TWO sustains — gives "pedal anchored" feel
+    # Beat positions: 0 (sustain 1.5) → 1.5 (0.5) → 2 (0.5) → 2.5 (0.5) → 3 (sustain 1.5)
+    # Wait, 8 notes total. Let me redesign timing for 8-note phrase:
+    # 0 - 0.5 - 1 - 1.5 - 2 - 2.5 - 3 - 3.5 → all 8 hits each 0.5 long?
+    # No — make rhythmically interesting: long-short pattern alternating
+    'rhythm_beats': [
+        (0.0, 1.0), (1.0, 0.5), (1.5, 0.5),    # bar 1 first half: long-short-short
+        (2.0, 1.0), (3.0, 0.5), (3.5, 0.5),    # bar 1 second half: long-short-short
+        (4.0, 1.5), (5.5, 2.5),                 # bar 2: dotted-quarter then sustained 2.5
+    ],
+    'velocity_contour': [115, 95, 100, 110, 100, 105, 118, 90],   # downbeats accent
+    'character_tags': ['bass_line', 'pedal', 'walking', 'tonic_anchored', 'foundational', 'aggressive'],
+    'duration_total_beats': 8.0,   # 2 bars in 4/4
+    'time_sig': (4, 4),
+    'transformations_allowed': [
+        'transpose', 'fragment', 'octave_jump', 'rhythmic_displace',
+    ],
+    'notes_on_use': (
+        'BASS-FIRST compositional seed — write THIS, then build everything else around it. '
+        'Voice on Sub37 / Massive / TB-303 character bass synth. The Eb (Phrygian flat-2) '
+        'in note 8 is the "wrong note" that grounds the song identity — Yorke-tradition. '
+        'At 120-130 BPM this feels propulsive (NA-style). At 80-100 BPM feels heavy/dub. '
+        'Loop 16 bars (= 8 cycles of 2-bar pattern) for verse foundation. Pair with '
+        'unrelated lead-line on top (no need for harmonic chord-progression — bass + melody '
+        'is enough).'
+    ),
+}
+
+
+# ============================================================================
 # Render API — turn a motif into concrete MIDI notes
 # ============================================================================
 
