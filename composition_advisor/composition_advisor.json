@@ -14355,6 +14355,8 @@
       "drummer_punk_speed_capacity_within_diverse_album": {
         "id": "drummer_punk_speed_capacity_within_diverse_album",
         "rule": "Within an album of diverse compositional intents, ensure drummer can deliver PUNK-SPEED CAPACITY (180+ BPM) on aggressive tracks while also delivering MID-TEMPO GROOVE on robot-rock tracks. Drummer's range enables album's tonal range.",
+        "electronic_translation": "Within a diverse-tempo electronic album/EP, ensure your DRUM PROGRAMMING SETUP can deliver multiple tempo-zones convincingly: PUNK-SPEED tracks (155-180 BPM hard-techno + drum-and-bass leaning) AND MID-TEMPO GROOVE tracks (95-115 BPM downtempo / trip-hop / deep-house). The technique: build separate tempo-specific drum templates in Live (one for fast-tempo with 909-style precision + tight transient kick samples; one for mid-tempo with humanized swing + warmer kick samples), don't try to use a single drum-bus across opposite tempo zones. Each tempo demands its own kick-tuning, snare-character, hat-pattern density. Apply for: multi-tempo electronic albums spanning genre poles (techno + trip-hop concept albums, dark-electronic + ambient mixed releases), neo-classical-electronic albums with rhythmic-piece + meditative-piece variety, EBM + dub-techno crossover concept albums. Pair with `same_team_different_mix_per_song` for tempo-specific mix philosophies.",
+        "electronic_target_genres": ["techno", "trip_hop", "downtempo"],
         "applicability_text": "Albums with diverse tempos; sessions hiring drummer with multi-tempo capacity; bands planning punk-aggression tracks alongside groove tracks.",
         "wow_factor": 0.76,
         "tier": "silver",
@@ -14375,6 +14377,8 @@
       "punk_economy_arrangement_no_atmospheric_layers": {
         "id": "punk_economy_arrangement_no_atmospheric_layers",
         "rule": "When composing punk-aggression tracks, REJECT atmospheric layers + guest harmonies + extended sections. Lean power-trio arrangement at fast tempo. Every element earns its presence; atmosphere is rejected as inappropriate to punk-aggression.",
+        "electronic_translation": "For punk-aggression electronic tracks (hard-techno, EBM, gabber-influence, fast-tempo industrial-techno), REJECT atmospheric pad layers + extended ambient sections + guest-vocalist harmonies. Lean MINIMAL CORE (kick + sub-bass + saturated lead-synth + screamed-or-saturated vocal-as-instrument) at fast tempo. Every element EARNS its presence; ATMOSPHERE is rejected as INAPPROPRIATE to the punk-aggression aesthetic. No reverb-tail bleed, no pad-cushion, no melodic-interlude. Apply for: hard-techno punishment tracks (Charlotte de Witte, Perc lean-aggression aesthetic), gabber/hardcore (no atmosphere — pure aggression), EBM peak-tracks (Front 242 'Welcome to Paradise' lean form), industrial-techno fast-tempo without atmospheric distraction. Different from `wall_of_layered_pads` aesthetic — this is the OPPOSITE pole: aggressive minimum-element-count economy. Pair with `compact_aggressive_under_2_minutes` and `unrelenting_aggression_no_dynamic_arc`.",
+        "electronic_target_genres": ["techno", "EBM", "dark_electronic"],
         "applicability_text": "Punk-aggression tracks; songs where atmospheric layers would dilute punk character; lean arrangements at fast tempo.",
         "wow_factor": 0.74,
         "tier": "bronze",
@@ -14395,6 +14399,8 @@
       "vocal_saturation_for_hardcore_punk_aesthetic": {
         "id": "vocal_saturation_for_hardcore_punk_aesthetic",
         "rule": "When tracking + mixing screamed hardcore-punk vocals, use SATURATION + DISTORTION processing chains. Vocal as TEXTURAL AGGRESSION element, not as clean-melodic primary. Different processing chains than melodic-vocal tracks. Preserves raw screamed quality without taming it.",
+        "electronic_translation": "When tracking + mixing screamed/aggressive vocals (or processed-vocal-as-instrument for tracks without live vocalist), build a HARD SATURATION CHAIN: Decapitator (Style A, drive 6, output -2dB) → SansAmp-style amp-modeling for tube-distortion grit → tape saturation (Kramer Master Tape Subdued setting, drive 5) → output-bus FabFilter Saturn for harmonic enhancement → fast-attack compression (1ms attack, 100ms release, 4:1 ratio, 6-8dB GR) → high-shelf EQ (+3dB at 4kHz for bite). Vocal-as-TEXTURAL-AGGRESSION element, not clean-melodic primary. PRESERVES raw screamed quality without taming it. Apply for: industrial-techno aggressive vocal tracks (Reznor 'March of the Pigs' processing translated to electronic context), EBM screamed/spoken aggression (Front 242 vocal-saturation tradition), hard-techno vocal samples processed for aggressive identity, dark-electronic with vocalist (Suicide / Alan Vega vocal-saturation tradition translated). Different from `vulnerable_vocal_intimacy_clean_processing` (the opposite vocal-philosophy pole). Pair with `screamed_single_take_vocal_no_doubling`.",
+        "electronic_target_genres": ["dark_electronic", "EBM", "techno"],
         "applicability_text": "Hardcore-punk vocal tracking; screamed-vocal mix sessions; productions willing to commit to saturated vocal aesthetic.",
         "wow_factor": 0.78,
         "tier": "silver",
