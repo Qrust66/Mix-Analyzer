@@ -9067,7 +9067,7 @@
           "songs_to_dissect": ["Harder_Better_Faster_Stronger", "Giorgio_By_Moroder", "Veridis_Quo", "Around_The_World"]
         },
         "Around_The_World": {
-          "_status": "C6_1a_composition_arrangement_done",
+          "_status": "C6_1b_performance_recording_done",
           "album": "Homework",
           "year": 1997,
           "_note": "Earliest of the 4 — pure analog filter house era",
@@ -9106,6 +9106,97 @@
             ],
             "what_makes_arrangement_unique_within_dissection": "Around the World represents the dissection's MOST PURE-ELECTRONIC arrangement — 4-on-the-floor house foundation + filter modulation + progressive layering. Different arrangement engine from rock dissection peers.",
             "comparison_to_rock_dissection_arrangements": "Rock arrangements typically use verse-chorus dynamic shifts + density layering for movement. Around the World uses 4-on-the-floor sustained foundation + filter modulation + progressive layering. Different compositional engine producing different arrangement aesthetic."
+          },
+          "performance": {
+            "tempo_feel_description": "HYPNOTIC HOUSE GROOVE — 120 BPM 4-on-the-floor at sustained pulse feels danceable + meditative simultaneously. Tempo enables dance-floor function + extended hypnotic listening.",
+            "drum_style": {
+              "performer_or_programmer": "Thomas Bangalter + Guy-Manuel de Homem-Christo (programming + sample triggering — Daft Punk always self-produced)",
+              "approach": "PROGRAMMED 4-ON-THE-FLOOR HOUSE FOUNDATION + LAYERED PERCUSSION SAMPLES — Daft Punk's documented Homework-era approach: build drum tracks from drum machines (Roland TR-909 documented as primary) + sampled percussion + house-tradition rhythmic vocabulary",
+              "specifics_documented": [
+                "TR-909 drum machine documented as Daft Punk's primary drum machine for Homework era",
+                "4-on-the-floor kick pattern (every beat) — house tradition foundation",
+                "Closed hi-hat 8ths or open hi-hat on offbeats",
+                "Snare or clap on 2+4 (house standard)",
+                "Additional percussion samples (claps, congas, rim shots) layered for textural variety",
+                "Filter modulation applied to drum bus alongside other elements"
+              ],
+              "philosophy_drum_machine_as_compositional_engine": "Daft Punk's documented approach treats drum machine as PRIMARY COMPOSITIONAL INSTRUMENT. Programmed beats ARE composition. No 'live drummer' replaced the machine — the machine IS the drummer.",
+              "comparison_to_rock_dissection_drumming": "Rock dissection drummers (Grohl, Cameron, Chamberlin, Castellano) provide LIVE DRUMMING as compositional foundation. Daft Punk's TR-909 provides PROGRAMMED drumming as compositional foundation. Different paradigm — drum machine as composer's instrument.",
+              "comparison_to_reznor_programmed_drums_in_dissection": "Reznor (NIN): programmed drums in industrial-rock context with textural aggression + hybrid integration. Daft Punk (Homework): programmed drums in pure-house context with 4-on-the-floor + filter modulation. Both use programmed drums as compositional engine but in completely different genre contexts."
+            },
+            "synth_style": {
+              "performers": "Bangalter + de Homem-Christo (synthesizer programming + performance)",
+              "rhythm_synth_role_bass_line": "REPETITIVE BASS-LINE establishing harmonic anchor — bass-line plays continuously through song with minor variations",
+              "atmospheric_synth_pads_role": "Synth pads layered above bass-line, filter-modulated for textural evolution",
+              "specifics_documented": [
+                "Analog synthesizers documented (Moog, Roland, vintage analog gear)",
+                "Bass-line bass synth with filter modulation capability",
+                "Multiple synth-pad layers for harmonic field above bass",
+                "Vocoded vocal synth (vocoder applied to recorded vocal phrase) for the 'Around the world' centerpiece",
+                "Filter modulation modulated continuously across runtime for compositional movement"
+              ],
+              "philosophy_analog_filter_house_aesthetic": "Daft Punk's documented Homework-era aesthetic favors ANALOG warmth + FILTER MODULATION character + REPETITION. Pure French house compositional vocabulary."
+            },
+            "vocoded_vocal_delivery": {
+              "performer": "Bangalter + de Homem-Christo (vocal recorded then vocoded)",
+              "vocoded_phrase": "'Around the world' phrase repeated hypnotically",
+              "documented_vocoded_specifics": [
+                "Vocal recorded into vocoder (analog or digital vocoder documented for Daft Punk's vocoded sound)",
+                "Vocoded output processed alongside synth pads",
+                "Phrase repetition continuous through song — establishes vocal-as-instrument identity",
+                "Less dynamic variation than human vocal delivery — vocoder character maintains consistency"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No live drums (programmed drum machine priority)",
+              "No tempo changes",
+              "No meter changes",
+              "No traditional 'song' structure (filter-house arrangement priority)"
+            ]
+          },
+          "recording": {
+            "studio": "Bangalter + de Homem-Christo's home studio (Daft Punk Homework documented as recorded primarily in their home studio in Paris — 'home recording' aesthetic)",
+            "session_dates": "1995-1996 sessions",
+            "primary_producers": "Thomas Bangalter + Guy-Manuel de Homem-Christo (always self-produced)",
+            "primary_engineer": "Bangalter + de Homem-Christo (self-engineered)",
+            "primary_mix_engineer": "Bangalter + de Homem-Christo (self-mixed)",
+            "production_philosophy_daft_punk_documented": "DUAL-AUTEUR PRODUCERS + HOME STUDIO + ALWAYS SELF-PRODUCED — Daft Punk documented as ALWAYS handling production + engineering + mixing themselves. No external producer, no external mix engineer (until Random Access Memories where Mick Guzauski mixed). Pure auteur duo paradigm.",
+            "drum_micing_approach": {
+              "philosophy_daft_punk": "Programmed drums via TR-909 + samplers — no microphone needed for primary drum sound",
+              "specifics_for_around_the_world": [
+                "TR-909 outputs recorded directly into mix",
+                "Possible additional sample-triggered percussion",
+                "No live drum micing required",
+                "Drum bus processed via filter modulation + compression"
+              ]
+            },
+            "synth_recording_approach": {
+              "philosophy_daft_punk": "Analog synthesizers recorded directly into mix with filter modulation applied during tracking + mixing",
+              "specifics_documented": [
+                "Analog synth gear (Moog, Roland documented era options)",
+                "Filter modulation applied via analog filters or sequenced filter automation",
+                "Multiple synth layers tracked/recorded separately for layering control",
+                "Vocoder applied to recorded vocal phrase"
+              ]
+            },
+            "vocal_tracking_approach": {
+              "specifics": "Vocal phrase ('Around the world') recorded then vocoded. Multiple takes possible but less critical than human vocal performance — vocoder masks vocal idiosyncrasies."
+            },
+            "notable_instruments_and_gear_documented": [
+              "Roland TR-909 drum machine (documented Daft Punk Homework primary drum machine)",
+              "Analog synthesizers (Moog, Roland — documented era options)",
+              "Samplers (E-mu, Akai documented era options)",
+              "Vocoder (analog or digital — documented Daft Punk vocoded sound)",
+              "Bangalter + de Homem-Christo's Paris home studio"
+            ],
+            "what_makes_daft_punk_recording_distinct_for_around_the_world": [
+              "DUAL-AUTEUR PRODUCER duo + HOME STUDIO + ALWAYS SELF-PRODUCED paradigm",
+              "Pure programmed + sampled foundation — no live tracking",
+              "Filter modulation as compositional element from tracking through to mix",
+              "Different paradigm from rock dissection peers — auteur duo electronic-music tradition rather than band + producer + engineer + mixer pipeline"
+            ],
+            "comparison_to_reznor_auteur_recording_in_dissection": "Reznor (NIN): SOLO AUTEUR + programmed-sampled foundation in industrial-rock context, with engineer collaborator (Beavan, etc.). Daft Punk (Homework): DUO AUTEUR + programmed-sampled foundation in dance-music context, fully self-engineered/mixed. Two different auteur paradigms — solo vs. duo, industrial-rock vs. dance-music, with-engineer-collaborator vs. fully-self-engineered.",
+            "production_philosophy_tenth_distinct_approach_in_dissection": "TEN distinct production approaches now: 1) Albini, 2) Vig+Wallace, 3) Date, 4) Beinhorn+O'Brien, 5) Kasper, 6) Flood+Moulder+Corgan, 7) Reznor solo-auteur, 8) Valentine, 9) Barresi, 10) BANGALTER + DE HOMEM-CHRISTO duo-auteur + home-studio + fully-self-produced + electronic-music paradigm."
           }
         },
         "Harder_Better_Faster_Stronger": {
