@@ -7163,7 +7163,7 @@
           }
         },
         "Copy_Of_A": {
-          "_status": "C4_6b_performance_recording_done",
+          "_status": "C4_6c_complete_exhaustive",
           "album": "Hesitation Marks",
           "year": 2013,
           "_note": "Outside the original 3-album scope (Spiral/Fragile/With Teeth) but explicitly requested by user. Worth dissecting — Reznor's most evolved 'modular electronic' approach.",
@@ -7314,6 +7314,143 @@
             ],
             "comparison_to_full_nin_evolution_recording": "Spiral 1994 (Le Pig pure auteur, sampler-based industrial extremity). Fragile 1999 (Nothing Studios auteur + Moulder mix, programmed-foundation extended-form). With Teeth 2005 (multi-studio auteur + emerging Ross + Grohl drums, commercial-recalibration). Hesitation Marks 2013 (multi-location Reznor + Ross full co-production + Moulder + Belew, modular-electronic evolution). FOUR documented points in Reznor's auteur framework evolution — from pure auteur to expanded co-production while retaining auteur identity.",
             "production_philosophy_completion_within_dissection": "Reznor's auteur-framework EVOLUTION across 19 years (1994-2013) is the most extensively documented single-artist production-philosophy arc within this dissection. Six distinct NIN tracks across four albums demonstrate framework's adaptability + evolution. Auteur identity preserved + expanded across catalog."
+          },
+          "mixing": {
+            "mix_engineer": "Alan Moulder (Hesitation Marks mix throughout — continued NIN mix collaboration since Fragile)",
+            "mixing_studio": "Various Hesitation Marks mix locations",
+            "mixing_philosophy_moulder_for_copy_of_a": "MODULAR ELECTRONIC INTEGRATION + PATTERN EVOLUTION PRESERVATION + MATURE VOCAL FORWARDNESS. Moulder's documented Hesitation Marks approach: handle modular-electronic foundation + preserve pattern-evolution character (filter modulation must read clearly), forward mature vocal as melodic anchor, integrate Belew's avant-rock guitar contribution.",
+            "drum_mix_balance": [
+              "Programmed kick + electronic snare BALANCED — electronic-music aesthetic rather than rock-aggressive",
+              "Sample triggers + electronic percussion blended subtly within modular foundation",
+              "Hi-hat / cymbal samples articulate ~117 BPM pulse",
+              "Drum bus processing electronic-styled — possibly filter modulation, modular-influenced shaping",
+              "Less aggressive drum-bus weight than With Teeth, less atmospheric than Fragile, more electronic-music-aesthetic"
+            ],
+            "guitar_mix_treatment": [
+              "Minimal guitar role — guitars textural color, not foreground",
+              "Belew contributions deployed selectively — possibly featured in bridge or specific moments",
+              "Stereo placement moderate — guitars as atmospheric color rather than rock-anthem width",
+              "Less guitar wall-of-sound than other NIN tracks"
+            ],
+            "vocal_mix_treatment": [
+              "Reznor vocal CENTERED + FORWARD — mature melodic delivery requires intelligible placement",
+              "Reverb chain calibrated for melodic-balanced delivery — neither aggressive saturation (Spiral) nor deep atmospheric (TDTWWA) but mature middle-path",
+              "Compression preserves Reznor's restrained projection",
+              "Less vocal layering than We're In This Together — modular-electronic prefers tighter vocal element-count"
+            ],
+            "bass_mix_treatment": [
+              "Bass synth FORWARD with subtle filtering character preserved",
+              "Bass-kick coordination tight for danceable groove",
+              "Light compression preserves natural envelope + filter modulation"
+            ],
+            "spatial_treatment_modular_electronic": [
+              "Stereo field WIDE for electronic-music spatial impact — modular-synth patterns spread across stereo",
+              "Reverb usage MODERATE — modular-electronic prefers controlled spatial vs. atmospheric maximum",
+              "Pattern evolution preserved through mix automation",
+              "Bridge atmospheric expansion handled with possibly more reverb"
+            ],
+            "automation_used_in_mix": [
+              "Pattern evolution automation — modular synth filter cutoff + envelope changes preserved through mix",
+              "Vocal level rides for melodic phrase emphasis",
+              "Reverb send automation for section transitions + bridge expansion",
+              "Synth-pad layer rides for chorus expansion"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying pattern-evolution detail (filter modulation needs to breathe)",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No genre-template imposed (mix adapts to modular-electronic compositional intent)"
+            ],
+            "comparison_to_full_nin_mix_evolution": "March of the Pigs (Reznor+Beavan 1994 in-house): industrial precision. TDTWWA (Moulder Fragile 1999): atmospheric sustain. WITT (Moulder Fragile 1999): anthemic emotional power. Wretched (Moulder Fragile 1999): hybrid management. Hand That Feeds (Moulder With Teeth 2005): rock-single commercial impact. Copy of A (Moulder Hesitation Marks 2013): modular-electronic integration. SIX different NIN mix approaches across 19 years.",
+            "what_makes_moulder_mix_distinct_for_copy_of_a": [
+              "MODULAR ELECTRONIC INTEGRATION + pattern evolution preservation",
+              "Mature vocal forward placement",
+              "Subtle Belew guitar contribution integration",
+              "Less aggressive than earlier NIN — mature electronic-music aesthetic",
+              "20+ years of Reznor + Moulder collaboration evident in mix sophistication"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Tom Baker (Hesitation Marks mastered — continued NIN mastering collaboration across 19 years — Spiral 1994 + Fragile 1999 + With Teeth 2005 + Hesitation Marks 2013)",
+            "mastering_studio": "Precision Mastering, Hollywood",
+            "mastering_philosophy_for_copy_of_a": [
+              "Baker's documented approach: modular-electronic clarity + mature dynamic balance + vocal melodic emphasis",
+              "2013 album-level mastering — Hesitation Marks PRE-DYNAMIC-RECOVERY-PERIOD-STARTING-2015 (mastering still loudness-war-era influenced) but with Baker's documented dynamic-detail preservation",
+              "Modular-electronic intent benefits from clarity emphasis — pattern evolution must read clearly through master"
+            ],
+            "loudness_observed": "Album average around -8 to -9 LUFS integrated estimate. Copy of A specifically near album average — no peak-loudness aggressive-track positioning.",
+            "spectral_signature": "Baker's documented sound: clear top-end, present mid-range, controlled aggressive low-end. Modular-electronic clarity emphasized.",
+            "what_mastering_preserves_for_copy_of_a": [
+              "Modular-electronic pattern evolution detail",
+              "Mature vocal melodic clarity",
+              "Bass synth filter modulation character",
+              "Stereo image (preserving Moulder's modular-electronic mix)"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "REZNOR + ROSS + MOULDER + BELEW MODULAR ELECTRONIC NIN — listeners hear NIN at 2013 production-vocabulary evolution. Modular-electronic patterns + mature vocal + avant-rock guitar contribution = unique 2013 hybrid impossible in earlier NIN.",
+            "level_2_arrangement_signature": "MODULAR ELECTRONIC FOUNDATION + VOCAL MELODIC ANCHOR + BELEW AVANT-ROCK CONTRIBUTION — Reznor + Ross's 2013 production-vocabulary integration. Pattern evolution + film-scoring discipline + 19-year Reznor framework evolution culminating.",
+            "level_3_compositional_signature": "AUTEUR FRAMEWORK MAXIMUM EVOLUTION — Reznor demonstrates that auteur identity SCALES across 19+ years of catalog evolution. From pure auteur (Spiral 1994) to auteur-CO-AUTEUR-MIXER pipeline (Hesitation Marks 2013). Influential model for established artists evolving across decades while retaining identity. Most documented production-philosophy arc within this dissection."
+          },
+          "advisor_extract": {
+            "recipe_name": "modular_electronic_evolution_via_film_scoring_discipline",
+            "applicability": "Established artists evolving toward modular-electronic production palette while retaining identity. Use when MODULAR-ELECTRONIC PATTERN EVOLUTION + FILM-SCORING DISCIPLINE + EXTERNAL CONTRIBUTOR DIMENSIONS together create the project's identity.",
+            "core_compositional_recipes": [
+              {
+                "id": "modular_electronic_patterns_as_compositional_foundation",
+                "rule": "Use MODULAR ELECTRONIC PATTERNS (analog synths, modular synth elements, processed electronic textures) as primary compositional foundation. Patterns evolve via filter modulation + envelope changes rather than via traditional chord progression. Compositional 'movement' includes pattern-evolution + texture-transformation alongside vocal/melodic development.",
+                "wow_factor": 0.85,
+                "documented_example": "Copy of A (NIN, Hesitation Marks 2013) — modular-electronic patterns as compositional foundation",
+                "trade_offs": "Requires modular synth + electronic-music expertise. Less viable in pure-band-format contexts.",
+                "personality_fit": "Reznor 40 / Daft Punk 40 / Yorke 15 / Cobain 5"
+              },
+              {
+                "id": "film_scoring_discipline_integrated_into_song_composition",
+                "rule": "When composing songs, apply FILM-SCORING DISCIPLINE — music as integrated whole, pattern evolution + texture transformation supporting emotional arc, less reliance on traditional song-structure templates. Trains compositional thinking beyond rock-band paradigm.",
+                "wow_factor": 0.81,
+                "documented_example": "Reznor + Ross's film-scoring work (Social Network, Girl with the Dragon Tattoo) discipline integrated into NIN's Hesitation Marks compositions",
+                "trade_offs": "Demands film-scoring experience. May feel less hooky/commercial than song-structure-template tracks.",
+                "personality_fit": "Reznor 40 / Yorke 35 / Daft Punk 20 / Cobain 5"
+              },
+              {
+                "id": "auteur_co_auteur_mixer_pipeline_for_mature_collaboration",
+                "rule": "Establish AUTEUR + CO-AUTEUR + DEDICATED MIXER pipeline for mature collaborative production. Auteur retains creative direction, co-auteur shares production load + brings complementary perspective, dedicated mixer carries collaborative vision through to final master. Three-position pipeline distinct from band-democracy or producer-band-collaboration models.",
+                "wow_factor": 0.82,
+                "documented_example": "Reznor (auteur) + Ross (co-auteur) + Moulder (dedicated mixer) on Hesitation Marks (2013)",
+                "trade_offs": "Requires established auteur + compatible co-auteur + dedicated mixer. Risk of pipeline rigidity if relationships strained.",
+                "personality_fit": "Reznor 50 / Yorke 25 / Daft Punk 20 / Cobain 5"
+              },
+              {
+                "id": "external_contributor_for_distinct_dimensional_color",
+                "rule": "Invite EXTERNAL CONTRIBUTOR with documented distinct musical identity (avant-rock guitarist, classical violinist, jazz horn player) to add DIMENSIONAL COLOR to specific tracks. Contributor's identity remains intact (their voice clearly heard) while serving the project's compositional intent.",
+                "wow_factor": 0.78,
+                "documented_example": "Adrian Belew (King Crimson + Bowie + Talking Heads guitarist) contributing to Hesitation Marks (NIN 2013)",
+                "trade_offs": "Coordinating external contributors adds logistics. Risk of contributor's identity overwhelming project identity.",
+                "personality_fit": "Yorke 35 / Reznor 35 / Cobain 15 / Daft Punk 15"
+              },
+              {
+                "id": "mature_vocal_aesthetic_post_aggression_post_vulnerability",
+                "rule": "Once an artist has demonstrated AGGRESSION pole + VULNERABILITY pole vocal capacities, develop MATURE MELODIC pole — neither aggressive nor vulnerable but melodically deliberate, breath-supported, restrained-but-engaged. Demonstrates artistic range completion.",
+                "wow_factor": 0.79,
+                "documented_example": "Reznor's Copy of A vocal — 2013 mature delivery distinct from 1994 aggression + 1999 vulnerability poles",
+                "trade_offs": "Requires extensive vocal range development across years. Demands artistic patience.",
+                "personality_fit": "Reznor 40 / Yorke 30 / Cobain 20 / Daft Punk 10"
+              },
+              {
+                "id": "auteur_framework_evolution_across_decades_with_retained_identity",
+                "rule": "Build AUTEUR FRAMEWORK EVOLUTION ARC across decades (15+ years). Each album demonstrates evolution while retaining auteur identity — pure auteur → auteur + mixer collaboration → auteur + emerging partner + live drums → auteur + co-auteur + mixer + external contributors. Framework EXPANDS without identity dilution.",
+                "wow_factor": 0.84,
+                "documented_example": "Reznor's NIN catalog 1994-2013 — Spiral pure auteur, Fragile + Moulder mix, With Teeth + emerging Ross + Grohl drums, Hesitation Marks Reznor + Ross + Moulder + Belew. FOUR documented evolution points.",
+                "trade_offs": "Requires multi-decade artistic commitment. Risk of stagnation if evolution insufficient.",
+                "personality_fit": "Reznor 50 / Yorke 30 / Cobain 15 / Daft Punk 5"
+              }
+            ],
+            "production_philosophy_signature_reznor_ross_modular_electronic": {
+              "philosophy": "Reznor + Ross + Moulder modular-electronic NIN production — auteur-co-auteur-mixer pipeline + film-scoring discipline + external contributors integrated. 2013 production-vocabulary evolution after 8 years post-With Teeth + film-scoring period.",
+              "applicability": "Established auteur-producers evolving toward electronic palette + collaborative pipeline + film-scoring discipline integration",
+              "completion_of_nin_evolution_arc_documentation": "Six dissected NIN tracks (March of the Pigs 1994, TDTWWA + WITT + Wretched 1999, Hand That Feeds 2005, Copy of A 2013) document Reznor's auteur framework evolution across 19 years. Four albums, six tracks, multiple compositional + production-vocabulary evolutions while retaining auteur identity. MOST EXTENSIVELY DOCUMENTED single-artist production-philosophy arc within this dissection."
+            },
+            "structural_choice_summary": "Modular electronic patterns as compositional foundation, film-scoring discipline integrated, auteur-co-auteur-mixer pipeline + external contributors, mature melodic vocal aesthetic — Copy of A demonstrates Reznor's MAXIMUM AUTEUR FRAMEWORK EVOLUTION pole. 19 years of production-philosophy arc culmination. Influential model for established artists evolving across decades."
           }
         }
       },
