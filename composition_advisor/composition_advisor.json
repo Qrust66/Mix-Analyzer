@@ -7463,7 +7463,7 @@
           "songs_to_dissect": ["First_It_Giveth", "Six_Shooter", "A_Song_For_The_Dead", "Medication", "Everybody_Knows_That_Youre_Insane", "Little_Sister"]
         },
         "First_It_Giveth": {
-          "_status": "C5_1a_composition_arrangement_done",
+          "_status": "C5_1b_performance_recording_done",
           "album": "Songs for the Deaf",
           "year": 2002,
           "tempo_bpm_documented_range": [126, 132],
@@ -7507,6 +7507,119 @@
             ],
             "what_makes_arrangement_unique_within_qotsa": "First It Giveth represents QOTSA's TIGHT GROOVE ECONOMY pole — commercial-single accessibility with retained Homme robot-rock identity. Within Songs for the Deaf's range (radio-DJ-narrated concept album, multi-genre tracks from stoner-rock to ballad to instrumental), First It Giveth stakes the SINGLE-FOCUSED groove pole.",
             "comparison_to_grohl_drumming_in_dissection_evolution": "Grohl Nirvana (1991-1994 Nevermind/In Utero): aggressive rock band-member drumming. Grohl QOTSA (2002 Songs for the Deaf): GUEST drummer playing FOR the song (more technical + groove-conscious than band-member-mode). Grohl NIN (2005 With Teeth): industrial-context-adapted drumming. Three Grohl modes documented — different productions extracting different drumming personalities."
+          },
+          "performance": {
+            "tempo_feel_description": "MID-TEMPO HYPNOTIC GROOVE — 126-132 BPM at sustained groove feels both DRIVING and POCKET. Tempo enables danceable mid-tempo rock without rushing.",
+            "drum_style": {
+              "performer": "Dave Grohl (guest drummer on Songs for the Deaf — documented as drumming on entire album)",
+              "approach": "GROOVE-CONSCIOUS POWER-TRIO DRUMMING — Grohl as guest brings technical-precision + rock-power but ADAPTS to Homme's groove-priority philosophy",
+              "specifics_documented": [
+                "Kick + snare backbone driving 4/4 at ~129 BPM — Grohl's documented power approach",
+                "Hi-hat 8ths driving forward with tight groove pocket",
+                "Snare placement strong on 2+4 with possible occasional ghost notes for groove feel",
+                "Fills technically dense but groove-conscious — Grohl adapts his vocabulary to QOTSA's groove-priority context",
+                "Cymbal accents articulate chorus moments + transitions",
+                "More technical precision than Nirvana drumming — guest-drummer mode for Songs for the Deaf"
+              ],
+              "comparison_to_grohl_other_dissection": "Grohl Nirvana In Utero (Albini capture): aggressive band-member rock with full kit room sound. Grohl QOTSA (Songs for the Deaf): GROOVE-CONSCIOUS guest drummer adapting to Homme's robot-rock context. Grohl NIN (With Teeth): industrial-context adapted live drumming. Three drumming modes — same physicality, different stylistic priorities per production context."
+            },
+            "guitar_style": {
+              "performers": "Josh Homme (primary)",
+              "rhythm_guitar_role": "REPETITIVE HYPNOTIC RIFF + DESERT-ROCK SENSIBILITY — Homme's documented 'robot rock' guitar approach",
+              "specifics_documented": [
+                "Drop D tuning (documented Homme/QOTSA convention) for low-end weight + chromatic riff capability",
+                "Possible double-tracked rhythm guitars (Homme documented as often layering rhythm guitars)",
+                "Tube amps (Marshall, Hiwatt, Mesa-Boogie — documented Homme palette)",
+                "Distortion + slight modulation (chorus, occasional flange) for desert-rock textural color",
+                "Picking precision required for hypnotic-repetition micro-variation feel",
+                "Stereo placement: rhythm guitars panned hard L/R for power-trio stereo width"
+              ],
+              "playing_style_versus_other_dissection_guitars": "Homme guitars are GROOVE-FOUNDATION-ORIENTED — riff + groove priority over melodic-flash or texture-aggression. Where Cobain plays minimal-melodic, Cornell plays melodic-intensity, Corgan plays layered-density, Reznor plays texture-aggression, Homme plays GROOVE-FOUNDATION."
+            },
+            "bass_performance": {
+              "performer": "Nick Oliveri (Songs for the Deaf bassist — documented as primary bassist on album)",
+              "approach": "TIGHT GROOVE-LOCK WITH GROHL'S KICK + AGGRESSIVE PICK ATTACK — Oliveri's documented punk-influenced approach within QOTSA's stoner-rock framework",
+              "specifics_documented": [
+                "Drop D-tuned bass (matching guitar tuning convention)",
+                "Tight rhythmic locking with Grohl's kick — power-trio bass-kick coordination priority",
+                "Pick attack for rhythmic clarity",
+                "Slight melodic activity between riff sections, but groove-foundation primary"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Josh Homme (lead vocal)",
+              "secondary_vocal_performer": "Mark Lanegan (harmony/secondary vocal — documented contributor across multiple Songs for the Deaf tracks)",
+              "verse_delivery": "BARITONE MELODIC HOMME — Homme's documented baritone-friendly tonal area, sustained melodic phrasing, less aggressive than typical rock-vocal",
+              "chorus_delivery": "Homme MELODIC LIFT + LANEGAN WHISKEY-BARITONE HARMONY — Lanegan adds dimensional vocal color above/below Homme",
+              "documented_vocal_quirks": [
+                "Homme's documented baritone-friendly compositional choices — his tonal area shapes the songs",
+                "LANEGAN HARMONY CONTRIBUTION — documented as bringing whiskey-baritone color via his Screaming Trees + solo material vocal lineage",
+                "Multiple complete vocal takes selected/comped per Eric Valentine production approach",
+                "Less vocal layering than wall-of-sound bands — power-trio-plus-guest aesthetic"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization (preserves Grohl's natural groove + hypnotic-repetition micro-variations)",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No tempo changes",
+              "No 'show-off' technical drumming inappropriate to groove-priority context (Grohl restrained for QOTSA)"
+            ]
+          },
+          "recording": {
+            "studio": "The Sound Factory (Hollywood, CA — documented Songs for the Deaf primary tracking) + various locations",
+            "session_dates": "2002 sessions",
+            "primary_producers": "Eric Valentine (documented Songs for the Deaf primary producer) + Josh Homme (co-producer)",
+            "additional_engineering": "Adam Kasper engineering on selected tracks (documented; same Kasper as Soundgarden Down on the Upside producer — cross-band production-philosophy thread)",
+            "primary_mix_engineer": "Eric Valentine (documented as engineer-producer-mixer dual role on Songs for the Deaf)",
+            "production_philosophy_eric_valentine_documented": "ENGINEER-PRODUCER-MIXER UNIFIED ROLE — Valentine's documented approach: handle tracking + producing + mixing in unified pipeline, similar to Adam Kasper's unified-band-driven approach. Producer-as-engineer-and-mixer model brings sonic continuity from tracking through to final mix.",
+            "drum_micing_approach": {
+              "philosophy_valentine": "Multiple close mics + room mics for power-trio drum sound — Grohl's kit captured cleanly with controlled ambience",
+              "specifics_for_first_it_giveth": [
+                "Grohl's full kit miced extensively — kick (in/out), snare (top/bottom), hi-hat, multiple toms, overheads, room mics",
+                "Compression + EQ at tracking for groove-pocket emphasis",
+                "Room mics blended for natural ambience without excessive room sound",
+                "Drum bus processing balanced — punch + transient detail + groove feel"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_valentine_homme": "Power-trio guitar tracking — fewer layers than wall-of-sound bands, but each layer tracked with care for tone + texture variety",
+              "specifics_documented": [
+                "Drop D tuning",
+                "Tube amps (Marshall, Hiwatt, Mesa-Boogie palette)",
+                "Possible double-tracked rhythm guitar for stereo width",
+                "Slight modulation effects (chorus, flange) added selectively for desert-rock texture",
+                "Each layer mic'd carefully — possible multiple mic combinations per layer"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Nick Oliveri",
+              "specifics": "DI + amp blend per Valentine's approach. Tight low-frequency response for power-trio bass-kick coordination."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_valentine": "Homme + Lanegan vocal tracking with attention to baritone-friendly capture + harmony integration",
+              "specifics_documented": [
+                "Vocal isolation booth at The Sound Factory",
+                "Multiple complete takes for both Homme + Lanegan",
+                "Lanegan harmony tracked separately for selective deployment",
+                "Harmony integration in mix stage"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Drop D tuned guitars + bass",
+              "Tube amps (Marshall, Hiwatt, Mesa-Boogie palette)",
+              "Grohl's full kit at The Sound Factory",
+              "The Sound Factory's documented setup (Hollywood, CA)"
+            ],
+            "what_makes_valentine_recording_distinct_for_first_it_giveth": [
+              "ENGINEER-PRODUCER-MIXER UNIFIED ROLE — similar to Kasper's unified band-driven approach (both producer-philosophies in dissection)",
+              "POWER-TRIO TRACKING priority — fewer layers than wall-of-sound, more attention to each layer's tone",
+              "Groove-pocket emphasis at tracking — drum + bass coordination critical",
+              "Lanegan harmony integration as documented production decision",
+              "Cross-band production-philosophy thread: Adam Kasper engineering on selected Songs for the Deaf tracks (same Kasper as Soundgarden Down on the Upside producer)"
+            ],
+            "comparison_to_other_unified_role_producers_in_dissection": "Adam Kasper (Soundgarden Down on the Upside 1996): unified band-driven engineer/co-producer/mixer role. Eric Valentine (QOTSA Songs for the Deaf 2002): engineer-producer-mixer unified role with Homme co-producing. Steve Albini (Nirvana In Utero 1993): engineer-recordist (refused producer credit) capture-focused. Three different unified-role models — different approaches to producer/engineer/mixer integration.",
+            "production_philosophy_eighth_distinct_approach_in_dissection": "EIGHT distinct production approaches now established: 1) Albini capture, 2) Vig+Wallace layered-wide, 3) Date tracker-mixer, 4) Beinhorn+O'Brien shaped-polished, 5) Kasper unified band-driven, 6) Flood+Moulder+Corgan textural-experimental three-way, 7) Reznor auteur-producer industrial, 8) VALENTINE engineer-producer-mixer unified role for power-trio-plus-guest groove rock."
           }
         },
         "Six_Shooter": {
