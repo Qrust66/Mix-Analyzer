@@ -11475,8 +11475,9 @@
         }
       },
       "genre_vocabulary": {
-        "description": "Genre-tradition the recipe draws from. A recipe may sit in a hybrid (e.g., 'industrial_rock_hybrid'). Useful for filtering by stylistic territory.",
+        "description": "Genre-tradition the recipe draws from OR targets. SOURCE values describe where the principle was documented (rock-side, classical, jazz). TARGET values describe electronic-music sub-genres where the translated recipe applies. The field is bidirectional — used both to filter by stylistic provenance and to filter by intended electronic-music output context.",
         "values": {
+          "_source_values_section": "--- SOURCE GENRES (where the principles were documented) ---",
           "rock_traditional": "Standard rock-band format (guitar + bass + drums + vocal), verse-chorus structure, 4/4 priority.",
           "punk_hardcore": "Fast tempo, aggressive vocal, compressed economy, raw texture.",
           "stoner_desert_rock": "Drop tunings, hypnotic riff repetition, groove-priority, Sabbath/Kyuss lineage.",
@@ -11489,7 +11490,21 @@
           "modular_electronic": "Modular synth patterns, evolving textures via filter+envelope modulation, film-scoring discipline integration.",
           "hybrid_industrial_rock": "Industrial production vocabulary deployed in rock-anthem structure (NIN We're In This Together, Wretched).",
           "hybrid_classical_electronic": "Classical harmonic progression in electronic context (Daft Punk Veridis Quo, Radiohead Pyramid Song).",
-          "hybrid_genre_clash": "Two opposed genre vocabularies co-existing within single song (Radiohead National Anthem rock + free-jazz-brass)."
+          "hybrid_genre_clash": "Two opposed genre vocabularies co-existing within single song (Radiohead National Anthem rock + free-jazz-brass).",
+          "_target_values_section": "--- TARGET ELECTRONIC GENRES (where translated recipes apply, used in electronic_target_genres field) ---",
+          "techno": "Driving 4/4 at 125-140 BPM, machine-precise programmed drums, repetitive minimalism with subtle evolution, club-system orientation. Detroit/Berlin lineage. Sub-genres: minimal, peak-time, melodic, industrial.",
+          "deep_house": "4/4 at 118-126 BPM, soulful chord stabs, atmospheric pads, vocal samples, warmer than techno. Larry Heard / Moodymann lineage.",
+          "ambient": "No fixed tempo or 60-90 BPM, sustained synth textures, evolving harmonic fields, no percussion or sparse atmospheric percussion, listener-meditative. Eno / Aphex Twin SAW II lineage.",
+          "IDM": "Intelligent Dance Music — complex programmed rhythms, irregular meters, glitch-tolerant, melodic-experimental. Aphex Twin / Autechre / Boards of Canada lineage.",
+          "glitch": "Foregrounded digital artifacts (clicks, cuts, micro-edits, buffer-corruption sounds) as compositional material. Oval / Pole / clicks-and-cuts lineage.",
+          "downtempo": "60-100 BPM, jazz/dub/hip-hop influences, lush production, listener-attentive rather than dance-functional. Massive Attack / Portishead / DJ Shadow lineage.",
+          "trip_hop": "Slow head-nod tempo, sample-based, melancholic, often vocal-led with atmospheric production. Bristol scene / Massive Attack / Portishead lineage.",
+          "synthwave": "80s-revival aesthetic, gated reverbs, FM-synth leads, vintage drum machines, retrofuturism. Kavinsky / Carpenter Brut lineage.",
+          "dark_electronic": "Reznor-adjacent industrial-influenced electronic, distorted bass, sample-based aggression, often non-4/4. NIN / Trent Reznor solo / How to Destroy Angels lineage.",
+          "EBM": "Electronic Body Music — driving 4/4 with industrial rhythm-emphasis, distorted vocals, cold synthesizers. Front 242 / Nitzer Ebb lineage.",
+          "dub_techno": "Techno's 4/4 framework + dub-reggae's spatial production (deep delays, long reverbs, filter-modulated chord stabs). Basic Channel / Maurizio / Rhythm and Sound lineage.",
+          "neo_classical_electronic": "Classical instrumentation + electronic processing, modern composition with electronic toolkit. Nils Frahm / Max Richter / Jóhann Jóhannsson lineage.",
+          "electronic_pop": "Pop-song structure (3-4 min verse-chorus) with electronic production vocabulary. Daft Punk Discovery / Justice / electronic crossover."
         }
       },
       "applicability_tags": {
