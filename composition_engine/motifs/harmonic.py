@@ -377,6 +377,134 @@ HARMONIC_PROGRESSIONS['chromatic_descending_bass_4'] = {
 
 
 # ============================================================================
+# DANCE / ELECTRONIC PROGRESSIONS — chord-stab loops, static-with-shifts, stacked clusters
+# ============================================================================
+
+HARMONIC_PROGRESSIONS['filter_house_i_vi_IV_V_loop'] = {
+    'id': 'filter_house_i_vi_IV_V_loop',
+    'sources': [
+        ('Daft Punk', 'Around the World', 'filter-house chord-stab loop with filter modulation'),
+        ('Daft Punk', 'Harder Better Faster Stronger', 'pop-electronic with classical voice-leading'),
+    ],
+    'advisor_recipes': [
+        'four_on_the_floor_120_bpm_house_foundation',
+        'compositional_movement_via_filter_not_via_chord_change',
+        'pop_song_structure_within_electronic_vocabulary',
+        'filter_modulation_as_compositional_engine',
+    ],
+    'mode': 'minor',
+    # Filter-house pop progression: i - ♭VI - IV - V → loop
+    # In D minor: Dm - Bb - G - A (each chord 1 bar = 4 beats, full loop = 4 bars)
+    # Voicings use power chord on i for tight energy, triads on chord-stabs
+    'chords': [
+        {'root_interval': 0, 'voicing': 'power_oct',  'duration_beats': 4.0, 'roman': 'i',  'inversion': 0},
+        {'root_interval': 8, 'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': '♭VI','inversion': 0},
+        {'root_interval': 5, 'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': 'IV', 'inversion': 0},
+        {'root_interval': 7, 'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': 'V',  'inversion': 0},
+    ],
+    'duration_total_beats': 16.0,
+    'time_sig': (4, 4),
+    'character_tags': ['filter_house', 'dance', 'cyclic_loop', 'pop_electronic', 'chord_stabs'],
+    'transformations_allowed': [
+        'transpose', 'voicing_swap', 'augment_diminish',
+        # NOT inversion (chord-stab loops want clean root-position attacks)
+    ],
+    'notes_on_use': (
+        'CHORD-STAB loop — each chord rendered as a SHORT ATTACK rhythmic stab, NOT '
+        'sustained pad. To deploy: render each chord but reduce the duration to 0.5 beats '
+        '(8th-note stab) and place 8 stabs per bar (1 per 8th-note) for filter-house feel. '
+        'PAIR WITH FILTER MODULATION: open the filter cutoff over the full 16-bar loop '
+        '(advisor: filter_modulation_as_compositional_engine). The chords stay STATIC; the '
+        'filter does the compositional movement. This is the Around-the-World template.'
+    ),
+}
+
+
+HARMONIC_PROGRESSIONS['dub_techno_static_modal_shift'] = {
+    'id': 'dub_techno_static_modal_shift',
+    'sources': [
+        ('Soundgarden', 'Head Down', '7/4 drone-foundation with modal voicings shifting subtly'),
+        ('NIN', 'The Day The World Went Away', 'sustained modal pad with subtle internal shifts'),
+        ('Radiohead', 'Pyramid Song', 'static harmonic anchor with modal color drifts'),
+    ],
+    'advisor_recipes': [
+        'drone_foundation_as_compositional_anchor',
+        'compositional_movement_via_filter_not_via_chord_change',
+        'atmospheric_sustain_as_compositional_foundation',
+        'modal_voicings_above_drone_replace_chord_progression',
+    ],
+    'mode': 'aeolian_static',
+    # STATIC: same chord (i = Dm) for 32 beats with VOICING SHIFTS as the compositional motion
+    # The bass-root NEVER changes — only the upper-voice color shifts modal flavor
+    # Sequence of voicings: sus2 (open) → min_add9 (lush) → sus_4_with_9 (modal-jazz) → min_triad (closed)
+    'chords': [
+        {'root_interval': 0, 'voicing': 'sus2',          'duration_beats': 8.0, 'roman': 'i^sus2',     'inversion': 0},
+        {'root_interval': 0, 'voicing': 'min_add9',      'duration_beats': 8.0, 'roman': 'i^add9',     'inversion': 0},
+        {'root_interval': 0, 'voicing': 'sus_4_with_9',  'duration_beats': 8.0, 'roman': 'i^sus4(9)',  'inversion': 0},
+        {'root_interval': 0, 'voicing': 'min_triad',     'duration_beats': 8.0, 'roman': 'i (resolved)','inversion': 0},
+    ],
+    'duration_total_beats': 32.0,   # 8 bars in 4/4 — slow color drift
+    'time_sig': (4, 4),
+    'character_tags': ['dub_techno', 'static', 'modal_drift', 'drone_foundation', 'meditative', 'voice_leading'],
+    'transformations_allowed': [
+        'transpose', 'voicing_swap', 'augment_diminish',
+        # NOT retrograde — color-drift direction matters (open → resolved)
+    ],
+    'notes_on_use': (
+        'COMPOSITIONAL MOTION via voicing-only changes — the listener perceives harmonic '
+        'evolution even though the BASS-ROOT IS ALWAYS THE SAME. Pair with sustained drone '
+        'on tonic (D1) and BASS-LINE that traces the same root with rhythmic life. The '
+        '8-bar-per-chord pacing is critical — at faster pacing the listener perceives "chord '
+        'progression" instead of "modal drift" (different effect). Apply filter modulation '
+        'on the pad-bus (open over 32 beats) for double-axis compositional motion. '
+        'Basic Channel / Pole / Vladislav Delay tradition.'
+    ),
+}
+
+
+HARMONIC_PROGRESSIONS['dark_electronic_quartal_stack'] = {
+    'id': 'dark_electronic_quartal_stack',
+    'sources': [
+        ('NIN', 'The Wretched', 'quartal voicings + dark Aeolian color in atmospheric sections'),
+        ('NIN', 'March of the Pigs', 'aggressive harmonic foundation with stacked-fourths'),
+        ('Soundgarden', 'Head Down', 'modal voicings exploring quartal color above drone'),
+    ],
+    'advisor_recipes': [
+        'industrial_textural_aggression_via_processed_guitar_layers',
+        'modal_voicings_above_drone_replace_chord_progression',
+        'hybrid_vocabulary_integration_within_sections',
+        'rhythmic_emphasis_over_harmonic_movement_industrial_lesson',
+    ],
+    'mode': 'aeolian_quartal',
+    # Dark-electronic 4-chord with QUARTAL voicings (stacked 4ths = D-G-C, C-F-Bb, etc.)
+    # Quartal voicings have NO 3rd → no major/minor — pure modal openness
+    # Roots: i - ♭VII - ♭VI - i (Dm-C-Bb-Dm with quartal voicings)
+    'chords': [
+        {'root_interval': 0,  'voicing': 'quartal',    'duration_beats': 4.0, 'roman': 'i^q',  'inversion': 0},
+        {'root_interval': 10, 'voicing': 'quartal',    'duration_beats': 4.0, 'roman': '♭VII^q','inversion': 0},
+        {'root_interval': 8,  'voicing': 'quartal',    'duration_beats': 4.0, 'roman': '♭VI^q', 'inversion': 0},
+        # Final chord: return to tonic with min_maj7 voicing for that "Hitchcock" dark-jazz color
+        {'root_interval': 0,  'voicing': 'min_maj7',   'duration_beats': 4.0, 'roman': 'i^minmaj7','inversion': 0},
+    ],
+    'duration_total_beats': 16.0,
+    'time_sig': (4, 4),
+    'character_tags': ['dark_electronic', 'quartal', 'industrial', 'aeolian_modal', 'dissonant_color'],
+    'transformations_allowed': [
+        'transpose', 'voicing_swap',
+    ],
+    'notes_on_use': (
+        'Quartal voicings (D-G-C, C-F-Bb, Bb-Eb-Ab) have NO 3rd — sound is OPEN, MODAL, '
+        'SLIGHTLY DISSONANT. Final chord uses min_maj7 (Dm with C# = D-F-A-C#) for the '
+        '"Hitchcock" dark-jazz color that creates unresolved tension. Voice on Diva pad '
+        'with FM modulation + drive saturation for industrial-electronic character. The '
+        'progression sounds AGGRESSIVE-DARK without using power-chords or distortion — '
+        'character lives in the voicings, not the volume. Pairs with rhythmic-emphasis-over-'
+        'harmonic-movement: drums dominate foreground, harmony provides dark-color bed.'
+    ),
+}
+
+
+# ============================================================================
 # Render API — turn a harmonic progression into concrete MIDI notes
 # ============================================================================
 
