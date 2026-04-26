@@ -10396,10 +10396,49 @@
           }
         },
         "The_National_Anthem": {
-          "_status": "stub_pending_full_dissection_C7_2",
+          "_status": "C7_3a_composition_arrangement_done",
           "album": "Kid A",
           "year": 2000,
-          "_note": "Free-jazz brass section over locked bass groove — genre clash"
+          "_note": "Free-jazz brass section over locked bass groove — genre clash",
+          "tempo_bpm_documented_range": [128, 134],
+          "time_signature": "4/4 throughout",
+          "key_area": "D minor area (with locked bass-line + free-jazz brass section playing across the foundation)",
+          "tuning_documented": "Standard tuning bass + brass instruments + Yorke vocal + Greenwood Ondes Martenot",
+          "track_runtime": "~5:51",
+          "_special_status": "Track 3 on Kid A (2000). Functions as one of the album's MOST GENRE-CLASHING tracks — combines locked-tight bass groove (Colin Greenwood) + free-jazz brass section (documented session brass musicians playing in free-jazz tradition). Genre-clash compositional engine: ROCK GROOVE FOUNDATION + JAZZ EXPRESSIONISM ABOVE. Demonstrates Radiohead's documented influence by Charles Mingus + free-jazz tradition.",
+          "composition": {
+            "primary_compositional_signature": "LOCKED-TIGHT BASS GROOVE FOUNDATION + FREE-JAZZ BRASS SECTION + ELECTRONIC TEXTURES + YORKE VOCAL — built around Colin Greenwood's bass-line repeating tightly + Greenwood-arranged brass section playing free-jazz expressionism above. Compositional engine: GENRE-CLASH between locked-rock-groove + free-jazz-brass-expressionism.",
+            "core_structural_arc": "Bass-line + drums establish locked groove → Yorke vocal enters → brass section enters with free-jazz expressionism → arrangement intensifies with brass density + electronic textures → climactic brass cacophony peak → resolution + outro. Total ~5:51 — extended-form for genre-clash development.",
+            "harmonic_motion_summary": "MINOR-MODAL with locked bass-line establishing tonic D minor + brass section playing CHROMATIC EXPRESSIONIST LINES across foundation. Free-jazz brass IGNORES traditional voice-leading — expressionism over harmony.",
+            "characteristic_compositional_choice": "GENRE CLASH AS COMPOSITIONAL ENGINE — Radiohead combine LOCKED-TIGHT ROCK GROOVE (rhythm-section discipline) + FREE-JAZZ BRASS EXPRESSIONISM (jazz-tradition liberation) within single song. Documented as influenced by Charles Mingus (Mingus's documented compositional approach: locked rhythm + free-jazz horns).",
+            "comparison_to_other_radiohead_dissection_tracks": "EIRP (Kid A 2000): minimum-element electronic-experimental. Pyramid Song (Amnesiac 2001): classical-influenced piano ballad. The National Anthem (Kid A 2000): genre-clash rock + free-jazz hybrid. Three different Radiohead Kid A/Amnesiac compositional vocabularies.",
+            "comparison_to_other_dissection_genre_blend_tracks": "Wretched (NIN 1999): aggressive-atmospheric hybrid integration within industrial-rock. Zero (Pumpkins 1995): industrial-influenced rock. The National Anthem (Radiohead 2000): rock + free-jazz genre-clash. Different scales of genre integration.",
+            "compositional_economy": "5:51 extended-form for genre-clash development — both genres need room to establish + interact.",
+            "innovation_for_genre_context": "2000 alt-rock context: rock + jazz crossover was rare in mainstream rock. The National Anthem's free-jazz brass section in rock context was BOLD. Influences subsequent rock-jazz crossover artists. Demonstrates rock's compositional flexibility."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "LOCKED RHYTHM SECTION + FREE-JAZZ BRASS SECTION + ELECTRONIC TEXTURES + ONDES MARTENOT — multi-element genre-clash arrangement.",
+            "intro_arrangement": "Bass-line + drums establish locked groove foundation",
+            "vocal_entry_yorke": "Yorke vocal enters with melodic content above groove",
+            "brass_section_entry_free_jazz": "Documented brass section enters playing FREE-JAZZ EXPRESSIONIST LINES — chromatic, atonal, expressionistic. Brass section recorded LIVE TOGETHER for free-jazz interaction.",
+            "arrangement_intensification": "Brass density increases + electronic textures + Ondes Martenot enter, multi-genre arrangement at full density",
+            "climactic_brass_cacophony_peak": "Free-jazz brass at maximum density + chromatic expressionism — controlled chaos peak",
+            "resolution_outro": "Arrangement reduces back to bass-line + drums + outro fade",
+            "free_jazz_brass_section_implications": [
+              "Brass section recorded LIVE TOGETHER (not overdubbed) for free-jazz interaction tradition",
+              "Players documented as session musicians with free-jazz capabilities",
+              "Greenwood arranged framework but allowed free-jazz interpretation within sections",
+              "Demonstrates Radiohead's documented Charles Mingus influence (Mingus's locked-rhythm + free-horn approach)"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (locked groove priority)",
+              "No quantization of brass (free-jazz preservation)",
+              "No vocal pitch correction",
+              "No imposed harmonic structure on brass (expressionism priority)"
+            ],
+            "what_makes_arrangement_unique_within_radiohead": "The National Anthem represents Radiohead's MOST GENRE-CLASHING + MOST JAZZ-INFLUENCED arrangement. Within Kid A this track stakes the GENRE-CLASH HYBRID pole.",
+            "comparison_to_other_kid_a_dissection_arrangements": "EIRP: minimum-element electronic-experimental. The National Anthem: multi-element genre-clash. Different scales of arrangement complexity within Kid A."
+          }
         },
         "Optimistic": {
           "_status": "stub_pending_full_dissection_C7_3",
