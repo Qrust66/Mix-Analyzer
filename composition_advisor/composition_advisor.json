@@ -12122,6 +12122,26 @@
         "synergy_recipes": ["outro_chant_extension_via_repetition_not_fade", "vocal_layering_as_chant_build_mechanism", "cello_dual_role_pad_plus_melodic_response", "litt_subtle_remix_for_chamber_arrangements"],
         "conflict_recipes": ["compact_aggressive_under_2_minutes"],
         "evolution_recipes": ["anchor_track_within_reinvention", "punk_aggression_pole_adjacent_to_mid_tempo_groove_pole_in_album_sequence"]
+      },
+      "litt_subtle_remix_for_chamber_arrangements": {
+        "id": "litt_subtle_remix_for_chamber_arrangements",
+        "rule": "When commercial polish is needed on a CHAMBER-style arrangement (clean guitar + strings + restrained drums + vocal), apply Litt-style SUBTLE intervention rather than Wallace-style heavy compression. Light EQ + light reverb + vocal forward + minimal master compression. Polish without obliterating intimacy.",
+        "applicability_text": "Chamber-music ballad mixes; songs combining acoustic + electric elements; arrangements where the vocal IS the instrument and other instruments support it.",
+        "wow_factor": 0.65,
+        "tier": "supporting",
+        "source": {"artist": "Nirvana", "song": "All_Apologies", "album": "In Utero", "year": 1993},
+        "composition_stage": "mixing",
+        "compositional_axis": ["texture"],
+        "genre_vocabulary": ["rock_traditional", "art_rock", "classical_influenced"],
+        "applicability_tags": ["dynamic_preservation_mastering", "minimum_element_count"],
+        "personality_dominance": "balanced",
+        "personality_fit_breakdown": {"yorke": 35, "cobain": 35, "reznor": 20, "daft_punk": 10},
+        "production_philosophy_lineage": "albini_capture",
+        "trade_offs": "Requires mix engineer with subtlety + restraint capacity. Less commercial-impact than Wallace-style polish.",
+        "documented_example": "Scott Litt's remix of All Apologies for In Utero radio single — subtle intervention preserving the chamber arrangement's intimacy.",
+        "synergy_recipes": ["albini_vs_litt_two_mix_versions", "cello_dual_role_pad_plus_melodic_response", "album_closer_resolution_function", "vocal_intimacy_without_rasp"],
+        "conflict_recipes": ["wallace_compressed_brightness_vs_albini_room", "wallace_stereo_width_maximization_mix"],
+        "evolution_recipes": ["moulder_atmospheric_mix_sustain_preservation", "godrich_engineer_producer_mixer_unified_role_with_band_partnership"]
       }
     },
     "lenses": {
