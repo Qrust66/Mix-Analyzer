@@ -9067,10 +9067,46 @@
           "songs_to_dissect": ["Harder_Better_Faster_Stronger", "Giorgio_By_Moroder", "Veridis_Quo", "Around_The_World"]
         },
         "Around_The_World": {
-          "_status": "stub_pending_full_dissection_C6_1",
+          "_status": "C6_1a_composition_arrangement_done",
           "album": "Homework",
           "year": 1997,
-          "_note": "Earliest of the 4 — pure analog filter house era"
+          "_note": "Earliest of the 4 — pure analog filter house era",
+          "tempo_bpm_documented_range": [120, 122],
+          "time_signature": "4/4 throughout (canonical 4-on-the-floor house tempo + meter)",
+          "key_area": "F-sharp minor area (with bass-line modal motion + filter-modulated harmonic feel)",
+          "tuning_documented": "N/A — synthesizer-based composition, no guitar tuning",
+          "track_runtime": "~7:09 (album version)",
+          "_special_status": "Track 4 on Homework (1997). Functions as the album's MOST ANTHEMIC + MOST WIDELY-RECOGNIZED single. Built around the documented bass-line + vocoded 'Around the world' phrase repeated hypnotically. Demonstrates Daft Punk's documented FILTER HOUSE philosophy: hypnotic repetition + analog filter modulation as compositional engine. Earliest of the 4 dissected Daft Punk tracks — pure analog filter house era before Discovery's pop-leaning evolution.",
+          "composition": {
+            "primary_compositional_signature": "FILTER HOUSE HYPNOTIC REPETITION + VOCODED PHRASE + ANALOG FILTER MODULATION AS COMPOSITIONAL MOVEMENT — built around 4-on-the-floor 120 BPM house foundation + bass-line repetition + vocoded 'Around the world' phrase + filter cutoff modulation creating the song's harmonic motion. Demonstrates that COMPOSITIONAL MOVEMENT can be achieved via filter modulation + arrangement-density-changes rather than via traditional chord progression.",
+            "core_structural_arc": "Bass-line + drums foundation intro → vocoded phrase enters → filter modulation creates evolving textural arc → arrangement adds layers progressively → peak density section → arrangement reduces → return to fundamentals → outro fade. Total ~7:09 — extended-form house track.",
+            "harmonic_motion_summary": "MODAL with bass-line establishing tonic + minimal chord motion. Filter modulation provides PERCEIVED harmonic motion via filter cutoff sweeping through frequency content — NOT via actual chord changes. Voice-leading minimal; 'movement' is textural rather than harmonic.",
+            "characteristic_compositional_choice": "FILTER MODULATION AS COMPOSITIONAL ENGINE — Bangalter + de Homem-Christo demonstrate that ANALOG FILTER MODULATION (sweeping filter cutoff up/down across the song's runtime) can SUBSTITUTE for traditional harmonic motion. Filter-house compositional philosophy: textural transformation = compositional movement.",
+            "comparison_to_other_dissection_compositional_engines": "Most rock dissection tracks use harmonic progression + dynamic arc + density layering as compositional engines. Around the World uses BASS-LINE REPETITION + FILTER MODULATION + ARRANGEMENT LAYERING. Different compositional engine entirely — proves there are MULTIPLE PATHS to compositional movement.",
+            "comparison_to_copy_of_a_modular_electronic_within_dissection": "Copy of A (NIN, Hesitation Marks 2013): modular-electronic patterns as compositional foundation in industrial-rock context. Around the World (Daft Punk, Homework 1997): filter-house hypnotic repetition + vocoded phrase + filter modulation in dance-music context. Two different production-vocabulary lineages — Reznor's industrial-rock-evolved modular-electronic vs. Daft Punk's pure dance-music-tradition filter-house.",
+            "comparison_to_head_down_drone_within_dissection": "Head Down (Soundgarden 1994): drone-foundation + asymmetric meter + modal voicings above drone in heavy rock context. Around the World (Daft Punk 1997): bass-line foundation + 4-on-the-floor + filter modulation in house context. Both use SUSTAINED FOUNDATION + ABOVE-FOUNDATION MOTION but with completely different production-vocabulary palettes.",
+            "compositional_economy": "7:09 extended-form for house — house tradition embraces extended runtime. Compositional movement via filter modulation + arrangement layering allows length without monotony.",
+            "innovation_for_genre_context": "1997 dance music context: filter house was emerging as French house movement (Daft Punk, Cassius, Modjo). Around the World became one of the genre's defining tracks. Documented as influence on subsequent electronic-dance-music + filter-house artists. Track's success demonstrates electronic music can reach mainstream rock-listening audiences."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "FILTER HOUSE LAYERED ARRANGEMENT — programmed drums (4-on-the-floor) + bass-line + vocoded phrase + analog synth pads + filter modulation. Each layer enters + exits across the song's arrangement arc.",
+            "intro_arrangement": "Programmed kick + hi-hat establish 4-on-the-floor foundation, bass-line enters establishing harmonic anchor",
+            "vocoded_phrase_entry": "Vocoded 'Around the world' phrase enters and repeats hypnotically — becomes signature element",
+            "filter_modulation_arc": "Filter cutoff begins lower, gradually opens up across the song, creating PERCEIVED harmonic ascension. Filter modulation IS arrangement movement.",
+            "additional_layers_progressive_addition": "Additional synth pads, percussion samples, claps enter progressively across the runtime — house tradition of progressive layering",
+            "peak_density_section": "All layers active simultaneously, filter fully open, vocoded phrase + bass-line + drums + pads + percussion all driving",
+            "arrangement_reduction_section": "Layers strip away progressively — extended breakdown allowing listener to inhabit foundation alone",
+            "return_to_full_density_section": "Layers return progressively, filter sweeps back open, building to second peak",
+            "outro_arrangement": "Gradual layer reduction + filter close, foundation + vocoded phrase remain, fade to silence",
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained 120 BPM throughout)",
+              "No meter changes (4/4 throughout)",
+              "No live drums (programmed 4-on-the-floor priority)",
+              "No traditional verse-chorus dynamic-arc structure (filter-house arrangement instead)"
+            ],
+            "what_makes_arrangement_unique_within_dissection": "Around the World represents the dissection's MOST PURE-ELECTRONIC arrangement — 4-on-the-floor house foundation + filter modulation + progressive layering. Different arrangement engine from rock dissection peers.",
+            "comparison_to_rock_dissection_arrangements": "Rock arrangements typically use verse-chorus dynamic shifts + density layering for movement. Around the World uses 4-on-the-floor sustained foundation + filter modulation + progressive layering. Different compositional engine producing different arrangement aesthetic."
+          }
         },
         "Harder_Better_Faster_Stronger": {
           "_status": "stub_pending_full_dissection_C6_2",
