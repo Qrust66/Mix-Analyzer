@@ -11177,7 +11177,7 @@
           }
         },
         "Packt_Like_Sardines_In_A_Crushd_Tin_Box": {
-          "_status": "C7_5a_composition_arrangement_done",
+          "_status": "C7_5b_performance_recording_done",
           "album": "Amnesiac",
           "year": 2001,
           "_note": "Album opener; broken metallic percussion loop + Yorke's pitch-shifted/processed vocal",
@@ -11224,6 +11224,101 @@
             ],
             "what_makes_arrangement_unique_within_radiohead": "Packt represents Radiohead's BROKEN METALLIC PERCUSSION + PITCH-SHIFTED VOCAL pole within their catalog. Demonstrates electronic-experimental vocabulary's range beyond Rhodes-piano-driven Kid A tracks.",
             "comparison_to_eirp_within_radiohead_electronic_experimental_evolution": "EIRP (Kid A 2000 opener): Rhodes piano + 10/4 + manipulated vocal samples. Packt (Amnesiac 2001 opener): broken metallic percussion loop + pitch-shifted vocal. Both album openers in electronic-experimental vocabulary but with completely different sonic palettes."
+          },
+          "performance": {
+            "tempo_feel_description": "MID-TEMPO METALLIC-PERCUSSION-DRIVEN — 88-96 BPM with clanging metallic loop providing rhythmic identity. Tempo + textural feel meditative + slightly unsettling.",
+            "drum_style": {
+              "performer_or_programmer": "N/A — track has NO LIVE DRUMS, only METALLIC PERCUSSION LOOP",
+              "approach": "BROKEN METALLIC PERCUSSION SAMPLE LOOP — clanging metallic samples processed + looped as rhythmic foundation",
+              "specifics_documented": [
+                "Sample-based percussion (likely sampled metal hits, found-sound, or processed industrial sounds)",
+                "Loop repeats with variations across runtime",
+                "No traditional rock kit drumming",
+                "Metallic timbre adds industrial-adjacent character"
+              ]
+            },
+            "bass_style": {
+              "performer": "Colin Greenwood (likely)",
+              "approach": "ELECTRONIC + LIVE BASS BLEND — provides harmonic anchor below metallic percussion",
+              "specifics_documented": [
+                "Bass establishes harmonic foundation",
+                "Possible electronic processing on bass",
+                "Tight rhythmic integration with metallic percussion"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Thom Yorke (with pitch-shifting processing)",
+              "approach": "PITCH-SHIFTED PROCESSED VOCAL — Yorke's vocal processed via pitch-shifting (typically downward shift) for distinct textural character",
+              "documented_vocal_quirks": [
+                "Pitch-shifting applied to vocal recording",
+                "Processing different from EIRP's sample manipulation — Packt's vocal processed in real-time",
+                "Vocal carries melodic content despite processing",
+                "Yorke documented as embracing vocal processing across Kid A/Amnesiac period"
+              ]
+            },
+            "electronic_textures_role": {
+              "performer_processor": "Greenwood + Yorke + Godrich",
+              "approach": "Atmospheric synth pads + processed effects + electronic textural color",
+              "specifics_documented": [
+                "Multiple electronic texture layers",
+                "Processed effects + atmospheric depth",
+                "Greenwood's documented electronic-processing contribution continued from Kid A"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No live drums (deliberate absence)",
+              "No traditional rock-band performance",
+              "No vocal pitch correction (raw vocal pitch-shifted intentionally)",
+              "No tempo changes"
+            ]
+          },
+          "recording": {
+            "studio": "Various Amnesiac sessions documented at Medley Studios Copenhagen + Studios Guillaume Tell Paris (same locations as Kid A — Amnesiac material recorded in same multi-location sessions as Kid A)",
+            "session_dates": "1999-2000 sessions (same as Kid A)",
+            "primary_producer": "Nigel Godrich",
+            "primary_engineer": "Nigel Godrich",
+            "primary_mix_engineer": "Nigel Godrich",
+            "production_philosophy_for_packt": "Same Godrich engineer-producer-mixer unified-role with band-creative-partnership framework as Kid A tracks applied to BROKEN METALLIC PERCUSSION + PITCH-SHIFTED VOCAL compositional intent. Demonstrates Godrich's range across Kid A + Amnesiac compositional vocabularies.",
+            "metallic_percussion_recording_approach": {
+              "philosophy_godrich": "Sample-based percussion + electronic processing + loop construction at production stage",
+              "specifics_documented": [
+                "Metallic sample sources (industrial sounds, metal hits, found-sound)",
+                "Sample processing + looping in DAW environment",
+                "Loop variations created via electronic processing techniques"
+              ]
+            },
+            "bass_recording_approach": {
+              "specifics": "Colin Greenwood bass + possible electronic processing"
+            },
+            "vocal_recording_approach": {
+              "philosophy_godrich": "Yorke vocal recorded then pitch-shifted in production stage",
+              "specifics_documented": [
+                "Vocal isolation booth at recording locations",
+                "Multiple complete takes selected/comped",
+                "Pitch-shifting processing applied at production stage"
+              ]
+            },
+            "electronic_textures_recording_approach": {
+              "philosophy_godrich_greenwood": "Atmospheric synth + electronic textures recorded + processed by Greenwood + Yorke + Godrich team",
+              "specifics_documented": [
+                "Synth pads + electronic effects",
+                "Greenwood's documented electronic-processing contribution",
+                "Multiple layers tracked separately for layering control"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Sample-based metallic percussion sources",
+              "Pitch-shifting processing tools",
+              "Electronic synthesizers + effects",
+              "Pro Tools DAW (era documented)",
+              "Medley Studios + Studios Guillaume Tell"
+            ],
+            "what_makes_godrich_recording_distinct_for_packt": [
+              "BROKEN METALLIC PERCUSSION LOOP construction at production stage",
+              "Pitch-shifting processing as compositional element",
+              "Same unified-role framework deployed for electronic-experimental different-palette intent",
+              "Demonstrates Godrich's range across Kid A + Amnesiac vocabularies"
+            ]
           }
         }
       }
