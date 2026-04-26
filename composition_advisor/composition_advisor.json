@@ -12353,6 +12353,8 @@
       "meter_shift_6_4_verse_to_4_4_chorus": {
         "id": "meter_shift_6_4_verse_to_4_4_chorus",
         "rule": "Compose verse in 6/4 (or other asymmetric/extended meter) and chorus in 4/4 (or vice versa). Meter SHIFT between sections marks structural change without explicit announcement. Listener feels the section change rhythmically before recognizing it intellectually.",
+        "electronic_translation": "Compose A-section in 6/4 (or 7/8, 5/4) and B-section in 4/4 — the meter shift marks structural change WITHOUT volume/density announcement. Set time-signature changes in the DAW (Ableton's per-segment time-sig markers, or Logic's signature track) so the grid actually changes — don't just suggest the shift in the listener's ear. Apply for: IDM compositions where meter is part of the puzzle (Autechre, Squarepusher 'Big Loada'-era), neo-classical-electronic with classical-tradition meter freedom (Olafur Arnalds 'Found Songs' rubato-adjacent), techno-experimental peak-time pieces with one mid-track meter shift surprise, dark-electronic concept-album compositional ambition. The listener feels the section change RHYTHMICALLY before recognizing it intellectually. Pair with `seven_four_asymmetric_meter_as_structural_device` for full meter-as-compositional-tool tracks. AVOID for festival-techno DJ-tools (genre demands rigid 4/4 for mixing).",
+        "electronic_target_genres": ["IDM", "neo_classical_electronic", "techno"],
         "applicability_text": "Songs wanting structural sophistication via meter rather than via dynamic shift; tracks where compositional ambition extends beyond standard 4/4; verse-chorus contrasts that should feel different in body, not just in volume.",
         "wow_factor": 0.80,
         "tier": "gold",
@@ -12373,6 +12375,8 @@
       "sus_voicings_verse_with_drop_tuning_pedal": {
         "id": "sus_voicings_verse_with_drop_tuning_pedal",
         "rule": "In verse sections, use SUSPENDED chord voicings (sus2, sus4, modal voicings without 3rd) over a DROP-TUNED bass pedal. Suspended voicings keep harmony OPEN; drop-tuned pedal anchors low end. Verse harmony floats; chorus can resolve via 3rd.",
+        "electronic_translation": "In A-section, voice synth-pads with SUSPENDED chord voicings (sus2, sus4, no-3rd voicings — e.g., A-D-E without C# = Asus4) over a SUSTAINED LOW SUB-BASS pedal (Diva sub voice or Sub 37 sub-osc held on root tonic across the section). The suspended voicings keep harmony FLOATING/AMBIGUOUS; the sub-bass pedal anchors low end so the suspension doesn't feel rootless. B-section can resolve to triads (introduce the 3rd) for harmonic arrival. Apply for: ambient with harmonic motion (Eno-tradition modal openness), neo-classical-electronic suspended-then-resolving compositions (Nils Frahm 'Says'-adjacent), trip-hop with drone-foundation harmony (Massive Attack 'Teardrop' suspended pads), dub-techno with low-pedal-as-anchor + suspended chord washes above. Pair with `drone_foundation_as_compositional_anchor` for full suspended-over-drone aesthetic.",
+        "electronic_target_genres": ["ambient", "neo_classical_electronic", "dub_techno"],
         "applicability_text": "Verses needing modal openness; songs where harmonic ambiguity is desired in verse but resolved in chorus; drop-tuned guitar contexts.",
         "wow_factor": 0.70,
         "tier": "bronze",
@@ -12393,6 +12397,8 @@
       "clean_to_distorted_dynamic_shift_traditional": {
         "id": "clean_to_distorted_dynamic_shift_traditional",
         "rule": "Verse: clean (or lightly overdriven) guitar tone. Chorus: full distortion. The TONE SHIFT marks dynamic change, often paired with vocal projection lift. Traditional rock dynamic-arc mechanism — quiet-loud as guitar-tone-driven structure.",
+        "electronic_translation": "A-section: clean synth tone (low-Q filter, minimal saturation, no distortion). B-section: SAME synth patch but with bypass-switched DISTORTION + filter-Q bump + drive saturation cascade engaged. The TIMBRE SHIFT marks the structural change without changing pitch material. In Ableton: chain Saturator + Drum Buss + Pedal in series on the synth track, automate their wet/dry across the section boundary. Apply on Diva or Massive lead patches. Apply for: synthwave verse-chorus structures (clean Juno-tone verse → distorted lead chorus), electronic-pop with dynamic-arc choruses (Daft Punk 'Aerodynamic'-adjacent timbral lift), trip-hop quiet-loud (Portishead clean piano verse → fuzzed-synth chorus territory), dark-electronic clean-to-aggressive transitions. Pair with `obrien_moderate_compression_for_dynamic_shift_songs` so the dynamic contrast survives mastering. AVOID for ambient (no chorus) and dub-techno (gradual rather than section-binary).",
+        "electronic_target_genres": ["synthwave", "electronic_pop", "trip_hop"],
         "applicability_text": "Verse-chorus rock structures where dynamic shift is the song's mechanism; tracks following Pixies/Nirvana quiet-loud lineage; songs needing chorus 'lift' without volume mastering tricks.",
         "wow_factor": 0.65,
         "tier": "supporting",
