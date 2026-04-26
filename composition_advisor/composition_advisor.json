@@ -10149,10 +10149,45 @@
           "_note": "One of the few rock-band-format songs on Kid A"
         },
         "Pyramid_Song": {
-          "_status": "stub_pending_full_dissection_C7_4",
+          "_status": "C7_1a_composition_arrangement_done",
           "album": "Amnesiac",
           "year": 2001,
-          "_note": "Notoriously difficult-to-count rhythmic feel (often analyzed as 16/8 with Phil Selway's deliberately ambiguous drum entry)"
+          "_note": "Notoriously difficult-to-count rhythmic feel (often analyzed as 16/8 with Phil Selway's deliberately ambiguous drum entry)",
+          "tempo_bpm_documented_range": [70, 80],
+          "time_signature": "Documented as ambiguously feeling — analyzed variously as 16/8, 4/4 with swung subdivisions, or 'subjective time' (Yorke's documented description of feeling rather than counting). The rhythm feel is INTENTIONALLY DIFFICULT TO COUNT.",
+          "key_area": "F-sharp minor area (with chromatic + classical-influenced harmony)",
+          "tuning_documented": "Standard tuning piano + Yorke vocal + Greenwood Ondes Martenot",
+          "track_runtime": "~4:49",
+          "_special_status": "Track 2 on Amnesiac (2001) — companion album to Kid A, recorded in same Copenhagen + Paris sessions. Functions as Radiohead's MOST CLASSICAL-INFLUENCED + MOST RHYTHMICALLY-AMBIGUOUS composition. Built around Yorke's documented PIANO + VOCAL composition (similar to ballad-form) with Phil Selway's documented DELIBERATELY AMBIGUOUS DRUM ENTRY (drums enter mid-song with swung pattern that defies clear meter perception). Demonstrates Radiohead's range — same band that made guitar-rock OK Computer (1997) made this orchestrally-influenced ballad with intentionally-uncountable rhythm.",
+          "composition": {
+            "primary_compositional_signature": "PIANO BALLAD WITH RHYTHMICALLY AMBIGUOUS DRUM ENTRY + ORCHESTRAL ELEMENTS + YORKE FALSETTO VOCAL — built around Yorke's piano composition with Greenwood orchestral arrangement (strings, Ondes Martenot) + Selway's deliberately ambiguous drumming. Rhythm feel is INTENTIONALLY HARD TO COUNT — listeners feel the song rather than measuring it.",
+            "core_structural_arc": "Piano + vocal intro establishes harmonic + melodic content → first verse develops → drums enter MID-SONG with ambiguous pattern → second verse with full arrangement (drums + strings + Ondes Martenot) → climactic harmonic peak → resolution + outro with piano + vocal returning. Total ~4:49 — extended ballad form.",
+            "harmonic_motion_summary": "CLASSICAL-INFLUENCED CHROMATIC HARMONY — Yorke's piano composition uses classically-informed chord progression (chromatic descending + suspensions + voice-leading craft). Documented as influenced by Charles Mingus's 'Freedom Rider' chord progression. Voice-leading deliberate + emotional. Different harmonic vocabulary from typical rock.",
+            "characteristic_compositional_choice": "INTENTIONALLY AMBIGUOUS RHYTHM + CLASSICAL-INFLUENCED HARMONY + LATE DRUM ENTRY — Yorke's documented compositional approach: rhythm should be FELT not COUNTED. Selway's drums enter mid-song with pattern that defies clear meter, allowing rhythm to be experiential rather than analytical.",
+            "comparison_to_veridis_quo_classical_influence_in_dissection": "Veridis Quo (Daft Punk, Discovery 2001): classical-influenced harmonic progression in ELECTRONIC context. Pyramid Song (Radiohead, Amnesiac 2001): classical-influenced harmonic progression in ART-ROCK context with PIANO + ORCHESTRAL ARRANGEMENT. Both 2001-era classical-influenced compositions in opposite genre contexts.",
+            "comparison_to_other_dissection_rhythm_complexity": "Head Down (Soundgarden 1994): asymmetric 7/4 meter with documented CLEAR meter execution. March of the Pigs (NIN 1994): asymmetric 7/8+8/8 meter at extreme tempo with documented CLEAR meter execution. Pyramid Song (Radiohead 2001): INTENTIONALLY AMBIGUOUS rhythm where meter perception is DELIBERATELY UNCERTAIN. Different rhythm-complexity philosophies.",
+            "compositional_economy": "4:49 extended-ballad-form. Compositional 'movement' includes harmonic + arrangement build + late drum entry creating perceptual shift mid-song.",
+            "innovation_for_genre_context": "2001 art-rock context: post-OK-Computer + Kid A had cemented Radiohead's experimental identity. Pyramid Song demonstrates compositional sophistication beyond electronic experimentation — classical-influenced harmony + ambiguous rhythm. Influences subsequent art-rock compositional ambition + rhythm-as-feel-not-count tradition."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "PIANO + VOCAL + LATE-ENTRY DRUMS + ORCHESTRAL ELEMENTS (STRINGS + ONDES MARTENOT) — classical-influenced arrangement with rhythm-section minimal to absent in opening. Greenwood's Ondes Martenot (rare electronic instrument from 1928, classical-orchestra context) adds documented spectral color.",
+            "intro_arrangement_piano_vocal": "Yorke piano + vocal alone — establishes harmonic + melodic content intimately. Maximum 'minimum-element' arrangement.",
+            "first_verse_development": "Piano + vocal continue, possible subtle harmonic addition",
+            "drum_entry_late_ambiguous": "Phil Selway drums enter MID-SONG with deliberately ambiguous swung pattern. Drums enter establishing groove that defies clear meter — listener feels new dimension without locking onto meter.",
+            "second_verse_full_arrangement": "Piano + vocal + drums + strings + Ondes Martenot all simultaneously — climactic arrangement density",
+            "climactic_harmonic_peak": "Harmonic + arrangement peak — strings expand, Ondes Martenot provides spectral color, piano + vocal at full emotional commitment",
+            "outro_resolution": "Arrangement strips away progressively, returning to piano + vocal foundation",
+            "ondes_martenot_role": "Greenwood's documented Ondes Martenot use — provides spectral color distinct from synthesizer + traditional orchestral instruments. Connects Radiohead to classical-orchestral tradition (Ondes Martenot used by Olivier Messiaen + classical composers).",
+            "string_arrangement_role": "Greenwood-arranged strings provide harmonic + textural depth in later sections — classical-orchestral arrangement craft applied to art-rock context",
+            "arrangement_anti_patterns_avoided": [
+              "No rock-band foreground (piano + vocal priority in opening)",
+              "No drum entry at song-start (deliberately late entry priority)",
+              "No countable-meter drumming (ambiguous-rhythm priority)",
+              "No vocal pitch correction"
+            ],
+            "what_makes_arrangement_unique_within_radiohead": "Pyramid Song represents Radiohead's MOST CLASSICAL-INFLUENCED + MOST AMBIGUOUSLY-RHYTHMIC arrangement. Within their catalog this track stakes the CLASSICAL-INFORMED ART-ROCK pole.",
+            "comparison_to_other_radiohead_dissection_tracks_setup": "Pyramid Song (Amnesiac 2001): classical-influenced ballad with ambiguous rhythm. Other Radiohead tracks to dissect: Everything In Its Right Place (Kid A 2000, 10/4 Rhodes piano + manipulated vocal), The National Anthem (Kid A 2000, free-jazz brass over locked bass groove), Optimistic (Kid A 2000, rock-band-format), Packt Like Sardines (Amnesiac 2001, broken metallic percussion loop). FIVE different Radiohead compositional approaches across Kid A + Amnesiac sessions."
+          }
         },
         "Packt_Like_Sardines_In_A_Crushd_Tin_Box": {
           "_status": "stub_pending_full_dissection_C7_5",
