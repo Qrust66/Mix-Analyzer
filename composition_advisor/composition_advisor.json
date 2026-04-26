@@ -11759,6 +11759,8 @@
       "cello_orchestral_pad_in_rock": {
         "id": "cello_orchestral_pad_in_rock",
         "rule": "Add a sustained CELLO part (or bowed string equivalent — viola, violin section, even a synth pad emulating bowed strings) UNDERNEATH a rock band arrangement. Cello provides emotional weight + harmonic depth that distortion or volume cannot. Cello sits in low-mid register, complementing bass without competing.",
+        "electronic_translation": "Use SAMPLED OR LIVE CELLO (Spitfire LABS Cellos, Sample Modeling Solo Strings, Cinematic Strings, OR record a real cellist if budget allows) sustained at the song's tonic + 5th in the LOW-MID register (~120-300 Hz fundamental, harmonics extending up). Sit it 3-6 dB BELOW your synth bass + 6 dB BELOW the lead synth. Light tape saturation gives it presence; no aggressive compression (preserves bow envelope). Apply for: neo-classical-electronic (essential — Nils Frahm / Ólafur Arnalds / Max Richter use this constantly), ambient harmonic deepening, downtempo emotional weight, dark-electronic dramatic verses, trip-hop atmospheric beds. The cello adds organic-warmth that pure synth can't deliver — an ANCHOR to acoustic-music tradition within an electronic track. For bigger weight: layer cello + viola + double-bass arco as a string trio. Stems available from many sample libraries.",
+        "electronic_target_genres": ["neo_classical_electronic", "ambient", "downtempo"],
         "applicability_text": "Ballad tracks needing emotional weight without volume; verse arrangements wanting body without distortion; bridge sections departing from rock palette.",
         "wow_factor": 0.75,
         "tier": "silver",
@@ -11779,6 +11781,8 @@
       "flat_dynamic_arc_anti_buildup": {
         "id": "flat_dynamic_arc_anti_buildup",
         "rule": "Compose a song with NO dynamic peak. Verse and chorus at SAME intensity. No bridge build. No outro climax. The emotional impact comes from VOCAL DELIVERY + arrangement texture, not from architectural release. Anti-arc as artistic statement.",
+        "electronic_translation": "Compose a 3-5 min track at constant density throughout — no drop, no buildup, no peak section. Same kick pattern + bass-line + pad-stack from bar 1 to last bar. Variation comes from MICRO-TEXTURAL changes (subtle filter shift on pad, occasional percussion accent, vocal-phrase variation) rather than density changes. Master to the SAME LUFS reading at every 30s window. This rejects the dance-music drop tradition entirely. Apply for: ambient (default mode — Eno, GAS, Stars of the Lid), drone-music, dub-techno (constant pulse with subtle variation), minimal-techno (arrangement-as-texture not arrangement-as-arc). Strong vocal performance OR strong textural identity required to sustain attention without architectural variation.",
+        "electronic_target_genres": ["ambient", "dub_techno", "downtempo"],
         "applicability_text": "Slow burn tracks where dynamic shifts would feel cheap; songs prioritizing texture and vocal nuance over architecture; tracks following a more aggressive piece on an album (gives breathing room).",
         "wow_factor": 0.70,
         "tier": "bronze",
@@ -11799,6 +11803,8 @@
       "harmonic_minimalism_one_cycle_repeated": {
         "id": "harmonic_minimalism_one_cycle_repeated",
         "rule": "Use the SAME 3-4 chord cycle for the ENTIRE song. No bridge changing chord, no chorus elevation, no key shift. The repetition creates a meditative, circular quality — listener inhabits the harmonic space rather than tracking progression. Vocal carries variation; harmony stays still.",
+        "electronic_translation": "Set ONE 3-4 chord cycle (e.g., i — VI — III — VII in Aeolian, or i — iv — v — i in classical-minor) and loop it for the entire track 4-7 minutes. NEVER modulate, NEVER change chord choices. Variation comes from filter modulation on the chord stack, layer addition/subtraction, occasional pad swap, or melodic variation in lead synth ABOVE the static chords. Apply for: deep house (Larry Heard / Moodymann tradition — single chord progression across entire 7-min track), dub-techno (Maurizio aesthetic — same chord stab filtered + dubbed), ambient (Eno music-for-airports), neo-classical-electronic (Nils Frahm 'Says' single-progression). Demands strong melodic content OR strong textural identity to hold attention without harmonic motion.",
+        "electronic_target_genres": ["deep_house", "dub_techno", "ambient", "neo_classical_electronic"],
         "applicability_text": "Songs where vocal delivery is the centerpiece; tracks with strong textural identity (cello, distinctive guitar tone) where harmony would compete; ballad-format songs aiming for hypnotic restraint.",
         "wow_factor": 0.70,
         "tier": "bronze",
