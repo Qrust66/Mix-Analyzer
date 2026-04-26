@@ -22249,6 +22249,165 @@
           "legendary_session_musicians_for_specific_genre_homage",
           "external_contributor_for_distinct_dimensional_color"
         ]
+      },
+      "mingus_locked_rhythm_plus_free_horn_compositional_template": {
+        "id": "mingus_locked_rhythm_plus_free_horn_compositional_template",
+        "rule": "Borrow Charles Mingus's locked-rhythm-plus-free-horn compositional template (from 'Town Hall Concert' / 'Black Saint and the Sinner Lady'-tradition) into rock context. Locked rhythm-section maintains stable harmonic anchor while free-improvising horn ensemble creates expressionist tension above. The DUAL-AXIS structure (lock + freedom simultaneously) is the compositional template.",
+        "electronic_translation": "Borrow Mingus's LOCKED-RHYTHM-PLUS-FREE-IMPROV template into electronic context: lock the BEAT + BASS-LINE rigidly to the grid (programmed kick + sub-bass at 100% quantize, no swing) while the LEAD-LAYERS (live-brass guests, free-improv synth performances captured as one-take audio, processed-vocal improvisation) breathe FREELY above with no quantize. The tension between locked-foundation + free-improvisation-above = the compositional template. Apply for: trip-hop with featured-soloist guests (Massive Attack with free-jazz horn improvisation), neo-classical-electronic with chamber-improvisation guest passages (Olafur Arnalds + Colin Stetson tradition), dark-electronic with featured-live-soloist tracks, ambient with improvised-instrument-layer integration, downtempo with featured-jazz collaborator. Pair with `locked_rock_groove_with_free_jazz_brass_genre_clash` and `live_brass_section_recording_for_jazz_interaction`.",
+        "electronic_target_genres": [
+          "trip_hop",
+          "neo_classical_electronic",
+          "downtempo"
+        ],
+        "applicability_text": "Hybrid genre-clash compositions; productions willing to combine grid-locked foundation with free-improv layers; tracks where dual-axis structure is desired.",
+        "wow_factor": 0.83,
+        "tier": "gold",
+        "source": {
+          "artist": "Radiohead",
+          "song": "The_National_Anthem",
+          "album": "Kid A",
+          "year": 2000
+        },
+        "composition_stage": "composition",
+        "compositional_axis": [
+          "rhythm",
+          "harmony",
+          "structure"
+        ],
+        "genre_vocabulary": [
+          "hybrid_genre_clash",
+          "free_jazz_influenced",
+          "art_rock"
+        ],
+        "applicability_tags": [],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 50,
+          "reznor": 25,
+          "daft_punk": 15,
+          "cobain": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands compositional understanding of jazz-template + available free-improv musicians. Risk of feeling chaotic if balance off.",
+        "documented_example": "The National Anthem (Radiohead, Kid A 2000) — locked Yorke bass-line + Selway drums foundation + free-jazz horn ensemble improvising above, documented Mingus 'Town Hall Concert' template.",
+        "synergy_recipes": [
+          "locked_rock_groove_with_free_jazz_brass_genre_clash",
+          "live_brass_section_recording_for_jazz_interaction",
+          "bass_line_first_compositional_method",
+          "controlled_cacophony_peak_section"
+        ],
+        "conflict_recipes": [
+          "filter_modulation_as_compositional_engine",
+          "minimum_viable_element_count_for_emotional_impact"
+        ],
+        "evolution_recipes": [
+          "hybrid_vocabulary_integration_within_sections",
+          "production_vocabulary_compositional_structure_independence"
+        ]
+      },
+      "bass_line_first_compositional_method": {
+        "id": "bass_line_first_compositional_method",
+        "rule": "Compose track STARTING FROM THE BASS-LINE rather than from chord-progression or melodic-hook. Bass-line provides harmonic + rhythmic foundation; chord-progression + melody emerge AROUND it. Documented as Yorke's method for The National Anthem (bassline written at age 16, song-built-around-it years later).",
+        "electronic_translation": "Compose track STARTING FROM THE BASS-LINE — write a 4-8 bar bass-line FIRST (TB-303 acid pattern, Sub 37 deep-sub, Massive FM bass, or hardware Moog-style line) that has melodic + rhythmic interest in itself. THEN build chord-progression that fits the bass-line's implicit harmony, drums that lock to the bass-line's rhythm, lead-elements that respond to the bass-line's contour. Bass-line as COMPOSITIONAL SEED, not foundation-after-the-fact. Apply for: techno tracks where bass-line IS the song's identity (acid-techno, industrial-techno, deep-techno), funk-electronic compositions (Daft Punk 'Da Funk' Moog-bass-driven), EBM with signature bass-line tracks (Front 242 'Headhunter' bass-line-as-everything), drum-and-bass with iconic bass-line as compositional core, dub-techno with bass-pedal as compositional anchor. Different from chord-progression-first (rock/pop tradition) and arpeggio-pattern-first (some IDM) — this is BASS-LINE as compositional source. Pair with `bassist_driven_compositional_identity`.",
+        "electronic_target_genres": [
+          "techno",
+          "dark_electronic",
+          "EBM"
+        ],
+        "applicability_text": "Compositions where bass-line is identity-defining; productions willing to start from low-end rather than from melody; tracks targeting bass-driven aesthetic.",
+        "wow_factor": 0.78,
+        "tier": "silver",
+        "source": {
+          "artist": "Radiohead",
+          "song": "The_National_Anthem",
+          "album": "Kid A",
+          "year": 2000
+        },
+        "composition_stage": "composition",
+        "compositional_axis": [
+          "harmony",
+          "rhythm"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "free_jazz_influenced"
+        ],
+        "applicability_tags": [
+          "drone_foundation"
+        ],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 40,
+          "reznor": 25,
+          "daft_punk": 25,
+          "cobain": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands strong bass-line writing capacity. May feel non-melodic to listeners conditioned to chord-progression-first composition.",
+        "documented_example": "The National Anthem — Yorke wrote the bass-line at age 16, Radiohead built the song around it years later. Documented in interviews + biographies.",
+        "synergy_recipes": [
+          "mingus_locked_rhythm_plus_free_horn_compositional_template",
+          "locked_rock_groove_with_free_jazz_brass_genre_clash",
+          "bassist_driven_compositional_identity",
+          "drone_foundation_as_compositional_anchor"
+        ],
+        "conflict_recipes": [
+          "classical_influenced_chord_progression_in_electronic_context",
+          "voice_leading_clarity_via_synth_pad_layers"
+        ],
+        "evolution_recipes": [
+          "filter_modulation_as_compositional_engine",
+          "robot_rock_hypnotic_repetitive_riff_with_micro_variations"
+        ]
+      },
+      "anchor_track_within_reinvention": {
+        "id": "anchor_track_within_reinvention",
+        "rule": "Within an album of radical genre-reinvention, include ONE track that RETAINS the former genre format. The anchor track gives former-audience an entry-point + demonstrates the band can still execute the prior aesthetic on demand. Reinvention validated by NOT being forced.",
+        "electronic_translation": "Within an electronic album of RADICAL genre-reinvention (your techno-producer's pivot to ambient, your filter-house artist's pivot to neo-classical-electronic), include ONE TRACK that RETAINS the former genre format. The anchor-track gives former-audience an entry-point into the new album + DEMONSTRATES you can still execute the prior aesthetic on demand. The reinvention is VALIDATED by being a CHOICE, not a forced abandonment. Apply for: techno-producer's ambient-album with one techno-track preserved (Aphex Twin tradition), deep-house producer's neo-classical-electronic album with one deep-house piece, dark-electronic producer's ambient-album with one aggressive track, electronic-pop artist's experimental album with one pop-single retained. The DISCIPLINE: the anchor-track must be GENUINELY GOOD in the former genre — not a token throwaway; it must convince former-fans that the reinvention is intentional, not desperation. Pair with `complete_genre_reinvention_within_band_catalog`.",
+        "electronic_target_genres": [
+          "IDM",
+          "ambient",
+          "neo_classical_electronic"
+        ],
+        "applicability_text": "Albums of radical genre-reinvention; multi-album catalogs at pivotal moment; productions valuing audience-bridge over total break.",
+        "wow_factor": 0.82,
+        "tier": "gold",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Optimistic",
+          "album": "Kid A",
+          "year": 2000
+        },
+        "composition_stage": "philosophy",
+        "compositional_axis": [
+          "structure",
+          "texture"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "rock_traditional"
+        ],
+        "applicability_tags": [],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 45,
+          "cobain": 30,
+          "reznor": 15,
+          "daft_punk": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Risk of anchor-track feeling out of place vs. rest of album. Demands strong material in former genre to justify anchor status.",
+        "documented_example": "Optimistic on Radiohead's Kid A (2000) — rock-band format retained on otherwise-electronic-experimental album. Anchor for OK-Computer-era listeners.",
+        "synergy_recipes": [
+          "complete_genre_reinvention_within_band_catalog",
+          "rock_band_format_within_electronic_album",
+          "godrich_engineer_producer_mixer_unified_role_with_band_partnership"
+        ],
+        "conflict_recipes": [],
+        "evolution_recipes": [
+          "auteur_framework_supporting_opposite_intents_within_same_album",
+          "anomalous_album_track_compositional_range_demonstration"
+        ]
       }
     },
     "lenses": {
