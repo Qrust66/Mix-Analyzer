@@ -43,11 +43,14 @@ class EvolutionParams:
     shapes the motif's PRESENCE across the song timeline — fade-in / sustain /
     fade-out. This is the alternative to "active in section X, silent in section Y".
     """
-    # Velocity envelope across cycles (0.0 = silent, 1.0 = full volume)
+    # Velocity envelope across cycles (0.0 = silent, 1.0 = full volume).
+    # Trapezoidal: entry → fade_in → SUSTAIN at peak → fade_out → exit.
     entry_volume: float = 0.0          # cycle 0 volume
-    peak_volume: float = 1.0           # max volume
+    peak_volume: float = 1.0           # sustain volume (between fade_in_pct and fade_out_pct)
     exit_volume: float = 0.0           # last cycle volume
-    peak_at_cycle_pct: float = 0.5     # 0.0 = peak at start, 1.0 = peak at end
+    fade_in_pct: float = 0.1           # cycle fraction by which peak is reached
+    fade_out_pct: float = 0.9          # cycle fraction at which fade-out begins
+    peak_at_cycle_pct: float = None    # DEPRECATED: if set, used as triangular peak (overrides fade_in/fade_out)
     fade_curve: str = 'linear'         # 'linear' / 'exp' / 'sigmoid'
 
     # Pitch drift (semitones drift per cycle, accumulating)
@@ -76,34 +79,44 @@ class EvolutionParams:
 def _envelope_volume(cycle_idx: int, num_cycles: int, params: EvolutionParams) -> float:
     """Compute the velocity-envelope multiplier for this cycle.
 
-    Returns a value in [0.0, params.peak_volume] based on entry/peak/exit + curve.
+    Returns a value based on TRAPEZOIDAL envelope:
+        - cycle 0..fade_in_pct: ramp entry_volume → peak_volume
+        - cycle fade_in_pct..fade_out_pct: SUSTAIN at peak_volume
+        - cycle fade_out_pct..1.0: ramp peak_volume → exit_volume
+
+    Legacy: if params.peak_at_cycle_pct is not None, falls back to triangular.
     """
     if num_cycles <= 1:
         return params.peak_volume
 
-    t = cycle_idx / (num_cycles - 1)   # 0.0 to 1.0
-    peak_t = params.peak_at_cycle_pct
+    t = cycle_idx / (num_cycles - 1)
 
-    if t <= peak_t:
-        # Rising phase
-        if peak_t == 0:
-            ratio = 1.0
+    # Legacy triangular envelope
+    if params.peak_at_cycle_pct is not None:
+        peak_t = params.peak_at_cycle_pct
+        if t <= peak_t:
+            ratio = t / peak_t if peak_t > 0 else 1.0
+            v = params.entry_volume + (params.peak_volume - params.entry_volume) * ratio
         else:
-            ratio = t / peak_t
-        v = params.entry_volume + (params.peak_volume - params.entry_volume) * ratio
+            ratio = (t - peak_t) / (1.0 - peak_t) if peak_t < 1 else 0.0
+            v = params.peak_volume - (params.peak_volume - params.exit_volume) * ratio
     else:
-        # Falling phase
-        if peak_t >= 1:
-            ratio = 0.0
+        # Trapezoidal envelope (default)
+        fi = params.fade_in_pct
+        fo = params.fade_out_pct
+        if t <= fi:
+            ratio = t / fi if fi > 0 else 1.0
+            v = params.entry_volume + (params.peak_volume - params.entry_volume) * ratio
+        elif t >= fo:
+            ratio = (t - fo) / (1.0 - fo) if fo < 1 else 0.0
+            v = params.peak_volume - (params.peak_volume - params.exit_volume) * ratio
         else:
-            ratio = (t - peak_t) / (1.0 - peak_t)
-        v = params.peak_volume - (params.peak_volume - params.exit_volume) * ratio
+            v = params.peak_volume
 
     # Apply curve
     if params.fade_curve == 'exp':
         v = v ** 2 if v > 0 else 0
     elif params.fade_curve == 'sigmoid':
-        # Smoother fade
         if 0 < v < 1:
             v = 1 / (1 + 2.71828 ** (-12 * (v - 0.5)))
 
