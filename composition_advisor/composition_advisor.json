@@ -11177,7 +11177,7 @@
           }
         },
         "Packt_Like_Sardines_In_A_Crushd_Tin_Box": {
-          "_status": "C7_5b_performance_recording_done",
+          "_status": "C7_5c_complete_exhaustive",
           "album": "Amnesiac",
           "year": 2001,
           "_note": "Album opener; broken metallic percussion loop + Yorke's pitch-shifted/processed vocal",
@@ -11319,6 +11319,108 @@
               "Same unified-role framework deployed for electronic-experimental different-palette intent",
               "Demonstrates Godrich's range across Kid A + Amnesiac vocabularies"
             ]
+          },
+          "mixing": {
+            "mix_engineer": "Nigel Godrich",
+            "mixing_studio": "Various Amnesiac mix locations",
+            "mixing_philosophy_godrich_for_packt": "BROKEN METALLIC PERCUSSION FORWARD + PITCH-SHIFTED VOCAL INTEGRATION + ELECTRONIC TEXTURE SPATIAL DEPTH. Mix delivers metallic percussion as rhythmic foundation + pitch-shifted vocal as melodic anchor + electronic textures as spatial color.",
+            "metallic_percussion_mix_treatment": [
+              "Metallic percussion loop FORWARD as rhythmic foundation",
+              "Sample variations preserved through mix",
+              "Spatial depth via reverb on selected metallic hits"
+            ],
+            "vocal_mix_treatment": [
+              "Yorke pitch-shifted vocal CENTERED + FORWARD as melodic anchor",
+              "Reverb chain calibrated for pitch-shifted character",
+              "Compression preserves processing artifacts"
+            ],
+            "bass_mix_treatment": [
+              "Bass providing harmonic anchor below metallic percussion"
+            ],
+            "electronic_textures_mix_treatment": [
+              "Synth pads + electronic textures spread across stereo for spatial depth",
+              "Reverb on textures for atmospheric depth"
+            ],
+            "spatial_treatment_electronic_experimental_industrial_adjacent": [
+              "Stereo field WIDE for electronic texture spread",
+              "Reverb usage MODERATE — electronic-experimental balance",
+              "Plate + electronic reverbs for processing"
+            ],
+            "automation_used_in_mix": [
+              "Sample variation rides for metallic percussion development",
+              "Vocal level rides for pitch-shifted phrase emphasis",
+              "Reverb send automation for electronic texture development"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No drum sample replacement (metallic percussion IS the drums)",
+              "No vocal pitch correction (pitch-shifting preserved)",
+              "No imposed-clarity mix (electronic-experimental priority)"
+            ],
+            "what_makes_godrich_mix_distinct_for_packt": [
+              "BROKEN METALLIC PERCUSSION FORWARD as compositional foundation",
+              "Pitch-shifted vocal integration",
+              "Same unified-role framework deployed for Amnesiac-era compositional intent"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Chris Blair (Amnesiac mastered at Abbey Road Mastering — same as Kid A)",
+            "mastering_studio": "Abbey Road Mastering, London",
+            "mastering_philosophy_for_packt": [
+              "Blair's documented approach: high-end clarity + low-end weight + dynamic detail preservation",
+              "Packt's electronic-experimental + metallic percussion benefits from preserved dynamic + spectral detail",
+              "2001 album-level mastering — Amnesiac dynamic preservation tradition continued from Kid A"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS — Amnesiac dynamic preservation.",
+            "spectral_signature": "Blair's documented Abbey Road sound."
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "BROKEN METALLIC PERCUSSION LOOP + PITCH-SHIFTED YORKE VOCAL — listeners hear Radiohead's continuation of Kid A's electronic-experimental reinvention into Amnesiac with different sonic palette.",
+            "level_2_arrangement_signature": "METALLIC PERCUSSION FOUNDATION + PITCH-SHIFTED VOCAL + ELECTRONIC TEXTURES — minimum-element electronic-experimental arrangement with industrial-adjacent textural character.",
+            "level_3_compositional_signature": "ELECTRONIC-EXPERIMENTAL VOCABULARY EVOLUTION FROM KID A TO AMNESIAC — Radiohead demonstrate that electronic-experimental approach can SUSTAIN multiple albums with EVOLVING SONIC PALETTES. Packt's broken metallic percussion + pitch-shifted vocal distinct from Kid A's Rhodes-piano-driven tracks. Demonstrates electronic-experimental vocabulary's compositional range."
+          },
+          "advisor_extract": {
+            "recipe_name": "broken_metallic_percussion_with_pitch_shifted_vocal_electronic_experimental_evolution",
+            "applicability": "Electronic-experimental or art-rock compositions seeking industrial-adjacent textural character via SAMPLE-BASED METALLIC PERCUSSION + PITCH-SHIFTED VOCAL. Use when DIFFERENT SONIC PALETTE within electronic-experimental tradition is desired.",
+            "core_compositional_recipes": [
+              {
+                "id": "broken_metallic_percussion_loop_as_compositional_foundation",
+                "rule": "Use SAMPLE-BASED METALLIC PERCUSSION (clanging metal hits, found-sound, processed industrial sounds) + LOOPED variations as compositional foundation. Industrial-adjacent textural character distinct from electronic drum machines + rock kit. Loop variations create perceived rhythmic complexity.",
+                "wow_factor": 0.81,
+                "documented_example": "Packt Like Sardines (Radiohead, Amnesiac 2001) — broken metallic percussion loop as compositional foundation",
+                "trade_offs": "Demands sample sources + sample processing skill. Industrial-adjacent character may not suit all genre contexts.",
+                "personality_fit": "Yorke 50 / Reznor 30 / Daft Punk 15 / Cobain 5"
+              },
+              {
+                "id": "pitch_shifted_vocal_as_compositional_element",
+                "rule": "Apply PITCH-SHIFTING PROCESSING to vocal as COMPOSITIONAL ELEMENT (not as correction or special-effect). Typically downward pitch shift creates distinct textural character. Vocal carries melodic content despite processing.",
+                "wow_factor": 0.79,
+                "documented_example": "Yorke's pitch-shifted vocal on Packt — processing as compositional element",
+                "trade_offs": "Demands pitch-shifting processing tools + artistic decision about shift amount. Risk of vocal becoming unrecognizable.",
+                "personality_fit": "Yorke 45 / Reznor 30 / Daft Punk 20 / Cobain 5"
+              },
+              {
+                "id": "electronic_experimental_vocabulary_evolution_across_companion_albums",
+                "rule": "Across companion albums (recorded in same sessions, released sequentially), EVOLVE electronic-experimental vocabulary with different sonic palettes. Album 1 establishes vocabulary; Album 2 extends with different sonic territory. Demonstrates compositional range within electronic-experimental tradition.",
+                "wow_factor": 0.78,
+                "documented_example": "Radiohead Kid A 2000 → Amnesiac 2001 (companion albums from same sessions) — EIRP Rhodes-driven vs. Packt metallic-percussion-driven",
+                "trade_offs": "Demands two-album scope + commitment to electronic-experimental approach across releases.",
+                "personality_fit": "Yorke 50 / Reznor 30 / Daft Punk 15 / Cobain 5"
+              },
+              {
+                "id": "industrial_adjacent_textural_character_in_art_rock_electronic_experimental",
+                "rule": "Embrace INDUSTRIAL-ADJACENT TEXTURAL CHARACTER (clanging metals, found-sound, processed industrial textures) within ART-ROCK ELECTRONIC-EXPERIMENTAL context. Industrial influence informs textural palette without committing to industrial genre.",
+                "wow_factor": 0.76,
+                "documented_example": "Packt's metallic percussion as industrial-adjacent textural character within art-rock electronic-experimental context",
+                "trade_offs": "Risk of feeling derivative if industrial influence too literal. Demands artistic commitment to specific textural palette.",
+                "personality_fit": "Reznor 35 / Yorke 35 / Daft Punk 20 / Cobain 10"
+              }
+            ],
+            "production_philosophy_signature_godrich_amnesiac_continuation": {
+              "philosophy": "Same Godrich engineer-producer-mixer unified-role with band-creative-partnership framework deployed for AMNESIAC-ERA ELECTRONIC-EXPERIMENTAL EVOLUTION. Demonstrates Godrich's range across BOTH Kid A + Amnesiac compositional vocabularies (5 documented Radiohead tracks within dissection).",
+              "applicability": "Producer-band partnerships sustaining electronic-experimental approach across multiple albums",
+              "key_insight": "Long-term producer-band partnerships support multi-album electronic-experimental evolution. Producer's creative partnership enables sustained genre-experimentation."
+            },
+            "structural_choice_summary": "Broken metallic percussion loop + pitch-shifted vocal + electronic textures + Godrich Amnesiac-era production — Packt demonstrates Radiohead's BROKEN-METALLIC-PERCUSSION pole within electronic-experimental tradition. Compositional vocabulary evolution from Kid A to Amnesiac."
           }
         }
       }
