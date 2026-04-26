@@ -24451,7 +24451,7 @@
       }
     },
     "default_blend_projection": {
-      "_note": "Empty placeholder; will be populated in step A10. Computes top 30 recipes ranked by fit_score for the user's documented default personality blend.",
+      "_note": "Top 30 recipes ranked by fit_score for the documented default personality blend (Cobain 30 / Reznor 30 / Daft Punk 25 / Yorke 15). Score = sum(blend_pct * personality_fit_breakdown_pct) / 10000, normalized to 0.0-1.0. Tiebreaker: wow_factor descending. Use top_30 as starting compositional palette when blend matches user default; recompute via fit_score_formula for custom blends.",
       "blend_signature": "cobain_30_reznor_30_daft_punk_25_yorke_15",
       "blend_vector": {
         "cobain": 30,
@@ -24460,7 +24460,220 @@
         "yorke": 15
       },
       "fit_score_formula": "fit_score = sum(blend_vector[k] * recipe.personality_fit_breakdown[k] for k in [cobain, reznor, daft_punk, yorke]) / 10000.0  # normalized to 0.0-1.0 range",
-      "ranking_secondary_key": "wow_factor (descending) — used as tiebreaker when fit_scores within 0.01 of each other"
+      "ranking_secondary_key": "wow_factor (descending) — used as tiebreaker when fit_scores within 0.01 of each other",
+      "top_30": [
+        {
+          "rank": 1,
+          "recipe_id": "unrelenting_aggression_no_dynamic_arc",
+          "fit_score": 0.285,
+          "wow_factor": 0.75,
+          "tier": "silver"
+        },
+        {
+          "rank": 2,
+          "recipe_id": "compact_aggressive_under_2_minutes",
+          "fit_score": 0.2825,
+          "wow_factor": 0.65,
+          "tier": "supporting"
+        },
+        {
+          "rank": 3,
+          "recipe_id": "a_cappella_fakeout_intro_into_band_slam",
+          "fit_score": 0.2775,
+          "wow_factor": 0.9,
+          "tier": "top"
+        },
+        {
+          "rank": 4,
+          "recipe_id": "albini_mix_vs_wallace_mix_for_aggression",
+          "fit_score": 0.2775,
+          "wow_factor": 0.65,
+          "tier": "supporting"
+        },
+        {
+          "rank": 5,
+          "recipe_id": "descending_riff_as_song_identity",
+          "fit_score": 0.275,
+          "wow_factor": 0.75,
+          "tier": "silver"
+        },
+        {
+          "rank": 6,
+          "recipe_id": "compact_runtime_2_to_3_minutes",
+          "fit_score": 0.275,
+          "wow_factor": 0.65,
+          "tier": "supporting"
+        },
+        {
+          "rank": 7,
+          "recipe_id": "screamed_single_take_vocal_no_doubling",
+          "fit_score": 0.275,
+          "wow_factor": 0.65,
+          "tier": "supporting"
+        },
+        {
+          "rank": 8,
+          "recipe_id": "mid_tempo_aggression_not_hardcore_speed",
+          "fit_score": 0.275,
+          "wow_factor": 0.65,
+          "tier": "supporting"
+        },
+        {
+          "rank": 9,
+          "recipe_id": "hard_soft_hard_contrast_within_song",
+          "fit_score": 0.2725,
+          "wow_factor": 0.84,
+          "tier": "gold"
+        },
+        {
+          "rank": 10,
+          "recipe_id": "scream_to_sing_vocal_contrast_as_compositional_weapon",
+          "fit_score": 0.2725,
+          "wow_factor": 0.83,
+          "tier": "gold"
+        },
+        {
+          "rank": 11,
+          "recipe_id": "sustained_intensity_no_dynamic_arc_economy",
+          "fit_score": 0.2725,
+          "wow_factor": 0.79,
+          "tier": "silver"
+        },
+        {
+          "rank": 12,
+          "recipe_id": "vocal_hybrid_delivery_within_single_song",
+          "fit_score": 0.2725,
+          "wow_factor": 0.79,
+          "tier": "silver"
+        },
+        {
+          "rank": 13,
+          "recipe_id": "abrupt_song_end_no_fade",
+          "fit_score": 0.2725,
+          "wow_factor": 0.7,
+          "tier": "bronze"
+        },
+        {
+          "rank": 14,
+          "recipe_id": "wallace_compressed_brightness_vs_albini_room",
+          "fit_score": 0.2725,
+          "wow_factor": 0.65,
+          "tier": "supporting"
+        },
+        {
+          "rank": 15,
+          "recipe_id": "industrial_vocabulary_in_anthemic_rock_structure",
+          "fit_score": 0.27,
+          "wow_factor": 0.83,
+          "tier": "gold"
+        },
+        {
+          "rank": 16,
+          "recipe_id": "live_drums_with_programmed_overlay_hybrid",
+          "fit_score": 0.27,
+          "wow_factor": 0.83,
+          "tier": "gold"
+        },
+        {
+          "rank": 17,
+          "recipe_id": "rock_drummer_in_industrial_production_context",
+          "fit_score": 0.27,
+          "wow_factor": 0.81,
+          "tier": "gold"
+        },
+        {
+          "rank": 18,
+          "recipe_id": "fast_tempo_148_156_bpm_aggressive_heavy_rock",
+          "fit_score": 0.27,
+          "wow_factor": 0.79,
+          "tier": "silver"
+        },
+        {
+          "rank": 19,
+          "recipe_id": "vocal_saturation_for_hardcore_punk_aesthetic",
+          "fit_score": 0.27,
+          "wow_factor": 0.78,
+          "tier": "silver"
+        },
+        {
+          "rank": 20,
+          "recipe_id": "punk_economy_arrangement_no_atmospheric_layers",
+          "fit_score": 0.27,
+          "wow_factor": 0.74,
+          "tier": "bronze"
+        },
+        {
+          "rank": 21,
+          "recipe_id": "asymmetric_meter_at_extreme_tempo",
+          "fit_score": 0.2675,
+          "wow_factor": 0.86,
+          "tier": "top"
+        },
+        {
+          "rank": 22,
+          "recipe_id": "programmed_drums_as_compositional_engine",
+          "fit_score": 0.2675,
+          "wow_factor": 0.82,
+          "tier": "gold"
+        },
+        {
+          "rank": 23,
+          "recipe_id": "vocal_lead_democracy_band_member_with_hardcore_vocabulary",
+          "fit_score": 0.2675,
+          "wow_factor": 0.8,
+          "tier": "gold"
+        },
+        {
+          "rank": 24,
+          "recipe_id": "commercial_single_economy_three_minutes_thirty_one",
+          "fit_score": 0.2675,
+          "wow_factor": 0.78,
+          "tier": "silver"
+        },
+        {
+          "rank": 25,
+          "recipe_id": "punk_aggression_pole_adjacent_to_mid_tempo_groove_pole_in_album_sequence",
+          "fit_score": 0.2675,
+          "wow_factor": 0.78,
+          "tier": "silver"
+        },
+        {
+          "rank": 26,
+          "recipe_id": "extreme_compressed_economy_under_two_minutes",
+          "fit_score": 0.2675,
+          "wow_factor": 0.78,
+          "tier": "silver"
+        },
+        {
+          "rank": 27,
+          "recipe_id": "compressed_economy_under_three_minutes_in_long_album",
+          "fit_score": 0.2675,
+          "wow_factor": 0.76,
+          "tier": "silver"
+        },
+        {
+          "rank": 28,
+          "recipe_id": "loudness_war_mastering_balanced_with_dynamic_detail",
+          "fit_score": 0.2675,
+          "wow_factor": 0.74,
+          "tier": "bronze"
+        },
+        {
+          "rank": 29,
+          "recipe_id": "moulder_mix_rhythmic_aggression_priority_over_width",
+          "fit_score": 0.2675,
+          "wow_factor": 0.73,
+          "tier": "bronze"
+        },
+        {
+          "rank": 30,
+          "recipe_id": "albini_mix_pure_capture_no_remix",
+          "fit_score": 0.2675,
+          "wow_factor": 0.7,
+          "tier": "bronze"
+        }
+      ],
+      "_generated_from_atom_count": 173
     },
     "synergy_clusters": {
       "_note": "Empty placeholder; will be populated in step A11. Each cluster is an evidence-backed bundle of 3-5 recipes that co-appear in a song's advisor_extract or share documented compositional logic. Clusters are SEMANTIC GROUPS, not just pointer lists — each has a description + personality_fit + parent_song reference.",
