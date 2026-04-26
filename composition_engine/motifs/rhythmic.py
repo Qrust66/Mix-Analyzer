@@ -99,6 +99,125 @@ RHYTHMIC_MOTIFS['syncopated_kick_3_against_4'] = {
 
 
 # ============================================================================
+# 4-ON-THE-FLOOR FAMILY — house/techno foundation
+# ============================================================================
+
+RHYTHMIC_MOTIFS['four_on_floor_house_pure'] = {
+    'id': 'four_on_floor_house_pure',
+    'sources': [
+        ('Daft Punk', 'Around the World', 'TR-909 4-on-floor at 121 BPM as house foundation'),
+        ('Daft Punk', 'Harder Better Faster Stronger', '4-on-floor anchor under vocoded lead'),
+    ],
+    'advisor_recipes': [
+        'four_on_the_floor_120_bpm_house_foundation',
+        'tr_909_drum_machine_as_compositional_instrument',
+        'programmed_drums_as_compositional_engine',
+    ],
+    'drum_pitch': KICK,
+    # Kick on every beat (1, 2, 3, 4) = beats {0, 1, 2, 3} 0-indexed
+    'rhythm_beats': [(0.0, 0.25), (1.0, 0.25), (2.0, 0.25), (3.0, 0.25)],
+    'velocity_contour': [120, 110, 115, 110],   # downbeat slightly stronger
+    'character_tags': ['four_on_floor', 'house', 'techno', 'foundation', 'predictable'],
+    'duration_total_beats': 4.0,
+    'time_sig': (4, 4),
+    'target_genres': ['filter_house', 'deep_house', 'techno', 'electronic_pop'],
+    'micro_variation_rules': {
+        'timing_jitter_ms': (-3, 3),         # tighter than syncopated — 4-on-floor wants precision
+        'velocity_jitter': (-5, 5),
+    },
+    'transformations_allowed': ['rhythmic_displace', 'augment_diminish', 'fragment'],
+    'notes_on_use': (
+        'THE foundational house kick. Pair with offbeat hi-hat (beats 0.5/1.5/2.5/3.5) for '
+        'classic house feel, OR with 16th-note hat micro-variations for tech-house. AVOID '
+        'overlaying with syncopated_kick_3_against_4 (genre conflict). Strict 120-128 BPM '
+        'for house/filter-house; can extend to 130-140 for techno.'
+    ),
+}
+
+
+RHYTHMIC_MOTIFS['four_on_floor_with_offbeat_ghost'] = {
+    'id': 'four_on_floor_with_offbeat_ghost',
+    'sources': [
+        ('Daft Punk', 'Around the World', 'four-on-floor + ghost kicks on the and-of-2 + and-of-4'),
+        ('NIN', 'The Hand That Feeds', 'commercial-single 4-on-floor with extra dynamics'),
+    ],
+    'advisor_recipes': [
+        'four_on_the_floor_120_bpm_house_foundation',
+        'commercial_single_economy_three_minutes_thirty_one',
+    ],
+    'drum_pitch': KICK,
+    # Main 4-on-floor + ghost kicks at 1.5 + 3.5 (the "and" of 2 + 4)
+    'rhythm_beats': [
+        (0.0, 0.25), (1.0, 0.25), (1.5, 0.25),    # downbeat + beat 2 + ghost
+        (2.0, 0.25), (3.0, 0.25), (3.5, 0.25),    # beat 3 + beat 4 + ghost
+    ],
+    'velocity_contour': [120, 110, 65, 115, 110, 65],   # main 110-120, ghosts at 65 (much softer)
+    'character_tags': ['four_on_floor', 'ghost_kick', 'house_advanced', 'syncopated_overlay'],
+    'duration_total_beats': 4.0,
+    'time_sig': (4, 4),
+    'target_genres': ['filter_house', 'deep_house', 'electronic_pop'],
+    'micro_variation_rules': {
+        'timing_jitter_ms': (-3, 3),
+        'velocity_jitter': (-5, 5),
+        'occasional_skip': {
+            'every_n_cycles': 4,
+            'skip_indices': [2],     # skip the first ghost every 4th cycle for variation
+        },
+    },
+    'transformations_allowed': ['rhythmic_displace', 'fragment'],
+    'notes_on_use': (
+        'House-music advanced kick. The ghosts at 65 velocity are FELT not heard — they add '
+        'forward-propulsion without disrupting the 4-on-floor primary pulse. Strongest at '
+        '120-128 BPM. The skip-rule on ghost #1 every 4 cycles introduces breathing variation.'
+    ),
+}
+
+
+RHYTHMIC_MOTIFS['boom_bap_kick_groove'] = {
+    'id': 'boom_bap_kick_groove',
+    'sources': [
+        ('Queens Of The Stone Age', 'First It Giveth', 'robot-rock groove with kick on 1 + offbeat-of-3'),
+        ('Soundgarden', 'My Wave', '5/4 groove kick anchored on beats 1 + 4'),
+        ('Trip-hop tradition', 'Massive Attack-adjacent', 'slow boom-bap groove'),
+    ],
+    'advisor_recipes': [
+        'groove_over_complexity_compositional_priority',
+        'robot_rock_hypnotic_repetitive_riff_with_micro_variations',
+        'rhythmic_emphasis_over_harmonic_movement_industrial_lesson',
+    ],
+    'drum_pitch': KICK,
+    # Boom-bap classic: kick on 1, kick on 2.5 (the "and" of 3 in 1-indexed = 2.5 in 0-indexed)
+    # PLUS sparse 16th anticipations
+    'rhythm_beats': [
+        (0.0, 0.25),     # downbeat (boom)
+        (2.5, 0.25),     # boom-bap second hit (2 boom-bap-style)
+        (3.75, 0.125),   # 16th-anticipation back to next downbeat
+    ],
+    'velocity_contour': [125, 115, 70],   # primary boom strongest, anticipation ghost-soft
+    'character_tags': ['boom_bap', 'groove', 'sparse', 'pocket', 'hip_hop_adjacent'],
+    'duration_total_beats': 4.0,
+    'time_sig': (4, 4),
+    'target_genres': ['trip_hop', 'downtempo', 'neo_classical_electronic'],
+    'micro_variation_rules': {
+        'timing_jitter_ms': (-8, 8),    # looser than house — boom-bap WANTS swing feel
+        'velocity_jitter': (-10, 10),
+        'occasional_skip': {
+            'every_n_cycles': 8,
+            'skip_indices': [2],         # drop the anticipation every 8 cycles
+        },
+    },
+    'transformations_allowed': ['rhythmic_displace', 'fragment', 'augment_diminish'],
+    'notes_on_use': (
+        'Best at 80-100 BPM (trip-hop / downtempo / neo-classical-electronic). The pocket is '
+        'in the SPACE between kicks — do not fill it with extra hits. Pair with snare on '
+        'beat 2 + 4 (backbeat) or with snare_with_ghost_notes for groove variety. The 16th '
+        'anticipation at beat 3.75 is the "Cameron-Castillo" detail (pulled from QOTSA / '
+        'session-drummer tradition).'
+    ),
+}
+
+
+# ============================================================================
 # Render API — turn a rhythmic motif into concrete MIDI notes
 # ============================================================================
 
