@@ -10131,7 +10131,7 @@
           "songs_to_dissect": ["Everything_In_Its_Right_Place", "The_National_Anthem", "Optimistic", "Pyramid_Song", "Packt_Like_Sardines_In_A_Crushd_Tin_Box"]
         },
         "Everything_In_Its_Right_Place": {
-          "_status": "C7_2a_composition_arrangement_done",
+          "_status": "C7_2b_performance_recording_done",
           "album": "Kid A",
           "year": 2000,
           "_note": "Album opener; Rhodes piano + manipulated vocal samples; 10/4 time signature",
@@ -10173,6 +10173,102 @@
             ],
             "what_makes_arrangement_unique_within_radiohead": "EIRP represents Radiohead's MOST RADICAL ARRANGEMENT REINVENTION — abandons rock-band format entirely. Within their catalog this track stakes the ELECTRONIC-EXPERIMENTAL pole.",
             "comparison_to_pyramid_song_arrangement": "Pyramid Song: piano + vocal + late-entry drums + strings + Ondes Martenot (multi-instrument classical-informed). EIRP: Rhodes piano + vocal + manipulated samples (minimum-element electronic-experimental). Two opposite arrangement approaches within same Kid A/Amnesiac era."
+          },
+          "performance": {
+            "tempo_feel_description": "MID-TEMPO HYPNOTIC ASYMMETRIC — 104-110 BPM in 10/4 meter creates LONG ASYMMETRIC CYCLE. Tempo + meter combination produces meditative + spectral feel.",
+            "drum_style": {
+              "performer_or_programmer": "N/A — track has NO LIVE DRUMS (notable absence)",
+              "approach": "RHYTHM CONVEYED VIA RHODES PIANO + VOCAL SAMPLE MANIPULATIONS — no traditional drums",
+              "specifics_documented": [
+                "Rhodes piano provides rhythmic + harmonic foundation",
+                "Vocal sample manipulations provide rhythmic motion via sampling triggers",
+                "Drumless arrangement DELIBERATE COMPOSITIONAL CHOICE",
+                "Demonstrates rock-band-format reinvention — drums NOT obligatory"
+              ]
+            },
+            "rhodes_piano_style": {
+              "performer": "Thom Yorke (Rhodes piano)",
+              "approach": "HYPNOTIC REPETITIVE CHORD PROGRESSION IN 10/4 METER — Yorke's documented Kid A reinvention compositional approach via electric piano",
+              "specifics_documented": [
+                "Rhodes electric piano (Fender Rhodes documented era-appropriate)",
+                "Chord progression repeats across 10/4 meter cycles",
+                "Chord voicings simple — chord progression provides movement",
+                "Pedaling generates harmonic blur"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Thom Yorke",
+              "approach": "MELODIC + EMOTIONAL — Yorke vocal carries melodic content over Rhodes foundation",
+              "documented_vocal_quirks": [
+                "Multiple takes selected/comped",
+                "Vocal serves as foreground melodic anchor",
+                "Less falsetto-only than Pyramid Song — mixed register"
+              ]
+            },
+            "manipulated_vocal_samples_role": {
+              "performer_processor": "Greenwood + Yorke + Godrich (sample manipulation work)",
+              "approach": "VOCAL SAMPLES PROCESSED ELECTRONICALLY — re-pitched, time-stretched, granular-processed, rearranged. Vocal manipulations BECOME instrumental textures.",
+              "specifics_documented": [
+                "Yorke's vocal sampled, then processed in samplers + DAW environment",
+                "Granular processing + pitch-shifting + time-stretching documented techniques",
+                "Sample manipulations layered into arrangement as textural color",
+                "Greenwood documented as actively contributing to electronic processing work on Kid A"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No live drums (deliberate absence)",
+              "No bass (deliberate absence)",
+              "No traditional rock-band performance",
+              "No vocal pitch correction (raw vocal preserved despite sample manipulations)"
+            ]
+          },
+          "recording": {
+            "studio": "Various Kid A sessions documented at: Medley Studios (Copenhagen) + Studios Guillaume Tell (Paris) + Radiohead's own studios",
+            "session_dates": "1999-2000 sessions",
+            "primary_producer": "Nigel Godrich",
+            "primary_engineer": "Nigel Godrich",
+            "primary_mix_engineer": "Nigel Godrich",
+            "production_philosophy_for_eirp": "Same Godrich engineer-producer-mixer unified-role with band-creative-partnership framework as Pyramid Song applied to ELECTRONIC-EXPERIMENTAL + ASYMMETRIC METER + SAMPLE MANIPULATION compositional intent. Kid A documented as Godrich + band's most experimental session period.",
+            "rhodes_piano_recording_approach": {
+              "philosophy_godrich": "Direct line from Rhodes + possible amp + cabinet capture",
+              "specifics_documented": [
+                "Fender Rhodes electric piano (vintage)",
+                "Direct line + possible amp/cabinet capture for tonal variety",
+                "Pedaling preserved for harmonic blur"
+              ]
+            },
+            "vocal_recording_approach": {
+              "philosophy_godrich": "Yorke vocal recorded with attention to multiple-take + sample-suitable capture (vocals would be sampled + manipulated)",
+              "specifics_documented": [
+                "Vocal isolation booth at recording locations",
+                "Multiple takes selected for sample-source material",
+                "Clean processing supports both lead vocal + sample-source roles"
+              ]
+            },
+            "sample_manipulation_recording_approach": {
+              "philosophy_godrich_greenwood_yorke": "Vocal samples processed in samplers + DAW environment after initial vocal tracking",
+              "specifics_documented": [
+                "E-mu samplers + Akai samplers + Pro Tools DAW documented era options",
+                "Samples processed via granular synthesis, pitch-shifting, time-stretching",
+                "Greenwood documented as actively contributing electronic processing work",
+                "Sample manipulations integrated into arrangement during production stage"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Fender Rhodes electric piano",
+              "E-mu + Akai samplers (era documented)",
+              "Pro Tools DAW (era documented)",
+              "Granular synthesis tools",
+              "Medley Studios + Studios Guillaume Tell + Radiohead's own studios"
+            ],
+            "what_makes_godrich_recording_distinct_for_eirp": [
+              "ELECTRONIC-EXPERIMENTAL FRAMEWORK — same unified-role producer adapted to Kid A reinvention",
+              "Sample manipulation as production stage — vocals become source material for processing",
+              "Greenwood's documented electronic-processing contribution",
+              "Rock-band-format abandoned — minimum-element arrangement priority",
+              "Same Godrich 'sixth member' role applied to electronic-experimental context"
+            ],
+            "comparison_to_pyramid_song_recording": "Pyramid Song (Amnesiac 2001): multi-instrument tracking (piano + drums + Ondes Martenot + strings + vocal). EIRP (Kid A 2000): minimum-element tracking (Rhodes + vocal) + extensive electronic processing stage. Same Godrich + Radiohead session period, opposite recording emphases."
           }
         },
         "The_National_Anthem": {
