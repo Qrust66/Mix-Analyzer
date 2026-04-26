@@ -11177,10 +11177,54 @@
           }
         },
         "Packt_Like_Sardines_In_A_Crushd_Tin_Box": {
-          "_status": "stub_pending_full_dissection_C7_5",
+          "_status": "C7_5a_composition_arrangement_done",
           "album": "Amnesiac",
           "year": 2001,
-          "_note": "Album opener; broken metallic percussion loop + Yorke's pitch-shifted/processed vocal"
+          "_note": "Album opener; broken metallic percussion loop + Yorke's pitch-shifted/processed vocal",
+          "tempo_bpm_documented_range": [88, 96],
+          "time_signature": "4/4 throughout (with documented broken percussion loop creating perceptual rhythmic complexity)",
+          "key_area": "F minor area (with chromatic + processed harmonic content)",
+          "tuning_documented": "N/A — primarily electronic-experimental with metallic percussion sample loop",
+          "track_runtime": "~4:00",
+          "_special_status": "Track 1 (album opener) on Amnesiac (2001). Functions as the album's STATEMENT-OF-INTENT — declares Amnesiac's continuation of Kid A's electronic-experimental reinvention while exploring different sonic territory. Built around BROKEN METALLIC PERCUSSION LOOP (clanging metallic samples processed + looped) + Yorke's PITCH-SHIFTED/PROCESSED VOCAL + electronic textures. Demonstrates Radiohead's continued electronic-experimental compositional approach into Amnesiac.",
+          "composition": {
+            "primary_compositional_signature": "BROKEN METALLIC PERCUSSION LOOP + PITCH-SHIFTED VOCAL + ELECTRONIC TEXTURES — built around documented metallic-percussion sample loop (clanging found-sound or sampled metal hits) + Yorke vocal processed via pitch-shifting + electronic textural color. Compositional engine: SAMPLE-BASED PERCUSSION + PROCESSED VOCAL + ELECTRONIC ARRANGEMENT.",
+            "core_structural_arc": "Metallic percussion loop establishes rhythmic identity → bass + electronic textures enter → Yorke pitch-shifted vocal enters → arrangement evolves with sample variations + electronic processing → climactic textural peak → resolution + outro. Total ~4:00 — compact for compositional density.",
+            "harmonic_motion_summary": "MODAL with bass + electronic harmonic content. Chromatic motion + processed harmonic textures. Voice-leading less traditional than Pyramid Song's classical-influenced harmony.",
+            "characteristic_compositional_choice": "BROKEN METALLIC PERCUSSION LOOP AS COMPOSITIONAL FOUNDATION + PROCESSED VOCAL — Radiohead extend Kid A's electronic-experimental approach into Amnesiac with different sonic palette. Metallic percussion sample loop provides rhythmic + textural foundation distinct from Kid A's Rhodes piano (EIRP) or rock-groove (National Anthem) tracks.",
+            "comparison_to_other_radiohead_dissection_tracks_completion": "EIRP (Kid A 2000): Rhodes + 10/4 + manipulated vocal samples — minimum-element electronic-experimental opener. The National Anthem (Kid A 2000): rock + free-jazz brass genre-clash. Optimistic (Kid A 2000): rock-band-format anchor. Pyramid Song (Amnesiac 2001): classical-informed piano ballad with ambiguous rhythm. Packt (Amnesiac 2001): broken metallic percussion + processed vocal — different electronic-experimental palette. FIVE DOCUMENTED RADIOHEAD COMPOSITIONAL VOCABULARIES across Kid A + Amnesiac.",
+            "comparison_to_zero_industrial_leaning_within_dissection": "Zero (Pumpkins 1995): industrial-influenced rock with retained rock identity. Packt (Radiohead 2001): broken-metallic-percussion electronic-experimental WITHOUT retained rock identity. Different scales of industrial-adjacent influence — Zero stays in rock; Packt fully embraces electronic-experimental.",
+            "compositional_economy": "4:00 compact for compositional density. Metallic percussion loop + vocal processing provide compositional 'movement' efficiently.",
+            "innovation_for_genre_context": "2001 art-rock context: Amnesiac continued Kid A's electronic-experimental reinvention. Packt's broken metallic percussion approach demonstrates evolution within electronic-experimental vocabulary — different sonic territory from Kid A's Rhodes-piano-driven tracks."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "METALLIC PERCUSSION LOOP FOUNDATION + PITCH-SHIFTED VOCAL + ELECTRONIC TEXTURES + BASS — minimum-element electronic-experimental arrangement with metallic-percussion as rhythmic anchor.",
+            "intro_arrangement": "Metallic percussion loop establishes rhythmic + textural foundation",
+            "bass_entry": "Bass enters establishing harmonic anchor below metallic percussion",
+            "vocal_entry_pitch_shifted": "Yorke pitch-shifted/processed vocal enters carrying melodic content",
+            "electronic_textures_entry": "Additional electronic textures + atmospheric synth elements",
+            "arrangement_evolution": "Metallic percussion variations + electronic processing develop across runtime",
+            "outro_arrangement": "Gradual fade or resolution",
+            "broken_metallic_percussion_loop_implications": [
+              "Sample-based percussion foundation distinct from rock kit + electronic drum machine",
+              "Metallic timbre adds industrial-adjacent textural character",
+              "Loop repetition + variations create perceived rhythmic complexity",
+              "Demonstrates electronic-experimental's textural range beyond synth-pad-based tracks"
+            ],
+            "pitch_shifted_processed_vocal_implications": [
+              "Yorke vocal processed via pitch-shifting (typically downward shift) for distinct textural character",
+              "Processing different from EIRP's sample manipulation — Packt's vocal is processed in real-time rather than sampled-then-processed",
+              "Vocal as both narrative + textural element"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No live drums (deliberate absence — metallic percussion loop priority)",
+              "No traditional rock-band format",
+              "No vocal pitch correction (raw vocal pitch-shifted but not corrected)",
+              "No tempo changes"
+            ],
+            "what_makes_arrangement_unique_within_radiohead": "Packt represents Radiohead's BROKEN METALLIC PERCUSSION + PITCH-SHIFTED VOCAL pole within their catalog. Demonstrates electronic-experimental vocabulary's range beyond Rhodes-piano-driven Kid A tracks.",
+            "comparison_to_eirp_within_radiohead_electronic_experimental_evolution": "EIRP (Kid A 2000 opener): Rhodes piano + 10/4 + manipulated vocal samples. Packt (Amnesiac 2001 opener): broken metallic percussion loop + pitch-shifted vocal. Both album openers in electronic-experimental vocabulary but with completely different sonic palettes."
+          }
         }
       }
     }
