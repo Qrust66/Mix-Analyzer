@@ -7767,7 +7767,7 @@
           }
         },
         "Six_Shooter": {
-          "_status": "C5_2a_composition_arrangement_done",
+          "_status": "C5_2b_performance_recording_done",
           "album": "Songs for the Deaf",
           "year": 2002,
           "_note": "Vocals primarily by Nick Oliveri (his hardcore/punk-style screamed delivery contrasts with Homme's elsewhere on album)",
@@ -7805,6 +7805,111 @@
             ],
             "what_makes_arrangement_unique_within_qotsa": "Six Shooter represents QOTSA's PUNK-AGGRESSION pole — fastest tempo + most-aggressive vocal in dissection. Demonstrates band's COMPOSITIONAL DEMOCRACY (Oliveri-led tracks vs. Homme-led tracks).",
             "comparison_to_first_it_giveth_arrangement": "First It Giveth: power-trio + Lanegan harmony, mid-tempo groove. Six Shooter: power-trio only, punk-speed aggression, screamed vocal. Same trio core, opposite arrangement intents."
+          },
+          "performance": {
+            "tempo_feel_description": "FAST AGGRESSIVE PUNK FORWARD MOTION — 184-192 BPM at sustained intensity feels relentless + driving. Tempo enables hardcore-punk energy.",
+            "drum_style": {
+              "performer": "Dave Grohl",
+              "approach": "FAST POWER + PUNK-INFLUENCED DRIVING — Grohl adapts to punk-speed context with fast-tempo precision + aggressive power",
+              "specifics_documented": [
+                "Kick + snare driving punk-speed 4/4 — fast-tempo precision required",
+                "Hi-hat 8ths driving forward at fast tempo",
+                "Snare strong on 2+4 with possible occasional ghost notes",
+                "Fewer technical fills than mid-tempo groove tracks — punk-speed economy",
+                "Cymbal accents articulate chorus moments",
+                "Grohl's documented punk-influence (his pre-Nirvana hardcore band Scream) audible at this tempo"
+              ],
+              "comparison_to_grohl_other_tempos_in_dissection": "Grohl Nirvana Territorial Pissings (1991, 187 BPM, Albini-style capture): aggressive band-member punk drumming. Grohl QOTSA Six Shooter (2002, 188 BPM, Valentine production): punk-speed guest drumming. Same drummer, similar tempo, different production contexts — Grohl's punk-influence visible in both."
+            },
+            "guitar_style": {
+              "performers": "Josh Homme",
+              "rhythm_guitar_role": "PUNK-AGGRESSIVE RIFF + chromatic motion — Homme adapts robot-rock vocabulary to punk-speed context",
+              "specifics_documented": [
+                "Drop D tuning (Songs for the Deaf convention)",
+                "Aggressive distortion + tube amps",
+                "Picking precision required for fast tempo",
+                "Chromatic riff motion creating punk-aggressive feel",
+                "Less micro-variation than First It Giveth — punk-speed economy doesn't allow same hypnotic-repetition luxury"
+              ],
+              "playing_style_versus_first_it_giveth": "First It Giveth guitars: hypnotic repetitive groove with micro-variations. Six Shooter guitars: punk-aggressive chromatic riff at speed. Same guitarist (Homme), opposite tempo + intent."
+            },
+            "bass_performance": {
+              "performer": "Nick Oliveri (also lead vocal — Oliveri double-duty)",
+              "approach": "AGGRESSIVE PICK ATTACK + TIGHT KICK COORDINATION + BACKING SCREAMED VOCAL — Oliveri's documented hardcore-punk-influenced approach at peak intensity",
+              "specifics_documented": [
+                "Drop D-tuned bass",
+                "Aggressive pick attack — hardcore-punk-style bass",
+                "Tight rhythmic locking with Grohl's kick at fast tempo",
+                "Oliveri performs vocal + bass simultaneously — demonstrates his documented capacity"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Nick Oliveri (lead vocal — Oliveri-fronted track within Songs for the Deaf)",
+              "verse_delivery": "SCREAMED HARDCORE-PUNK — Oliveri's documented Mondo Generator vocal aesthetic deployed within QOTSA context",
+              "chorus_delivery": "Sustained screamed delivery, possibly slight Homme harmony backing",
+              "documented_vocal_quirks": [
+                "Oliveri's hardcore-punk vocal aesthetic distinct from Homme's baritone melodic approach",
+                "Vocal saturated/processed for aggressive impact",
+                "Multiple complete takes selected per Valentine production approach",
+                "Demonstrates QOTSA's vocal-lead democracy — bassist can lead vocal where suited"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization",
+              "No vocal pitch correction (raw screamed quality preserved)",
+              "No tempo changes",
+              "No vocal layering as primary device — single screamed vocal carries the aggression"
+            ]
+          },
+          "recording": {
+            "studio": "The Sound Factory + various Songs for the Deaf locations",
+            "session_dates": "2002 sessions",
+            "primary_producers": "Eric Valentine + Josh Homme",
+            "primary_mix_engineer": "Eric Valentine",
+            "production_philosophy_for_six_shooter": "Same Valentine engineer-producer-mixer unified-role framework as First It Giveth applied to PUNK-AGGRESSION compositional intent. Demonstrates Valentine's range within Songs for the Deaf album session.",
+            "drum_micing_approach": {
+              "philosophy_valentine": "Multiple close mics + room mics adapted to punk-speed context — drum bus emphasis on transient detail at fast tempo",
+              "specifics_for_six_shooter": [
+                "Grohl's full kit miced extensively at The Sound Factory",
+                "Compression + EQ at tracking for punk-aggressive impact",
+                "Less room-mic blending than mid-tempo grooves — punk-speed favors tight stereo + transient detail",
+                "Drum bus processing: punch + transient detail priority"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_valentine_homme": "Aggressive distortion + power-trio tracking, fewer layers than wall-of-sound bands",
+              "specifics_documented": [
+                "Drop D tuning",
+                "Aggressive distortion (heavier than First It Giveth)",
+                "Possible double-tracked rhythm guitar for stereo width",
+                "Each layer mic'd with attention to punk-speed transient detail"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Nick Oliveri",
+              "specifics": "DI + amp blend, tight low-frequency response. Oliveri's pick attack captured cleanly."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_valentine": "Oliveri vocal tracked with attention to hardcore-punk aesthetic",
+              "specifics_documented": [
+                "Vocal isolation booth at The Sound Factory",
+                "Multiple complete takes for screamed delivery",
+                "Saturated processing for aggressive impact"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Drop D tuned guitars + bass",
+              "Aggressive tube amps",
+              "Grohl's full kit",
+              "The Sound Factory's documented setup"
+            ],
+            "what_makes_valentine_recording_distinct_for_six_shooter": [
+              "Same unified-role framework as FIG applied to opposite-tempo + opposite-vocal-aesthetic context",
+              "Drum bus emphasis on transient detail at punk speed",
+              "Vocal saturated processing for hardcore-punk aesthetic",
+              "Demonstrates Valentine's range within same album session (mid-tempo groove FIG vs. punk-speed Six Shooter)"
+            ],
+            "comparison_to_albini_capture_approach_in_dissection": "Steve Albini (Nirvana In Utero 1993): pure capture, room-prominent, minimal shaping for aggressive Nirvana material. Eric Valentine (QOTSA Six Shooter 2002): unified-role with shaping, tighter stereo than Albini, more transient-detail emphasis. Two opposite production approaches to PUNK-AGGRESSIVE rock material — capture-philosophy vs. shape-philosophy."
           }
         },
         "A_Song_For_The_Dead": {
