@@ -22744,6 +22744,168 @@
           "fender_rhodes_electric_piano_as_compositional_foundation",
           "rehabilitating_overlooked_instrument_as_serious_compositional_element"
         ]
+      },
+      "mingus_freedom_chromatic_harmony_inspiration": {
+        "id": "mingus_freedom_chromatic_harmony_inspiration",
+        "rule": "Document specific compositional INSPIRATION SOURCE (e.g., Charles Mingus 'Freedom' for chromatic harmony) and let the influence be AUDIBLE in the track. Naming the inspiration source LEGITIMIZES harmonic ambition + invites listener-curiosity. Different from generic 'jazz-influenced' — specific reference is more powerful.",
+        "electronic_translation": "Document a SPECIFIC COMPOSITIONAL INSPIRATION SOURCE (a particular jazz piece, classical composition, electronic-music landmark) and let the influence be AUDIBLE in the track. Name the source in interviews/press materials/liner notes. The naming LEGITIMIZES your harmonic/structural/textural ambition + INVITES LISTENER-CURIOSITY toward source material. Apply for: neo-classical-electronic with specific-classical-piece inspirations (Olafur Arnalds citing specific chamber-music influences, Max Richter explicitly building on Vivaldi tradition), trip-hop with specific-jazz inspirations, IDM with specific-electronic-music landmarks (Aphex Twin citing Stockhausen, Erik Satie), ambient with specific-Eno-piece references, dark-electronic with specific-influence chains. The DISCIPLINE: the influence must be AUDIBLE not merely claimed; the source must be LEGITIMATELY RELATED to your composition; the citation respects the source rather than parodying it. Pair with `piano_composition_with_chromatic_harmony` and `classical_influenced_chord_progression_in_electronic_context`.",
+        "electronic_target_genres": [
+          "neo_classical_electronic",
+          "IDM",
+          "ambient"
+        ],
+        "applicability_text": "Compositions with specific documented influence-source; productions valuing transparent inspiration-citation; tracks bridging genre-traditions via explicit reference.",
+        "wow_factor": 0.78,
+        "tier": "silver",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Pyramid_Song",
+          "album": "Amnesiac",
+          "year": 2001
+        },
+        "composition_stage": "philosophy",
+        "compositional_axis": [
+          "harmony"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "free_jazz_influenced",
+          "classical_influenced"
+        ],
+        "applicability_tags": [
+          "chromatic_harmony"
+        ],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 55,
+          "reznor": 20,
+          "cobain": 15,
+          "daft_punk": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands legitimate familiarity with source material. Risk of feeling pretentious if citation isn't earned by composition's depth.",
+        "documented_example": "Yorke documented Pyramid Song as inspired by Charles Mingus's 'Freedom' chromatic harmony. Influence audible in chord movement; citation legitimizes the harmonic ambition.",
+        "synergy_recipes": [
+          "piano_composition_with_chromatic_harmony",
+          "intentionally_ambiguous_rhythm_felt_not_counted",
+          "mingus_locked_rhythm_plus_free_horn_compositional_template",
+          "classical_influenced_chord_progression_in_electronic_context"
+        ],
+        "conflict_recipes": [],
+        "evolution_recipes": [
+          "external_contributor_for_distinct_dimensional_color",
+          "classical_electronic_crossover_via_duo_auteur_framework"
+        ]
+      },
+      "funeral_march_tempo_70_bpm_for_solemnity": {
+        "id": "funeral_march_tempo_70_bpm_for_solemnity",
+        "rule": "Set tempo around FUNERAL-MARCH RANGE (60-80 BPM) for emotional weight + solemnity. Slow tempo + sustained chord-changes + careful phrasing = compositional WEIGHT impossible at faster tempos. Reject the modern-music-default 100+ BPM expectation.",
+        "electronic_translation": "Set tempo around FUNERAL-MARCH RANGE (60-80 BPM) for compositions where EMOTIONAL WEIGHT + SOLEMNITY are the goals. Slow tempo + sustained chord-changes + careful phrasing produces compositional WEIGHT impossible at faster tempos. Reject the dance-floor-default 120-130 BPM expectation. Apply on Sub 37 / Diva for sustained low-end pad-foundation, Spitfire LABS Soft Piano for chamber-tradition piano-foundation, processed-vocal as foreground. Apply for: ambient pieces (slow-tempo IS the genre — Stars of the Lid 'And Their Refinement of the Decline'-tradition near-static tempo), neo-classical-electronic emotional pieces (Olafur Arnalds 'Sudden Throw' funeral-march-territory), trip-hop ballads (Portishead 'Roads' slow-tempo emotional weight), downtempo evening-listening pieces (60-80 BPM tradition), drone-techno meditative tracks. Different from techno default-tempos (130+ BPM) — this REJECTS the dance-floor BPM range deliberately.",
+        "electronic_target_genres": [
+          "ambient",
+          "neo_classical_electronic",
+          "downtempo"
+        ],
+        "applicability_text": "Compositions valuing emotional weight + solemnity; productions willing to commit to slow-tempo aesthetic; tracks rejecting modern-music BPM defaults.",
+        "wow_factor": 0.79,
+        "tier": "silver",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Pyramid_Song",
+          "album": "Amnesiac",
+          "year": 2001
+        },
+        "composition_stage": "composition",
+        "compositional_axis": [
+          "rhythm",
+          "dynamics"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "classical_influenced"
+        ],
+        "applicability_tags": [
+          "atmospheric_continuity"
+        ],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 55,
+          "cobain": 20,
+          "reznor": 15,
+          "daft_punk": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands listener tolerance for slow-tempo. Won't work for dance-floor or radio contexts.",
+        "documented_example": "Pyramid Song (Radiohead, Amnesiac 2001, ~70 BPM funeral-march range) — solemnity + emotional weight from slow tempo + sustained chord changes.",
+        "synergy_recipes": [
+          "intentionally_ambiguous_rhythm_felt_not_counted",
+          "piano_composition_with_chromatic_harmony",
+          "late_drum_entry_mid_song_for_perceptual_shift",
+          "long_asymmetric_cycle_for_meditation_not_complexity"
+        ],
+        "conflict_recipes": [
+          "four_on_the_floor_120_bpm_house_foundation",
+          "fast_tempo_148_156_bpm_aggressive_heavy_rock",
+          "asymmetric_meter_at_extreme_tempo"
+        ],
+        "evolution_recipes": [
+          "mid_tempo_aggression_not_hardcore_speed",
+          "atmospheric_continuity_over_dynamic_contrast"
+        ]
+      },
+      "selway_ambiguous_drum_phrasing_interpreting_meter_not_locking": {
+        "id": "selway_ambiguous_drum_phrasing_interpreting_meter_not_locking",
+        "rule": "Drummer INTERPRETS ambiguous meter via PHRASING that EVOKES feel without LOCKING listener to grid. Different from drum-as-timekeeper (locks listener) and from free-improv drumming (no timing reference) — this is INTERPRETATIVE drumming that supports floating-meter without resolving its ambiguity.",
+        "electronic_translation": "Program drums (or direct live-drummer guest) to INTERPRET an ambiguous meter via PHRASING that supports the float without locking the listener to a specific grid-count. Use HUMANIZED VELOCITY VARIATION (random ±15%), MICRO-TIMING NUDGES (-15ms to +15ms per hit), VARIABLE QUANTIZE STRENGTH (60-80% per hit), GHOST-NOTES on snare for textural-rhythm-complexity. The drum-bus EVOKES feel without resolving ambiguity. Apply for: neo-classical-electronic with chamber-percussion phrasing (Olafur Arnalds + Joey Castillo collaboration tradition), trip-hop with floating-rhythm drum-bus (Portishead 'Roads' interpretive-drumming tradition), ambient with rhythmic-foundation that breathes, IDM with rubato-feel programmed-drums, downtempo with floating-tempo drum-bus. Demands either skilled live-drummer guest OR sophisticated programming with humanization-discipline. Pair with `intentionally_ambiguous_rhythm_felt_not_counted` and `late_drum_entry_mid_song_for_perceptual_shift`.",
+        "electronic_target_genres": [
+          "neo_classical_electronic",
+          "trip_hop",
+          "ambient"
+        ],
+        "applicability_text": "Compositions with floating/ambiguous-meter; productions valuing interpretative drumming; tracks where drum-bus supports float without resolving it.",
+        "wow_factor": 0.79,
+        "tier": "silver",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Pyramid_Song",
+          "album": "Amnesiac",
+          "year": 2001
+        },
+        "composition_stage": "performance",
+        "compositional_axis": [
+          "rhythm"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "free_jazz_influenced",
+          "modular_electronic"
+        ],
+        "applicability_tags": [],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 55,
+          "daft_punk": 20,
+          "reznor": 15,
+          "cobain": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands drummer with interpretative musicianship + restraint OR sophisticated humanization programming. Risk of feeling shapeless if execution off.",
+        "documented_example": "Phil Selway's drumming on Pyramid Song — entering at 1:50 with phrasing that interprets the 6/4-or-8/8 meter without locking listeners to a strict grid count.",
+        "synergy_recipes": [
+          "intentionally_ambiguous_rhythm_felt_not_counted",
+          "late_drum_entry_mid_song_for_perceptual_shift",
+          "drum_meter_pattern_groupings_natural_vs_academic",
+          "long_asymmetric_cycle_for_meditation_not_complexity"
+        ],
+        "conflict_recipes": [
+          "four_on_the_floor_120_bpm_house_foundation",
+          "drum_clinic_quality_drumming_within_song_context",
+          "syncopated_kick_creates_implied_meter_within_4_4"
+        ],
+        "evolution_recipes": [
+          "compressed_economy_drumming_restrained_precision",
+          "drum_machine_serving_atmospheric_emotional_not_aggressive"
+        ]
       }
     },
     "lenses": {
