@@ -8038,7 +8038,7 @@
           }
         },
         "A_Song_For_The_Dead": {
-          "_status": "C5_3b_performance_recording_done",
+          "_status": "C5_3c_complete_exhaustive",
           "album": "Songs for the Deaf",
           "year": 2002,
           "tempo_bpm_documented_range": [148, 156],
@@ -8185,6 +8185,125 @@
               "Demonstrates Valentine's range across multiple compositional intents within same album"
             ],
             "comparison_to_other_drummer_focused_recording_in_dissection": "Grohl recordings: Nirvana In Utero (Albini capture, room-prominent for aggressive material), QOTSA Songs for the Deaf A Song for the Dead (Valentine unified-role for drum feature), NIN With Teeth Hand That Feeds (Moulder for live + programmed hybrid). Three different production approaches to capturing Grohl's drumming — different productions extracting different sides."
+          },
+          "mixing": {
+            "mix_engineer": "Eric Valentine",
+            "mixing_studio": "The Sound Factory + Valentine's documented mix locations",
+            "mixing_philosophy_valentine_for_a_song_for_the_dead": "EPIC HEAVY ROCK CLARITY + DRUM FEATURE FORWARDNESS + DYNAMIC SHIFT PRESERVATION. Valentine's documented unified-role approach: deliver epic heavy rock impact while featuring Grohl's drumming during dynamic break, preserve dynamic shifts across extended runtime.",
+            "drum_mix_balance": [
+              "Kick + snare PUNCHY + present — drum forwardness for groove + feature priority",
+              "Hi-hat + ride cymbal articulation prominent",
+              "Drum bus weight balanced with transient detail — Grohl's technical playing preserved",
+              "DYNAMIC BREAK DRUM FEATURE: drums RIDE UP in mix, possibly slightly more reverb for spaciousness, fills + power statements clearly articulated",
+              "Cymbal accents articulate transitions"
+            ],
+            "guitar_mix_treatment": [
+              "STEREO WIDTH ROCK-EPIC — guitars hard L/R for epic-rock impact",
+              "Aggressive distortion preserved",
+              "Compression on guitar bus moderate — preserves picking precision + epic-rock weight",
+              "Dynamic break: guitars potentially DROP IN MIX to spotlight drum feature"
+            ],
+            "vocal_mix_treatment": [
+              "Homme baritone vocal CENTERED + FORWARD",
+              "Plate reverb + short delay for spatial depth",
+              "Compression preserves Homme's sustained baritone projection",
+              "Possible secondary vocal harmony blended subtly"
+            ],
+            "bass_mix_treatment": [
+              "Oliveri bass FORWARD with pick attack character preserved",
+              "Bass-kick coordination tight",
+              "Dynamic break: bass possibly DROPS IN MIX or sustains to support drum spotlight"
+            ],
+            "spatial_treatment_epic_extended": [
+              "Stereo field WIDE for epic-rock impact",
+              "Reverb usage MODERATE — epic-rock clarity priority",
+              "Plate reverbs on drums + vocal for warmth",
+              "Drum feature section: more reverb on drums for spaciousness during spotlight"
+            ],
+            "automation_used_in_mix": [
+              "EXTENSIVE DYNAMIC BREAK AUTOMATION — drum bus rides up, guitar/bass ride down for drum spotlight, then return to full mix",
+              "Vocal level rides for sustained phrases",
+              "Reverb send automation for section transitions + drum feature spaciousness"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying dynamic break impact",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No flat-mix-throughout (extended runtime requires dynamic shifts)"
+            ],
+            "comparison_to_other_qotsa_mixes_in_dissection": "First It Giveth (Valentine): power-trio groove clarity + Lanegan harmony integration + commercial-single impact. Six Shooter (Valentine): punk-aggression clarity + screamed vocal forwardness. A Song for the Dead (Valentine): epic-extended-form clarity + drum feature forwardness + dynamic shift preservation. Same mixer, three different compositional intents within same album.",
+            "what_makes_valentine_mix_distinct_for_a_song_for_the_dead": [
+              "DYNAMIC BREAK AUTOMATION — drum spotlight requires extensive mix automation",
+              "Drum feature forwardness without sacrificing band-as-foundation balance",
+              "Same unified-role framework deployed for epic-extended compositional intent",
+              "Demonstrates Valentine's range across album's tonal range"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Brian Gardner (Songs for the Deaf mastered)",
+            "mastering_studio": "Bernie Grundman Mastering, Hollywood",
+            "mastering_philosophy_for_a_song_for_the_dead": [
+              "Gardner's documented approach: rock-radio-impact loudness + dynamic detail preservation",
+              "A Song for the Dead's epic-extended-form benefits from preserved dynamic detail",
+              "2002 album-level mastering — Songs for the Deaf at peak loudness-war era but dynamic break preserved"
+            ],
+            "loudness_observed": "Album average around -8 to -9 LUFS. A Song for the Dead near album peak loudness due to epic-rock character.",
+            "spectral_signature": "Gardner's documented sound: clear top-end, present mid-range, controlled aggressive low-end.",
+            "what_mastering_preserves_for_a_song_for_the_dead": [
+              "Drum feature transient detail",
+              "Dynamic break impact",
+              "Stereo image (preserving Valentine's mix)",
+              "Vocal clarity above density"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "GROHL'S DRUM FEATURE SECTION — listeners remember the dynamic break + extended drum spotlight as the song's defining moment. Track is documented drum-clinic reference material.",
+            "level_2_arrangement_signature": "POWER-TRIO + COMPOSITIONAL DRUM FEATURE — arrangement specifically designed to give Grohl drumming a SHOWCASE moment within heavy rock context.",
+            "level_3_compositional_signature": "EXTENDED-FORM HEAVY ROCK WITH COMPOSITIONALLY-INTEGRATED DRUM FEATURE — Homme demonstrates that song structure can SERVE PERFORMER CAPACITY. Drum feature is COMPOSITIONAL CHOICE not just spotlight indulgence. Influences subsequent bands seeking to build songs around drummer's capacity."
+          },
+          "advisor_extract": {
+            "recipe_name": "extended_form_heavy_rock_with_compositionally_integrated_drum_feature",
+            "applicability": "Heavy rock or alt-rock compositions where drummer has documented technical capacity + compositional input opportunities. Use when song structure should SERVE drummer's capacity for showcase moment integrated with overall song arc.",
+            "core_compositional_recipes": [
+              {
+                "id": "compositional_drum_feature_within_heavy_rock_arc",
+                "rule": "Compose extended-form heavy rock track with DRAMATIC DYNAMIC BREAK section specifically designed to FEATURE drummer. Guitars + bass DROP or sustain at lower density during break; drums spotlight with technical fills + power statements. Compositional choice serving performer capacity.",
+                "wow_factor": 0.83,
+                "documented_example": "A Song for the Dead (QOTSA, Songs for the Deaf 2002, 5:51) — drum feature section documented as drum-clinic reference",
+                "trade_offs": "Requires drummer with technical capacity + compositional input; less suited for groove-priority drummers. Risk of feeling self-indulgent if not earned.",
+                "personality_fit": "Cobain 30 / Reznor 25 / Daft Punk 25 / Yorke 20"
+              },
+              {
+                "id": "song_structure_serving_performer_capacity",
+                "rule": "Build song structure to SERVE specific performer capacities — drum feature for technical drummer, vocal showcase for distinctive vocalist, instrumental break for capable lead-instrumentalist, etc. Composition is INTERPRETATION OF AVAILABLE PERFORMERS, not generic structure imposed.",
+                "wow_factor": 0.81,
+                "documented_example": "A Song for the Dead built around Grohl's documented technical capacity",
+                "trade_offs": "Requires knowing performers' capacities at composition stage. May feel constrained if performer pool changes.",
+                "personality_fit": "Cobain 35 / Reznor 25 / Daft Punk 20 / Yorke 20"
+              },
+              {
+                "id": "extensive_dynamic_break_mix_automation_for_drum_feature",
+                "rule": "When mixing tracks with compositional drum feature, use EXTENSIVE mix automation to spotlight drums during break — drum bus rides up, guitar/bass ride down, possibly more reverb on drums for spaciousness. Then return to full mix for compositional payoff. Mix automation IS COMPOSITION at production stage.",
+                "wow_factor": 0.79,
+                "documented_example": "Eric Valentine's A Song for the Dead mix — extensive dynamic break automation for drum spotlight",
+                "trade_offs": "Time-intensive mixing; demands mixer who understands compositional intent",
+                "personality_fit": "Cobain 30 / Reznor 30 / Daft Punk 25 / Yorke 15"
+              },
+              {
+                "id": "drum_clinic_quality_drumming_within_song_context",
+                "rule": "When working with drummer of documented technical capacity, allow technical drumming to SHOWCASE within song context rather than being suppressed for groove-priority. Drummer's capacity becomes part of the song's identity. Listeners may experience track as 'song with great drumming' rather than 'song that has drumming'.",
+                "wow_factor": 0.82,
+                "documented_example": "Dave Grohl's A Song for the Dead drumming — documented drum-clinic reference status",
+                "trade_offs": "Risk of drumming overshadowing song. Demands drummer with restraint + showcase moments balanced.",
+                "personality_fit": "Cobain 35 / Daft Punk 25 / Reznor 20 / Yorke 20"
+              }
+            ],
+            "production_philosophy_signature_valentine_extended_form": {
+              "philosophy": "Same Valentine engineer-producer-mixer unified-role framework as FIG + Six Shooter applied to EPIC EXTENDED-FORM compositional intent. Demonstrates unified-role producer's range across mid-tempo + punk-aggression + epic-extended within same album.",
+              "applicability": "Bands seeking unified-role production across diverse compositional intents including extended-form heavy rock with drum feature priorities",
+              "key_insight": "Unified-role producers can support OPPOSITE compositional intents within same album when producer has stylistic range. Three documented Valentine approaches within Songs for the Deaf demonstrate framework's adaptability."
+            },
+            "structural_choice_summary": "Extended-form heavy rock + compositional drum feature + dynamic break + Valentine unified-role production — A Song for the Dead demonstrates QOTSA's MOST AMBITIOUS Songs for the Deaf composition with compositional drum feature priority. Song structure serving performer capacity as compositional principle."
           }
         },
         "Medication": {
