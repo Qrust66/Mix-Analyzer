@@ -8550,9 +8550,44 @@
           }
         },
         "Everybody_Knows_That_Youre_Insane": {
-          "_status": "stub_pending_full_dissection_C5_5",
+          "_status": "C5_5a_composition_arrangement_done",
           "album": "Lullabies to Paralyze",
-          "year": 2005
+          "year": 2005,
+          "tempo_bpm_documented_range": [110, 116],
+          "time_signature": "4/4 throughout",
+          "key_area": "B minor area / C minor area (chromatic riff motion + Homme baritone-friendly tonal area)",
+          "tuning_documented": "Drop D tuning",
+          "track_runtime": "~4:51",
+          "_special_status": "Track 8 on Lullabies to Paralyze (2005) — POST-OLIVERI ALBUM (Oliveri left QOTSA in 2004 between Songs for the Deaf and Lullabies). Functions as one of the album's MID-TEMPO HEAVY DESERT-ROCK tracks. Demonstrates HOMME-CENTRIC ERA QOTSA — without Oliveri's punk-aggression contribution, Homme's compositional voice dominates. Joe Barresi as primary engineer (documented Lullabies engineer) brings different production palette than Eric Valentine (Songs for the Deaf). Joey Castellano on drums (post-Grohl-guest era).",
+          "composition": {
+            "primary_compositional_signature": "MID-TEMPO HEAVY DESERT-ROCK + ABSURDIST LYRICAL FRAME — built around hypnotic riff foundation at moderate tempo with Homme's documented absurdist songwriting sensibility. Continues robot-rock philosophy from Songs for the Deaf but in HOMME-CENTRIC ERA without Oliveri's aggressive contributions.",
+            "core_structural_arc": "Riff-driven intro → verse with Homme vocal → pre-chorus build → chorus hook → riff return → verse 2 → chorus → bridge instrumental → final chorus + outro. Total ~4:51 — mid-length for Lullabies (album includes longer tracks).",
+            "harmonic_motion_summary": "MINOR-MODAL with chromatic riff motion + Homme suspended voicings. Tonic B/C minor with chord shifts to relative major in chorus.",
+            "characteristic_compositional_choice": "HOMME-CENTRIC POST-OLIVERI COMPOSITIONAL VOICE — without Oliveri's punk-aggression compositional contributions, Homme's robot-rock + desert-rock voice dominates. Album represents Homme's compositional voice without competing punk influence.",
+            "comparison_to_first_it_giveth_within_qotsa_evolution": "First It Giveth (Songs for the Deaf 2002, Oliveri-era): mid-tempo robot-rock groove with Lanegan harmony. Everybody Knows (Lullabies 2005, post-Oliveri): mid-tempo heavy desert-rock with Homme-centric voice. SAME COMPOSITIONAL ENGINE evolved across albums — Oliveri's departure shifts the band's compositional balance.",
+            "comparison_to_other_qotsa_dissection_lineage": "Songs for the Deaf 2002 (Oliveri era + Grohl guest + Eric Valentine): power-trio-plus-guest. Lullabies to Paralyze 2005 (post-Oliveri + Castellano + Barresi/Homme): power-trio-plus-Homme-centric. Two QOTSA eras with different compositional + production approaches.",
+            "compositional_economy": "4:51 mid-length — patient enough for hypnotic groove development but not as extended as A Song for the Dead. Compositional 'movement' includes traditional verse-chorus + bridge instrumental.",
+            "innovation_for_genre_context": "2005 alt-rock context: stoner-rock had crossed into mainstream via Songs for the Deaf. Everybody Knows continues QOTSA's mainstream-stoner-rock identity with Homme's matured compositional voice."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "POWER-TRIO + HOMME-CENTRIC VOCAL + MID-TEMPO HEAVY DESERT-ROCK — Homme + Castellano + bass + Homme vocal. Less guest-vocal contribution than Songs for the Deaf.",
+            "intro_arrangement": "Riff statement with full-band entry",
+            "verse_arrangement": "Riff continues, Homme baritone vocal enters",
+            "pre_chorus_arrangement": "Slight density build",
+            "chorus_arrangement": "Hook expansion with Homme vocal projection + possible secondary harmony",
+            "verse_2_arrangement": "Returns to verse density",
+            "second_chorus_arrangement": "Slight intensification",
+            "bridge_instrumental_arrangement": "Brief instrumental section — riff variation or harmonic bridge",
+            "outro_arrangement": "Final chorus + ending statement",
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No wall-of-sound layering (power-trio aesthetic priority)"
+            ],
+            "what_makes_arrangement_unique_within_qotsa": "Everybody Knows represents POST-OLIVERI HOMME-CENTRIC QOTSA arrangement. Without Oliveri's punk-aggression vocal democracy contribution, arrangement balance shifts toward Homme-led tracks dominantly.",
+            "comparison_to_songs_for_the_deaf_arrangement_evolution": "Songs for the Deaf (2002): vocal democracy with Homme + Oliveri + Lanegan all leading tracks. Lullabies to Paralyze (2005): post-Oliveri arrangement balance shifts toward Homme-centric. Different vocal democracy scales across QOTSA eras."
+          }
         },
         "Little_Sister": {
           "_status": "stub_pending_full_dissection_C5_6",
