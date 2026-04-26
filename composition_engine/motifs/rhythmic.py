@@ -218,6 +218,119 @@ RHYTHMIC_MOTIFS['boom_bap_kick_groove'] = {
 
 
 # ============================================================================
+# SNARE FAMILY — backbeat, ghost-notes, fills
+# ============================================================================
+
+RHYTHMIC_MOTIFS['snare_backbeat_pure'] = {
+    'id': 'snare_backbeat_pure',
+    'sources': [
+        ('Nirvana', 'All Apologies', 'classic backbeat snare'),
+        ('Soundgarden', 'Jesus Christ Pose', 'aggressive backbeat anchor'),
+        ('Daft Punk', 'Around the World', 'house tradition backbeat'),
+        ('Smashing Pumpkins', 'Soma', 'rock anthem backbeat foundation'),
+    ],
+    'advisor_recipes': [
+        'programmed_drums_as_compositional_engine',
+        'tr_909_drum_machine_as_compositional_instrument',
+    ],
+    'drum_pitch': SNARE,
+    'rhythm_beats': [(1.0, 0.25), (3.0, 0.25)],
+    'velocity_contour': [115, 118],
+    'character_tags': ['backbeat', 'rock', 'foundation', 'predictable', 'anchor'],
+    'duration_total_beats': 4.0,
+    'time_sig': (4, 4),
+    'target_genres': ['techno', 'electronic_pop', 'trip_hop', 'neo_classical_electronic'],
+    'micro_variation_rules': {
+        'timing_jitter_ms': (-5, 5),
+        'velocity_jitter': (-7, 7),
+    },
+    'transformations_allowed': ['rhythmic_displace', 'fragment'],
+    'notes_on_use': (
+        'Most universal snare pattern. AVOID with syncopated_kick_3_against_4 (collides at '
+        'beat 1.5/2.25 pattern, kills polyrhythmic illusion). Use snare_offbeat_complement '
+        'instead in that case.'
+    ),
+}
+
+
+RHYTHMIC_MOTIFS['snare_with_ghost_notes_groove'] = {
+    'id': 'snare_with_ghost_notes_groove',
+    'sources': [
+        ('Queens Of The Stone Age', 'A Song for the Dead', 'Grohl drum-clinic ghost-note groove'),
+        ('Soundgarden', 'My Wave', 'Cameron pocket-drumming with ghost-notes'),
+        ('Trip-hop tradition', 'Massive Attack drummer Damon Reece', 'live-feel ghost-notes for atmospheric groove'),
+    ],
+    'advisor_recipes': [
+        'drum_clinic_quality_drumming_within_song_context',
+        'groove_over_complexity_compositional_priority',
+        'compositional_drum_feature_within_heavy_rock_arc',
+    ],
+    'drum_pitch': SNARE,
+    # Backbeat (beat 2 + 4) PLUS ghost-notes at "e"+"a" of beat 3 (16ths #9 + #11)
+    'rhythm_beats': [
+        (1.0, 0.25),       # primary backbeat
+        (2.25, 0.0625),    # ghost on the "e" of beat 3
+        (2.75, 0.0625),    # ghost on the "a" of beat 3
+        (3.0, 0.25),       # primary backbeat
+    ],
+    'velocity_contour': [115, 45, 50, 118],   # primaries strong, ghosts felt-not-heard
+    'character_tags': ['backbeat', 'ghost_notes', 'pocket', 'live_feel', 'session_drummer_quality'],
+    'duration_total_beats': 4.0,
+    'time_sig': (4, 4),
+    'target_genres': ['trip_hop', 'downtempo', 'neo_classical_electronic', 'electronic_pop'],
+    'micro_variation_rules': {
+        'timing_jitter_ms': (-12, 12),
+        'velocity_jitter': (-8, 8),
+        'occasional_skip': {
+            'every_n_cycles': 4,
+            'skip_indices': [1],
+        },
+    },
+    'transformations_allowed': ['rhythmic_displace', 'fragment'],
+    'notes_on_use': (
+        'Ghost-notes at velocity 45-50 = the live-drummer signature. Best at 80-110 BPM. '
+        'Pair with boom_bap_kick_groove for full Massive Attack / QOTSA "Songs for the Deaf" '
+        'pocket. Skip-rule on ghost #1 every 4 cycles for breathing.'
+    ),
+}
+
+
+RHYTHMIC_MOTIFS['snare_16th_roll_fill'] = {
+    'id': 'snare_16th_roll_fill',
+    'sources': [
+        ('Smashing Pumpkins', 'Soma', '16th snare-fill into explosion chorus'),
+        ('Soundgarden', 'Jesus Christ Pose', 'aggressive snare-roll transition'),
+        ('NIN', "We're In This Together", 'dynamic-arc snare-roll into final chorus'),
+    ],
+    'advisor_recipes': [
+        'density_arc_arrangement_sparse_to_wall',
+        'explosion_chorus_as_cathartic_release_not_just_loud_section',
+        'extensive_section_specific_mix_automation_for_character_shifts',
+    ],
+    'drum_pitch': SNARE,
+    # 16th-note roll on beats 3+4 — crescendo into next-bar downbeat
+    'rhythm_beats': [(2.0 + i * 0.25, 0.125) for i in range(8)],
+    'velocity_contour': [80, 85, 90, 95, 100, 110, 120, 125],
+    'character_tags': ['fill', 'transition', 'roll', 'crescendo', 'sectional'],
+    'duration_total_beats': 4.0,
+    'time_sig': (4, 4),
+    'target_genres': ['techno', 'electronic_pop', 'dark_electronic'],
+    'micro_variation_rules': {
+        'timing_jitter_ms': (-2, 2),
+        'velocity_jitter': (-3, 3),
+    },
+    'transformations_allowed': [
+        'rhythmic_displace', 'augment_diminish', 'fragment',
+    ],
+    'notes_on_use': (
+        'TRANSITION TOOL — deploy at END of 4/8/16-bar phrase to lift listener into next '
+        'section. Do NOT use mid-pattern. Last hit (vel 125) at beat 3.75 lands on next-bar '
+        'kick downbeat. For 32nd-note version: augment_diminish ×0.5 (16 hits in 2 beats).'
+    ),
+}
+
+
+# ============================================================================
 # Render API — turn a rhythmic motif into concrete MIDI notes
 # ============================================================================
 
