@@ -7163,10 +7163,51 @@
           }
         },
         "Copy_Of_A": {
-          "_status": "stub_pending_full_dissection_C4_6",
+          "_status": "C4_6a_composition_arrangement_done",
           "album": "Hesitation Marks",
           "year": 2013,
-          "_note": "Outside the original 3-album scope (Spiral/Fragile/With Teeth) but explicitly requested by user. Worth dissecting — Reznor's most evolved 'modular electronic' approach."
+          "_note": "Outside the original 3-album scope (Spiral/Fragile/With Teeth) but explicitly requested by user. Worth dissecting — Reznor's most evolved 'modular electronic' approach.",
+          "tempo_bpm_documented_range": [114, 120],
+          "time_signature": "4/4 throughout",
+          "key_area": "C minor area (with chromatic synth motion + characteristic Reznor suspended voicings, but more electronic-modal than rock-modal)",
+          "tuning_documented": "Standard tuning + extensive electronic/synth content (guitars present but secondary to electronic palette)",
+          "track_runtime": "~5:23",
+          "_special_status": "Track 3 on Hesitation Marks (2013) — Reznor's RETURN album after 2008-2013 hiatus from NIN proper (during which he scored Social Network + Girl with the Dragon Tattoo with Atticus Ross, won Academy Award). Functions as the album's ELECTRONIC-MODULAR statement — produced by Reznor + Atticus Ross + Alan Moulder + Adrian Belew (King Crimson guitarist contributing). Reznor's MOST EVOLVED electronic-modular approach. 8 years of production-philosophy evolution + film-scoring discipline integrated into NIN context.",
+          "composition": {
+            "primary_compositional_signature": "MODULAR ELECTRONIC NIN — electronic-modular palette (analog synthesizers, modular synth elements, processed electronic textures) deployed with rock-influenced vocal + occasional guitar overlays. Where 1994 March of the Pigs used early-90s sampler-based industrial, 2013 Copy of A uses modular-electronic + analog-synth + DAW-evolved production palette.",
+            "core_structural_arc": "Electronic-modular intro (analog synth pulses + arpeggiated patterns) → verse with vocal entry + electronic foundation continuing → chorus expansion → verse 2 → chorus → bridge with modular textures → final chorus + outro fade. Total ~5:23 — extended but not Fragile-extreme. Compositional 'movement' includes electronic-pattern evolution + vocal melodic development.",
+            "harmonic_motion_summary": "MODAL with electronic-pattern-driven motion + vocal melodic line. Tonic C minor with chromatic synth motion + chord-shifts via filter-cutoff + envelope modulation rather than via traditional chord progression. Voice-leading deliberate with electronic-modal sensibility.",
+            "characteristic_compositional_choice": "ELECTRONIC-MODULAR PATTERNS AS COMPOSITIONAL FOUNDATION — Reznor + Ross use modular synth patterns + arpeggiated synthesizers as primary compositional axis. Where Spiral used aggressive samples, Fragile used atmospheric synth pads, With Teeth used live drums + industrial overlay, Hesitation Marks uses MODULAR ELECTRONIC PATTERNS. Each NIN album establishes different production-vocabulary primary.",
+            "comparison_to_march_of_the_pigs_within_nin_evolution": "March of the Pigs (1994 Spiral): early-90s sampler-based industrial extremity at ~265 BPM. Copy of A (2013 Hesitation Marks): 2013 modular-electronic patterns at ~117 BPM. SAME ARTIST'S COMPOSITIONAL APPROACH EVOLVED across 19 years — from sampler-extremity to modular-electronic-patterns. Both INDUSTRIAL identity but different production-vocabulary palettes.",
+            "comparison_to_other_nin_dissection_evolution": "All five other dissected NIN tracks (March of the Pigs 1994, TDTWWA 1999, WITT 1999, Wretched 1999, Hand That Feeds 2005) used various PRE-MODULAR electronic palettes. Copy of A (2013) demonstrates MODULAR-ELECTRONIC evolution — Reznor + Ross's post-film-scoring production aesthetic.",
+            "compositional_economy": "5:23 is patient extended-form but not extreme. Electronic-pattern foundation allows compositional 'movement' via filter modulation + envelope changes + pattern evolution rather than via traditional rock-band dynamic changes.",
+            "innovation_for_genre_context": "2013 industrial-electronic context: modular synth revival was active (Eurorack popularity rising). Copy of A demonstrates Reznor + Ross's integration of modular-electronic vocabulary into NIN context — connects NIN to broader 2010s electronic-music production trends. Bridges industrial-rock + modular-synth communities."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "MODULAR ELECTRONIC FOUNDATION + VOCAL + OCCASIONAL GUITAR — electronic palette primary, vocal as melodic-emotional anchor, guitars secondary/textural. Different element-priority from earlier NIN.",
+            "intro_arrangement": "Analog synth pulses + arpeggiated electronic patterns establish modular-electronic palette. Pattern evolves over multiple measures via filter modulation.",
+            "verse_arrangement": "Electronic foundation continues, vocal enters with melodic line, possible processed clean guitar texture, distorted bass synth provides low-frequency foundation. Drums (programmed) sparse + electronic-styled.",
+            "chorus_arrangement": "Pattern expansion + harmonic shift, vocal lifts to melodic chorus, additional electronic textures. Possible Adrian Belew guitar contribution as documented contributor on Hesitation Marks.",
+            "verse_2_arrangement": "Returns to verse density with possibly intensified electronic texture",
+            "second_chorus_arrangement": "Slight intensification + textural development",
+            "bridge_arrangement": "EXTENDED MODULAR TEXTURE EXPLORATION — modular synth patterns evolve, possible additional Belew guitar contributions, atmospheric expansion",
+            "final_chorus_arrangement": "Full chorus with maximum electronic-pattern density",
+            "outro_arrangement": "Gradual electronic fade — patterns recede, textures resolve",
+            "modular_electronic_versus_pure_synth_arrangement_implications": [
+              "Modular synth patterns have ORGANIC EVOLUTION via filter-cutoff + envelope modulation — patterns aren't static",
+              "Pattern evolution provides compositional 'movement' that traditional rock-band arrangements achieve via dynamic shifts",
+              "Modular electronic gives EVOLVING-TEXTURE quality rare in 1990s NIN material",
+              "Reznor + Ross's film-scoring discipline (Social Network, Girl with the Dragon Tattoo) audible in pattern-evolution craftsmanship"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes",
+              "No drum sample replacement (programmed elements ARE the drums)",
+              "No vocal pitch correction",
+              "No abrupt section-cuts (modular electronic favors evolving transitions)"
+            ],
+            "what_makes_arrangement_unique_within_nin": "Copy of A represents NIN's MOST MODULAR-ELECTRONIC arrangement within this dissection. Where earlier NIN arrangements used sampler-based industrial (Spiral) or atmospheric synth pads (Fragile) or live drums + industrial overlay (With Teeth), Copy of A uses MODULAR ELECTRONIC PATTERNS as primary arrangement engine. 2013 production-vocabulary evolution.",
+            "comparison_to_daft_punk_arrangement_within_dissection_setup": "Copy of A's modular-electronic foundation begins to overlap territory that Daft Punk's catalog will demonstrate fully (Around the World, Veridis Quo, etc. — to be dissected in C6 block). Copy of A is NIN-INFLUENCED-BY-MODULAR-ELECTRONIC; Daft Punk is MODULAR-ELECTRONIC AT ITS SOURCE within dance-music tradition. Useful cross-band comparison emerging for production-philosophy evolution."
+          }
         }
       },
       "Queens_Of_The_Stone_Age": {
