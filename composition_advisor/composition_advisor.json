@@ -11627,6 +11627,8 @@
       "microtonal_bend_as_signature_riff": {
         "id": "microtonal_bend_as_signature_riff",
         "rule": "A central instrumental hook can be made unforgettable by a deliberate MICROTONAL element (string bend that lands slightly out of pitch, or a synth detune of ~10 cents on key notes). The microtonal element ANCHORS the riff's identity — listeners associate the song with the slightly-off pitch.",
+        "electronic_translation": "On your signature synth lead/arp/motif, automate PITCH (not vibrato) to drift ~10-25 cents sharp or flat on KEY NOTES of the phrase. In Live: pitch-bend automation on a MIDI clip, OR Pitch effect with manual ±cents drift, OR Operator's per-oscillator detune. In hardware: Sub 37 / Prophet pitch-wheel automation. The drift should be DELIBERATE (always on the same note, always the same amount) — not random. Other techniques: Just-Intonation tuning on a single Operator oscillator (different from 12-TET equal temperament), or microtonal scales via Scaler 2 / MTS-ESP. Apply for: IDM melodic motifs (Aphex-style), neo-classical-electronic harmonic richness, ambient drone-detune, glitch synth-quirk character. The microtonal anchor makes the listener's ear catch on the 'wrong' note as the song's identity.",
+        "electronic_target_genres": ["IDM", "neo_classical_electronic", "ambient"],
         "applicability_text": "Signature guitar/synth riffs; any single line that needs immediate identification; intros that establish identity in 4 bars.",
         "wow_factor": 0.85,
         "tier": "top",
@@ -11647,6 +11649,8 @@
       "slow_burn_arrival_not_explosion": {
         "id": "slow_burn_arrival_not_explosion",
         "rule": "Build from intro through verse 1 / chorus 1 / verse 2 / chorus 2 / bridge / outro WITHOUT any single section being a detonation. The song's true peak is the OUTRO — sustained intensity arrived at gradually, not via an explosive chorus drop. Maturity over youthful fireworks.",
+        "electronic_translation": "Compose 4-7 min track where NO drop / explosion / peak-density chorus happens — instead, intensity climbs IMPERCEPTIBLY across the full runtime, arriving at the song's emotional peak in the OUTRO, not the chorus. Each section adds ~5-10% density vs. previous, never +50%. Choruses don't drop kick — they thicken pads. Outro accumulates everything plus reverb expansion. Apply for: ambient-techno (Burial, Andy Stott), dub-techno (Basic Channel — 8min tracks with sub-perceptible build), downtempo (Bonobo deep cuts), neo-classical-electronic (Nils Frahm slow climbs). Avoid in dance-floor-functional techno or EBM (those need DROP). The slow-burn aesthetic rewards attentive listening; won't work in playlist-skim contexts.",
+        "electronic_target_genres": ["ambient", "dub_techno", "downtempo", "neo_classical_electronic"],
         "applicability_text": "Ballad-format dark songs; songs that want mature weight rather than youthful explosion; tracks 4+ minutes long that need internal pacing.",
         "wow_factor": 0.80,
         "tier": "gold",
@@ -11667,6 +11671,8 @@
       "vocal_layer_count_as_dynamic_lever": {
         "id": "vocal_layer_count_as_dynamic_lever",
         "rule": "Verse: SINGLE vocal. Chorus: DOUBLED vocal. Outro: STACKED multiple vocals. The perceived 'size' of each section is layer count, not just volume. Listener responds to density change without needing dynamic-arc explosion.",
+        "electronic_translation": "Section-by-section vocal layer count — arrangement-view automation on vocal-stack tracks. Verse: dry mono vocal centered. Pre-chorus: add doubled-vocal slightly detuned (5-15 cents) panned soft L+R. Chorus: stack 3-5 vocals — original + harmony at 5th + octave below + vocoder layer + reverb-only ghost. Bridge/outro: full 7-12 vocal stack including pitched-down formant + vocoded harmony cluster + granular vocal-shimmer above. Use Live's track grouping + automation per-track. Process each layer differently (one saturated, one cleaned, one filtered, one pitch-shifted) so the stack reads as TEXTURE, not as identical vocals. Apply for: electronic-pop (Imogen Heap / Bon Iver-electronic style), trip-hop (Massive Attack 'Teardrop' lineage), downtempo emotional climaxes, dark-electronic chorus density. Daft Punk Discovery vocoded-stack tradition.",
+        "electronic_target_genres": ["electronic_pop", "trip_hop", "downtempo"],
         "applicability_text": "Verse-Chorus dynamics that should feel 'bigger' without louder mastering; any section transition wanting density shift.",
         "wow_factor": 0.75,
         "tier": "silver",
