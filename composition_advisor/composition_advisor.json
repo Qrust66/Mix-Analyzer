@@ -8038,9 +8038,52 @@
           }
         },
         "A_Song_For_The_Dead": {
-          "_status": "stub_pending_full_dissection_C5_3",
+          "_status": "C5_3a_composition_arrangement_done",
           "album": "Songs for the Deaf",
-          "year": 2002
+          "year": 2002,
+          "tempo_bpm_documented_range": [148, 156],
+          "time_signature": "4/4 throughout (with documented dramatic dynamic-shift sections)",
+          "key_area": "F-sharp minor area (Homme baritone-friendly tonal area)",
+          "tuning_documented": "Drop D tuning",
+          "track_runtime": "~5:51",
+          "_special_status": "Track 3 on Songs for the Deaf (2002) — CRITICAL ALBUM POSITION as one of the album's most-AMBITIOUS extended-form heavy rock statements. Functions as the album's EPIC HEAVY ROCK CENTERPIECE — combines fast-tempo aggression + extended dynamic shifts + Grohl's most-celebrated drumming on the album. Track frequently cited as the high point of Songs for the Deaf's drumming, used as drum-clinic reference material. Live performances feature extended jam variations.",
+          "composition": {
+            "primary_compositional_signature": "EPIC HEAVY ROCK + EXTENDED DYNAMIC SHIFTS + DRUM-FEATURE-OPPORTUNITY — built around fast-tempo aggressive riff with strategic dynamic breaks allowing drum FEATURE moments. Unique within Songs for the Deaf for its EPIC EXTENDED-FORM ambition vs. tighter tracks.",
+            "core_structural_arc": "Aggressive intro with riff statement → verse 1 with vocal entry → chorus hook → riff return → verse 2 → chorus → DRAMATIC DYNAMIC BREAK / DRUM FEATURE SECTION → return with intensified energy → final chorus → outro. Total ~5:51 — extended by Songs for the Deaf standards (album avg ~3:30).",
+            "harmonic_motion_summary": "MINOR-MODAL with Homme's signature pentatonic-influenced riff motion. Tonic F-sharp minor with chromatic descending lines + power-chord harmonic motion. Voice-leading classic-heavy-rock-craft.",
+            "characteristic_compositional_choice": "DYNAMIC BREAK + DRUM FEATURE WITHIN HEAVY ROCK CONTEXT — Homme strategically composed a section allowing Grohl drumming to FEATURE prominently, rather than being constant accompaniment. Composition serves performance — the song is structured to give the drummer a SHOWCASE moment.",
+            "comparison_to_first_it_giveth_within_qotsa": "First It Giveth: tight 3:19 mid-tempo robot-rock groove. A Song for the Dead: extended 5:51 epic heavy rock with dynamic shifts. Two opposite scales of QOTSA compositional ambition.",
+            "comparison_to_six_shooter_within_qotsa": "Six Shooter: 3:08 punk-aggression with Oliveri-led vocal. A Song for the Dead: 5:51 extended epic with Homme baritone vocal. Different scales + different vocal aesthetics.",
+            "comparison_to_other_dissection_extended_heavy_rock_tracks": "Soma (Pumpkins 1993, 6:39): rock-anthem dynamic-arc with explosion. Overfloater (Soundgarden 1996, 6:42): jam-band atmospheric extended bridge. We're In This Together (NIN 1999, 7:16): industrial-anthem with multiple chorus iterations. A Song for the Dead (QOTSA 2002, 5:51): heavy-rock with dynamic break + drum feature. FOUR different paths to extended-form heavy rock within dissection.",
+            "compositional_economy": "5:51 is patient extended-form. Compositional 'movement' includes traditional verse-chorus + dynamic break + drum feature + intensified return. Drum feature section is COMPOSITIONAL CHOICE not just performer's spotlight.",
+            "innovation_for_genre_context": "2002 alt-rock context: extended-form heavy rock had been done (Soma 1993, Overfloater 1996). A Song for the Dead's contribution: extended-form heavy rock with COMPOSITIONALLY-INTEGRATED drum feature section + Homme's signature compositional craft. Influences subsequent bands seeking to build songs around drummer's capacity."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "POWER-TRIO + DRUM FEATURE PRIORITY — same Homme + Oliveri + Grohl trio foundation but arrangement specifically designed to FEATURE Grohl's drumming. Verses + choruses establish foundation; dynamic break section spotlights drums.",
+            "intro_arrangement": "Aggressive riff statement with full-band entry — drums + guitars + bass at full intensity",
+            "verse_arrangement": "Riff continues, Homme baritone vocal enters, Oliveri bass tight with Grohl kick, fast tempo driving",
+            "chorus_arrangement": "Hook expansion with Homme vocal projection + possible secondary vocal harmony",
+            "verse_2_arrangement": "Returns to verse density",
+            "second_chorus_arrangement": "Slight intensification",
+            "dynamic_break_drum_feature_arrangement": "DRAMATIC DYNAMIC SHIFT — guitars + bass momentarily drop or sustain at lower density, GROHL DRUMS FEATURE PROMINENTLY with technical fills + power. Possibly extended drum section before return to full-band energy.",
+            "return_section_arrangement": "Intensified return to full-band energy after drum feature — compositional payoff for the dynamic break",
+            "final_chorus_arrangement": "Maximum chorus energy with all elements driving",
+            "outro_arrangement": "Final riff + ending statement",
+            "drum_feature_compositional_implications": [
+              "Compositionally CHOOSING to feature drums = treating drums as compositional voice not just rhythmic foundation",
+              "Dynamic break sets up dramatic recovery — drums feature serves song's emotional arc",
+              "Grohl's documented technical capacity allows compositional ambition that less-skilled drummer could not deliver",
+              "Live performances often extend the drum feature section significantly"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes",
+              "No drum sample replacement (Grohl's drumming IS the song)",
+              "No vocal pitch correction",
+              "No atmospheric synth layers (QOTSA power-trio aesthetic priority)"
+            ],
+            "what_makes_arrangement_unique_within_qotsa": "A Song for the Dead represents QOTSA's MOST AMBITIOUS extended-form arrangement + most-drum-featured composition. Within Songs for the Deaf's range, this track stakes the EPIC EXTENDED-FORM pole.",
+            "comparison_to_drum_featured_dissection_tracks": "Most other dissection tracks treat drums as FOUNDATION. A Song for the Dead treats drums as COMPOSITIONAL VOICE that gets featured. Different drumming philosophy."
+          }
         },
         "Medication": {
           "_status": "stub_pending_full_dissection_C5_4",
