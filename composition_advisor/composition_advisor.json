@@ -11602,7 +11602,47 @@
       }
     },
     "recipes": {
-      "_note": "Empty placeholder; will be populated in steps A2-A8 (one artist block per step, three sub-steps each). Each recipe atom keyed by its id, value is full atom per recipe_atom_schema."
+      "_note": "Populated incrementally in steps A2-A8. Each recipe atom keyed by its id, value is full atom per recipe_atom_schema. Provenance preserved via source field.",
+      "microtonal_bend_as_signature_riff": {
+        "id": "microtonal_bend_as_signature_riff",
+        "rule": "A central instrumental hook can be made unforgettable by a deliberate MICROTONAL element (string bend that lands slightly out of pitch, or a synth detune of ~10 cents on key notes). The microtonal element ANCHORS the riff's identity — listeners associate the song with the slightly-off pitch.",
+        "applicability_text": "Signature guitar/synth riffs; any single line that needs immediate identification; intros that establish identity in 4 bars.",
+        "wow_factor": 0.85,
+        "tier": "top",
+        "source": {"artist": "Nirvana", "song": "Heart_Shaped_Box", "album": "In Utero", "year": 1993},
+        "composition_stage": "composition",
+        "compositional_axis": ["melody", "texture"],
+        "genre_vocabulary": ["rock_traditional", "art_rock"],
+        "applicability_tags": ["hypnotic_repetition", "wall_of_sound_layering"],
+        "personality_dominance": "cobain_dominant",
+        "personality_fit_breakdown": {"cobain": 35, "reznor": 25, "yorke": 25, "daft_punk": 15},
+        "production_philosophy_lineage": "albini_capture",
+        "trade_offs": "If overused (every line is microtonal), the effect becomes random rather than deliberate. Use ONCE per song as the signature element.",
+        "documented_example": "Heart-Shaped Box opening guitar riff — Cobain's bent string lands slightly sharp; the song's identity hinges on it.",
+        "synergy_recipes": ["delayed_rhythm_section_entry_4_bars"],
+        "conflict_recipes": [],
+        "evolution_recipes": ["descending_riff_as_song_identity"]
+      },
+      "slow_burn_arrival_not_explosion": {
+        "id": "slow_burn_arrival_not_explosion",
+        "rule": "Build from intro through verse 1 / chorus 1 / verse 2 / chorus 2 / bridge / outro WITHOUT any single section being a detonation. The song's true peak is the OUTRO — sustained intensity arrived at gradually, not via an explosive chorus drop. Maturity over youthful fireworks.",
+        "applicability_text": "Ballad-format dark songs; songs that want mature weight rather than youthful explosion; tracks 4+ minutes long that need internal pacing.",
+        "wow_factor": 0.80,
+        "tier": "gold",
+        "source": {"artist": "Nirvana", "song": "Heart_Shaped_Box", "album": "In Utero", "year": 1993},
+        "composition_stage": "composition",
+        "compositional_axis": ["structure", "dynamics"],
+        "genre_vocabulary": ["rock_traditional", "art_rock"],
+        "applicability_tags": ["dynamic_arc_subtle", "atmospheric_continuity", "extended_form"],
+        "personality_dominance": "balanced",
+        "personality_fit_breakdown": {"cobain": 35, "yorke": 35, "reznor": 20, "daft_punk": 10},
+        "production_philosophy_lineage": "albini_capture",
+        "trade_offs": "Demands listener patience + attention. Won't work in radio-single contexts. Risk of feeling anticlimactic if outro doesn't justify the build.",
+        "documented_example": "Heart-Shaped Box — 4:40 of patient build to a sustained outro rather than a Smells-Like-Teen-Spirit-style chorus detonation.",
+        "synergy_recipes": ["vocal_layer_count_as_dynamic_lever", "outro_chant_extension_via_repetition_not_fade"],
+        "conflict_recipes": ["compact_runtime_2_to_3_minutes", "compact_aggressive_under_2_minutes", "unrelenting_aggression_no_dynamic_arc"],
+        "evolution_recipes": ["extended_dynamic_arc_six_plus_minutes_patient_build", "gradual_subtle_build_not_dynamic_arc_explosion"]
+      }
     },
     "lenses": {
       "_note": "Empty placeholder; will be populated in step A9. Each lens is an object whose keys are axis values and whose values are arrays of recipe ids matching that axis value. No data duplication — lenses are pointer collections.",
