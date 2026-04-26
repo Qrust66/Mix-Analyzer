@@ -9584,7 +9584,7 @@
           }
         },
         "Veridis_Quo": {
-          "_status": "C6_3a_composition_arrangement_done",
+          "_status": "C6_3b_performance_recording_done",
           "album": "Discovery",
           "year": 2001,
           "_note": "Anomalous track on Discovery — slow, harmonically rich, classical-influenced",
@@ -9621,6 +9621,85 @@
             ],
             "what_makes_arrangement_unique_within_daft_punk": "Veridis Quo represents Daft Punk's MOST CLASSICAL-INFLUENCED + LEAST DANCE-MUSIC-AESTHETIC arrangement. Within Discovery's range, this track stakes the CLASSICAL-INFORMED ELECTRONIC pole.",
             "comparison_to_other_classical_influenced_dissection_arrangements_setup": "Pyramid Song (Radiohead — C7 to be dissected): classical-influenced art-rock arrangement with piano + asymmetric meter. Veridis Quo: classical-influenced electronic arrangement with synth pads + slow tempo. Both classical-informed but in different genre contexts."
+          },
+          "performance": {
+            "tempo_feel_description": "SLOW HARMONIC MEDITATIVE — 114-118 BPM at slow-relative-to-dance-music tempo feels meditative + harmonic-richness-focused. Tempo allows classical-harmonic voice-leading to breathe.",
+            "drum_style": {
+              "performer_or_programmer": "Bangalter + de Homem-Christo",
+              "approach": "PROGRAMMED DRUMS LESS FOREGROUNDED — drums support harmonic foundation rather than driving rhythmic identity",
+              "specifics_documented": [
+                "Programmed kick + percussion samples subtle",
+                "No 4-on-the-floor (anomalous within Discovery)",
+                "Drum pattern serves harmonic + atmospheric arrangement",
+                "Less filter modulation than dance-music tracks"
+              ]
+            },
+            "synth_style": {
+              "performers": "Bangalter + de Homem-Christo",
+              "rhythm_synth_role_bass_line": "CLASSICAL-INFLUENCED DESCENDING BASS-LINE — provides harmonic foundation in baroque-tradition voice-leading",
+              "harmonic_synth_pads_role": "Multiple synth pads providing harmonic richness — chord voicings layered for depth",
+              "specifics_documented": [
+                "Analog + digital synthesizers documented",
+                "Chord progression voiced across multiple synth layers for harmonic richness",
+                "Voice-leading between layers reflects classical-tradition craft",
+                "Less filter modulation than Around the World — harmonic motion is primary engine"
+              ]
+            },
+            "vocoded_vocal_delivery": {
+              "performer": "Bangalter + de Homem-Christo (vocal recorded then vocoded)",
+              "approach": "VOCODED VOCAL AS MELODIC-TEXTURAL COLOR — vocoder phrases add melodic interest above harmonic foundation, less prominent than HBFS lead-vocal role",
+              "documented_specifics": [
+                "Vocoded vocal phrases sustained + atmospheric",
+                "Vocal serves harmonic field rather than carrying narrative content",
+                "Different vocoder usage from HBFS lead-vocal approach"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No tempo changes",
+              "No live drums",
+              "No filter modulation as primary engine (classical harmony priority)",
+              "No 4-on-the-floor dance-music drum pattern"
+            ]
+          },
+          "recording": {
+            "studio": "Bangalter + de Homem-Christo's home studio",
+            "session_dates": "1999-2001 sessions",
+            "primary_producers": "Thomas Bangalter + Guy-Manuel de Homem-Christo (always self-produced)",
+            "primary_engineer": "Bangalter + de Homem-Christo (self-engineered)",
+            "primary_mix_engineer": "Bangalter + de Homem-Christo (self-mixed)",
+            "production_philosophy_for_veridis_quo": "Same Daft Punk DUO AUTEUR self-produced framework applied to CLASSICAL-INFLUENCED ELECTRONIC compositional intent. Demonstrates duo's range across filter-house + pop-electronic + classical-electronic within their catalog.",
+            "drum_micing_approach": {
+              "philosophy_daft_punk": "Programmed drums + sampled percussion subtle, supporting harmonic foundation",
+              "specifics_for_veridis_quo": [
+                "Programmed kick + percussion at supporting level",
+                "Drum bus processing minimal — harmonic richness priority over rhythmic punch"
+              ]
+            },
+            "synth_recording_approach": {
+              "philosophy_daft_punk": "Multiple synth layers tracked separately for harmonic richness + voice-leading control",
+              "specifics_documented": [
+                "Multiple synth pads tracked in stereo for spatial depth",
+                "Chord voicings recorded with attention to voice-leading clarity",
+                "Bass-line synth recorded with classical-tradition character",
+                "Less filter modulation tracking than dance-music tracks"
+              ]
+            },
+            "vocoder_recording_approach": {
+              "specifics": "Vocoded vocal phrases tracked for textural-melodic color rather than narrative content"
+            },
+            "notable_instruments_and_gear_documented": [
+              "Analog + digital synthesizers (multiple chord-voicing layers)",
+              "Vocoder for textural vocal phrases",
+              "Programmed drum machines",
+              "Bangalter + de Homem-Christo's home studio"
+            ],
+            "what_makes_daft_punk_recording_distinct_for_veridis_quo": [
+              "CLASSICAL-INFLUENCED COMPOSITIONAL INTENT preserved through tracking",
+              "Multiple synth-pad layers for harmonic richness",
+              "Voice-leading awareness in chord-voicing tracking",
+              "Same duo-auteur framework deployed for non-dance-music compositional intent"
+            ],
+            "comparison_to_other_daft_punk_recording_approaches": "Around the World (Homework 1997): filter-house tracking with filter modulation primary. HBFS (Discovery 2001): sample-based pop-electronic tracking. Veridis Quo (Discovery 2001): classical-influenced electronic tracking with multiple synth-pad layers + voice-leading attention. Three different production approaches within same duo's catalog."
           }
         },
         "Giorgio_By_Moroder": {
