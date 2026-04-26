@@ -11891,6 +11891,8 @@
       "a_cappella_fakeout_intro_into_band_slam": {
         "id": "a_cappella_fakeout_intro_into_band_slam",
         "rule": "Open the song with a SINGLE VOCAL phrase, a cappella (no instruments), for 2-4 bars. Voice MUST be casual/restrained. Then ALL INSTRUMENTS enter SIMULTANEOUSLY at maximum density and intensity for the song's first beat after the vocal phrase. Listener's pattern-recognition is subverted — the casual vocal sets up an explosion they don't see coming.",
+        "electronic_translation": "Open with single dry SPOKEN/WHISPERED vocal phrase a cappella for 2-4 bars (no kick, no synth, just voice + light room reverb). Then on bar 3 or 5 — DROP: full kick + bass + saturated synth wall + snare pattern hit simultaneously. The casual-vocal-into-explosion pattern subverts listener expectation. Apply for: dark-electronic peak openers (NIN-adjacent), industrial-techno / EBM aggressive intros, dubstep drop-setup (different but related lineage), glitch-track rupture-openers. Use ONCE per album max — the surprise is single-use; listeners brace for it after first encounter. Variant: replace vocal with sample (movie-dialogue, found-recording, telephone-recording) for documentary-fakeout setup.",
+        "electronic_target_genres": ["dark_electronic", "EBM", "glitch"],
         "applicability_text": "Drop entries that must surprise (more impactful than interrupted_silence cadence at high tempos); songs that want to subvert listener pattern-recognition; tracks targeting hardcore-punk-influenced aesthetics.",
         "wow_factor": 0.90,
         "tier": "top",
@@ -11911,6 +11913,8 @@
       "unrelenting_aggression_no_dynamic_arc": {
         "id": "unrelenting_aggression_no_dynamic_arc",
         "rule": "After the initial slam, sustain MAXIMUM band density and intensity for the song's entire ~2 minutes. No bridge for breath. No chorus dynamic shift. No verse restraint. Sustained intensity with no pacing — listener is overwhelmed in compressed timeframe.",
+        "electronic_translation": "After intro slam, sustain MAXIMUM density across full 2-minute runtime — no breakdown, no buildup, no breath. Full programmed kick + heavily distorted bass synth + percussive samples + screamed/saturated vocal-as-instrument all firing every bar. The listener can't catch breath; the track ends before fatigue sets in. Apply for: industrial-techno punishment tracks (Perc / Ancient Methods / Untold), EBM peak intensity (Front 242 short tracks), dark-electronic punk-energy bursts, gabber/hard-techno crossover. PAIR WITH compact_aggressive_under_2_minutes — the brevity is what makes the unrelenting-density bearable. Track length > 3 min destroys the effect (becomes monotonous).",
+        "electronic_target_genres": ["dark_electronic", "EBM"],
         "applicability_text": "Hardcore punk-influenced tracks; songs under 3 minutes; drops that prefer sustained intensity over peak-and-release.",
         "wow_factor": 0.75,
         "tier": "silver",
@@ -11931,6 +11935,8 @@
       "abrupt_song_end_no_fade": {
         "id": "abrupt_song_end_no_fade",
         "rule": "Cut the song mid-phrase or on the last beat of a chorus — NO fade-out, NO sustained final chord, NO resolution. The listener is left in silence after the song ends abruptly. Closure is denied as compositional choice.",
+        "electronic_translation": "End the track on the LAST KICK HIT of a bar — no reverb tail, no decreasing layers, no fade automation, no master-volume ramp-down. Hard cut. Set Live's track end at the precise sample after the kick decay. Listener is left in silence, unsettled. Apply for: industrial-techno tracks (Surgeon / Regis hard-cut endings), dark-electronic punctuation tracks, EBM brutalism, glitch jolt-endings, IDM dialectical-statement endings. AVOID for ambient (incompatible — ambient demands reverb-tail resolution), deep house (DJ-needs-fade for mixing), dub-techno (echoing-tail tradition). Also possible: end on a single rendered click/glitch artifact — the digital equivalent of slamming a door.",
+        "electronic_target_genres": ["dark_electronic", "EBM", "glitch", "IDM"],
         "applicability_text": "Album tracks (not radio singles); songs that want to leave listener unsettled; tracks where resolution would feel cheap.",
         "wow_factor": 0.70,
         "tier": "bronze",
