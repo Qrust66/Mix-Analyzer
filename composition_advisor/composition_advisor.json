@@ -5683,7 +5683,7 @@
           "songs_to_dissect": ["March_Of_The_Pigs", "The_Day_The_World_Went_Away", "Were_In_This_Together", "The_Wretched", "The_Hand_That_Feeds", "Copy_Of_A"]
         },
         "March_Of_The_Pigs": {
-          "_status": "C4_1a_composition_arrangement_done",
+          "_status": "C4_1b_performance_recording_done",
           "album": "The Downward Spiral",
           "year": 1994,
           "tempo_bpm_documented_range": [262, 270],
@@ -5726,6 +5726,113 @@
             "what_makes_arrangement_unique_within_nin": "March of the Pigs represents NIN's MOST RHYTHMICALLY-EXTREME arrangement in this dissection. Reznor's most aggressive deployment of asymmetric meter + extreme tempo + sudden chorus contrast. Within NIN's catalog this is the AGGRESSIVE-EXTREME pole.",
             "comparison_to_other_nin_aggression_levels": "March of the Pigs (1994): MAXIMUM extremity, asymmetric meter, ~265 BPM. The Hand That Feeds (2005): aggressive but at moderate tempo with clearer rock structure. The Wretched (1999): aggressive but at slower tempo with atmospheric layers. Three different NIN aggression scales.",
             "comparison_to_zero_industrial_leaning": "Zero (Pumpkins): industrial-influenced, ~130 BPM, retained rock structure, drum-machine-evocative LIVE drums. March of the Pigs (NIN): industrial-source, ~265 BPM, asymmetric meter, programmed + live hybrid. Two industrial-related tracks at completely different scales of industrial commitment."
+          },
+          "performance": {
+            "tempo_feel_description": "EXTREME RELENTLESS FORWARD PRESSURE — ~265 BPM in asymmetric meter creates sustained sonic assault. The asymmetric grouping prevents any sense of steady groove pocket — listener feels CONSTANTLY OFF-BALANCE.",
+            "drum_style": {
+              "performer_or_programmer": "Trent Reznor (programming + sample triggering — documented as primary 'drummer' on Downward Spiral)",
+              "approach": "PROGRAMMED PRECISION + INDUSTRIAL SAMPLE LAYERING — Reznor documented as building drum tracks from programmed grooves + sampled industrial percussion + occasional triggered live elements",
+              "specifics_documented": [
+                "Programmed drums at ~265 BPM — live drumming at this tempo for 2:58 sustained is impractical; programming enables it",
+                "Asymmetric meter (7/8 + 8/8) programmed precisely — Reznor's documented rigor in meter execution",
+                "Multiple drum LAYERS — programmed kick + snare + hi-hat foundation, plus sampled industrial percussion (metal hits, sample triggers) for textural aggression",
+                "First chorus reduces drum density (or pauses programmed groove momentarily) for melodic-chorus contrast",
+                "Cymbal samples used for rhythmic accents at chorus transitions"
+              ],
+              "comparison_to_live_drumming_in_other_dissection_tracks": "Most other dissection tracks (Nirvana Grohl, Soundgarden Cameron, Pumpkins Chamberlin) use live drums. March of the Pigs uses PROGRAMMED drums as compositional foundation — not as 'cheaper alternative' but as DELIBERATE STYLISTIC + RHYTHMIC CHOICE enabling tempo + asymmetric-meter extremity.",
+              "philosophy_drum_machine_as_composition_engine": "Reznor documented as treating the drum machine + samplers as COMPOSITIONAL INSTRUMENTS — programming choices ARE composition. This contrasts with 'drummer plays the song' rock paradigm and aligns with industrial + electronic music tradition."
+            },
+            "guitar_style": {
+              "performers": "Trent Reznor (primary guitar + bass + programming) — documented Downward Spiral approach",
+              "rhythm_guitar_role": "PROCESSED RHYTHMIC STABS + sustained noise elements — guitars as TEXTURAL AGGRESSION rather than as harmonic-melodic primary",
+              "specifics_documented": [
+                "Processed/saturated guitar tones — heavy distortion + possible additional saturation/processing chains",
+                "Rhythmic stabs aligned with asymmetric meter accents",
+                "Sustained noise/feedback elements layered as textural aggression",
+                "Brief clean guitar appearances during melodic chorus contrast (or possibly synth-pad replacement of guitar in chorus)"
+              ],
+              "playing_style_versus_rock_guitar_paradigm": "Where rock guitarists provide RHYTHMIC + MELODIC primary, Reznor's guitars on March of the Pigs provide TEXTURAL AGGRESSION. Bass synth + programming + sample triggers carry harmonic-rhythmic primary; guitars are AGGRESSIVE COLOR."
+            },
+            "bass_performance": {
+              "performer": "Trent Reznor (bass synthesis + possibly some live bass)",
+              "approach": "DISTORTED BASS SYNTH PROVIDING HARMONIC FOUNDATION + RHYTHMIC AGGRESSION",
+              "specifics_documented": [
+                "Bass synth heavily distorted/saturated — creates aggressive low-frequency presence beyond what live bass alone would deliver",
+                "Bass plays harmonic foundation but with rhythmic emphasis aligned with asymmetric meter",
+                "Possible layering of bass synth + live bass for combined texture"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Trent Reznor",
+              "verse_delivery": "SCREAMED + RAGGED — Reznor's vocal at maximum aggression. Phrasing aligned with asymmetric meter rhythmic accents. Distortion + processing on vocal for additional aggression.",
+              "first_chorus_delivery": "DRAMATIC SHIFT to SUNG MELODIC — Reznor's vocal CONTRAST is part of the song's emotional engine. Brief moment of quasi-pop melodicism within the aggression.",
+              "documented_vocal_quirks": [
+                "Reznor's vocal SCREAM-TO-SING contrast in same song — documented as deliberate compositional weapon",
+                "Vocal processing varies between sections — aggressive saturation in verses, cleaner with reverb in melodic chorus",
+                "Multiple takes selected/comped per Reznor's documented production approach",
+                "Vocal DOUBLED in some chorus sections for emphasis"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization-corrected programming (Reznor's programmed grooves have intentional micro-timing character)",
+              "No vocal pitch correction (raw screamed quality preserved)",
+              "No tempo changes",
+              "No fade-out (hard ending)"
+            ]
+          },
+          "recording": {
+            "studio": "Le Pig Studio (10050 Cielo Drive, Beverly Hills, California — the Tate house, documented as Reznor's recording location for Downward Spiral)",
+            "session_dates": "1992-1993 sessions",
+            "primary_producer": "Trent Reznor (production credit)",
+            "primary_engineer": "Sean Beavan (Downward Spiral engineer — documented Reznor collaborator)",
+            "primary_mix_engineer": "Mostly Reznor + Beavan, with Alan Moulder mixing select tracks (Moulder's NIN association establishes here even as some Downward Spiral mixes done in-house)",
+            "production_philosophy_reznor_documented": "REZNOR AS AUTEUR-PRODUCER — Reznor handles writing + most performance + production + much engineering himself, with Beavan as primary engineer collaborator. Auteur-driven production, AGAINST the band-democracy or producer-band-collaboration models seen elsewhere in dissection.",
+            "drum_micing_approach": {
+              "philosophy_reznor": "PROGRAMMED + SAMPLED rather than miced live drums — different paradigm from rock dissection peers",
+              "specifics_for_march_of_the_pigs": [
+                "Programmed grooves built in sequencer (E-mu / Akai samplers documented in Reznor's 1990s gear lists)",
+                "Industrial percussion samples (metal hits, found-sound) layered into drum bus",
+                "Possible occasional LIVE percussion overdubs miced traditionally for textural variety",
+                "No 'kit miced live' approach — drums entirely constructed in studio environment"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_reznor": "Heavily processed guitars — distortion + saturation + possible additional effects chains. Tracking approach values FINAL TEXTURE over pristine capture.",
+              "specifics_documented": [
+                "Distorted guitar amps + heavy pedal-chain processing",
+                "Possible re-amping (recording DI, then routing through amp chains in mix stage)",
+                "Sustained noise + feedback layers tracked separately, deployed as textural elements",
+                "Tracking philosophy: BUILD THE FINAL TEXTURE during tracking, less reliance on mix-stage shaping"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "Bass synthesis primary — programmed synth bass with distortion + saturation chains. Possible live bass layered for combined texture."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_reznor": "Reznor self-tracking vocals at Le Pig — documented intimate recording environment. Multiple takes, different processing chains for verse-aggressive vs. chorus-melodic sections.",
+              "specifics_documented": [
+                "Vocal isolation booth at Le Pig",
+                "Multiple complete takes selected/comped",
+                "Different processing chains for screamed vs. sung vocal sections",
+                "Saturation + distortion on aggressive vocals; cleaner reverb on melodic chorus vocals"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "E-mu Emax / Akai S1000 / S1100 samplers (documented Reznor 1990s gear)",
+              "Programmed drum tracks built in sequencer (possibly Mac-based with MIDI sequencing)",
+              "Distorted guitar amps + heavy pedal chains",
+              "Bass synthesis with distortion (possibly Moog or other classic synth + distortion processing)",
+              "Le Pig's documented setup at the Tate house — converted home studio environment"
+            ],
+            "what_makes_reznor_recording_distinct_for_march_of_the_pigs": [
+              "AUTEUR-PRODUCER MODEL — single-creator-driven production rather than band-collaborative or producer-imposed",
+              "PROGRAMMED + SAMPLED foundation rather than live-band tracking — different paradigm from rock dissection peers",
+              "Le Pig's specific historical-site context — the Tate house's dark mythology contributing to the album's atmosphere",
+              "Reznor handles most performance + production himself with Beavan engineering — high production-by-creator ratio",
+              "FINAL TEXTURE built during tracking — less mix-stage shaping than rock-album standard"
+            ],
+            "comparison_to_rock_dissection_peers_recording": "Albini (In Utero): pure capture, room-prominent, minimal shaping. Vig+Wallace (Nevermind/Siamese Dream): meticulous tracking + width-maximized mixing. Date (Badmotorfinger): tracker-mixer dual role. Beinhorn+O'Brien (Superunknown): producer-mixer split with shaping. Kasper (Down on the Upside): unified band-driven engineer-mixer. Flood+Moulder+Corgan (Mellon Collie): textural-experimental three-way. REZNOR (Downward Spiral): AUTEUR-PRODUCER + programmed-sampled foundation. SEVENTH production philosophy in dissection — single-creator-driven industrial paradigm.",
+            "production_philosophy_setup_for_other_nin_dissection": "March of the Pigs establishes Reznor's 1994 auteur-producer paradigm. Later NIN dissection tracks will demonstrate evolution: The Fragile (1999) tracks show MORE COLLABORATIVE approach with Alan Moulder mixing. With Teeth (2005) shows more LIVE-DRUMS approach (Dave Grohl drumming on some tracks). Hesitation Marks (2013) shows MODULAR-ELECTRONIC evolution. Reznor's production philosophy EVOLVES across his catalog within his auteur framework."
           }
         },
         "The_Day_The_World_Went_Away": {
