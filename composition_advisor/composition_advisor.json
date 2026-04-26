@@ -22408,6 +22408,173 @@
           "auteur_framework_supporting_opposite_intents_within_same_album",
           "anomalous_album_track_compositional_range_demonstration"
         ]
+      },
+      "rock_band_format_within_electronic_album": {
+        "id": "rock_band_format_within_electronic_album",
+        "rule": "Maintain TRADITIONAL ROCK-BAND FORMAT (drums + bass + guitars + vocal) for ONE TRACK within an otherwise-electronic-experimental album. Format-statement: 'we still know how to do this on demand.' Sonic palette balanced between band-format track and electronic-album-companion tracks via shared producer + production-philosophy.",
+        "electronic_translation": "Within an electronic album/EP, maintain TRADITIONAL FORMAT for ONE TRACK that contrasts with the album's primary electronic vocabulary — could be a piano-and-vocal duo piece, a sampled-orchestra piece, an acoustic-guitar-and-vocal track, a chamber-ensemble live recording. The TRACK FORMAT MAKES A STATEMENT against the album's primary electronic-vocabulary while remaining sonically coherent (same mixing-engineer, same overall LUFS target, same album-level production philosophy). Apply for: ambient album with one piano-and-vocal piece (Eno + Cluster tradition), techno album with one acoustic-instrument piece (Aphex Twin 'Selected Ambient Works II' tradition), neo-classical-electronic album with one full-orchestra piece, electronic-pop concept album with one stripped-down ballad, dark-electronic album with one acoustic-guitar piece. The DISCIPLINE: the contrasting-format track must be GENUINELY good in its format AND fit the album's emotional arc. Pair with `anchor_track_within_reinvention` and `anomalous_album_track_compositional_range_demonstration`.",
+        "electronic_target_genres": [
+          "IDM",
+          "ambient",
+          "neo_classical_electronic"
+        ],
+        "applicability_text": "Electronic albums seeking format-contrast track; multi-track albums valuing range demonstration; productions willing to commit to one anomalous-format track.",
+        "wow_factor": 0.78,
+        "tier": "silver",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Optimistic",
+          "album": "Kid A",
+          "year": 2000
+        },
+        "composition_stage": "philosophy",
+        "compositional_axis": [
+          "texture",
+          "structure"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "rock_traditional"
+        ],
+        "applicability_tags": [],
+        "personality_dominance": "balanced",
+        "personality_fit_breakdown": {
+          "yorke": 35,
+          "cobain": 30,
+          "reznor": 20,
+          "daft_punk": 15
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Risk of contrasting-format track feeling out of place. Demands shared producer/aesthetic to bridge format-difference.",
+        "documented_example": "Optimistic on Kid A — rock-band format (Greenwood guitars + Selway drums + Yorke vocal) within otherwise-electronic-experimental album, unified by Godrich production.",
+        "synergy_recipes": [
+          "anchor_track_within_reinvention",
+          "complete_genre_reinvention_within_band_catalog",
+          "godrich_engineer_producer_mixer_unified_role_with_band_partnership",
+          "anomalous_album_track_compositional_range_demonstration"
+        ],
+        "conflict_recipes": [
+          "minimum_element_electronic_experimental_arrangement",
+          "drumless_arrangement_as_compositional_choice"
+        ],
+        "evolution_recipes": [
+          "live_drums_with_programmed_overlay_hybrid",
+          "rock_drummer_in_industrial_production_context"
+        ]
+      },
+      "godrich_engineer_producer_mixer_unified_role_with_band_partnership": {
+        "id": "godrich_engineer_producer_mixer_unified_role_with_band_partnership",
+        "rule": "Engineer-producer-mixer in UNIFIED ROLE with deep BAND-CREATIVE-PARTNERSHIP. Producer participates as 'sixth member' — creative partner, not external imposition. Different from purely-band-driven (Kasper unified-but-band-led) and from auteur-producer-driven (Reznor solo-creative-vision). Producer's role is INTEGRATED CREATIVE PARTNERSHIP.",
+        "electronic_translation": "For your electronic project, hire a producer-engineer-mixer who functions as INTEGRATED CREATIVE PARTNER ('sixth member' of the project) rather than external service-provider. The producer participates in compositional decisions + sound-design directions + arrangement choices, not just executing your vision. Different from `kasper_band_driven_unified_engineering_mixing` (band-led with engineer-as-tool) AND from `auteur_producer_single_creator_driven_production` (artist-as-everything). This is INTEGRATED CREATIVE PARTNERSHIP. Apply for: electronic projects benefiting from creative-collaborator producer (neo-classical-electronic projects with engaged producer-collaborator like Olafur Arnalds + Janus Rasmussen tradition translated to producer-relationship), techno-experimental projects with creative producer-partner, ambient projects with engaged producer-collaborator (Brian Eno + various-producer collaborations tradition), trip-hop with producer-as-band-member tradition (Massive Attack's tight producer relationships). Demands compatible artistic vision + multi-album commitment for partnership to mature. Pair with `auteur_co_auteur_mixer_pipeline_for_mature_collaboration`.",
+        "electronic_target_genres": [
+          "neo_classical_electronic",
+          "ambient",
+          "techno"
+        ],
+        "applicability_text": "Established electronic projects ready for deep producer-partnership; multi-album projects with creative producer-collaborator; productions valuing integrated partnership over external service.",
+        "wow_factor": 0.81,
+        "tier": "gold",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Optimistic",
+          "album": "Kid A",
+          "year": 2000
+        },
+        "composition_stage": "philosophy",
+        "compositional_axis": [
+          "texture"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "rock_traditional",
+          "modular_electronic"
+        ],
+        "applicability_tags": [
+          "production_partnership_evolution"
+        ],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 45,
+          "reznor": 25,
+          "cobain": 20,
+          "daft_punk": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands compatible producer-artist creative chemistry. Risk of creative disagreements. Multi-album commitment for partnership to mature.",
+        "documented_example": "Nigel Godrich on Radiohead's Kid A + Amnesiac (and ongoing tradition since OK Computer 1997). Sixth-member status — creative partner, not external service.",
+        "synergy_recipes": [
+          "complete_genre_reinvention_within_band_catalog",
+          "anchor_track_within_reinvention",
+          "rock_band_format_within_electronic_album",
+          "production_philosophy_signature_godrich_amnesiac_continuation"
+        ],
+        "conflict_recipes": [
+          "auteur_producer_single_creator_driven_production",
+          "albini_mix_pure_capture_no_remix"
+        ],
+        "evolution_recipes": [
+          "auteur_co_auteur_mixer_pipeline_for_mature_collaboration",
+          "production_partnership_emerging_after_solo_auteur_period"
+        ]
+      },
+      "intentionally_ambiguous_rhythm_felt_not_counted": {
+        "id": "intentionally_ambiguous_rhythm_felt_not_counted",
+        "rule": "Compose in METER that listener FEELS rather than counts. 6/4 / 8/8 / 16/16 / metric-modulation territory where the strict count is technically possible but the listener experiences SWING / FLOAT / JAZZ-PULSE rather than GRID. Rhythm-as-floating, not rhythm-as-grid. Drummer's interpretation supports the feel without locking the listener.",
+        "electronic_translation": "Compose in METER the listener FEELS rather than COUNTS. Set DAW time-signature to 6/4 or 16/16 or use metric-modulation sections; program drums + bass-line that PHRASE the meter rather than lock it. Use slight quantize-strength (70-85%) on percussion to introduce swing-feel without losing time-grid. Lead-melodic content phrased across measure-boundaries (3-against-2 polyrhythm-implication, suspensions across barlines) to obscure the count. The listener experiences SWING/FLOAT/JAZZ-PULSE rather than GRID. Apply for: neo-classical-electronic compositions with classical-tradition rubato-feel (Olafur Arnalds 'Sudden Throw' floating-tempo tradition), IDM with felt-rather-than-counted complexity (Aphex Twin 'Drukqs' tradition), trip-hop with jazz-tradition rhythmic-floating (Portishead 'Roads' floating-tempo), ambient with rhythmic foundation that doesn't lock (drone-techno ambiguous-meter), neo-classical-electronic intimate pieces with chamber-music phrasing. Different from `seven_four_asymmetric_meter_as_structural_device` (felt as STRUCTURAL device) — this is ambiguity-itself as the goal.",
+        "electronic_target_genres": [
+          "neo_classical_electronic",
+          "IDM",
+          "trip_hop"
+        ],
+        "applicability_text": "Compositions valuing felt-rather-than-counted rhythm; tracks with classical/jazz-tradition phrasing influence; productions willing to abandon strict-grid aesthetic.",
+        "wow_factor": 0.84,
+        "tier": "gold",
+        "source": {
+          "artist": "Radiohead",
+          "song": "Pyramid_Song",
+          "album": "Amnesiac",
+          "year": 2001
+        },
+        "composition_stage": "composition",
+        "compositional_axis": [
+          "rhythm",
+          "structure"
+        ],
+        "genre_vocabulary": [
+          "art_rock",
+          "modular_electronic",
+          "free_jazz_influenced"
+        ],
+        "applicability_tags": [
+          "asymmetric_meter",
+          "atmospheric_continuity"
+        ],
+        "personality_dominance": "yorke_dominant",
+        "personality_fit_breakdown": {
+          "yorke": 55,
+          "daft_punk": 20,
+          "reznor": 15,
+          "cobain": 10
+        },
+        "production_philosophy_lineage": "godrich_unified_sixth_member",
+        "trade_offs": "Demands listener tolerance for floating-rhythm aesthetic. Risk of feeling shapeless if material weak. Won't work in dance-floor contexts.",
+        "documented_example": "Pyramid Song (Radiohead, Amnesiac 2001, 4:49 in 6/4-or-8/8-felt-as-jazz-pulse) — listeners debate the meter's literal interpretation but feel the swing.",
+        "synergy_recipes": [
+          "piano_composition_with_chromatic_harmony",
+          "selway_ambiguous_drum_phrasing_interpreting_meter_not_locking",
+          "ondes_martenot_or_rare_classical_instrument_for_spectral_color",
+          "funeral_march_tempo_70_bpm_for_solemnity",
+          "long_asymmetric_cycle_for_meditation_not_complexity"
+        ],
+        "conflict_recipes": [
+          "four_on_the_floor_120_bpm_house_foundation",
+          "syncopated_kick_creates_implied_meter_within_4_4"
+        ],
+        "evolution_recipes": [
+          "seven_four_asymmetric_meter_as_structural_device",
+          "drum_meter_pattern_groupings_natural_vs_academic",
+          "compositional_uncertainty_as_artistic_choice"
+        ]
       }
     },
     "lenses": {
