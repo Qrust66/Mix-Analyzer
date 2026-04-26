@@ -27056,12 +27056,12 @@
       }
     },
     "conflict_pairs": {
-      "_note": "Logical conflict pairs extracted from each atom's conflict_recipes field. 232 unique pairs, 53 mutually documented (both atoms cite each other). Used by advisor tooling to prevent suggesting incompatible recipes within the same composition path. NOT aesthetic conflicts — recipes that differ in feel without logical contradiction are not listed.",
-      "_generated_from_atom_count": 173,
-      "_total_pairs": 232,
-      "_mutually_documented_pairs": 53,
-      "_unilateral_pairs": 179,
-      "logical_conflict_rule": "Two recipes conflict if their rule premises contain mutually exclusive constraints (e.g. runtime <2 min vs. runtime >6 min, or unrelenting-aggression vs. atmospheric-continuity). Mutually-documented pairs are higher-confidence; unilateral pairs are still valid but suggest one atom's author saw the conflict while the other did not annotate it.",
+      "_note": "Logical conflict pairs from each atom's conflict_recipes field. 261 unique pairs, 56 mutually documented (both atoms cite each other).",
+      "_generated_from_atom_count": 189,
+      "_total_pairs": 261,
+      "_mutually_documented_pairs": 56,
+      "_unilateral_pairs": 205,
+      "logical_conflict_rule": "Two recipes conflict if their rule premises contain mutually exclusive constraints. Mutually-documented pairs are higher-confidence; unilateral pairs are still valid.",
       "pairs": [
         {
           "pair_id": "a_cappella_fakeout_intro_into_band_slam__VS__delayed_rhythm_section_entry_4_bars",
@@ -27102,6 +27102,16 @@
           "rule_b_premise": "Build section transitions as INTEGRATED TRANSFORMATIONS rather than ABRUPT CUTS",
           "wow_factor_a": 0.9,
           "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "a_cappella_fakeout_intro_into_band_slam__VS__late_drum_entry_mid_song_for_perceptual_shift",
+          "recipe_a": "a_cappella_fakeout_intro_into_band_slam",
+          "recipe_b": "late_drum_entry_mid_song_for_perceptual_shift",
+          "mutually_documented": true,
+          "rule_a_premise": "Open the song with a SINGLE VOCAL phrase, a cappella (no instruments), for 2-4 bars",
+          "rule_b_premise": "Drums DELAY their entry until mid-song (around 1:30-2:30 mark in a 4-5 min track)",
+          "wow_factor_a": 0.9,
+          "wow_factor_b": 0.81
         },
         {
           "pair_id": "abrupt_song_end_no_fade__VS__integrated_transitions_not_abrupt_cuts",
@@ -27152,6 +27162,16 @@
           "rule_b_premise": "When mixing hybrid-vocabulary songs, use EXTENSIVE section-specific mix automation — drum bus character, guitar layer levels, vocal processing, reverb sends all SHIFT between sections",
           "wow_factor_a": 0.7,
           "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__godrich_engineer_producer_mixer_unified_role_with_band_partnership",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "godrich_engineer_producer_mixer_unified_role_with_band_partnership",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "Engineer-producer-mixer in UNIFIED ROLE with deep BAND-CREATIVE-PARTNERSHIP",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.81
         },
         {
           "pair_id": "albini_mix_pure_capture_no_remix__VS__industrial_drum_processing_on_live_drums",
@@ -27244,6 +27264,16 @@
           "wow_factor_b": 0.65
         },
         {
+          "pair_id": "album_opener_via_textural_disorientation__VS__commercial_single_economy_three_minutes_thirty_one",
+          "recipe_a": "album_opener_via_textural_disorientation",
+          "recipe_b": "commercial_single_economy_three_minutes_thirty_one",
+          "mutually_documented": false,
+          "rule_a_premise": "OPEN ALBUM with TEXTURAL DISORIENTATION — broken percussion + unusual sonic palette + non-rock instrumentation as immediate listener-recalibration",
+          "rule_b_premise": "Compose to TIGHT COMMERCIAL-SINGLE ECONOMY (3-4 minutes) when the goal is radio + playlist accessibility",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.78
+        },
+        {
           "pair_id": "analog_tape_tracking_for_warmth_preservation__VS__programmed_drums_as_compositional_engine",
           "recipe_a": "analog_tape_tracking_for_warmth_preservation",
           "recipe_b": "programmed_drums_as_compositional_engine",
@@ -27292,6 +27322,16 @@
           "rule_b_premise": "Use 4-ON-THE-FLOOR drum pattern (kick on every beat) at 120-128 BPM as house-tradition compositional foundation",
           "wow_factor_a": 0.86,
           "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "asymmetric_meter_at_extreme_tempo__VS__funeral_march_tempo_70_bpm_for_solemnity",
+          "recipe_a": "asymmetric_meter_at_extreme_tempo",
+          "recipe_b": "funeral_march_tempo_70_bpm_for_solemnity",
+          "mutually_documented": false,
+          "rule_a_premise": "Use 7/8 + 8/8 alternation (or other asymmetric groupings) at TEMPOS ABOVE 200 BPM",
+          "rule_b_premise": "Set tempo around FUNERAL-MARCH RANGE (60-80 BPM) for emotional weight + solemnity",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.79
         },
         {
           "pair_id": "asymmetric_meter_at_extreme_tempo__VS__long_asymmetric_cycle_for_meditation_not_complexity",
@@ -27434,6 +27474,16 @@
           "wow_factor_b": 0.78
         },
         {
+          "pair_id": "auteur_producer_single_creator_driven_production__VS__godrich_engineer_producer_mixer_unified_role_with_band_partnership",
+          "recipe_a": "auteur_producer_single_creator_driven_production",
+          "recipe_b": "godrich_engineer_producer_mixer_unified_role_with_band_partnership",
+          "mutually_documented": false,
+          "rule_a_premise": "Have ONE PERSON handle writing + most performance + production + much engineering — the auteur-producer model",
+          "rule_b_premise": "Engineer-producer-mixer in UNIFIED ROLE with deep BAND-CREATIVE-PARTNERSHIP",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.81
+        },
+        {
           "pair_id": "auteur_producer_single_creator_driven_production__VS__kasper_band_driven_unified_engineering_mixing",
           "recipe_a": "auteur_producer_single_creator_driven_production",
           "recipe_b": "kasper_band_driven_unified_engineering_mixing",
@@ -27482,6 +27532,46 @@
           "rule_b_premise": "Use a THREE-WAY producer credit including a band member as full producer alongside two external producers",
           "wow_factor_a": 0.74,
           "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "bass_line_first_compositional_method__VS__classical_influenced_chord_progression_in_electronic_context",
+          "recipe_a": "bass_line_first_compositional_method",
+          "recipe_b": "classical_influenced_chord_progression_in_electronic_context",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose track STARTING FROM THE BASS-LINE rather than from chord-progression or melodic-hook",
+          "rule_b_premise": "Use TRADITIONAL CLASSICAL HARMONIC PROGRESSION (descending bass-line + voice-leading craft + chord-voicing richness) as compositional foundation in ELECTRONIC PRODUCTION CONTEXT",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "bass_line_first_compositional_method__VS__voice_leading_clarity_via_synth_pad_layers",
+          "recipe_a": "bass_line_first_compositional_method",
+          "recipe_b": "voice_leading_clarity_via_synth_pad_layers",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose track STARTING FROM THE BASS-LINE rather than from chord-progression or melodic-hook",
+          "rule_b_premise": "When voicing classical-influenced chord progression in electronic context, use MULTIPLE SYNTH PAD LAYERS to clarify voice-leading",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "broken_metallic_percussion_loop_as_compositional_foundation__VS__drum_only_intro_4_bars_establishes_identity",
+          "recipe_a": "broken_metallic_percussion_loop_as_compositional_foundation",
+          "recipe_b": "drum_only_intro_4_bars_establishes_identity",
+          "mutually_documented": false,
+          "rule_a_premise": "Build composition on DISTINCTIVE BROKEN-METALLIC PERCUSSION LOOP — found-object percussion, processed metallic-sample, or programmed-glitch-percussion at the FOUNDATION of arrangement",
+          "rule_b_premise": "Open the song with DRUM-KIT ALONE for 4 bars",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "broken_metallic_percussion_loop_as_compositional_foundation__VS__four_on_the_floor_120_bpm_house_foundation",
+          "recipe_a": "broken_metallic_percussion_loop_as_compositional_foundation",
+          "recipe_b": "four_on_the_floor_120_bpm_house_foundation",
+          "mutually_documented": false,
+          "rule_a_premise": "Build composition on DISTINCTIVE BROKEN-METALLIC PERCUSSION LOOP — found-object percussion, processed metallic-sample, or programmed-glitch-percussion at the FOUNDATION of arrangement",
+          "rule_b_premise": "Use 4-ON-THE-FLOOR drum pattern (kick on every beat) at 120-128 BPM as house-tradition compositional foundation",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.78
         },
         {
           "pair_id": "classical_influenced_chord_progression_in_electronic_context__VS__compositional_movement_via_filter_not_via_chord_change",
@@ -28074,6 +28164,16 @@
           "wow_factor_b": 0.86
         },
         {
+          "pair_id": "drone_foundation_as_compositional_anchor__VS__piano_composition_with_chromatic_harmony",
+          "recipe_a": "drone_foundation_as_compositional_anchor",
+          "recipe_b": "piano_composition_with_chromatic_harmony",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a song where SUSTAINED LOW-FREQUENCY DRONE is the harmonic gravity well",
+          "rule_b_premise": "Compose track ON PIANO with deliberate CHROMATIC HARMONY (chord-progression includes chromatic passing-chords + non-diatonic chord choices)",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.83
+        },
+        {
           "pair_id": "drone_foundation_as_compositional_anchor__VS__voice_leading_clarity_via_synth_pad_layers",
           "recipe_a": "drone_foundation_as_compositional_anchor",
           "recipe_b": "voice_leading_clarity_via_synth_pad_layers",
@@ -28090,6 +28190,16 @@
           "mutually_documented": true,
           "rule_a_premise": "When working with drummer of documented technical capacity, allow technical drumming to SHOWCASE within song context rather than being suppressed for groove-priority",
           "rule_b_premise": "Prioritize POCKET + FEEL over technical demonstration",
+          "wow_factor_a": 0.82,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "drum_clinic_quality_drumming_within_song_context__VS__selway_ambiguous_drum_phrasing_interpreting_meter_not_locking",
+          "recipe_a": "drum_clinic_quality_drumming_within_song_context",
+          "recipe_b": "selway_ambiguous_drum_phrasing_interpreting_meter_not_locking",
+          "mutually_documented": false,
+          "rule_a_premise": "When working with drummer of documented technical capacity, allow technical drumming to SHOWCASE within song context rather than being suppressed for groove-priority",
+          "rule_b_premise": "Drummer INTERPRETS ambiguous meter via PHRASING that EVOKES feel without LOCKING listener to grid",
           "wow_factor_a": 0.82,
           "wow_factor_b": 0.79
         },
@@ -28144,6 +28254,16 @@
           "wow_factor_b": 0.65
         },
         {
+          "pair_id": "drum_only_intro_4_bars_establishes_identity__VS__late_drum_entry_mid_song_for_perceptual_shift",
+          "recipe_a": "drum_only_intro_4_bars_establishes_identity",
+          "recipe_b": "late_drum_entry_mid_song_for_perceptual_shift",
+          "mutually_documented": false,
+          "rule_a_premise": "Open the song with DRUM-KIT ALONE for 4 bars",
+          "rule_b_premise": "Drums DELAY their entry until mid-song (around 1:30-2:30 mark in a 4-5 min track)",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.81
+        },
+        {
           "pair_id": "drum_only_intro_4_bars_establishes_identity__VS__programmed_drums_as_compositional_engine",
           "recipe_a": "drum_only_intro_4_bars_establishes_identity",
           "recipe_b": "programmed_drums_as_compositional_engine",
@@ -28182,6 +28302,16 @@
           "rule_b_premise": "Write a guitar riff that is SIMULTANEOUSLY the song's hook AND its structural backbone (continues through verses + reappears in choruses)",
           "wow_factor_a": 0.79,
           "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "drumless_arrangement_as_compositional_choice__VS__rock_band_format_within_electronic_album",
+          "recipe_a": "drumless_arrangement_as_compositional_choice",
+          "recipe_b": "rock_band_format_within_electronic_album",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose track WITHOUT DRUMS — rhythm conveyed via electric piano + vocal + sample manipulations",
+          "rule_b_premise": "Maintain TRADITIONAL ROCK-BAND FORMAT (drums + bass + guitars + vocal) for ONE TRACK within an otherwise-electronic-experimental album",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.78
         },
         {
           "pair_id": "drumless_arrangement_as_compositional_choice__VS__rock_drummer_in_industrial_production_context",
@@ -28464,6 +28594,16 @@
           "wow_factor_b": 0.79
         },
         {
+          "pair_id": "fast_tempo_148_156_bpm_aggressive_heavy_rock__VS__funeral_march_tempo_70_bpm_for_solemnity",
+          "recipe_a": "fast_tempo_148_156_bpm_aggressive_heavy_rock",
+          "recipe_b": "funeral_march_tempo_70_bpm_for_solemnity",
+          "mutually_documented": false,
+          "rule_a_premise": "Push tempo into 145-160 BPM territory for a heavy rock track — faster than mainstream alt-rock standard (90-130 BPM) but retaining wall-of-density sonics",
+          "rule_b_premise": "Set tempo around FUNERAL-MARCH RANGE (60-80 BPM) for emotional weight + solemnity",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.79
+        },
+        {
           "pair_id": "fast_tempo_148_156_bpm_aggressive_heavy_rock__VS__long_asymmetric_cycle_for_meditation_not_complexity",
           "recipe_a": "fast_tempo_148_156_bpm_aggressive_heavy_rock",
           "recipe_b": "long_asymmetric_cycle_for_meditation_not_complexity",
@@ -28514,6 +28654,26 @@
           "wow_factor_b": 0.84
         },
         {
+          "pair_id": "filter_modulation_as_compositional_engine__VS__mingus_locked_rhythm_plus_free_horn_compositional_template",
+          "recipe_a": "filter_modulation_as_compositional_engine",
+          "recipe_b": "mingus_locked_rhythm_plus_free_horn_compositional_template",
+          "mutually_documented": false,
+          "rule_a_premise": "Use ANALOG FILTER MODULATION (sweeping filter cutoff up/down across song's runtime) as PRIMARY COMPOSITIONAL ENGINE substituting for traditional harmonic motion",
+          "rule_b_premise": "Borrow Charles Mingus's locked-rhythm-plus-free-horn compositional template (from 'Town Hall Concert' / 'Black Saint and the Sinner Lady'-tradition) into rock context",
+          "wow_factor_a": 0.85,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "filter_modulation_as_compositional_engine__VS__piano_composition_with_chromatic_harmony",
+          "recipe_a": "filter_modulation_as_compositional_engine",
+          "recipe_b": "piano_composition_with_chromatic_harmony",
+          "mutually_documented": false,
+          "rule_a_premise": "Use ANALOG FILTER MODULATION (sweeping filter cutoff up/down across song's runtime) as PRIMARY COMPOSITIONAL ENGINE substituting for traditional harmonic motion",
+          "rule_b_premise": "Compose track ON PIANO with deliberate CHROMATIC HARMONY (chord-progression includes chromatic passing-chords + non-diatonic chord choices)",
+          "wow_factor_a": 0.85,
+          "wow_factor_b": 0.83
+        },
+        {
           "pair_id": "filter_modulation_as_compositional_engine__VS__voice_leading_clarity_via_synth_pad_layers",
           "recipe_a": "filter_modulation_as_compositional_engine",
           "recipe_b": "voice_leading_clarity_via_synth_pad_layers",
@@ -28531,6 +28691,36 @@
           "rule_a_premise": "Compose a song with NO dynamic peak",
           "rule_b_premise": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge",
           "wow_factor_a": 0.7,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "four_on_the_floor_120_bpm_house_foundation__VS__funeral_march_tempo_70_bpm_for_solemnity",
+          "recipe_a": "four_on_the_floor_120_bpm_house_foundation",
+          "recipe_b": "funeral_march_tempo_70_bpm_for_solemnity",
+          "mutually_documented": false,
+          "rule_a_premise": "Use 4-ON-THE-FLOOR drum pattern (kick on every beat) at 120-128 BPM as house-tradition compositional foundation",
+          "rule_b_premise": "Set tempo around FUNERAL-MARCH RANGE (60-80 BPM) for emotional weight + solemnity",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "four_on_the_floor_120_bpm_house_foundation__VS__intentionally_ambiguous_rhythm_felt_not_counted",
+          "recipe_a": "four_on_the_floor_120_bpm_house_foundation",
+          "recipe_b": "intentionally_ambiguous_rhythm_felt_not_counted",
+          "mutually_documented": true,
+          "rule_a_premise": "Use 4-ON-THE-FLOOR drum pattern (kick on every beat) at 120-128 BPM as house-tradition compositional foundation",
+          "rule_b_premise": "Compose in METER that listener FEELS rather than counts",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "four_on_the_floor_120_bpm_house_foundation__VS__selway_ambiguous_drum_phrasing_interpreting_meter_not_locking",
+          "recipe_a": "four_on_the_floor_120_bpm_house_foundation",
+          "recipe_b": "selway_ambiguous_drum_phrasing_interpreting_meter_not_locking",
+          "mutually_documented": false,
+          "rule_a_premise": "Use 4-ON-THE-FLOOR drum pattern (kick on every beat) at 120-128 BPM as house-tradition compositional foundation",
+          "rule_b_premise": "Drummer INTERPRETS ambiguous meter via PHRASING that EVOKES feel without LOCKING listener to grid",
+          "wow_factor_a": 0.78,
           "wow_factor_b": 0.79
         },
         {
@@ -28554,6 +28744,16 @@
           "wow_factor_b": 0.75
         },
         {
+          "pair_id": "guitar_alone_intro_4_bars_no_a_cappella__VS__late_drum_entry_mid_song_for_perceptual_shift",
+          "recipe_a": "guitar_alone_intro_4_bars_no_a_cappella",
+          "recipe_b": "late_drum_entry_mid_song_for_perceptual_shift",
+          "mutually_documented": true,
+          "rule_a_premise": "Open the song with the GUITAR ALONE for 4 bars (riff established without other instruments)",
+          "rule_b_premise": "Drums DELAY their entry until mid-song (around 1:30-2:30 mark in a 4-5 min track)",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.81
+        },
+        {
           "pair_id": "hard_soft_hard_contrast_within_song__VS__integrated_transitions_not_abrupt_cuts",
           "recipe_a": "hard_soft_hard_contrast_within_song",
           "recipe_b": "integrated_transitions_not_abrupt_cuts",
@@ -28572,6 +28772,16 @@
           "rule_b_premise": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge",
           "wow_factor_a": 0.84,
           "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "harmonic_minimalism_one_cycle_repeated__VS__piano_composition_with_chromatic_harmony",
+          "recipe_a": "harmonic_minimalism_one_cycle_repeated",
+          "recipe_b": "piano_composition_with_chromatic_harmony",
+          "mutually_documented": false,
+          "rule_a_premise": "Use the SAME 3-4 chord cycle for the ENTIRE song",
+          "rule_b_premise": "Compose track ON PIANO with deliberate CHROMATIC HARMONY (chord-progression includes chromatic passing-chords + non-diatonic chord choices)",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.83
         },
         {
           "pair_id": "hybrid_vocabulary_integration_within_sections__VS__minimum_viable_element_count_for_emotional_impact",
@@ -28661,6 +28871,26 @@
           "rule_a_premise": "Combine industrial PRODUCTION VOCABULARY (programmed drums, processed textures, distorted bass synth) with TRADITIONAL ROCK ANTHEM STRUCTURE (verse-chorus-bridge-final-chorus)",
           "rule_b_premise": "After the initial slam, sustain MAXIMUM band density and intensity for the song's entire ~2 minutes",
           "wow_factor_a": 0.83,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "intentionally_ambiguous_rhythm_felt_not_counted__VS__robot_rock_hypnotic_repetitive_riff_with_micro_variations",
+          "recipe_a": "intentionally_ambiguous_rhythm_felt_not_counted",
+          "recipe_b": "robot_rock_hypnotic_repetitive_riff_with_micro_variations",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose in METER that listener FEELS rather than counts",
+          "rule_b_premise": "Build composition on REPETITIVE riff that REPEATS NEAR-IDENTICALLY but never EXACTLY identically across measures",
+          "wow_factor_a": 0.84,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "intentionally_ambiguous_rhythm_felt_not_counted__VS__syncopated_kick_creates_implied_meter_within_4_4",
+          "recipe_a": "intentionally_ambiguous_rhythm_felt_not_counted",
+          "recipe_b": "syncopated_kick_creates_implied_meter_within_4_4",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose in METER that listener FEELS rather than counts",
+          "rule_b_premise": "Within standard 4/4 meter, place kick on UNEXPECTED beats (offbeat 16ths, syncopated 8ths) to create an IMPLIED METER that doesn't match the literal meter",
+          "wow_factor_a": 0.84,
           "wow_factor_b": 0.75
         },
         {
@@ -28894,6 +29124,36 @@
           "wow_factor_b": 0.75
         },
         {
+          "pair_id": "mingus_locked_rhythm_plus_free_horn_compositional_template__VS__minimum_viable_element_count_for_emotional_impact",
+          "recipe_a": "mingus_locked_rhythm_plus_free_horn_compositional_template",
+          "recipe_b": "minimum_viable_element_count_for_emotional_impact",
+          "mutually_documented": false,
+          "rule_a_premise": "Borrow Charles Mingus's locked-rhythm-plus-free-horn compositional template (from 'Town Hall Concert' / 'Black Saint and the Sinner Lady'-tradition) into rock context",
+          "rule_b_premise": "Strip arrangement to FEWEST POSSIBLE ELEMENTS while maintaining emotional impact",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "minimum_element_electronic_experimental_arrangement__VS__ondes_martenot_or_rare_classical_instrument_for_spectral_color",
+          "recipe_a": "minimum_element_electronic_experimental_arrangement",
+          "recipe_b": "ondes_martenot_or_rare_classical_instrument_for_spectral_color",
+          "mutually_documented": false,
+          "rule_a_premise": "Build electronic-experimental arrangement on MINIMUM ELEMENT COUNT — keyboard + vocal + processed samples sufficient",
+          "rule_b_premise": "Use RARE CLASSICAL/EARLY-ELECTRONIC INSTRUMENT (ondes martenot, theremin, glass harmonica, mellotron, etc",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.82
+        },
+        {
+          "pair_id": "minimum_element_electronic_experimental_arrangement__VS__rock_band_format_within_electronic_album",
+          "recipe_a": "minimum_element_electronic_experimental_arrangement",
+          "recipe_b": "rock_band_format_within_electronic_album",
+          "mutually_documented": false,
+          "rule_a_premise": "Build electronic-experimental arrangement on MINIMUM ELEMENT COUNT — keyboard + vocal + processed samples sufficient",
+          "rule_b_premise": "Maintain TRADITIONAL ROCK-BAND FORMAT (drums + bass + guitars + vocal) for ONE TRACK within an otherwise-electronic-experimental album",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.78
+        },
+        {
           "pair_id": "minimum_element_electronic_experimental_arrangement__VS__wall_of_layered_guitars_frequency_spread_layering",
           "recipe_a": "minimum_element_electronic_experimental_arrangement",
           "recipe_b": "wall_of_layered_guitars_frequency_spread_layering",
@@ -29002,6 +29262,26 @@
           "rule_b_premise": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room emphasis",
           "wow_factor_a": 0.65,
           "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "pitch_shifted_vocal_as_compositional_element__VS__screamed_single_take_vocal_no_doubling",
+          "recipe_a": "pitch_shifted_vocal_as_compositional_element",
+          "recipe_b": "screamed_single_take_vocal_no_doubling",
+          "mutually_documented": false,
+          "rule_a_premise": "Apply PITCH-SHIFTING (formant + pitch manipulation) to vocal as COMPOSITIONAL ELEMENT — preserves vocalist's identifiable voice but shifts register/character",
+          "rule_b_premise": "Track the vocal as SINGLE-TAKE screamed delivery",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "pitch_shifted_vocal_as_compositional_element__VS__vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "recipe_a": "pitch_shifted_vocal_as_compositional_element",
+          "recipe_b": "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "mutually_documented": false,
+          "rule_a_premise": "Apply PITCH-SHIFTING (formant + pitch manipulation) to vocal as COMPOSITIONAL ELEMENT — preserves vocalist's identifiable voice but shifts register/character",
+          "rule_b_premise": "When recording emotionally vulnerable vocal, use CLEAN PROCESSING (no saturation/distortion), DEEP REVERB (plate + hall), NO PITCH CORRECTION (preserves raw emotional quality), MULTIPLE COMPLETE TAKES",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.84
         },
         {
           "pair_id": "pop_song_structure_within_electronic_vocabulary__VS__progressive_layering_arrangement_arc",
@@ -29212,6 +29492,16 @@
           "rule_b_premise": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge",
           "wow_factor_a": 0.82,
           "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "selway_ambiguous_drum_phrasing_interpreting_meter_not_locking__VS__syncopated_kick_creates_implied_meter_within_4_4",
+          "recipe_a": "selway_ambiguous_drum_phrasing_interpreting_meter_not_locking",
+          "recipe_b": "syncopated_kick_creates_implied_meter_within_4_4",
+          "mutually_documented": false,
+          "rule_a_premise": "Drummer INTERPRETS ambiguous meter via PHRASING that EVOKES feel without LOCKING listener to grid",
+          "rule_b_premise": "Within standard 4/4 meter, place kick on UNEXPECTED beats (offbeat 16ths, syncopated 8ths) to create an IMPLIED METER that doesn't match the literal meter",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.75
         },
         {
           "pair_id": "slow_burn_arrival_not_explosion__VS__sustained_intensity_no_dynamic_arc_economy",
