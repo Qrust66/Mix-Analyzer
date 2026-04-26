@@ -8038,7 +8038,7 @@
           }
         },
         "A_Song_For_The_Dead": {
-          "_status": "C5_3a_composition_arrangement_done",
+          "_status": "C5_3b_performance_recording_done",
           "album": "Songs for the Deaf",
           "year": 2002,
           "tempo_bpm_documented_range": [148, 156],
@@ -8083,6 +8083,108 @@
             ],
             "what_makes_arrangement_unique_within_qotsa": "A Song for the Dead represents QOTSA's MOST AMBITIOUS extended-form arrangement + most-drum-featured composition. Within Songs for the Deaf's range, this track stakes the EPIC EXTENDED-FORM pole.",
             "comparison_to_drum_featured_dissection_tracks": "Most other dissection tracks treat drums as FOUNDATION. A Song for the Dead treats drums as COMPOSITIONAL VOICE that gets featured. Different drumming philosophy."
+          },
+          "performance": {
+            "tempo_feel_description": "FAST EPIC HEAVY ROCK FORWARD MOTION — 148-156 BPM at sustained intensity feels driving + epic. Extended runtime allows tempo to BREATHE across multiple sections.",
+            "drum_style": {
+              "performer": "Dave Grohl",
+              "approach": "TECHNICAL POWER + COMPOSITIONAL FEATURE — Grohl delivers his MOST CELEBRATED Songs for the Deaf drumming on this track. Technical complexity + power + groove all simultaneously.",
+              "specifics_documented": [
+                "Kick + snare driving at fast tempo with technical fills",
+                "Hi-hat + ride cymbal articulation prominent",
+                "Snare placement strong on 2+4 with ghost notes for groove feel",
+                "DYNAMIC BREAK SECTION: drums FEATURE PROMINENTLY with extended technical fills + power statements — documented as drum-clinic reference material",
+                "Cymbal accents articulate transitions between sections",
+                "Live performances often extend the drum feature significantly"
+              ],
+              "documented_drum_clinic_status": "A Song for the Dead documented as one of Grohl's most-celebrated drumming performances. Track is referenced in drum education contexts. Demonstrates intersection of technical skill + groove + compositional integration."
+            },
+            "guitar_style": {
+              "performers": "Josh Homme",
+              "rhythm_guitar_role": "EPIC HEAVY ROCK RIFF + DYNAMIC BREAK PARTICIPATION — Homme's playing serves both verses + dynamic break setup",
+              "specifics_documented": [
+                "Drop D tuning",
+                "Aggressive distortion + tube amps",
+                "Riff-driven verses with chromatic descending lines",
+                "Dynamic break: sustained chord or rhythmic accent supporting drum feature",
+                "Picking precision required for fast-tempo riff execution"
+              ]
+            },
+            "bass_performance": {
+              "performer": "Nick Oliveri",
+              "approach": "TIGHT GROOVE-LOCK + DYNAMIC BREAK SUPPORT — Oliveri's bass anchors the verse foundation + provides supporting role during drum feature",
+              "specifics_documented": [
+                "Drop D-tuned bass",
+                "Tight rhythmic locking with Grohl's kick at fast tempo",
+                "Dynamic break: sustained or rhythmic accent supporting drum feature without competing"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Josh Homme (lead vocal, Homme-fronted track)",
+              "verse_delivery": "BARITONE EPIC ROCK — Homme's documented baritone-friendly tonal area at full projection",
+              "chorus_delivery": "Hook expansion with full vocal commitment",
+              "documented_vocal_quirks": [
+                "Vocal less aggressive than typical NIN/Pumpkins choruses — Homme's documented approach favors melodic baritone over aggressive scream",
+                "Multiple takes selected/comped per Valentine production",
+                "Possible secondary vocal harmony on chorus"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization (Grohl's natural feel + technical fills critical)",
+              "No drum sample replacement (Grohl's drumming IS the song)",
+              "No vocal pitch correction",
+              "No tempo changes"
+            ]
+          },
+          "recording": {
+            "studio": "The Sound Factory + various Songs for the Deaf locations",
+            "session_dates": "2002 sessions",
+            "primary_producers": "Eric Valentine + Josh Homme",
+            "primary_mix_engineer": "Eric Valentine",
+            "production_philosophy_for_a_song_for_the_dead": "Same Valentine engineer-producer-mixer unified-role framework as First It Giveth + Six Shooter applied to EPIC EXTENDED-FORM compositional intent with DRUM FEATURE priority. Demonstrates Valentine's range across mid-tempo + punk-aggression + epic-extended within same album.",
+            "drum_micing_approach": {
+              "philosophy_valentine": "Multiple close mics + room mics with EXTRA ATTENTION to drum capture — Grohl's drum feature requires drum sound to support the compositional spotlight",
+              "specifics_for_a_song_for_the_dead": [
+                "Grohl's full kit miced extensively — kick (in/out), snare (top/bottom), hi-hat, multiple toms, overheads, room mics",
+                "Compression + EQ at tracking calibrated for both verse-foundation AND drum-feature priority",
+                "Room mics blended for natural ambience supporting drum feature spaciousness",
+                "Drum bus processing balanced — punch + transient detail + groove feel + room presence for feature section"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_valentine_homme": "Power-trio guitar tracking — fewer layers than wall-of-sound, but each layer tracked carefully for tone + epic-rock weight",
+              "specifics_documented": [
+                "Drop D tuning",
+                "Aggressive tube amps (Marshall, Hiwatt, Mesa-Boogie palette)",
+                "Possible double-tracked rhythm guitar for stereo width",
+                "Each layer with attention to fast-tempo transient detail"
+              ]
+            },
+            "bass_tracking_approach": {
+              "performer": "Nick Oliveri",
+              "specifics": "DI + amp blend per Valentine. Tight low-frequency response for power-trio bass-kick coordination at fast tempo."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_valentine": "Homme baritone vocal tracking with epic-rock projection emphasis",
+              "specifics_documented": [
+                "Vocal isolation booth at The Sound Factory",
+                "Multiple complete takes selected/comped",
+                "Possible secondary vocal harmony tracked separately"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Drop D tuned guitars + bass",
+              "Aggressive tube amps",
+              "Grohl's full kit at The Sound Factory",
+              "The Sound Factory's documented setup"
+            ],
+            "what_makes_valentine_recording_distinct_for_a_song_for_the_dead": [
+              "EXTRA DRUM CAPTURE ATTENTION — drum feature compositional priority requires drum sound to support the spotlight",
+              "Same unified-role framework as FIG/Six Shooter applied to epic-extended-form material",
+              "Drum bus processing balanced for both foundation AND feature section",
+              "Demonstrates Valentine's range across multiple compositional intents within same album"
+            ],
+            "comparison_to_other_drummer_focused_recording_in_dissection": "Grohl recordings: Nirvana In Utero (Albini capture, room-prominent for aggressive material), QOTSA Songs for the Deaf A Song for the Dead (Valentine unified-role for drum feature), NIN With Teeth Hand That Feeds (Moulder for live + programmed hybrid). Three different production approaches to capturing Grohl's drumming — different productions extracting different sides."
           }
         },
         "Medication": {
