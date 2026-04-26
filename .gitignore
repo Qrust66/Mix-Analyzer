@@ -13,3 +13,8 @@ smoke_test_*.py
 # Feature 3.6 CDE diagnostics dump — regenerated on every run, bulky
 # (can reach several MB on busy mixes). Not worth tracking in git.
 *_diagnostics.json
+
+# graphify knowledge graph — local artifact, regenerated on demand.
+# graph.html / graph.json / GRAPH_REPORT.md / cache/ all go here.
+graphify-out/
+.graphify_*
