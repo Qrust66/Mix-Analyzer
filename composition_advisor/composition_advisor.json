@@ -5120,7 +5120,7 @@
           }
         },
         "Bodies": {
-          "_status": "C3_3b_performance_recording_done",
+          "_status": "C3_3c_complete_exhaustive",
           "album": "Mellon Collie and the Infinite Sadness",
           "year": 1995,
           "tempo_bpm_documented_range": [148, 156],
@@ -5266,6 +5266,132 @@
             ],
             "comparison_to_siamese_dream_recording": "Siamese Dream (1993, Triclops, Vig+Wallace): pure rock wall-of-sound, parallel-compressed drums, Wallace stereo width. Mellon Collie (1995, Pumpkinland, Flood+Moulder+Corgan): more textural willingness, slight processing experimentation, different sonic palette. Same band, deliberate sonic evolution between albums.",
             "production_philosophy_lineage_within_dissection_seventh_approach": "SEVEN distinct production approaches now established in dissection: 1) Albini (In Utero capture), 2) Vig+Wallace (Nevermind+Siamese Dream layered/wide), 3) Date (Badmotorfinger tracker-mixer), 4) Beinhorn+O'Brien (Superunknown shaped/polished), 5) Kasper (Down on the Upside band-driven unified), 6) Flood+Moulder+Corgan (Mellon Collie textural-experimental three-way), 7) [TBD as more producers enter the dissection]. Flood+Moulder's introduction adds the EXPERIMENTAL-ROCK-PRODUCTION pole."
+          },
+          "mixing": {
+            "mix_engineer": "Alan Moulder (Mellon Collie throughout)",
+            "mixing_studio": "Pumpkinland + Sadlands (Mellon Collie mix locations)",
+            "mixing_philosophy_moulder_for_bodies": "RHYTHMIC AGGRESSION CLARITY + TEXTURAL DENSITY MANAGEMENT. Moulder's documented approach: preserve fast-tempo rhythmic articulation while managing layered guitar density. Less stereo-width-maximization than Wallace's Siamese Dream approach, more rhythmic-aggression-emphasis suited to fast-tempo intent.",
+            "drum_mix_balance": [
+              "Kick + snare PUNCHY at fast tempo — articulation critical for listener to track 148-156 BPM groove",
+              "Hi-hat + ride articulation prominent in upper mid (~3-8 kHz) — fast-tempo cymbal work needs definition",
+              "Drum bus weight without losing fast-tempo transient detail",
+              "Toms with appropriate decay for fills"
+            ],
+            "guitar_mix_treatment": [
+              "STEREO WIDTH present but not maximized to Wallace-level — Moulder favors slightly tighter stereo for rhythmic clarity",
+              "Frequency-spread layering continues from Siamese Dream philosophy — wall reads clearly at fast tempo",
+              "Compression on guitar bus glues layers together",
+              "Slightly more processed treatments available — Moulder's NIN-influenced willingness extends to occasional unconventional textures"
+            ],
+            "vocal_mix_treatment": [
+              "Corgan vocal centered + slightly forward — must read clearly above density at fast tempo",
+              "Plate reverb + short delay for spatial depth",
+              "Compression preserves Corgan's fast-tempo phrasing",
+              "EQ carve in low-mid avoids vocal clashing with guitar density",
+              "Chorus vocal layers blended subtly"
+            ],
+            "bass_mix_treatment": [
+              "Bass clearly audible in low-mid — must read at fast tempo without becoming muddy",
+              "Light compression preserves natural envelope",
+              "Bass + kick coordinated via complementary frequency placement at fast tempo"
+            ],
+            "spatial_treatment": [
+              "Stereo field WIDE but not maximized like Wallace — Moulder's tighter stereo serves rhythmic clarity",
+              "Reverb usage moderate — fast-tempo aggression doesn't benefit from much reverb (would smear rhythmic articulation)",
+              "Plate reverbs on drums + vocal for warmth without losing tightness"
+            ],
+            "automation_used_in_mix": [
+              "Vocal level rides for sustained phrases",
+              "Bridge guitar layer rides for brief dynamic shift",
+              "Reverb send automation tighter than Wallace's Siamese Dream approach"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying fast-tempo transient detail",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No over-reverb that would smear rhythmic articulation"
+            ],
+            "comparison_to_quiet_mix_wallace": "Quiet (Wallace 1993): MAXIMUM stereo width, wall-of-sound emphasis. Bodies (Moulder 1995): tighter stereo, rhythmic-aggression emphasis. Different mix philosophies for similar sustained-intensity heavy rock — Moulder's approach favors fast-tempo articulation over maximum width.",
+            "what_makes_moulder_mix_distinct_for_bodies": [
+              "Fast-tempo articulation priority over stereo width maximization",
+              "Slight willingness to embrace experimental textures (carried from NIN work)",
+              "Drum bus weight balanced with transient detail for fast tempo",
+              "Vocal forward but not over-isolated — Moulder's documented vocal placement preference"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Howie Weinberg (Mellon Collie mastered — same Weinberg as Siamese Dream + Nevermind + Badmotorfinger establishing 1990s mainstream-alt-rock-mastering continuity)",
+            "mastering_studio": "Masterdisk, New York",
+            "mastering_philosophy_for_bodies": [
+              "Weinberg's documented approach: high-end clarity + low-end punch + commercial loudness without destroying dynamics",
+              "Bodies' fast-tempo aggression requires preserved transient detail — mastering must not over-compress or fast-tempo articulation suffers",
+              "1995 album-level mastering — Mellon Collie pre-aggressive-loudness-war-peak, dynamic detail survives master"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS integrated estimate. Bodies specifically near album peak loudness due to sustained-intensity character.",
+            "spectral_signature": "Weinberg's documented sound: present mid-range, smooth top end, tight low end. Bodies benefits — fast-tempo aggression clarity preserved through master.",
+            "what_mastering_preserves_for_bodies": [
+              "Fast-tempo transient detail",
+              "Drum punch + rhythmic articulation",
+              "Vocal clarity above guitar density",
+              "Stereo image (preserving Moulder's mix decisions)"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "THE FAST-TEMPO RIFF + IMMEDIATE FULL-BAND ENTRY — listeners hear aggressive intent at faster-than-typical-Pumpkins pace from first measure. The TEMPO itself is part of the song's identity.",
+            "level_2_arrangement_signature": "FAST RIFF-DRIVEN with RETAINED LAYERED-GUITAR DENSITY + Flood+Moulder textural willingness. Pumpkins' wall-of-sound philosophy at faster tempo with slight sonic evolution.",
+            "level_3_compositional_signature": "FAST AGGRESSIVE PUNK-INFLUENCED HEAVY ROCK demonstrating Pumpkins' tempo range. Bodies proves the band can push tempo into punk-rock territory while retaining their compositional + sonic ambition. Within Mellon Collie's range (orchestral, atmospheric, intimate, epic, fast-aggressive), Bodies stakes the FAST + AGGRESSIVE position."
+          },
+          "advisor_extract": {
+            "recipe_name": "fast_tempo_aggressive_heavy_with_layered_density",
+            "applicability": "Heavy alt-rock or punk-leaning compositions where fast tempo + aggressive intent are core to the song's identity, but with retained sonic ambition. Use when SUSTAINED INTENSITY at fast tempo + wall-of-density together serve the compositional intent.",
+            "core_compositional_recipes": [
+              {
+                "id": "fast_tempo_148_156_bpm_aggressive_heavy_rock",
+                "rule": "Push tempo into 145-160 BPM territory for a heavy rock track — faster than mainstream alt-rock standard (90-130 BPM) but retaining wall-of-density sonics. Fast tempo + sustained intensity + chromatic riff motion = punk-influenced heavy rock economy.",
+                "wow_factor": 0.79,
+                "documented_example": "Bodies (Smashing Pumpkins, Mellon Collie 1995, 148-156 BPM) — fast aggressive heavy rock with retained Pumpkins layering",
+                "trade_offs": "Demands tight musicianship at fast tempo; risk of muddy mix if layering not well-managed",
+                "personality_fit": "Cobain 35 / Reznor 25 / Yorke 10 / Daft Punk 30 (Cobain for punk influence, Daft Punk for fast-tempo cyclic energy)"
+              },
+              {
+                "id": "fast_tempo_layered_guitar_density_management",
+                "rule": "When layering multiple guitars at fast tempo (140+ BPM), prioritize RHYTHMIC ARTICULATION over maximum stereo width. EQ-staggered layers must align rhythmically — picking precision required across all takes. Mix tighter stereo than at slower tempos to preserve transient detail.",
+                "wow_factor": 0.76,
+                "documented_example": "Bodies guitar layering at fast tempo — rhythmic articulation prioritized via Flood+Moulder mix",
+                "trade_offs": "Less stereo-width impact than slower-tempo wall-of-sound; requires picking precision in tracking",
+                "personality_fit": "Cobain 30 / Reznor 30 / Yorke 15 / Daft Punk 25"
+              },
+              {
+                "id": "deliberate_sonic_evolution_between_albums_via_producer_change",
+                "rule": "DELIBERATELY change producer/engineer team between albums to evolve sonic identity. Same band, different production team = different sonic palette. Avoids stagnation; demonstrates band's willingness to push their sound. Strategic for bands with multi-album arc.",
+                "wow_factor": 0.75,
+                "documented_example": "Smashing Pumpkins: Vig+Wallace (Siamese Dream 1993) → Flood+Moulder+Corgan (Mellon Collie 1995). Deliberate evolution.",
+                "trade_offs": "Risk of fan alienation if too-different. Requires confidence to change established formula.",
+                "personality_fit": "Reznor 35 / Yorke 30 / Cobain 20 / Daft Punk 15"
+              },
+              {
+                "id": "three_way_producer_collective_band_member_included",
+                "rule": "Use a THREE-WAY producer credit including a band member as full producer alongside two external producers. Distributes decision-making, gives band-member-producer creative authority while leveraging external sonic perspectives. Avoids both pure-band-driven (no external perspective) and pure-producer-imposed (no band agency).",
+                "wow_factor": 0.74,
+                "documented_example": "Flood + Alan Moulder + Billy Corgan three-way producer credit on Mellon Collie",
+                "trade_offs": "Can result in creative disagreements; requires strong communication. Three-way decision-making slower than two-way.",
+                "personality_fit": "Reznor 30 / Cobain 30 / Yorke 25 / Daft Punk 15"
+              },
+              {
+                "id": "moulder_mix_rhythmic_aggression_priority_over_width",
+                "rule": "When mixing fast-tempo aggressive heavy rock, prioritize RHYTHMIC ARTICULATION over maximum stereo width. Tighter stereo + drum-bus weight + transient detail preservation = fast-tempo clarity. Less reverb than slower atmospheric mixes (reverb smears rhythm).",
+                "wow_factor": 0.73,
+                "documented_example": "Alan Moulder's Bodies mix — rhythmic aggression priority",
+                "trade_offs": "Less spectacular stereo impact than Wallace-style maximized width",
+                "personality_fit": "Reznor 35 / Cobain 30 / Yorke 15 / Daft Punk 20"
+              }
+            ],
+            "production_philosophy_signature_flood_moulder_corgan": {
+              "philosophy": "EXPERIMENTAL-ROCK-PRODUCTION THREE-WAY COLLECTIVE. Flood (Depeche Mode, U2, Nick Cave production lineage) + Moulder (NIN, Jesus and Mary Chain mix lineage) + band member (Corgan) sharing production credit. Brings textural willingness + experimental sonics to alt-rock band's vision.",
+              "applicability": "Established bands seeking sonic evolution beyond their established formula, willing to embrace texture + experimentation",
+              "lineage_within_dissection": "SIXTH production philosophy: 1) Albini capture, 2) Vig+Wallace layered-wide, 3) Date tracker-mixer, 4) Beinhorn+O'Brien shaped-polished, 5) Kasper unified-band-driven, 6) FLOOD+MOULDER+CORGAN textural-experimental-three-way. Each philosophy serves different compositional intents."
+            },
+            "structural_choice_summary": "Fast-tempo aggressive heavy rock, retained layered-guitar density adapted to fast tempo, Flood+Moulder textural willingness — Bodies demonstrates Pumpkins' tempo + sonic evolution between Siamese Dream and Mellon Collie. Punk-influenced fast-aggressive pole within Mellon Collie's broad range."
           }
         },
         "Zero": {
