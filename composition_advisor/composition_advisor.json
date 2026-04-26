@@ -5120,9 +5120,49 @@
           }
         },
         "Bodies": {
-          "_status": "stub_pending_full_dissection_C3_3",
+          "_status": "C3_3a_composition_arrangement_done",
           "album": "Mellon Collie and the Infinite Sadness",
-          "year": 1995
+          "year": 1995,
+          "tempo_bpm_documented_range": [148, 156],
+          "time_signature": "4/4 throughout",
+          "key_area": "G-sharp minor area / E-flat minor area (with documented Mellon Collie tuning standardized to E-flat tuning)",
+          "tuning_documented": "Half-step-down (E-flat standard) — continued from Siamese Dream convention",
+          "track_runtime": "~4:11",
+          "_special_status": "Track 16 on Mellon Collie and the Infinite Sadness (1995) — disc 1 'Dawn to Dusk' track. Functions as one of the album's HARDEST + FASTEST tracks, demonstrating Corgan's continued capacity for sustained-intensity heavy rock at age-of-the-album. 1995 production by Flood + Alan Moulder represents Corgan's deliberate evolution AWAY from Vig+Wallace's Siamese Dream sound — different engineer-producer pair, different sonic palette.",
+          "composition": {
+            "primary_compositional_signature": "FAST AGGRESSIVE PUNK-INFLUENCED HEAVY ROCK — 148-156 BPM is FAST for Corgan, approaching punk tempo territory while retaining alt-rock/hard-rock sonics. Bodies operates in tempo space closer to Nirvana's faster tracks (Territorial Pissings, Stay Away) than to Siamese Dream's mid-tempo standard.",
+            "core_structural_arc": "Fast riff opening → verse with sustained driving riff + vocal entry → pre-chorus density build → explosive chorus → second verse with riff continuation → chorus → BRIDGE shift (brief dynamic relief) → final chorus expansion → outro with riff statement. Tight ~4:11 — efficient by Mellon Collie standards (album avg ~5 min, includes much longer tracks).",
+            "harmonic_motion_summary": "MINOR-MODAL with chromatic riff motion. Tonic G-sharp/E-flat minor area, with characteristic Corgan suspended voicings. Bodies' riff features chromatic descending motion that drives the song's aggressive forward feel.",
+            "characteristic_compositional_choice": "FAST TEMPO + RIFF-DRIVEN AGGRESSION + COMPRESSED ECONOMY — where Quiet sustained intensity at mid-tempo, Bodies sustains intensity at FAST tempo. Pushing the Pumpkins' compositional envelope toward punk-rock economy + speed while retaining Corgan's harmonic + textural sophistication.",
+            "comparison_to_quiet_compositional_engine": "Quiet (Siamese Dream 1993, 96-102 BPM, 3:42): SUSTAINED INTENSITY at mid-tempo with wall-of-density. Bodies (Mellon Collie 1995, 148-156 BPM, 4:11): SUSTAINED INTENSITY at FAST tempo with chromatic riff aggression. Two sustained-intensity Pumpkins songs at different tempo poles.",
+            "comparison_to_zero_compositional_engine": "Zero (Mellon Collie 1995): MEDIUM-fast tempo, RIFF-DRIVEN with industrial-leaning sonics. Bodies: faster tempo, more punk-leaning aggression. Both Mellon Collie heavy tracks but with different tempo-aggression intents.",
+            "compositional_economy": "4:11 is tight by Mellon Collie standards — Bodies maintains compositional economy via fast tempo (more bars per minute = more material delivered in shorter time). Compositional 'movement' is dense + fast.",
+            "innovation_for_genre_context": "1995 alt-rock context: most mainstream alt-rock tempo standards were 90-130 BPM (Nirvana, Soundgarden, Pearl Jam range). Bodies at 148-156 BPM is FASTER than mainstream alt-rock. Demonstrates Corgan's willingness to push tempo into punk-rock territory while retaining Pumpkins' sonic ambition."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "FAST RIFF-DRIVEN with LAYERED-GUITAR DENSITY (continued from Siamese Dream philosophy) but with FLOOD+MOULDER sonic palette evolution — slightly less wall-of-sound, slightly more rhythmic-aggression-emphasized than Vig+Wallace approach.",
+            "intro_arrangement": "Fast riff opens — drums + guitars enter together at full intensity. No gradual build (similar to Quiet's immediate-intent approach but at faster tempo).",
+            "verse_arrangement": "Riff continues + Corgan vocal enters. Multiple guitar layers (still Corgan layering philosophy from Siamese Dream) but mix-balance allows more rhythmic-aggression emphasis. Drums (Chamberlin) drive at fast tempo with kick-snare pattern adapted to faster BPM.",
+            "pre_chorus_arrangement": "Slight harmonic + density shift — additional guitar layer or octave doubling enters. Drum fill leads into chorus.",
+            "chorus_arrangement": "MAXIMUM density + harmonic expansion. Vocal lifts. Guitar layers at peak count. Cymbals more prominent.",
+            "bridge_arrangement": "Brief dynamic shift — slight reduction in some layers or reharmonization. Bodies' bridge is short, not extended like Soma's.",
+            "outro_arrangement": "Final chorus expansion + riff statement to close.",
+            "guitar_layering_philosophy_corgan_evolution": [
+              "Layered approach continues from Siamese Dream — multiple guitar tracks with EQ-staggered + panned distribution",
+              "Slightly LESS wall-of-sound density than Quiet — Flood+Moulder mix favors rhythmic clarity over maximum width",
+              "Each layer retains different distortion character (different amps/pedals)",
+              "Stereo placement: hard L/R + center for stereo width but not as aggressively maximized as Wallace's Siamese Dream approach"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained 148-156 BPM)",
+              "No drum sample replacement",
+              "No vocal layering as primary dynamic device",
+              "No clean intro or atmospheric breakdown (Bodies stays HEAVY + FAST throughout)"
+            ],
+            "what_makes_arrangement_unique_within_smashing_pumpkins": "Bodies represents Corgan's FAST + AGGRESSIVE pole within Mellon Collie's compositional range. Where Mellon Collie also includes atmospheric (Tonight Tonight orchestral arrangements), epic-rock (Zero), and intimate (1979), Bodies stakes the FAST PUNK-INFLUENCED HEAVY position. Demonstrates the album's range.",
+            "comparison_to_quiet_arrangement_evolution": "Quiet (1993): MAXIMUM wall-of-sound density at mid-tempo. Bodies (1995): SLIGHTLY LESS density at fast tempo, more rhythmic-aggression emphasis. Demonstrates Corgan's evolution from Siamese Dream wall-of-sound to Mellon Collie's slightly-more-rhythmically-emphasized aesthetic.",
+            "comparison_to_zero_arrangement": "Zero: industrial-leaning rhythmic emphasis with Corgan-Reznor-adjacent textures. Bodies: punk-leaning fast aggression with retained alt-rock layering. Two heavy Mellon Collie tracks with different sonic neighborhoods."
+          }
         },
         "Zero": {
           "_status": "stub_pending_full_dissection_C3_4",
