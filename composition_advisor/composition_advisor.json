@@ -6578,7 +6578,7 @@
           }
         },
         "The_Wretched": {
-          "_status": "C4_4a_composition_arrangement_done",
+          "_status": "C4_4b_performance_recording_done",
           "album": "The Fragile",
           "year": 1999,
           "tempo_bpm_documented_range": [100, 108],
@@ -6616,6 +6616,114 @@
             ],
             "what_makes_arrangement_unique_within_nin": "Wretched represents NIN's MOST INTEGRATED HYBRID arrangement — where other tracks separate aggressive + atmospheric into different sections (March of the Pigs hard-soft-hard, We're In This Together verse-rock-chorus-anthemic), Wretched INTEGRATES vocabularies within sections + transforms them across the song's arc. Unique within NIN dissection.",
             "comparison_to_zero_industrial_leaning_within_dissection": "Zero (Pumpkins): industrial-influenced rock at moderate tempo with retained rock identity. Wretched (NIN): aggressive-atmospheric hybrid integration. Both hybrid tracks but operating at different scales of genre-fusion. Zero is lighter hybrid; Wretched is deeper integration."
+          },
+          "performance": {
+            "tempo_feel_description": "DRIVING DARK FORWARD MOTION — 100-108 BPM at sustained intensity feels both DRIVING (verses) and ATMOSPHERIC (choruses) within the same tempo. Tempo doesn't change but FEEL shifts via density + texture.",
+            "drum_style": {
+              "performer_or_programmer": "Trent Reznor (programming + sample triggering)",
+              "approach": "PROGRAMMED HYBRID DRUMS — kit-style backbone in verses, atmospheric percussion in choruses, all within same programmed arrangement",
+              "specifics_documented": [
+                "Programmed kick + snare backbone in verses — driving rhythmic foundation",
+                "Industrial percussion samples (metal hits, processed found-sound) layered for verse aggression",
+                "Atmospheric percussion in chorus — possibly pulsed kick + filtered/processed snare or muted samples",
+                "Drum density INCREASES verse-to-chorus then RELEASES into chorus atmospheric texture",
+                "Cymbal samples articulate transitions between aggressive + atmospheric vocabularies"
+              ],
+              "comparison_to_other_nin_drumming_in_dissection": "March of the Pigs: max aggressive at extreme tempo. TDTWWA: minimal sparse atmospheric. We're In This Together: anthemic full programmed kit. Wretched: HYBRID switching between aggressive + atmospheric within same programming. Four different NIN drumming approaches."
+            },
+            "guitar_style": {
+              "performers": "Trent Reznor (primary)",
+              "rhythm_guitar_role": "PROCESSED RHYTHMIC VERSES + ATMOSPHERIC CHORUSES — guitars adapt vocabulary to section",
+              "specifics_documented": [
+                "Verse guitars: distorted + heavily processed for aggressive textural support",
+                "Chorus guitars: cleaner / atmospheric processing — possibly clean with reverb chains, possibly absent in favor of synth-pad replacement",
+                "Bridge instrumental: BOTH aggressive + atmospheric guitars layered for hybrid integration",
+                "Stereo placement aggressive in verses, wider/atmospheric in choruses"
+              ],
+              "playing_style_versus_other_nin_in_dissection": "March of the Pigs: aggressive textural-only. TDTWWA: minimal/absent. We're In This Together: anthemic-rock. Wretched: HYBRID aggressive verses + atmospheric choruses. Four guitar deployment approaches within Reznor's catalog."
+            },
+            "bass_performance": {
+              "performer": "Trent Reznor",
+              "approach": "DISTORTED BASS SYNTH ADAPTING TO SECTION — aggressive in verses, more sustained in choruses",
+              "specifics_documented": [
+                "Verse bass: distorted + driving",
+                "Chorus bass: less distorted + more sustained, atmospheric character",
+                "Bass-kick coordination tight in verses, more spacious in choruses"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Trent Reznor",
+              "verse_delivery": "URGENT MODERATE-AGGRESSION — between scream + sing. Vocal phrasing aligned with verse rhythmic emphasis.",
+              "atmospheric_chorus_delivery": "MELODIC SUSTAINED — vocal lifts to upper-mid register, sustained held phrases, emotional release. Different processing chain than verse.",
+              "verse_2_delivery": "May intensify slightly compared to verse 1",
+              "second_chorus_delivery": "More invested than first chorus",
+              "bridge_delivery": "Brief vocal pause during instrumental expansion",
+              "final_chorus_delivery": "MAXIMUM EMOTIONAL INVESTMENT — vocal at peak intensity within atmospheric chorus context",
+              "documented_vocal_quirks": [
+                "Reznor demonstrates vocal HYBRID — aggressive verse + atmospheric chorus delivery within same song",
+                "Vocal processing changes BETWEEN sections — saturation in verses, cleaner with reverb in choruses",
+                "Multiple takes selected/comped per Reznor approach",
+                "Vocal layering selectively in chorus expansion"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization-corrected programming",
+              "No vocal pitch correction",
+              "No tempo changes",
+              "No abrupt section-shifts (integrated transitions priority)"
+            ]
+          },
+          "recording": {
+            "studio": "Nothing Studios (New Orleans) + various Fragile sessions",
+            "session_dates": "1996-1999 sessions",
+            "primary_producer": "Trent Reznor",
+            "primary_engineer": "Multiple Fragile engineers including Sean Beavan",
+            "primary_mix_engineer": "Alan Moulder",
+            "production_philosophy_for_wretched": "Reznor auteur-producer + Moulder mix collaboration framework deployed for HYBRID INDUSTRIAL-ATMOSPHERIC material — same Fragile framework as TDTWWA (atmospheric) and We're In This Together (anthemic) but applied to HYBRID INTEGRATION compositional intent.",
+            "drum_micing_approach": {
+              "philosophy_reznor": "Programmed + sampled drums with HYBRID PROCESSING capability — same drum bus needs to deliver aggressive verse density + atmospheric chorus restraint",
+              "specifics_for_wretched": [
+                "Programmed kit elements + industrial percussion samples for aggressive verses",
+                "Atmospheric percussion + filtered drum elements for choruses",
+                "Drum bus processing FLEXIBLE — different processing chains active for different sections (or single chain that handles both)",
+                "Possible occasional live percussion overdubs for textural variety"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_reznor": "Multi-vocabulary guitar tracking — distorted aggressive layers + clean/atmospheric layers tracked SEPARATELY for section deployment",
+              "specifics_documented": [
+                "Distorted guitar amps + heavy pedal chains for aggressive verse layers",
+                "Clean amps + atmospheric reverb chains for chorus atmospheric layers",
+                "Possible re-amping for additional textural variety",
+                "Multiple guitar layers tracked separately to enable section-specific deployment"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "Bass synthesis with adaptive processing — distorted for verses, less distorted/more sustained for choruses. Possible separate bass tracks for section deployment."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_reznor": "Vocal tracked with attention to HYBRID delivery requirements — aggressive verse + melodic chorus require different vocal techniques + processing chains",
+              "specifics_documented": [
+                "Vocal isolation booth at Nothing Studios",
+                "Multiple complete takes for verse + chorus separately",
+                "Different processing chains during tracking (aggressive saturation vs. atmospheric reverb)",
+                "Multiple vocal sections potentially tracked in different sessions"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Multiple synthesizers (Reznor's Fragile-era expanded synth palette)",
+              "Programmed drum tracks built in sequencer",
+              "Distorted + clean guitar amps for hybrid vocabulary",
+              "Bass synthesis with adaptive processing",
+              "Nothing Studios documented setup at New Orleans"
+            ],
+            "what_makes_reznor_recording_distinct_for_wretched": [
+              "HYBRID-VOCABULARY tracking — preparing for both aggressive + atmospheric deployment from same musical materials",
+              "Multiple guitar layers tracked separately for section deployment flexibility",
+              "Vocal tracking with adaptive processing for hybrid delivery",
+              "Same auteur framework supporting hybrid-integration compositional intent"
+            ],
+            "comparison_to_other_fragile_recording_approaches": "TDTWWA (Fragile atmospheric): minimum elements, maximum restraint. We're In This Together (Fragile anthemic): full elements, multiple chorus layering. Wretched (Fragile hybrid): variable elements adapting to section, hybrid-vocabulary tracking. Same Fragile framework supporting THREE different compositional intents within same album sessions."
           }
         },
         "The_Hand_That_Feeds": {
