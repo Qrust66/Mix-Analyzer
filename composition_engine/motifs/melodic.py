@@ -447,6 +447,159 @@ MELODIC_MOTIFS['national_anthem_pedal_bass_walking'] = {
 
 
 # ============================================================================
+# SPECIAL CHARACTER MOTIFS — vocoded, robot-rock, chromatic-fast, chant-outro
+# ============================================================================
+
+MELODIC_MOTIFS['vocoded_phrase_call_response_2bar'] = {
+    'id': 'vocoded_phrase_call_response_2bar',
+    'sources': [
+        ('Daft Punk', 'Harder Better Faster Stronger', 'vocoded vocal as primary melodic carrier'),
+        ('Daft Punk', 'Around the World', 'vocoded phrase repeated hypnotically as instrument'),
+    ],
+    'advisor_recipes': [
+        'vocoded_vocal_as_primary_melodic_carrier_full_song',
+        'vocoded_vocal_phrase_as_instrument_not_lyric',
+        'four_on_the_floor_120_bpm_house_foundation',
+        'pop_song_structure_within_electronic_vocabulary',
+    ],
+    # Pop-electronic phrase: 1 → ♭3 → 5 → ♭7 → 5 → ♭3 → 1 (call: ascending, response: descending)
+    # Semitones: 0, 3, 7, 10, 7, 3, 0
+    'pitch_intervals_from_tonic': [0, 3, 7, 10, 7, 3, 0],
+    # Rest of 2 beats between call (notes 1-4) and response (notes 5-7) — phrase that BREATHES
+    'rhythm_beats': [
+        (0.0, 0.5), (0.5, 0.5), (1.0, 0.5), (1.5, 0.5),    # call (4 hits, beats 0-2)
+        # silent gap beats 2-4 (the breath)
+        (4.0, 0.5), (4.5, 0.5), (5.0, 3.0),                  # response (3 hits, last sustained 3 beats)
+    ],
+    'velocity_contour': [110, 100, 105, 115, 110, 100, 95],
+    'character_tags': ['vocoded', 'call_response', 'pop_electronic', 'hypnotic_repetition', 'phrase_with_breath'],
+    'duration_total_beats': 8.0,   # 2 bars in 4/4 — the rest IS part of the motif
+    'time_sig': (4, 4),
+    'transformations_allowed': [
+        'transpose', 'fragment', 'octave_jump',
+        # NOT retrograde — call/response logic depends on direction
+    ],
+    'notes_on_use': (
+        'The 2-BEAT REST between call and response is the secret — most loops never breathe. '
+        'Voice through Output Vocoder / hardware Korg MS-2000 vocoder for that pop-electronic '
+        'character. Loop 8-16 bars (4-8 cycles of this 2-bar phrase). Pair with 4-on-floor '
+        'kick + filter modulation on the synth-pad. AVOID over-quantizing — let the voice '
+        'breathe. The motif WANTS the silence; do not fill it.'
+    ),
+}
+
+
+MELODIC_MOTIFS['robot_rock_riff_with_micro_variations'] = {
+    'id': 'robot_rock_riff_with_micro_variations',
+    'sources': [
+        ('Queens Of The Stone Age', 'First It Giveth', 'robot-rock hypnotic repetitive riff with micro-variations'),
+        ('Smashing Pumpkins', 'Quiet', 'sustained riff foundation with subtle drift'),
+        ('Daft Punk', 'Around the World', 'looped pattern with documented micro-variations'),
+    ],
+    'advisor_recipes': [
+        'robot_rock_hypnotic_repetitive_riff_with_micro_variations',
+        'riff_as_both_hook_and_structural_backbone',
+        'descending_riff_as_song_identity',
+    ],
+    # Base 1-bar riff in low register: 1-1-♭7-5-♭7-1-1-5
+    # Semitones: 0, 0, -2, -7, -2, 0, 0, -7
+    'pitch_intervals_from_tonic': [0, 0, -2, -7, -2, 0, 0, -7],
+    # Gate-length variation built into rhythm: 0.5 (full) vs 0.4 (80% gate) — staccato/tenuto contrast
+    'rhythm_beats': [
+        (0.0, 0.5), (0.5, 0.4),
+        (1.0, 0.5), (1.5, 0.5),
+        (2.0, 0.4), (2.5, 0.5),
+        (3.0, 0.4), (3.5, 0.5),
+    ],
+    'velocity_contour': [115, 105, 110, 95, 102, 113, 105, 90],
+    'character_tags': ['robot_rock', 'hypnotic', 'staccato_tenuto_mix', 'low_register', 'foundational_riff'],
+    'duration_total_beats': 4.0,   # 1 bar — designed to LOOP with VARIATIONS every 4-8 cycles
+    'time_sig': (4, 4),
+    'transformations_allowed': [
+        'transpose', 'octave_jump',          # USE: octave-jump note 4 every 4th cycle
+        'rhythmic_displace',                  # USE: ±5-15ms timing nudge per cycle
+        'fragment',
+    ],
+    'notes_on_use': (
+        'CORE RIFF for LOOPING with documented micro-variations: (a) octave-jump note 4 '
+        'every 4th cycle, (b) retrograde notes 5-8 every 8th cycle for surprise, '
+        '(c) random ±5-15ms timing nudge per cycle, (d) gate-length variation already '
+        'built into rhythm. Voice on character-bass synth (Sub37 / Massive / Diva sub). '
+        'Pair with syncopated_kick (NOT 4-on-floor) for industrial-techno feel.'
+    ),
+}
+
+
+MELODIC_MOTIFS['chromatic_fast_descent_aggressive'] = {
+    'id': 'chromatic_fast_descent_aggressive',
+    'sources': [
+        ('NIN', 'March of the Pigs', 'fast chromatic bass-line at extreme tempo'),
+        ('Soundgarden', 'Jesus Christ Pose', 'aggressive descending chromatic riff'),
+        ('Smashing Pumpkins', 'Bodies', 'fast-tempo chromatic descent'),
+    ],
+    'advisor_recipes': [
+        'fast_tempo_148_156_bpm_aggressive_heavy_rock',
+        'asymmetric_meter_at_extreme_tempo',
+        'industrial_textural_aggression_via_processed_guitar_layers',
+        'unrelenting_aggression_no_dynamic_arc',
+    ],
+    # Chromatic descent at speed: D → Eb → D → C → Bb → A → Bb → A
+    # Semitones: 0, 1, 0, -2, -4, -5, -4, -5
+    'pitch_intervals_from_tonic': [0, 1, 0, -2, -4, -5, -4, -5],
+    # Sixteenth-note hits packed tight — at 150 BPM this becomes blurred-aggressive
+    'rhythm_beats': [(i * 0.25, 0.25) for i in range(8)],
+    'velocity_contour': [125, 105, 115, 110, 118, 122, 108, 120],
+    'character_tags': ['chromatic', 'descending', 'aggressive', 'fast_tempo', 'industrial', 'high_density'],
+    'duration_total_beats': 2.0,   # 1/2 bar in 4/4 — designed to LOOP fast
+    'time_sig': (4, 4),
+    'transformations_allowed': [
+        'transpose', 'fragment',
+        'augment_diminish',          # ×0.5 = 32nds (even faster), ×2 = mid-tempo version
+    ],
+    'notes_on_use': (
+        'AT 145-160 BPM: iconic NIN MOTP / SG JCP fast-aggressive bass-line. The chromatic '
+        'D→Eb→D wobble at start creates instability; descent to A then ♭6→5 oscillation '
+        'traps the listener. Voice on heavily-saturated bass-synth (Decapitator + Trash 2). '
+        'At 100 BPM this becomes ominous-walking-bass — different effect, both valid. '
+        'Loop 4-8 bars. The 2-beat phrase length is critical — listener never gets footing.'
+    ),
+}
+
+
+MELODIC_MOTIFS['outro_chant_fragment_repeating'] = {
+    'id': 'outro_chant_fragment_repeating',
+    'sources': [
+        ('Nirvana', 'All Apologies', 'outro chant: short 2-3 note vocal fragment repeated'),
+        ('NIN', "We're In This Together", 'multi-chorus iterations with intensification'),
+        ('Soundgarden', 'Overfloater', 'extended atmospheric outro fragment'),
+    ],
+    'advisor_recipes': [
+        'outro_chant_extension_via_repetition_not_fade',
+        'vocal_layering_as_chant_build_mechanism',
+        'multiple_chorus_iterations_with_intensification',
+        'album_closer_resolution_function',
+    ],
+    # 3-note chant fragment: 1 → ♭3 → 1
+    'pitch_intervals_from_tonic': [0, 3, 0],
+    # Long-medium-long: a sigh / breath. 4 beats = 1 bar.
+    'rhythm_beats': [(0.0, 1.5), (1.5, 1.0), (2.5, 1.5)],
+    'velocity_contour': [85, 90, 88],
+    'character_tags': ['chant', 'outro', 'repetition', 'vocal_layering', 'minimal'],
+    'duration_total_beats': 4.0,   # 1 bar — designed to repeat 8-16x for outro
+    'time_sig': (4, 4),
+    'transformations_allowed': [
+        'transpose', 'fragment',
+    ],
+    'notes_on_use': (
+        'OUTRO TOOL: loop 8-16 bars to BUILD an outro WITHOUT FADING. Each iteration ADD '
+        'ONE LAYER: cycle 1 = single voice, cycle 2 = + octave-doubled, cycle 3 = + '
+        'harmonized 3rd, cycle 4 = + reverb-drenched whisper layer. Velocity stays SOFT '
+        '(80-95) — build is in LAYER COUNT, not loudness. End with abrupt cut on final 1.'
+    ),
+}
+
+
+# ============================================================================
 # Render API — turn a motif into concrete MIDI notes
 # ============================================================================
 
