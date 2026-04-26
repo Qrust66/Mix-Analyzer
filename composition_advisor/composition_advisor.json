@@ -6288,7 +6288,7 @@
           }
         },
         "Were_In_This_Together": {
-          "_status": "C4_3b_performance_recording_done",
+          "_status": "C4_3c_complete_exhaustive",
           "album": "The Fragile",
           "year": 1999,
           "_canonical_title": "We're In This Together",
@@ -6435,6 +6435,146 @@
               "Multiple chorus vocal layering for anthemic emphasis"
             ],
             "comparison_to_tdtwwa_recording": "Same album (Fragile 1999), same studios (Nothing Studios + Moulder mix), same auteur framework — but DIFFERENT recording emphasis. TDTWWA tracked for atmospheric vulnerability with minimum elements. We're In This Together tracked for anthemic emotional power with full elements + chorus vocal layering. Same auteur framework supporting opposite compositional intents within same album session."
+          },
+          "mixing": {
+            "mix_engineer": "Alan Moulder",
+            "mixing_studio": "Various Fragile mix locations",
+            "mixing_philosophy_moulder_for_were_in_this_together": "ANTHEMIC EMOTIONAL POWER + INDUSTRIAL TEXTURE INTEGRATION + EXTENDED-FORM ARC PRESERVATION. Moulder's documented Fragile mix approach adapted to anthemic intent: rock-anthem-style drum forwardness + guitar wall stereo width + multiple chorus layering + dynamic arc preservation across 7:16.",
+            "drum_mix_balance": [
+              "Programmed kick + snare PUNCHY + present — anthemic rock drum forwardness",
+              "Industrial percussion samples blended for textural variety without dominating",
+              "Drum bus weight balanced — punch + transient detail + some atmospheric reverb",
+              "Cymbal sample articulation prominent in upper mid for anthemic energy",
+              "Density rides up across arc — verse moderate, chorus full, final chorus repetitions intensifying"
+            ],
+            "guitar_mix_treatment": [
+              "STEREO WIDTH ANTHEMIC — distorted guitars hard L/R + center for rock-anthem stereo impact",
+              "Multiple guitar layers EQ-staggered for frequency-spread (similar to rock-band wall-of-sound philosophy)",
+              "Compression on guitar bus glues layers together",
+              "Possible additional ambient guitar layers blended at moderate level",
+              "Bridge instrumental section may emphasize different guitar layers for textural contrast"
+            ],
+            "vocal_mix_treatment": [
+              "Reznor vocal CENTERED + FORWARD — anthemic projection requires intelligibility",
+              "Plate + hall reverb blend for spatial depth and emotional anchor",
+              "Compression preserves Reznor's middle-register sustained phrases",
+              "EQ carve in low-mid avoids vocal clashing with guitar+synth density",
+              "CHORUS VOCAL LAYERING (doubles + octave-doubles + possibly background harmonies) blended for anthemic fullness — more vocal layering than other Reznor tracks",
+              "Final chorus repetitions: intensifying vocal level rides as emotional weight builds"
+            ],
+            "bass_mix_treatment": [
+              "Bass synth + possible live bass FORWARD — provides anthemic rhythmic-harmonic foundation",
+              "Light compression preserves natural envelope while maintaining tightness",
+              "Bass + kick coordinated tightly via complementary frequency placement"
+            ],
+            "spatial_treatment_anthemic": [
+              "Stereo field WIDE for anthemic rock impact — guitars hard L/R, drums + bass center, vocal centered",
+              "Reverb usage MODERATE — anthemic clarity priority, less reverb than TDTWWA atmospheric mix",
+              "Plate reverbs on drums + vocal for warmth without losing anthemic punch",
+              "Bridge instrumental section may use slightly more reverb for textural contrast"
+            ],
+            "automation_used_in_mix": [
+              "Dynamic arc rides drum bus + guitar layer levels across 7:16",
+              "Vocal level rides for sustained phrases + final chorus intensification",
+              "Reverb send automation for section transitions",
+              "Synth-pad layer rides for atmospheric expansion in chorus + outro"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying dynamic arc (the arc is the song's emotional engine)",
+              "No drum sample replacement (programmed elements ARE the drums)",
+              "No vocal pitch correction",
+              "No hyper-aggressive industrial-precision treatments — anthemic emotional power requires moderate width + atmospheric warmth"
+            ],
+            "comparison_to_tdtwwa_mix": "TDTWWA (Moulder 1999): atmospheric sustain preservation, intimate vocal placement, minimum-element-count emphasis. We're In This Together (Moulder 1999): anthemic emotional power, multiple-chorus-layering vocal, full-element anthemic density. Same Fragile mix framework supporting opposite intents.",
+            "comparison_to_march_of_the_pigs_mix": "March of the Pigs (Reznor+Beavan 1994 in-house): industrial precision, dramatic dynamic-contrast, hard ending. We're In This Together (Moulder 1999): anthemic emotional arc, gradual intensification, gradual fade. Different mix-engineer collaboration paradigms within Reznor's catalog evolution.",
+            "what_makes_moulder_mix_distinct_for_were_in_this_together": [
+              "ANTHEMIC RHYTHM-DRUM FORWARDNESS + multi-layer vocal chorus emphasis",
+              "Stereo width balanced — wide enough for anthemic impact, tight enough for industrial-rhythm clarity",
+              "Dynamic arc preservation across 7:16 extended runtime",
+              "Hybrid mix: rock-anthem elements + industrial-texture overlay integrated"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Tom Baker (Fragile mastered — NIN mastering continuity)",
+            "mastering_studio": "Precision Mastering, Hollywood",
+            "mastering_philosophy_for_were_in_this_together": [
+              "Baker's documented approach: anthemic rock loudness + industrial-texture clarity + dynamic-arc preservation",
+              "We're In This Together's anthemic intent benefits from punch + clarity emphasis",
+              "Extended 7:16 runtime requires preserved dynamic arc — mastering must NOT compress arc"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS integrated estimate. We're In This Together near album peak loudness due to anthemic-density character.",
+            "spectral_signature": "Baker's documented sound: clear top-end, present mid-range, controlled aggressive low-end. Anthemic rock + industrial-texture clarity preserved.",
+            "what_mastering_preserves_for_were_in_this_together": [
+              "Dynamic arc across 7:16 extended runtime",
+              "Drum punch + rhythmic articulation",
+              "Multiple chorus vocal layering clarity",
+              "Stereo width (preserving Moulder's mix decisions)"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "THE ANTHEMIC CHORUS WITH MULTIPLE VOCAL LAYERING + DRIVING INDUSTRIAL-ROCK ARRANGEMENT — listeners hear NIN at peak ANTHEMIC EMOTIONAL POWER, distinct from both their industrial extremity and atmospheric vulnerability poles.",
+            "level_2_arrangement_signature": "FULL-DENSITY HYBRID arrangement combining rock-anthem rhythmic foundation + industrial textural overlays + multiple chorus iteration intensification across extended 7:16 runtime.",
+            "level_3_compositional_signature": "INDUSTRIAL VOCABULARY DEPLOYED IN ANTHEMIC ROCK STRUCTURE at extended scale. Reznor demonstrates production-vocabulary FLEXIBILITY beyond pure-genre application — same industrial toolkit serves traditional emotional-anthem composition. Demonstrates that production-vocabulary and compositional-structure are INDEPENDENT axes — one need not dictate the other."
+          },
+          "advisor_extract": {
+            "recipe_name": "industrial_vocabulary_deployed_in_anthemic_rock_structure_extended_form",
+            "applicability": "Industrial-rock or electronic-rock-fusion compositions where the production toolkit is industrial/electronic but the structural intent is traditional emotional anthem. Use when MAINSTREAM ROCK ANTHEM ARC + INDUSTRIAL TEXTURAL VOCABULARY together create the song's identity.",
+            "core_compositional_recipes": [
+              {
+                "id": "industrial_vocabulary_in_anthemic_rock_structure",
+                "rule": "Combine industrial PRODUCTION VOCABULARY (programmed drums, processed textures, distorted bass synth) with TRADITIONAL ROCK ANTHEM STRUCTURE (verse-chorus-bridge-final-chorus). The HYBRID is the song's identity — neither pure industrial nor pure rock, but their INTEGRATED FUSION.",
+                "wow_factor": 0.83,
+                "documented_example": "We're In This Together (NIN, Fragile 1999, 7:16) — industrial vocabulary in anthemic rock structure",
+                "trade_offs": "Risk of feeling neither-fish-nor-fowl if balance off. Demands strong material in both genre-vocabularies.",
+                "personality_fit": "Reznor 45 / Cobain 25 / Yorke 15 / Daft Punk 15"
+              },
+              {
+                "id": "extended_form_anthem_seven_plus_minutes",
+                "rule": "Extend anthemic rock track beyond commercial-single economy (7+ minutes) to allow multiple chorus repetitions with INTENSIFYING EMOTIONAL WEIGHT across iterations. Final chorus repetitions feel cumulatively more powerful than first chorus due to extended setup.",
+                "wow_factor": 0.81,
+                "documented_example": "We're In This Together 7:16 with multiple chorus iterations intensifying emotional weight",
+                "trade_offs": "Demands listener patience; risks losing attention if material not strong enough to sustain. Won't work in radio/playlist contexts.",
+                "personality_fit": "Reznor 35 / Yorke 30 / Cobain 20 / Daft Punk 15"
+              },
+              {
+                "id": "auteur_framework_supporting_opposite_intents_within_same_album",
+                "rule": "Use SAME auteur-producer framework to make opposite-intent compositions WITHIN SAME ALBUM SESSION. Atmospheric vulnerability AND anthemic emotional power AND industrial extremity all from same auteur. Album becomes EXPLORATION OF AUTEUR'S RANGE rather than singular-statement.",
+                "wow_factor": 0.85,
+                "documented_example": "The Fragile (NIN 1999) — same Reznor+Moulder framework supports TDTWWA atmospheric, We're In This Together anthemic, plus aggressive tracks like The Wretched within same album",
+                "trade_offs": "Requires extended album form to allow range demonstration. Risk of audience confusion if range too wide.",
+                "personality_fit": "Reznor 45 / Yorke 35 / Cobain 15 / Daft Punk 5"
+              },
+              {
+                "id": "multiple_chorus_iterations_with_intensification",
+                "rule": "Build the song so MULTIPLE chorus iterations occur (3-5 chorus repetitions across extended runtime), with each iteration progressively MORE INTENSE — additional vocal layering, additional guitar density, additional textural elements. Cumulative emotional weight builds through repetition.",
+                "wow_factor": 0.80,
+                "documented_example": "We're In This Together final chorus repetitions intensifying across 7:16 runtime",
+                "trade_offs": "Risk of feeling repetitive if intensification subtle. Demands strong chorus material that bears repetition.",
+                "personality_fit": "Reznor 35 / Cobain 30 / Yorke 25 / Daft Punk 10"
+              },
+              {
+                "id": "production_vocabulary_compositional_structure_independence",
+                "rule": "Treat PRODUCTION VOCABULARY (industrial vs. rock vs. atmospheric vs. electronic toolkits) and COMPOSITIONAL STRUCTURE (anthem vs. dynamic-arc vs. atmospheric vs. minimalist) as INDEPENDENT AXES. Mix and match: industrial vocabulary in anthem structure, or atmospheric vocabulary in dynamic-arc structure, etc. Crossing the axes creates novel compositional fusion.",
+                "wow_factor": 0.84,
+                "documented_example": "We're In This Together — industrial vocabulary axis × anthem structure axis = novel fusion",
+                "trade_offs": "Demands cross-axis fluency; risks feeling forced if balance off. Demands artistic confidence.",
+                "personality_fit": "Reznor 40 / Yorke 30 / Daft Punk 20 / Cobain 10"
+              },
+              {
+                "id": "moulder_anthemic_industrial_mix_hybrid_balance",
+                "rule": "When mixing industrial-vocabulary anthem tracks, BALANCE rock-anthem stereo width with industrial-rhythm clarity. Wide enough for anthemic impact, tight enough for rhythm articulation. Multiple chorus vocal layering for anthemic fullness; minimum vocal pitch correction for emotional rawness.",
+                "wow_factor": 0.78,
+                "documented_example": "Alan Moulder's We're In This Together mix — anthemic-industrial hybrid balance",
+                "trade_offs": "Demands mix engineer with both rock + industrial fluency. Risk of leaning too hard one direction.",
+                "personality_fit": "Reznor 40 / Cobain 25 / Yorke 20 / Daft Punk 15"
+              }
+            ],
+            "production_philosophy_signature_reznor_moulder_anthemic": {
+              "philosophy": "Same Reznor+Moulder Fragile auteur framework deployed for ANTHEMIC INDUSTRIAL-ROCK material — middle-path between Reznor's industrial extremity (March of the Pigs) and atmospheric vulnerability (TDTWWA) poles.",
+              "applicability": "Industrial/electronic artists seeking anthemic emotional reach via traditional rock-anthem structural intent",
+              "key_insight": "Auteur frameworks SCALE to support opposite-pole compositional intents. The framework is NEUTRAL — composer's intent determines output. Demonstrates flexibility of single-creator-driven production paradigm."
+            },
+            "structural_choice_summary": "Industrial vocabulary in anthemic rock structure, extended 7:16 form with multiple chorus iterations, auteur-Moulder framework supporting middle-path emotional intent — We're In This Together demonstrates Reznor's MIDDLE-PATH compositional pole. Production-vocabulary and compositional-structure independence as compositional axis."
           }
         },
         "The_Wretched": {
