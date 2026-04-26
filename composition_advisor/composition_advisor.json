@@ -5982,9 +5982,52 @@
           }
         },
         "The_Day_The_World_Went_Away": {
-          "_status": "stub_pending_full_dissection_C4_2",
+          "_status": "C4_2a_composition_arrangement_done",
           "album": "The Fragile",
-          "year": 1999
+          "year": 1999,
+          "tempo_bpm_documented_range": [80, 86],
+          "time_signature": "4/4 throughout (with extended atmospheric sections that DE-EMPHASIZE meter feel — listeners may not feel meter clearly during atmospheric passages)",
+          "key_area": "F minor area (with atmospheric harmonic suspension making mode feel less anchored)",
+          "tuning_documented": "Standard tuning + extensive synthesizer + sample-based harmonic content (less reliance on guitar tuning)",
+          "track_runtime": "~4:33 (album version; longer Quiet version exists at ~6:23)",
+          "_special_status": "Track 4 on The Fragile (1999) — first single. Functions as the album's ATMOSPHERIC EMOTIONAL CENTERPIECE — directly opposite to March of the Pigs's industrial extremity within Reznor's catalog. Demonstrates Reznor's range — same auteur-producer can write 2:58 industrial-aggression AND 4:33 atmospheric-emotional. Documented as Reznor's grief-processing during Fragile's prolonged sessions.",
+          "composition": {
+            "primary_compositional_signature": "ATMOSPHERIC SUSTAIN-DRIVEN BALLAD WITH SUBTLE BUILD — built around sustained synth-pad textures + sparse rhythmic foundation + Reznor's most VULNERABLE vocal in NIN catalog. Where March of the Pigs assaults via density + meter, TDTWWA pulls listener via SUSTAINED EMOTIONAL ATMOSPHERE.",
+            "core_structural_arc": "Atmospheric synth-pad intro → verse with sparse percussion + Reznor reflective vocal → subtle harmonic build → chorus with slight density expansion + emotional release → second verse → second chorus expansion → outro fade with extended atmospheric texture. Total ~4:33 — patient build but compact compared to album's longer extended pieces (The Fragile is 100+ min double album).",
+            "harmonic_motion_summary": "MINOR-MODAL with FLOATING HARMONIC SUSPENSIONS. Tonic F minor area, but harmonic motion happens via SLOW MODAL INFLECTION + sustained voicings rather than via traditional chord progression. Voice-leading deliberate + emotional — each harmonic shift carries weight.",
+            "characteristic_compositional_choice": "EMOTIONAL VULNERABILITY EXPRESSED VIA ATMOSPHERIC SUSTAIN — Reznor's compositional engine here is OPPOSITE from his industrial work. Where industrial weaponizes density + aggression, atmospheric vulnerability requires SPACE + RESTRAINT. Same artist, opposite tools for opposite emotional intents.",
+            "comparison_to_march_of_the_pigs_within_nin": "March of the Pigs (Downward Spiral 1994, 2:58 at ~265 BPM, 7/8+8/8): EXTREME AGGRESSION via meter + tempo + texture. TDTWWA (Fragile 1999, 4:33 at ~83 BPM, 4/4): EXTREME VULNERABILITY via sustain + atmosphere + restraint. Two opposite poles within Reznor's compositional range.",
+            "comparison_to_overfloater_atmospheric_within_dissection": "Overfloater (Soundgarden, Down on the Upside 1996): atmospheric long-form via JAM-BAND extended bridge + extended form. TDTWWA: atmospheric via SUSTAIN + EMOTIONAL ECONOMY in ballad-form. Different paths to atmospheric impact — band-jam vs. solo-electronic-craft.",
+            "comparison_to_soma_dynamic_arc_within_dissection": "Soma (Smashing Pumpkins, Siamese Dream 1993): patient build to MASSIVE EXPLOSION via guitar wall. TDTWWA: patient build to SUBTLE EMOTIONAL RELEASE via vocal + atmospheric expansion. Different scales of build-to-payoff — explosive catharsis vs. atmospheric release.",
+            "compositional_economy": "4:33 is patient but not extreme — compositional 'movement' is slow + emotional. Listeners are invested in the build via subtle escalations + Reznor's increasingly invested vocal.",
+            "innovation_for_genre_context": "1999 industrial-rock context: NIN's audience expected aggression. TDTWWA delivered as first single PROVED Reznor's range — listeners would follow him into vulnerable atmospheric territory. Demonstrates that ESTABLISHED ARTISTS can DELIBERATELY CHALLENGE AUDIENCE EXPECTATIONS via opposite-pole material."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "ATMOSPHERIC SYNTH-PAD FOUNDATION + SPARSE PERCUSSION + RESTRAINED VOCAL — minimal element count with each element contributing maximum emotional weight. Opposite of March of the Pigs density-aggression.",
+            "intro_arrangement": "Atmospheric synth-pad sustain — introduces harmonic field. Possible subtle ambient textures + processed reverb tails. No drums initially. Establishes patience as listening mode.",
+            "verse_1_arrangement": "Synth pads continue, sparse drum entry (perhaps just kick pulse + occasional snare), Reznor's vocal enters QUIETLY + REFLECTIVELY. Bass barely present. Maximum harmonic + textural restraint.",
+            "subtle_build_arrangement": "Density adds VERY GRADUALLY across the song — additional synth layer, drum pattern slightly more active, vocal slightly more invested. Build is INCREMENTAL, not stepped.",
+            "chorus_arrangement": "EMOTIONAL RELEASE — slightly more density, vocal lifts to upper-mid emotional register, harmonic field opens. Density still RESTRAINED compared to typical rock chorus. The 'release' is SUBTLE — listeners feel the lift more than they hear it.",
+            "second_verse_arrangement": "Slight density retention from first chorus, vocal more invested",
+            "second_chorus_arrangement": "Slightly more density than first chorus — Reznor's compositional choice: each chorus expands incrementally rather than identical-iterations",
+            "outro_arrangement": "Extended atmospheric texture, gradual fade or atmospheric resolution. Vocal recedes, synth-pad foundation continues, reverb tails decay slowly.",
+            "minimum_viable_element_count_arrangement_philosophy": [
+              "TDTWWA demonstrates how FEW elements can create maximum emotional impact",
+              "Documented elements: synth pads (multiple layers possible), sparse programmed drums, distorted bass synth (minimal), Reznor vocal, ambient textures",
+              "Compare to March of the Pigs's MAXIMAL element count — same artist, opposite arrangement philosophies",
+              "Each element MUST earn its presence — minimum-viable-element-count discipline"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained 80-86 BPM throughout)",
+              "No live drum kit (programmed sparse percussion only)",
+              "No guitar wall-of-sound (atmospheric/textural guitar at most, possibly absent)",
+              "No vocal pitch correction (raw emotional quality preserved)",
+              "No abrupt ending (gradual atmospheric fade)"
+            ],
+            "what_makes_arrangement_unique_within_nin": "TDTWWA represents NIN's MOST RESTRAINED + MOST EMOTIONALLY-VULNERABLE arrangement within this dissection. Where March of the Pigs maximizes density-aggression, TDTWWA minimizes density to maximize EMOTIONAL CLARITY. Demonstrates Reznor's range across opposite arrangement philosophies.",
+            "comparison_to_other_fragile_atmospheric_tracks": "The Fragile (1999) album includes multiple atmospheric tracks (La Mer, The Frail, instrumental interludes). TDTWWA stands out as VOCAL-ATMOSPHERIC (where instrumental atmospheric pieces fill other album positions). Different atmospheric strategies within same album.",
+            "comparison_to_atmospheric_tracks_in_other_dissection_artists": "TDTWWA atmospheric strategy: sustain-driven vocal-emotional. Overfloater: jam-band extended-bridge. Head Down: drone-foundation modal. Soma: dynamic-arc patient-build. Four different paths to atmospheric impact within the dissection — proves multiple compositional engines can produce atmospheric character."
+          }
         },
         "Were_In_This_Together": {
           "_status": "stub_pending_full_dissection_C4_3",
