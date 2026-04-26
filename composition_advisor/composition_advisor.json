@@ -5120,7 +5120,7 @@
           }
         },
         "Bodies": {
-          "_status": "C3_3a_composition_arrangement_done",
+          "_status": "C3_3b_performance_recording_done",
           "album": "Mellon Collie and the Infinite Sadness",
           "year": 1995,
           "tempo_bpm_documented_range": [148, 156],
@@ -5162,6 +5162,110 @@
             "what_makes_arrangement_unique_within_smashing_pumpkins": "Bodies represents Corgan's FAST + AGGRESSIVE pole within Mellon Collie's compositional range. Where Mellon Collie also includes atmospheric (Tonight Tonight orchestral arrangements), epic-rock (Zero), and intimate (1979), Bodies stakes the FAST PUNK-INFLUENCED HEAVY position. Demonstrates the album's range.",
             "comparison_to_quiet_arrangement_evolution": "Quiet (1993): MAXIMUM wall-of-sound density at mid-tempo. Bodies (1995): SLIGHTLY LESS density at fast tempo, more rhythmic-aggression emphasis. Demonstrates Corgan's evolution from Siamese Dream wall-of-sound to Mellon Collie's slightly-more-rhythmically-emphasized aesthetic.",
             "comparison_to_zero_arrangement": "Zero: industrial-leaning rhythmic emphasis with Corgan-Reznor-adjacent textures. Bodies: punk-leaning fast aggression with retained alt-rock layering. Two heavy Mellon Collie tracks with different sonic neighborhoods."
+          },
+          "performance": {
+            "tempo_feel_description": "FAST AGGRESSIVE FORWARD MOTION — 148-156 BPM at sustained intensity feels driving + relentless. The fast tempo creates sustained rhythmic pressure rare in Pumpkins catalog.",
+            "drum_style": {
+              "performer": "Jimmy Chamberlin",
+              "approach": "FAST POWER + TECHNICAL PRECISION — Chamberlin demonstrates his capacity to drive at faster-than-typical-Pumpkins tempo while maintaining technical complexity",
+              "specifics_documented": [
+                "Kick + snare driving — kick patterns adapted to fast tempo (often kick-on-1 + kick-on-3 with eighth-note variations)",
+                "Hi-hat 8ths or 16ths driving forward at fast tempo — requires technical wrist precision",
+                "Snare placement strong on 2+4 with occasional ghost notes for groove",
+                "Fills technically dense — Chamberlin's jazz-informed vocabulary at fast tempo",
+                "Cymbal accents articulate chorus moments + fills"
+              ],
+              "comparison_to_chamberlin_quiet_drumming": "Quiet Chamberlin (mid-tempo sustained intensity): driving 4/4 with technical fills. Bodies Chamberlin (fast sustained intensity): driving 4/4 at HIGHER tempo with adapted patterns. Demonstrates Chamberlin's tempo range."
+            },
+            "guitar_style": {
+              "performers": "Billy Corgan + James Iha (Corgan tracking majority of guitar parts continued from Siamese Dream approach)",
+              "rhythm_guitar_role": "FAST RIFF EXECUTION + LAYERED DENSITY — Corgan's layered approach continues but adapted to fast-tempo riff execution requirements",
+              "specifics_documented": [
+                "Half-step-down tuning (E-flat standard)",
+                "Big Muff fuzz + tube amps (Marshall, Hiwatt, Mesa Boogie — Mellon Collie era options expanded)",
+                "Picking precision required at fast tempo for multiple-layer rhythmic alignment",
+                "Layered tracking: each rhythm guitar take with different mic placement / amp / pedal",
+                "Each layer EQ'd at tracking for frequency-spread layering"
+              ],
+              "playing_style_versus_other_smashing_pumpkins": "Bodies guitars at FAST TEMPO show Corgan's capacity to layer at speed. Quiet guitars at mid-tempo show maximum-density layering. Soma guitars across dynamic arc show selective deployment. Three different Corgan layered-guitar approaches across these dissection tracks."
+            },
+            "bass_performance": {
+              "performer": "D'arcy Wretzky (with Corgan also tracking some bass parts)",
+              "approach": "FAST-TEMPO ROOT-NOTE DRIVING — bass locks tightly with Chamberlin's kick at fast tempo",
+              "specifics_documented": [
+                "Half-step-down-tuned bass",
+                "Tight rhythmic locking with kick pattern at fast tempo (148-156 BPM bass timing requires precision)",
+                "Pick attack for rhythmic clarity at fast tempo"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Billy Corgan",
+              "verse_delivery": "AGGRESSIVE NASAL TENOR at faster pacing — Corgan's signature vocal but at fast-tempo phrasing requirements",
+              "chorus_delivery": "Slight upper-register lift, increased intensity, vocal layering on choruses",
+              "documented_vocal_quirks": [
+                "Corgan vocal phrasing adapts to fast tempo — shorter phrases, more rhythmic placement consideration",
+                "Multiple takes selected/comped per Flood+Moulder approach",
+                "Chorus vocal layering (doubles, octave doubles) for emphasis"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization (preserves Chamberlin's natural fast-tempo feel)",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No tempo changes"
+            ]
+          },
+          "recording": {
+            "studio": "Pumpkinland (Corgan's Chicago studio, set up specifically for Mellon Collie sessions per documented production)",
+            "additional_studios": "Sadlands (additional Mellon Collie tracking) + The Village Recorder Los Angeles (additional sessions)",
+            "session_dates": "1995 sessions",
+            "primary_producers": "Flood (Mark Ellis) + Alan Moulder + Billy Corgan (THREE-WAY producer credit)",
+            "primary_mix_engineer": "Alan Moulder (Mellon Collie mix throughout — same Moulder who later mixed NIN's Downward Spiral 1994 + The Fragile 1999)",
+            "production_philosophy_evolution_corgan": "Corgan documented as DELIBERATELY MOVING AWAY from Vig+Wallace's Siamese Dream sound for Mellon Collie. Flood (Depeche Mode, U2, Nick Cave) + Moulder (NIN, Jesus and Mary Chain) brought DIFFERENT sonic palette — more textural-experimental, less straight-rock-wall-of-sound, more willingness to embrace electronic/industrial-adjacent sonics.",
+            "drum_micing_approach": {
+              "philosophy_flood_moulder": "Multiple close mics + room mics, but with TEXTURAL EXPERIMENTATION available — Flood's documented approach often includes processed drum bus options (gated reverbs, parallel saturation) beyond Vig's parallel compression standard",
+              "specifics_for_bodies": [
+                "Chamberlin's full kit miced extensively at Pumpkinland",
+                "Drum sound BIGGER + SLIGHTLY MORE PROCESSED than Siamese Dream — Flood+Moulder's textural willingness shapes the drum sound",
+                "Room mics blended for natural ambience but with slight gated treatment available",
+                "Fast-tempo articulation requires clear kick + snare + cymbal balance"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_flood_moulder": "MULTIPLE TAKES LAYERED continued (Corgan's layering philosophy) BUT with willingness to embrace slightly more textural variation — different distortion characters, occasional unconventional tones",
+              "specifics_documented": [
+                "Half-step-down tuning",
+                "Big Muff + Marshall/Hiwatt/Mesa Boogie palette",
+                "Each layer tracked with different mic placement / amp / pedal",
+                "Slight willingness to embrace unconventional tones (more than Vig's straight-rock palette)"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "DI + amp blend per Flood+Moulder approach. Tight low-frequency response required for fast tempo."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_flood_moulder": "Corgan vocal tracked with Flood+Moulder's documented attention to texture — vocal sonics slightly different from Vig+Wallace approach",
+              "specifics_documented": [
+                "Vocal isolation booth at Pumpkinland",
+                "Multiple complete takes selected/comped",
+                "Chorus vocal layering for emphasis"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Big Muff fuzz pedal",
+              "Marshall + Hiwatt + Mesa Boogie amps",
+              "Half-step-down-tuned guitars + bass",
+              "Chamberlin's full kit at Pumpkinland",
+              "Pumpkinland's documented setup (Corgan's purpose-built studio for Mellon Collie)"
+            ],
+            "what_makes_flood_moulder_recording_distinct_for_bodies": [
+              "TEXTURAL WILLINGNESS — Flood+Moulder bring more sonic experimentation than Vig+Wallace's Siamese Dream pure-rock-wall approach",
+              "Producer team of THREE (Flood + Moulder + Corgan) rather than producer-mixer split — collective production decision-making",
+              "Pumpkinland (Corgan's purpose-built studio) gives band-driven environment with Flood+Moulder's external sonic perspectives",
+              "Drum sound slightly more processed than Vig's tracking, reflecting Flood's textural willingness"
+            ],
+            "comparison_to_siamese_dream_recording": "Siamese Dream (1993, Triclops, Vig+Wallace): pure rock wall-of-sound, parallel-compressed drums, Wallace stereo width. Mellon Collie (1995, Pumpkinland, Flood+Moulder+Corgan): more textural willingness, slight processing experimentation, different sonic palette. Same band, deliberate sonic evolution between albums.",
+            "production_philosophy_lineage_within_dissection_seventh_approach": "SEVEN distinct production approaches now established in dissection: 1) Albini (In Utero capture), 2) Vig+Wallace (Nevermind+Siamese Dream layered/wide), 3) Date (Badmotorfinger tracker-mixer), 4) Beinhorn+O'Brien (Superunknown shaped/polished), 5) Kasper (Down on the Upside band-driven unified), 6) Flood+Moulder+Corgan (Mellon Collie textural-experimental three-way), 7) [TBD as more producers enter the dissection]. Flood+Moulder's introduction adds the EXPERIMENTAL-ROCK-PRODUCTION pole."
           }
         },
         "Zero": {
