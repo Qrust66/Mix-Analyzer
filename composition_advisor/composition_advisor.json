@@ -12221,6 +12221,8 @@
       "drum_only_intro_4_bars_establishes_identity": {
         "id": "drum_only_intro_4_bars_establishes_identity",
         "rule": "Open the song with DRUM-KIT ALONE for 4 bars. Drummer establishes tempo, groove pocket, and aggressive intent before guitars + bass + vocal enter. Intro is not transitional — it's identity-establishing. Listener locks onto the drummer's voice first.",
+        "electronic_translation": "Open track with PROGRAMMED-DRUM-KIT ALONE for 4 bars (kick + snare + hats + percussion samples — no synth, no bass, no vocal). The drum programming establishes tempo, groove pocket, and aggressive intent before any harmonic content arrives. The intro is identity-establishing, not transitional — listener locks onto the rhythmic voice first. Apply on layered drum bus: tuned 808/909-derived kick, snare layer (Acetone + clap stack), hi-hats with humanized velocity (-3 to -8 dB variations), percussion fills that PROMISE the drop. Apply for: techno tracks where drum programming is the calling card (Surgeon / Robert Hood Detroit-style minimal), industrial-techno with drum-design-as-identity (Perc, Ancient Methods), IDM where rhythm-section-IS-composition (Autechre, early Squarepusher), tribal/dark-techno with intricate percussion. Pair with `syncopated_kick_creates_implied_meter_within_4_4` for rhythmic complexity within the 4-bar drum-only intro.",
+        "electronic_target_genres": ["techno", "IDM", "dark_electronic"],
         "applicability_text": "Aggressive rock tracks where drumming is signature element; songs where rhythm-section identity must be foregrounded; album tracks needing immediate sonic recognition.",
         "wow_factor": 0.80,
         "tier": "gold",
@@ -12241,6 +12243,8 @@
       "syncopated_kick_creates_implied_meter_within_4_4": {
         "id": "syncopated_kick_creates_implied_meter_within_4_4",
         "rule": "Within standard 4/4 meter, place kick on UNEXPECTED beats (offbeat 16ths, syncopated 8ths) to create an IMPLIED METER that doesn't match the literal meter. Listener perceives polymetric ambiguity while the song stays in 4/4. Compositional sophistication via rhythmic indirection.",
+        "electronic_translation": "Within 4/4 grid, place kick on UNEXPECTED 16th-note positions (the '+' of beat 1, the 'e' of beat 2, the 'a' of beat 4) to create IMPLIED METER ambiguity. The track stays mathematically in 4/4 but the listener's body feels a 3-against-4 or 5-against-4 pulse. Use Ableton's MIDI editor or hardware sequencer (Elektron Analog Rytm) — disable kick from the standard four-on-the-floor positions and place it on syncopated 16ths (e.g., kick on 1, 1.75, 2.5, 3.25 across 4 beats). Apply for: IDM rhythmic complexity within club-friendly tempo (Autechre 'Amber'-era kick programming), techno-with-shuffle (Theo Parrish / Moodymann lineage), dub-techno where kick deliberately avoids the on-beat (Basic Channel / Pole tradition), glitch-funk syncopated foundations. Pair with `drum_only_intro_4_bars_establishes_identity` so listener feels the implied meter clearly before harmonic content blurs it. AVOID for peak-time festival techno (genre demands rigid four-on-the-floor for DJ-mix compatibility).",
+        "electronic_target_genres": ["IDM", "techno", "dub_techno"],
         "applicability_text": "Aggressive rock where rhythmic complexity is desired without leaving 4/4; songs targeting 'natural complexity' (listener feels the off-balance without analyzing it); tracks with strong drummer who can sustain syncopated patterns.",
         "wow_factor": 0.75,
         "tier": "silver",
@@ -12261,6 +12265,8 @@
       "two_guitar_stereo_separation_distinct_players": {
         "id": "two_guitar_stereo_separation_distinct_players",
         "rule": "Track TWO GUITARS played by TWO DIFFERENT PLAYERS, panned hard L and hard R. Use distinct gear/voicing per player so the L vs. R guitars are sonically identifiable. Listener hears two voices, not one doubled. Compositional dimension via player identity, not just stereo width.",
+        "electronic_translation": "Run TWO DISTINCT SYNTH VOICES playing complementary parts, panned hard L and hard R, using AUDIBLY DIFFERENT timbres (not the same synth duplicated). Example: Diva (saw/sub character, L100%) + Massive (FM/wavetable character, R100%) playing harmony lines or counter-melody. Each synth has its own filter/effect chain so listener hears two voices, not stereo width via doubling. Compositional dimension via TIMBRAL IDENTITY, not just stereo placement. Apply for: synthwave dual-lead arrangements (Kavinsky / Carpenter Brut tradition — two distinct synths playing harmony), electronic-pop counterpoint arrangements (Daft Punk Discovery-era L/R synth dialogues), techno with two contrasting bass-line synths in a phasing call-response, IDM where each side has a different patch character. Mono-compatibility: check phase coherence — distinct timbres typically sum well, but verify low-end summing isn't lost.",
+        "electronic_target_genres": ["synthwave", "electronic_pop", "techno"],
         "applicability_text": "Two-guitar bands wanting to highlight player distinctness; songs where left/right interplay is part of the composition; tracks where stereo is a compositional axis not just a mix decision.",
         "wow_factor": 0.65,
         "tier": "supporting",
