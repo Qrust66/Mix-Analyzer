@@ -6866,7 +6866,7 @@
           }
         },
         "The_Hand_That_Feeds": {
-          "_status": "C4_5b_performance_recording_done",
+          "_status": "C4_5c_complete_exhaustive",
           "album": "With Teeth",
           "year": 2005,
           "tempo_bpm_documented_range": [122, 128],
@@ -7022,6 +7022,144 @@
               "Commercial-single recording approach — tighter timeline, less extended-form ambition than Fragile"
             ],
             "comparison_to_other_nin_recording_approaches": "March of the Pigs (1994 Le Pig): pure auteur, programmed-foundation, Tate house atmosphere. TDTWWA + WITT + Wretched (1999 Nothing Studios): auteur + Moulder mix collaboration, programmed-foundation, multi-year prolonged sessions. Hand That Feeds (2005 With Teeth): auteur + Moulder + EMERGING Ross + LIVE DRUMS (Grohl), commercial-single tightened framework. Reznor's framework EVOLVED across catalog — from pure auteur to expanded collaboration with retained creative identity."
+          },
+          "mixing": {
+            "mix_engineer": "Alan Moulder (With Teeth mix throughout — continued NIN mix collaboration)",
+            "mixing_studio": "Various With Teeth mix locations",
+            "mixing_philosophy_moulder_for_hand_that_feeds": "ROCK-SINGLE COMMERCIAL IMPACT + INDUSTRIAL TEXTURE INTEGRATION + LIVE-DRUMS-WITH-PROGRAMMED-OVERLAY MANAGEMENT. Moulder's documented With Teeth approach: deliver rock-single commercial impact while preserving Reznor's industrial-production identity, manage live drums + sample triggers within unified mix.",
+            "drum_mix_balance": [
+              "Live drums (Grohl) FOREGROUND — kick + snare punchy + present",
+              "Sample triggers + industrial percussion blended subtly with live drums",
+              "Drum bus weight balanced with transient detail — Grohl's rock-physical drumming preserved",
+              "Cymbal articulation prominent in upper mid",
+              "Live + programmed integration smooth — listener may not consciously distinguish elements"
+            ],
+            "guitar_mix_treatment": [
+              "Stereo width COMMERCIAL — distorted guitars hard L/R for radio-rock impact",
+              "Multiple guitar layers EQ-staggered for frequency-spread (continued Reznor layering principle)",
+              "Compression on guitar bus tighter than Fragile atmospheric mixes",
+              "Less ambient/atmospheric layering than Fragile tracks (commercial-single aesthetic)"
+            ],
+            "vocal_mix_treatment": [
+              "Reznor vocal CENTERED + FORWARD — commercial-single intelligibility priority",
+              "Plate reverb + short delay for spatial depth",
+              "Compression preserves Reznor's projection while maintaining radio-friendliness",
+              "EQ optimization for radio + commercial playback contexts",
+              "Less vocal layering than We're In This Together (tighter commercial-single aesthetic)"
+            ],
+            "bass_mix_treatment": [
+              "Bass synth + possible live bass FORWARD — provides rock-single rhythmic-harmonic foundation",
+              "Light compression preserves natural envelope while maintaining tightness",
+              "Bass + kick coordinated tightly via complementary frequency placement"
+            ],
+            "spatial_treatment_commercial_single": [
+              "Stereo field WIDE for commercial-rock impact — guitars hard L/R, drums + bass center, vocal centered",
+              "Reverb usage COMMERCIAL-MODERATE — rock-single clarity priority",
+              "Plate reverbs on drums + vocal for warmth",
+              "Less atmospheric reverb than Fragile mixes"
+            ],
+            "automation_used_in_mix": [
+              "Vocal level rides for sustained phrases",
+              "Bridge mix automation for brief tension build",
+              "Chorus level rides for hook emphasis",
+              "Less extensive automation than Fragile hybrid tracks (tighter commercial-single aesthetic)"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying live drum transient detail",
+              "No drum sample replacement of Grohl's live performance",
+              "No vocal pitch correction",
+              "No extended atmospheric treatments (commercial-single tighter aesthetic priority)"
+            ],
+            "comparison_to_other_nin_mixes": "March of the Pigs (Reznor+Beavan in-house 1994): industrial precision, hard ending. TDTWWA (Moulder Fragile 1999): atmospheric sustain. WITT (Moulder Fragile 1999): anthemic emotional power. Wretched (Moulder Fragile 1999): hybrid management. Hand That Feeds (Moulder With Teeth 2005): rock-single commercial impact with live-drums foundation. FIVE different NIN mix approaches across 11 years.",
+            "what_makes_moulder_mix_distinct_for_hand_that_feeds": [
+              "ROCK-SINGLE COMMERCIAL IMPACT + retained industrial identity",
+              "Live drums (Grohl) foregrounded as foundation",
+              "Sample triggers integrated subtly without dominating",
+              "Tighter mix automation than Fragile hybrid tracks",
+              "Radio-friendly EQ optimization while preserving Reznor identity"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Tom Baker (With Teeth mastered — continued NIN mastering collaboration)",
+            "mastering_studio": "Precision Mastering, Hollywood",
+            "mastering_philosophy_for_hand_that_feeds": [
+              "Baker's documented approach: commercial-rock-single loudness + industrial-texture clarity + live-drum punch",
+              "2005 album-level mastering — With Teeth at peak loudness-war era, MORE COMPRESSED than Fragile but still preserved dynamic detail",
+              "Commercial-single intent benefits from punch + clarity emphasis"
+            ],
+            "loudness_observed": "Album average around -8 to -9 LUFS integrated estimate (more compressed than Fragile -10 to -11 due to 2005 loudness-war era).",
+            "spectral_signature": "Baker's documented sound: clear top-end, present mid-range, controlled aggressive low-end. Commercial-single radio-impact emphasis.",
+            "what_mastering_preserves_for_hand_that_feeds": [
+              "Live drums (Grohl) punch + transient detail",
+              "Industrial-production texture integration",
+              "Vocal commercial-single intelligibility",
+              "Stereo width (preserving Moulder's commercial-impact mix decisions)"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "REZNOR + GROHL + INDUSTRIAL-ROCK SINGLE — listeners hear NIN at commercial-single peak with LIVE DRUMS. Grohl's rock-physical drumming + Reznor's industrial vocabulary = unique 2005 hybrid impossible in earlier NIN.",
+            "level_2_arrangement_signature": "INDUSTRIAL-ROCK SINGLE WITH LIVE DRUMS + ROSS PARTNERSHIP EMERGING — Reznor's compositional + production framework recalibrated toward accessibility while retaining industrial identity.",
+            "level_3_compositional_signature": "AUTEUR FRAMEWORK EVOLUTION VIA EXPANDED COLLABORATION — Reznor demonstrates that auteur identity can SURVIVE expanded collaboration. Adding live drums (Grohl) + production partner (Ross) DOES NOT dilute auteur identity. Influential model for established artists seeking accessibility recalibration without losing identity."
+          },
+          "advisor_extract": {
+            "recipe_name": "auteur_framework_with_expanded_collaboration_for_commercial_recalibration",
+            "applicability": "Established auteur-producers seeking commercial-single accessibility while retaining identity. Use when the goal is RECALIBRATION TOWARD ACCESSIBILITY without abandoning the auteur framework that established the artist's identity.",
+            "core_compositional_recipes": [
+              {
+                "id": "live_drums_with_programmed_overlay_hybrid",
+                "rule": "Build a track where LIVE DRUMS (rock drummer) are the rhythmic foundation, with programmed sample triggers + industrial percussion BLENDED on top as overlay. Live drums give ROCK-PHYSICAL energy; programmed elements retain industrial-production identity. Hybrid approach distinct from pure-programmed (Spiral) or pure-live (rock band) paradigms.",
+                "wow_factor": 0.83,
+                "documented_example": "Hand That Feeds (NIN With Teeth 2005) — Dave Grohl live drums + Reznor programmed/sample overlay",
+                "trade_offs": "Requires available rock drummer; mix challenges integrating live + programmed without losing either character",
+                "personality_fit": "Reznor 40 / Cobain 30 / Yorke 15 / Daft Punk 15"
+              },
+              {
+                "id": "auteur_framework_expanded_collaboration_for_accessibility_recalibration",
+                "rule": "Expand auteur-producer framework via EXPANDED COLLABORATION (live drummer, production partner, mix engineer) to recalibrate toward commercial accessibility WITHOUT losing auteur identity. Auteur retains creative direction; collaborators bring specific skills + energies.",
+                "wow_factor": 0.82,
+                "documented_example": "Reznor's With Teeth (2005) — auteur + Grohl + emerging Ross + Moulder. Expanded collaboration, retained Reznor identity.",
+                "trade_offs": "Risk of identity dilution if expansion too aggressive. Requires auteur with strong creative center.",
+                "personality_fit": "Reznor 45 / Cobain 25 / Yorke 20 / Daft Punk 10"
+              },
+              {
+                "id": "commercial_single_economy_three_minutes_thirty_one",
+                "rule": "Compose to TIGHT COMMERCIAL-SINGLE ECONOMY (3-4 minutes) when the goal is radio + playlist accessibility. Verse-chorus-verse-chorus-bridge-chorus structure with hook emphasis. Skip extended sections. Compositional 'movement' compact + efficient. Trade extended-form ambition for accessibility breadth.",
+                "wow_factor": 0.78,
+                "documented_example": "Hand That Feeds 3:31 — commercial-single economy after Fragile's extended-form ambition",
+                "trade_offs": "Loses extended-form artistic ambition. May feel constrained for artists used to long-form expression.",
+                "personality_fit": "Cobain 35 / Reznor 30 / Daft Punk 20 / Yorke 15"
+              },
+              {
+                "id": "rock_drummer_in_industrial_production_context",
+                "rule": "Hire a documented ROCK DRUMMER (Grohl, Chamberlin, etc.) to play within an industrial-production framework. The drummer brings ROCK-PHYSICAL energy that programmed-only production cannot replicate. Production framework must SUPPORT the live drummer rather than overwhelming them with overlay.",
+                "wow_factor": 0.81,
+                "documented_example": "Dave Grohl on NIN With Teeth (2005) — rock drummer in industrial context",
+                "trade_offs": "Drummer must adapt to industrial-context. Production must integrate live drumming without overwhelming.",
+                "personality_fit": "Reznor 35 / Cobain 35 / Yorke 15 / Daft Punk 15"
+              },
+              {
+                "id": "production_partnership_emerging_after_solo_auteur_period",
+                "rule": "After established solo-auteur period, INTRODUCE production partner who shares creative vision but brings specific complementary skills. Partnership should EVOLVE over multiple projects (emerging on album N, established on album N+1). Maintains auteur identity while distributing some production responsibilities.",
+                "wow_factor": 0.79,
+                "documented_example": "Atticus Ross emerging as Reznor's production partner on With Teeth (2005), becoming full co-producer on subsequent albums",
+                "trade_offs": "Risk of partnership dynamics issues. Demands auteur willingness to share creative space.",
+                "personality_fit": "Reznor 50 / Yorke 25 / Cobain 15 / Daft Punk 10"
+              },
+              {
+                "id": "loudness_war_mastering_balanced_with_dynamic_detail",
+                "rule": "When mastering for 2000s+ commercial contexts (loudness-war era), aim for COMPETITIVE LOUDNESS while preserving as much DYNAMIC DETAIL as possible. Aggressive limiting + multiband compression standard for radio impact, but skilled mastering engineer (e.g., Tom Baker) preserves transient + dynamic detail within loudness budget.",
+                "wow_factor": 0.74,
+                "documented_example": "Tom Baker's Hand That Feeds master — competitive 2005 loudness with preserved dynamic detail",
+                "trade_offs": "Loudness-war era inherently sacrifices dynamic range. Competitive loudness may damage mix character.",
+                "personality_fit": "Reznor 35 / Cobain 30 / Daft Punk 20 / Yorke 15"
+              }
+            ],
+            "production_philosophy_signature_reznor_with_teeth_evolution": {
+              "philosophy": "Reznor auteur-producer framework EVOLVED to include EXPANDED COLLABORATION — live drums (Grohl) + emerging production partner (Ross) + Moulder mix continuity. Same auteur identity, expanded production resources. Commercial-single recalibration without identity abandonment.",
+              "applicability": "Established auteur-producers seeking commercial accessibility while retaining identity, rock+electronic genre-fusion, post-experimental period recalibration",
+              "evolution_thread_continued": "Spiral 1994 (pure auteur) → Fragile 1999 (auteur + Moulder mix) → With Teeth 2005 (auteur + Moulder + emerging Ross + Grohl drums) → Hesitation Marks 2013 (auteur + Ross full partner + modular-electronic). FOUR documented points in Reznor's auteur framework evolution."
+            },
+            "structural_choice_summary": "Live drums + programmed overlay hybrid, auteur framework with expanded collaboration, commercial-single economy, Grohl rock-physical energy in industrial context — Hand That Feeds demonstrates Reznor's ACCESSIBILITY RECALIBRATION pole. Expanded collaboration without identity abandonment. Influential model for established artists post-experimental periods."
           }
         },
         "Copy_Of_A": {
