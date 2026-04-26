@@ -10149,7 +10149,7 @@
           "_note": "One of the few rock-band-format songs on Kid A"
         },
         "Pyramid_Song": {
-          "_status": "C7_1a_composition_arrangement_done",
+          "_status": "C7_1b_performance_recording_done",
           "album": "Amnesiac",
           "year": 2001,
           "_note": "Notoriously difficult-to-count rhythmic feel (often analyzed as 16/8 with Phil Selway's deliberately ambiguous drum entry)",
@@ -10187,6 +10187,123 @@
             ],
             "what_makes_arrangement_unique_within_radiohead": "Pyramid Song represents Radiohead's MOST CLASSICAL-INFLUENCED + MOST AMBIGUOUSLY-RHYTHMIC arrangement. Within their catalog this track stakes the CLASSICAL-INFORMED ART-ROCK pole.",
             "comparison_to_other_radiohead_dissection_tracks_setup": "Pyramid Song (Amnesiac 2001): classical-influenced ballad with ambiguous rhythm. Other Radiohead tracks to dissect: Everything In Its Right Place (Kid A 2000, 10/4 Rhodes piano + manipulated vocal), The National Anthem (Kid A 2000, free-jazz brass over locked bass groove), Optimistic (Kid A 2000, rock-band-format), Packt Like Sardines (Amnesiac 2001, broken metallic percussion loop). FIVE different Radiohead compositional approaches across Kid A + Amnesiac sessions."
+          },
+          "performance": {
+            "tempo_feel_description": "SLOW MEDITATIVE FELT-RATHER-THAN-COUNTED — 70-80 BPM at slow tempo with ambiguous swung subdivisions. Listeners feel the song's pulse without precise meter perception.",
+            "drum_style": {
+              "performer": "Phil Selway",
+              "approach": "DELIBERATELY AMBIGUOUS LATE-ENTRY DRUMMING — Selway documented as crafting drum part that DEFIES clear meter perception. Drums enter mid-song with swung pattern requiring multiple listens to perceive accurately.",
+              "specifics_documented": [
+                "Drums enter MID-SONG (not at start) — late entry creates perceptual shift",
+                "Pattern often analyzed as 16/8 but feels unsteady — possibly intentional micro-timing variation",
+                "Selway documented as practicing extensively to make pattern feel right rather than count clean",
+                "Cymbal articulation contributes to felt rather than counted feel",
+                "Drum entry creates groove without meter-anchor"
+              ],
+              "comparison_to_other_dissection_drumming_meter_approaches": "Cameron (Soundgarden Head Down): asymmetric 7/4 with CLEAR execution. Reznor programmed (March of the Pigs): asymmetric 7/8+8/8 at extreme tempo with PROGRAMMED PRECISION. Selway (Pyramid Song): rhythm INTENTIONALLY AMBIGUOUS — drummer's task is to make meter UNCLEAR rather than CLEAR. Different drumming philosophies — clarity vs. ambiguity."
+            },
+            "piano_style": {
+              "performer": "Thom Yorke (piano)",
+              "approach": "CLASSICAL-INFLUENCED CHORD VOICINGS + EMOTIONAL DELIVERY — Yorke piano playing demonstrates classical-tradition voice-leading + harmonic literacy",
+              "specifics_documented": [
+                "Acoustic piano (likely studio piano at Copenhagen or Paris recording locations)",
+                "Chord voicings classical-influenced — sustained chords with voice-leading craft",
+                "Pedaling generates harmonic blur + spatial depth",
+                "Piano serves as both rhythmic + harmonic foundation"
+              ]
+            },
+            "ondes_martenot_role": {
+              "performer": "Jonny Greenwood",
+              "approach": "RARE 1928 ELECTRONIC INSTRUMENT FOR SPECTRAL COLOR — Greenwood documented as using Ondes Martenot extensively across Kid A + Amnesiac, connecting Radiohead to classical-orchestral tradition (Olivier Messiaen and others used the instrument)",
+              "specifics_documented": [
+                "Ondes Martenot is rare 1928-vintage electronic instrument with sine-wave-like pure tone capability",
+                "Greenwood documented as actively learning + using the instrument",
+                "Ondes Martenot adds spectral color distinct from synthesizer + traditional orchestral instruments",
+                "Documented in classical-orchestral tradition — Messiaen's Turangalîla-Symphonie + Trois Petites Liturgies feature it"
+              ]
+            },
+            "string_arrangement_role": {
+              "performer": "Greenwood-arranged + recorded string section",
+              "specifics_documented": [
+                "Strings arranged by Greenwood (documented compositional/arranging credit on Radiohead post-OK Computer material)",
+                "Multi-track string layers for harmonic + textural depth",
+                "Strings enter in later sections for arrangement build"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Thom Yorke",
+              "approach": "FALSETTO + EMOTIONALLY VULNERABLE — Yorke's documented Kid A/Amnesiac-era vocal aesthetic: pure falsetto delivery emphasizing emotional vulnerability + classical-melodic-tradition phrasing",
+              "documented_vocal_quirks": [
+                "Yorke falsetto becomes hallmark of Kid A + Amnesiac material",
+                "Long sustained phrases — classical-tradition melodic phrasing",
+                "Vocal processing minimal — clean falsetto preserved",
+                "Multiple takes per Godrich production approach"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization (preserves Selway's deliberately ambiguous feel)",
+              "No vocal pitch correction (Yorke falsetto preserved)",
+              "No tempo changes",
+              "No drum entry at song-start (late-entry priority)",
+              "No traditional rock-band drum pattern (ambiguity priority)"
+            ]
+          },
+          "recording": {
+            "studio": "Various Kid A + Amnesiac sessions documented at: Medley Studios (Copenhagen, Denmark) + Studios Guillaume Tell (Paris, France) + Radiohead's own studios. Amnesiac material recorded primarily in same multi-location sessions as Kid A.",
+            "session_dates": "1999-2000 sessions",
+            "primary_producer": "Nigel Godrich (co-producer with Radiohead since OK Computer 1997)",
+            "primary_engineer": "Nigel Godrich (engineer-producer dual role)",
+            "primary_mix_engineer": "Nigel Godrich (engineer-producer-mixer unified role across Kid A + Amnesiac)",
+            "production_philosophy_nigel_godrich_documented": "ENGINEER-PRODUCER-MIXER UNIFIED ROLE WITH ARTISTIC PARTNERSHIP — Godrich documented as Radiohead's 'sixth member' since OK Computer. Unified-role producer with deep band-creative-partnership. Different from straight engineer-producer (Valentine, Barresi) — Godrich's role includes creative input on compositional decisions.",
+            "drum_micing_approach": {
+              "philosophy_godrich": "Multiple close mics + room mics adapted to ambiguous-rhythm context — drum sound preserves Selway's deliberately ambiguous pattern without imposing clear-rhythm template",
+              "specifics_for_pyramid_song": [
+                "Selway's full kit miced extensively at Copenhagen/Paris",
+                "Compression + EQ at tracking calibrated for swung-feel preservation",
+                "Room mics blended for natural ambience supporting late-drum-entry impact"
+              ]
+            },
+            "piano_recording_approach": {
+              "philosophy_godrich": "Acoustic piano captured cleanly with attention to classical-tradition character — pedaling + sustain harmonics preserved",
+              "specifics_documented": [
+                "Acoustic piano with multi-mic close + ambient capture",
+                "Pedaling preserved for harmonic blur character",
+                "Yorke's documented hands-on piano performance captured"
+              ]
+            },
+            "ondes_martenot_recording_approach": {
+              "philosophy_godrich": "Ondes Martenot recorded with attention to its documented sine-wave-like pure tone character + ribbon-controller continuous-pitch capability",
+              "specifics_documented": [
+                "Ondes Martenot direct output recorded with possible additional spatial processing",
+                "Greenwood's documented Ondes Martenot performance captured carefully",
+                "Instrument's distinctive vibrato + pitch-bend capabilities preserved"
+              ]
+            },
+            "string_recording_approach": {
+              "specifics": "Multi-track string section recorded at studio session, possibly at Abbey Road or similar orchestral-recording-capable studio. Greenwood-arranged."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_godrich": "Yorke vocal tracked with attention to falsetto + intimate-emotional delivery",
+              "specifics_documented": [
+                "Vocal isolation booth at recording locations",
+                "Multiple complete takes selected/comped",
+                "Clean processing preserves falsetto character"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Acoustic piano (studio piano)",
+              "Ondes Martenot 1928-vintage electronic instrument (Greenwood's documented gear)",
+              "Selway's full kit",
+              "Multi-track string section",
+              "Medley Studios + Studios Guillaume Tell + Radiohead's own studios"
+            ],
+            "what_makes_godrich_recording_distinct_for_pyramid_song": [
+              "ENGINEER-PRODUCER-MIXER UNIFIED ROLE WITH ARTISTIC PARTNERSHIP",
+              "Multi-instrument tracking (piano + drums + Ondes Martenot + strings + vocal) integrated",
+              "Ambiguous-rhythm Selway drum part preserved without imposing clarity",
+              "Classical-influenced compositional intent supported through tracking + production"
+            ],
+            "production_philosophy_twelfth_distinct_approach_in_dissection": "TWELVE distinct production approaches now: 1) Albini, 2) Vig+Wallace, 3) Date, 4) Beinhorn+O'Brien, 5) Kasper, 6) Flood+Moulder+Corgan, 7) Reznor solo-auteur, 8) Valentine, 9) Barresi, 10) Daft Punk DUO AUTEUR home-studio, 11) Daft Punk + Guzauski + live musicians + analog studios RAM, 12) GODRICH engineer-producer-mixer unified-role with band-creative-partnership ('sixth member' role)."
           }
         },
         "Packt_Like_Sardines_In_A_Crushd_Tin_Box": {
