@@ -12089,6 +12089,8 @@
       "albini_mix_vs_wallace_mix_for_aggression": {
         "id": "albini_mix_vs_wallace_mix_for_aggression",
         "rule": "When mixing aggressive material, two valid philosophies: ALBINI (Very Ape, Dumb-style) preserves room ambience and dynamic range — the aggression has SPACE to land. WALLACE (Nevermind-style) compresses + brightens — the aggression has FORCE to punch. Choose per album/track artistic intent rather than defaulting to one.",
+        "electronic_translation": "Two valid mix philosophies for aggressive electronic tracks. RAW-CAPTURE (Albini analog): minimal mix-bus comp, preserved transient peaks (DR 9-11), spatial reverb tails kept long, distortion as instrument-level character not master-bus glue. The aggression has SPACE — dub-techno-adjacent, lo-fi industrial, rough-cut techno. COMMERCIAL-FORCE (Wallace digital): heavy mix-bus glue (Vari-Mu 3-4dB GR), brightness shelf at 8kHz, master limiter to -7 LUFS, transients clipped flat. The aggression has FORCE — peak-time techno, EBM commercial releases, festival-targeting dark-electronic. Choose per track artistic intent rather than defaulting to loudness-war commercial polish. Apply: Pole / Basic Channel / Vatican Shadow track lineage = raw-capture; Perc Trax / Sandwell District commercial pressings = commercial-force.",
+        "electronic_target_genres": ["techno", "dark_electronic", "dub_techno"],
         "applicability_text": "Mix decisions on aggressive tracks; selecting between live-document and commercial-target sound; aligning mix philosophy with composition intent.",
         "wow_factor": 0.65,
         "tier": "supporting",
@@ -12131,6 +12133,8 @@
       "vocal_layering_as_chant_build_mechanism": {
         "id": "vocal_layering_as_chant_build_mechanism",
         "rule": "Build a vocal section's intensity via PROGRESSIVE LAYERING (single → doubled → stacked) rather than via volume or vocal performance escalation. Each successive iteration adds ONE more vocal layer. The 'build' is layer count, not loudness. Particularly suited to extended chant outros.",
+        "electronic_translation": "Build outro/breakdown intensity via PROGRESSIVE VOCAL LAYER ADDITION rather than via loudness or filter-opening. Iteration 1 = single dry vocal. Iteration 2 = + octave-doubled layer (pitched +1oct via pitch-shifter or take). Iteration 3 = + harmonized third above. Iteration 4 = + vocoder pad re-singing same line through Reaktor / Output Portal. Iteration 5 = + reverb-drenched whisper layer. Each repeat adds ONE element. Apply for: trip-hop outro builds (Massive Attack / Portishead chant outros), electronic-pop chorus intensification (Daft Punk 'Around the World'-style accumulation), neo-classical-electronic vocal-stacking (Nils Frahm / Olafur Arnalds choral builds), ambient slow-build vocal pieces. Pair with `outro_chant_extension_via_repetition_not_fade` for extended hypnotic build. The technical setup: route each layer to its own bus + reverb send so blend can be automated independently across the build.",
+        "electronic_target_genres": ["trip_hop", "electronic_pop", "neo_classical_electronic"],
         "applicability_text": "Outro chants; extended chorus repetitions; any moment where build is wanted but volume cannot increase further.",
         "wow_factor": 0.75,
         "tier": "silver",
@@ -12151,6 +12155,8 @@
       "cello_dual_role_pad_plus_melodic_response": {
         "id": "cello_dual_role_pad_plus_melodic_response",
         "rule": "Use cello (or bowed string) for BOTH harmonic pad function AND occasional melodic counterpoint to vocal phrases. The cello sustains chord tones throughout (pad function) AND occasionally answers vocal lines with brief melodic figures (response function). Single instrument doing two compositional jobs.",
+        "electronic_translation": "Use a SINGLE BOWED-STRING SAMPLER LIBRARY (Spitfire LABS Cello, Spitfire BBCSO cello sustains, Orchestral Tools cello, Embertone Blakus solo cello) or live-tracked cello for DUAL ROLE within an electronic arrangement: (1) sustained harmonic pad — chord tones held throughout the section as background warmth; (2) occasional melodic response figures — short 1-2 bar phrases answering the vocal/lead synth in the gaps between phrases. Single instrument, two compositional jobs. Apply for: neo-classical-electronic compositions (Nils Frahm / Olafur Arnalds / Hauschka tradition — single cello as compositional partner to piano/synth), trip-hop ballad arrangements (Portishead 'Glory Box'-adjacent), ambient-with-melody pieces, electronic-pop emotionally weighted closers. The arrangement discipline: write the pad part FIRST as a 4-chord loop, then write 3-4 short melodic-response figures that fit BETWEEN vocal phrases (not over them). Light convolution reverb (small chamber, 1.2s) to glue the cello into the electronic stems.",
+        "electronic_target_genres": ["neo_classical_electronic", "trip_hop", "ambient"],
         "applicability_text": "Vocal-forward songs wanting orchestral depth; ballad arrangements wanting movement underneath the vocal; anywhere a string section would feel too thick but cello-alone provides the right weight.",
         "wow_factor": 0.70,
         "tier": "bronze",
