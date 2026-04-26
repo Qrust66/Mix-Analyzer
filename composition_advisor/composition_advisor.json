@@ -10396,7 +10396,7 @@
           }
         },
         "The_National_Anthem": {
-          "_status": "C7_3b_performance_recording_done",
+          "_status": "C7_3c_complete_exhaustive",
           "album": "Kid A",
           "year": 2000,
           "_note": "Free-jazz brass section over locked bass groove — genre clash",
@@ -10543,6 +10543,116 @@
               "Same Godrich unified-role framework adapted to genre-clash intent",
               "Documented Mingus-influenced compositional + recording approach"
             ]
+          },
+          "mixing": {
+            "mix_engineer": "Nigel Godrich",
+            "mixing_studio": "Various Kid A mix locations",
+            "mixing_philosophy_godrich_for_national_anthem": "GENRE-CLASH BALANCE + LOCKED-GROOVE FOREGROUND + FREE-JAZZ BRASS PRESERVATION + CACOPHONY PEAK MANAGEMENT. Godrich's documented approach: balance two opposed genre vocabularies, preserve rock-groove discipline + jazz-brass freedom, manage climactic cacophony peak.",
+            "rhythm_section_mix_balance": [
+              "Bass + drums LOCKED + FORWARD as groove foundation",
+              "Kick + snare punchy",
+              "Drum bus weight balanced for rock-groove discipline"
+            ],
+            "brass_section_mix_treatment": [
+              "Brass section spread across stereo for free-jazz interaction clarity",
+              "Each player audible within multi-player density",
+              "Reverb on brass for spatial depth + free-jazz tradition aesthetic",
+              "Cacophony peak: brass at maximum density + spread"
+            ],
+            "vocal_mix_treatment": [
+              "Yorke vocal CENTERED + FORWARD as melodic anchor",
+              "Reverb chain for spatial depth without drowning in brass density"
+            ],
+            "ondes_martenot_mix_treatment": [
+              "Greenwood Ondes Martenot blended as spectral color among brass + electronic textures"
+            ],
+            "spatial_treatment_genre_clash": [
+              "Stereo field WIDE for brass section spread + multi-element arrangement",
+              "Reverb usage MODERATE — genre-clash clarity priority",
+              "Plate + hall reverbs for free-jazz tradition spatial depth"
+            ],
+            "automation_used_in_mix": [
+              "Brass density rides for cacophony peak development",
+              "Vocal level rides for melodic emphasis",
+              "Reverb send automation for genre-clash development"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying brass dynamic detail",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No imposed-clarity mix template (genre-clash + cacophony preservation)"
+            ],
+            "what_makes_godrich_mix_distinct_for_national_anthem": [
+              "GENRE-CLASH BALANCE between locked rock + free-jazz brass",
+              "Cacophony peak management — controlled chaos preservation",
+              "Same unified-role framework deployed for genre-clash compositional intent"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Chris Blair (Kid A mastered at Abbey Road Mastering)",
+            "mastering_studio": "Abbey Road Mastering, London",
+            "mastering_philosophy_for_national_anthem": [
+              "Blair's documented approach: high-end clarity + low-end weight + dynamic detail preservation suitable for genre-clash material",
+              "National Anthem's brass + rock + electronic combination requires preserved dynamic + spectral detail",
+              "2000 album-level mastering with Abbey Road dynamic-preservation tradition"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS — Kid A documented as deliberate dynamic preservation.",
+            "spectral_signature": "Blair's documented Abbey Road sound suited for orchestral + jazz tradition",
+            "what_mastering_preserves_for_national_anthem": [
+              "Brass section dynamic + spectral detail",
+              "Locked rock-groove discipline",
+              "Cacophony peak impact",
+              "Stereo image (preserving Godrich's mix decisions)"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "FREE-JAZZ BRASS CACOPHONY PEAK + LOCKED ROCK-GROOVE FOUNDATION — listeners hear Radiohead at peak GENRE-CLASH intensity. Brass cacophony peak is documented as one of Kid A's most memorable moments.",
+            "level_2_arrangement_signature": "LOCKED RHYTHM SECTION + FREE-JAZZ BRASS SECTION + ELECTRONIC TEXTURES + ONDES MARTENOT — multi-element genre-clash arrangement.",
+            "level_3_compositional_signature": "GENRE CLASH AS COMPOSITIONAL ENGINE — Radiohead demonstrate that ROCK-GROOVE FOUNDATION + FREE-JAZZ EXPRESSIONISM can COEXIST in single song. Documented Charles Mingus influence legitimizes approach. Influences subsequent rock-jazz crossover artists."
+          },
+          "advisor_extract": {
+            "recipe_name": "rock_groove_foundation_with_free_jazz_brass_genre_clash",
+            "applicability": "Rock or art-rock compositions seeking genre-clash with jazz-tradition free expressionism. Use when LOCKED RHYTHM-SECTION DISCIPLINE + FREE-JAZZ EXPRESSIONIST PLAYING create the song's identity.",
+            "core_compositional_recipes": [
+              {
+                "id": "locked_rock_groove_with_free_jazz_brass_genre_clash",
+                "rule": "Compose locked-tight rock rhythm section (bass-line + drums) + add FREE-JAZZ BRASS SECTION (multiple horn players given expressionist liberation within arranged framework). Genre-clash: rock-groove discipline + jazz-tradition liberation in same song.",
+                "wow_factor": 0.84,
+                "documented_example": "The National Anthem (Radiohead, Kid A 2000) — locked groove + free-jazz brass section, documented Charles Mingus influence",
+                "trade_offs": "Demands brass players with jazz-tradition capability. Risk of feeling chaotic if balance off.",
+                "personality_fit": "Yorke 50 / Reznor 25 / Daft Punk 15 / Cobain 10"
+              },
+              {
+                "id": "live_brass_section_recording_for_jazz_interaction",
+                "rule": "When recording brass section, record players LIVE TOGETHER in same room — preserves jazz-tradition INTERACTION + spontaneity. Players hear each other; section breathes as ensemble. Different from typical pop overdubbed-brass approach.",
+                "wow_factor": 0.81,
+                "documented_example": "The National Anthem brass section recorded live together for free-jazz interaction",
+                "trade_offs": "Demands brass players' simultaneous availability. More complex tracking session. Less editing flexibility.",
+                "personality_fit": "Yorke 45 / Reznor 25 / Daft Punk 15 / Cobain 15"
+              },
+              {
+                "id": "mingus_locked_rhythm_plus_free_horn_compositional_template",
+                "rule": "Borrow Charles Mingus's documented compositional approach — LOCKED RHYTHM SECTION + FREE-JAZZ HORNS playing across foundation. Apply to rock context. Mingus's approach legitimizes rock-jazz genre-clash.",
+                "wow_factor": 0.83,
+                "documented_example": "The National Anthem documented as Mingus-influenced",
+                "trade_offs": "Demands jazz-tradition literacy. Demands rhythm section discipline + horn players with jazz capability.",
+                "personality_fit": "Yorke 50 / Reznor 25 / Daft Punk 15 / Cobain 10"
+              },
+              {
+                "id": "controlled_cacophony_peak_section",
+                "rule": "Compose climactic CACOPHONY PEAK section — multiple instruments playing simultaneously + chaotically + at maximum density. Cacophony is COMPOSITIONAL CHOICE not arrangement failure. Listeners experience controlled chaos as artistic statement.",
+                "wow_factor": 0.80,
+                "documented_example": "The National Anthem brass cacophony peak — documented memorable moment",
+                "trade_offs": "Risk of feeling unpleasant if not earned. Demands artistic confidence + listener tolerance.",
+                "personality_fit": "Yorke 45 / Reznor 30 / Daft Punk 15 / Cobain 10"
+              }
+            ],
+            "production_philosophy_signature_godrich_genre_clash_kid_a": {
+              "philosophy": "Same Godrich engineer-producer-mixer unified-role with band-creative-partnership framework deployed for GENRE-CLASH compositional intent. Demonstrates Godrich's range across THREE Kid A/Amnesiac compositional vocabularies (electronic-experimental EIRP, classical-informed Pyramid Song, genre-clash National Anthem).",
+              "applicability": "Producer-band partnerships seeking compositional range across multiple genre vocabularies",
+              "key_insight": "Long-term producer-band partnerships support compositional range when both parties trust each other's capacity for cross-genre work."
+            },
+            "structural_choice_summary": "Locked rock groove + free-jazz brass section + Mingus-influenced compositional template + controlled cacophony peak + Godrich genre-clash production — The National Anthem demonstrates Radiohead's GENRE-CLASH HYBRID pole within Kid A range."
           }
         },
         "Optimistic": {
