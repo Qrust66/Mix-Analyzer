@@ -9337,10 +9337,51 @@
           }
         },
         "Harder_Better_Faster_Stronger": {
-          "_status": "stub_pending_full_dissection_C6_2",
+          "_status": "C6_2a_composition_arrangement_done",
           "album": "Discovery",
           "year": 2001,
-          "_note": "Vocoded vocal as primary melodic carrier"
+          "_note": "Vocoded vocal as primary melodic carrier",
+          "tempo_bpm_documented_range": [122, 124],
+          "time_signature": "4/4 throughout",
+          "key_area": "F-sharp minor area / G minor area (with chord-progression-driven harmonic motion + vocoded vocal melodic content)",
+          "tuning_documented": "N/A — synthesizer-based composition",
+          "track_runtime": "~3:45",
+          "_special_status": "Track 5 on Discovery (2001). Functions as one of the album's MOST ANTHEMIC + MOST WIDELY-RECOGNIZED tracks. Built around documented Edwin Birdsong sample + vocoded vocal as PRIMARY MELODIC CARRIER (not secondary phrase like Around the World). Demonstrates Daft Punk's POP-LEANING EVOLUTION from Homework's filter-house abstraction to Discovery's MORE ACCESSIBLE pop-electronic + sample-based songwriting.",
+          "composition": {
+            "primary_compositional_signature": "VOCODED VOCAL AS PRIMARY MELODIC CARRIER + SAMPLE-BASED COMPOSITIONAL FOUNDATION + POP-ACCESSIBLE STRUCTURE — built around Edwin Birdsong 'Cola Bottle Baby' sample (documented sample source) + Daft Punk's vocoded vocal performing the melodic-narrative content. Demonstrates compositional evolution from filter-house abstraction to pop-electronic accessibility.",
+            "core_structural_arc": "Sample intro → vocoded verse with melodic-narrative content → chorus expansion → verse 2 → chorus → bridge with sample variation → final chorus + outro. Compact 3:45 — POP-SONG STRUCTURE applied within Discovery's electronic vocabulary.",
+            "harmonic_motion_summary": "MINOR-MODAL with sample-derived chord progression. Voice-leading more traditional than Around the World — sample provides chord motion that vocoded melody traces.",
+            "characteristic_compositional_choice": "VOCODED VOCAL AS LEAD INSTRUMENT — Daft Punk's compositional evolution: vocoded vocal moves from secondary phrase (Around the World) to PRIMARY MELODIC CARRIER. Vocoder no longer hides vocal performance; it BECOMES the lead instrument. Pop-song structure applied within electronic vocabulary.",
+            "comparison_to_around_the_world_within_daft_punk_evolution": "Around the World (Homework 1997): vocoded phrase repeated hypnotically as INSTRUMENT, filter modulation as compositional engine, 7:09 extended-form. HBFS (Discovery 2001): vocoded vocal as PRIMARY MELODIC CARRIER, sample-based foundation, 3:45 pop-song structure. EVOLUTION FROM ABSTRACT to ACCESSIBLE within same duo's catalog.",
+            "comparison_to_other_dissection_vocal_paradigms": "Most rock dissection tracks: human vocal as primary melodic-narrative carrier. Around the World: vocoded phrase as instrument-fragment. HBFS: VOCODED VOCAL AS PRIMARY MELODIC CARRIER FOR FULL SONG CONTENT. Three different vocal paradigms within dissection.",
+            "compositional_economy": "3:45 commercial-single economy — Daft Punk's compositional discipline applied to pop-electronic accessibility.",
+            "innovation_for_genre_context": "2001 dance music context: filter house had matured, sample-based + pop-electronic was emerging (Daft Punk Discovery as defining album for this evolution). HBFS became one of the genre's defining tracks. Track's success demonstrates electronic music can SUSTAIN pop-song structure with vocoded vocal as primary carrier."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "SAMPLE FOUNDATION + VOCODED VOCAL FOREGROUND + ELECTRONIC POP STRUCTURE — Edwin Birdsong sample loops as foundation, vocoded vocal carries melodic-narrative content above, electronic-pop arrangement layers (drums, additional synth elements) supporting.",
+            "intro_arrangement": "Sample intro — Edwin Birdsong 'Cola Bottle Baby' loop establishes foundation",
+            "verse_arrangement": "Sample continues, vocoded vocal enters with melodic phrases, drums + bass support",
+            "chorus_arrangement": "Hook expansion with vocoded 'harder better faster stronger' phrase, density increases, additional synth layers enter",
+            "verse_2_arrangement": "Returns to verse density",
+            "second_chorus_arrangement": "Slight intensification",
+            "bridge_arrangement": "Sample variation + vocoder pattern variation",
+            "final_chorus_arrangement": "Maximum density + vocoded chorus",
+            "outro_arrangement": "Gradual fade or sample-based ending",
+            "sample_based_compositional_arrangement_implications": [
+              "Edwin Birdsong sample provides chord progression + groove — core compositional content",
+              "Daft Punk's compositional contribution: arrangement + vocoded melody + electronic-pop production",
+              "Sample-based tradition (hip-hop, dance music) of building songs on prior recordings",
+              "Documentation of sample source legitimizes compositional approach"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes",
+              "No live drums (programmed + sampled priority)",
+              "No traditional vocal (vocoder lead priority)",
+              "No extended sections (pop-single economy)"
+            ],
+            "what_makes_arrangement_unique_within_daft_punk": "HBFS represents Daft Punk's POP-ELECTRONIC + SAMPLE-BASED arrangement evolution. Within their catalog, this track stakes the COMMERCIAL-POP-ACCESSIBILITY pole.",
+            "comparison_to_around_the_world_arrangement_evolution": "Around the World: filter-modulation + extended-form + hypnotic-repetition. HBFS: sample-foundation + pop-structure + vocoded-lead. Daft Punk's arrangement evolution from Homework to Discovery."
+          }
         },
         "Veridis_Quo": {
           "_status": "stub_pending_full_dissection_C6_3",
