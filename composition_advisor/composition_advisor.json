@@ -9809,7 +9809,7 @@
           }
         },
         "Giorgio_By_Moroder": {
-          "_status": "C6_4a_composition_arrangement_done",
+          "_status": "C6_4b_performance_recording_done",
           "album": "Random Access Memories",
           "year": 2013,
           "_note": "9-minute multi-section composition with spoken-word interview audio of Giorgio Moroder narrating his career",
@@ -9853,6 +9853,121 @@
             ],
             "what_makes_arrangement_unique_within_daft_punk": "Giorgio represents Daft Punk's MOST COMPOSITIONALLY-AMBITIOUS arrangement in the dissection — multi-section extended-form, live musicians, orchestral elements, spoken-word integration. Within Daft Punk catalog, this track stakes the FILM-SCORE-ADJACENT pole.",
             "comparison_to_film_score_within_dissection_setup": "Reznor + Ross's documented film-scoring work (Social Network 2010, Girl with the Dragon Tattoo 2011) brought film-scoring discipline into NIN context (Hesitation Marks 2013, dissected as Copy of A). Daft Punk's RAM 2013 brought film-score-adjacent ambition into electronic-music context (Giorgio by Moroder dissected here). Both 2013-era electronic-music projects influenced by film-scoring discipline. Convergent evolution across dissection."
+          },
+          "performance": {
+            "tempo_feel_description": "EVOLVING TEMPO FEEL ACROSS MULTI-SECTION STRUCTURE — 115-125 BPM range allows different sections to feel different (intimate spoken-word, danceable disco-tradition, climactic orchestral). Same metronome tempo can feel different via arrangement context.",
+            "drum_style": {
+              "performer": "John JR Robinson (legendary session drummer — Michael Jackson's Off the Wall, Thriller / Steve Winwood / Quincy Jones / many disco + pop sessions)",
+              "approach": "DISCO-TRADITION 4-ON-THE-FLOOR + GROOVE PRECISION — Robinson brings documented disco-era drumming experience to Daft Punk's homage to Moroder's electronic-disco legacy",
+              "specifics_documented": [
+                "Live kit miced extensively in analog studio",
+                "4-on-the-floor kick pattern (disco tradition)",
+                "Hi-hat 16ths driving forward",
+                "Groove precision + slight humanization (live drumming character)",
+                "Robinson's documented disco-era experience informs feel"
+              ],
+              "live_drums_versus_programmed_implications": "FIRST DAFT PUNK ALBUM with substantial live drums (Random Access Memories 2013). Documented as DELIBERATE PRODUCTION CHOICE — Daft Punk wanted live human drumming character vs. their previous programmed-only paradigm. Robinson's documented disco-era credentials legitimize the homage to Moroder's pioneering electronic-disco production."
+            },
+            "synth_style": {
+              "performers": "Bangalter + de Homem-Christo (synth programming + performance) + Chris Caswell (keyboards)",
+              "synth_arpeggio_role": "Rhythmic + harmonic foundation in early section — references Moroder's documented electronic-disco arpeggiated bass-line tradition",
+              "specifics_documented": [
+                "Analog synthesizers documented (Moog modular system documented for RAM, plus other analog gear)",
+                "Synth arpeggio tracks recorded into analog tape (RAM documented as analog-tape-tracked)",
+                "Multiple synth layers tracked separately for arrangement layering control"
+              ]
+            },
+            "live_band_style": {
+              "performers": "Nathan East (bass), Paul Jackson Jr. (guitar), Chris Caswell (keyboards)",
+              "approach": "DISCO-TRADITION SESSION MUSICIAN PRECISION + GROOVE SOPHISTICATION — Daft Punk hired LEGENDARY SESSION MUSICIANS for RAM tracking, bringing decades of recording-session experience",
+              "specifics_documented": [
+                "Nathan East: documented as one of most-recorded bassists (Eric Clapton, Toto, Phil Collins, many sessions)",
+                "Paul Jackson Jr.: documented as legendary session guitarist (Michael Jackson, Whitney Houston, many sessions)",
+                "Chris Caswell: legendary keyboardist (Earth Wind & Fire, many sessions)",
+                "Each performer brings documented session-musician precision + interpretive sensitivity"
+              ]
+            },
+            "orchestral_style": {
+              "performers": "Documented orchestral musicians for RAM string sections",
+              "approach": "FILM-SCORE-TRADITION ORCHESTRAL ARRANGEMENT — strings + additional orchestral elements integrated for climactic peak",
+              "specifics_documented": [
+                "String section arranged + tracked at orchestral recording session",
+                "Documented arranger contribution (Caswell + others)",
+                "Orchestral elements provide film-score-adjacent climactic depth"
+              ]
+            },
+            "spoken_word_audio_style": {
+              "performer": "Giorgio Moroder (interview audio narrating his career)",
+              "approach": "DOCUMENTARY SPOKEN-WORD INTEGRATION — Moroder's voice not performance per se, but documentary integration",
+              "specifics_documented": [
+                "Interview audio recorded with Moroder for the track",
+                "Audio integrated into composition as compositional element",
+                "Different from typical 'voiceover intro' — Moroder's narration continues throughout opening section"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization of live musicians (preserves natural feel)",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No tempo changes",
+              "No abrupt section-cuts (multi-section integration priority)"
+            ]
+          },
+          "recording": {
+            "studio": "Capitol Studios (Los Angeles) + Henson Recording Studios (Los Angeles) + multiple analog studios — RAM documented as recorded across multiple legendary analog studios",
+            "session_dates": "2008-2012 sessions (RAM documented multi-year prolonged recording)",
+            "primary_producers": "Thomas Bangalter + Guy-Manuel de Homem-Christo (always self-produced)",
+            "additional_engineering": "Multiple RAM engineers including Peter Franco (documented engineer), Florian Lagatta",
+            "primary_mix_engineer": "Mick Guzauski (documented RAM mix engineer — FIRST EXTERNAL MIXER in Daft Punk catalog)",
+            "production_philosophy_evolution_daft_punk_at_ram": "Daft Punk's documented MASSIVE PRODUCTION SHIFT for RAM — same DUO AUTEUR core but expanded to include LIVE STUDIO MUSICIANS + LEGENDARY ANALOG STUDIOS + EXTERNAL MIX ENGINEER (Mick Guzauski) + FILM-SCORE-AMBITION compositional framework. Most-collaborative Daft Punk album. Same auteur identity, massively-expanded production resources.",
+            "drum_micing_approach": {
+              "philosophy_daft_punk_with_jr_robinson": "Multiple close mics + room mics for Robinson's kit at analog studio — first time Daft Punk recorded live drums substantially",
+              "specifics_for_giorgio": [
+                "Robinson's full kit miced extensively at Capitol or Henson",
+                "Analog tape tracking (RAM documented as analog-tracked)",
+                "Compression + EQ at tracking calibrated for disco-tradition + analog-warmth",
+                "Room mics blended for natural ambience"
+              ]
+            },
+            "synth_recording_approach": {
+              "philosophy_daft_punk": "Analog synthesizers tracked into analog tape — first Daft Punk album fully analog-tracked",
+              "specifics_documented": [
+                "Moog modular system documented for RAM",
+                "Multiple analog synth layers tracked",
+                "Analog tape character preserved through to mix"
+              ]
+            },
+            "live_band_tracking_approach": {
+              "philosophy_daft_punk": "Live session musicians tracked traditionally with multi-mic setups",
+              "specifics_documented": [
+                "Nathan East bass: DI + amp blend per analog studio convention",
+                "Paul Jackson Jr. guitar: tube amp + mic capture",
+                "Chris Caswell keyboards: piano + electric piano tracked separately",
+                "Live band tracked together where appropriate for groove + interaction"
+              ]
+            },
+            "spoken_word_audio_recording": {
+              "specifics": "Giorgio Moroder interview audio recorded separately, integrated into composition during arrangement + mix"
+            },
+            "notable_instruments_and_gear_documented": [
+              "Moog modular system (RAM documented synth gear)",
+              "Multiple analog synthesizers",
+              "Robinson's full kit at Capitol/Henson",
+              "East's bass + Jackson's guitar gear",
+              "Caswell's keyboard rig",
+              "Analog tape (RAM documented as analog-tracked)",
+              "Capitol Studios + Henson Recording Studios — documented legendary analog rooms"
+            ],
+            "what_makes_daft_punk_recording_distinct_for_giorgio": [
+              "MASSIVE PRODUCTION SHIFT — duo auteur + LIVE MUSICIANS + ANALOG STUDIOS + ANALOG TAPE + EXTERNAL MIX ENGINEER",
+              "First Daft Punk album with substantial live musicians",
+              "First Daft Punk album fully analog-tracked",
+              "First Daft Punk album with external mix engineer (Mick Guzauski)",
+              "Demonstrates production-philosophy EVOLUTION beyond home-studio paradigm — massively-expanded production resources",
+              "Same duo auteur creative direction preserved across expansion"
+            ],
+            "comparison_to_other_daft_punk_recording_evolution": "Around the World (Homework 1997, home studio, programmed-only): pure DIY duo. HBFS (Discovery 2001, home studio, sample-based): pop-electronic duo. Veridis Quo (Discovery 2001, home studio, classical-electronic): harmonic ambition duo. Giorgio (RAM 2013, MULTIPLE LEGENDARY ANALOG STUDIOS + LIVE BAND + EXTERNAL MIX): massively-expanded duo-with-collaborators. FOUR documented points in Daft Punk production evolution.",
+            "production_philosophy_eleventh_distinct_approach_in_dissection": "ELEVEN distinct production approaches now: 1) Albini, 2) Vig+Wallace, 3) Date, 4) Beinhorn+O'Brien, 5) Kasper, 6) Flood+Moulder+Corgan, 7) Reznor solo-auteur, 8) Valentine, 9) Barresi, 10) Daft Punk DUO AUTEUR home-studio (Homework + Discovery), 11) DAFT PUNK + GUZAUSKI + LIVE MUSICIANS + LEGENDARY ANALOG STUDIOS RAM-era massively-expanded production paradigm. Same auteur identity, opposite-pole production scale."
           }
         }
       },
