@@ -7463,9 +7463,51 @@
           "songs_to_dissect": ["First_It_Giveth", "Six_Shooter", "A_Song_For_The_Dead", "Medication", "Everybody_Knows_That_Youre_Insane", "Little_Sister"]
         },
         "First_It_Giveth": {
-          "_status": "stub_pending_full_dissection_C5_1",
+          "_status": "C5_1a_composition_arrangement_done",
           "album": "Songs for the Deaf",
-          "year": 2002
+          "year": 2002,
+          "tempo_bpm_documented_range": [126, 132],
+          "time_signature": "4/4 throughout",
+          "key_area": "F-sharp minor area / G-sharp minor area (Homme's documented baritone-friendly tonal area on Songs for the Deaf)",
+          "tuning_documented": "Drop D tuning (documented Homme/QOTSA convention) — adds chromatic riff capability + low-end weight",
+          "track_runtime": "~3:19",
+          "_special_status": "Track 5 on Songs for the Deaf (2002) — the album was Grohl's 'second' major drumming engagement after Nevermind/In Utero (this time as guest drummer rather than band member). Functions as the album's MID-TEMPO STONER ROCK + DESERT GROOVE ANCHOR. Demonstrates Homme's documented 'robot rock' philosophy — repetitive hypnotic riff foundation + loose-but-tight groove. First single from album.",
+          "composition": {
+            "primary_compositional_signature": "STONER-ROCK GROOVE + REPETITIVE HYPNOTIC RIFF + DESERT-ROCK MELODIC SENSIBILITY — Homme's signature 'robot rock' compositional philosophy: build groove on REPETITIVE riff that gets ALMOST-but-not-quite identical each measure, allowing micro-variations to keep listener engaged.",
+            "core_structural_arc": "Riff-driven verse with vocal entry → pre-chorus build → chorus hook expansion → riff return → verse 2 → chorus → bridge with brief shift → final chorus + outro. Tight 3:19 — commercial-single economy by QOTSA standards but with Homme's signature hypnotic groove foundation.",
+            "harmonic_motion_summary": "MINOR-MODAL with characteristic Homme pentatonic-influenced riff motion. Tonic F-sharp/G-sharp minor with chord shifts to relative major area in chorus. Voice-leading desert-rock-craft (Homme's documented influences include Black Sabbath, Kyuss, Queens-era Sabbath stoner-rock lineage).",
+            "characteristic_compositional_choice": "REPETITIVE RIFF AS GROOVE FOUNDATION — Homme's documented compositional philosophy: 'robot rock' = riff repeated near-identically with micro-variations creating hypnotic groove. Where Nirvana writes hooks, Soundgarden writes intensity, Pumpkins writes layers, NIN writes textures, QOTSA writes GROOVES. Compositional engine is HYPNOTIC REPETITION + MELODIC OVERLAY.",
+            "comparison_to_other_dissection_riff_compositions": "Quiet (Pumpkins 1993): riff as both hook + structural backbone with maximum density. Bodies (Pumpkins 1995): fast aggressive riff + retained Pumpkins layering. Hand That Feeds (NIN 2005): rock-single riff with industrial overlay. First It Giveth (QOTSA 2002): HYPNOTIC REPETITIVE RIFF as groove foundation. Different riff-deployment philosophies.",
+            "comparison_to_other_qotsa_dissection_tracks": "First It Giveth (Songs for the Deaf 2002, 3:19, mid-tempo groove): TIGHT GROOVE ECONOMY. A Song for the Dead (Songs for the Deaf 2002, 5:51): EXTENDED EPIC ROCK. Two different scales of QOTSA compositional ambition.",
+            "compositional_economy": "3:19 tight commercial-single economy. Compositional 'movement' delivered via hypnotic groove foundation + vocal melodic overlay + occasional Lanegan harmonies. Compact yet richly textured.",
+            "innovation_for_genre_context": "2002 alt-rock context: post-grunge had matured, stoner-rock was more underground genre. Songs for the Deaf brought stoner-rock + desert-rock to mainstream alt-rock audience. First It Giveth's hypnotic-groove-foundation aesthetic influenced subsequent stoner-rock-revival + desert-rock-crossover artists."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "POWER-TRIO-PLUS-GUEST PHILOSOPHY — Homme guitar + Nick Oliveri bass + Dave Grohl drums forms TIGHT TRIO foundation, with guest contributors (Mark Lanegan harmonies on this track) adding dimensional color. Lean arrangement compared to Pumpkins wall-of-sound or NIN industrial density.",
+            "intro_arrangement": "Riff opens with Homme guitar + Grohl drums + Oliveri bass in immediate tight trio entry. No gradual build (similar to Quiet's immediate-intent but at mid-tempo with groove foundation).",
+            "verse_arrangement": "Riff continues, Homme vocal enters, Oliveri bass tight with Grohl kick. Possible additional guitar overdub layer (Homme often double-tracks rhythm guitars).",
+            "pre_chorus_arrangement": "Slight density build + harmonic shift, Grohl fill leading into chorus.",
+            "chorus_arrangement": "Hook expansion, MARK LANEGAN HARMONY enters (his documented contribution to multiple Songs for the Deaf tracks providing whiskey-baritone color above Homme's vocal). Chorus density expands but stays POWER-TRIO clean — no wall-of-sound layering.",
+            "verse_2_arrangement": "Returns to verse density",
+            "second_chorus_arrangement": "Slightly intensified, Lanegan harmony continues",
+            "bridge_arrangement": "Brief textural/dynamic shift — possibly clean-guitar break or harmonic suspension before final chorus",
+            "outro_arrangement": "Final chorus + riff statement to close",
+            "homme_robot_rock_philosophy": [
+              "REPETITIVE RIFF FOUNDATION with micro-variations — riff repeats near-identically but never EXACTLY identically, creating hypnotic groove that breathes",
+              "POWER-TRIO PRIORITY — guitar + bass + drums as core, with guest contributors adding dimensional color rather than wall-of-sound layering",
+              "GROOVE OVER COMPLEXITY — Homme prioritizes pocket + feel over technical demonstration",
+              "DESERT-ROCK LINEAGE — Black Sabbath + Kyuss-era influence audible in heavy-but-loose groove approach"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes",
+              "No drum sample replacement (Grohl's drums are essential)",
+              "No vocal pitch correction",
+              "No wall-of-sound layering (power-trio-plus-guest priority)",
+              "No extended sections (commercial-single economy)"
+            ],
+            "what_makes_arrangement_unique_within_qotsa": "First It Giveth represents QOTSA's TIGHT GROOVE ECONOMY pole — commercial-single accessibility with retained Homme robot-rock identity. Within Songs for the Deaf's range (radio-DJ-narrated concept album, multi-genre tracks from stoner-rock to ballad to instrumental), First It Giveth stakes the SINGLE-FOCUSED groove pole.",
+            "comparison_to_grohl_drumming_in_dissection_evolution": "Grohl Nirvana (1991-1994 Nevermind/In Utero): aggressive rock band-member drumming. Grohl QOTSA (2002 Songs for the Deaf): GUEST drummer playing FOR the song (more technical + groove-conscious than band-member-mode). Grohl NIN (2005 With Teeth): industrial-context-adapted drumming. Three Grohl modes documented — different productions extracting different drumming personalities."
+          }
         },
         "Six_Shooter": {
           "_status": "stub_pending_full_dissection_C5_2",
