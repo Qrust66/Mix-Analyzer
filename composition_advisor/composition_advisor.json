@@ -6288,10 +6288,47 @@
           }
         },
         "Were_In_This_Together": {
-          "_status": "stub_pending_full_dissection_C4_3",
+          "_status": "C4_3a_composition_arrangement_done",
           "album": "The Fragile",
           "year": 1999,
-          "_canonical_title": "We're In This Together"
+          "_canonical_title": "We're In This Together",
+          "tempo_bpm_documented_range": [114, 122],
+          "time_signature": "4/4 throughout",
+          "key_area": "C-sharp minor area / D minor area (with chromatic riff motion blurring exact tonic)",
+          "tuning_documented": "Standard tuning + extensive synthesizer + sample-based content (less reliance on guitar tuning, but processed guitars present)",
+          "track_runtime": "~7:16",
+          "_special_status": "Track 13 on The Fragile (1999) Disc 1 / 'Left' side. Functions as one of the album's MOST ANTHEMIC + EXTENDED industrial-rock tracks — combines Reznor's industrial vocabulary with EMOTIONAL ANTHEM compositional intent. Demonstrates Reznor's MIDDLE-PATH compositional mode: neither extreme aggression (March of the Pigs) nor extreme vulnerability (TDTWWA) but ANTHEMIC EMOTIONAL POWER via industrial-rock fusion. 7:16 runtime is characteristic of Fragile's extended-form ambition.",
+          "composition": {
+            "primary_compositional_signature": "ANTHEMIC INDUSTRIAL-ROCK WITH EXTENDED EMOTIONAL ARC — combines Reznor's industrial vocabulary (programmed elements, processed textures) with ANTHEMIC ROCK structural intent (verse-chorus-build-explosion). 7:16 length allows extended emotional development.",
+            "core_structural_arc": "Atmospheric intro → riff-driven verse 1 with vocal entry → pre-chorus build → ANTHEMIC CHORUS (emotional release with full density) → verse 2 → chorus → BRIDGE INSTRUMENTAL EXPANSION (extended) → final chorus repetitions with intensifying emotional weight → outro fade. Total ~7:16 — Fragile's documented willingness to extend tracks beyond commercial-single economy.",
+            "harmonic_motion_summary": "MINOR-MODAL with chromatic riff motion + characteristic Reznor suspended voicings. Tonic C-sharp/D minor, with chorus harmonic expansion to relative major area. Voice-leading traditional rock-anthem-craft (compared to March of the Pigs's mode-blurred aggression or TDTWWA's harmonic suspension).",
+            "characteristic_compositional_choice": "INDUSTRIAL VOCABULARY DEPLOYED IN ANTHEMIC ROCK STRUCTURE — Reznor demonstrates that his industrial-production toolkit can serve TRADITIONAL ROCK ANTHEM composition. Programmed drums + processed textures + distorted bass + screamed-to-sung vocal contrast all deploy WITHIN verse-chorus anthemic structure. Hybrid demonstrates production-vocabulary's flexibility beyond pure-genre application.",
+            "comparison_to_march_of_the_pigs_within_nin": "March of the Pigs (1994 Spiral, 2:58 at ~265 BPM): industrial EXTREMITY via meter + tempo + density. We're In This Together (1999 Fragile, 7:16 at ~118 BPM): industrial-rock ANTHEM via extended form + emotional arc. Two opposite scales of industrial deployment within Reznor's catalog.",
+            "comparison_to_tdtwwa_within_nin": "TDTWWA (Fragile 1999, 4:33 atmospheric): MINIMAL ELEMENT atmospheric vulnerability. We're In This Together (Fragile 1999, 7:16 anthemic): MAXIMUM ELEMENT anthemic emotional power. Same album, different scales of production deployment.",
+            "comparison_to_soma_anthemic_arc_within_dissection": "Soma (Pumpkins 1993, 6:39): rock-anthemic dynamic-arc with guitar wall. We're In This Together (NIN 1999, 7:16): industrial-rock-anthemic with programmed elements. Both extended-form anthemic-arc compositions but with different production-vocabulary palettes.",
+            "compositional_economy": "7:16 is patient but anthemic — extended form allows multiple chorus repetitions with intensifying emotional weight. Compositional 'movement' includes traditional anthem-craft (verse-chorus-bridge-final-chorus) at extended scale.",
+            "innovation_for_genre_context": "1999 industrial-rock context: NIN had cemented industrial-rock identity via Spiral. We're In This Together pushes the genre toward EMOTIONAL ANTHEM territory — proving industrial vocabulary can serve traditional emotional-rock structural intents. Influences subsequent industrial-rock + electronic-rock fusion (later artists like Linkin Park, Crystal Castles, etc. follow this hybrid path)."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "FULL-DENSITY HYBRID — programmed drums + sampled industrial percussion + distorted bass synth + processed guitars + multiple synth pads + Reznor vocals (multiple registers) + possible additional Layered elements. Anthemic rock arrangement scale via industrial vocabulary.",
+            "intro_arrangement": "Atmospheric synth-pad + ambient texture intro → riff-driven full-band entry. Build is brief but establishes the song's industrial-rock-anthem character.",
+            "verse_arrangement": "Programmed drums DRIVING (kick + snare backbone at ~118 BPM), distorted bass synth + processed guitars providing rhythmic-harmonic foundation, Reznor's vocal moderate intensity (between his verse-aggression and chorus-melodic poles).",
+            "pre_chorus_arrangement": "Density build + harmonic tension — additional synth layer enters, drum pattern intensifies, vocal lifts toward chorus.",
+            "chorus_arrangement": "ANTHEMIC RELEASE — maximum density, vocal projects with emotional commitment, harmonic field opens, drum bus at full power. Multiple chorus iterations across the 7:16 runtime allow intensifying emotional weight.",
+            "verse_2_arrangement": "Returns to verse density, possibly with additional textural elements retained from chorus",
+            "second_chorus_arrangement": "Slightly more intensified than first chorus, vocal more invested",
+            "extended_bridge_instrumental_arrangement": "INSTRUMENTAL EXPANSION — sustained extended section without vocal, programmed drums + atmospheric synth + textural guitar exploration. Brief but ambitious — uses extended runtime to allow band-as-instrumental-statement",
+            "final_chorus_intensification_arrangement": "MULTIPLE CHORUS REPETITIONS with progressively intensifying emotional weight — vocal pushes harder, density retained, possible additional vocal layering for emphasis",
+            "outro_arrangement": "Gradual fade with atmospheric texture continuing — emotional resolution rather than abrupt end",
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained 114-122 BPM)",
+              "No live drums (programmed elements primary, but may include occasional live percussion overdubs)",
+              "No vocal pitch correction",
+              "No fast asymmetric meter (anthemic intent requires accessible 4/4)"
+            ],
+            "what_makes_arrangement_unique_within_nin": "We're In This Together represents NIN's MOST ANTHEMIC arrangement — industrial vocabulary deployed in service of emotional anthem rock structure. Within NIN catalog this is the ANTHEMIC pole, distinct from March of the Pigs (extremity), TDTWWA (vulnerability), Wretched (aggressive-atmospheric hybrid).",
+            "comparison_to_other_extended_form_dissection_tracks": "Soma (Pumpkins): rock-anthem dynamic-arc with guitar wall, 6:39. Overfloater (Soundgarden): jam-band atmospheric extended bridge, 6:42. We're In This Together (NIN): industrial-anthem with extended form + multiple chorus iterations, 7:16. Three different production-vocabulary approaches to extended-form anthem-arc composition."
+          }
         },
         "The_Wretched": {
           "_status": "stub_pending_full_dissection_C4_4",
