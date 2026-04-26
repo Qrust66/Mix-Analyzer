@@ -12815,6 +12815,8 @@
       "low_frequency_clarity_priority_in_drone_mix": {
         "id": "low_frequency_clarity_priority_in_drone_mix",
         "rule": "When mixing drone-foundation arrangements, give the drone bass + low-tuned instruments DEDICATED low-frequency space. Coordinate kick (~60Hz) + bass drone (~80-120Hz) via complementary frequency placement. Avoid over-compressing the drone — preserve its natural envelope. Light dedicated reverb on drone-frequency layers can enhance spatial depth.",
+        "electronic_translation": "When mixing drone-based electronic tracks, dedicate complementary FREQUENCY SLOTS to the drone components. Kick at 50-65 Hz fundamental + bass drone at 80-130 Hz fundamental — high-pass the kick at 50Hz, high-pass the drone at 75Hz, sidechain the drone to duck under kick transients (-3dB) so they don't fight. Avoid heavy multi-band compression on the drone bus — preserve its natural envelope (drone IS sustained, compression destroys the sustain character). Apply mono summing only below 100Hz (using Pro-Q3 mid-side mode); allow drone harmonics 100-300Hz to spread stereo. Light convolution reverb (3-5s, dark space) on a SEND from the drone bus, NOT inserted, so the dry drone preserves its low-end clarity while the reverb provides spatial halo. Apply for: dub-techno mixes (Basic Channel low-end clarity tradition), dark-ambient mixes where drone is the foundation, drone-techno mastering, ambient with sustained low-frequency content.",
+        "electronic_target_genres": ["dub_techno", "ambient", "dark_electronic"],
         "applicability_text": "Drone-based compositions in mix stage; tracks where low-end clarity is critical to the song's compositional foundation.",
         "wow_factor": 0.74,
         "tier": "bronze",
