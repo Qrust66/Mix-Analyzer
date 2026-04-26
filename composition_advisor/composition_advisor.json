@@ -8550,7 +8550,7 @@
           }
         },
         "Everybody_Knows_That_Youre_Insane": {
-          "_status": "C5_5a_composition_arrangement_done",
+          "_status": "C5_5b_performance_recording_done",
           "album": "Lullabies to Paralyze",
           "year": 2005,
           "tempo_bpm_documented_range": [110, 116],
@@ -8587,6 +8587,107 @@
             ],
             "what_makes_arrangement_unique_within_qotsa": "Everybody Knows represents POST-OLIVERI HOMME-CENTRIC QOTSA arrangement. Without Oliveri's punk-aggression vocal democracy contribution, arrangement balance shifts toward Homme-led tracks dominantly.",
             "comparison_to_songs_for_the_deaf_arrangement_evolution": "Songs for the Deaf (2002): vocal democracy with Homme + Oliveri + Lanegan all leading tracks. Lullabies to Paralyze (2005): post-Oliveri arrangement balance shifts toward Homme-centric. Different vocal democracy scales across QOTSA eras."
+          },
+          "performance": {
+            "tempo_feel_description": "MID-TEMPO HEAVY GROOVE — 110-116 BPM at sustained intensity feels DRIVEN but unhurried. Tempo allows hypnotic groove development.",
+            "drum_style": {
+              "performer": "Joey Castellano (Lullabies to Paralyze drummer — post-Grohl-guest era documented QOTSA drummer)",
+              "approach": "ROBOT-ROCK GROOVE FOUNDATION — Castellano plays for the song's hypnotic groove rather than for technical display. Adapted to Homme's documented robot-rock philosophy.",
+              "specifics_documented": [
+                "Kick + snare backbone driving 4/4 at ~113 BPM",
+                "Hi-hat 8ths driving forward",
+                "Snare strong on 2+4",
+                "Less technical complexity than Grohl's Songs for the Deaf drumming — different drummer, different stylistic priorities",
+                "Cymbal accents articulate transitions"
+              ],
+              "comparison_to_grohl_qotsa_drumming": "Grohl Songs for the Deaf (2002): technical guest drummer with documented power + complexity. Castellano Lullabies to Paralyze (2005): groove-priority band-member drummer. Different drumming personalities within QOTSA's evolution."
+            },
+            "guitar_style": {
+              "performers": "Josh Homme (primary)",
+              "rhythm_guitar_role": "ROBOT-ROCK HYPNOTIC RIFF + DESERT-ROCK SENSIBILITY — Homme's compositional voice dominant in post-Oliveri era",
+              "specifics_documented": [
+                "Drop D tuning",
+                "Tube amps with moderate distortion",
+                "Possible double-tracked rhythm guitars for stereo width",
+                "Hypnotic-repetition micro-variations (continued robot-rock philosophy)",
+                "Picking precision required for hypnotic-groove feel"
+              ]
+            },
+            "bass_performance": {
+              "performer": "Possibly Alain Johannes or guest bassist (post-Oliveri Lullabies bassist documented as varying contributor)",
+              "approach": "TIGHT GROOVE-LOCK + DESERT-ROCK FOUNDATION — adapted to Homme-centric compositional voice",
+              "specifics_documented": [
+                "Drop D-tuned bass",
+                "Tight rhythmic locking with kick",
+                "Pick attack for rhythmic clarity"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Josh Homme (lead vocal — post-Oliveri Homme-centric vocal lead)",
+              "verse_delivery": "BARITONE MELODIC HOMME — continued from Songs for the Deaf approach",
+              "chorus_delivery": "Hook expansion with vocal projection",
+              "documented_vocal_quirks": [
+                "Homme's documented baritone-friendly compositional choices continued",
+                "Multiple takes per Barresi production",
+                "Possible secondary vocal harmony (without Lanegan documented as featured guest on this track)"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No tempo changes"
+            ]
+          },
+          "recording": {
+            "studio": "Studio 606 (Dave Grohl's studio — documented Lullabies tracking location) + various locations",
+            "session_dates": "2004-2005 sessions",
+            "primary_producers": "Joe Barresi + Josh Homme (Lullabies to Paralyze documented production credit)",
+            "primary_engineer": "Joe Barresi (engineer-producer role similar to Valentine's role on Songs for the Deaf)",
+            "primary_mix_engineer": "Joe Barresi",
+            "production_philosophy_joe_barresi_documented": "ENGINEER-PRODUCER UNIFIED ROLE — Barresi documented as handling tracking + producing + much engineering. Similar role-philosophy to Valentine but with different sonic palette + Barresi's documented heavy-rock specialization (Tool, Melvins, Kyuss-related work).",
+            "drum_micing_approach": {
+              "philosophy_barresi": "Multiple close mics + room mics with attention to heavy-rock drum sound — Barresi documented approach favors heavy + present drums",
+              "specifics_for_everybody_knows": [
+                "Castellano's full kit miced extensively at Studio 606",
+                "Compression + EQ at tracking for heavy-rock impact",
+                "Room mics blended for natural ambience",
+                "Drum bus processing balanced for groove + heaviness"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_barresi_homme": "Heavy-rock guitar tracking with attention to robot-rock textural variety — Barresi's documented Tool + Melvins experience informs this",
+              "specifics_documented": [
+                "Drop D tuning",
+                "Tube amps + heavy pedal chains",
+                "Possible double-tracked rhythm guitars",
+                "Each layer mic'd carefully for tone variety"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "DI + amp blend per Barresi approach. Tight low-frequency response."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_barresi": "Homme baritone vocal tracking with attention to mature melodic delivery",
+              "specifics_documented": [
+                "Vocal isolation booth at Studio 606",
+                "Multiple complete takes selected/comped"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Drop D tuned guitars + bass",
+              "Tube amps + heavy pedal chains",
+              "Castellano's full kit at Studio 606",
+              "Studio 606's documented setup (Dave Grohl's studio)"
+            ],
+            "what_makes_barresi_recording_distinct_for_everybody_knows": [
+              "ENGINEER-PRODUCER UNIFIED ROLE (similar to Valentine's role-philosophy but with Barresi's heavy-rock specialization)",
+              "Studio 606 (Grohl's studio) — documented as comfortable tracking environment for QOTSA",
+              "Barresi's documented Tool + Melvins + Kyuss-related experience informs heavy-rock tone palette",
+              "Different sonic palette than Eric Valentine's Songs for the Deaf — same role-philosophy, different output aesthetics"
+            ],
+            "comparison_to_valentine_songs_for_the_deaf_recording": "Eric Valentine (Songs for the Deaf 2002): unified-role with commercial-rock impact + groove-rock specialization. Joe Barresi (Lullabies to Paralyze 2005): unified-role with heavy-rock specialization + Tool/Melvins lineage. Same role-philosophy across two albums, different sonic palettes — Barresi's heavy-rock palette gives Lullabies a different texture than Songs for the Deaf.",
+            "production_philosophy_ninth_distinct_approach_in_dissection": "NINE distinct production approaches now: 1) Albini, 2) Vig+Wallace, 3) Date, 4) Beinhorn+O'Brien, 5) Kasper, 6) Flood+Moulder+Corgan, 7) Reznor auteur, 8) Valentine unified-role groove-rock, 9) BARRESI unified-role heavy-rock specialization."
           }
         },
         "Little_Sister": {
