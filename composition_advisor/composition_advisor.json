@@ -9809,10 +9809,51 @@
           }
         },
         "Giorgio_By_Moroder": {
-          "_status": "stub_pending_full_dissection_C6_4",
+          "_status": "C6_4a_composition_arrangement_done",
           "album": "Random Access Memories",
           "year": 2013,
-          "_note": "9-minute multi-section composition with spoken-word interview audio of Giorgio Moroder narrating his career"
+          "_note": "9-minute multi-section composition with spoken-word interview audio of Giorgio Moroder narrating his career",
+          "tempo_bpm_documented_range": [115, 125],
+          "time_signature": "4/4 throughout (with documented evolution across 9-minute runtime including dramatic dynamic shifts)",
+          "key_area": "C minor / E-flat major movement areas (with documented harmonic progression across multi-section structure)",
+          "tuning_documented": "Live instruments standard tuning + extensive synthesizer + analog recording",
+          "track_runtime": "~9:04",
+          "_special_status": "Track 3 on Random Access Memories (2013). Functions as the album's MULTI-SECTION COMPOSITIONAL CENTERPIECE — 9-minute extended-form composition featuring Giorgio Moroder's documented spoken-word interview audio narrating his career, evolving from solo speech through electronic arpeggiation through full orchestral arrangement. Demonstrates Daft Punk's MASSIVE PRODUCTION SHIFT for RAM: from home-studio duo-auteur fully-self-produced (Homework + Discovery) to LIVE MUSICIANS + ANALOG STUDIO + MICK GUZAUSKI MIX paradigm. Track is documented tribute to Giorgio Moroder's pioneering electronic-disco production legacy.",
+          "composition": {
+            "primary_compositional_signature": "EXTENDED MULTI-SECTION COMPOSITION + SPOKEN-WORD INTERVIEW AUDIO + EVOLVING ARRANGEMENT FROM ELECTRONIC TO ORCHESTRAL — 9-minute track structured as journey from intimate spoken-word + electronic foundation through progressive arrangement build to full orchestral peak. Demonstrates compositional ambition beyond song-form into FILM-SCORE-ADJACENT extended composition.",
+            "core_structural_arc": "Spoken-word intro (Giorgio Moroder narrating his career) → electronic arpeggiation enters establishing rhythmic + harmonic foundation → drum entry → bass + synth layers progressive build → instrumental peak with full arrangement → orchestral elements enter (strings, additional textures) → climactic peak → resolution + outro. Total ~9:04 — multi-section extended-form like film score.",
+            "harmonic_motion_summary": "MULTI-SECTION HARMONIC EVOLUTION — different sections deploy different harmonic vocabulary. Electronic arpeggiation section: minor-modal with rhythmic emphasis. Build sections: progressive harmonic expansion. Orchestral peak: traditional film-score harmonic motion. Voice-leading classical-craft.",
+            "characteristic_compositional_choice": "MULTI-SECTION EXTENDED COMPOSITION + DOCUMENTARY SPOKEN-WORD INTEGRATION + ELECTRONIC-TO-ORCHESTRAL EVOLUTION — Daft Punk demonstrate compositional ambition beyond song-form. Spoken-word audio is INTEGRATED COMPOSITIONAL ELEMENT (not just intro voiceover); arrangement EVOLVES across runtime; orchestral peak is COMPOSITIONAL CULMINATION not generic 'big ending'.",
+            "comparison_to_other_daft_punk_dissection_tracks": "Around the World (Homework 1997, 7:09): filter-house extended-form. HBFS (Discovery 2001, 3:45): pop-electronic single. Veridis Quo (Discovery 2001, 5:44): classical-influenced electronic. Giorgio by Moroder (RAM 2013, 9:04): MULTI-SECTION EXTENDED FILM-SCORE-ADJACENT composition. FOUR different scales of Daft Punk compositional ambition across catalog evolution.",
+            "comparison_to_other_dissection_extended_form_tracks": "Soma (Pumpkins 1993, 6:39): rock dynamic-arc explosion. Overfloater (Soundgarden 1996, 6:42): jam-band atmospheric. WITT (NIN 1999, 7:16): industrial-anthem extended. A Song for the Dead (QOTSA 2002, 5:51): heavy-rock with drum feature. Around the World (Daft Punk 1997, 7:09): filter-house extended. Giorgio (Daft Punk 2013, 9:04): multi-section film-score-adjacent. SIX different paths to extended-form composition within dissection.",
+            "compositional_economy": "9:04 most extended in dissection. Compositional 'movement' includes spoken-word integration + arrangement evolution + harmonic development + orchestral peak. Multi-section structure justifies length.",
+            "innovation_for_genre_context": "2013 electronic music context: 'EDM' was mainstream (Skrillex, Calvin Harris). RAM's compositional ambition (live musicians + analog recording + 9-minute extended-form + film-score-adjacent ambition) was ANTI-EDM statement. Giorgio became one of RAM's most-celebrated tracks. Influences subsequent electronic-music compositional ambition + return-to-analog tradition."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "EVOLVING ARRANGEMENT FROM ELECTRONIC ARPEGGIATION TO LIVE BAND TO ORCHESTRA — section 1: electronic arpeggio + spoken-word; section 2: live drums + bass enter; section 3: additional layers + synth pads; section 4: orchestral elements (strings) enter for film-score-adjacent peak; resolution. Live musicians documented: John JR Robinson (drums), Nathan East (bass), Chris Caswell (piano), Paul Jackson Jr. (guitar — documented).",
+            "intro_arrangement_spoken_word": "Spoken-word audio of Giorgio Moroder narrating his career — intimate monologue establishes documentary integration",
+            "electronic_arpeggio_entry": "Synth arpeggio enters establishing rhythmic + harmonic foundation — references Moroder's documented electronic-disco production legacy",
+            "drum_entry_live": "Live drums (JR Robinson) enter with steady 4-on-the-floor adapted to disco-tradition feel",
+            "bass_entry_live": "Live bass (Nathan East) enters establishing harmonic anchor",
+            "build_section_progressive_layering": "Additional synth layers, strings, percussion enter progressively across multiple measures",
+            "orchestral_peak_section": "Full arrangement at peak — synth + live band + orchestral strings + spoken-word residue all simultaneously. Film-score-adjacent climactic moment.",
+            "resolution_section": "Layers strip away progressively, returning to electronic + bass foundation",
+            "outro_spoken_word_return": "Final spoken-word phrase from Moroder, electronic foundation continues to fade",
+            "live_musicians_versus_pure_electronic_arrangement_implications": [
+              "MASSIVE shift from Daft Punk's previous home-studio-electronic paradigm to LIVE STUDIO MUSICIANS",
+              "Documented session musicians: JR Robinson (drums on classic disco/pop sessions), Nathan East (legendary bassist — Eric Clapton, Toto, Fourplay), Paul Jackson Jr. (legendary session guitarist), Chris Caswell (keyboards)",
+              "Live musicians bring HUMAN GROOVE + INTERPRETIVE DECISIONS + IMPROVISATIONAL DETAIL impossible from programmed-only paradigm",
+              "Demonstrates Daft Punk's RAM-era compositional + production evolution — return to analog + live tradition"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained tempo across 9 minutes)",
+              "No drum sample replacement (live drums priority)",
+              "No filter modulation as primary engine (live arrangement evolution priority)",
+              "No commercial-single economy (multi-section extended-form priority)"
+            ],
+            "what_makes_arrangement_unique_within_daft_punk": "Giorgio represents Daft Punk's MOST COMPOSITIONALLY-AMBITIOUS arrangement in the dissection — multi-section extended-form, live musicians, orchestral elements, spoken-word integration. Within Daft Punk catalog, this track stakes the FILM-SCORE-ADJACENT pole.",
+            "comparison_to_film_score_within_dissection_setup": "Reznor + Ross's documented film-scoring work (Social Network 2010, Girl with the Dragon Tattoo 2011) brought film-scoring discipline into NIN context (Hesitation Marks 2013, dissected as Copy of A). Daft Punk's RAM 2013 brought film-score-adjacent ambition into electronic-music context (Giorgio by Moroder dissected here). Both 2013-era electronic-music projects influenced by film-scoring discipline. Convergent evolution across dissection."
+          }
         }
       },
       "Radiohead": {
