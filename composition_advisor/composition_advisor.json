@@ -5683,9 +5683,50 @@
           "songs_to_dissect": ["March_Of_The_Pigs", "The_Day_The_World_Went_Away", "Were_In_This_Together", "The_Wretched", "The_Hand_That_Feeds", "Copy_Of_A"]
         },
         "March_Of_The_Pigs": {
-          "_status": "stub_pending_full_dissection_C4_1",
+          "_status": "C4_1a_composition_arrangement_done",
           "album": "The Downward Spiral",
-          "year": 1994
+          "year": 1994,
+          "tempo_bpm_documented_range": [262, 270],
+          "time_signature": "Documented as alternating 7/8 + 8/8 — five bars of 7/8 followed by one bar of 8/8 (or alternative: 7/8 grouped 3+2+2 with occasional 8/8 fill). Reznor documented the specific grouping. The asymmetric grouping creates a CONSTANTLY-OFF-BALANCE feel.",
+          "key_area": "C minor area / D-flat minor area (mode-blurred via aggressive textures)",
+          "tuning_documented": "Standard tuning (no documented detuning) — guitars + bass not the primary harmonic anchor; programmed/sample elements + Reznor's bass synth carry harmony",
+          "track_runtime": "~2:58",
+          "_special_status": "Track 4 on The Downward Spiral (1994) — Reznor's first single from the album. Functions as the album's MOST AGGRESSIVE + RHYTHMICALLY-EXTREME statement, demonstrating Reznor's industrial-rock vocabulary at maximum intensity. The asymmetric meter (7/8 + 8/8 alternation) is documented as Reznor's deliberate compositional choice — meter as TENSION DEVICE. Recorded at 10050 Cielo Drive (the Tate house) — documented context giving the album dark mythology.",
+          "composition": {
+            "primary_compositional_signature": "ASYMMETRIC METER (7/8 + 8/8 alternation) AT EXTREME TEMPO + INDUSTRIAL TEXTURES + SUDDEN DYNAMIC SHIFTS — the meter creates constant rhythmic tension; the tempo (~265 BPM) creates relentless forward pressure; the textures (programmed drums, distorted bass synth, processed guitars, screamed vocals) create maximal sonic aggression.",
+            "core_structural_arc": "Aggressive verse-style opening → first chorus (BRIEF MELODIC LIFT contrast — Reznor signature: hard-soft-hard within song) → return to aggression → second verse → second chorus (slightly extended melodic lift) → bridge intensification → final aggressive return → abrupt ending. Tight ~2:58 — extreme economy at extreme tempo.",
+            "harmonic_motion_summary": "MODE-BLURRED via aggressive textures. Tonic C/D-flat minor area, but harmonic identity often obscured by sample-textures + distortion-saturation. Brief melodic chorus sections REVEAL clearer harmony (typically modal-minor with quasi-pop voice-leading) before returning to texture-driven aggression. The HARMONIC CONTRAST between aggressive sections + melodic chorus is part of the song's identity.",
+            "characteristic_compositional_choice": "ASYMMETRIC METER + EXTREME TEMPO + HARD-SOFT-HARD CONTRAST WITHIN SECTIONS — Reznor signature compositional moves all deployed simultaneously. The hard-soft-hard contrast (aggressive verse → melodic chorus → aggressive verse) is documented as Reznor's deliberate compositional study of TENSION-RELEASE WITHIN A SONG, not just across sections.",
+            "comparison_to_industrial_predecessors": "Pigfaces, Ministry, Front 242 used asymmetric meter + industrial textures, but typically at lower tempo or without the melodic-chorus contrast. March of the Pigs adds INDUSTRIAL EXTREMITY + MELODIC CHORUS RELIEF — Reznor's POP SENSIBILITY embedded in industrial-extremity context.",
+            "comparison_to_zero_industrial_leaning_within_dissection": "Zero (Smashing Pumpkins, Mellon Collie 1995): industrial-INFLUENCED rock at moderate tempo with retained rock identity. March of the Pigs (NIN, Downward Spiral 1994): industrial AT ITS SOURCE at extreme tempo with sudden melodic-chorus contrast. Different production-philosophy signatures: Zero translates industrial INTO rock; March of the Pigs makes industrial FROM rock palette.",
+            "compositional_economy": "2:58 at ~265 BPM = ~785 beats compressed into under 3 minutes. EXTREME compositional economy — every section delivers maximal material at maximal speed. The asymmetric meter packs MORE INFORMATION per measure than 4/4 equivalent.",
+            "innovation_for_genre_context": "1994 industrial-rock context: NIN had broken through with Pretty Hate Machine (1989) + Broken (1992). March of the Pigs pushes the genre's RHYTHMIC EXTREMITY (asymmetric meter at extreme tempo) further while retaining MAINSTREAM-ACCESSIBLE melodic chorus. Single charted on alternative radio — proof that extreme industrial composition can reach mainstream when balanced with melodic relief."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "PROGRAMMED + LIVE HYBRID with AGGRESSIVE TEXTURE LAYERING — programmed drums + sample triggers + bass synth + processed guitars + Reznor screamed/sung vocals + sudden chorus reduction. The arrangement DEPLOYS contrast as compositional weapon.",
+            "intro_arrangement": "Brief sample/texture intro → aggressive full-band entry. No gradual build (Reznor's 1994 aesthetic favors immediate aggressive intent).",
+            "verse_arrangement": "Aggressive layered textures: programmed drums DRIVING at extreme tempo, distorted bass synth providing foundation, processed guitars providing rhythmic stabs + sustained noise, Reznor's vocal SCREAMED/RAGGED",
+            "first_chorus_arrangement": "DRAMATIC REDUCTION + MELODIC LIFT — programmed drums simplified (or paused), guitars cleaner, Reznor's vocal SUNG MELODICALLY. Brief moment of beauty within the aggression. Lasts only a few measures before aggressive return.",
+            "second_verse_arrangement": "Return to aggression, may include additional sample textures + intensified rhythmic emphasis",
+            "second_chorus_arrangement": "Melodic chorus extended slightly vs. first chorus, vocal more melodic projection",
+            "bridge_arrangement": "Brief intensification — possibly even more textural saturation, screamed vocal pushed to limit",
+            "outro_arrangement": "Aggressive return + abrupt ending — no fade, no resolution. Hard cut characteristic of industrial aesthetic.",
+            "programming_vs_live_balance": [
+              "Programmed drums: documented as DRIVING the tempo at ~265 BPM (live drumming at this tempo for 2:58 is challenging — programming reliable)",
+              "Live elements: Reznor's vocal, possibly some live guitar/bass overdubs",
+              "Sample triggers: documented industrial textures, percussion samples, ambient elements",
+              "Hybrid approach: programmed RELIABILITY + live PERSONALITY"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No gradual builds (immediate aggressive intent priority)",
+              "No traditional verse-chorus dynamic-arc structure (hard-soft-hard contrast within sections instead)",
+              "No live drums replacing programmed (programmed enables tempo extremity)",
+              "No fade-out (abrupt hard ending)"
+            ],
+            "what_makes_arrangement_unique_within_nin": "March of the Pigs represents NIN's MOST RHYTHMICALLY-EXTREME arrangement in this dissection. Reznor's most aggressive deployment of asymmetric meter + extreme tempo + sudden chorus contrast. Within NIN's catalog this is the AGGRESSIVE-EXTREME pole.",
+            "comparison_to_other_nin_aggression_levels": "March of the Pigs (1994): MAXIMUM extremity, asymmetric meter, ~265 BPM. The Hand That Feeds (2005): aggressive but at moderate tempo with clearer rock structure. The Wretched (1999): aggressive but at slower tempo with atmospheric layers. Three different NIN aggression scales.",
+            "comparison_to_zero_industrial_leaning": "Zero (Pumpkins): industrial-influenced, ~130 BPM, retained rock structure, drum-machine-evocative LIVE drums. March of the Pigs (NIN): industrial-source, ~265 BPM, asymmetric meter, programmed + live hybrid. Two industrial-related tracks at completely different scales of industrial commitment."
+          }
         },
         "The_Day_The_World_Went_Away": {
           "_status": "stub_pending_full_dissection_C4_2",
