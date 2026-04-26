@@ -12485,6 +12485,8 @@
       "drum_meter_pattern_groupings_natural_vs_academic": {
         "id": "drum_meter_pattern_groupings_natural_vs_academic",
         "rule": "When drumming odd meter (5/4, 7/4), choose the GROUPING that feels NATURAL to the song rather than the academically 'correct' one. 5/4 can be 3+2, 2+3, or even 1+1+1+1+1. Drummer's choice of grouping shapes the song's rhythmic identity.",
+        "electronic_translation": "When programming drums in odd meter (5/4, 7/4, 7/8), choose the IMPLIED GROUPING that fits the song's emotional intent rather than the academically default one. 5/4 can be 3+2 (rolling, dance-friendly), 2+3 (off-balance, tension-charged), or 1+1+1+1+1 (mechanical, IDM-aesthetic). 7/4 can be 4+3 (groove-leaning), 3+4 (Yes-prog-tradition), 2+2+3 (additive, shuffle-feel), or 3+2+2 (riff-spelling). Each grouping shapes the track's rhythmic identity differently. In Ableton: program kick + snare placements that AUDIBLY spell the grouping (kick on the first beat of each group); use velocity accents to reinforce the implied subdivision. Apply for: IDM rhythm-design tracks where grouping IS the puzzle, techno-experimental peak-time pieces with one signature odd-meter section, dub-techno additive-meter compositions, electronic-pop oddmeter signature songs. Pair with `five_four_groove_natural_via_groove_construction`.",
+        "electronic_target_genres": ["IDM", "techno", "dub_techno"],
         "applicability_text": "Odd-meter compositions where drummer has interpretive freedom; tracks where groove feel matters more than theoretical clarity; bands with drummers who internalize odd meters bodily.",
         "wow_factor": 0.70,
         "tier": "bronze",
@@ -12505,6 +12507,8 @@
       "same_team_different_mix_per_song": {
         "id": "same_team_different_mix_per_song",
         "rule": "Within an album session, the SAME engineer-producer team can apply DIFFERENT MIX PHILOSOPHIES per song based on each song's compositional intent. No single mix template imposed across the album. Producer's craft is interpretive, not template-driven.",
+        "electronic_translation": "On an album/EP project where YOU produce all tracks (or you + co-producer), apply DIFFERENT MIX PHILOSOPHIES per track based on each track's compositional intent — NOT a single album-wide mix template. Track 1 (peak-time): commercial-force chain (Vari-Mu 4dB GR, brightness shelf, -7 LUFS master). Track 2 (ambient interlude): raw-capture chain (no mix-bus comp, -14 LUFS, preserved spatial decay). Track 3 (intimate vocal piece): subtle-intervention chain (light EQ, dynamic preservation, -11 LUFS). Each track's mix decision serves ITS intent, not album consistency. Apply for: concept-album EPs (techno + ambient interludes coexisting), electronic-pop albums with ballads + bangers, neo-classical-electronic albums with dynamic-arc + sustained pieces, downtempo collections with track-specific shaping. The album's COHERENCE comes from compositional voice + sonic palette, NOT from uniform mastering.",
+        "electronic_target_genres": ["electronic_pop", "techno", "neo_classical_electronic"],
         "applicability_text": "Albums with diverse compositional intents per track; producer-band partnerships where producer has stylistic range; sessions where each song deserves its own mix decision.",
         "wow_factor": 0.65,
         "tier": "supporting",
@@ -12525,6 +12529,8 @@
       "bassist_dual_role_within_album": {
         "id": "bassist_dual_role_within_album",
         "rule": "Bassist plays DIFFERENT ROLES on different album tracks — supporting bass on some songs, melodically-leading bass on others, even compositional driver on co-written tracks. Bassist's range expands the album's compositional palette. Not just rhythm-section anchor.",
+        "electronic_translation": "The BASS-LINE plays DIFFERENT ROLES across the album/EP — supporting sub-bass anchor on some tracks, melodically-leading lead bass on others, compositional driver on at least one. Track 1: 808 sub-bass simply doubling the kick (rhythmic anchor). Track 2: Sub 37 melodic bass-line that drives the harmonic motion (compositional foreground). Track 3: TB-303-style acid bass that IS the track's hook (lead role). Track 4: pad-bass that blends with the mid-range pads (textural support). The bass's RANGE OF FUNCTION expands the album's compositional palette beyond rhythm-section anchor. Apply for: techno EPs with bass as primary identity-shaper, electronic-pop albums where bass-character defines tracks, dark-electronic concept albums with bass-foregrounded showcases, IDM compositional collections. Each role demands different processing: anchor-bass needs sidechain to kick; lead-bass needs character/saturation; compositional-driver bass needs harmonic clarity.",
+        "electronic_target_genres": ["techno", "electronic_pop", "dark_electronic"],
         "applicability_text": "Albums where bassist has compositional contributions; tracks where bass is foreground (vs. supporting) for specific songs; bands willing to feature bass beyond rhythm-section role.",
         "wow_factor": 0.60,
         "tier": "supporting",
