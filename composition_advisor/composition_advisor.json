@@ -10656,10 +10656,47 @@
           }
         },
         "Optimistic": {
-          "_status": "stub_pending_full_dissection_C7_3",
+          "_status": "C7_4a_composition_arrangement_done",
           "album": "Kid A",
           "year": 2000,
-          "_note": "One of the few rock-band-format songs on Kid A"
+          "_note": "One of the few rock-band-format songs on Kid A",
+          "tempo_bpm_documented_range": [88, 94],
+          "time_signature": "4/4 throughout",
+          "key_area": "C-sharp minor area / E minor area (with documented chord progression)",
+          "tuning_documented": "Standard tuning + Yorke vocal + minimal electronic processing",
+          "track_runtime": "~5:15",
+          "_special_status": "Track 7 on Kid A (2000). Functions as one of Kid A's MOST ROCK-BAND-FORMAT tracks — atypical within album that's mostly electronic-experimental. Demonstrates Radiohead's RETAINED ROCK-BAND CAPACITY within their reinvention period. Track is Yorke's documented response to despair via 'optimistic' lyric content (despite musical melancholy). Minimal electronic processing relative to other Kid A tracks.",
+          "composition": {
+            "primary_compositional_signature": "ROCK-BAND-FORMAT WITH RADIOHEAD COMPOSITIONAL VOCABULARY — built around Greenwood guitar riff + Selway drums + Colin Greenwood bass + Yorke vocal. Atypical within Kid A for retaining rock-band paradigm. Demonstrates Radiohead's range — same album that includes electronic-experimental (EIRP) + genre-clash (National Anthem) ALSO includes rock-band-format (Optimistic).",
+            "core_structural_arc": "Guitar riff intro + drums + bass enter → Yorke vocal enters → verse/chorus development → instrumental section + extended outro. Total ~5:15 — extended-form for compositional development.",
+            "harmonic_motion_summary": "MINOR-MODAL with riff-driven chord progression. Tonic C-sharp/E minor.",
+            "characteristic_compositional_choice": "ROCK-BAND-FORMAT WITHIN ELECTRONIC-EXPERIMENTAL ALBUM — Optimistic demonstrates Radiohead's RETAINED ROCK CAPACITY during Kid A reinvention period. Where most Kid A tracks abandon rock-band format, Optimistic deploys it. Compositional choice: SOME genre reinvention is too radical without anchor track in former vocabulary.",
+            "comparison_to_other_kid_a_dissection_tracks": "EIRP: minimum-element electronic-experimental (no drums). The National Anthem: locked rock + free-jazz brass genre-clash. Optimistic: rock-band-format. THREE different Radiohead Kid A compositional vocabularies — demonstrates album's range despite electronic-experimental reputation.",
+            "comparison_to_other_dissection_rock_band_format_tracks": "Most rock dissection bands maintain rock-band format throughout (Nirvana, Soundgarden, Pumpkins, QOTSA). Optimistic shows that rock-band format CAN COEXIST within electronic-experimental album when other tracks demonstrate range.",
+            "compositional_economy": "5:15 extended-form for rock-band development.",
+            "innovation_for_genre_context": "2000 alt-rock context: Optimistic demonstrates rock-band format's CONTINUED COMPOSITIONAL CAPACITY within electronic-experimental era. Doesn't reject rock; embeds it within larger genre-flexible album."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "ROCK-BAND-FORMAT (GUITAR + BASS + DRUMS + VOCAL) WITH RADIOHEAD COMPOSITIONAL VOCABULARY — atypical within Kid A.",
+            "intro_arrangement": "Guitar riff + drums + bass enter together",
+            "verse_arrangement": "Riff continues, Yorke vocal enters",
+            "chorus_arrangement": "Hook expansion with vocal projection",
+            "instrumental_section": "Brief instrumental development",
+            "outro_arrangement": "Extended outro with riff variations",
+            "rock_band_format_implications": [
+              "Live drums (Selway) + bass (Colin Greenwood) + guitars (Jonny Greenwood + others) + vocal (Yorke)",
+              "Minimal electronic processing relative to other Kid A tracks",
+              "Demonstrates retained rock-band capability during Kid A reinvention",
+              "Less sample manipulation than EIRP"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes",
+              "No vocal pitch correction",
+              "No imposed electronic processing (rock-band-format priority)"
+            ],
+            "what_makes_arrangement_unique_within_radiohead": "Optimistic represents Radiohead's RETAINED ROCK-BAND CAPACITY within Kid A reinvention period. Within Kid A's electronic-experimental aesthetic, this track stakes the ROCK-BAND-FORMAT pole.",
+            "comparison_to_other_kid_a_dissection_arrangements": "EIRP: drumless minimum-element electronic. The National Anthem: locked rock + free-jazz brass. Optimistic: standard rock-band-format. Three arrangement scales within Kid A."
+          }
         },
         "Pyramid_Song": {
           "_status": "C7_1c_complete_exhaustive",
