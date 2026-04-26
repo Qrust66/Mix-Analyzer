@@ -5395,7 +5395,7 @@
           }
         },
         "Zero": {
-          "_status": "C3_4a_composition_arrangement_done",
+          "_status": "C3_4b_performance_recording_done",
           "album": "Mellon Collie and the Infinite Sadness",
           "year": 1995,
           "tempo_bpm_documented_range": [126, 134],
@@ -5431,6 +5431,113 @@
             "what_makes_arrangement_unique_within_smashing_pumpkins": "Zero represents Pumpkins' MOST INDUSTRIAL-LEANING arrangement. Within Mellon Collie's broad range (orchestral Tonight Tonight, atmospheric Geek USA, intimate 1979, fast-aggressive Bodies, epic Cupid de Locke), Zero stakes the INDUSTRIAL-ADJACENT RHYTHMIC pole. Demonstrates the band's genre-blend willingness.",
             "comparison_to_bodies_arrangement": "Bodies: fast punk aggression with retained Pumpkins layering. Zero: medium-fast industrial textures with rhythmic emphasis. Different sub-genre influences expressed through different arrangement priorities.",
             "comparison_to_nin_industrial_arrangement_within_dissection_context": "Zero's industrial-leaning arrangement begins to overlap territory that NIN's catalog will demonstrate fully (March of the Pigs, etc. — to be dissected in C4 block). Zero is Pumpkins INFLUENCED BY industrial; March of the Pigs will be NIN MAKING industrial. Useful cross-band comparison emerging."
+          },
+          "performance": {
+            "tempo_feel_description": "DRIVING INDUSTRIAL-LEANING RHYTHM — 126-134 BPM at sustained intensity feels mechanically forward + rhythmically emphatic. The rhythm pocket is TIGHTER than typical Pumpkins (more industrial-style precision).",
+            "drum_style": {
+              "performer": "Jimmy Chamberlin",
+              "approach": "INDUSTRIAL-LEANING PRECISION + RHYTHMIC EMPHASIS — Chamberlin demonstrates capacity to play with industrial-adjacent rhythmic precision while retaining his rock + jazz vocabulary",
+              "specifics_documented": [
+                "Kick + snare patterns more INDUSTRIAL-STYLED — kick on 1+3 with subtle 8th/16th variations, snare strong on 2+4",
+                "Hi-hat 8ths driving forward with industrial-leaning consistency (mechanically tight)",
+                "Fewer technical fills than typical Chamberlin — fills serve rhythmic emphasis rather than displaying jazz vocabulary",
+                "Cymbal accents more deliberate / less ornamental",
+                "Rhythmic precision EVOKES industrial drum-machine aesthetic while remaining LIVE drumming"
+              ],
+              "comparison_to_chamberlin_other_pumpkins": "Quiet (Siamese Dream): driving rock + technical fills. Soma: dynamic-arc patience-to-power. Bodies: fast-tempo power. Zero: INDUSTRIAL-LEANING precision with reduced technical-fill display. Demonstrates Chamberlin's range — same drummer can play across rock, dynamic-arc, fast-aggressive, and industrial-leaning styles."
+            },
+            "guitar_style": {
+              "performers": "Billy Corgan + James Iha",
+              "rhythm_guitar_role": "RIFF-EMPHASIS with reduced harmonic-spread layering vs. Siamese Dream — fewer guitar layers, more rhythmic articulation per layer",
+              "specifics_documented": [
+                "Half-step-down tuning (E-flat standard)",
+                "Big Muff fuzz + tube amps (Mellon Collie palette including possible Mesa Boogie additions)",
+                "Layered tracking continues but with FEWER LAYERS than Quiet — Zero's industrial-emphasis serves better with tighter density",
+                "Picking precision required for industrial-leaning rhythmic articulation",
+                "Possible momentary unconventional textures (Flood+Moulder textural willingness) for industrial flavor"
+              ],
+              "playing_style_versus_other_smashing_pumpkins": "Zero guitars demonstrate Pumpkins' INDUSTRIAL-INFLUENCED guitar style. Where Quiet/Bodies use full layering, Zero uses TIGHTER LAYERING with rhythmic emphasis. Demonstrates Corgan's willingness to reduce his usual layering depth when compositional intent calls for it."
+            },
+            "bass_performance": {
+              "performer": "D'arcy Wretzky (with Corgan also tracking some bass)",
+              "approach": "INDUSTRIAL-LEANING ROOT-NOTE DRIVING — bass locks tightly with kick at industrial-style precision, less melodic activity than typical Pumpkins bass",
+              "specifics_documented": [
+                "Half-step-down-tuned bass",
+                "Tight rhythmic locking with kick — industrial-style bass-kick coordination",
+                "Pick attack for rhythmic clarity",
+                "Less melodic phrasing than other Pumpkins tracks — bass serves rhythm primarily"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Billy Corgan",
+              "verse_delivery": "AGGRESSIVE NASAL TENOR with industrial-leaning rhythmic placement — Corgan's vocal phrasing aligned with riff rhythmic emphasis rather than floating melodically",
+              "chorus_delivery": "Hook-emphasized chorus delivery, slight upper-register lift, vocal layering possible",
+              "documented_vocal_quirks": [
+                "Vocal phrasing aligned with rhythmic riff — phrasing tighter than typical Pumpkins",
+                "Multiple takes selected/comped per Flood+Moulder approach",
+                "Possible processed vocal textures (Flood+Moulder textural willingness extends to vocal treatment when compositionally appropriate)"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization (preserves Chamberlin's natural feel even at industrial-leaning precision)",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No tempo changes"
+            ]
+          },
+          "recording": {
+            "studio": "Pumpkinland (Corgan's Chicago studio) + Sadlands + The Village Recorder Los Angeles (Mellon Collie tracking locations)",
+            "session_dates": "1995 sessions",
+            "primary_producers": "Flood (Mark Ellis) + Alan Moulder + Billy Corgan (three-way producer credit, continued from Bodies)",
+            "primary_mix_engineer": "Alan Moulder",
+            "production_philosophy_at_zero": "Flood+Moulder's TEXTURAL EXPERIMENTATION reaches PEAK INFLUENCE on Zero. Where Bodies retained more straight-rock approach, Zero embraces industrial-leaning sonics MOST FULLY among the dissected Mellon Collie tracks. Moulder's NIN-mix-engineer experience particularly evident here.",
+            "drum_micing_approach": {
+              "philosophy_flood_moulder": "Multiple close mics + room mics with TEXTURAL PROCESSING WILLINGNESS — Flood's documented approach includes parallel-saturation + gated-reverb options + occasional drum-bus processing for industrial-adjacent character",
+              "specifics_for_zero": [
+                "Chamberlin's full kit miced extensively at Pumpkinland",
+                "Drum sound MORE PROCESSED than typical Pumpkins — Flood+Moulder's textural willingness deployed for industrial-leaning character",
+                "Possible drum-bus parallel saturation or gated reverbs for industrial flavor",
+                "Rhythmic articulation priority — drums must read as INDUSTRIAL-STYLE-PRECISE while remaining clearly LIVE"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_flood_moulder": "Layered tracking continues but with TIGHTER LAYER COUNT + textural variety — fewer layers, more sonic experimentation per layer",
+              "specifics_documented": [
+                "Half-step-down tuning",
+                "Big Muff + Marshall/Hiwatt/Mesa Boogie palette",
+                "Possible occasional unconventional tones (heavily-processed clean, ring-modulated, etc.) for industrial flavor",
+                "Each layer EQ'd at tracking for frequency-spread layering",
+                "Picking precision tracking — rhythmic articulation read clearly"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "DI + amp blend per Flood+Moulder approach. Tight bass-kick coordination required for industrial-style rhythm."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_flood_moulder": "Corgan vocal tracked with attention to industrial-leaning sonic character — possible processed vocal textures",
+              "specifics_documented": [
+                "Vocal isolation booth at Pumpkinland",
+                "Multiple takes selected/comped",
+                "Possible processed vocal effects (saturation, slight distortion) for industrial flavor"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Big Muff fuzz pedal",
+              "Marshall + Hiwatt + Mesa Boogie amps + possible processed-tone options",
+              "Half-step-down-tuned guitars + bass",
+              "Chamberlin's full kit at Pumpkinland",
+              "Pumpkinland's documented setup",
+              "Possible synthesizer/electronic textures for industrial flavor (Flood's documented willingness)"
+            ],
+            "what_makes_flood_moulder_recording_distinct_for_zero": [
+              "MAXIMUM TEXTURAL WILLINGNESS — Zero is among Mellon Collie's most industrial-leaning tracks, leveraging Flood+Moulder textural experimentation most fully",
+              "Drum sound more processed than typical Pumpkins — industrial-adjacent character",
+              "Reduced guitar layer count (vs. Quiet's wall) but with more sonic variety per layer",
+              "Possible electronic/synthesizer textures for industrial flavor",
+              "Vocal textures may be processed for industrial character"
+            ],
+            "comparison_to_bodies_recording": "Same album (Mellon Collie), same producers (Flood+Moulder+Corgan), same studio (Pumpkinland), same mixer (Moulder) — but DIFFERENT recording emphasis. Bodies tracked for fast-tempo straight-rock aggression. Zero tracked for industrial-leaning textural experimentation. Demonstrates Flood+Moulder's range within same album session.",
+            "production_philosophy_setup_for_nin_dissection": "Zero's industrial-leaning production sets up cross-band production comparison: when C4 NIN dissection begins (March of the Pigs etc.), we'll encounter Reznor's PURE industrial production approach. Zero shows Pumpkins INFLUENCED BY industrial via Moulder's NIN-mix-engineer translation. NIN tracks will show industrial AT ITS SOURCE. Useful production-philosophy continuity within dissection."
           }
         }
       },
