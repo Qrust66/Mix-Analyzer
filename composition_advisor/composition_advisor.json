@@ -9337,7 +9337,7 @@
           }
         },
         "Harder_Better_Faster_Stronger": {
-          "_status": "C6_2b_performance_recording_done",
+          "_status": "C6_2c_complete_exhaustive",
           "album": "Discovery",
           "year": 2001,
           "_note": "Vocoded vocal as primary melodic carrier",
@@ -9469,6 +9469,118 @@
               "Compositional evolution within same duo's catalog"
             ],
             "comparison_to_around_the_world_recording": "Around the World (Homework 1997): filter-house + extended-form + filter-modulation primary. HBFS (Discovery 2001): sample-based + pop-structure + vocoded-lead primary. Same duo, same home studio, evolved compositional + production approach."
+          },
+          "mixing": {
+            "mix_engineer": "Bangalter + de Homem-Christo (self-mixed)",
+            "mixing_studio": "Paris home studio",
+            "mixing_philosophy_daft_punk_for_hbfs": "POP-ELECTRONIC RADIO IMPACT + VOCODED VOCAL FORWARDNESS + SAMPLE INTEGRATION. Mix delivers commercial-radio impact while preserving sample foundation + vocoded lead vocal character.",
+            "drum_mix_balance": [
+              "Kick punchy + present — dance-floor + radio impact",
+              "Hi-hat + clap articulation prominent",
+              "Drum bus processing balanced for radio compatibility"
+            ],
+            "synth_and_sample_mix_treatment": [
+              "Edwin Birdsong sample FORWARD as compositional foundation",
+              "Additional synth layers blended above sample",
+              "Bass forward for dance-floor + radio impact",
+              "Less filter modulation than Around the World — sample provides primary motion"
+            ],
+            "vocoded_vocal_mix_treatment": [
+              "Vocoded vocal CENTERED + FORWARD as lead instrument",
+              "Effects (delay, reverb) on vocoder for spatial depth",
+              "Compression preserves vocoded character",
+              "Mix prioritizes vocoder intelligibility — lyrics audible despite vocoder processing"
+            ],
+            "spatial_treatment_pop_electronic": [
+              "Stereo field WIDE for radio impact",
+              "Reverb usage MODERATE — pop-electronic clarity priority",
+              "Plate or analog reverbs for warmth"
+            ],
+            "automation_used_in_mix": [
+              "Vocal level rides for vocoded delivery",
+              "Sample level rides for compositional emphasis",
+              "Reverb send automation for section transitions",
+              "Less extensive filter automation than Around the World"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying transient detail",
+              "No drum sample replacement",
+              "No human vocal replacement of vocoder",
+              "No traditional rock-mix template (electronic-pop priority)"
+            ],
+            "what_makes_daft_punk_mix_distinct_for_hbfs": [
+              "VOCODED VOCAL FORWARD as lead instrument",
+              "Sample integration with original content",
+              "Pop-electronic radio compatibility",
+              "Discovery-era mix evolution from Homework filter-house aesthetic"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Bob Ludwig (Discovery mastered — Bangalter + de Homem-Christo's first Ludwig collaboration; Ludwig becomes their preferred mastering engineer)",
+            "mastering_studio": "Gateway Mastering, Portland, Maine",
+            "mastering_philosophy_for_hbfs": [
+              "Ludwig's documented approach: high-end clarity + low-end weight + dynamic detail preservation",
+              "2001 album-level mastering — Discovery at peak loudness-war era but Ludwig preserves dynamics",
+              "Pop-electronic intent benefits from radio-impact + clarity emphasis"
+            ],
+            "loudness_observed": "Album average around -8 to -9 LUFS (2001 era).",
+            "spectral_signature": "Ludwig's documented sound: clear top-end, present mid-range, controlled aggressive low-end.",
+            "what_mastering_preserves_for_hbfs": [
+              "Vocoded vocal character",
+              "Sample integration clarity",
+              "Drum punch + dance-floor weight",
+              "Stereo image"
+            ],
+            "ludwig_thread_within_dissection_extending": "Bob Ludwig mastered: Nirvana In Utero (1993, with Albini), QOTSA Lullabies to Paralyze (2005, with Barresi), Daft Punk Discovery (2001, self-produced), Daft Punk RAM (2013). Multi-band Ludwig mastering thread within dissection."
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "VOCODED 'HARDER BETTER FASTER STRONGER' PHRASE + EDWIN BIRDSONG SAMPLE FOUNDATION — listeners hear Daft Punk at peak pop-electronic accessibility. Track became cultural meme + Kanye West sampled it on 'Stronger' (2007).",
+            "level_2_arrangement_signature": "SAMPLE FOUNDATION + VOCODED VOCAL FOREGROUND + ELECTRONIC POP STRUCTURE.",
+            "level_3_compositional_signature": "VOCODED VOCAL AS PRIMARY MELODIC CARRIER FOR FULL SONG CONTENT — Daft Punk demonstrate that vocoder can SUSTAIN full-song melodic-narrative role, not just instrument-fragment role. Influences subsequent vocoder + auto-tune-as-instrument tradition (T-Pain, Kanye West, Imogen Heap)."
+          },
+          "advisor_extract": {
+            "recipe_name": "vocoded_vocal_as_primary_melodic_carrier_with_sample_foundation",
+            "applicability": "Pop-electronic, sample-based dance-music, or any genre seeking vocoded vocal as PRIMARY MELODIC CARRIER FOR FULL SONG CONTENT. Use when vocoder character is desired as central compositional element + sample-based compositional approach.",
+            "core_compositional_recipes": [
+              {
+                "id": "vocoded_vocal_as_primary_melodic_carrier_full_song",
+                "rule": "Use VOCODED VOCAL as PRIMARY MELODIC CARRIER for FULL SONG CONTENT — not just instrument-fragment phrase. Vocoder masks vocal performance idiosyncrasies, transforming voice into MELODIC INSTRUMENT. Vocoder character distinct from auto-tune (different harmonic synthesis approach).",
+                "wow_factor": 0.85,
+                "documented_example": "Harder Better Faster Stronger (Daft Punk, Discovery 2001) — vocoded vocal as primary melodic carrier",
+                "trade_offs": "Loses vocal narrative + emotional dimension. Demands strong melodic content + vocoder character. Genre commitment.",
+                "personality_fit": "Daft Punk 60 / Reznor 25 / Yorke 10 / Cobain 5"
+              },
+              {
+                "id": "sample_based_compositional_foundation_with_documented_clearance",
+                "rule": "Build composition on SAMPLE LOOP from documented prior recording. Sample provides chord progression + groove + textural identity. Original content (vocal, additional synth, drums) layered above sample. Sample clearance documented + legitimized.",
+                "wow_factor": 0.80,
+                "documented_example": "Edwin Birdsong 'Cola Bottle Baby' sample as foundation for HBFS",
+                "trade_offs": "Requires sample clearance + documentation. Royalty obligations. Genre commitment to sample-based tradition.",
+                "personality_fit": "Daft Punk 50 / Cobain 25 / Reznor 15 / Yorke 10"
+              },
+              {
+                "id": "compositional_evolution_within_duo_catalog_homework_to_discovery",
+                "rule": "Within same duo's catalog, EVOLVE compositional approach across albums. Album 1: pure-genre approach (filter-house). Album 2: pop-accessibility evolution (sample-based + vocoded-lead). Demonstrates duo's range; expands audience reach without abandoning identity.",
+                "wow_factor": 0.79,
+                "documented_example": "Daft Punk: Homework 1997 (filter-house) → Discovery 2001 (pop-electronic + sample-based) — same duo evolution",
+                "trade_offs": "Risk of fan alienation if evolution too radical. Demands artistic confidence to challenge audience expectations.",
+                "personality_fit": "Daft Punk 50 / Reznor 30 / Yorke 15 / Cobain 5"
+              },
+              {
+                "id": "pop_song_structure_within_electronic_vocabulary",
+                "rule": "Apply POP-SONG STRUCTURE (verse-chorus-verse-chorus-bridge-chorus, ~3:30-4:00) within ELECTRONIC PRODUCTION VOCABULARY. Demonstrates electronic music's compositional flexibility — vocabulary and structure are independent axes.",
+                "wow_factor": 0.78,
+                "documented_example": "HBFS 3:45 pop-song structure with electronic production vocabulary",
+                "trade_offs": "Loses dance-music extended-form tradition. Demands strong hook + verse-chorus material.",
+                "personality_fit": "Daft Punk 50 / Cobain 25 / Reznor 15 / Yorke 10"
+              }
+            ],
+            "production_philosophy_signature_daft_punk_pop_electronic_evolution": {
+              "philosophy": "Same DUO AUTEUR self-produced framework as Homework applied to POP-ELECTRONIC + SAMPLE-BASED compositional evolution. Discovery-era aesthetic shift while retaining duo identity.",
+              "applicability": "Established electronic-music duos seeking pop-accessibility evolution while retaining identity",
+              "key_insight": "Auteur frameworks scale across compositional evolution. Same framework can support pure-genre album + pop-evolution album within same duo's catalog."
+            },
+            "structural_choice_summary": "Vocoded vocal as primary melodic carrier + Edwin Birdsong sample foundation + pop-song structure + duo auteur framework — HBFS demonstrates Daft Punk's POP-ELECTRONIC EVOLUTION pole. Compositional evolution from Homework filter-house to Discovery pop-accessibility."
           }
         },
         "Veridis_Quo": {
