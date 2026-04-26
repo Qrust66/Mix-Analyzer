@@ -12749,6 +12749,8 @@
       "modal_voicings_above_drone_replace_chord_progression": {
         "id": "modal_voicings_above_drone_replace_chord_progression",
         "rule": "Instead of standard chord progression (I-IV-V-I or i-VI-VII-i), use SUSTAINED MODAL VOICINGS above a drone foundation. Suspensions (sus2, sus4), modal inflections (Aeolian, Phrygian), and quartal/quintal voicings preserve harmonic openness while creating subtle motion.",
+        "electronic_translation": "Above a sustained drone (low D pedal), use SUSTAINED MODAL PAD VOICINGS rather than I-IV-V-I or i-VI-VII-i progressions. Layer: suspended voicings (Dsus2 = D-E-A, Dsus4 = D-G-A), modal inflections (D Aeolian = D-F-A, D Phrygian = D-Eb-A creating dark-modal color), quartal voicings (D-G-C, stacked 4ths — contemporary jazz tradition), quintal voicings (D-A-E, open + ambiguous). Voice on Diva or Massive pad patches with slow attack (200-500 ms) and long release (3-5 sec) so voicings BLEND across changes rather than punctuating. Apply for: ambient with harmonic interest beyond static drone (Stars of the Lid 'And Their Refinement of the Decline' modal layering), neo-classical-electronic with classical-modal vocabulary (Olafur Arnalds modal piano + synth pad voicings), dub-techno chord-pad work above bass-pedal (Basic Channel modal voicing tradition), drone-techno with subtle harmonic motion. Different from chord progressions — this is harmonic STASIS WITH SUBTLE COLOR-SHIFT.",
+        "electronic_target_genres": ["ambient", "neo_classical_electronic", "dub_techno"],
         "applicability_text": "Compositions with drone foundation; tracks where harmonic openness is desired over progression-driven motion; modal-vocabulary contexts.",
         "wow_factor": 0.78,
         "tier": "silver",
@@ -12769,6 +12771,8 @@
       "bassist_driven_compositional_identity": {
         "id": "bassist_driven_compositional_identity",
         "rule": "Allow the BASSIST to drive primary compositional identity (riff, structure, harmonic foundation) rather than always centering guitar riffs. Documented as Shepherd's role on Head Down — the bass drone IS the compositional engine.",
+        "electronic_translation": "Let the BASS-LINE drive primary compositional identity — the bass-line IS the track's structural engine, not the lead synth or vocal. Compose the bass-line FIRST as a complete piece (16-bar structure with internal tension/release shape), then arrange other elements AROUND it: drums fill in to support the bass's groove, lead synths echo or harmonize the bass-line's contour, pads provide harmonic context the bass implies. The bass-line's CHARACTER (TB-303 acid resonance, Sub 37 fat sub, Massive FM bass) defines the track's identity. Apply for: acid-techno where 303-line IS the track (Hardfloor / Plastikman tradition), industrial-techno bass-driven punishment tracks (Surgeon / Perc bass-as-foreground), dub-techno with bass-pedal as compositional anchor (Basic Channel / Rhythm & Sound), EBM signature bass-line tracks (Front 242 'Headhunter' bass-as-identity), funk-electro / electronic-pop where bass-line IS the song (Daft Punk 'Da Funk' tradition).",
+        "electronic_target_genres": ["techno", "dark_electronic", "EBM"],
         "applicability_text": "Bands willing to feature bassist as compositional driver; songs where bass-line is the song's primary identity; tracks where bassist co-writes or solo-writes.",
         "wow_factor": 0.76,
         "tier": "silver",
@@ -12789,6 +12793,8 @@
       "long_asymmetric_cycle_for_meditation_not_complexity": {
         "id": "long_asymmetric_cycle_for_meditation_not_complexity",
         "rule": "When using asymmetric meter (7/4, 5/4, 11/8), let the cycle feel LONG + MEDITATIVE rather than tight + complex. Slow tempos (80-95 BPM) + sustained instrumentation help listeners INHABIT the cycle rather than count it. Asymmetric meter as MEDITATIVE STRUCTURAL DEVICE not as virtuosic flex.",
+        "electronic_translation": "When using asymmetric meter (7/4, 5/4, 11/8), keep tempo SLOW (75-95 BPM) and instrumentation SUSTAINED so the cycle feels LONG + MEDITATIVE rather than tight + complex. Listener INHABITS the cycle rather than counts it. Pad-heavy texture with long release times, drum patterns that ANCHOR rather than display, bass-line that breathes across the full cycle. Resist the temptation to show off the odd-meter virtuosity — the discipline IS the statement. Apply for: drone-techno meditative pieces (Donato Dozzy, Voices From The Lake — slow asymmetric cycles), ambient with rhythmic foundation (slow 7/4 pulse under pads), neo-classical-electronic with classical odd-meter heritage (Olafur Arnalds 'Sudden Throw' adjacent), dub-techno additive-meter pieces (Basic Channel slow odd-cycles), trip-hop slow-meditative tracks. Different from `five_four_groove_natural` (lilting body-rock energy) — this is meter-as-MEDITATION at slower tempo. Pair with `seven_four_asymmetric_meter_as_structural_device` and `atmospheric_continuity_over_dynamic_contrast`.",
+        "electronic_target_genres": ["ambient", "techno", "dub_techno"],
         "applicability_text": "Atmospheric tracks using odd meter; songs where the meter should feel meditative; bands willing to slow asymmetric meter into hypnotic cycle territory.",
         "wow_factor": 0.79,
         "tier": "silver",
