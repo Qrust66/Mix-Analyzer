@@ -115,6 +115,122 @@ HARMONIC_PROGRESSIONS['aeolian_i_VI_VII_i'] = {
 }
 
 
+HARMONIC_PROGRESSIONS['phrygian_dark_descending'] = {
+    'id': 'phrygian_dark_descending',
+    'sources': [
+        ('Radiohead', 'Pyramid Song', 'piano chromatic chords inspired by Mingus Freedom'),
+        ('NIN', 'The Wretched', 'Phrygian-adjacent chromatic motion in atmospheric verses'),
+        ('Soundgarden', 'Head Down', 'modal voicings exploring dark color above drone'),
+    ],
+    'advisor_recipes': [
+        'mingus_freedom_chromatic_harmony_inspiration',
+        'modal_voicings_above_drone_replace_chord_progression',
+        'piano_composition_with_chromatic_harmony',
+    ],
+    'mode': 'phrygian',
+    # D Phrygian: ♭2 is the defining color (D-Eb-F-G-A-Bb-C)
+    # Progression: i → ♭II → ♭VII → i (Dm – Eb – C – Dm)
+    # The ♭II (Eb major) on top of D Phrygian is the dark/exotic flavor
+    'chords': [
+        {'root_interval': 0,  'voicing': 'min_triad', 'duration_beats': 4.0, 'roman': 'i',  'inversion': 0},
+        {'root_interval': 1,  'voicing': 'maj_triad', 'duration_beats': 2.0, 'roman': '♭II','inversion': 0},
+        {'root_interval': 10, 'voicing': 'maj_triad', 'duration_beats': 2.0, 'roman': '♭VII','inversion': 0},
+        {'root_interval': 0,  'voicing': 'min_add9',  'duration_beats': 8.0, 'roman': 'i',  'inversion': 0},
+    ],
+    'duration_total_beats': 16.0,
+    'time_sig': (4, 4),
+    'character_tags': ['phrygian', 'dark', 'chromatic', 'exotic', 'tension_resolution', 'modal_color'],
+    'transformations_allowed': [
+        'transpose', 'voicing_swap', 'inversion_swap', 'augment_diminish',
+    ],
+    'notes_on_use': (
+        'The ♭II (Eb major in Dm Phrygian) is the SOUL of this progression — leaning into '
+        'it for 2 beats then releasing creates the Phrygian "sigh". The final chord uses '
+        'min_add9 (Dm + E natural) for unresolved hovering color — pairs with sustained '
+        'lead-line on the tonic above. Use sparingly (once per breakdown / transition '
+        'section) — overuse desensitizes the ♭II color.'
+    ),
+}
+
+
+HARMONIC_PROGRESSIONS['dorian_sus_floating'] = {
+    'id': 'dorian_sus_floating',
+    'sources': [
+        ('Radiohead', 'Everything In Its Right Place', 'modal floating arpeggio above sustained pad'),
+        ('Daft Punk', 'Veridis Quo', 'sus voicings creating floating harmonic ambiguity'),
+        ('Soundgarden', 'Fell On Black Days', 'sus2/sus4 voicings before resolution'),
+    ],
+    'advisor_recipes': [
+        'sus_voicings_verse_with_drop_tuning_pedal',
+        'modal_voicings_above_drone_replace_chord_progression',
+        'voice_leading_clarity_via_synth_pad_layers',
+    ],
+    'mode': 'dorian',
+    # D Dorian: D-E-F-G-A-B-C — the natural 6 (B) distinguishes from Aeolian
+    # Progression: i_sus2 → IV → ii → i_sus4 (Dm9-G-Em-Dsus4)
+    # Sus voicings + IV major (G major in D Dorian) gives the floating-bright Dorian feel
+    'chords': [
+        {'root_interval': 0, 'voicing': 'sus2',     'duration_beats': 4.0, 'roman': 'i^sus2', 'inversion': 0},
+        {'root_interval': 5, 'voicing': 'maj_triad','duration_beats': 4.0, 'roman': 'IV',     'inversion': 0},
+        {'root_interval': 2, 'voicing': 'min_triad','duration_beats': 4.0, 'roman': 'ii',     'inversion': 0},
+        {'root_interval': 0, 'voicing': 'sus4',     'duration_beats': 4.0, 'roman': 'i^sus4', 'inversion': 0},
+    ],
+    'duration_total_beats': 16.0,
+    'time_sig': (4, 4),
+    'character_tags': ['dorian', 'sus', 'floating', 'ambiguous', 'modal_bright'],
+    'transformations_allowed': [
+        'transpose', 'voicing_swap', 'inversion_swap', 'augment_diminish',
+    ],
+    'notes_on_use': (
+        'The IV major (G in D Dorian) is what distinguishes Dorian from Aeolian — without '
+        'it, this is just minor. Progression starts and ends on sus voicings (no 3rd) so '
+        'tonic identity stays AMBIGUOUS — listener feels modal-floating, not minor-rooted. '
+        'Pair with sustained drone on tonic D underneath (any of the rhythmic motifs in low '
+        'register). At slow tempo (60-90 BPM) this becomes Eno-tradition ambient; at house '
+        'tempo (120-128) becomes filter-house-ambiguous.'
+    ),
+}
+
+
+HARMONIC_PROGRESSIONS['lydian_brightness_color'] = {
+    'id': 'lydian_brightness_color',
+    'sources': [
+        ('Daft Punk', 'Veridis Quo', 'classical-influenced lifts via #4 / Lydian color'),
+        ('Smashing Pumpkins', 'Soma', 'pre-explosion harmonic lift toward bright color'),
+        ('Radiohead', 'Optimistic', 'rock-anchor with bright modal color'),
+    ],
+    'advisor_recipes': [
+        'classical_influenced_chord_progression_in_electronic_context',
+        'voice_leading_clarity_via_synth_pad_layers',
+        'pre_chorus_ascending_arc_compositional_pairing',
+    ],
+    'mode': 'lydian',
+    # D Lydian: D-E-F#-G#-A-B-C# — the #4 (G#) is the defining color
+    # Progression: I → II → I_maj7 → V (D-E-Dmaj7-A) — using II major for the Lydian #4 hint
+    # In D Lydian: II = E major (with the F# raised to G# as Lydian #4 in melody)
+    'chords': [
+        {'root_interval': 0, 'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': 'I',     'inversion': 0},
+        {'root_interval': 2, 'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': 'II',    'inversion': 0},
+        {'root_interval': 0, 'voicing': 'maj7',      'duration_beats': 4.0, 'roman': 'I^maj7','inversion': 0},
+        {'root_interval': 7, 'voicing': 'maj_triad', 'duration_beats': 4.0, 'roman': 'V',     'inversion': 0},
+    ],
+    'duration_total_beats': 16.0,
+    'time_sig': (4, 4),
+    'character_tags': ['lydian', 'bright', 'lifting', 'classical_color', 'major_modal'],
+    'transformations_allowed': [
+        'transpose', 'voicing_swap', 'inversion_swap', 'augment_diminish',
+    ],
+    'notes_on_use': (
+        'Use SPARINGLY — Lydian color is potent and overused becomes new-age cliché. The '
+        'II major (E in D Lydian) is the surprise: in any major key II would be minor; '
+        'making it MAJOR signals Lydian. The maj7 voicing on I in chord 3 emphasizes the '
+        'major-modal lift. Pairs with pre_chorus_ascending_arc melodic motif (Phase 1a). '
+        'Best at moderate tempo (80-110 BPM) where the lift is felt; at fast tempo it '
+        'becomes wallpaper.'
+    ),
+}
+
+
 # ============================================================================
 # Render API — turn a harmonic progression into concrete MIDI notes
 # ============================================================================
