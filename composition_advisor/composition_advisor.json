@@ -10396,7 +10396,7 @@
           }
         },
         "The_National_Anthem": {
-          "_status": "C7_3a_composition_arrangement_done",
+          "_status": "C7_3b_performance_recording_done",
           "album": "Kid A",
           "year": 2000,
           "_note": "Free-jazz brass section over locked bass groove — genre clash",
@@ -10438,6 +10438,111 @@
             ],
             "what_makes_arrangement_unique_within_radiohead": "The National Anthem represents Radiohead's MOST GENRE-CLASHING + MOST JAZZ-INFLUENCED arrangement. Within Kid A this track stakes the GENRE-CLASH HYBRID pole.",
             "comparison_to_other_kid_a_dissection_arrangements": "EIRP: minimum-element electronic-experimental. The National Anthem: multi-element genre-clash. Different scales of arrangement complexity within Kid A."
+          },
+          "performance": {
+            "tempo_feel_description": "DRIVING LOCKED-GROOVE FORWARD MOTION — 128-134 BPM at locked rock-bass-groove tempo with brass section playing across foundation. Two layers feel different — groove is locked, brass is free.",
+            "drum_style": {
+              "performer": "Phil Selway",
+              "approach": "LOCKED ROCK GROOVE — Selway plays tight rhythm-section drumming supporting Colin Greenwood's bass-line, providing rhythmic foundation for free-jazz brass to play above",
+              "specifics_documented": [
+                "Tight kick + snare backbone driving 4/4",
+                "Hi-hat 8ths driving forward",
+                "Snare strong on 2+4",
+                "Drumming as RHYTHM-SECTION DISCIPLINE — supporting locked groove rather than expressionist playing",
+                "Different from Pyramid Song's deliberately ambiguous drumming — different track requires different drumming philosophy"
+              ]
+            },
+            "bass_style": {
+              "performer": "Colin Greenwood",
+              "approach": "LOCKED REPETITIVE BASS-LINE — Colin Greenwood's documented bass-line plays as compositional foundation that brass section plays above",
+              "specifics_documented": [
+                "Bass-line repeats tightly across track runtime",
+                "Foundation provides harmonic anchor for free-jazz brass",
+                "Pick attack + tight rhythmic locking with kick",
+                "Documented as Mingus-influenced (Mingus's locked-rhythm + free-horn approach)"
+              ]
+            },
+            "brass_section_style": {
+              "performers": "Documented session brass section (multiple horn players)",
+              "approach": "FREE-JAZZ EXPRESSIONISM — brass players given LIBERATION within Greenwood-arranged framework. Each player plays expressionist lines that interact with each other. Recorded LIVE TOGETHER for free-jazz interaction.",
+              "specifics_documented": [
+                "Multiple horn players: trumpets, saxophones, possibly trombone",
+                "Players recorded LIVE TOGETHER in same room for free-jazz interaction",
+                "Greenwood arranged framework but allowed free-jazz interpretation",
+                "Brass section reaches CACOPHONY peak — controlled chaos"
+              ]
+            },
+            "ondes_martenot_role": {
+              "performer": "Jonny Greenwood",
+              "approach": "ATMOSPHERIC SPECTRAL COLOR — Ondes Martenot adds spectral color among brass section + electronic textures",
+              "specifics_documented": [
+                "Greenwood's documented Ondes Martenot use across Kid A/Amnesiac",
+                "Pure-tone character distinct from brass + electronic textures"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Thom Yorke",
+              "approach": "MELODIC + EMOTIONAL — Yorke vocal carries melodic content above groove + brass",
+              "documented_vocal_quirks": [
+                "Multiple takes selected/comped",
+                "Vocal serves as foreground melodic anchor",
+                "Less falsetto than Pyramid Song — mid-register vocal"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization (preserves brass free-jazz expression)",
+              "No vocal pitch correction",
+              "No tempo changes (locked groove priority)",
+              "No imposed structure on brass (free-jazz priority)"
+            ]
+          },
+          "recording": {
+            "studio": "Various Kid A sessions including Medley Studios Copenhagen",
+            "session_dates": "1999-2000 sessions",
+            "primary_producer": "Nigel Godrich",
+            "primary_engineer": "Nigel Godrich",
+            "primary_mix_engineer": "Nigel Godrich",
+            "production_philosophy_for_national_anthem": "Same Godrich engineer-producer-mixer unified-role with band-creative-partnership framework applied to GENRE-CLASH compositional intent. Demonstrates Godrich's range across electronic-experimental (EIRP) + classical-informed (Pyramid Song) + genre-clash (National Anthem) within same Kid A/Amnesiac session period.",
+            "rhythm_section_recording_approach": {
+              "philosophy_godrich": "Locked rhythm section (Colin Greenwood bass + Selway drums) tracked together for tight groove foundation",
+              "specifics_documented": [
+                "Selway's full kit miced extensively",
+                "Bass DI + amp blend for tight low-frequency presence",
+                "Rhythm section tracked together for locked-groove cohesion"
+              ]
+            },
+            "brass_section_recording_approach": {
+              "philosophy_godrich": "Brass section recorded LIVE TOGETHER in same room for free-jazz interaction tradition",
+              "specifics_documented": [
+                "Multiple horn players recorded simultaneously",
+                "Multi-mic setup capturing each player + room ambience",
+                "Live recording preserves free-jazz interaction + spontaneity",
+                "Different approach from typical pop overdubbed-brass sections"
+              ]
+            },
+            "ondes_martenot_recording_approach": {
+              "specifics": "Greenwood's Ondes Martenot recorded with attention to its sine-wave-like pure tone character"
+            },
+            "vocal_tracking_approach": {
+              "philosophy_godrich": "Yorke vocal tracked with attention to melodic + emotional delivery",
+              "specifics_documented": [
+                "Vocal isolation booth at recording locations",
+                "Multiple complete takes selected/comped"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Selway's full kit",
+              "Colin Greenwood's bass + amp gear",
+              "Multiple brass instruments (session players)",
+              "Greenwood's Ondes Martenot",
+              "Medley Studios + Radiohead's own studios"
+            ],
+            "what_makes_godrich_recording_distinct_for_national_anthem": [
+              "GENRE-CLASH RECORDING — different recording approaches for locked rhythm-section + free-jazz brass",
+              "Brass section recorded LIVE TOGETHER for free-jazz interaction",
+              "Same Godrich unified-role framework adapted to genre-clash intent",
+              "Documented Mingus-influenced compositional + recording approach"
+            ]
           }
         },
         "Optimistic": {
