@@ -5982,7 +5982,7 @@
           }
         },
         "The_Day_The_World_Went_Away": {
-          "_status": "C4_2a_composition_arrangement_done",
+          "_status": "C4_2b_performance_recording_done",
           "album": "The Fragile",
           "year": 1999,
           "tempo_bpm_documented_range": [80, 86],
@@ -6027,6 +6027,115 @@
             "what_makes_arrangement_unique_within_nin": "TDTWWA represents NIN's MOST RESTRAINED + MOST EMOTIONALLY-VULNERABLE arrangement within this dissection. Where March of the Pigs maximizes density-aggression, TDTWWA minimizes density to maximize EMOTIONAL CLARITY. Demonstrates Reznor's range across opposite arrangement philosophies.",
             "comparison_to_other_fragile_atmospheric_tracks": "The Fragile (1999) album includes multiple atmospheric tracks (La Mer, The Frail, instrumental interludes). TDTWWA stands out as VOCAL-ATMOSPHERIC (where instrumental atmospheric pieces fill other album positions). Different atmospheric strategies within same album.",
             "comparison_to_atmospheric_tracks_in_other_dissection_artists": "TDTWWA atmospheric strategy: sustain-driven vocal-emotional. Overfloater: jam-band extended-bridge. Head Down: drone-foundation modal. Soma: dynamic-arc patient-build. Four different paths to atmospheric impact within the dissection — proves multiple compositional engines can produce atmospheric character."
+          },
+          "performance": {
+            "tempo_feel_description": "PATIENT REFLECTIVE — 80-86 BPM at restrained intensity feels meditative + emotionally invested. Tempo feels SLOWER than its BPM suggests due to atmospheric pacing.",
+            "drum_style": {
+              "performer_or_programmer": "Trent Reznor (programming + sample triggering — Fragile drum approach less drum-machine-aggressive than Downward Spiral, more atmospheric)",
+              "approach": "MINIMAL PROGRAMMED PERCUSSION + ATMOSPHERIC PROCESSING — Reznor's documented Fragile drum approach often uses sparse kick + subtle percussion samples + processed treatments rather than aggressive industrial-rhythm-emphasis",
+              "specifics_documented": [
+                "Sparse kick pulse — sometimes only on downbeats, with subtle variation",
+                "Snare or hand-percussion samples used selectively for accent",
+                "Possible atmospheric percussion samples (filtered metal, processed found-sounds) for textural variety",
+                "Drum density INCREASES VERY GRADUALLY across the song — paralleling the subtle build",
+                "No aggressive double-kick or fast-tempo programmed grooves"
+              ],
+              "comparison_to_march_of_the_pigs_drumming": "March of the Pigs (1994): MAXIMUM density programmed drums at extreme tempo, aggressive industrial-rhythm-emphasis. TDTWWA (1999): MINIMAL sparse programmed drums at moderate tempo, atmospheric-emphasis. Same programmer (Reznor), opposite drum philosophies.",
+              "philosophy_drum_machine_for_atmosphere_not_aggression": "Reznor demonstrates that the drum machine can serve ATMOSPHERIC-EMOTIONAL composition, not just aggressive-industrial. Programming as compositional tool for SUBTLE EMOTIONAL impact, not just for aggressive tempo extremity."
+            },
+            "guitar_style": {
+              "performers": "Trent Reznor (primary) — though guitar may be MINIMAL or possibly ABSENT in TDTWWA, with synth-pad textures replacing traditional rock-band guitar role",
+              "rhythm_guitar_role_or_absence": "MINIMAL — atmospheric synth pads carry harmonic foundation. Possible subtle clean/processed guitar texture, but not the song's primary harmonic instrument.",
+              "specifics_documented": [
+                "Documented Fragile sessions (Studios at the Edge of the World, New Orleans + Le Pig) included extensive synth-based composition work",
+                "Atmospheric synth pads (multiple layers) carry harmonic foundation",
+                "Possible processed clean guitar textures used selectively",
+                "If guitars present, they function as TEXTURAL COLOR not as harmonic primary"
+              ],
+              "playing_style_versus_march_of_the_pigs_guitars": "March of the Pigs: PROCESSED RHYTHMIC STABS + textural aggression. TDTWWA: MINIMAL/ABSENT or atmospheric textural color. Two opposite roles for guitars within Reznor's catalog."
+            },
+            "bass_performance": {
+              "performer": "Trent Reznor (synthesis + possibly some live bass)",
+              "approach": "ATMOSPHERIC SUB-BASS + MINIMAL HARMONIC ANCHOR — bass synth provides subtle low-frequency presence rather than driving rhythmic foundation",
+              "specifics_documented": [
+                "Sub-bass synth providing harmonic root — less distorted than March of the Pigs bass",
+                "Bass plays minimally — sustained notes or gentle pulses rather than rhythmic patterns",
+                "Possible additional bass layering for combined texture in chorus expansion"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Trent Reznor",
+              "verse_delivery": "QUIET + REFLECTIVE + EMOTIONALLY VULNERABLE — Reznor's most vulnerable vocal in NIN catalog. Sustained held phrases, breath-supported delivery, emotional rather than aggressive.",
+              "chorus_delivery": "Slight upper-register lift + emotional release — vocal opens up but stays restrained compared to typical rock chorus",
+              "second_chorus_delivery": "Slightly more invested than first chorus — emotional cumulative build",
+              "outro_delivery": "Recedes naturally with the atmospheric fade",
+              "documented_vocal_quirks": [
+                "Reznor's MOST VULNERABLE vocal performance in NIN catalog (1999 Fragile context: documented Reznor processing personal grief, addiction recovery period)",
+                "Long sustained phrases — breath control + emotional commitment required",
+                "Multiple complete takes selected/comped per Reznor's documented approach",
+                "Vocal processing CLEAN with reverb — opposite of March of the Pigs's saturated/distorted vocal aesthetic"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization (preserves natural feel of programmed elements)",
+              "No vocal pitch correction (raw emotional quality preserved)",
+              "No vocal layering as primary dynamic device — single vulnerable vocal carries emotional weight",
+              "No tempo changes",
+              "No abrupt ending"
+            ]
+          },
+          "recording": {
+            "studio": "Nothing Studios (New Orleans, Reznor's documented Fragile recording base) + various locations during Fragile's prolonged sessions",
+            "session_dates": "1996-1999 sessions (The Fragile had documented multi-year prolonged recording — Reznor's grief processing extended timeline)",
+            "primary_producer": "Trent Reznor (production credit)",
+            "primary_engineer": "Multiple Fragile engineers including Sean Beavan + others — documented as multi-engineer collaboration during Fragile",
+            "primary_mix_engineer": "Alan Moulder (Fragile mix throughout — Moulder's increasing role compared to Downward Spiral's more in-house mixing)",
+            "production_philosophy_evolution_reznor_at_fragile": "Reznor's auteur-producer model EVOLVED for Fragile (1999) — same single-creator-driven framework but with INCREASED COLLABORATION via Moulder mixing all tracks. Less in-house mixing than Downward Spiral. Still auteur-driven composition + production but with expanded collaboration in mix stage.",
+            "drum_micing_approach": {
+              "philosophy_reznor": "PROGRAMMED + SAMPLED foundation (continued from Downward Spiral) but with MORE ATMOSPHERIC SAMPLE LIBRARY — less industrial-aggressive samples, more textural/found-sound options",
+              "specifics_for_tdtwwa": [
+                "Sparse programmed kick + selective snare/percussion samples",
+                "Atmospheric percussion samples (filtered/processed) for textural color",
+                "Drum bus processing more atmospheric than industrial — possible long reverb tails on selected hits",
+                "Possible occasional live percussion overdubs miced for textural variety"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_reznor": "Minimal guitar role — synth-based composition primary. If guitars present, processed for atmospheric texture not aggressive crunch.",
+              "specifics_documented": [
+                "Possible processed clean guitar textures recorded with atmospheric reverb chains",
+                "Possible synth-pad textures replacing traditional guitar role entirely",
+                "Tracking philosophy: build atmospheric texture from synth + minimal guitar, less reliance on traditional rock-band guitar tracking"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "Bass synthesis primary — programmed synth bass with subtle saturation. Less distorted than March of the Pigs."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_reznor": "Reznor self-tracking with attention to emotional intimacy — Nothing Studios documented as comfortable creative environment for vulnerable vocal performance",
+              "specifics_documented": [
+                "Vocal isolation booth at Nothing Studios",
+                "Multiple complete takes selected/comped",
+                "Different processing chains for vocal — CLEANER + MORE REVERB than aggressive vocal tracks. Opposite end of Reznor vocal processing palette.",
+                "Vulnerable vocal performance required intimate recording environment + emotional commitment"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Multiple synthesizers (Reznor's expanded Fragile-era synth palette: Moog, Prophet, Roland, etc.)",
+              "Programmed drum tracks built in sequencer (Pro Tools era, 1996-1999)",
+              "Processed clean guitars (if present) with atmospheric reverb chains",
+              "Bass synthesis with subtle saturation",
+              "Nothing Studios documented setup at New Orleans"
+            ],
+            "what_makes_reznor_recording_distinct_for_tdtwwa": [
+              "AUTEUR-PRODUCER + EXPANDED COLLABORATION — Reznor still primary creator, but Moulder mixing brings external perspective",
+              "ATMOSPHERIC-FOUNDATION instead of programmed-aggression — same auteur framework adapted to atmospheric composition",
+              "Minimum-viable-element-count tracking — fewer elements but each tracked with maximum care",
+              "Vulnerable vocal performance demands intimate tracking environment",
+              "Multi-year prolonged recording timeline (1996-1999) reflects Reznor's grief-processing context"
+            ],
+            "comparison_to_march_of_the_pigs_recording": "March of the Pigs (1994, Le Pig, Reznor+Beavan in-house mixing): pure auteur, programmed-aggression foundation, dark mythology recording site. TDTWWA (1999, Nothing Studios + Moulder mix): auteur with expanded collaboration, atmospheric-foundation, longer recording timeline. SAME ARTIST'S RECORDING APPROACH EVOLVED across 5 years and across opposite-pole compositional intents.",
+            "production_philosophy_evolution_within_nin_catalog": "Downward Spiral (1994): Reznor pure auteur, in-house mix. Fragile (1999): Reznor auteur with Moulder mixing, expanded collaboration. With Teeth (2005): Reznor auteur with Atticus Ross production partner emerging + Dave Grohl on drums. Hesitation Marks (2013): Reznor + Ross modular-electronic evolution. Reznor's auteur framework expands to MORE COLLABORATION across catalog while retaining auteur identity."
           }
         },
         "Were_In_This_Together": {
