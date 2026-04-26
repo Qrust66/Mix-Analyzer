@@ -7767,10 +7767,45 @@
           }
         },
         "Six_Shooter": {
-          "_status": "stub_pending_full_dissection_C5_2",
+          "_status": "C5_2a_composition_arrangement_done",
           "album": "Songs for the Deaf",
           "year": 2002,
-          "_note": "Vocals primarily by Nick Oliveri (his hardcore/punk-style screamed delivery contrasts with Homme's elsewhere on album)"
+          "_note": "Vocals primarily by Nick Oliveri (his hardcore/punk-style screamed delivery contrasts with Homme's elsewhere on album)",
+          "tempo_bpm_documented_range": [184, 192],
+          "time_signature": "4/4 throughout",
+          "key_area": "E minor area / F minor area (chromatic riff motion)",
+          "tuning_documented": "Drop D tuning (Songs for the Deaf convention)",
+          "track_runtime": "~3:08",
+          "_special_status": "Track 6 on Songs for the Deaf (2002) — IMMEDIATELY follows First It Giveth in album sequence. Functions as the album's PUNK-AGGRESSION + HARDCORE-INFLUENCED track, demonstrating Nick Oliveri's documented contribution to QOTSA's range. Where First It Giveth establishes mid-tempo robot-rock groove, Six Shooter pushes into PUNK SPEED + SCREAMED VOCAL territory. Demonstrates album's tonal range: same band can do mid-tempo groove (FIG) AND punk-aggression (Six Shooter) on adjacent tracks.",
+          "composition": {
+            "primary_compositional_signature": "PUNK-HARDCORE AGGRESSION AT FAST TEMPO + OLIVERI-LED SCREAMED VOCAL — built around Oliveri's documented hardcore-punk vocal aesthetic (his Mondo Generator side project demonstrates this direct hardcore-punk lineage). Compositional engine is FAST AGGRESSIVE PUNK ECONOMY rather than robot-rock-groove.",
+            "core_structural_arc": "Aggressive intro → screamed verse → chorus hook → riff return → verse 2 → chorus → bridge intensification → final chorus + abrupt ending. Tight 3:08 — even more compressed than First It Giveth. Compositional 'movement' compressed by fast tempo + punk economy.",
+            "harmonic_motion_summary": "MINOR-MODAL with chromatic punk-style riff motion. Tonic E/F minor with movement to relative areas via chromatic chord shifts. Voice-leading punk-rock-craft (Oliveri's documented hardcore lineage).",
+            "characteristic_compositional_choice": "OLIVERI-LED HARDCORE-PUNK VOCAL + AGGRESSIVE PUNK-SPEED TEMPO — demonstrates QOTSA's compositional range allows entrusting vocal lead to bassist (Oliveri) for tracks suited to his hardcore aesthetic. Compositional democracy within Songs for the Deaf — multiple band members can lead vocals depending on song's demands.",
+            "comparison_to_first_it_giveth_within_qotsa": "First It Giveth (mid-tempo robot-rock groove, Homme baritone vocal): 3:19, 126-132 BPM. Six Shooter (fast punk-hardcore aggression, Oliveri screamed vocal): 3:08, 184-192 BPM. Two adjacent tracks demonstrating album's tonal range.",
+            "comparison_to_other_dissection_punk_speed_tracks": "Territorial Pissings (Nirvana 1991): 187 BPM with Cobain screamed vocal, hardcore-punk-influenced. Bodies (Pumpkins 1995): 148-156 BPM punk-influenced. Six Shooter (QOTSA 2002): 184-192 BPM with Oliveri screamed hardcore vocal. Three different punk-speed tracks within dissection — different production-vocabulary contexts.",
+            "compositional_economy": "3:08 punk economy — every section delivers material at maximum compression. Compositional movement compressed by fast tempo.",
+            "innovation_for_genre_context": "2002 alt-rock context: punk-hardcore was less mainstream than during 1990s grunge era. Six Shooter's contribution: PROOF that established mainstream-stoner-rock band can deliver punk-aggression credibly via band-member-vocal-lead democracy. Oliveri's documented Mondo Generator hardcore credibility legitimizes the track."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "AGGRESSIVE POWER-TRIO PUNK-HARDCORE — same Homme + Oliveri + Grohl trio foundation as First It Giveth but deployed at PUNK-SPEED + AGGRESSIVE INTENSITY. Lean arrangement, no guest harmony, no atmospheric layers.",
+            "intro_arrangement": "Aggressive riff opens with full-band entry — Grohl drums + Homme guitar + Oliveri bass at full intensity",
+            "verse_arrangement": "Riff continues, Oliveri SCREAMED VOCAL enters, Grohl drives at fast tempo, Homme + Oliveri instruments locked tight",
+            "chorus_arrangement": "Hook expansion, screamed vocal projects, density retained",
+            "verse_2_arrangement": "Returns to verse density",
+            "second_chorus_arrangement": "Slight intensification",
+            "bridge_arrangement": "Brief intensification — possibly rhythm break or hardcore-style breakdown",
+            "outro_arrangement": "Final chorus + abrupt punk-style ending",
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained punk-speed)",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No atmospheric layers (punk-economy aesthetic)",
+              "No extended sections"
+            ],
+            "what_makes_arrangement_unique_within_qotsa": "Six Shooter represents QOTSA's PUNK-AGGRESSION pole — fastest tempo + most-aggressive vocal in dissection. Demonstrates band's COMPOSITIONAL DEMOCRACY (Oliveri-led tracks vs. Homme-led tracks).",
+            "comparison_to_first_it_giveth_arrangement": "First It Giveth: power-trio + Lanegan harmony, mid-tempo groove. Six Shooter: power-trio only, punk-speed aggression, screamed vocal. Same trio core, opposite arrangement intents."
+          }
         },
         "A_Song_For_The_Dead": {
           "_status": "stub_pending_full_dissection_C5_3",
