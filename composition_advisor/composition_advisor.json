@@ -12925,6 +12925,8 @@
       "wallace_stereo_width_maximization_mix": {
         "id": "wallace_stereo_width_maximization_mix",
         "rule": "When mixing wall-of-sound arrangements, maximize STEREO WIDTH via aggressive L/R panning of guitar layers + frequency-spread EQ. Vocal forward in mix to read clearly above density. Drums punchy + present (carry tracking-stage parallel compression through). Reverb moderate — layering itself provides spatial depth.",
+        "electronic_translation": "When mixing wall-of-pads/wall-of-synths arrangements, MAXIMIZE STEREO WIDTH via aggressive L/R panning of synth layers + frequency-spread EQ + complementary stereo-imaging tools (Ozone Imager, Pro-Q3 mid-side EQ). Each pad layer panned to a unique L/R position (hard L, soft L, center-L, center-R, soft R, hard R). Vocal/lead-synth forward in the mix to read clearly above density (high-pass at 100Hz, presence boost +2dB at 4kHz). Drums punchy + present (parallel compression bus carrying through). Reverb MODERATE — layering itself provides spatial depth, don't drown the wall in extra reverb. Apply for: synthwave wall-of-sound choruses (Carpenter Brut / Kavinsky maximalist mixes), techno peak-time density mixes, dark-electronic peak-density tracks, electronic-pop choruses with maximum-stereo impact (Daft Punk Discovery wall-of-arpeggios). Verify mono-compatibility — stereo-maximization can collapse on phone speakers.",
+        "electronic_target_genres": ["synthwave", "electronic_pop", "techno"],
         "applicability_text": "Wall-of-sound mix sessions; tracks where stereo impact is part of the song's compositional intent; commercial-rock contexts.",
         "wow_factor": 0.78,
         "tier": "silver",
@@ -12967,6 +12969,8 @@
       "density_arc_arrangement_sparse_to_wall": {
         "id": "density_arc_arrangement_sparse_to_wall",
         "rule": "Arrange so density GROWS across the song — start with minimum elements (clean guitar + sparse drums), add layers progressively, peak at maximum density during explosion, resolve to minimum at outro. Each section ADDS rather than reshuffles.",
+        "electronic_translation": "Arrange so DENSITY GROWS ACROSS THE TRACK — start with minimum-elements (1-2 elements: pad + sub-bass, or piano + ambient bed), ADD LAYERS progressively at section boundaries, peak at maximum density during the drop/peak (8-12 layers), resolve to minimum at outro. Each section ADDS rather than reshuffles. Track in Ableton's Arrangement View, set clip-launch quantization to 4 bars, lay each new layer onto its own track at its entry point. Apply for: techno arrangement-view tradition (peak-time builds), trip-hop density arcs (Massive Attack 'Teardrop'-tradition build-to-peak-to-resolve), neo-classical-electronic emotional density arcs (Olafur Arnalds 'Near Light' sparse-to-orchestral builds), electronic-pop song-form choruses, ambient density-arc compositions. Different from `extended_dynamic_arc_6_min` (which is the temporal frame) — this is the LAYER-COUNT mechanism within that frame. Pair with `selective_distortion_deployment_across_arc` for full timbral-arc support.",
+        "electronic_target_genres": ["techno", "trip_hop", "neo_classical_electronic"],
         "applicability_text": "Dynamic-arc songs where arrangement growth is the build mechanism; tracks needing visible 'fillout' from sparse to wall.",
         "wow_factor": 0.84,
         "tier": "gold",
@@ -12987,6 +12991,8 @@
       "selective_distortion_deployment_across_arc": {
         "id": "selective_distortion_deployment_across_arc",
         "rule": "DEPLOY distortion selectively across the song's dynamic arc — clean in intro/early verses, partial distortion in first chorus (preview), FULL distortion in explosion. Distortion as COMPOSITIONAL CHOICE, not as constant texture.",
+        "electronic_translation": "DEPLOY SATURATION/DISTORTION SELECTIVELY across the track's arc, NOT as constant texture. Intro: clean signal-chain (no Saturator, no Decapitator wet, no drive). Early verses: 5-10% saturation introduced subtly (Saturator at 0.2 drive, dry/wet 30%). First chorus: 30-50% saturation (preview the climax). Bridge build: ramp saturation toward peak via automation envelopes. Drop/peak: FULL saturation chain (Decapitator + Saturator + Pedal in series, hard-clipping on bus). Outro: saturation fades back as layers drop. Distortion as COMPOSITIONAL CHOICE on automation lanes, not as set-and-forget. Apply for: techno density arcs (saturation-as-section-marker), industrial-techno compositional builds, dark-electronic dynamic-arc tracks, synthwave emotional climbs (clean-Juno verse → saturated-lead chorus), trip-hop saturation-as-narrative compositions. Pair with `density_arc_arrangement_sparse_to_wall` and `extended_dynamic_arc_six_plus_minutes_patient_build`.",
+        "electronic_target_genres": ["techno", "dark_electronic", "synthwave"],
         "applicability_text": "Dynamic-arc rock songs; tracks where guitar tone shift marks structural progression; multi-track guitar capacity.",
         "wow_factor": 0.82,
         "tier": "gold",
