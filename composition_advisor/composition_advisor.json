@@ -12419,6 +12419,8 @@
       "obrien_moderate_compression_for_dynamic_shift_songs": {
         "id": "obrien_moderate_compression_for_dynamic_shift_songs",
         "rule": "When mixing dynamic-arc songs (verse quiet, chorus loud), use MODERATE compression rather than maximum — preserve the quiet-loud contrast that the composition relies on. Brendan O'Brien's documented Superunknown approach: shape impact at chorus without flattening verse intimacy.",
+        "electronic_translation": "When mixing dynamic-arc electronic tracks (quiet A-section, loud B-section), use MIX-BUS COMPRESSION TUNED FOR PRESERVATION rather than glue: SSL G-bus or Vari-Mu set to 1-2dB GR ON CHORUS PEAKS but releasing fully on verses (slow-attack 30ms, fast-release 100ms). The verse breathes; the chorus glues. Master at -10 to -11 LUFS rather than -7 (commercial-loudness will kill the dynamic delta the composition depends on). Apply for: synthwave verse-chorus tracks, electronic-pop with dynamic-arc choruses (Daft Punk Discovery LUFS-conservative masters), trip-hop with quiet-loud (Portishead masters preserve verse intimacy), neo-classical-electronic emotional dynamic-arc pieces. Verify on small speakers: the contrast must read on phones, not just on monitors. Pair with `clean_to_distorted_dynamic_shift_traditional` for dynamic-arc compositions.",
+        "electronic_target_genres": ["synthwave", "electronic_pop", "trip_hop"],
         "applicability_text": "Mix decisions on dynamic-arc material; songs where over-compression would destroy the verse-chorus contrast; producer-mixer-split workflows.",
         "wow_factor": 0.65,
         "tier": "supporting",
@@ -12439,6 +12441,8 @@
       "vocal_subselective_range_use": {
         "id": "vocal_subselective_range_use",
         "rule": "Vocalist with documented wide range chooses to deploy ONLY a NARROW SUB-RANGE for the song. Restraint as compositional choice — the wide-range capacity is RESERVED rather than displayed. Listener experiences vocal restraint as artistic discipline, not lack of capacity.",
+        "electronic_translation": "When vocalist has documented wide range, restrict the song's melodic line to a NARROW REGISTER (5-7 semitones max, no leaps to upper tessitura) — restraint as compositional choice. The vocal-acrobatic capacity is RESERVED for other tracks; this track's emotional weight comes from CONTAINMENT. For instrumental tracks, apply the same principle to lead synth: pick a 5-7 semitone melodic range and stay there for the entire piece — the discipline IS the statement. Apply for: trip-hop reflective tracks (Portishead 'Roads'-tradition narrow-register vocal weight), neo-classical-electronic intimate vocal moments (Olafur Arnalds collaborations with Arnor Dan, restrained delivery), ambient-with-melody pieces (the melodic line confines itself to give the harmony space), downtempo evening listening. Different from `vocal_high_range_exploitation_as_signature` (which displays range) — this RESERVES range. Listener feels the unspoken capacity beneath the restraint.",
+        "electronic_target_genres": ["trip_hop", "neo_classical_electronic", "ambient"],
         "applicability_text": "Songs by vocalists known for wide range (Cornell, Mercury, Plant) that benefit from sub-selective restraint; tracks where vocal acrobatics would compete with arrangement; intimate sections within otherwise dynamic albums.",
         "wow_factor": 0.65,
         "tier": "supporting",
@@ -12459,6 +12463,8 @@
       "five_four_groove_natural_via_groove_construction": {
         "id": "five_four_groove_natural_via_groove_construction",
         "rule": "Compose in 5/4 meter but construct the groove so it FEELS NATURAL rather than mathematically odd. Group beats as 3+2 or 2+3 and build melodic + bass phrases that spell the groupings naturally. Listener feels the lilt without analyzing the meter.",
+        "electronic_translation": "Compose in 5/4 (set DAW time-sig to 5/4) but program drums + bass-line + melodic motifs so the groove feels NATURAL via implicit grouping (3+2 or 2+3). Kick on 1 + 4 (3+2 grouping) or 1 + 3 (2+3 grouping). Bass-line phrase resolves on the 5/4 cycle, not the 4/4 cycle the listener might expect. Build melodic phrases that spell the grouping naturally so listener feels the LILT without analyzing the meter. Apply for: IDM 5/4 groove-tracks (early Squarepusher, Aphex Twin 'Donkey Rhubarb' 5/4 sections), techno-experimental with one 5/4 mid-track section, electronic-pop oddmeter signature songs (Radiohead '15 Step' 5/4-adjacent influence on electronic-pop), neo-classical-electronic with classical odd-meter tradition. The DISCIPLINE: the listener should be able to body-rock to the 5/4 without counting; if they're counting, the groove construction failed.",
+        "electronic_target_genres": ["IDM", "electronic_pop", "neo_classical_electronic"],
         "applicability_text": "Songs wanting odd-meter character without virtuosic complexity; tracks where rhythmic playfulness is the goal; bands with rhythm sections fluent in odd meters.",
         "wow_factor": 0.80,
         "tier": "gold",
