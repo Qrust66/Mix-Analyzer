@@ -8307,7 +8307,7 @@
           }
         },
         "Medication": {
-          "_status": "C5_4a_composition_arrangement_done",
+          "_status": "C5_4b_performance_recording_done",
           "album": "Songs for the Deaf",
           "year": 2002,
           "tempo_bpm_documented_range": [126, 134],
@@ -8341,6 +8341,106 @@
             ],
             "what_makes_arrangement_unique_within_qotsa": "Medication represents QOTSA's MAXIMUM COMPRESSED-ECONOMY pole + LANEGAN-LED VOCAL pole. Within Songs for the Deaf range, Medication stakes the SHORT-FORM + LANEGAN-LEAD position.",
             "comparison_to_other_lanegan_contributions_in_dissection": "First It Giveth: Lanegan as harmony GUEST. Medication: Lanegan as LEAD VOCAL. Demonstrates Lanegan's range from harmony contributor to lead vocalist within same album."
+          },
+          "performance": {
+            "tempo_feel_description": "MID-TEMPO COMPRESSED-ECONOMY GROOVE — 126-134 BPM at sustained intensity within 1:55 runtime feels TIGHT + PURPOSEFUL. No room for relaxation; every measure delivers material.",
+            "drum_style": {
+              "performer": "Dave Grohl",
+              "approach": "RESTRAINED PRECISION — Grohl plays compressed-economy drumming, no extended fills, every hit purposeful within tight runtime",
+              "specifics_documented": [
+                "Kick + snare backbone driving 4/4 at ~130 BPM",
+                "Hi-hat 8ths driving forward",
+                "Snare strong on 2+4",
+                "Minimal fills — compression aesthetic doesn't allow room for technical display",
+                "Cymbal accents articulate brief transitions"
+              ],
+              "comparison_to_grohl_other_songs_for_the_deaf_drumming": "First It Giveth: groove-conscious mid-tempo. Six Shooter: punk-speed power. A Song for the Dead: technical drum feature. Medication: RESTRAINED COMPRESSED PRECISION. Four different Grohl approaches within same album."
+            },
+            "guitar_style": {
+              "performers": "Josh Homme",
+              "rhythm_guitar_role": "COMPRESSED RIFF + DESERT-ROCK SENSIBILITY — Homme adapts robot-rock vocabulary to extreme-economy context",
+              "specifics_documented": [
+                "Drop D tuning",
+                "Tube amps with moderate distortion",
+                "Riff-driven verses with chromatic motion",
+                "Picking precision required for compressed-tempo execution",
+                "Less micro-variation than First It Giveth (compression aesthetic doesn't allow same hypnotic-repetition luxury)"
+              ]
+            },
+            "bass_performance": {
+              "performer": "Nick Oliveri",
+              "approach": "TIGHT GROOVE-LOCK + COMPRESSED ECONOMY — Oliveri's bass anchors the foundation efficiently",
+              "specifics_documented": [
+                "Drop D-tuned bass",
+                "Tight rhythmic locking with Grohl's kick",
+                "Pick attack for rhythmic clarity"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Mark Lanegan (lead vocal)",
+              "secondary_vocal_performer": "Possible Homme backing vocal",
+              "verse_delivery": "WHISKEY-BARITONE LANEGAN — his documented Screaming Trees + solo material vocal lineage deployed in QOTSA context",
+              "chorus_delivery": "Sustained whiskey-baritone projection with possible Homme backing",
+              "documented_vocal_quirks": [
+                "Lanegan's WHISKEY-BARITONE distinct from Homme's MELODIC BARITONE — different tonal areas within same vocal range category",
+                "Multiple complete takes per Valentine production",
+                "Less vocal layering than First It Giveth (compression aesthetic)"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization (preserves natural feel)",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No tempo changes",
+              "No technical drumming display (compression aesthetic priority)"
+            ]
+          },
+          "recording": {
+            "studio": "The Sound Factory + various Songs for the Deaf locations",
+            "session_dates": "2002 sessions",
+            "primary_producers": "Eric Valentine + Josh Homme",
+            "primary_mix_engineer": "Eric Valentine",
+            "production_philosophy_for_medication": "Same Valentine engineer-producer-mixer unified-role framework applied to EXTREME COMPRESSED ECONOMY + LANEGAN LEAD VOCAL compositional intent. Demonstrates Valentine's range across diverse Songs for the Deaf compositional intents.",
+            "drum_micing_approach": {
+              "philosophy_valentine": "Multiple close mics + room mics adapted to compressed-economy context — drums captured with attention to compression-economy rather than feature-spotlight",
+              "specifics_for_medication": [
+                "Grohl's full kit miced extensively",
+                "Compression + EQ at tracking for compressed-economy drum sound",
+                "Less room-mic blending than extended-form tracks — compression aesthetic favors tight stereo"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_valentine_homme": "Compressed-economy guitar tracking — fewer layers, each layer essential",
+              "specifics_documented": [
+                "Drop D tuning",
+                "Tube amps",
+                "Possible double-tracked rhythm for stereo width",
+                "Tight transient detail emphasis"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "DI + amp blend, tight low-frequency response."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_valentine_lanegan": "Lanegan vocal tracked with attention to whiskey-baritone capture — different processing palette than Homme baritone or Oliveri scream",
+              "specifics_documented": [
+                "Vocal isolation booth at The Sound Factory",
+                "Multiple complete takes for Lanegan",
+                "Possible Homme backing vocal tracked separately"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Drop D tuned guitars + bass",
+              "Tube amps",
+              "Grohl's full kit",
+              "The Sound Factory's documented setup"
+            ],
+            "what_makes_valentine_recording_distinct_for_medication": [
+              "EXTREME COMPRESSED-ECONOMY tracking — tight 1:55 doesn't allow extended layering or experimentation",
+              "Lanegan-led vocal tracking distinct from Homme-led tracks",
+              "Same unified-role framework deployed for compression-economy + vocal-democracy compositional intent",
+              "Demonstrates Valentine's range across Songs for the Deaf"
+            ]
           }
         },
         "Everybody_Knows_That_Youre_Insane": {
