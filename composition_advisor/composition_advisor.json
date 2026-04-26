@@ -25895,8 +25895,2334 @@
       }
     },
     "conflict_pairs": {
-      "_note": "Empty placeholder; will be populated in step A12. Each conflict pair is a logical contradiction between two recipes' rule premises. Used by future advisor tooling to prevent suggesting incompatible recipes within the same composition path.",
-      "logical_conflict_rule": "Two recipes conflict if their rules contain mutually exclusive premises (e.g., 'extreme_compressed_economy' rule premise: runtime < 3min; 'extended_form' rule premise: runtime > 6min). NOT aesthetic conflict — recipes that simply 'feel different' do not conflict."
+      "_note": "Logical conflict pairs extracted from each atom's conflict_recipes field. 232 unique pairs, 53 mutually documented (both atoms cite each other). Used by advisor tooling to prevent suggesting incompatible recipes within the same composition path. NOT aesthetic conflicts — recipes that differ in feel without logical contradiction are not listed.",
+      "_generated_from_atom_count": 173,
+      "_total_pairs": 232,
+      "_mutually_documented_pairs": 53,
+      "_unilateral_pairs": 179,
+      "logical_conflict_rule": "Two recipes conflict if their rule premises contain mutually exclusive constraints (e.g. runtime <2 min vs. runtime >6 min, or unrelenting-aggression vs. atmospheric-continuity). Mutually-documented pairs are higher-confidence; unilateral pairs are still valid but suggest one atom's author saw the conflict while the other did not annotate it.",
+      "pairs": [
+        {
+          "pair_id": "a_cappella_fakeout_intro_into_band_slam__VS__delayed_rhythm_section_entry_4_bars",
+          "recipe_a": "a_cappella_fakeout_intro_into_band_slam",
+          "recipe_b": "delayed_rhythm_section_entry_4_bars",
+          "mutually_documented": true,
+          "rule_a_premise": "Open the song with a SINGLE VOCAL phrase, a cappella (no instruments), for 2-4 bars",
+          "rule_b_premise": "Open the song with the LEAD MELODIC INSTRUMENT alone for 4 bars (in HSB's case, guitar with the bend riff)",
+          "wow_factor_a": 0.9,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "a_cappella_fakeout_intro_into_band_slam__VS__drum_only_intro_4_bars_establishes_identity",
+          "recipe_a": "a_cappella_fakeout_intro_into_band_slam",
+          "recipe_b": "drum_only_intro_4_bars_establishes_identity",
+          "mutually_documented": false,
+          "rule_a_premise": "Open the song with a SINGLE VOCAL phrase, a cappella (no instruments), for 2-4 bars",
+          "rule_b_premise": "Open the song with DRUM-KIT ALONE for 4 bars",
+          "wow_factor_a": 0.9,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "a_cappella_fakeout_intro_into_band_slam__VS__guitar_alone_intro_4_bars_no_a_cappella",
+          "recipe_a": "a_cappella_fakeout_intro_into_band_slam",
+          "recipe_b": "guitar_alone_intro_4_bars_no_a_cappella",
+          "mutually_documented": true,
+          "rule_a_premise": "Open the song with a SINGLE VOCAL phrase, a cappella (no instruments), for 2-4 bars",
+          "rule_b_premise": "Open the song with the GUITAR ALONE for 4 bars (riff established without other instruments)",
+          "wow_factor_a": 0.9,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "a_cappella_fakeout_intro_into_band_slam__VS__integrated_transitions_not_abrupt_cuts",
+          "recipe_a": "a_cappella_fakeout_intro_into_band_slam",
+          "recipe_b": "integrated_transitions_not_abrupt_cuts",
+          "mutually_documented": false,
+          "rule_a_premise": "Open the song with a SINGLE VOCAL phrase, a cappella (no instruments), for 2-4 bars",
+          "rule_b_premise": "Build section transitions as INTEGRATED TRANSFORMATIONS rather than ABRUPT CUTS",
+          "wow_factor_a": 0.9,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "abrupt_song_end_no_fade__VS__integrated_transitions_not_abrupt_cuts",
+          "recipe_a": "abrupt_song_end_no_fade",
+          "recipe_b": "integrated_transitions_not_abrupt_cuts",
+          "mutually_documented": false,
+          "rule_a_premise": "Cut the song mid-phrase or on the last beat of a chorus — NO fade-out, NO sustained final chord, NO resolution",
+          "rule_b_premise": "Build section transitions as INTEGRATED TRANSFORMATIONS rather than ABRUPT CUTS",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "abrupt_song_end_no_fade__VS__outro_chant_extension_via_repetition_not_fade",
+          "recipe_a": "abrupt_song_end_no_fade",
+          "recipe_b": "outro_chant_extension_via_repetition_not_fade",
+          "mutually_documented": true,
+          "rule_a_premise": "Cut the song mid-phrase or on the last beat of a chorus — NO fade-out, NO sustained final chord, NO resolution",
+          "rule_b_premise": "End the song via a single PHRASE (vocal, instrumental, or both) repeated for an extended duration (~1:00+ minutes)",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__auteur_co_auteur_mixer_pipeline_for_mature_collaboration",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "auteur_co_auteur_mixer_pipeline_for_mature_collaboration",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "Establish AUTEUR + CO-AUTEUR + DEDICATED MIXER pipeline for mature collaborative production",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.82
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__dedicated_microphone_capture_for_compositional_centerpiece_instrument",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "dedicated_microphone_capture_for_compositional_centerpiece_instrument",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "When unusual instrument is compositional centerpiece, allocate DEDICATED MICROPHONE for clean capture",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__extensive_section_specific_mix_automation_for_character_shifts",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "extensive_section_specific_mix_automation_for_character_shifts",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "When mixing hybrid-vocabulary songs, use EXTENSIVE section-specific mix automation — drum bus character, guitar layer levels, vocal processing, reverb sends all SHIFT between sections",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__industrial_drum_processing_on_live_drums",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "industrial_drum_processing_on_live_drums",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "Process LIVE drums to evoke industrial-drum-machine character without replacing them with samples",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__loudness_war_mastering_balanced_with_dynamic_detail",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "loudness_war_mastering_balanced_with_dynamic_detail",
+          "mutually_documented": true,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "When mastering for 2000s+ commercial contexts (loudness-war era), aim for COMPETITIVE LOUDNESS while preserving as much DYNAMIC DETAIL as possible",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__moulder_anthemic_industrial_mix_hybrid_balance",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "moulder_anthemic_industrial_mix_hybrid_balance",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "When mixing industrial-vocabulary anthem tracks, BALANCE rock-anthem stereo width with industrial-rhythm clarity",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__section_specific_processing_chains_per_genre_vocabulary",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "section_specific_processing_chains_per_genre_vocabulary",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "Track + mix elements with DIFFERENT PROCESSING CHAINS for different sections of same song — vocal saturated in verses + clean in choruses, drums punchy in verses + atmospheric in choruses, etc",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.82
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__three_way_producer_collective_band_member_included",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "three_way_producer_collective_band_member_included",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "Use a THREE-WAY producer credit including a band member as full producer alongside two external producers",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__vig_meticulous_layering_recording_philosophy",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "vig_meticulous_layering_recording_philosophy",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "When recording multi-layered guitar arrangements, capture EACH LAYER cleanly (different mic placement, amp, pedal) so that subsequent mix layering reads clearly",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.77
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__wallace_compressed_brightness_vs_albini_room",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "wallace_compressed_brightness_vs_albini_room",
+          "mutually_documented": true,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room emphasis",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "albini_mix_pure_capture_no_remix__VS__wallace_stereo_width_maximization_mix",
+          "recipe_a": "albini_mix_pure_capture_no_remix",
+          "recipe_b": "wallace_stereo_width_maximization_mix",
+          "mutually_documented": true,
+          "rule_a_premise": "When mixing, REJECT the radio-commercial template",
+          "rule_b_premise": "When mixing wall-of-sound arrangements, maximize STEREO WIDTH via aggressive L/R panning of guitar layers + frequency-spread EQ",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "album_closer_resolution_function__VS__compact_aggressive_under_2_minutes",
+          "recipe_a": "album_closer_resolution_function",
+          "recipe_b": "compact_aggressive_under_2_minutes",
+          "mutually_documented": false,
+          "rule_a_premise": "Position a track as deliberate album CLOSER — its structural function is resolution of the album, not just resolution of the song",
+          "rule_b_premise": "Aggressive tracks should resist the urge to extend",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "analog_tape_tracking_for_warmth_preservation__VS__programmed_drums_as_compositional_engine",
+          "recipe_a": "analog_tape_tracking_for_warmth_preservation",
+          "recipe_b": "programmed_drums_as_compositional_engine",
+          "mutually_documented": false,
+          "rule_a_premise": "Track to ANALOG TAPE (rather than digital DAW capture) when warmth + harmonic-saturation character are desired",
+          "rule_b_premise": "Treat programmed drums + sampled percussion as COMPOSITIONAL INSTRUMENTS — programming choices ARE composition",
+          "wow_factor_a": 0.77,
+          "wow_factor_b": 0.82
+        },
+        {
+          "pair_id": "asymmetric_meter_as_album_opener_statement_of_intent__VS__four_on_the_floor_120_bpm_house_foundation",
+          "recipe_a": "asymmetric_meter_as_album_opener_statement_of_intent",
+          "recipe_b": "four_on_the_floor_120_bpm_house_foundation",
+          "mutually_documented": false,
+          "rule_a_premise": "Use ASYMMETRIC METER (10/4, 7/8, 11/8) as compositional foundation in ALBUM OPENER",
+          "rule_b_premise": "Use 4-ON-THE-FLOOR drum pattern (kick on every beat) at 120-128 BPM as house-tradition compositional foundation",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "asymmetric_meter_at_extreme_tempo__VS__drum_machine_serving_atmospheric_emotional_not_aggressive",
+          "recipe_a": "asymmetric_meter_at_extreme_tempo",
+          "recipe_b": "drum_machine_serving_atmospheric_emotional_not_aggressive",
+          "mutually_documented": false,
+          "rule_a_premise": "Use 7/8 + 8/8 alternation (or other asymmetric groupings) at TEMPOS ABOVE 200 BPM",
+          "rule_b_premise": "Use programmed drums + samples for ATMOSPHERIC composition, not just for aggressive industrial-tempo extremity",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "asymmetric_meter_at_extreme_tempo__VS__extended_dynamic_arc_six_plus_minutes_patient_build",
+          "recipe_a": "asymmetric_meter_at_extreme_tempo",
+          "recipe_b": "extended_dynamic_arc_six_plus_minutes_patient_build",
+          "mutually_documented": false,
+          "rule_a_premise": "Use 7/8 + 8/8 alternation (or other asymmetric groupings) at TEMPOS ABOVE 200 BPM",
+          "rule_b_premise": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.88
+        },
+        {
+          "pair_id": "asymmetric_meter_at_extreme_tempo__VS__four_on_the_floor_120_bpm_house_foundation",
+          "recipe_a": "asymmetric_meter_at_extreme_tempo",
+          "recipe_b": "four_on_the_floor_120_bpm_house_foundation",
+          "mutually_documented": false,
+          "rule_a_premise": "Use 7/8 + 8/8 alternation (or other asymmetric groupings) at TEMPOS ABOVE 200 BPM",
+          "rule_b_premise": "Use 4-ON-THE-FLOOR drum pattern (kick on every beat) at 120-128 BPM as house-tradition compositional foundation",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "asymmetric_meter_at_extreme_tempo__VS__long_asymmetric_cycle_for_meditation_not_complexity",
+          "recipe_a": "asymmetric_meter_at_extreme_tempo",
+          "recipe_b": "long_asymmetric_cycle_for_meditation_not_complexity",
+          "mutually_documented": true,
+          "rule_a_premise": "Use 7/8 + 8/8 alternation (or other asymmetric groupings) at TEMPOS ABOVE 200 BPM",
+          "rule_b_premise": "When using asymmetric meter (7/4, 5/4, 11/8), let the cycle feel LONG + MEDITATIVE rather than tight + complex",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "asymmetric_meter_at_extreme_tempo__VS__mid_tempo_aggression_not_hardcore_speed",
+          "recipe_a": "asymmetric_meter_at_extreme_tempo",
+          "recipe_b": "mid_tempo_aggression_not_hardcore_speed",
+          "mutually_documented": true,
+          "rule_a_premise": "Use 7/8 + 8/8 alternation (or other asymmetric groupings) at TEMPOS ABOVE 200 BPM",
+          "rule_b_premise": "Aggression does not require fast tempo",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "atmospheric_continuity_over_dynamic_contrast__VS__clean_to_distorted_dynamic_shift_traditional",
+          "recipe_a": "atmospheric_continuity_over_dynamic_contrast",
+          "recipe_b": "clean_to_distorted_dynamic_shift_traditional",
+          "mutually_documented": true,
+          "rule_a_premise": "Build a song where SUSTAINED ATMOSPHERIC CONTINUITY is the primary aesthetic, NOT quiet/loud dynamic contrast",
+          "rule_b_premise": "Verse: clean (or lightly overdriven) guitar tone",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "atmospheric_continuity_over_dynamic_contrast__VS__density_arc_arrangement_sparse_to_wall",
+          "recipe_a": "atmospheric_continuity_over_dynamic_contrast",
+          "recipe_b": "density_arc_arrangement_sparse_to_wall",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a song where SUSTAINED ATMOSPHERIC CONTINUITY is the primary aesthetic, NOT quiet/loud dynamic contrast",
+          "rule_b_premise": "Arrange so density GROWS across the song — start with minimum elements (clean guitar + sparse drums), add layers progressively, peak at maximum density during explosion, resolve to minimum at outro",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "atmospheric_continuity_over_dynamic_contrast__VS__explosion_chorus_as_cathartic_release_not_just_loud_section",
+          "recipe_a": "atmospheric_continuity_over_dynamic_contrast",
+          "recipe_b": "explosion_chorus_as_cathartic_release_not_just_loud_section",
+          "mutually_documented": true,
+          "rule_a_premise": "Build a song where SUSTAINED ATMOSPHERIC CONTINUITY is the primary aesthetic, NOT quiet/loud dynamic contrast",
+          "rule_b_premise": "Treat the EXPLOSION CHORUS as the song's emotional + cathartic CULMINATION, not just as a loud section",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.86
+        },
+        {
+          "pair_id": "atmospheric_continuity_over_dynamic_contrast__VS__extended_dynamic_arc_six_plus_minutes_patient_build",
+          "recipe_a": "atmospheric_continuity_over_dynamic_contrast",
+          "recipe_b": "extended_dynamic_arc_six_plus_minutes_patient_build",
+          "mutually_documented": true,
+          "rule_a_premise": "Build a song where SUSTAINED ATMOSPHERIC CONTINUITY is the primary aesthetic, NOT quiet/loud dynamic contrast",
+          "rule_b_premise": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.88
+        },
+        {
+          "pair_id": "atmospheric_continuity_over_dynamic_contrast__VS__hard_soft_hard_contrast_within_song",
+          "recipe_a": "atmospheric_continuity_over_dynamic_contrast",
+          "recipe_b": "hard_soft_hard_contrast_within_song",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a song where SUSTAINED ATMOSPHERIC CONTINUITY is the primary aesthetic, NOT quiet/loud dynamic contrast",
+          "rule_b_premise": "Build a song where the AGGRESSIVE-MELODIC-AGGRESSIVE contrast happens WITHIN section transitions, not just between separate songs",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "atmospheric_continuity_over_dynamic_contrast__VS__industrial_leaning_rhythmic_emphasis_with_rock_identity",
+          "recipe_a": "atmospheric_continuity_over_dynamic_contrast",
+          "recipe_b": "industrial_leaning_rhythmic_emphasis_with_rock_identity",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a song where SUSTAINED ATMOSPHERIC CONTINUITY is the primary aesthetic, NOT quiet/loud dynamic contrast",
+          "rule_b_premise": "Build a heavy rock track that ABSORBS industrial influence (rhythmic precision, drum-machine-evocative live drumming, possible processed textures) while retaining ROCK IDENTITY (live drums, riff-based",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "atmospheric_continuity_over_dynamic_contrast__VS__punk_economy_arrangement_no_atmospheric_layers",
+          "recipe_a": "atmospheric_continuity_over_dynamic_contrast",
+          "recipe_b": "punk_economy_arrangement_no_atmospheric_layers",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a song where SUSTAINED ATMOSPHERIC CONTINUITY is the primary aesthetic, NOT quiet/loud dynamic contrast",
+          "rule_b_premise": "When composing punk-aggression tracks, REJECT atmospheric layers + guest harmonies + extended sections",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "atmospheric_continuity_over_dynamic_contrast__VS__selective_distortion_deployment_across_arc",
+          "recipe_a": "atmospheric_continuity_over_dynamic_contrast",
+          "recipe_b": "selective_distortion_deployment_across_arc",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a song where SUSTAINED ATMOSPHERIC CONTINUITY is the primary aesthetic, NOT quiet/loud dynamic contrast",
+          "rule_b_premise": "DEPLOY distortion selectively across the song's dynamic arc — clean in intro/early verses, partial distortion in first chorus (preview), FULL distortion in explosion",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.82
+        },
+        {
+          "pair_id": "atmospheric_sustain_as_compositional_foundation__VS__riff_as_both_hook_and_structural_backbone",
+          "recipe_a": "atmospheric_sustain_as_compositional_foundation",
+          "recipe_b": "riff_as_both_hook_and_structural_backbone",
+          "mutually_documented": false,
+          "rule_a_premise": "Build composition on SUSTAINED SYNTH-PAD textures providing harmonic field",
+          "rule_b_premise": "Write a guitar riff that is SIMULTANEOUSLY the song's hook AND its structural backbone (continues through verses + reappears in choruses)",
+          "wow_factor_a": 0.82,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "atmospheric_sustain_as_compositional_foundation__VS__wall_of_layered_guitars_frequency_spread_layering",
+          "recipe_a": "atmospheric_sustain_as_compositional_foundation",
+          "recipe_b": "wall_of_layered_guitars_frequency_spread_layering",
+          "mutually_documented": false,
+          "rule_a_premise": "Build composition on SUSTAINED SYNTH-PAD textures providing harmonic field",
+          "rule_b_premise": "Layer multiple guitar tracks (5-15+) panned across stereo field + EQ-staggered to occupy DIFFERENT FREQUENCY SLOTS (low-mid, mid-range, upper-mid, high)",
+          "wow_factor_a": 0.82,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "auteur_co_auteur_mixer_pipeline_for_mature_collaboration__VS__auteur_producer_single_creator_driven_production",
+          "recipe_a": "auteur_co_auteur_mixer_pipeline_for_mature_collaboration",
+          "recipe_b": "auteur_producer_single_creator_driven_production",
+          "mutually_documented": false,
+          "rule_a_premise": "Establish AUTEUR + CO-AUTEUR + DEDICATED MIXER pipeline for mature collaborative production",
+          "rule_b_premise": "Have ONE PERSON handle writing + most performance + production + much engineering — the auteur-producer model",
+          "wow_factor_a": 0.82,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "auteur_producer_single_creator_driven_production__VS__external_contributor_for_distinct_dimensional_color",
+          "recipe_a": "auteur_producer_single_creator_driven_production",
+          "recipe_b": "external_contributor_for_distinct_dimensional_color",
+          "mutually_documented": false,
+          "rule_a_premise": "Have ONE PERSON handle writing + most performance + production + much engineering — the auteur-producer model",
+          "rule_b_premise": "Invite EXTERNAL CONTRIBUTOR with documented distinct musical identity (avant-rock guitarist, classical violinist, jazz horn player) to add DIMENSIONAL COLOR to specific tracks",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "auteur_producer_single_creator_driven_production__VS__kasper_band_driven_unified_engineering_mixing",
+          "recipe_a": "auteur_producer_single_creator_driven_production",
+          "recipe_b": "kasper_band_driven_unified_engineering_mixing",
+          "mutually_documented": false,
+          "rule_a_premise": "Have ONE PERSON handle writing + most performance + production + much engineering — the auteur-producer model",
+          "rule_b_premise": "Use UNIFIED engineering + mixing roles (one person tracks AND mixes) to preserve recording-stage decisions through to final master",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "auteur_producer_single_creator_driven_production__VS__production_partnership_emerging_after_solo_auteur_period",
+          "recipe_a": "auteur_producer_single_creator_driven_production",
+          "recipe_b": "production_partnership_emerging_after_solo_auteur_period",
+          "mutually_documented": false,
+          "rule_a_premise": "Have ONE PERSON handle writing + most performance + production + much engineering — the auteur-producer model",
+          "rule_b_premise": "After established solo-auteur period, INTRODUCE production partner who shares creative vision but brings specific complementary skills",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "auteur_producer_single_creator_driven_production__VS__three_way_producer_collective_band_member_included",
+          "recipe_a": "auteur_producer_single_creator_driven_production",
+          "recipe_b": "three_way_producer_collective_band_member_included",
+          "mutually_documented": false,
+          "rule_a_premise": "Have ONE PERSON handle writing + most performance + production + much engineering — the auteur-producer model",
+          "rule_b_premise": "Use a THREE-WAY producer credit including a band member as full producer alongside two external producers",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "auteur_recording_environment_house_studio_with_atmosphere__VS__massive_production_shift_from_home_studio_to_legendary_analog_studio_paradigm",
+          "recipe_a": "auteur_recording_environment_house_studio_with_atmosphere",
+          "recipe_b": "massive_production_shift_from_home_studio_to_legendary_analog_studio_paradigm",
+          "mutually_documented": false,
+          "rule_a_premise": "Record in a NON-COMMERCIAL space with documented atmospheric/historical character",
+          "rule_b_premise": "After established home-studio era, EXPAND production paradigm to LEGENDARY ANALOG STUDIOS + LIVE SESSION MUSICIANS + ANALOG TAPE + EXTERNAL MIX ENGINEER",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "barresi_heavy_rock_specialist_unified_role_production__VS__three_way_producer_collective_band_member_included",
+          "recipe_a": "barresi_heavy_rock_specialist_unified_role_production",
+          "recipe_b": "three_way_producer_collective_band_member_included",
+          "mutually_documented": false,
+          "rule_a_premise": "Hire ENGINEER-PRODUCER unified role with documented HEAVY-ROCK SPECIALIZATION (Tool, Melvins, Kyuss-related lineage) for desert-rock or stoner-rock projects",
+          "rule_b_premise": "Use a THREE-WAY producer credit including a band member as full producer alongside two external producers",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "classical_influenced_chord_progression_in_electronic_context__VS__compositional_movement_via_filter_not_via_chord_change",
+          "recipe_a": "classical_influenced_chord_progression_in_electronic_context",
+          "recipe_b": "compositional_movement_via_filter_not_via_chord_change",
+          "mutually_documented": true,
+          "rule_a_premise": "Use TRADITIONAL CLASSICAL HARMONIC PROGRESSION (descending bass-line + voice-leading craft + chord-voicing richness) as compositional foundation in ELECTRONIC PRODUCTION CONTEXT",
+          "rule_b_premise": "Achieve compositional movement via FILTER MODULATION + ARRANGEMENT DENSITY rather than via TRADITIONAL CHORD PROGRESSION",
+          "wow_factor_a": 0.84,
+          "wow_factor_b": 0.82
+        },
+        {
+          "pair_id": "classical_influenced_chord_progression_in_electronic_context__VS__drone_foundation_as_compositional_anchor",
+          "recipe_a": "classical_influenced_chord_progression_in_electronic_context",
+          "recipe_b": "drone_foundation_as_compositional_anchor",
+          "mutually_documented": false,
+          "rule_a_premise": "Use TRADITIONAL CLASSICAL HARMONIC PROGRESSION (descending bass-line + voice-leading craft + chord-voicing richness) as compositional foundation in ELECTRONIC PRODUCTION CONTEXT",
+          "rule_b_premise": "Build a song where SUSTAINED LOW-FREQUENCY DRONE is the harmonic gravity well",
+          "wow_factor_a": 0.84,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "classical_influenced_chord_progression_in_electronic_context__VS__filter_modulation_as_compositional_engine",
+          "recipe_a": "classical_influenced_chord_progression_in_electronic_context",
+          "recipe_b": "filter_modulation_as_compositional_engine",
+          "mutually_documented": true,
+          "rule_a_premise": "Use TRADITIONAL CLASSICAL HARMONIC PROGRESSION (descending bass-line + voice-leading craft + chord-voicing richness) as compositional foundation in ELECTRONIC PRODUCTION CONTEXT",
+          "rule_b_premise": "Use ANALOG FILTER MODULATION (sweeping filter cutoff up/down across song's runtime) as PRIMARY COMPOSITIONAL ENGINE substituting for traditional harmonic motion",
+          "wow_factor_a": 0.84,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "classical_influenced_chord_progression_in_electronic_context__VS__modal_voicings_above_drone_replace_chord_progression",
+          "recipe_a": "classical_influenced_chord_progression_in_electronic_context",
+          "recipe_b": "modal_voicings_above_drone_replace_chord_progression",
+          "mutually_documented": false,
+          "rule_a_premise": "Use TRADITIONAL CLASSICAL HARMONIC PROGRESSION (descending bass-line + voice-leading craft + chord-voicing richness) as compositional foundation in ELECTRONIC PRODUCTION CONTEXT",
+          "rule_b_premise": "Instead of standard chord progression (I-IV-V-I or i-VI-VII-i), use SUSTAINED MODAL VOICINGS above a drone foundation",
+          "wow_factor_a": 0.84,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "clean_to_distorted_dynamic_shift_traditional__VS__drone_foundation_as_compositional_anchor",
+          "recipe_a": "clean_to_distorted_dynamic_shift_traditional",
+          "recipe_b": "drone_foundation_as_compositional_anchor",
+          "mutually_documented": false,
+          "rule_a_premise": "Verse: clean (or lightly overdriven) guitar tone",
+          "rule_b_premise": "Build a song where SUSTAINED LOW-FREQUENCY DRONE is the harmonic gravity well",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "clean_to_distorted_dynamic_shift_traditional__VS__flat_dynamic_arc_anti_buildup",
+          "recipe_a": "clean_to_distorted_dynamic_shift_traditional",
+          "recipe_b": "flat_dynamic_arc_anti_buildup",
+          "mutually_documented": false,
+          "rule_a_premise": "Verse: clean (or lightly overdriven) guitar tone",
+          "rule_b_premise": "Compose a song with NO dynamic peak",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.7
+        },
+        {
+          "pair_id": "clean_to_distorted_dynamic_shift_traditional__VS__modal_voicings_above_drone_replace_chord_progression",
+          "recipe_a": "clean_to_distorted_dynamic_shift_traditional",
+          "recipe_b": "modal_voicings_above_drone_replace_chord_progression",
+          "mutually_documented": false,
+          "rule_a_premise": "Verse: clean (or lightly overdriven) guitar tone",
+          "rule_b_premise": "Instead of standard chord progression (I-IV-V-I or i-VI-VII-i), use SUSTAINED MODAL VOICINGS above a drone foundation",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "clean_to_distorted_dynamic_shift_traditional__VS__unrelenting_aggression_no_dynamic_arc",
+          "recipe_a": "clean_to_distorted_dynamic_shift_traditional",
+          "recipe_b": "unrelenting_aggression_no_dynamic_arc",
+          "mutually_documented": false,
+          "rule_a_premise": "Verse: clean (or lightly overdriven) guitar tone",
+          "rule_b_premise": "After the initial slam, sustain MAXIMUM band density and intensity for the song's entire ~2 minutes",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "commercial_single_economy_three_minutes_thirty_one__VS__extended_atmospheric_form_6_minutes_plus",
+          "recipe_a": "commercial_single_economy_three_minutes_thirty_one",
+          "recipe_b": "extended_atmospheric_form_6_minutes_plus",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose to TIGHT COMMERCIAL-SINGLE ECONOMY (3-4 minutes) when the goal is radio + playlist accessibility",
+          "rule_b_premise": "Build a 6+ minute rock track around an EXTENDED MIDDLE SECTION (3+ minutes of instrumental exploration)",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "commercial_single_economy_three_minutes_thirty_one__VS__extended_dynamic_arc_six_plus_minutes_patient_build",
+          "recipe_a": "commercial_single_economy_three_minutes_thirty_one",
+          "recipe_b": "extended_dynamic_arc_six_plus_minutes_patient_build",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose to TIGHT COMMERCIAL-SINGLE ECONOMY (3-4 minutes) when the goal is radio + playlist accessibility",
+          "rule_b_premise": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.88
+        },
+        {
+          "pair_id": "commercial_single_economy_three_minutes_thirty_one__VS__extended_form_anthem_seven_plus_minutes",
+          "recipe_a": "commercial_single_economy_three_minutes_thirty_one",
+          "recipe_b": "extended_form_anthem_seven_plus_minutes",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose to TIGHT COMMERCIAL-SINGLE ECONOMY (3-4 minutes) when the goal is radio + playlist accessibility",
+          "rule_b_premise": "Extend anthemic rock track beyond commercial-single economy (7+ minutes) to allow multiple chorus repetitions with INTENSIFYING EMOTIONAL WEIGHT across iterations",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "commercial_single_economy_three_minutes_thirty_one__VS__extended_multi_section_film_score_adjacent_composition",
+          "recipe_a": "commercial_single_economy_three_minutes_thirty_one",
+          "recipe_b": "extended_multi_section_film_score_adjacent_composition",
+          "mutually_documented": true,
+          "rule_a_premise": "Compose to TIGHT COMMERCIAL-SINGLE ECONOMY (3-4 minutes) when the goal is radio + playlist accessibility",
+          "rule_b_premise": "Compose EXTENDED MULTI-SECTION TRACK (8+ minutes) with FILM-SCORE-ADJACENT AMBITION — different sections deploy different vocabularies (intimate, electronic, live band, orchestral), arrangement EVOLVE",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.86
+        },
+        {
+          "pair_id": "commercial_single_economy_three_minutes_thirty_one__VS__progressive_layering_arrangement_arc",
+          "recipe_a": "commercial_single_economy_three_minutes_thirty_one",
+          "recipe_b": "progressive_layering_arrangement_arc",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose to TIGHT COMMERCIAL-SINGLE ECONOMY (3-4 minutes) when the goal is radio + playlist accessibility",
+          "rule_b_premise": "Build extended-form (5+ minutes) electronic track via PROGRESSIVE LAYERING ARRANGEMENT — start with kick + bass-line foundation, add layers progressively across runtime, peak density section, strip la",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "compact_aggressive_under_2_minutes__VS__extended_aggressive_track_5_min_plus",
+          "recipe_a": "compact_aggressive_under_2_minutes",
+          "recipe_b": "extended_aggressive_track_5_min_plus",
+          "mutually_documented": false,
+          "rule_a_premise": "Aggressive tracks should resist the urge to extend",
+          "rule_b_premise": "Sustain aggressive intensity across 5+ minutes — the LENGTH itself becomes part of the aggressive statement",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.7
+        },
+        {
+          "pair_id": "compact_aggressive_under_2_minutes__VS__extended_atmospheric_form_6_minutes_plus",
+          "recipe_a": "compact_aggressive_under_2_minutes",
+          "recipe_b": "extended_atmospheric_form_6_minutes_plus",
+          "mutually_documented": true,
+          "rule_a_premise": "Aggressive tracks should resist the urge to extend",
+          "rule_b_premise": "Build a 6+ minute rock track around an EXTENDED MIDDLE SECTION (3+ minutes of instrumental exploration)",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "compact_aggressive_under_2_minutes__VS__extended_dynamic_arc_six_plus_minutes_patient_build",
+          "recipe_a": "compact_aggressive_under_2_minutes",
+          "recipe_b": "extended_dynamic_arc_six_plus_minutes_patient_build",
+          "mutually_documented": true,
+          "rule_a_premise": "Aggressive tracks should resist the urge to extend",
+          "rule_b_premise": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.88
+        },
+        {
+          "pair_id": "compact_aggressive_under_2_minutes__VS__extended_form_anthem_seven_plus_minutes",
+          "recipe_a": "compact_aggressive_under_2_minutes",
+          "recipe_b": "extended_form_anthem_seven_plus_minutes",
+          "mutually_documented": true,
+          "rule_a_premise": "Aggressive tracks should resist the urge to extend",
+          "rule_b_premise": "Extend anthemic rock track beyond commercial-single economy (7+ minutes) to allow multiple chorus repetitions with INTENSIFYING EMOTIONAL WEIGHT across iterations",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "compact_aggressive_under_2_minutes__VS__extended_multi_section_film_score_adjacent_composition",
+          "recipe_a": "compact_aggressive_under_2_minutes",
+          "recipe_b": "extended_multi_section_film_score_adjacent_composition",
+          "mutually_documented": false,
+          "rule_a_premise": "Aggressive tracks should resist the urge to extend",
+          "rule_b_premise": "Compose EXTENDED MULTI-SECTION TRACK (8+ minutes) with FILM-SCORE-ADJACENT AMBITION — different sections deploy different vocabularies (intimate, electronic, live band, orchestral), arrangement EVOLVE",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.86
+        },
+        {
+          "pair_id": "compact_aggressive_under_2_minutes__VS__film_scoring_discipline_integrated_into_song_composition",
+          "recipe_a": "compact_aggressive_under_2_minutes",
+          "recipe_b": "film_scoring_discipline_integrated_into_song_composition",
+          "mutually_documented": false,
+          "rule_a_premise": "Aggressive tracks should resist the urge to extend",
+          "rule_b_premise": "When composing songs, apply FILM-SCORING DISCIPLINE — music as integrated whole, pattern evolution + texture transformation supporting emotional arc, less reliance on traditional song-structure templa",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "compact_aggressive_under_2_minutes__VS__instrumental_bridge_as_song_centerpiece_not_solo_section",
+          "recipe_a": "compact_aggressive_under_2_minutes",
+          "recipe_b": "instrumental_bridge_as_song_centerpiece_not_solo_section",
+          "mutually_documented": false,
+          "rule_a_premise": "Aggressive tracks should resist the urge to extend",
+          "rule_b_premise": "Make the BRIDGE the song's structural center (longest section, peak moment) rather than treating it as a transition",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "compact_aggressive_under_2_minutes__VS__multiple_chorus_iterations_with_intensification",
+          "recipe_a": "compact_aggressive_under_2_minutes",
+          "recipe_b": "multiple_chorus_iterations_with_intensification",
+          "mutually_documented": false,
+          "rule_a_premise": "Aggressive tracks should resist the urge to extend",
+          "rule_b_premise": "Build the song so MULTIPLE chorus iterations occur (3-5 chorus repetitions across extended runtime), with each iteration progressively MORE INTENSE — additional vocal layering, additional guitar densi",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "compact_aggressive_under_2_minutes__VS__outro_chant_extension_via_repetition_not_fade",
+          "recipe_a": "compact_aggressive_under_2_minutes",
+          "recipe_b": "outro_chant_extension_via_repetition_not_fade",
+          "mutually_documented": false,
+          "rule_a_premise": "Aggressive tracks should resist the urge to extend",
+          "rule_b_premise": "End the song via a single PHRASE (vocal, instrumental, or both) repeated for an extended duration (~1:00+ minutes)",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "compact_aggressive_under_2_minutes__VS__patience_demand_as_compositional_choice",
+          "recipe_a": "compact_aggressive_under_2_minutes",
+          "recipe_b": "patience_demand_as_compositional_choice",
+          "mutually_documented": false,
+          "rule_a_premise": "Aggressive tracks should resist the urge to extend",
+          "rule_b_premise": "Make a long song where the LISTENER'S PATIENCE is itself part of the compositional contract",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "compact_aggressive_under_2_minutes__VS__slow_burn_arrival_not_explosion",
+          "recipe_a": "compact_aggressive_under_2_minutes",
+          "recipe_b": "slow_burn_arrival_not_explosion",
+          "mutually_documented": true,
+          "rule_a_premise": "Aggressive tracks should resist the urge to extend",
+          "rule_b_premise": "Build from intro through verse 1 / chorus 1 / verse 2 / chorus 2 / bridge / outro WITHOUT any single section being a detonation",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__extended_aggressive_track_5_min_plus",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "extended_aggressive_track_5_min_plus",
+          "mutually_documented": false,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "Sustain aggressive intensity across 5+ minutes — the LENGTH itself becomes part of the aggressive statement",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.7
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__extended_atmospheric_form_6_minutes_plus",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "extended_atmospheric_form_6_minutes_plus",
+          "mutually_documented": true,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "Build a 6+ minute rock track around an EXTENDED MIDDLE SECTION (3+ minutes of instrumental exploration)",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__extended_dynamic_arc_six_plus_minutes_patient_build",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "extended_dynamic_arc_six_plus_minutes_patient_build",
+          "mutually_documented": true,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.88
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__extended_form_anthem_seven_plus_minutes",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "extended_form_anthem_seven_plus_minutes",
+          "mutually_documented": true,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "Extend anthemic rock track beyond commercial-single economy (7+ minutes) to allow multiple chorus repetitions with INTENSIFYING EMOTIONAL WEIGHT across iterations",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__extended_multi_section_film_score_adjacent_composition",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "extended_multi_section_film_score_adjacent_composition",
+          "mutually_documented": false,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "Compose EXTENDED MULTI-SECTION TRACK (8+ minutes) with FILM-SCORE-ADJACENT AMBITION — different sections deploy different vocabularies (intimate, electronic, live band, orchestral), arrangement EVOLVE",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.86
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__film_scoring_discipline_integrated_into_song_composition",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "film_scoring_discipline_integrated_into_song_composition",
+          "mutually_documented": false,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "When composing songs, apply FILM-SCORING DISCIPLINE — music as integrated whole, pattern evolution + texture transformation supporting emotional arc, less reliance on traditional song-structure templa",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__instrumental_bridge_as_song_centerpiece_not_solo_section",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "instrumental_bridge_as_song_centerpiece_not_solo_section",
+          "mutually_documented": false,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "Make the BRIDGE the song's structural center (longest section, peak moment) rather than treating it as a transition",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__jam_band_influence_in_rock_format",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "jam_band_influence_in_rock_format",
+          "mutually_documented": false,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "Borrow extended-form rock traditions (Pink Floyd, Led Zeppelin's longer tracks, Phish-adjacent jam sensibility) into a hard-rock or alt-rock context",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__long_asymmetric_cycle_for_meditation_not_complexity",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "long_asymmetric_cycle_for_meditation_not_complexity",
+          "mutually_documented": false,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "When using asymmetric meter (7/4, 5/4, 11/8), let the cycle feel LONG + MEDITATIVE rather than tight + complex",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__multiple_chorus_iterations_with_intensification",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "multiple_chorus_iterations_with_intensification",
+          "mutually_documented": false,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "Build the song so MULTIPLE chorus iterations occur (3-5 chorus repetitions across extended runtime), with each iteration progressively MORE INTENSE — additional vocal layering, additional guitar densi",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__outro_chant_extension_via_repetition_not_fade",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "outro_chant_extension_via_repetition_not_fade",
+          "mutually_documented": false,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "End the song via a single PHRASE (vocal, instrumental, or both) repeated for an extended duration (~1:00+ minutes)",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__patience_demand_as_compositional_choice",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "patience_demand_as_compositional_choice",
+          "mutually_documented": false,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "Make a long song where the LISTENER'S PATIENCE is itself part of the compositional contract",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__progressive_layering_arrangement_arc",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "progressive_layering_arrangement_arc",
+          "mutually_documented": false,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "Build extended-form (5+ minutes) electronic track via PROGRESSIVE LAYERING ARRANGEMENT — start with kick + bass-line foundation, add layers progressively across runtime, peak density section, strip la",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "compact_runtime_2_to_3_minutes__VS__slow_burn_arrival_not_explosion",
+          "recipe_a": "compact_runtime_2_to_3_minutes",
+          "recipe_b": "slow_burn_arrival_not_explosion",
+          "mutually_documented": true,
+          "rule_a_premise": "Restrict song length to 2:30-3:00",
+          "rule_b_premise": "Build from intro through verse 1 / chorus 1 / verse 2 / chorus 2 / bridge / outro WITHOUT any single section being a detonation",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "compositional_drum_feature_within_heavy_rock_arc__VS__compressed_economy_drumming_restrained_precision",
+          "recipe_a": "compositional_drum_feature_within_heavy_rock_arc",
+          "recipe_b": "compressed_economy_drumming_restrained_precision",
+          "mutually_documented": true,
+          "rule_a_premise": "Compose extended-form heavy rock track with DRAMATIC DYNAMIC BREAK section specifically designed to FEATURE drummer",
+          "rule_b_premise": "When drumming on compressed-economy tracks (<2 min), restrain technical display + extended fills",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "compositional_drum_feature_within_heavy_rock_arc__VS__drumless_arrangement_as_compositional_choice",
+          "recipe_a": "compositional_drum_feature_within_heavy_rock_arc",
+          "recipe_b": "drumless_arrangement_as_compositional_choice",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose extended-form heavy rock track with DRAMATIC DYNAMIC BREAK section specifically designed to FEATURE drummer",
+          "rule_b_premise": "Compose track WITHOUT DRUMS — rhythm conveyed via electric piano + vocal + sample manipulations",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "compositional_drum_feature_within_heavy_rock_arc__VS__groove_over_complexity_compositional_priority",
+          "recipe_a": "compositional_drum_feature_within_heavy_rock_arc",
+          "recipe_b": "groove_over_complexity_compositional_priority",
+          "mutually_documented": true,
+          "rule_a_premise": "Compose extended-form heavy rock track with DRAMATIC DYNAMIC BREAK section specifically designed to FEATURE drummer",
+          "rule_b_premise": "Prioritize POCKET + FEEL over technical demonstration",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "compositional_movement_via_filter_not_via_chord_change__VS__voice_leading_clarity_via_synth_pad_layers",
+          "recipe_a": "compositional_movement_via_filter_not_via_chord_change",
+          "recipe_b": "voice_leading_clarity_via_synth_pad_layers",
+          "mutually_documented": false,
+          "rule_a_premise": "Achieve compositional movement via FILTER MODULATION + ARRANGEMENT DENSITY rather than via TRADITIONAL CHORD PROGRESSION",
+          "rule_b_premise": "When voicing classical-influenced chord progression in electronic context, use MULTIPLE SYNTH PAD LAYERS to clarify voice-leading",
+          "wow_factor_a": 0.82,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "compressed_economy_drumming_restrained_precision__VS__drum_clinic_quality_drumming_within_song_context",
+          "recipe_a": "compressed_economy_drumming_restrained_precision",
+          "recipe_b": "drum_clinic_quality_drumming_within_song_context",
+          "mutually_documented": true,
+          "rule_a_premise": "When drumming on compressed-economy tracks (<2 min), restrain technical display + extended fills",
+          "rule_b_premise": "When working with drummer of documented technical capacity, allow technical drumming to SHOWCASE within song context rather than being suppressed for groove-priority",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.82
+        },
+        {
+          "pair_id": "compressed_economy_drumming_restrained_precision__VS__syncopated_kick_creates_implied_meter_within_4_4",
+          "recipe_a": "compressed_economy_drumming_restrained_precision",
+          "recipe_b": "syncopated_kick_creates_implied_meter_within_4_4",
+          "mutually_documented": false,
+          "rule_a_premise": "When drumming on compressed-economy tracks (<2 min), restrain technical display + extended fills",
+          "rule_b_premise": "Within standard 4/4 meter, place kick on UNEXPECTED beats (offbeat 16ths, syncopated 8ths) to create an IMPLIED METER that doesn't match the literal meter",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "compressed_economy_under_three_minutes_in_long_album__VS__extended_atmospheric_form_6_minutes_plus",
+          "recipe_a": "compressed_economy_under_three_minutes_in_long_album",
+          "recipe_b": "extended_atmospheric_form_6_minutes_plus",
+          "mutually_documented": false,
+          "rule_a_premise": "Within an album that includes long-form tracks (5+ minutes), include a SHORT (under 3 min) HIGH-INTENSITY track that demonstrates compositional economy",
+          "rule_b_premise": "Build a 6+ minute rock track around an EXTENDED MIDDLE SECTION (3+ minutes of instrumental exploration)",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "compressed_economy_under_three_minutes_in_long_album__VS__extended_dynamic_arc_six_plus_minutes_patient_build",
+          "recipe_a": "compressed_economy_under_three_minutes_in_long_album",
+          "recipe_b": "extended_dynamic_arc_six_plus_minutes_patient_build",
+          "mutually_documented": false,
+          "rule_a_premise": "Within an album that includes long-form tracks (5+ minutes), include a SHORT (under 3 min) HIGH-INTENSITY track that demonstrates compositional economy",
+          "rule_b_premise": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.88
+        },
+        {
+          "pair_id": "compressed_economy_under_three_minutes_in_long_album__VS__extended_form_anthem_seven_plus_minutes",
+          "recipe_a": "compressed_economy_under_three_minutes_in_long_album",
+          "recipe_b": "extended_form_anthem_seven_plus_minutes",
+          "mutually_documented": true,
+          "rule_a_premise": "Within an album that includes long-form tracks (5+ minutes), include a SHORT (under 3 min) HIGH-INTENSITY track that demonstrates compositional economy",
+          "rule_b_premise": "Extend anthemic rock track beyond commercial-single economy (7+ minutes) to allow multiple chorus repetitions with INTENSIFYING EMOTIONAL WEIGHT across iterations",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "compressed_economy_under_three_minutes_in_long_album__VS__extended_multi_section_film_score_adjacent_composition",
+          "recipe_a": "compressed_economy_under_three_minutes_in_long_album",
+          "recipe_b": "extended_multi_section_film_score_adjacent_composition",
+          "mutually_documented": false,
+          "rule_a_premise": "Within an album that includes long-form tracks (5+ minutes), include a SHORT (under 3 min) HIGH-INTENSITY track that demonstrates compositional economy",
+          "rule_b_premise": "Compose EXTENDED MULTI-SECTION TRACK (8+ minutes) with FILM-SCORE-ADJACENT AMBITION — different sections deploy different vocabularies (intimate, electronic, live band, orchestral), arrangement EVOLVE",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.86
+        },
+        {
+          "pair_id": "compressed_economy_under_three_minutes_in_long_album__VS__patience_demand_as_compositional_choice",
+          "recipe_a": "compressed_economy_under_three_minutes_in_long_album",
+          "recipe_b": "patience_demand_as_compositional_choice",
+          "mutually_documented": false,
+          "rule_a_premise": "Within an album that includes long-form tracks (5+ minutes), include a SHORT (under 3 min) HIGH-INTENSITY track that demonstrates compositional economy",
+          "rule_b_premise": "Make a long song where the LISTENER'S PATIENCE is itself part of the compositional contract",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "date_compression_balance_for_long_aggressive__VS__loudness_war_mastering_balanced_with_dynamic_detail",
+          "recipe_a": "date_compression_balance_for_long_aggressive",
+          "recipe_b": "loudness_war_mastering_balanced_with_dynamic_detail",
+          "mutually_documented": false,
+          "rule_a_premise": "When tracking + mixing extended-form aggressive material, use MODERATE compression rather than maximum — preserve dynamic detail across 5+ minutes so the aggression doesn't become flat",
+          "rule_b_premise": "When mastering for 2000s+ commercial contexts (loudness-war era), aim for COMPETITIVE LOUDNESS while preserving as much DYNAMIC DETAIL as possible",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "date_compression_balance_for_long_aggressive__VS__wallace_compressed_brightness_vs_albini_room",
+          "recipe_a": "date_compression_balance_for_long_aggressive",
+          "recipe_b": "wallace_compressed_brightness_vs_albini_room",
+          "mutually_documented": false,
+          "rule_a_premise": "When tracking + mixing extended-form aggressive material, use MODERATE compression rather than maximum — preserve dynamic detail across 5+ minutes so the aggression doesn't become flat",
+          "rule_b_premise": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room emphasis",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "delayed_rhythm_section_entry_4_bars__VS__drum_only_intro_4_bars_establishes_identity",
+          "recipe_a": "delayed_rhythm_section_entry_4_bars",
+          "recipe_b": "drum_only_intro_4_bars_establishes_identity",
+          "mutually_documented": false,
+          "rule_a_premise": "Open the song with the LEAD MELODIC INSTRUMENT alone for 4 bars (in HSB's case, guitar with the bend riff)",
+          "rule_b_premise": "Open the song with DRUM-KIT ALONE for 4 bars",
+          "wow_factor_a": 0.75,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "deliberate_dynamic_preservation_mastering_request_for_extended_composition__VS__loudness_war_mastering_balanced_with_dynamic_detail",
+          "recipe_a": "deliberate_dynamic_preservation_mastering_request_for_extended_composition",
+          "recipe_b": "loudness_war_mastering_balanced_with_dynamic_detail",
+          "mutually_documented": true,
+          "rule_a_premise": "When mastering extended multi-section compositions, EXPLICITLY REQUEST dynamic preservation rather than competitive loudness",
+          "rule_b_premise": "When mastering for 2000s+ commercial contexts (loudness-war era), aim for COMPETITIVE LOUDNESS while preserving as much DYNAMIC DETAIL as possible",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "deliberate_dynamic_preservation_mastering_request_for_extended_composition__VS__wallace_compressed_brightness_vs_albini_room",
+          "recipe_a": "deliberate_dynamic_preservation_mastering_request_for_extended_composition",
+          "recipe_b": "wallace_compressed_brightness_vs_albini_room",
+          "mutually_documented": false,
+          "rule_a_premise": "When mastering extended multi-section compositions, EXPLICITLY REQUEST dynamic preservation rather than competitive loudness",
+          "rule_b_premise": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room emphasis",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "density_arc_arrangement_sparse_to_wall__VS__gradual_subtle_build_not_dynamic_arc_explosion",
+          "recipe_a": "density_arc_arrangement_sparse_to_wall",
+          "recipe_b": "gradual_subtle_build_not_dynamic_arc_explosion",
+          "mutually_documented": false,
+          "rule_a_premise": "Arrange so density GROWS across the song — start with minimum elements (clean guitar + sparse drums), add layers progressively, peak at maximum density during explosion, resolve to minimum at outro",
+          "rule_b_premise": "Build emotional climax via VERY GRADUAL density addition rather than via dramatic dynamic-arc explosion",
+          "wow_factor_a": 0.84,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "density_arc_arrangement_sparse_to_wall__VS__minimum_viable_element_count_for_emotional_impact",
+          "recipe_a": "density_arc_arrangement_sparse_to_wall",
+          "recipe_b": "minimum_viable_element_count_for_emotional_impact",
+          "mutually_documented": true,
+          "rule_a_premise": "Arrange so density GROWS across the song — start with minimum elements (clean guitar + sparse drums), add layers progressively, peak at maximum density during explosion, resolve to minimum at outro",
+          "rule_b_premise": "Strip arrangement to FEWEST POSSIBLE ELEMENTS while maintaining emotional impact",
+          "wow_factor_a": 0.84,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "documentary_spoken_word_audio_as_compositional_element__VS__minimum_viable_element_count_for_emotional_impact",
+          "recipe_a": "documentary_spoken_word_audio_as_compositional_element",
+          "recipe_b": "minimum_viable_element_count_for_emotional_impact",
+          "mutually_documented": false,
+          "rule_a_premise": "Integrate DOCUMENTARY SPOKEN-WORD AUDIO (interview, narration, found-recording) as COMPOSITIONAL ELEMENT, not just intro voiceover",
+          "rule_b_premise": "Strip arrangement to FEWEST POSSIBLE ELEMENTS while maintaining emotional impact",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "documentary_spoken_word_audio_as_compositional_element__VS__screamed_single_take_vocal_no_doubling",
+          "recipe_a": "documentary_spoken_word_audio_as_compositional_element",
+          "recipe_b": "screamed_single_take_vocal_no_doubling",
+          "mutually_documented": false,
+          "rule_a_premise": "Integrate DOCUMENTARY SPOKEN-WORD AUDIO (interview, narration, found-recording) as COMPOSITIONAL ELEMENT, not just intro voiceover",
+          "rule_b_premise": "Track the vocal as SINGLE-TAKE screamed delivery",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "drone_foundation_as_compositional_anchor__VS__explosion_chorus_as_cathartic_release_not_just_loud_section",
+          "recipe_a": "drone_foundation_as_compositional_anchor",
+          "recipe_b": "explosion_chorus_as_cathartic_release_not_just_loud_section",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a song where SUSTAINED LOW-FREQUENCY DRONE is the harmonic gravity well",
+          "rule_b_premise": "Treat the EXPLOSION CHORUS as the song's emotional + cathartic CULMINATION, not just as a loud section",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.86
+        },
+        {
+          "pair_id": "drone_foundation_as_compositional_anchor__VS__voice_leading_clarity_via_synth_pad_layers",
+          "recipe_a": "drone_foundation_as_compositional_anchor",
+          "recipe_b": "voice_leading_clarity_via_synth_pad_layers",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a song where SUSTAINED LOW-FREQUENCY DRONE is the harmonic gravity well",
+          "rule_b_premise": "When voicing classical-influenced chord progression in electronic context, use MULTIPLE SYNTH PAD LAYERS to clarify voice-leading",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "drum_clinic_quality_drumming_within_song_context__VS__groove_over_complexity_compositional_priority",
+          "recipe_a": "drum_clinic_quality_drumming_within_song_context",
+          "recipe_b": "groove_over_complexity_compositional_priority",
+          "mutually_documented": true,
+          "rule_a_premise": "When working with drummer of documented technical capacity, allow technical drumming to SHOWCASE within song context rather than being suppressed for groove-priority",
+          "rule_b_premise": "Prioritize POCKET + FEEL over technical demonstration",
+          "wow_factor_a": 0.82,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "drum_machine_serving_atmospheric_emotional_not_aggressive__VS__industrial_drum_processing_on_live_drums",
+          "recipe_a": "drum_machine_serving_atmospheric_emotional_not_aggressive",
+          "recipe_b": "industrial_drum_processing_on_live_drums",
+          "mutually_documented": false,
+          "rule_a_premise": "Use programmed drums + samples for ATMOSPHERIC composition, not just for aggressive industrial-tempo extremity",
+          "rule_b_premise": "Process LIVE drums to evoke industrial-drum-machine character without replacing them with samples",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "drum_machine_serving_atmospheric_emotional_not_aggressive__VS__programmed_drums_as_compositional_engine",
+          "recipe_a": "drum_machine_serving_atmospheric_emotional_not_aggressive",
+          "recipe_b": "programmed_drums_as_compositional_engine",
+          "mutually_documented": false,
+          "rule_a_premise": "Use programmed drums + samples for ATMOSPHERIC composition, not just for aggressive industrial-tempo extremity",
+          "rule_b_premise": "Treat programmed drums + sampled percussion as COMPOSITIONAL INSTRUMENTS — programming choices ARE composition",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.82
+        },
+        {
+          "pair_id": "drum_machine_serving_atmospheric_emotional_not_aggressive__VS__rock_drummer_in_industrial_production_context",
+          "recipe_a": "drum_machine_serving_atmospheric_emotional_not_aggressive",
+          "recipe_b": "rock_drummer_in_industrial_production_context",
+          "mutually_documented": false,
+          "rule_a_premise": "Use programmed drums + samples for ATMOSPHERIC composition, not just for aggressive industrial-tempo extremity",
+          "rule_b_premise": "Hire a documented ROCK DRUMMER (Grohl, Chamberlin, etc",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "drum_only_intro_4_bars_establishes_identity__VS__drumless_arrangement_as_compositional_choice",
+          "recipe_a": "drum_only_intro_4_bars_establishes_identity",
+          "recipe_b": "drumless_arrangement_as_compositional_choice",
+          "mutually_documented": false,
+          "rule_a_premise": "Open the song with DRUM-KIT ALONE for 4 bars",
+          "rule_b_premise": "Compose track WITHOUT DRUMS — rhythm conveyed via electric piano + vocal + sample manipulations",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "drum_only_intro_4_bars_establishes_identity__VS__guitar_alone_intro_4_bars_no_a_cappella",
+          "recipe_a": "drum_only_intro_4_bars_establishes_identity",
+          "recipe_b": "guitar_alone_intro_4_bars_no_a_cappella",
+          "mutually_documented": false,
+          "rule_a_premise": "Open the song with DRUM-KIT ALONE for 4 bars",
+          "rule_b_premise": "Open the song with the GUITAR ALONE for 4 bars (riff established without other instruments)",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "drum_only_intro_4_bars_establishes_identity__VS__programmed_drums_as_compositional_engine",
+          "recipe_a": "drum_only_intro_4_bars_establishes_identity",
+          "recipe_b": "programmed_drums_as_compositional_engine",
+          "mutually_documented": false,
+          "rule_a_premise": "Open the song with DRUM-KIT ALONE for 4 bars",
+          "rule_b_premise": "Treat programmed drums + sampled percussion as COMPOSITIONAL INSTRUMENTS — programming choices ARE composition",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.82
+        },
+        {
+          "pair_id": "drum_only_intro_4_bars_establishes_identity__VS__tr_909_drum_machine_as_compositional_instrument",
+          "recipe_a": "drum_only_intro_4_bars_establishes_identity",
+          "recipe_b": "tr_909_drum_machine_as_compositional_instrument",
+          "mutually_documented": false,
+          "rule_a_premise": "Open the song with DRUM-KIT ALONE for 4 bars",
+          "rule_b_premise": "Treat ROLAND TR-909 (or equivalent classic drum machine) as PRIMARY COMPOSITIONAL INSTRUMENT — its character + sound + programming workflow IS compositional",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.76
+        },
+        {
+          "pair_id": "drumless_arrangement_as_compositional_choice__VS__live_drums_with_programmed_overlay_hybrid",
+          "recipe_a": "drumless_arrangement_as_compositional_choice",
+          "recipe_b": "live_drums_with_programmed_overlay_hybrid",
+          "mutually_documented": true,
+          "rule_a_premise": "Compose track WITHOUT DRUMS — rhythm conveyed via electric piano + vocal + sample manipulations",
+          "rule_b_premise": "Build a track where LIVE DRUMS (rock drummer) are the rhythmic foundation, with programmed sample triggers + industrial percussion BLENDED on top as overlay",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "drumless_arrangement_as_compositional_choice__VS__riff_as_both_hook_and_structural_backbone",
+          "recipe_a": "drumless_arrangement_as_compositional_choice",
+          "recipe_b": "riff_as_both_hook_and_structural_backbone",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose track WITHOUT DRUMS — rhythm conveyed via electric piano + vocal + sample manipulations",
+          "rule_b_premise": "Write a guitar riff that is SIMULTANEOUSLY the song's hook AND its structural backbone (continues through verses + reappears in choruses)",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "drumless_arrangement_as_compositional_choice__VS__rock_drummer_in_industrial_production_context",
+          "recipe_a": "drumless_arrangement_as_compositional_choice",
+          "recipe_b": "rock_drummer_in_industrial_production_context",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose track WITHOUT DRUMS — rhythm conveyed via electric piano + vocal + sample manipulations",
+          "rule_b_premise": "Hire a documented ROCK DRUMMER (Grohl, Chamberlin, etc",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "drumless_arrangement_as_compositional_choice__VS__wall_of_layered_guitars_frequency_spread_layering",
+          "recipe_a": "drumless_arrangement_as_compositional_choice",
+          "recipe_b": "wall_of_layered_guitars_frequency_spread_layering",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose track WITHOUT DRUMS — rhythm conveyed via electric piano + vocal + sample manipulations",
+          "rule_b_premise": "Layer multiple guitar tracks (5-15+) panned across stereo field + EQ-staggered to occupy DIFFERENT FREQUENCY SLOTS (low-mid, mid-range, upper-mid, high)",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "duo_auteur_self_produced_home_studio_paradigm__VS__legendary_session_musicians_for_specific_genre_homage",
+          "recipe_a": "duo_auteur_self_produced_home_studio_paradigm",
+          "recipe_b": "legendary_session_musicians_for_specific_genre_homage",
+          "mutually_documented": false,
+          "rule_a_premise": "DUO AUTEUR self-produced + self-engineered + self-mixed paradigm in HOME STUDIO",
+          "rule_b_premise": "Hire LEGENDARY SESSION MUSICIANS with documented genre-credentials (e",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "duo_auteur_self_produced_home_studio_paradigm__VS__massive_production_shift_from_home_studio_to_legendary_analog_studio_paradigm",
+          "recipe_a": "duo_auteur_self_produced_home_studio_paradigm",
+          "recipe_b": "massive_production_shift_from_home_studio_to_legendary_analog_studio_paradigm",
+          "mutually_documented": true,
+          "rule_a_premise": "DUO AUTEUR self-produced + self-engineered + self-mixed paradigm in HOME STUDIO",
+          "rule_b_premise": "After established home-studio era, EXPAND production paradigm to LEGENDARY ANALOG STUDIOS + LIVE SESSION MUSICIANS + ANALOG TAPE + EXTERNAL MIX ENGINEER",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "duo_auteur_self_produced_home_studio_paradigm__VS__three_way_producer_collective_band_member_included",
+          "recipe_a": "duo_auteur_self_produced_home_studio_paradigm",
+          "recipe_b": "three_way_producer_collective_band_member_included",
+          "mutually_documented": false,
+          "rule_a_premise": "DUO AUTEUR self-produced + self-engineered + self-mixed paradigm in HOME STUDIO",
+          "rule_b_premise": "Use a THREE-WAY producer credit including a band member as full producer alongside two external producers",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "dynamic_arc_mix_preservation_via_automation__VS__loudness_war_mastering_balanced_with_dynamic_detail",
+          "recipe_a": "dynamic_arc_mix_preservation_via_automation",
+          "recipe_b": "loudness_war_mastering_balanced_with_dynamic_detail",
+          "mutually_documented": true,
+          "rule_a_premise": "When mixing dynamic-arc compositions, use mix automation to RIDE LEVELS across the arc — drum bus, guitar layers, vocal, reverb sends all ride up + down through the arc",
+          "rule_b_premise": "When mastering for 2000s+ commercial contexts (loudness-war era), aim for COMPETITIVE LOUDNESS while preserving as much DYNAMIC DETAIL as possible",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "dynamic_arc_mix_preservation_via_automation__VS__wallace_compressed_brightness_vs_albini_room",
+          "recipe_a": "dynamic_arc_mix_preservation_via_automation",
+          "recipe_b": "wallace_compressed_brightness_vs_albini_room",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing dynamic-arc compositions, use mix automation to RIDE LEVELS across the arc — drum bus, guitar layers, vocal, reverb sends all ride up + down through the arc",
+          "rule_b_premise": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room emphasis",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "explosion_chorus_as_cathartic_release_not_just_loud_section__VS__flat_dynamic_arc_anti_buildup",
+          "recipe_a": "explosion_chorus_as_cathartic_release_not_just_loud_section",
+          "recipe_b": "flat_dynamic_arc_anti_buildup",
+          "mutually_documented": true,
+          "rule_a_premise": "Treat the EXPLOSION CHORUS as the song's emotional + cathartic CULMINATION, not just as a loud section",
+          "rule_b_premise": "Compose a song with NO dynamic peak",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.7
+        },
+        {
+          "pair_id": "explosion_chorus_as_cathartic_release_not_just_loud_section__VS__gradual_subtle_build_not_dynamic_arc_explosion",
+          "recipe_a": "explosion_chorus_as_cathartic_release_not_just_loud_section",
+          "recipe_b": "gradual_subtle_build_not_dynamic_arc_explosion",
+          "mutually_documented": true,
+          "rule_a_premise": "Treat the EXPLOSION CHORUS as the song's emotional + cathartic CULMINATION, not just as a loud section",
+          "rule_b_premise": "Build emotional climax via VERY GRADUAL density addition rather than via dramatic dynamic-arc explosion",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "explosion_chorus_as_cathartic_release_not_just_loud_section__VS__minimum_viable_element_count_for_emotional_impact",
+          "recipe_a": "explosion_chorus_as_cathartic_release_not_just_loud_section",
+          "recipe_b": "minimum_viable_element_count_for_emotional_impact",
+          "mutually_documented": false,
+          "rule_a_premise": "Treat the EXPLOSION CHORUS as the song's emotional + cathartic CULMINATION, not just as a loud section",
+          "rule_b_premise": "Strip arrangement to FEWEST POSSIBLE ELEMENTS while maintaining emotional impact",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "explosion_chorus_as_cathartic_release_not_just_loud_section__VS__sustained_intensity_no_dynamic_arc_economy",
+          "recipe_a": "explosion_chorus_as_cathartic_release_not_just_loud_section",
+          "recipe_b": "sustained_intensity_no_dynamic_arc_economy",
+          "mutually_documented": true,
+          "rule_a_premise": "Treat the EXPLOSION CHORUS as the song's emotional + cathartic CULMINATION, not just as a loud section",
+          "rule_b_premise": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "explosion_chorus_as_cathartic_release_not_just_loud_section__VS__unrelenting_aggression_no_dynamic_arc",
+          "recipe_a": "explosion_chorus_as_cathartic_release_not_just_loud_section",
+          "recipe_b": "unrelenting_aggression_no_dynamic_arc",
+          "mutually_documented": false,
+          "rule_a_premise": "Treat the EXPLOSION CHORUS as the song's emotional + cathartic CULMINATION, not just as a loud section",
+          "rule_b_premise": "After the initial slam, sustain MAXIMUM band density and intensity for the song's entire ~2 minutes",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "extended_aggressive_track_5_min_plus__VS__extreme_compressed_economy_under_two_minutes",
+          "recipe_a": "extended_aggressive_track_5_min_plus",
+          "recipe_b": "extreme_compressed_economy_under_two_minutes",
+          "mutually_documented": false,
+          "rule_a_premise": "Sustain aggressive intensity across 5+ minutes — the LENGTH itself becomes part of the aggressive statement",
+          "rule_b_premise": "Compose track at EXTREME COMPRESSED ECONOMY (<2 min) within an album that includes longer tracks",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "extended_atmospheric_form_6_minutes_plus__VS__extreme_compressed_economy_under_two_minutes",
+          "recipe_a": "extended_atmospheric_form_6_minutes_plus",
+          "recipe_b": "extreme_compressed_economy_under_two_minutes",
+          "mutually_documented": true,
+          "rule_a_premise": "Build a 6+ minute rock track around an EXTENDED MIDDLE SECTION (3+ minutes of instrumental exploration)",
+          "rule_b_premise": "Compose track at EXTREME COMPRESSED ECONOMY (<2 min) within an album that includes longer tracks",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "extended_atmospheric_form_6_minutes_plus__VS__pop_song_structure_within_electronic_vocabulary",
+          "recipe_a": "extended_atmospheric_form_6_minutes_plus",
+          "recipe_b": "pop_song_structure_within_electronic_vocabulary",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a 6+ minute rock track around an EXTENDED MIDDLE SECTION (3+ minutes of instrumental exploration)",
+          "rule_b_premise": "Apply POP-SONG STRUCTURE (verse-chorus-verse-chorus-bridge-chorus, ~3:30-4:00) within ELECTRONIC PRODUCTION VOCABULARY",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "extended_dynamic_arc_six_plus_minutes_patient_build__VS__extreme_compressed_economy_under_two_minutes",
+          "recipe_a": "extended_dynamic_arc_six_plus_minutes_patient_build",
+          "recipe_b": "extreme_compressed_economy_under_two_minutes",
+          "mutually_documented": true,
+          "rule_a_premise": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1",
+          "rule_b_premise": "Compose track at EXTREME COMPRESSED ECONOMY (<2 min) within an album that includes longer tracks",
+          "wow_factor_a": 0.88,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "extended_dynamic_arc_six_plus_minutes_patient_build__VS__fast_tempo_148_156_bpm_aggressive_heavy_rock",
+          "recipe_a": "extended_dynamic_arc_six_plus_minutes_patient_build",
+          "recipe_b": "fast_tempo_148_156_bpm_aggressive_heavy_rock",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1",
+          "rule_b_premise": "Push tempo into 145-160 BPM territory for a heavy rock track — faster than mainstream alt-rock standard (90-130 BPM) but retaining wall-of-density sonics",
+          "wow_factor_a": 0.88,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "extended_dynamic_arc_six_plus_minutes_patient_build__VS__gradual_subtle_build_not_dynamic_arc_explosion",
+          "recipe_a": "extended_dynamic_arc_six_plus_minutes_patient_build",
+          "recipe_b": "gradual_subtle_build_not_dynamic_arc_explosion",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1",
+          "rule_b_premise": "Build emotional climax via VERY GRADUAL density addition rather than via dramatic dynamic-arc explosion",
+          "wow_factor_a": 0.88,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "extended_dynamic_arc_six_plus_minutes_patient_build__VS__sustained_intensity_no_dynamic_arc_economy",
+          "recipe_a": "extended_dynamic_arc_six_plus_minutes_patient_build",
+          "recipe_b": "sustained_intensity_no_dynamic_arc_economy",
+          "mutually_documented": true,
+          "rule_a_premise": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1",
+          "rule_b_premise": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge",
+          "wow_factor_a": 0.88,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "extended_dynamic_arc_six_plus_minutes_patient_build__VS__unrelenting_aggression_no_dynamic_arc",
+          "recipe_a": "extended_dynamic_arc_six_plus_minutes_patient_build",
+          "recipe_b": "unrelenting_aggression_no_dynamic_arc",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a 6+ minute song around an EXTENDED DYNAMIC ARC: sparse clean intro (1-2 min) → restrained verses (1-2 min) → bridge buildup (1-1",
+          "rule_b_premise": "After the initial slam, sustain MAXIMUM band density and intensity for the song's entire ~2 minutes",
+          "wow_factor_a": 0.88,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "extended_form_anthem_seven_plus_minutes__VS__extreme_compressed_economy_under_two_minutes",
+          "recipe_a": "extended_form_anthem_seven_plus_minutes",
+          "recipe_b": "extreme_compressed_economy_under_two_minutes",
+          "mutually_documented": true,
+          "rule_a_premise": "Extend anthemic rock track beyond commercial-single economy (7+ minutes) to allow multiple chorus repetitions with INTENSIFYING EMOTIONAL WEIGHT across iterations",
+          "rule_b_premise": "Compose track at EXTREME COMPRESSED ECONOMY (<2 min) within an album that includes longer tracks",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "extended_form_anthem_seven_plus_minutes__VS__pop_song_structure_within_electronic_vocabulary",
+          "recipe_a": "extended_form_anthem_seven_plus_minutes",
+          "recipe_b": "pop_song_structure_within_electronic_vocabulary",
+          "mutually_documented": false,
+          "rule_a_premise": "Extend anthemic rock track beyond commercial-single economy (7+ minutes) to allow multiple chorus repetitions with INTENSIFYING EMOTIONAL WEIGHT across iterations",
+          "rule_b_premise": "Apply POP-SONG STRUCTURE (verse-chorus-verse-chorus-bridge-chorus, ~3:30-4:00) within ELECTRONIC PRODUCTION VOCABULARY",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "extended_multi_section_film_score_adjacent_composition__VS__extreme_compressed_economy_under_two_minutes",
+          "recipe_a": "extended_multi_section_film_score_adjacent_composition",
+          "recipe_b": "extreme_compressed_economy_under_two_minutes",
+          "mutually_documented": true,
+          "rule_a_premise": "Compose EXTENDED MULTI-SECTION TRACK (8+ minutes) with FILM-SCORE-ADJACENT AMBITION — different sections deploy different vocabularies (intimate, electronic, live band, orchestral), arrangement EVOLVE",
+          "rule_b_premise": "Compose track at EXTREME COMPRESSED ECONOMY (<2 min) within an album that includes longer tracks",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "extended_multi_section_film_score_adjacent_composition__VS__minimum_element_electronic_experimental_arrangement",
+          "recipe_a": "extended_multi_section_film_score_adjacent_composition",
+          "recipe_b": "minimum_element_electronic_experimental_arrangement",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose EXTENDED MULTI-SECTION TRACK (8+ minutes) with FILM-SCORE-ADJACENT AMBITION — different sections deploy different vocabularies (intimate, electronic, live band, orchestral), arrangement EVOLVE",
+          "rule_b_premise": "Build electronic-experimental arrangement on MINIMUM ELEMENT COUNT — keyboard + vocal + processed samples sufficient",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "extensive_dynamic_break_mix_automation_for_drum_feature__VS__loudness_war_mastering_balanced_with_dynamic_detail",
+          "recipe_a": "extensive_dynamic_break_mix_automation_for_drum_feature",
+          "recipe_b": "loudness_war_mastering_balanced_with_dynamic_detail",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing tracks with compositional drum feature, use EXTENSIVE mix automation to spotlight drums during break — drum bus rides up, guitar/bass ride down, possibly more reverb on drums for spaciousn",
+          "rule_b_premise": "When mastering for 2000s+ commercial contexts (loudness-war era), aim for COMPETITIVE LOUDNESS while preserving as much DYNAMIC DETAIL as possible",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "extensive_dynamic_break_mix_automation_for_drum_feature__VS__wallace_compressed_brightness_vs_albini_room",
+          "recipe_a": "extensive_dynamic_break_mix_automation_for_drum_feature",
+          "recipe_b": "wallace_compressed_brightness_vs_albini_room",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing tracks with compositional drum feature, use EXTENSIVE mix automation to spotlight drums during break — drum bus rides up, guitar/bass ride down, possibly more reverb on drums for spaciousn",
+          "rule_b_premise": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room emphasis",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "extreme_compressed_economy_under_two_minutes__VS__patience_demand_as_compositional_choice",
+          "recipe_a": "extreme_compressed_economy_under_two_minutes",
+          "recipe_b": "patience_demand_as_compositional_choice",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose track at EXTREME COMPRESSED ECONOMY (<2 min) within an album that includes longer tracks",
+          "rule_b_premise": "Make a long song where the LISTENER'S PATIENCE is itself part of the compositional contract",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "extreme_compressed_economy_under_two_minutes__VS__progressive_layering_arrangement_arc",
+          "recipe_a": "extreme_compressed_economy_under_two_minutes",
+          "recipe_b": "progressive_layering_arrangement_arc",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose track at EXTREME COMPRESSED ECONOMY (<2 min) within an album that includes longer tracks",
+          "rule_b_premise": "Build extended-form (5+ minutes) electronic track via PROGRESSIVE LAYERING ARRANGEMENT — start with kick + bass-line foundation, add layers progressively across runtime, peak density section, strip la",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "fast_tempo_148_156_bpm_aggressive_heavy_rock__VS__long_asymmetric_cycle_for_meditation_not_complexity",
+          "recipe_a": "fast_tempo_148_156_bpm_aggressive_heavy_rock",
+          "recipe_b": "long_asymmetric_cycle_for_meditation_not_complexity",
+          "mutually_documented": false,
+          "rule_a_premise": "Push tempo into 145-160 BPM territory for a heavy rock track — faster than mainstream alt-rock standard (90-130 BPM) but retaining wall-of-density sonics",
+          "rule_b_premise": "When using asymmetric meter (7/4, 5/4, 11/8), let the cycle feel LONG + MEDITATIVE rather than tight + complex",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "fast_tempo_148_156_bpm_aggressive_heavy_rock__VS__mid_tempo_aggression_not_hardcore_speed",
+          "recipe_a": "fast_tempo_148_156_bpm_aggressive_heavy_rock",
+          "recipe_b": "mid_tempo_aggression_not_hardcore_speed",
+          "mutually_documented": true,
+          "rule_a_premise": "Push tempo into 145-160 BPM territory for a heavy rock track — faster than mainstream alt-rock standard (90-130 BPM) but retaining wall-of-density sonics",
+          "rule_b_premise": "Aggression does not require fast tempo",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "fast_tempo_layered_guitar_density_management__VS__wallace_stereo_width_maximization_mix",
+          "recipe_a": "fast_tempo_layered_guitar_density_management",
+          "recipe_b": "wallace_stereo_width_maximization_mix",
+          "mutually_documented": false,
+          "rule_a_premise": "When layering multiple guitars at fast tempo (140+ BPM), prioritize RHYTHMIC ARTICULATION over maximum stereo width",
+          "rule_b_premise": "When mixing wall-of-sound arrangements, maximize STEREO WIDTH via aggressive L/R panning of guitar layers + frequency-spread EQ",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "film_scoring_discipline_integrated_into_song_composition__VS__riff_as_both_hook_and_structural_backbone",
+          "recipe_a": "film_scoring_discipline_integrated_into_song_composition",
+          "recipe_b": "riff_as_both_hook_and_structural_backbone",
+          "mutually_documented": false,
+          "rule_a_premise": "When composing songs, apply FILM-SCORING DISCIPLINE — music as integrated whole, pattern evolution + texture transformation supporting emotional arc, less reliance on traditional song-structure templa",
+          "rule_b_premise": "Write a guitar riff that is SIMULTANEOUSLY the song's hook AND its structural backbone (continues through verses + reappears in choruses)",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "filter_modulation_as_compositional_engine__VS__locked_rock_groove_with_free_jazz_brass_genre_clash",
+          "recipe_a": "filter_modulation_as_compositional_engine",
+          "recipe_b": "locked_rock_groove_with_free_jazz_brass_genre_clash",
+          "mutually_documented": false,
+          "rule_a_premise": "Use ANALOG FILTER MODULATION (sweeping filter cutoff up/down across song's runtime) as PRIMARY COMPOSITIONAL ENGINE substituting for traditional harmonic motion",
+          "rule_b_premise": "Compose locked-tight rock rhythm section (bass-line + drums) + add FREE-JAZZ BRASS SECTION (multiple horn players given expressionist liberation within arranged framework)",
+          "wow_factor_a": 0.85,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "filter_modulation_as_compositional_engine__VS__voice_leading_clarity_via_synth_pad_layers",
+          "recipe_a": "filter_modulation_as_compositional_engine",
+          "recipe_b": "voice_leading_clarity_via_synth_pad_layers",
+          "mutually_documented": true,
+          "rule_a_premise": "Use ANALOG FILTER MODULATION (sweeping filter cutoff up/down across song's runtime) as PRIMARY COMPOSITIONAL ENGINE substituting for traditional harmonic motion",
+          "rule_b_premise": "When voicing classical-influenced chord progression in electronic context, use MULTIPLE SYNTH PAD LAYERS to clarify voice-leading",
+          "wow_factor_a": 0.85,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "flat_dynamic_arc_anti_buildup__VS__sustained_intensity_no_dynamic_arc_economy",
+          "recipe_a": "flat_dynamic_arc_anti_buildup",
+          "recipe_b": "sustained_intensity_no_dynamic_arc_economy",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose a song with NO dynamic peak",
+          "rule_b_premise": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge",
+          "wow_factor_a": 0.7,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "four_on_the_floor_120_bpm_house_foundation__VS__seven_four_asymmetric_meter_as_structural_device",
+          "recipe_a": "four_on_the_floor_120_bpm_house_foundation",
+          "recipe_b": "seven_four_asymmetric_meter_as_structural_device",
+          "mutually_documented": false,
+          "rule_a_premise": "Use 4-ON-THE-FLOOR drum pattern (kick on every beat) at 120-128 BPM as house-tradition compositional foundation",
+          "rule_b_premise": "Use 7/4 (or other long asymmetric meters: 11/8, 13/8) as STRUCTURAL DEVICE rather than as decorative complexity",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "groove_over_complexity_compositional_priority__VS__syncopated_kick_creates_implied_meter_within_4_4",
+          "recipe_a": "groove_over_complexity_compositional_priority",
+          "recipe_b": "syncopated_kick_creates_implied_meter_within_4_4",
+          "mutually_documented": false,
+          "rule_a_premise": "Prioritize POCKET + FEEL over technical demonstration",
+          "rule_b_premise": "Within standard 4/4 meter, place kick on UNEXPECTED beats (offbeat 16ths, syncopated 8ths) to create an IMPLIED METER that doesn't match the literal meter",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "hard_soft_hard_contrast_within_song__VS__integrated_transitions_not_abrupt_cuts",
+          "recipe_a": "hard_soft_hard_contrast_within_song",
+          "recipe_b": "integrated_transitions_not_abrupt_cuts",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a song where the AGGRESSIVE-MELODIC-AGGRESSIVE contrast happens WITHIN section transitions, not just between separate songs",
+          "rule_b_premise": "Build section transitions as INTEGRATED TRANSFORMATIONS rather than ABRUPT CUTS",
+          "wow_factor_a": 0.84,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "hard_soft_hard_contrast_within_song__VS__sustained_intensity_no_dynamic_arc_economy",
+          "recipe_a": "hard_soft_hard_contrast_within_song",
+          "recipe_b": "sustained_intensity_no_dynamic_arc_economy",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a song where the AGGRESSIVE-MELODIC-AGGRESSIVE contrast happens WITHIN section transitions, not just between separate songs",
+          "rule_b_premise": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge",
+          "wow_factor_a": 0.84,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "hybrid_vocabulary_integration_within_sections__VS__minimum_viable_element_count_for_emotional_impact",
+          "recipe_a": "hybrid_vocabulary_integration_within_sections",
+          "recipe_b": "minimum_viable_element_count_for_emotional_impact",
+          "mutually_documented": false,
+          "rule_a_premise": "Within a single song, INTEGRATE two opposite genre-vocabularies (e",
+          "rule_b_premise": "Strip arrangement to FEWEST POSSIBLE ELEMENTS while maintaining emotional impact",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "hybrid_vocabulary_integration_within_sections__VS__sustained_intensity_no_dynamic_arc_economy",
+          "recipe_a": "hybrid_vocabulary_integration_within_sections",
+          "recipe_b": "sustained_intensity_no_dynamic_arc_economy",
+          "mutually_documented": false,
+          "rule_a_premise": "Within a single song, INTEGRATE two opposite genre-vocabularies (e",
+          "rule_b_premise": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge",
+          "wow_factor_a": 0.86,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "industrial_drum_processing_on_live_drums__VS__kasper_band_driven_unified_engineering_mixing",
+          "recipe_a": "industrial_drum_processing_on_live_drums",
+          "recipe_b": "kasper_band_driven_unified_engineering_mixing",
+          "mutually_documented": false,
+          "rule_a_premise": "Process LIVE drums to evoke industrial-drum-machine character without replacing them with samples",
+          "rule_b_premise": "Use UNIFIED engineering + mixing roles (one person tracks AND mixes) to preserve recording-stage decisions through to final master",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "industrial_leaning_rhythmic_emphasis_with_rock_identity__VS__jam_band_influence_in_rock_format",
+          "recipe_a": "industrial_leaning_rhythmic_emphasis_with_rock_identity",
+          "recipe_b": "jam_band_influence_in_rock_format",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a heavy rock track that ABSORBS industrial influence (rhythmic precision, drum-machine-evocative live drumming, possible processed textures) while retaining ROCK IDENTITY (live drums, riff-based",
+          "rule_b_premise": "Borrow extended-form rock traditions (Pink Floyd, Led Zeppelin's longer tracks, Phish-adjacent jam sensibility) into a hard-rock or alt-rock context",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "industrial_textural_aggression_via_processed_guitar_layers__VS__riff_as_both_hook_and_structural_backbone",
+          "recipe_a": "industrial_textural_aggression_via_processed_guitar_layers",
+          "recipe_b": "riff_as_both_hook_and_structural_backbone",
+          "mutually_documented": false,
+          "rule_a_premise": "Use guitars as TEXTURAL AGGRESSION layers rather than as harmonic-melodic primary",
+          "rule_b_premise": "Write a guitar riff that is SIMULTANEOUSLY the song's hook AND its structural backbone (continues through verses + reappears in choruses)",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "industrial_textural_aggression_via_processed_guitar_layers__VS__two_guitar_stereo_separation_distinct_players",
+          "recipe_a": "industrial_textural_aggression_via_processed_guitar_layers",
+          "recipe_b": "two_guitar_stereo_separation_distinct_players",
+          "mutually_documented": false,
+          "rule_a_premise": "Use guitars as TEXTURAL AGGRESSION layers rather than as harmonic-melodic primary",
+          "rule_b_premise": "Track TWO GUITARS played by TWO DIFFERENT PLAYERS, panned hard L and hard R",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "industrial_textural_aggression_via_processed_guitar_layers__VS__wall_of_layered_guitars_frequency_spread_layering",
+          "recipe_a": "industrial_textural_aggression_via_processed_guitar_layers",
+          "recipe_b": "wall_of_layered_guitars_frequency_spread_layering",
+          "mutually_documented": false,
+          "rule_a_premise": "Use guitars as TEXTURAL AGGRESSION layers rather than as harmonic-melodic primary",
+          "rule_b_premise": "Layer multiple guitar tracks (5-15+) panned across stereo field + EQ-staggered to occupy DIFFERENT FREQUENCY SLOTS (low-mid, mid-range, upper-mid, high)",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "industrial_vocabulary_in_anthemic_rock_structure__VS__minimum_viable_element_count_for_emotional_impact",
+          "recipe_a": "industrial_vocabulary_in_anthemic_rock_structure",
+          "recipe_b": "minimum_viable_element_count_for_emotional_impact",
+          "mutually_documented": false,
+          "rule_a_premise": "Combine industrial PRODUCTION VOCABULARY (programmed drums, processed textures, distorted bass synth) with TRADITIONAL ROCK ANTHEM STRUCTURE (verse-chorus-bridge-final-chorus)",
+          "rule_b_premise": "Strip arrangement to FEWEST POSSIBLE ELEMENTS while maintaining emotional impact",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "industrial_vocabulary_in_anthemic_rock_structure__VS__unrelenting_aggression_no_dynamic_arc",
+          "recipe_a": "industrial_vocabulary_in_anthemic_rock_structure",
+          "recipe_b": "unrelenting_aggression_no_dynamic_arc",
+          "mutually_documented": false,
+          "rule_a_premise": "Combine industrial PRODUCTION VOCABULARY (programmed drums, processed textures, distorted bass synth) with TRADITIONAL ROCK ANTHEM STRUCTURE (verse-chorus-bridge-final-chorus)",
+          "rule_b_premise": "After the initial slam, sustain MAXIMUM band density and intensity for the song's entire ~2 minutes",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "jam_band_influence_in_rock_format__VS__unrelenting_aggression_no_dynamic_arc",
+          "recipe_a": "jam_band_influence_in_rock_format",
+          "recipe_b": "unrelenting_aggression_no_dynamic_arc",
+          "mutually_documented": false,
+          "rule_a_premise": "Borrow extended-form rock traditions (Pink Floyd, Led Zeppelin's longer tracks, Phish-adjacent jam sensibility) into a hard-rock or alt-rock context",
+          "rule_b_premise": "After the initial slam, sustain MAXIMUM band density and intensity for the song's entire ~2 minutes",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "kasper_band_driven_unified_engineering_mixing__VS__loudness_war_mastering_balanced_with_dynamic_detail",
+          "recipe_a": "kasper_band_driven_unified_engineering_mixing",
+          "recipe_b": "loudness_war_mastering_balanced_with_dynamic_detail",
+          "mutually_documented": false,
+          "rule_a_premise": "Use UNIFIED engineering + mixing roles (one person tracks AND mixes) to preserve recording-stage decisions through to final master",
+          "rule_b_premise": "When mastering for 2000s+ commercial contexts (loudness-war era), aim for COMPETITIVE LOUDNESS while preserving as much DYNAMIC DETAIL as possible",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "kasper_band_driven_unified_engineering_mixing__VS__wallace_compressed_brightness_vs_albini_room",
+          "recipe_a": "kasper_band_driven_unified_engineering_mixing",
+          "recipe_b": "wallace_compressed_brightness_vs_albini_room",
+          "mutually_documented": false,
+          "rule_a_premise": "Use UNIFIED engineering + mixing roles (one person tracks AND mixes) to preserve recording-stage decisions through to final master",
+          "rule_b_premise": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room emphasis",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "kasper_band_driven_unified_engineering_mixing__VS__wallace_stereo_width_maximization_mix",
+          "recipe_a": "kasper_band_driven_unified_engineering_mixing",
+          "recipe_b": "wallace_stereo_width_maximization_mix",
+          "mutually_documented": false,
+          "rule_a_premise": "Use UNIFIED engineering + mixing roles (one person tracks AND mixes) to preserve recording-stage decisions through to final master",
+          "rule_b_premise": "When mixing wall-of-sound arrangements, maximize STEREO WIDTH via aggressive L/R panning of guitar layers + frequency-spread EQ",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "lanegan_style_whiskey_baritone_harmony_dimensional_vocal_color__VS__punk_economy_arrangement_no_atmospheric_layers",
+          "recipe_a": "lanegan_style_whiskey_baritone_harmony_dimensional_vocal_color",
+          "recipe_b": "punk_economy_arrangement_no_atmospheric_layers",
+          "mutually_documented": false,
+          "rule_a_premise": "Add GUEST VOCAL HARMONY with documented distinct vocal identity (whiskey baritone, smoky low register, etc",
+          "rule_b_premise": "When composing punk-aggression tracks, REJECT atmospheric layers + guest harmonies + extended sections",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "lanegan_style_whiskey_baritone_harmony_dimensional_vocal_color__VS__screamed_single_take_vocal_no_doubling",
+          "recipe_a": "lanegan_style_whiskey_baritone_harmony_dimensional_vocal_color",
+          "recipe_b": "screamed_single_take_vocal_no_doubling",
+          "mutually_documented": false,
+          "rule_a_premise": "Add GUEST VOCAL HARMONY with documented distinct vocal identity (whiskey baritone, smoky low register, etc",
+          "rule_b_premise": "Track the vocal as SINGLE-TAKE screamed delivery",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "legendary_session_musicians_for_specific_genre_homage__VS__programmed_drums_as_compositional_engine",
+          "recipe_a": "legendary_session_musicians_for_specific_genre_homage",
+          "recipe_b": "programmed_drums_as_compositional_engine",
+          "mutually_documented": false,
+          "rule_a_premise": "Hire LEGENDARY SESSION MUSICIANS with documented genre-credentials (e",
+          "rule_b_premise": "Treat programmed drums + sampled percussion as COMPOSITIONAL INSTRUMENTS — programming choices ARE composition",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.82
+        },
+        {
+          "pair_id": "litt_subtle_remix_for_chamber_arrangements__VS__wallace_compressed_brightness_vs_albini_room",
+          "recipe_a": "litt_subtle_remix_for_chamber_arrangements",
+          "recipe_b": "wallace_compressed_brightness_vs_albini_room",
+          "mutually_documented": false,
+          "rule_a_premise": "When commercial polish is needed on a CHAMBER-style arrangement (clean guitar + strings + restrained drums + vocal), apply Litt-style SUBTLE intervention rather than Wallace-style heavy compression",
+          "rule_b_premise": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room emphasis",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "litt_subtle_remix_for_chamber_arrangements__VS__wallace_stereo_width_maximization_mix",
+          "recipe_a": "litt_subtle_remix_for_chamber_arrangements",
+          "recipe_b": "wallace_stereo_width_maximization_mix",
+          "mutually_documented": false,
+          "rule_a_premise": "When commercial polish is needed on a CHAMBER-style arrangement (clean guitar + strings + restrained drums + vocal), apply Litt-style SUBTLE intervention rather than Wallace-style heavy compression",
+          "rule_b_premise": "When mixing wall-of-sound arrangements, maximize STEREO WIDTH via aggressive L/R panning of guitar layers + frequency-spread EQ",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "live_drums_with_programmed_overlay_hybrid__VS__programmed_drums_as_compositional_engine",
+          "recipe_a": "live_drums_with_programmed_overlay_hybrid",
+          "recipe_b": "programmed_drums_as_compositional_engine",
+          "mutually_documented": false,
+          "rule_a_premise": "Build a track where LIVE DRUMS (rock drummer) are the rhythmic foundation, with programmed sample triggers + industrial percussion BLENDED on top as overlay",
+          "rule_b_premise": "Treat programmed drums + sampled percussion as COMPOSITIONAL INSTRUMENTS — programming choices ARE composition",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.82
+        },
+        {
+          "pair_id": "locked_rock_groove_with_free_jazz_brass_genre_clash__VS__minimum_viable_element_count_for_emotional_impact",
+          "recipe_a": "locked_rock_groove_with_free_jazz_brass_genre_clash",
+          "recipe_b": "minimum_viable_element_count_for_emotional_impact",
+          "mutually_documented": false,
+          "rule_a_premise": "Compose locked-tight rock rhythm section (bass-line + drums) + add FREE-JAZZ BRASS SECTION (multiple horn players given expressionist liberation within arranged framework)",
+          "rule_b_premise": "Strip arrangement to FEWEST POSSIBLE ELEMENTS while maintaining emotional impact",
+          "wow_factor_a": 0.84,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "loudness_war_mastering_balanced_with_dynamic_detail__VS__low_frequency_clarity_priority_in_drone_mix",
+          "recipe_a": "loudness_war_mastering_balanced_with_dynamic_detail",
+          "recipe_b": "low_frequency_clarity_priority_in_drone_mix",
+          "mutually_documented": false,
+          "rule_a_premise": "When mastering for 2000s+ commercial contexts (loudness-war era), aim for COMPETITIVE LOUDNESS while preserving as much DYNAMIC DETAIL as possible",
+          "rule_b_premise": "When mixing drone-foundation arrangements, give the drone bass + low-tuned instruments DEDICATED low-frequency space",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "loudness_war_mastering_balanced_with_dynamic_detail__VS__moulder_atmospheric_mix_sustain_preservation",
+          "recipe_a": "loudness_war_mastering_balanced_with_dynamic_detail",
+          "recipe_b": "moulder_atmospheric_mix_sustain_preservation",
+          "mutually_documented": true,
+          "rule_a_premise": "When mastering for 2000s+ commercial contexts (loudness-war era), aim for COMPETITIVE LOUDNESS while preserving as much DYNAMIC DETAIL as possible",
+          "rule_b_premise": "When mixing atmospheric compositions, MAXIMIZE reverb on atmospheric elements (long tails, hall + plate blends), SPREAD synth-pad layers wide for harmonic field depth, place vocal centered + forward f",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "loudness_war_mastering_balanced_with_dynamic_detail__VS__obrien_moderate_compression_for_dynamic_shift_songs",
+          "recipe_a": "loudness_war_mastering_balanced_with_dynamic_detail",
+          "recipe_b": "obrien_moderate_compression_for_dynamic_shift_songs",
+          "mutually_documented": false,
+          "rule_a_premise": "When mastering for 2000s+ commercial contexts (loudness-war era), aim for COMPETITIVE LOUDNESS while preserving as much DYNAMIC DETAIL as possible",
+          "rule_b_premise": "When mixing dynamic-arc songs (verse quiet, chorus loud), use MODERATE compression rather than maximum — preserve the quiet-loud contrast that the composition relies on",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "low_frequency_clarity_priority_in_drone_mix__VS__wallace_compressed_brightness_vs_albini_room",
+          "recipe_a": "low_frequency_clarity_priority_in_drone_mix",
+          "recipe_b": "wallace_compressed_brightness_vs_albini_room",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing drone-foundation arrangements, give the drone bass + low-tuned instruments DEDICATED low-frequency space",
+          "rule_b_premise": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room emphasis",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "manipulated_vocal_samples_as_textural_color__VS__screamed_single_take_vocal_no_doubling",
+          "recipe_a": "manipulated_vocal_samples_as_textural_color",
+          "recipe_b": "screamed_single_take_vocal_no_doubling",
+          "mutually_documented": false,
+          "rule_a_premise": "Sample own vocal + PROCESS ELECTRONICALLY (granular synthesis, pitch-shifting, time-stretching) + integrate as TEXTURAL COLOR in arrangement",
+          "rule_b_premise": "Track the vocal as SINGLE-TAKE screamed delivery",
+          "wow_factor_a": 0.82,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "manipulated_vocal_samples_as_textural_color__VS__vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "recipe_a": "manipulated_vocal_samples_as_textural_color",
+          "recipe_b": "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "mutually_documented": false,
+          "rule_a_premise": "Sample own vocal + PROCESS ELECTRONICALLY (granular synthesis, pitch-shifting, time-stretching) + integrate as TEXTURAL COLOR in arrangement",
+          "rule_b_premise": "When recording emotionally vulnerable vocal, use CLEAN PROCESSING (no saturation/distortion), DEEP REVERB (plate + hall), NO PITCH CORRECTION (preserves raw emotional quality), MULTIPLE COMPLETE TAKES",
+          "wow_factor_a": 0.82,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "mature_compositional_voice_after_collaborative_period__VS__three_way_producer_collective_band_member_included",
+          "recipe_a": "mature_compositional_voice_after_collaborative_period",
+          "recipe_b": "three_way_producer_collective_band_member_included",
+          "mutually_documented": false,
+          "rule_a_premise": "After collaborative-band period (e",
+          "rule_b_premise": "Use a THREE-WAY producer credit including a band member as full producer alongside two external producers",
+          "wow_factor_a": 0.75,
+          "wow_factor_b": 0.74
+        },
+        {
+          "pair_id": "mature_compositional_voice_after_collaborative_period__VS__vocal_democracy_three_lead_vocalists_within_album",
+          "recipe_a": "mature_compositional_voice_after_collaborative_period",
+          "recipe_b": "vocal_democracy_three_lead_vocalists_within_album",
+          "mutually_documented": false,
+          "rule_a_premise": "After collaborative-band period (e",
+          "rule_b_premise": "Allow THREE OR MORE band members + guests to lead vocals within same album, depending on song's compositional needs",
+          "wow_factor_a": 0.75,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "mature_vocal_aesthetic_post_aggression_post_vulnerability__VS__scream_to_sing_vocal_contrast_as_compositional_weapon",
+          "recipe_a": "mature_vocal_aesthetic_post_aggression_post_vulnerability",
+          "recipe_b": "scream_to_sing_vocal_contrast_as_compositional_weapon",
+          "mutually_documented": false,
+          "rule_a_premise": "Once an artist has demonstrated AGGRESSION pole + VULNERABILITY pole vocal capacities, develop MATURE MELODIC pole — neither aggressive nor vulnerable but melodically deliberate, breath-supported, res",
+          "rule_b_premise": "Have vocalist execute SCREAM-TO-SING contrast within same song — verse screamed, chorus sung melodically, return to screamed",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "mature_vocal_aesthetic_post_aggression_post_vulnerability__VS__screamed_single_take_vocal_no_doubling",
+          "recipe_a": "mature_vocal_aesthetic_post_aggression_post_vulnerability",
+          "recipe_b": "screamed_single_take_vocal_no_doubling",
+          "mutually_documented": false,
+          "rule_a_premise": "Once an artist has demonstrated AGGRESSION pole + VULNERABILITY pole vocal capacities, develop MATURE MELODIC pole — neither aggressive nor vulnerable but melodically deliberate, breath-supported, res",
+          "rule_b_premise": "Track the vocal as SINGLE-TAKE screamed delivery",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "mature_vocal_aesthetic_post_aggression_post_vulnerability__VS__vocal_high_range_exploitation_as_signature",
+          "recipe_a": "mature_vocal_aesthetic_post_aggression_post_vulnerability",
+          "recipe_b": "vocal_high_range_exploitation_as_signature",
+          "mutually_documented": false,
+          "rule_a_premise": "Once an artist has demonstrated AGGRESSION pole + VULNERABILITY pole vocal capacities, develop MATURE MELODIC pole — neither aggressive nor vulnerable but melodically deliberate, breath-supported, res",
+          "rule_b_premise": "Build verse + chorus melody around the vocalist's HIGH RANGE (upper tessitura)",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "mid_tempo_aggression_not_hardcore_speed__VS__unrelenting_aggression_no_dynamic_arc",
+          "recipe_a": "mid_tempo_aggression_not_hardcore_speed",
+          "recipe_b": "unrelenting_aggression_no_dynamic_arc",
+          "mutually_documented": false,
+          "rule_a_premise": "Aggression does not require fast tempo",
+          "rule_b_premise": "After the initial slam, sustain MAXIMUM band density and intensity for the song's entire ~2 minutes",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "minimum_element_electronic_experimental_arrangement__VS__wall_of_layered_guitars_frequency_spread_layering",
+          "recipe_a": "minimum_element_electronic_experimental_arrangement",
+          "recipe_b": "wall_of_layered_guitars_frequency_spread_layering",
+          "mutually_documented": false,
+          "rule_a_premise": "Build electronic-experimental arrangement on MINIMUM ELEMENT COUNT — keyboard + vocal + processed samples sufficient",
+          "rule_b_premise": "Layer multiple guitar tracks (5-15+) panned across stereo field + EQ-staggered to occupy DIFFERENT FREQUENCY SLOTS (low-mid, mid-range, upper-mid, high)",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "minimum_viable_element_count_for_emotional_impact__VS__unusual_instrument_as_compositional_centerpiece",
+          "recipe_a": "minimum_viable_element_count_for_emotional_impact",
+          "recipe_b": "unusual_instrument_as_compositional_centerpiece",
+          "mutually_documented": false,
+          "rule_a_premise": "Strip arrangement to FEWEST POSSIBLE ELEMENTS while maintaining emotional impact",
+          "rule_b_premise": "Use OVERLOOKED OR UNUSUAL INSTRUMENT (cowbell, glockenspiel, tambourine, etc",
+          "wow_factor_a": 0.85,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "minimum_viable_element_count_for_emotional_impact__VS__wall_of_layered_guitars_frequency_spread_layering",
+          "recipe_a": "minimum_viable_element_count_for_emotional_impact",
+          "recipe_b": "wall_of_layered_guitars_frequency_spread_layering",
+          "mutually_documented": true,
+          "rule_a_premise": "Strip arrangement to FEWEST POSSIBLE ELEMENTS while maintaining emotional impact",
+          "rule_b_premise": "Layer multiple guitar tracks (5-15+) panned across stereo field + EQ-staggered to occupy DIFFERENT FREQUENCY SLOTS (low-mid, mid-range, upper-mid, high)",
+          "wow_factor_a": 0.85,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "modal_voicings_above_drone_replace_chord_progression__VS__rhythmic_emphasis_over_harmonic_movement_industrial_lesson",
+          "recipe_a": "modal_voicings_above_drone_replace_chord_progression",
+          "recipe_b": "rhythmic_emphasis_over_harmonic_movement_industrial_lesson",
+          "mutually_documented": false,
+          "rule_a_premise": "Instead of standard chord progression (I-IV-V-I or i-VI-VII-i), use SUSTAINED MODAL VOICINGS above a drone foundation",
+          "rule_b_premise": "Foreground RHYTHM over harmonic motion — riff's rhythmic identity carries the song, harmonic stasis acceptable as platform for rhythmic emphasis",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "modular_electronic_patterns_as_compositional_foundation__VS__riff_as_both_hook_and_structural_backbone",
+          "recipe_a": "modular_electronic_patterns_as_compositional_foundation",
+          "recipe_b": "riff_as_both_hook_and_structural_backbone",
+          "mutually_documented": false,
+          "rule_a_premise": "Use MODULAR ELECTRONIC PATTERNS (analog synths, modular synth elements, processed electronic textures) as primary compositional foundation",
+          "rule_b_premise": "Write a guitar riff that is SIMULTANEOUSLY the song's hook AND its structural backbone (continues through verses + reappears in choruses)",
+          "wow_factor_a": 0.85,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "modular_electronic_patterns_as_compositional_foundation__VS__wall_of_layered_guitars_frequency_spread_layering",
+          "recipe_a": "modular_electronic_patterns_as_compositional_foundation",
+          "recipe_b": "wall_of_layered_guitars_frequency_spread_layering",
+          "mutually_documented": false,
+          "rule_a_premise": "Use MODULAR ELECTRONIC PATTERNS (analog synths, modular synth elements, processed electronic textures) as primary compositional foundation",
+          "rule_b_premise": "Layer multiple guitar tracks (5-15+) panned across stereo field + EQ-staggered to occupy DIFFERENT FREQUENCY SLOTS (low-mid, mid-range, upper-mid, high)",
+          "wow_factor_a": 0.85,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "moulder_anthemic_industrial_mix_hybrid_balance__VS__moulder_atmospheric_mix_sustain_preservation",
+          "recipe_a": "moulder_anthemic_industrial_mix_hybrid_balance",
+          "recipe_b": "moulder_atmospheric_mix_sustain_preservation",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing industrial-vocabulary anthem tracks, BALANCE rock-anthem stereo width with industrial-rhythm clarity",
+          "rule_b_premise": "When mixing atmospheric compositions, MAXIMIZE reverb on atmospheric elements (long tails, hall + plate blends), SPREAD synth-pad layers wide for harmonic field depth, place vocal centered + forward f",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "moulder_atmospheric_mix_sustain_preservation__VS__moulder_mix_rhythmic_aggression_priority_over_width",
+          "recipe_a": "moulder_atmospheric_mix_sustain_preservation",
+          "recipe_b": "moulder_mix_rhythmic_aggression_priority_over_width",
+          "mutually_documented": true,
+          "rule_a_premise": "When mixing atmospheric compositions, MAXIMIZE reverb on atmospheric elements (long tails, hall + plate blends), SPREAD synth-pad layers wide for harmonic field depth, place vocal centered + forward f",
+          "rule_b_premise": "When mixing fast-tempo aggressive heavy rock, prioritize RHYTHMIC ARTICULATION over maximum stereo width",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.73
+        },
+        {
+          "pair_id": "moulder_atmospheric_mix_sustain_preservation__VS__wallace_stereo_width_maximization_mix",
+          "recipe_a": "moulder_atmospheric_mix_sustain_preservation",
+          "recipe_b": "wallace_stereo_width_maximization_mix",
+          "mutually_documented": true,
+          "rule_a_premise": "When mixing atmospheric compositions, MAXIMIZE reverb on atmospheric elements (long tails, hall + plate blends), SPREAD synth-pad layers wide for harmonic field depth, place vocal centered + forward f",
+          "rule_b_premise": "When mixing wall-of-sound arrangements, maximize STEREO WIDTH via aggressive L/R panning of guitar layers + frequency-spread EQ",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "moulder_mix_rhythmic_aggression_priority_over_width__VS__wallace_stereo_width_maximization_mix",
+          "recipe_a": "moulder_mix_rhythmic_aggression_priority_over_width",
+          "recipe_b": "wallace_stereo_width_maximization_mix",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing fast-tempo aggressive heavy rock, prioritize RHYTHMIC ARTICULATION over maximum stereo width",
+          "rule_b_premise": "When mixing wall-of-sound arrangements, maximize STEREO WIDTH via aggressive L/R panning of guitar layers + frequency-spread EQ",
+          "wow_factor_a": 0.73,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "obrien_moderate_compression_for_dynamic_shift_songs__VS__wallace_compressed_brightness_vs_albini_room",
+          "recipe_a": "obrien_moderate_compression_for_dynamic_shift_songs",
+          "recipe_b": "wallace_compressed_brightness_vs_albini_room",
+          "mutually_documented": false,
+          "rule_a_premise": "When mixing dynamic-arc songs (verse quiet, chorus loud), use MODERATE compression rather than maximum — preserve the quiet-loud contrast that the composition relies on",
+          "rule_b_premise": "When mixing aggressive material (fast tempo, max distortion, screamed vocal), apply Wallace-style heavy compression + bright EQ rather than Albini-style raw room emphasis",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "pop_song_structure_within_electronic_vocabulary__VS__progressive_layering_arrangement_arc",
+          "recipe_a": "pop_song_structure_within_electronic_vocabulary",
+          "recipe_b": "progressive_layering_arrangement_arc",
+          "mutually_documented": false,
+          "rule_a_premise": "Apply POP-SONG STRUCTURE (verse-chorus-verse-chorus-bridge-chorus, ~3:30-4:00) within ELECTRONIC PRODUCTION VOCABULARY",
+          "rule_b_premise": "Build extended-form (5+ minutes) electronic track via PROGRESSIVE LAYERING ARRANGEMENT — start with kick + bass-line foundation, add layers progressively across runtime, peak density section, strip la",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "post_lineup_change_compositional_voice_dominance__VS__vocal_democracy_three_lead_vocalists_within_album",
+          "recipe_a": "post_lineup_change_compositional_voice_dominance",
+          "recipe_b": "vocal_democracy_three_lead_vocalists_within_album",
+          "mutually_documented": false,
+          "rule_a_premise": "When key band member departs, allow remaining primary songwriter's COMPOSITIONAL VOICE to dominate without forcing replacement of departed member's contribution",
+          "rule_b_premise": "Allow THREE OR MORE band members + guests to lead vocals within same album, depending on song's compositional needs",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.83
+        },
+        {
+          "pair_id": "post_lineup_change_compositional_voice_dominance__VS__vocal_lead_democracy_band_member_with_hardcore_vocabulary",
+          "recipe_a": "post_lineup_change_compositional_voice_dominance",
+          "recipe_b": "vocal_lead_democracy_band_member_with_hardcore_vocabulary",
+          "mutually_documented": false,
+          "rule_a_premise": "When key band member departs, allow remaining primary songwriter's COMPOSITIONAL VOICE to dominate without forcing replacement of departed member's contribution",
+          "rule_b_premise": "Allow band member with documented HARDCORE-PUNK VOCABULARY (e",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "power_trio_plus_guest_harmony_arrangement__VS__wall_of_layered_guitars_frequency_spread_layering",
+          "recipe_a": "power_trio_plus_guest_harmony_arrangement",
+          "recipe_b": "wall_of_layered_guitars_frequency_spread_layering",
+          "mutually_documented": false,
+          "rule_a_premise": "Build arrangement on TIGHT POWER TRIO foundation (guitar + bass + drums) + ADD ONE GUEST CONTRIBUTOR for dimensional color (vocal harmony, secondary instrument, etc",
+          "rule_b_premise": "Layer multiple guitar tracks (5-15+) panned across stereo field + EQ-staggered to occupy DIFFERENT FREQUENCY SLOTS (low-mid, mid-range, upper-mid, high)",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "programmed_drums_as_compositional_engine__VS__rock_drummer_in_industrial_production_context",
+          "recipe_a": "programmed_drums_as_compositional_engine",
+          "recipe_b": "rock_drummer_in_industrial_production_context",
+          "mutually_documented": true,
+          "rule_a_premise": "Treat programmed drums + sampled percussion as COMPOSITIONAL INSTRUMENTS — programming choices ARE composition",
+          "rule_b_premise": "Hire a documented ROCK DRUMMER (Grohl, Chamberlin, etc",
+          "wow_factor_a": 0.82,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "punk_economy_arrangement_no_atmospheric_layers__VS__wall_of_layered_guitars_frequency_spread_layering",
+          "recipe_a": "punk_economy_arrangement_no_atmospheric_layers",
+          "recipe_b": "wall_of_layered_guitars_frequency_spread_layering",
+          "mutually_documented": false,
+          "rule_a_premise": "When composing punk-aggression tracks, REJECT atmospheric layers + guest harmonies + extended sections",
+          "rule_b_premise": "Layer multiple guitar tracks (5-15+) panned across stereo field + EQ-staggered to occupy DIFFERENT FREQUENCY SLOTS (low-mid, mid-range, upper-mid, high)",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "rhythmic_emphasis_over_harmonic_movement_industrial_lesson__VS__voice_leading_clarity_via_synth_pad_layers",
+          "recipe_a": "rhythmic_emphasis_over_harmonic_movement_industrial_lesson",
+          "recipe_b": "voice_leading_clarity_via_synth_pad_layers",
+          "mutually_documented": false,
+          "rule_a_premise": "Foreground RHYTHM over harmonic motion — riff's rhythmic identity carries the song, harmonic stasis acceptable as platform for rhythmic emphasis",
+          "rule_b_premise": "When voicing classical-influenced chord progression in electronic context, use MULTIPLE SYNTH PAD LAYERS to clarify voice-leading",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "riff_as_both_hook_and_structural_backbone__VS__sample_based_compositional_foundation_with_documented_clearance",
+          "recipe_a": "riff_as_both_hook_and_structural_backbone",
+          "recipe_b": "sample_based_compositional_foundation_with_documented_clearance",
+          "mutually_documented": false,
+          "rule_a_premise": "Write a guitar riff that is SIMULTANEOUSLY the song's hook AND its structural backbone (continues through verses + reappears in choruses)",
+          "rule_b_premise": "Build composition on SAMPLE LOOP from documented prior recording",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "rock_drummer_in_industrial_production_context__VS__tr_909_drum_machine_as_compositional_instrument",
+          "recipe_a": "rock_drummer_in_industrial_production_context",
+          "recipe_b": "tr_909_drum_machine_as_compositional_instrument",
+          "mutually_documented": false,
+          "rule_a_premise": "Hire a documented ROCK DRUMMER (Grohl, Chamberlin, etc",
+          "rule_b_premise": "Treat ROLAND TR-909 (or equivalent classic drum machine) as PRIMARY COMPOSITIONAL INSTRUMENT — its character + sound + programming workflow IS compositional",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.76
+        },
+        {
+          "pair_id": "scream_to_sing_vocal_contrast_as_compositional_weapon__VS__vocal_intimacy_without_rasp",
+          "recipe_a": "scream_to_sing_vocal_contrast_as_compositional_weapon",
+          "recipe_b": "vocal_intimacy_without_rasp",
+          "mutually_documented": true,
+          "rule_a_premise": "Have vocalist execute SCREAM-TO-SING contrast within same song — verse screamed, chorus sung melodically, return to screamed",
+          "rule_b_premise": "Deliver vocal at LOW intensity throughout",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "scream_to_sing_vocal_contrast_as_compositional_weapon__VS__vocal_subselective_range_use",
+          "recipe_a": "scream_to_sing_vocal_contrast_as_compositional_weapon",
+          "recipe_b": "vocal_subselective_range_use",
+          "mutually_documented": true,
+          "rule_a_premise": "Have vocalist execute SCREAM-TO-SING contrast within same song — verse screamed, chorus sung melodically, return to screamed",
+          "rule_b_premise": "Vocalist with documented wide range chooses to deploy ONLY a NARROW SUB-RANGE for the song",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "scream_to_sing_vocal_contrast_as_compositional_weapon__VS__vocoded_vocal_as_primary_melodic_carrier_full_song",
+          "recipe_a": "scream_to_sing_vocal_contrast_as_compositional_weapon",
+          "recipe_b": "vocoded_vocal_as_primary_melodic_carrier_full_song",
+          "mutually_documented": false,
+          "rule_a_premise": "Have vocalist execute SCREAM-TO-SING contrast within same song — verse screamed, chorus sung melodically, return to screamed",
+          "rule_b_premise": "Use VOCODED VOCAL as PRIMARY MELODIC CARRIER for FULL SONG CONTENT — not just instrument-fragment phrase",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "scream_to_sing_vocal_contrast_as_compositional_weapon__VS__vocoded_vocal_phrase_as_instrument_not_lyric",
+          "recipe_a": "scream_to_sing_vocal_contrast_as_compositional_weapon",
+          "recipe_b": "vocoded_vocal_phrase_as_instrument_not_lyric",
+          "mutually_documented": false,
+          "rule_a_premise": "Have vocalist execute SCREAM-TO-SING contrast within same song — verse screamed, chorus sung melodically, return to screamed",
+          "rule_b_premise": "Use VOCODED VOCAL PHRASE repeated hypnotically as INSTRUMENT not as LYRIC",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "scream_to_sing_vocal_contrast_as_compositional_weapon__VS__vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "recipe_a": "scream_to_sing_vocal_contrast_as_compositional_weapon",
+          "recipe_b": "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "mutually_documented": false,
+          "rule_a_premise": "Have vocalist execute SCREAM-TO-SING contrast within same song — verse screamed, chorus sung melodically, return to screamed",
+          "rule_b_premise": "When recording emotionally vulnerable vocal, use CLEAN PROCESSING (no saturation/distortion), DEEP REVERB (plate + hall), NO PITCH CORRECTION (preserves raw emotional quality), MULTIPLE COMPLETE TAKES",
+          "wow_factor_a": 0.83,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "screamed_single_take_vocal_no_doubling__VS__vocal_absent_extended_section_trust_the_band",
+          "recipe_a": "screamed_single_take_vocal_no_doubling",
+          "recipe_b": "vocal_absent_extended_section_trust_the_band",
+          "mutually_documented": false,
+          "rule_a_premise": "Track the vocal as SINGLE-TAKE screamed delivery",
+          "rule_b_premise": "Have NO VOCAL for an extended section (2+ minutes) in a vocal-driven song",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "screamed_single_take_vocal_no_doubling__VS__vocal_hybrid_delivery_within_single_song",
+          "recipe_a": "screamed_single_take_vocal_no_doubling",
+          "recipe_b": "vocal_hybrid_delivery_within_single_song",
+          "mutually_documented": false,
+          "rule_a_premise": "Track the vocal as SINGLE-TAKE screamed delivery",
+          "rule_b_premise": "Have vocalist execute HYBRID DELIVERY within same song — urgent moderate-aggression in verses + melodic sustained in choruses",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "screamed_single_take_vocal_no_doubling__VS__vocal_intimacy_without_rasp",
+          "recipe_a": "screamed_single_take_vocal_no_doubling",
+          "recipe_b": "vocal_intimacy_without_rasp",
+          "mutually_documented": true,
+          "rule_a_premise": "Track the vocal as SINGLE-TAKE screamed delivery",
+          "rule_b_premise": "Deliver vocal at LOW intensity throughout",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "screamed_single_take_vocal_no_doubling__VS__vocal_layer_count_as_dynamic_lever",
+          "recipe_a": "screamed_single_take_vocal_no_doubling",
+          "recipe_b": "vocal_layer_count_as_dynamic_lever",
+          "mutually_documented": true,
+          "rule_a_premise": "Track the vocal as SINGLE-TAKE screamed delivery",
+          "rule_b_premise": "Verse: SINGLE vocal",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "screamed_single_take_vocal_no_doubling__VS__vocal_layering_as_chant_build_mechanism",
+          "recipe_a": "screamed_single_take_vocal_no_doubling",
+          "recipe_b": "vocal_layering_as_chant_build_mechanism",
+          "mutually_documented": true,
+          "rule_a_premise": "Track the vocal as SINGLE-TAKE screamed delivery",
+          "rule_b_premise": "Build a vocal section's intensity via PROGRESSIVE LAYERING (single → doubled → stacked) rather than via volume or vocal performance escalation",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "screamed_single_take_vocal_no_doubling__VS__vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "recipe_a": "screamed_single_take_vocal_no_doubling",
+          "recipe_b": "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "mutually_documented": false,
+          "rule_a_premise": "Track the vocal as SINGLE-TAKE screamed delivery",
+          "rule_b_premise": "When recording emotionally vulnerable vocal, use CLEAN PROCESSING (no saturation/distortion), DEEP REVERB (plate + hall), NO PITCH CORRECTION (preserves raw emotional quality), MULTIPLE COMPLETE TAKES",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "selective_distortion_deployment_across_arc__VS__sustained_intensity_no_dynamic_arc_economy",
+          "recipe_a": "selective_distortion_deployment_across_arc",
+          "recipe_b": "sustained_intensity_no_dynamic_arc_economy",
+          "mutually_documented": false,
+          "rule_a_premise": "DEPLOY distortion selectively across the song's dynamic arc — clean in intro/early verses, partial distortion in first chorus (preview), FULL distortion in explosion",
+          "rule_b_premise": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge",
+          "wow_factor_a": 0.82,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "slow_burn_arrival_not_explosion__VS__sustained_intensity_no_dynamic_arc_economy",
+          "recipe_a": "slow_burn_arrival_not_explosion",
+          "recipe_b": "sustained_intensity_no_dynamic_arc_economy",
+          "mutually_documented": false,
+          "rule_a_premise": "Build from intro through verse 1 / chorus 1 / verse 2 / chorus 2 / bridge / outro WITHOUT any single section being a detonation",
+          "rule_b_premise": "Build a heavy rock song that stays HEAVY throughout — no quiet/loud dynamic contrast, no clean intro, no atmospheric bridge",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.79
+        },
+        {
+          "pair_id": "slow_burn_arrival_not_explosion__VS__unrelenting_aggression_no_dynamic_arc",
+          "recipe_a": "slow_burn_arrival_not_explosion",
+          "recipe_b": "unrelenting_aggression_no_dynamic_arc",
+          "mutually_documented": true,
+          "rule_a_premise": "Build from intro through verse 1 / chorus 1 / verse 2 / chorus 2 / bridge / outro WITHOUT any single section being a detonation",
+          "rule_b_premise": "After the initial slam, sustain MAXIMUM band density and intensity for the song's entire ~2 minutes",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.75
+        },
+        {
+          "pair_id": "three_way_producer_collective_band_member_included__VS__valentine_engineer_producer_mixer_unified_role_for_groove_rock",
+          "recipe_a": "three_way_producer_collective_band_member_included",
+          "recipe_b": "valentine_engineer_producer_mixer_unified_role_for_groove_rock",
+          "mutually_documented": false,
+          "rule_a_premise": "Use a THREE-WAY producer credit including a band member as full producer alongside two external producers",
+          "rule_b_premise": "Hire ENGINEER-PRODUCER-MIXER unified-role producer who can carry tracking decisions through to final mix",
+          "wow_factor_a": 0.74,
+          "wow_factor_b": 0.76
+        },
+        {
+          "pair_id": "tighter_layering_for_rhythmic_clarity_genre_blend__VS__wall_of_layered_guitars_frequency_spread_layering",
+          "recipe_a": "tighter_layering_for_rhythmic_clarity_genre_blend",
+          "recipe_b": "wall_of_layered_guitars_frequency_spread_layering",
+          "mutually_documented": false,
+          "rule_a_premise": "When blending genres (rock + industrial), REDUCE layering count compared to pure-rock-wall approach",
+          "rule_b_premise": "Layer multiple guitar tracks (5-15+) panned across stereo field + EQ-staggered to occupy DIFFERENT FREQUENCY SLOTS (low-mid, mid-range, upper-mid, high)",
+          "wow_factor_a": 0.75,
+          "wow_factor_b": 0.85
+        },
+        {
+          "pair_id": "tighter_layering_for_rhythmic_clarity_genre_blend__VS__wallace_stereo_width_maximization_mix",
+          "recipe_a": "tighter_layering_for_rhythmic_clarity_genre_blend",
+          "recipe_b": "wallace_stereo_width_maximization_mix",
+          "mutually_documented": false,
+          "rule_a_premise": "When blending genres (rock + industrial), REDUCE layering count compared to pure-rock-wall approach",
+          "rule_b_premise": "When mixing wall-of-sound arrangements, maximize STEREO WIDTH via aggressive L/R panning of guitar layers + frequency-spread EQ",
+          "wow_factor_a": 0.75,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "valentine_engineer_producer_mixer_unified_role_for_groove_rock__VS__vig_meticulous_layering_recording_philosophy",
+          "recipe_a": "valentine_engineer_producer_mixer_unified_role_for_groove_rock",
+          "recipe_b": "vig_meticulous_layering_recording_philosophy",
+          "mutually_documented": false,
+          "rule_a_premise": "Hire ENGINEER-PRODUCER-MIXER unified-role producer who can carry tracking decisions through to final mix",
+          "rule_b_premise": "When recording multi-layered guitar arrangements, capture EACH LAYER cleanly (different mic placement, amp, pedal) so that subsequent mix layering reads clearly",
+          "wow_factor_a": 0.76,
+          "wow_factor_b": 0.77
+        },
+        {
+          "pair_id": "vocal_absent_extended_section_trust_the_band__VS__vocal_high_range_exploitation_as_signature",
+          "recipe_a": "vocal_absent_extended_section_trust_the_band",
+          "recipe_b": "vocal_high_range_exploitation_as_signature",
+          "mutually_documented": false,
+          "rule_a_premise": "Have NO VOCAL for an extended section (2+ minutes) in a vocal-driven song",
+          "rule_b_premise": "Build verse + chorus melody around the vocalist's HIGH RANGE (upper tessitura)",
+          "wow_factor_a": 0.8,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "vocal_high_range_exploitation_as_signature__VS__vocal_intimacy_without_rasp",
+          "recipe_a": "vocal_high_range_exploitation_as_signature",
+          "recipe_b": "vocal_intimacy_without_rasp",
+          "mutually_documented": false,
+          "rule_a_premise": "Build verse + chorus melody around the vocalist's HIGH RANGE (upper tessitura)",
+          "rule_b_premise": "Deliver vocal at LOW intensity throughout",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "vocal_high_range_exploitation_as_signature__VS__vocal_subselective_range_use",
+          "recipe_a": "vocal_high_range_exploitation_as_signature",
+          "recipe_b": "vocal_subselective_range_use",
+          "mutually_documented": false,
+          "rule_a_premise": "Build verse + chorus melody around the vocalist's HIGH RANGE (upper tessitura)",
+          "rule_b_premise": "Vocalist with documented wide range chooses to deploy ONLY a NARROW SUB-RANGE for the song",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "vocal_high_range_exploitation_as_signature__VS__vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "recipe_a": "vocal_high_range_exploitation_as_signature",
+          "recipe_b": "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "mutually_documented": false,
+          "rule_a_premise": "Build verse + chorus melody around the vocalist's HIGH RANGE (upper tessitura)",
+          "rule_b_premise": "When recording emotionally vulnerable vocal, use CLEAN PROCESSING (no saturation/distortion), DEEP REVERB (plate + hall), NO PITCH CORRECTION (preserves raw emotional quality), MULTIPLE COMPLETE TAKES",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "vocal_hybrid_delivery_within_single_song__VS__vocal_intimacy_without_rasp",
+          "recipe_a": "vocal_hybrid_delivery_within_single_song",
+          "recipe_b": "vocal_intimacy_without_rasp",
+          "mutually_documented": false,
+          "rule_a_premise": "Have vocalist execute HYBRID DELIVERY within same song — urgent moderate-aggression in verses + melodic sustained in choruses",
+          "rule_b_premise": "Deliver vocal at LOW intensity throughout",
+          "wow_factor_a": 0.79,
+          "wow_factor_b": 0.65
+        },
+        {
+          "pair_id": "vocal_intimacy_without_rasp__VS__vocal_lead_democracy_band_member_with_hardcore_vocabulary",
+          "recipe_a": "vocal_intimacy_without_rasp",
+          "recipe_b": "vocal_lead_democracy_band_member_with_hardcore_vocabulary",
+          "mutually_documented": false,
+          "rule_a_premise": "Deliver vocal at LOW intensity throughout",
+          "rule_b_premise": "Allow band member with documented HARDCORE-PUNK VOCABULARY (e",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.8
+        },
+        {
+          "pair_id": "vocal_intimacy_without_rasp__VS__vocal_saturation_for_hardcore_punk_aesthetic",
+          "recipe_a": "vocal_intimacy_without_rasp",
+          "recipe_b": "vocal_saturation_for_hardcore_punk_aesthetic",
+          "mutually_documented": false,
+          "rule_a_premise": "Deliver vocal at LOW intensity throughout",
+          "rule_b_premise": "When tracking + mixing screamed hardcore-punk vocals, use SATURATION + DISTORTION processing chains",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.78
+        },
+        {
+          "pair_id": "vocal_intimacy_without_rasp__VS__vocoded_vocal_phrase_as_instrument_not_lyric",
+          "recipe_a": "vocal_intimacy_without_rasp",
+          "recipe_b": "vocoded_vocal_phrase_as_instrument_not_lyric",
+          "mutually_documented": false,
+          "rule_a_premise": "Deliver vocal at LOW intensity throughout",
+          "rule_b_premise": "Use VOCODED VOCAL PHRASE repeated hypnotically as INSTRUMENT not as LYRIC",
+          "wow_factor_a": 0.65,
+          "wow_factor_b": 0.81
+        },
+        {
+          "pair_id": "vocal_saturation_for_hardcore_punk_aesthetic__VS__vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "recipe_a": "vocal_saturation_for_hardcore_punk_aesthetic",
+          "recipe_b": "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "mutually_documented": false,
+          "rule_a_premise": "When tracking + mixing screamed hardcore-punk vocals, use SATURATION + DISTORTION processing chains",
+          "rule_b_premise": "When recording emotionally vulnerable vocal, use CLEAN PROCESSING (no saturation/distortion), DEEP REVERB (plate + hall), NO PITCH CORRECTION (preserves raw emotional quality), MULTIPLE COMPLETE TAKES",
+          "wow_factor_a": 0.78,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "vocoded_vocal_as_primary_melodic_carrier_full_song__VS__vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "recipe_a": "vocoded_vocal_as_primary_melodic_carrier_full_song",
+          "recipe_b": "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "mutually_documented": false,
+          "rule_a_premise": "Use VOCODED VOCAL as PRIMARY MELODIC CARRIER for FULL SONG CONTENT — not just instrument-fragment phrase",
+          "rule_b_premise": "When recording emotionally vulnerable vocal, use CLEAN PROCESSING (no saturation/distortion), DEEP REVERB (plate + hall), NO PITCH CORRECTION (preserves raw emotional quality), MULTIPLE COMPLETE TAKES",
+          "wow_factor_a": 0.85,
+          "wow_factor_b": 0.84
+        },
+        {
+          "pair_id": "vocoded_vocal_phrase_as_instrument_not_lyric__VS__vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "recipe_a": "vocoded_vocal_phrase_as_instrument_not_lyric",
+          "recipe_b": "vulnerable_vocal_intimacy_clean_processing_no_pitch_correction",
+          "mutually_documented": false,
+          "rule_a_premise": "Use VOCODED VOCAL PHRASE repeated hypnotically as INSTRUMENT not as LYRIC",
+          "rule_b_premise": "When recording emotionally vulnerable vocal, use CLEAN PROCESSING (no saturation/distortion), DEEP REVERB (plate + hall), NO PITCH CORRECTION (preserves raw emotional quality), MULTIPLE COMPLETE TAKES",
+          "wow_factor_a": 0.81,
+          "wow_factor_b": 0.84
+        }
+      ]
     },
     "composition_path_templates": {
       "_note": "Empty placeholder; will be populated in step A13. Each template is a coherent recipe bundle spanning composition→arrangement→performance→recording→mixing→mastering stages, designed as a self-contained 'recipe for a song' the user can follow.",
