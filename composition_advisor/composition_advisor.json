@@ -10656,7 +10656,7 @@
           }
         },
         "Optimistic": {
-          "_status": "C7_4b_performance_recording_done",
+          "_status": "C7_4c_complete_exhaustive",
           "album": "Kid A",
           "year": 2000,
           "_note": "One of the few rock-band-format songs on Kid A",
@@ -10791,6 +10791,86 @@
               "Same unified-role framework deployed for rock-band-format compositional intent",
               "Demonstrates Godrich's range across Kid A's compositional vocabularies"
             ]
+          },
+          "mixing": {
+            "mix_engineer": "Nigel Godrich",
+            "mixing_studio": "Various Kid A mix locations",
+            "mixing_philosophy_godrich_for_optimistic": "ROCK-BAND-FORMAT MIX BALANCE WITHIN ELECTRONIC-EXPERIMENTAL ALBUM CONTEXT — preserves rock-band character while integrating with Kid A's overall electronic-experimental aesthetic.",
+            "drum_mix_balance": [
+              "Kick + snare punchy + present",
+              "Hi-hat articulation prominent",
+              "Drum bus weight balanced for rock-band aesthetic"
+            ],
+            "guitar_mix_treatment": [
+              "Two guitars panned for stereo width",
+              "Distortion preserved",
+              "Less electronic processing than other Kid A tracks"
+            ],
+            "vocal_mix_treatment": [
+              "Yorke vocal CENTERED + FORWARD",
+              "Plate reverb + short delay for spatial depth",
+              "Compression preserves rock-vocal projection"
+            ],
+            "bass_mix_treatment": [
+              "Bass forward",
+              "Bass-kick coordination tight"
+            ],
+            "spatial_treatment": [
+              "Stereo field WIDE for rock-band impact",
+              "Reverb usage MODERATE",
+              "Plate reverbs for warmth"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying transient detail",
+              "No drum sample replacement",
+              "No vocal pitch correction"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Chris Blair (Kid A mastered at Abbey Road Mastering)",
+            "mastering_studio": "Abbey Road Mastering, London",
+            "mastering_philosophy_for_optimistic": [
+              "Blair's documented approach: dynamic preservation suitable for art-rock material",
+              "Optimistic's rock-band character preserved alongside Kid A's electronic-experimental tracks"
+            ],
+            "loudness_observed": "Album average around -10 to -11 LUFS — Kid A dynamic preservation.",
+            "spectral_signature": "Blair's Abbey Road sound."
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "RADIOHEAD'S RETAINED ROCK-BAND CAPACITY WITHIN KID A — listeners hear Optimistic as the rock-band-format track on otherwise electronic-experimental album.",
+            "level_2_arrangement_signature": "ROCK-BAND-FORMAT WITHIN ELECTRONIC-EXPERIMENTAL ALBUM CONTEXT.",
+            "level_3_compositional_signature": "RETAINED GENRE CAPACITY WITHIN GENRE REINVENTION ALBUM — Radiohead demonstrate that genre reinvention need not BE TOTAL; can RETAIN former-genre capacity as anchor track. Influences subsequent reinvention albums to include former-genre anchor."
+          },
+          "advisor_extract": {
+            "recipe_name": "retained_former_genre_anchor_track_within_reinvention_album",
+            "applicability": "Bands undergoing genre reinvention seeking to RETAIN former-genre capacity within new-genre album. Use when reinvention should not be total + listeners benefit from former-genre anchor.",
+            "core_compositional_recipes": [
+              {
+                "id": "retained_former_genre_anchor_track_within_reinvention_album",
+                "rule": "When reinventing genre across album, INCLUDE one track in former-genre vocabulary as ANCHOR. Demonstrates retained capacity; provides listener anchor amid reinvention. Reinvention need not be TOTAL — partial reinvention with anchor track is valid choice.",
+                "wow_factor": 0.78,
+                "documented_example": "Optimistic (Radiohead, Kid A 2000) — rock-band-format anchor within electronic-experimental album",
+                "trade_offs": "Risk of feeling inconsistent if anchor track too prominent. Risk of feeling tokenistic if anchor track perfunctory.",
+                "personality_fit": "Yorke 50 / Cobain 25 / Reznor 15 / Daft Punk 10"
+              },
+              {
+                "id": "drummer_meter_clarity_versus_ambiguity_per_song_intent",
+                "rule": "Allow drummer to deploy DIFFERENT METER CLARITY APPROACHES per song. Clear-meter rock drumming for rock-band-format tracks; deliberately ambiguous drumming for art-rock-meditation tracks. Drummer's range serves album's compositional range.",
+                "wow_factor": 0.74,
+                "documented_example": "Selway across Kid A: clear-meter on Optimistic, deliberately ambiguous on Pyramid Song. Same drummer, opposite philosophies.",
+                "trade_offs": "Demands drummer with stylistic range + interpretive sensitivity",
+                "personality_fit": "Yorke 50 / Reznor 25 / Cobain 15 / Daft Punk 10"
+              },
+              {
+                "id": "vocal_register_range_across_album_chest_voice_plus_falsetto",
+                "rule": "Use FULL VOCAL REGISTER RANGE across album — chest-voice for rock-band-format tracks, falsetto for art-rock-meditation tracks. Demonstrates vocal range; serves compositional range.",
+                "wow_factor": 0.75,
+                "documented_example": "Yorke across Kid A/Amnesiac: chest-voice on Optimistic, falsetto on Pyramid Song",
+                "trade_offs": "Demands vocalist with both capacities",
+                "personality_fit": "Yorke 50 / Reznor 25 / Cobain 15 / Daft Punk 10"
+              }
+            ],
+            "structural_choice_summary": "Rock-band-format anchor + Radiohead vocabulary + Selway clear-meter drumming + Yorke chest-voice rock vocal — Optimistic demonstrates Radiohead's RETAINED ROCK-BAND CAPACITY within Kid A reinvention. Genre reinvention need not be total."
           }
         },
         "Pyramid_Song": {
