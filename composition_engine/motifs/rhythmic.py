@@ -331,6 +331,137 @@ RHYTHMIC_MOTIFS['snare_16th_roll_fill'] = {
 
 
 # ============================================================================
+# HAT FAMILY — 8th-accent, 16th micro-variation, 32nd-mania
+# ============================================================================
+
+RHYTHMIC_MOTIFS['hat_8th_accent_house'] = {
+    'id': 'hat_8th_accent_house',
+    'sources': [
+        ('Daft Punk', 'Around the World', 'closed-hat 8ths with downbeat accent'),
+        ('Daft Punk', 'Harder Better Faster Stronger', 'house-tradition 8th-note hat groove'),
+        ('Soundgarden', 'Fell On Black Days', 'rock 8th-note hi-hat anchor'),
+    ],
+    'advisor_recipes': [
+        'four_on_the_floor_120_bpm_house_foundation',
+        'tr_909_drum_machine_as_compositional_instrument',
+        'programmed_drums_as_compositional_engine',
+    ],
+    'drum_pitch': HAT_CL,
+    # 8 hats per bar at 8th-note positions {0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5}
+    # Velocity accent: downbeat strongest, "and"-positions weakest, beats 2/3/4 medium
+    'rhythm_beats': [(i * 0.5, 0.125) for i in range(8)],
+    'velocity_contour': [108, 64, 80, 64, 80, 64, 80, 64],   # accent on each beat (positions 0, 2, 4, 6)
+    'character_tags': ['8th_notes', 'house_groove', 'predictable', 'foundation', 'closed_hat'],
+    'duration_total_beats': 4.0,
+    'time_sig': (4, 4),
+    'target_genres': ['filter_house', 'deep_house', 'techno', 'electronic_pop'],
+    'micro_variation_rules': {
+        'timing_jitter_ms': (-4, 4),
+        'velocity_jitter': (-6, 6),
+    },
+    'transformations_allowed': ['rhythmic_displace', 'augment_diminish', 'fragment'],
+    'notes_on_use': (
+        'Most universal hat pattern. Pair with four_on_floor_house_pure for classic house, '
+        'or with snare_backbeat_pure for rock-electronic. The downbeat-accent (108 vs 64) '
+        'creates the "swing" feel even at perfect timing. For OPEN-hat variation: replace '
+        'every 4th note (positions 1, 3, 5, 7 = "and" positions) with HAT_OP at vel 90.'
+    ),
+}
+
+
+RHYTHMIC_MOTIFS['hat_16th_micro_variation_robot_rock'] = {
+    'id': 'hat_16th_micro_variation_robot_rock',
+    'sources': [
+        ('Queens Of The Stone Age', 'First It Giveth', 'robot-rock 16th hat with documented micro-variations'),
+        ('Daft Punk', 'Around the World', 'tight 16th-note hat groove'),
+        ('NIN', 'The Hand That Feeds', '16th hat under industrial-rock kit'),
+    ],
+    'advisor_recipes': [
+        'robot_rock_hypnotic_repetitive_riff_with_micro_variations',
+        'tr_909_drum_machine_as_compositional_instrument',
+        'tighter_layering_for_rhythmic_clarity_genre_blend',
+    ],
+    'drum_pitch': HAT_CL,
+    # 16 hats per bar at 16th-note positions
+    'rhythm_beats': [(i * 0.25, 0.0625) for i in range(16)],
+    # Velocity accent on beats 1+3, secondary on 2+4, weakest on "e"+"a"
+    # Pattern: STRONG e a + STRONG e a + STRONG e a + STRONG e a
+    'velocity_contour': [
+        108, 60, 70, 60,    # beat 1 + 16ths 2-4
+        90, 60, 70, 60,     # beat 2 + 16ths 6-8
+        100, 60, 70, 60,    # beat 3 + 16ths 10-12
+        90, 60, 70, 60,     # beat 4 + 16ths 14-16
+    ],
+    'character_tags': ['16th_notes', 'robot_rock', 'micro_variation', 'tight', 'foundation'],
+    'duration_total_beats': 4.0,
+    'time_sig': (4, 4),
+    'target_genres': ['techno', 'dark_electronic', 'EBM', 'IDM'],
+    'micro_variation_rules': {
+        'timing_jitter_ms': (-3, 3),     # tighter than 8th-note hats — robot_rock precision
+        'velocity_jitter': (-10, 10),    # MORE velocity humanization — that's where the "breathing" lives
+        'occasional_skip': {
+            'every_n_cycles': 4,
+            'skip_indices': [3, 7],     # drop 16ths #4 and #8 every 4 cycles for syncopation surprise
+        },
+    },
+    'transformations_allowed': ['rhythmic_displace', 'fragment'],
+    'notes_on_use': (
+        'CORE robot_rock hat pattern. The big-velocity-jitter (±10) is the secret: tight '
+        'timing + breathing velocity = "groove that feels human even though it is programmed". '
+        'Every 4 cycles, two 16ths drop out (positions 3 + 7) — creates rhythmic surprise '
+        'without breaking the foundation. Pair with syncopated_kick_3_against_4 OR '
+        'four_on_floor_house_pure (both work).'
+    ),
+}
+
+
+RHYTHMIC_MOTIFS['hat_32nd_mania_drop'] = {
+    'id': 'hat_32nd_mania_drop',
+    'sources': [
+        ('NIN', 'March of the Pigs', 'dense hi-hat at extreme tempo'),
+        ('Soundgarden', 'Jesus Christ Pose', 'aggressive hat density at peak intensity'),
+        ('Daft Punk', 'Harder Better Faster Stronger', 'peak-section dense hat for energy lift'),
+    ],
+    'advisor_recipes': [
+        'unrelenting_aggression_no_dynamic_arc',
+        'density_arc_arrangement_sparse_to_wall',
+        'fast_tempo_148_156_bpm_aggressive_heavy_rock',
+    ],
+    'drum_pitch': HAT_CL,
+    # 32 hats per bar at 32nd-note positions
+    'rhythm_beats': [(i * 0.125, 0.0625) for i in range(32)],
+    # Velocity: pulsing accent on each 8th-note position (every 4th 32nd) for grouping
+    # Pattern: pulse the 8ths via accents
+    'velocity_contour': [
+        # Beat 1: STRONG soft soft soft, MEDIUM soft soft soft (8th-pulse subdivision)
+        115, 50, 60, 50,  85, 55, 60, 50,
+        # Beat 2:
+        100, 55, 60, 50,  85, 55, 60, 50,
+        # Beat 3:
+        110, 55, 60, 50,  85, 55, 60, 50,
+        # Beat 4:
+        100, 55, 60, 50,  85, 55, 60, 50,
+    ],
+    'character_tags': ['32nd_notes', 'mania', 'peak_density', 'drop_only', 'aggressive'],
+    'duration_total_beats': 4.0,
+    'time_sig': (4, 4),
+    'target_genres': ['dark_electronic', 'EBM', 'techno', 'IDM'],
+    'micro_variation_rules': {
+        'timing_jitter_ms': (-2, 2),    # very tight — at 32nd-density jitter becomes blur
+        'velocity_jitter': (-8, 8),
+    },
+    'transformations_allowed': ['fragment', 'augment_diminish'],
+    'notes_on_use': (
+        'DROP-ONLY pattern — deploy ONLY in peak 4-8 bars. Using this for verse-density '
+        'destroys the dynamic arc. Pair with kick (any of the kick patterns) and '
+        'snare_backbeat OR snare_with_ghost. The 8th-pulse velocity accent (115/100/110/100 '
+        'on beats 1-4) keeps the 32nds from sounding like white noise. At >150 BPM it becomes '
+        'cymbal-roll territory; at <130 BPM it sounds gabber-cliche — sweet spot 130-150 BPM.'
+    ),
+}
+
+
+# ============================================================================
 # Render API — turn a rhythmic motif into concrete MIDI notes
 # ============================================================================
 
