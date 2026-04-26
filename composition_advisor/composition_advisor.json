@@ -25742,11 +25742,11 @@
       "_generated_from_atom_count": 189
     },
     "synergy_clusters": {
-      "_note": "Evidence-backed co-presence bundles. 32 song-clusters (atoms sharing source.song) + 12 philosophy-clusters (atoms sharing production_philosophy_lineage). Each cluster lists recipe_ids without duplicating atom data. avg_personality_fit and avg_wow_factor enable cluster-level filtering for compositional palette selection.",
-      "_generated_from_atom_count": 173,
-      "_song_cluster_count": 32,
+      "_note": "Evidence-backed co-presence bundles. 35 song-clusters + 12 philosophy-clusters. Each cluster lists recipe_ids without duplicating atom data.",
+      "_generated_from_atom_count": 189,
+      "_song_cluster_count": 35,
       "_philosophy_cluster_count": 12,
-      "evidence_rule": "A cluster is valid if its recipes share documented compositional context — same song.advisor_extract (song_cluster) or same production_philosophy_lineage (philosophy_cluster). NOT aesthetic similarity, documented co-presence.",
+      "evidence_rule": "A cluster is valid if its recipes share documented compositional context — same song.advisor_extract (song_cluster) or same production_philosophy_lineage (philosophy_cluster).",
       "clusters": {
         "song__nirvana__heart_shaped_box": {
           "cluster_type": "song_cluster",
@@ -26578,20 +26578,99 @@
             "album": "Kid A",
             "year": 2000
           },
-          "recipe_count": 2,
+          "recipe_count": 4,
           "recipe_ids": [
+            "bass_line_first_compositional_method",
             "live_brass_section_recording_for_jazz_interaction",
-            "locked_rock_groove_with_free_jazz_brass_genre_clash"
+            "locked_rock_groove_with_free_jazz_brass_genre_clash",
+            "mingus_locked_rhythm_plus_free_horn_compositional_template"
           ],
           "avg_personality_fit": {
-            "cobain": 12,
+            "cobain": 11,
             "reznor": 25,
-            "daft_punk": 15,
-            "yorke": 48
+            "daft_punk": 18,
+            "yorke": 46
           },
-          "avg_wow_factor": 0.82,
+          "avg_wow_factor": 0.81,
           "peak_wow_factor": 0.84,
           "description": "Atoms documented within Radiohead's 'The National Anthem' (Kid A, 2000). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__radiohead__optimistic": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Radiohead",
+            "song": "Optimistic",
+            "album": "Kid A",
+            "year": 2000
+          },
+          "recipe_count": 3,
+          "recipe_ids": [
+            "anchor_track_within_reinvention",
+            "godrich_engineer_producer_mixer_unified_role_with_band_partnership",
+            "rock_band_format_within_electronic_album"
+          ],
+          "avg_personality_fit": {
+            "cobain": 27,
+            "reznor": 20,
+            "daft_punk": 12,
+            "yorke": 42
+          },
+          "avg_wow_factor": 0.8,
+          "peak_wow_factor": 0.82,
+          "description": "Atoms documented within Radiohead's 'Optimistic' (Kid A, 2000). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__radiohead__pyramid_song": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Radiohead",
+            "song": "Pyramid_Song",
+            "album": "Amnesiac",
+            "year": 2001
+          },
+          "recipe_count": 7,
+          "recipe_ids": [
+            "funeral_march_tempo_70_bpm_for_solemnity",
+            "intentionally_ambiguous_rhythm_felt_not_counted",
+            "late_drum_entry_mid_song_for_perceptual_shift",
+            "mingus_freedom_chromatic_harmony_inspiration",
+            "ondes_martenot_or_rare_classical_instrument_for_spectral_color",
+            "piano_composition_with_chromatic_harmony",
+            "selway_ambiguous_drum_phrasing_interpreting_meter_not_locking"
+          ],
+          "avg_personality_fit": {
+            "cobain": 13,
+            "reznor": 19,
+            "daft_punk": 14,
+            "yorke": 54
+          },
+          "avg_wow_factor": 0.81,
+          "peak_wow_factor": 0.84,
+          "description": "Atoms documented within Radiohead's 'Pyramid Song' (Amnesiac, 2001). Co-presence in same song = evidence-backed compositional bundle."
+        },
+        "song__radiohead__packt_like_sardines_in_a_crushd_tin_box": {
+          "cluster_type": "song_cluster",
+          "parent_song": {
+            "artist": "Radiohead",
+            "song": "Packt_Like_Sardines_In_A_Crushd_Tin_Box",
+            "album": "Amnesiac",
+            "year": 2001
+          },
+          "recipe_count": 4,
+          "recipe_ids": [
+            "album_opener_via_textural_disorientation",
+            "broken_metallic_percussion_loop_as_compositional_foundation",
+            "pitch_shifted_vocal_as_compositional_element",
+            "production_philosophy_signature_godrich_amnesiac_continuation"
+          ],
+          "avg_personality_fit": {
+            "cobain": 6,
+            "reznor": 28,
+            "daft_punk": 18,
+            "yorke": 49
+          },
+          "avg_wow_factor": 0.8,
+          "peak_wow_factor": 0.83,
+          "description": "Atoms documented within Radiohead's 'Packt Like Sardines In A Crushd Tin Box' (Amnesiac, 2001). Co-presence in same song = evidence-backed compositional bundle."
         },
         "philosophy__albini_capture": {
           "cluster_type": "production_philosophy_cluster",
@@ -26793,22 +26872,38 @@
         "philosophy__godrich_unified_sixth_member": {
           "cluster_type": "production_philosophy_cluster",
           "parent_philosophy": "godrich_unified_sixth_member",
-          "recipe_count": 8,
+          "recipe_count": 24,
           "recipe_ids": [
+            "album_opener_via_textural_disorientation",
+            "anchor_track_within_reinvention",
             "asymmetric_meter_as_album_opener_statement_of_intent",
+            "bass_line_first_compositional_method",
+            "broken_metallic_percussion_loop_as_compositional_foundation",
             "complete_genre_reinvention_within_band_catalog",
             "drumless_arrangement_as_compositional_choice",
             "fender_rhodes_electric_piano_as_compositional_foundation",
+            "funeral_march_tempo_70_bpm_for_solemnity",
+            "godrich_engineer_producer_mixer_unified_role_with_band_partnership",
+            "intentionally_ambiguous_rhythm_felt_not_counted",
+            "late_drum_entry_mid_song_for_perceptual_shift",
             "live_brass_section_recording_for_jazz_interaction",
             "locked_rock_groove_with_free_jazz_brass_genre_clash",
             "manipulated_vocal_samples_as_textural_color",
-            "minimum_element_electronic_experimental_arrangement"
+            "mingus_freedom_chromatic_harmony_inspiration",
+            "mingus_locked_rhythm_plus_free_horn_compositional_template",
+            "minimum_element_electronic_experimental_arrangement",
+            "ondes_martenot_or_rare_classical_instrument_for_spectral_color",
+            "piano_composition_with_chromatic_harmony",
+            "pitch_shifted_vocal_as_compositional_element",
+            "production_philosophy_signature_godrich_amnesiac_continuation",
+            "rock_band_format_within_electronic_album",
+            "selway_ambiguous_drum_phrasing_interpreting_meter_not_locking"
           ],
           "avg_personality_fit": {
-            "cobain": 8,
-            "reznor": 24,
-            "daft_punk": 19,
-            "yorke": 50
+            "cobain": 11,
+            "reznor": 23,
+            "daft_punk": 16,
+            "yorke": 49
           },
           "avg_wow_factor": 0.81,
           "peak_wow_factor": 0.86,
