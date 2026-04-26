@@ -10131,10 +10131,49 @@
           "songs_to_dissect": ["Everything_In_Its_Right_Place", "The_National_Anthem", "Optimistic", "Pyramid_Song", "Packt_Like_Sardines_In_A_Crushd_Tin_Box"]
         },
         "Everything_In_Its_Right_Place": {
-          "_status": "stub_pending_full_dissection_C7_1",
+          "_status": "C7_2a_composition_arrangement_done",
           "album": "Kid A",
           "year": 2000,
-          "_note": "Album opener; Rhodes piano + manipulated vocal samples; 10/4 time signature"
+          "_note": "Album opener; Rhodes piano + manipulated vocal samples; 10/4 time signature",
+          "tempo_bpm_documented_range": [104, 110],
+          "time_signature": "Documented as 10/4 (or analyzed as 5/4 + 5/4) — unusual asymmetric meter as compositional foundation",
+          "key_area": "C major / A minor area (with Rhodes piano chord motion)",
+          "tuning_documented": "N/A — Rhodes piano + electronic manipulation",
+          "track_runtime": "~4:11",
+          "_special_status": "Track 1 (album opener) on Kid A (2000). Functions as the album's STATEMENT-OF-INTENT — declares Radiohead's electronic-experimental departure from OK Computer rock-band paradigm. Built around Rhodes piano + Yorke vocal + manipulated vocal samples (sampled and re-pitched/re-arranged via electronic processing). 10/4 meter as compositional foundation. Demonstrates Radiohead's COMPLETE COMPOSITIONAL REINVENTION — from rock-band format to electronic-experimental format.",
+          "composition": {
+            "primary_compositional_signature": "RHODES PIANO + 10/4 ASYMMETRIC METER + MANIPULATED VOCAL SAMPLES + YORKE VOCAL — built around Rhodes piano chord progression in 10/4 meter (or 5/4 + 5/4) + Yorke vocal performing melodic content + sampled/manipulated vocal fragments processed electronically. Compositional engine: ELECTRONIC MANIPULATION + ASYMMETRIC METER + MINIMAL ELEMENT COUNT.",
+            "core_structural_arc": "Rhodes piano intro establishes 10/4 chord progression → Yorke vocal enters with melodic content → manipulated vocal samples enter as textural color → arrangement evolves with sample variations + electronic processing → climactic textural peak → resolution + outro. Total ~4:11 — compact for compositional density.",
+            "harmonic_motion_summary": "MODAL/MINOR with Rhodes piano chord progression (often analyzed as F-Eb-C variation or similar). Voice-leading minimal — chord progression provides movement. Different from Pyramid Song's classical-influenced chromatic harmony.",
+            "characteristic_compositional_choice": "ASYMMETRIC METER + ELECTRONIC MANIPULATION + RHODES PIANO + MANIPULATED VOCAL SAMPLES — Radiohead's documented Kid A reinvention statement. Compositional engine combines four distinct elements: 10/4 meter + electronic processing + electric piano + sample manipulation. Demonstrates COMPLETE GENRE REINVENTION within band's catalog.",
+            "comparison_to_pyramid_song_within_radiohead_dissection": "Pyramid Song (Amnesiac 2001): classical-influenced piano ballad with ambiguous rhythm. EIRP (Kid A 2000): Rhodes piano + 10/4 meter + electronic manipulation. Same band, same era (Kid A + Amnesiac were companion albums from same sessions), but DIFFERENT compositional vocabularies. Demonstrates Radiohead's range within Kid A/Amnesiac period.",
+            "comparison_to_other_dissection_genre_reinvention_tracks": "Most dissection bands maintain consistent genre vocabulary across catalog (Nirvana grunge-rock, Soundgarden heavy-rock, Pumpkins alt-rock). Radiohead's Kid A demonstrates COMPLETE GENRE REINVENTION mid-catalog — from OK Computer guitar-rock (1997) to Kid A electronic-experimental (2000). EIRP as album opener declares this reinvention.",
+            "compositional_economy": "4:11 compact for compositional density — electronic manipulation provides 'movement' efficiently.",
+            "innovation_for_genre_context": "2000 alt-rock context: Radiohead's Kid A was widely-recognized as DEFINING ALBUM of post-rock + electronic-experimental crossover era. EIRP as opener declared the reinvention. Influences subsequent rock-bands willing to embrace electronic + experimental vocabulary."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "RHODES PIANO + YORKE VOCAL + MANIPULATED VOCAL SAMPLES + MINIMAL ADDITIONAL ELEMENTS — minimum-element-count arrangement with electronic manipulation providing texture. No traditional rock-band format (no live drums, no bass, minimal guitar).",
+            "intro_arrangement_rhodes_piano": "Rhodes piano establishes 10/4 chord progression — chord pattern repeats hypnotically",
+            "vocal_entry_yorke": "Yorke vocal enters with melodic content over piano foundation",
+            "manipulated_vocal_samples_entry": "Sampled vocal fragments processed electronically (re-pitched, time-stretched, granular processing) enter as textural color",
+            "arrangement_evolution_via_electronic_processing": "Sample manipulations evolve across runtime, creating perceived movement without arrangement-density change",
+            "climactic_textural_peak": "Multiple sample manipulations + Yorke vocal + Rhodes piano simultaneously",
+            "outro_arrangement": "Gradual fade or resolution — Rhodes piano persists",
+            "minimum_element_arrangement_implications": [
+              "Less arrangement-density than rock-band tracks — relies on electronic manipulation for texture",
+              "Each element gets MAXIMUM compositional weight",
+              "Manipulated vocal samples provide what rock-arrangement would deliver via additional instruments",
+              "Yorke vocal as melodic foreground; Rhodes piano as harmonic foundation; samples as textural color"
+            ],
+            "arrangement_anti_patterns_avoided": [
+              "No live drums (electronic-experimental priority)",
+              "No bass (Rhodes piano provides foundation alone)",
+              "No traditional rock-band arrangement (genre-reinvention priority)",
+              "No vocal pitch correction"
+            ],
+            "what_makes_arrangement_unique_within_radiohead": "EIRP represents Radiohead's MOST RADICAL ARRANGEMENT REINVENTION — abandons rock-band format entirely. Within their catalog this track stakes the ELECTRONIC-EXPERIMENTAL pole.",
+            "comparison_to_pyramid_song_arrangement": "Pyramid Song: piano + vocal + late-entry drums + strings + Ondes Martenot (multi-instrument classical-informed). EIRP: Rhodes piano + vocal + manipulated samples (minimum-element electronic-experimental). Two opposite arrangement approaches within same Kid A/Amnesiac era."
+          }
         },
         "The_National_Anthem": {
           "_status": "stub_pending_full_dissection_C7_2",
