@@ -9584,7 +9584,7 @@
           }
         },
         "Veridis_Quo": {
-          "_status": "C6_3b_performance_recording_done",
+          "_status": "C6_3c_complete_exhaustive",
           "album": "Discovery",
           "year": 2001,
           "_note": "Anomalous track on Discovery — slow, harmonically rich, classical-influenced",
@@ -9700,6 +9700,112 @@
               "Same duo-auteur framework deployed for non-dance-music compositional intent"
             ],
             "comparison_to_other_daft_punk_recording_approaches": "Around the World (Homework 1997): filter-house tracking with filter modulation primary. HBFS (Discovery 2001): sample-based pop-electronic tracking. Veridis Quo (Discovery 2001): classical-influenced electronic tracking with multiple synth-pad layers + voice-leading attention. Three different production approaches within same duo's catalog."
+          },
+          "mixing": {
+            "mix_engineer": "Bangalter + de Homem-Christo (self-mixed)",
+            "mixing_studio": "Paris home studio",
+            "mixing_philosophy_daft_punk_for_veridis_quo": "CLASSICAL-INFLUENCED HARMONIC RICHNESS + ELECTRONIC TEXTURE INTEGRATION + VOICE-LEADING CLARITY. Mix preserves chord voicings + voice-leading craft of classical tradition while embedding in electronic production context.",
+            "drum_mix_balance": [
+              "Drums subtle + supporting — not foregrounded as in dance-music tracks",
+              "Kick + percussion balanced for harmonic foundation support"
+            ],
+            "synth_mix_treatment": [
+              "Multiple synth-pad layers SPREAD WIDE in stereo for harmonic field",
+              "Chord voicings panned + EQ-staggered for voice-leading clarity",
+              "Bass-line FORWARD as harmonic foundation",
+              "Reverb usage MORE than dance-music tracks — atmospheric harmonic depth"
+            ],
+            "vocoded_vocal_mix_treatment": [
+              "Vocoded vocal CENTERED + atmospheric — textural color rather than lead foreground",
+              "Reverb on vocoder for spatial depth"
+            ],
+            "spatial_treatment": [
+              "Stereo field WIDE for harmonic field depth",
+              "Reverb usage MAXIMUM among Daft Punk tracks — classical-tradition spatial depth",
+              "Plate + hall reverbs for harmonic richness"
+            ],
+            "automation_used_in_mix": [
+              "Subtle layer rides for arrangement build",
+              "Reverb send automation for harmonic development",
+              "Less aggressive automation than dance-music tracks"
+            ],
+            "mix_anti_patterns_avoided": [
+              "No over-compression destroying harmonic richness",
+              "No drum-forward dance-music aesthetic",
+              "No filter modulation as primary engine"
+            ],
+            "what_makes_daft_punk_mix_distinct_for_veridis_quo": [
+              "MAXIMUM REVERB among Daft Punk tracks — atmospheric harmonic depth",
+              "Multiple synth-pad layers spread wide for harmonic field",
+              "Classical-influenced voice-leading preserved through mix",
+              "Same duo-auteur framework deployed for non-dance-music aesthetic"
+            ]
+          },
+          "mastering": {
+            "mastering_engineer_album": "Bob Ludwig (Discovery — Daft Punk's first Ludwig collaboration)",
+            "mastering_studio": "Gateway Mastering, Portland, Maine",
+            "mastering_philosophy_for_veridis_quo": [
+              "Ludwig's documented approach: high-end clarity + low-end weight + dynamic detail preservation",
+              "Classical-influenced harmonic intent benefits from dynamic detail preservation",
+              "2001 album-level mastering with Ludwig's documented dynamic-preservation skill"
+            ],
+            "loudness_observed": "Album average around -8 to -9 LUFS but Veridis Quo specifically QUIETER than peak tracks — atmospheric character.",
+            "spectral_signature": "Ludwig's documented sound: clear top-end, present mid-range, controlled aggressive low-end. Veridis Quo benefits — harmonic richness preserved.",
+            "what_mastering_preserves_for_veridis_quo": [
+              "Harmonic richness + voice-leading clarity",
+              "Reverb tails + atmospheric depth",
+              "Vocoder textural character",
+              "Dynamic detail across runtime"
+            ]
+          },
+          "the_moment_people_remember": {
+            "level_1_signature_moment": "CLASSICAL-INFLUENCED CHORD PROGRESSION + DESCENDING BASS-LINE + VOCODED ATMOSPHERIC VOCAL — listeners hear Daft Punk at peak HARMONIC AMBITION + classical-electronic crossover.",
+            "level_2_arrangement_signature": "ELECTRONIC ARRANGEMENT WITH CLASSICAL HARMONIC FOUNDATION — synth pads + classical-influenced voice-leading + slow tempo + atmospheric depth.",
+            "level_3_compositional_signature": "CLASSICAL-INFLUENCED HARMONIC SOPHISTICATION IN ELECTRONIC CONTEXT — Daft Punk demonstrate that dance-music duo can compose with TRADITIONAL CLASSICAL HARMONIC VOCABULARY. Influences subsequent classical-electronic crossover artists. Proves electronic music's compositional flexibility."
+          },
+          "advisor_extract": {
+            "recipe_name": "classical_influenced_harmonic_progression_in_electronic_context",
+            "applicability": "Electronic music or dance music seeking compositional ambition beyond genre-typical vocabulary via classical-influenced harmonic progression. Use when CLASSICAL HARMONY + VOICE-LEADING CRAFT serve electronic production context.",
+            "core_compositional_recipes": [
+              {
+                "id": "classical_influenced_chord_progression_in_electronic_context",
+                "rule": "Use TRADITIONAL CLASSICAL HARMONIC PROGRESSION (descending bass-line + voice-leading craft + chord-voicing richness) as compositional foundation in ELECTRONIC PRODUCTION CONTEXT. Pachelbel-adjacent or other classical-tradition harmony provides DEPTH that dance-music vocabulary alone cannot.",
+                "wow_factor": 0.84,
+                "documented_example": "Veridis Quo (Daft Punk, Discovery 2001) — Pachelbel-adjacent descending bass-line + classical-influenced chord progression in electronic context",
+                "trade_offs": "Loses dance-music functional context. Requires classical-harmonic understanding. Demands genre-flexibility from listeners.",
+                "personality_fit": "Yorke 40 / Daft Punk 35 / Reznor 15 / Cobain 10"
+              },
+              {
+                "id": "voice_leading_clarity_via_synth_pad_layers",
+                "rule": "When voicing classical-influenced chord progression in electronic context, use MULTIPLE SYNTH PAD LAYERS to clarify voice-leading. Each voice (soprano, alto, tenor, bass) on separate synth pad pan/EQ. Voice-leading craft preserved + made audible.",
+                "wow_factor": 0.79,
+                "documented_example": "Veridis Quo synth pad layering for voice-leading clarity",
+                "trade_offs": "Demands compositional clarity in chord-voicing decisions. Can muddy if pads not EQ-separated.",
+                "personality_fit": "Yorke 40 / Daft Punk 35 / Reznor 15 / Cobain 10"
+              },
+              {
+                "id": "anomalous_album_track_compositional_range_demonstration",
+                "rule": "Within an album of consistent compositional vocabulary, include ONE ANOMALOUS TRACK that demonstrates compositional range beyond the album's primary aesthetic. Anomalous track expands artist's perceived range; provides palette-cleanser within consistent album.",
+                "wow_factor": 0.78,
+                "documented_example": "Veridis Quo as anomalous track on Discovery (which is otherwise pop-electronic + sample-based)",
+                "trade_offs": "Risk of breaking album cohesion. Demands strong material that justifies anomaly.",
+                "personality_fit": "Yorke 40 / Reznor 30 / Daft Punk 20 / Cobain 10"
+              },
+              {
+                "id": "classical_electronic_crossover_via_duo_auteur_framework",
+                "rule": "Use DUO AUTEUR self-produced framework to compose CLASSICAL-INFLUENCED ELECTRONIC tracks. Classical harmony requires composer who understands voice-leading; duo auteur framework allows compositional ambition without external producer dilution.",
+                "wow_factor": 0.77,
+                "documented_example": "Daft Punk's Veridis Quo demonstrates classical-electronic via duo-auteur framework",
+                "trade_offs": "Demands classical-harmonic literacy from auteur duo. Less viable for non-classically-trained creators.",
+                "personality_fit": "Yorke 35 / Daft Punk 35 / Reznor 20 / Cobain 10"
+              }
+            ],
+            "production_philosophy_signature_daft_punk_classical_electronic": {
+              "philosophy": "Same DUO AUTEUR self-produced framework as Around the World + HBFS applied to CLASSICAL-INFLUENCED ELECTRONIC compositional intent. Demonstrates duo's range from filter-house abstraction (Homework) to pop-electronic accessibility (Discovery HBFS) to classical-electronic ambition (Discovery Veridis Quo).",
+              "applicability": "Established electronic-music duos seeking compositional ambition beyond genre-typical vocabulary",
+              "key_insight": "Auteur frameworks support classical-influenced composition when auteur has classical-harmonic literacy. Duo auteur expands compositional + technical capacity beyond solo auteur."
+            },
+            "structural_choice_summary": "Classical-influenced harmonic progression + descending bass-line + multiple synth pads + voice-leading clarity + duo auteur framework — Veridis Quo demonstrates Daft Punk's CLASSICAL-INFLUENCED ELECTRONIC pole. Compositional range beyond filter-house + pop-electronic into classical-electronic crossover."
           }
         },
         "Giorgio_By_Moroder": {
