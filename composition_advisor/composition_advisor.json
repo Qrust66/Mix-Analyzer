@@ -10656,7 +10656,7 @@
           }
         },
         "Optimistic": {
-          "_status": "C7_4a_composition_arrangement_done",
+          "_status": "C7_4b_performance_recording_done",
           "album": "Kid A",
           "year": 2000,
           "_note": "One of the few rock-band-format songs on Kid A",
@@ -10696,6 +10696,101 @@
             ],
             "what_makes_arrangement_unique_within_radiohead": "Optimistic represents Radiohead's RETAINED ROCK-BAND CAPACITY within Kid A reinvention period. Within Kid A's electronic-experimental aesthetic, this track stakes the ROCK-BAND-FORMAT pole.",
             "comparison_to_other_kid_a_dissection_arrangements": "EIRP: drumless minimum-element electronic. The National Anthem: locked rock + free-jazz brass. Optimistic: standard rock-band-format. Three arrangement scales within Kid A."
+          },
+          "performance": {
+            "tempo_feel_description": "MID-TEMPO ROCK FORWARD MOTION — 88-94 BPM at sustained intensity feels reflective + driven.",
+            "drum_style": {
+              "performer": "Phil Selway",
+              "approach": "STRAIGHT ROCK DRUMMING — clear meter execution, opposite of Pyramid Song's ambiguous approach",
+              "specifics_documented": [
+                "Kick + snare backbone driving 4/4",
+                "Hi-hat 8ths driving forward",
+                "Snare strong on 2+4",
+                "Cymbal accents articulate transitions",
+                "CLEAR meter execution distinguishes Optimistic from Pyramid Song's ambiguous drumming"
+              ],
+              "comparison_to_pyramid_song_drumming": "Pyramid Song: deliberately ambiguous late-entry drumming. Optimistic: clear-meter rock-band drumming. Same drummer (Selway) demonstrating range across Radiohead's compositional intents."
+            },
+            "guitar_style": {
+              "performers": "Jonny Greenwood + Ed O'Brien (Radiohead two-guitar lineup)",
+              "rhythm_guitar_role": "RIFF + CHORD-PROGRESSION — straight rock-band guitar role",
+              "specifics_documented": [
+                "Standard tuning",
+                "Tube amps with moderate distortion",
+                "Two-guitar arrangement (Jonny + Ed) for stereo width + harmonic depth",
+                "Less electronic processing than other Kid A tracks — rock-guitar character preserved"
+              ]
+            },
+            "bass_performance": {
+              "performer": "Colin Greenwood",
+              "approach": "TIGHT GROOVE-LOCK + ROCK-BAND-TRADITION BASS",
+              "specifics_documented": [
+                "Standard-tuned bass",
+                "Pick attack for rhythmic clarity",
+                "Tight rhythmic locking with kick"
+              ]
+            },
+            "vocal_delivery": {
+              "performer": "Thom Yorke",
+              "approach": "MID-REGISTER ROCK VOCAL — less falsetto-only than Pyramid Song, more chest-voice rock vocal capacity demonstrated",
+              "documented_vocal_quirks": [
+                "Multiple takes selected/comped",
+                "Vocal projects with rock-anthem energy",
+                "Demonstrates Yorke's full vocal range across Radiohead catalog"
+              ]
+            },
+            "performance_anti_patterns_avoided": [
+              "No quantization",
+              "No vocal pitch correction",
+              "No tempo changes",
+              "No imposed electronic processing"
+            ]
+          },
+          "recording": {
+            "studio": "Various Kid A sessions including Medley Studios Copenhagen + Studios Guillaume Tell Paris",
+            "session_dates": "1999-2000 sessions",
+            "primary_producer": "Nigel Godrich",
+            "primary_engineer": "Nigel Godrich",
+            "primary_mix_engineer": "Nigel Godrich",
+            "production_philosophy_for_optimistic": "Same Godrich engineer-producer-mixer unified-role framework applied to ROCK-BAND-FORMAT compositional intent. Demonstrates Godrich's continued capacity for rock-band tracking despite Kid A's electronic-experimental focus.",
+            "drum_micing_approach": {
+              "philosophy_godrich": "Multiple close mics + room mics for traditional rock-band drum sound",
+              "specifics_for_optimistic": [
+                "Selway's full kit miced extensively",
+                "Compression + EQ at tracking for rock-band impact",
+                "Room mics blended for natural ambience"
+              ]
+            },
+            "guitar_tracking_approach": {
+              "philosophy_godrich": "Two-guitar tracking with attention to stereo width + harmonic depth",
+              "specifics_documented": [
+                "Standard tuning",
+                "Tube amps tracked with multi-mic close + ambient capture",
+                "Each guitar layer panned for stereo width",
+                "Less electronic processing than other Kid A tracks"
+              ]
+            },
+            "bass_tracking_approach": {
+              "specifics": "DI + amp blend per Godrich approach. Tight low-frequency response."
+            },
+            "vocal_tracking_approach": {
+              "philosophy_godrich": "Yorke vocal tracked with attention to mid-register rock-vocal projection",
+              "specifics_documented": [
+                "Vocal isolation booth at recording locations",
+                "Multiple complete takes selected/comped"
+              ]
+            },
+            "notable_instruments_and_gear_documented": [
+              "Standard-tuned guitars + bass",
+              "Tube amps",
+              "Selway's full kit",
+              "Medley Studios + Studios Guillaume Tell"
+            ],
+            "what_makes_godrich_recording_distinct_for_optimistic": [
+              "ROCK-BAND-FORMAT TRACKING within Kid A's electronic-experimental session",
+              "Same unified-role framework deployed for rock-band-format compositional intent",
+              "Demonstrates Godrich's range across Kid A's compositional vocabularies"
+            ]
           }
         },
         "Pyramid_Song": {
