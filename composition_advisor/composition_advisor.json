@@ -6578,9 +6578,45 @@
           }
         },
         "The_Wretched": {
-          "_status": "stub_pending_full_dissection_C4_4",
+          "_status": "C4_4a_composition_arrangement_done",
           "album": "The Fragile",
-          "year": 1999
+          "year": 1999,
+          "tempo_bpm_documented_range": [100, 108],
+          "time_signature": "4/4 throughout (with documented occasional metric displacement / syncopation creating off-balance moments)",
+          "key_area": "G minor area (with chromatic chord motion creating dark mood)",
+          "tuning_documented": "Standard tuning + extensive synth + sample content",
+          "track_runtime": "~5:25",
+          "_special_status": "Track 8 on The Fragile (1999) Disc 1. Functions as the album's AGGRESSIVE-ATMOSPHERIC HYBRID — combines Reznor's industrial aggression with atmospheric sustain elements. Where March of the Pigs is pure aggression and TDTWWA is pure atmospheric, Wretched is INTEGRATED HYBRID. Demonstrates Reznor's mid-Fragile capacity for genre-blending within a single song.",
+          "composition": {
+            "primary_compositional_signature": "AGGRESSIVE-ATMOSPHERIC HYBRID — verses deploy industrial aggression vocabulary (programmed drums, distorted bass, processed guitars, urgent vocal), choruses deploy atmospheric vocabulary (synth pads, restraint, melodic vocal). Hybrid integration WITHIN sections rather than as section-separation.",
+            "core_structural_arc": "Aggressive industrial-textured intro → verse 1 with driving aggression + processed vocal → atmospheric chorus shift with synth-pad release + melodic vocal → verse 2 with intensified aggression → chorus with extended atmospheric expansion → BRIDGE COMBINING aggressive + atmospheric textures → final chorus with full hybrid integration → outro fade. Total ~5:25 — patient extended form.",
+            "harmonic_motion_summary": "MINOR-MODAL with chromatic motion in aggressive sections + atmospheric harmonic suspension in atmospheric sections. Verse harmonic motion DENSE + DARK (chromatic chord shifts), chorus harmonic motion OPEN + SUSPENDED. Voice-leading deliberate + emotional.",
+            "characteristic_compositional_choice": "AGGRESSION-ATMOSPHERE HYBRID INTEGRATION — Reznor combines two genre-vocabularies WITHIN single song rather than alternating (March of the Pigs's hard-soft-hard quick contrast). Wretched develops the hybrid across 5+ minutes, allowing both vocabularies to coexist + transform into each other.",
+            "comparison_to_march_of_the_pigs_within_nin": "March of the Pigs: HARD-SOFT-HARD QUICK CONTRAST in 2:58 industrial extremity. Wretched: AGGRESSION-ATMOSPHERE HYBRID INTEGRATION across 5:25 patient development. Different hybrid strategies — Pigs is fast contrast-cut, Wretched is slow integration.",
+            "comparison_to_tdtwwa_within_nin": "TDTWWA: PURE ATMOSPHERIC vulnerability via minimum elements. Wretched: ATMOSPHERIC-AGGRESSIVE HYBRID via integrated elements. Wretched's atmospheric chorus shares vocabulary with TDTWWA but operates within larger aggressive context.",
+            "comparison_to_were_in_this_together_within_nin": "We're In This Together: ANTHEMIC INDUSTRIAL-ROCK at extended 7:16 with traditional anthem structure. Wretched: AGGRESSIVE-ATMOSPHERIC HYBRID at 5:25 with non-anthem extended form. Two different middle-path Reznor explorations.",
+            "compositional_economy": "5:25 is patient — allows hybrid genre-vocabulary development without rushing. Compositional 'movement' includes both within-section harmonic-textural shifts + section-level transitions.",
+            "innovation_for_genre_context": "1999 industrial-rock context: hybrid songs typically alternated aggressive + atmospheric sections rather than integrating them. Wretched's INTEGRATED HYBRID approach (vocabularies coexist + transform in real-time) is documented as Reznor's compositional sophistication. Influences subsequent industrial-electronic-rock fusion artists."
+          },
+          "arrangement": {
+            "primary_arrangement_signature": "INTEGRATED HYBRID ARRANGEMENT — programmed drums + processed guitars + distorted bass synth + atmospheric synth pads + Reznor vocals (multiple registers) all coexist + transform across the song's arc. Density + texture shift WITHIN sections + ACROSS sections.",
+            "intro_arrangement": "Aggressive industrial-textured intro — programmed drums + processed guitar + distorted bass synth establish aggressive vocabulary. Brief atmospheric pad hint setup for chorus contrast.",
+            "verse_arrangement": "Programmed drums DRIVING (kick + snare backbone at ~104 BPM) with industrial percussion samples. Distorted bass synth + processed guitars provide rhythmic-harmonic foundation. Reznor vocal MODERATE AGGRESSION — between scream + sing.",
+            "atmospheric_chorus_shift_arrangement": "DRAMATIC TEXTURAL SHIFT — atmospheric synth pads enter, drums simplify or atmospheric processing applied, distorted elements reduce, Reznor vocal lifts to MELODIC sustained delivery. Atmospheric vocabulary deployed within larger song arc.",
+            "verse_2_arrangement": "Returns to verse aggression with possibly intensified elements (additional sample triggers, more driving programming)",
+            "second_chorus_arrangement": "Atmospheric chorus shift extended slightly, atmospheric vocabulary more developed",
+            "bridge_combining_arrangement": "EXTENDED INSTRUMENTAL BRIDGE COMBINING AGGRESSIVE + ATMOSPHERIC TEXTURES — programmed drums + atmospheric synth pads + processed guitar leads + bass synth all simultaneously. Hybrid vocabulary at peak integration.",
+            "final_chorus_arrangement": "Full hybrid integration — atmospheric chorus with retained aggression-elements creating MAXIMUM TEXTURAL DENSITY of integrated genres",
+            "outro_arrangement": "Gradual atmospheric fade with final aggressive elements receding",
+            "arrangement_anti_patterns_avoided": [
+              "No tempo changes (sustained 100-108 BPM)",
+              "No drum sample replacement",
+              "No vocal pitch correction",
+              "No abrupt section-change between aggressive + atmospheric vocabularies (integrated transformation priority)"
+            ],
+            "what_makes_arrangement_unique_within_nin": "Wretched represents NIN's MOST INTEGRATED HYBRID arrangement — where other tracks separate aggressive + atmospheric into different sections (March of the Pigs hard-soft-hard, We're In This Together verse-rock-chorus-anthemic), Wretched INTEGRATES vocabularies within sections + transforms them across the song's arc. Unique within NIN dissection.",
+            "comparison_to_zero_industrial_leaning_within_dissection": "Zero (Pumpkins): industrial-influenced rock at moderate tempo with retained rock identity. Wretched (NIN): aggressive-atmospheric hybrid integration. Both hybrid tracks but operating at different scales of genre-fusion. Zero is lighter hybrid; Wretched is deeper integration."
+          }
         },
         "The_Hand_That_Feeds": {
           "_status": "stub_pending_full_dissection_C4_5",
