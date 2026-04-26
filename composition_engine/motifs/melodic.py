@@ -196,6 +196,125 @@ MELODIC_MOTIFS['pachelbel_descending_bass_8_chord'] = {
 
 
 # ============================================================================
+# ASCENDING / ARC MOTIFS — pre-chorus build, ascending counter, voice-leading
+# ============================================================================
+
+MELODIC_MOTIFS['pre_chorus_ascending_arc'] = {
+    'id': 'pre_chorus_ascending_arc',
+    'sources': [
+        ('Smashing Pumpkins', 'Soma', 'pre-explosion ascending build before cathartic chorus'),
+        ('NIN', "We're In This Together", 'anthemic build into multi-chorus iterations'),
+        ('Soundgarden', 'Fell On Black Days', 'verse-to-chorus ascending vocal lift'),
+    ],
+    'advisor_recipes': [
+        'density_arc_arrangement_sparse_to_wall',
+        'explosion_chorus_as_cathartic_release_not_just_loud_section',
+        'multiple_chorus_iterations_with_intensification',
+        'extended_dynamic_arc_six_plus_minutes_patient_build',
+    ],
+    # 1 → 3 → 4 → 5 → ♭7 → 1 (octave) — ascending Aeolian arc that lifts past tonic to flat-7 then home
+    # Semitones from tonic: 0, +3, +5, +7, +10, +12
+    'pitch_intervals_from_tonic': [0, 3, 5, 7, 10, 12],
+    # Accelerating rhythm — quarters slowing into the peak (eighth-eighth-quarter-quarter-half-whole)
+    # Total: 0.5 + 0.5 + 1 + 1 + 2 + 4 = 9 beats — fits 2.25 bars in 4/4
+    'rhythm_beats': [(0.0, 0.5), (0.5, 0.5), (1.0, 1.0), (2.0, 1.0), (3.0, 2.0), (5.0, 4.0)],
+    # Velocity ramp — building intensity into the peak, sustained at top
+    'velocity_contour': [85, 92, 100, 110, 120, 125],
+    'character_tags': ['ascending', 'arc', 'cathartic', 'pre_chorus', 'cresc', 'patient_build'],
+    'duration_total_beats': 9.0,
+    'time_sig': (4, 4),
+    'transformations_allowed': [
+        'transpose', 'fragment', 'octave_jump',
+        'augment_diminish',          # ×2 for slow-burn (extended_dynamic_arc), ×0.5 for compressed
+        # NOT invert (would be descending, defeats purpose) or retrograde
+    ],
+    'notes_on_use': (
+        'Use as 2-bar lead-in to a chorus/drop. The accelerating-then-sustained rhythm is the '
+        'KEY: most generic ascending motifs use even quarters which feel mechanical. The '
+        'eighth-eighth-quarter-quarter-half-whole pattern PHYSICALLY lifts the listener. '
+        'Voice as lead-synth or vocal in mid-register. Pairs with synchronized risers/snare-fill '
+        'in last bar. Avoid in compressed-economy contexts (this motif WANTS the chorus payoff).'
+    ),
+}
+
+
+MELODIC_MOTIFS['ascending_counter_to_descending_bass'] = {
+    'id': 'ascending_counter_to_descending_bass',
+    'sources': [
+        ('Soundgarden', 'Head Down', 'lead vocal ascending against drone descending modal-shifts'),
+        ('NIN', 'The Wretched', 'hybrid section with melodic line moving counter to bass'),
+        ('Radiohead', 'Pyramid Song', 'lead vocal in BREAKDOWN ascending against piano roots'),
+        ('Daft Punk', 'Veridis Quo', 'voice-leading top-line opposing descending bass'),
+    ],
+    'advisor_recipes': [
+        'voice_leading_clarity_via_synth_pad_layers',
+        'industrial_textural_aggression_via_processed_guitar_layers',
+        'classical_influenced_chord_progression_in_electronic_context',
+        'hybrid_vocabulary_integration_within_sections',
+    ],
+    # Ascending tetrachord: 5 → 6 → ♭7 → 1 (octave-up landing)
+    # In D minor: A → Bb → C → D (above tonic) = +7, +8, +10, +12 semitones
+    'pitch_intervals_from_tonic': [7, 8, 10, 12],
+    # Each note dotted-quarter EXCEPT the last (whole) — pulls the line skyward
+    'rhythm_beats': [(0.0, 1.5), (1.5, 1.5), (3.0, 1.0), (4.0, 4.0)],
+    'velocity_contour': [95, 100, 110, 118],
+    'character_tags': ['ascending', 'counter_melody', 'voice_leading', 'tension_resolution'],
+    'duration_total_beats': 8.0,   # 2 bars in 4/4
+    'time_sig': (4, 4),
+    'transformations_allowed': [
+        'transpose', 'fragment', 'octave_jump',
+        'augment_diminish', 'rhythmic_displace',
+    ],
+    'notes_on_use': (
+        'CRITICAL pairing: deploy this UNDER OR OVER a descending bass-line motif (e.g. '
+        'aeolian_descending_4_steps OR pachelbel_descending_bass_8_chord). The contrary '
+        'motion creates compositional density without adding more layers. Voice as lead-synth '
+        'in upper register (octave above tonic). The dotted-quarter rhythm prevents the line '
+        'from sounding gridded — it BREATHES across barlines.'
+    ),
+}
+
+
+MELODIC_MOTIFS['modal_voice_leading_smooth_pad'] = {
+    'id': 'modal_voice_leading_smooth_pad',
+    'sources': [
+        ('Soundgarden', 'Head Down', 'modal voicings shifting smoothly above B drone'),
+        ('Soundgarden', 'Fell On Black Days', 'sus voicings with smooth voice-leading'),
+        ('NIN', 'The Day The World Went Away', 'sustained pad voicings with subtle internal motion'),
+        ('Daft Punk', 'Veridis Quo', 'voice-leading clarity via synth pad layers'),
+    ],
+    'advisor_recipes': [
+        'voice_leading_clarity_via_synth_pad_layers',
+        'modal_voicings_above_drone_replace_chord_progression',
+        'sus_voicings_verse_with_drop_tuning_pedal',
+        'atmospheric_sustain_as_compositional_foundation',
+    ],
+    # Voice-leading exercise: ONE voice (the soprano) moves SMOOTHLY by step
+    # Across 4 chord changes: 5 → 6 → ♭6 → 5 (=the inner motion of Dsus2→Dm→Dphrygian→Dm)
+    # Semitones: +7, +9, +8, +7 (A → B → Bb → A)
+    'pitch_intervals_from_tonic': [7, 9, 8, 7],
+    # Each note sustained 4 beats (whole bar each) — slow modal motion
+    'rhythm_beats': [(0.0, 4.0), (4.0, 4.0), (8.0, 4.0), (12.0, 4.0)],
+    'velocity_contour': [80, 85, 88, 82],   # subtle swell
+    'character_tags': ['voice_leading', 'modal', 'smooth', 'sustained', 'atmospheric'],
+    'duration_total_beats': 16.0,   # 4 bars
+    'time_sig': (4, 4),
+    'transformations_allowed': [
+        'transpose', 'fragment', 'augment_diminish', 'octave_jump',
+        # NOT invert or retrograde — voice-leading direction matters
+    ],
+    'notes_on_use': (
+        'This is the SOPRANO line of a 4-chord modal progression. To deploy: render the '
+        'full pad chords UNDERNEATH (PAD track playing Dsus2-Dm-Dphrygian-Dm with one chord '
+        'per bar) — this motif then highlights the moving voice. The "movement" the listener '
+        'hears is this single voice stepping by minor 2nd / major 2nd. Subtle, professional, '
+        'avoids the static-pad feel of Banger v2. Best at slow tempo (60-100 BPM) atmospheric '
+        'contexts. At higher tempos, augment_diminish ×0.5 (each note holds 2 beats instead).'
+    ),
+}
+
+
+# ============================================================================
 # Render API — turn a motif into concrete MIDI notes
 # ============================================================================
 
