@@ -1,10 +1,20 @@
-"""Tests for composition_engine.director — ghost mode, DAG sanity."""
+"""Tests for composition_engine.director — ghost mode, DAG sanity,
+and a Phase 1 end-to-end smoke through a complete blueprint."""
 import pytest
 
 from composition_engine.blueprint import (
+    ArrangementDecision,
+    Citation,
     Decision,
+    DynamicsDecision,
+    FxDecision,
+    HarmonyDecision,
+    LayerSpec,
+    PerformanceDecision,
+    RhythmDecision,
     SectionBlueprint,
     StructureDecision,
+    SubSection,
 )
 from composition_engine.director import Director, DirectorMode
 from composition_engine.director.director import (
@@ -34,9 +44,17 @@ def test_topological_order_subset():
     order = topological_order(subset)
     assert set(order) == subset
     pos = {s: i for i, s in enumerate(order)}
-    # arrangement depends on structure & harmony; both must come first
     assert pos["structure"] < pos["arrangement"]
     assert pos["harmony"] < pos["arrangement"]
+
+
+def test_topological_order_singleton():
+    order = topological_order(frozenset({"structure"}))
+    assert order == ("structure",)
+
+
+def test_topological_order_empty():
+    assert topological_order(frozenset()) == ()
 
 
 # ============================================================================
@@ -54,16 +72,12 @@ def test_ghost_mode_returns_unmodified_blueprint_when_brief_already_set():
     bp = SectionBlueprint(name="intro", brief="my brief")
     director = Director(mode=DirectorMode.GHOST)
     result = director.compose_section(
-        name="intro",
-        brief="my brief",
-        ghost_blueprint=bp,
+        name="intro", brief="my brief", ghost_blueprint=bp
     )
     assert result.blueprint is bp
-    assert result.iterations == 0
 
 
-def test_ghost_mode_enriches_blueprint_with_brief():
-    """Director adds brief/references when blueprint left them empty."""
+def test_ghost_mode_enriches_blueprint_with_brief_and_references():
     bp = SectionBlueprint(name="intro")
     director = Director(mode=DirectorMode.GHOST)
     result = director.compose_section(
@@ -76,6 +90,19 @@ def test_ghost_mode_enriches_blueprint_with_brief():
     assert result.blueprint.references == ("Nirvana/Heart_Shaped_Box",)
 
 
+def test_ghost_mode_keeps_existing_references_over_new_ones():
+    """If the blueprint already has references, the call argument doesn't override."""
+    bp = SectionBlueprint(name="intro", references=("Original/Ref",))
+    director = Director(mode=DirectorMode.GHOST)
+    result = director.compose_section(
+        name="intro",
+        brief="x",
+        references=("New/Ref",),
+        ghost_blueprint=bp,
+    )
+    assert result.blueprint.references == ("Original/Ref",)
+
+
 def test_ghost_mode_rejects_name_mismatch():
     bp = SectionBlueprint(name="verse")
     director = Director(mode=DirectorMode.GHOST)
@@ -83,47 +110,141 @@ def test_ghost_mode_rejects_name_mismatch():
         director.compose_section(name="intro", brief="x", ghost_blueprint=bp)
 
 
-def test_ghost_mode_runs_cohesion():
-    """A blueprint with a cohesion violation produces a non-clean report."""
-    bp = SectionBlueprint(name="intro").with_decision(
-        "structure",
-        Decision(
-            value=StructureDecision(
-                total_bars=16,
-                sub_sections=(),
-            ),
-            sphere="structure",
-        ),
-    )
-    director = Director(mode=DirectorMode.GHOST)
-    result = director.compose_section(
-        name="intro", brief="x", ghost_blueprint=bp
-    )
-    # No violations expected — the structure is clean
-    assert result.cohesion.is_clean
-
-
-def test_ghost_mode_result_ok_only_if_complete_and_clean():
+def test_ghost_mode_partial_blueprint_is_not_ok_but_passes_cohesion():
     bp = SectionBlueprint(name="intro").with_decision(
         "structure",
         Decision(value=StructureDecision(total_bars=16), sphere="structure"),
     )
     director = Director(mode=DirectorMode.GHOST)
-    result = director.compose_section(
-        name="intro", brief="x", ghost_blueprint=bp
-    )
-    # Cohesion is clean but blueprint is not complete
+    result = director.compose_section(name="intro", brief="x", ghost_blueprint=bp)
     assert result.cohesion.is_clean
     assert not result.blueprint.is_complete()
     assert not result.ok
 
 
 # ============================================================================
-# Live mode
+# Phase 1 end-to-end — full pipeline on a complete blueprint
 # ============================================================================
 
 
-def test_live_mode_not_implemented_yet():
-    director = Director(mode=DirectorMode.LIVE)
-    with pytest.raises(NotImplementedError, match="Phase 2"):
-        director.compose_section(name="intro", brief="x")
+def _complete_blueprint() -> SectionBlueprint:
+    """Build a complete 7-sphere ghost blueprint with provenance citations."""
+    cit = Citation(
+        song="Nirvana/Heart_Shaped_Box",
+        path="composition.section_count_and_lengths",
+        excerpt="Intro 8 bars sparse, building...",
+    )
+    bp = SectionBlueprint(name="intro", references=("Nirvana/Heart_Shaped_Box",))
+    bp = bp.with_decision(
+        "structure",
+        Decision(
+            value=StructureDecision(
+                total_bars=16,
+                sub_sections=(
+                    SubSection(name="hush", start_bar=0, end_bar=8, role="breath"),
+                    SubSection(name="build", start_bar=8, end_bar=16, role="build"),
+                ),
+                breath_points=(7, 15),
+            ),
+            sphere="structure",
+            inspired_by=(cit,),
+            rationale="16 bars split 8+8: hush then build, mirrors verse pacing of refs.",
+        ),
+    )
+    bp = bp.with_decision(
+        "harmony",
+        Decision(
+            value=HarmonyDecision(
+                mode="Aeolian",
+                key_root="A",
+                progression=("i", "bVI", "bVII", "i"),
+                harmonic_rhythm=0.5,
+            ),
+            sphere="harmony",
+        ),
+    )
+    bp = bp.with_decision(
+        "rhythm",
+        Decision(
+            value=RhythmDecision(tempo_bpm=100, time_signature="4/4"),
+            sphere="rhythm",
+        ),
+    )
+    bp = bp.with_decision(
+        "arrangement",
+        Decision(
+            value=ArrangementDecision(
+                layers=(
+                    LayerSpec(
+                        role="pad",
+                        instrument="warm pad",
+                        enters_at_bar=0,
+                        exits_at_bar=16,
+                    ),
+                ),
+                density_curve="sparse",
+            ),
+            sphere="arrangement",
+        ),
+    )
+    bp = bp.with_decision(
+        "dynamics",
+        Decision(
+            value=DynamicsDecision(
+                arc_shape="rising",
+                start_db=-18.0,
+                end_db=-6.0,
+                peak_bar=15,
+            ),
+            sphere="dynamics",
+        ),
+    )
+    bp = bp.with_decision(
+        "performance",
+        Decision(
+            value=PerformanceDecision(feel="laid-back", humanization_jitter_ms=8.0),
+            sphere="performance",
+        ),
+    )
+    bp = bp.with_decision(
+        "fx",
+        Decision(
+            value=FxDecision(
+                reverb="large hall, 4s",
+                stereo_strategy="wide",
+            ),
+            sphere="fx",
+        ),
+    )
+    return bp
+
+
+def test_full_pipeline_complete_blueprint_through_director_is_ok():
+    """End-to-end: build a complete blueprint, run through Director ghost mode,
+    verify the result is complete and cohesion-clean."""
+    bp = _complete_blueprint()
+    assert bp.is_complete()
+
+    director = Director(mode=DirectorMode.GHOST)
+    result = director.compose_section(
+        name="intro",
+        brief="ambient introspective intro",
+        ghost_blueprint=bp,
+    )
+
+    assert result.blueprint.is_complete()
+    assert result.cohesion.is_clean
+    assert result.cohesion.violations == ()
+    assert result.ok
+
+
+def test_full_pipeline_provenance_is_preserved():
+    """The Director must not strip provenance citations off Decisions."""
+    bp = _complete_blueprint()
+    director = Director(mode=DirectorMode.GHOST)
+    result = director.compose_section(name="intro", brief="x", ghost_blueprint=bp)
+    structure_dec = result.blueprint.structure
+    assert structure_dec is not None
+    assert len(structure_dec.inspired_by) == 1
+    assert structure_dec.inspired_by[0].song == "Nirvana/Heart_Shaped_Box"
+    assert structure_dec.rationale.startswith("16 bars split")

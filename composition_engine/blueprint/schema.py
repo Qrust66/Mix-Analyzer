@@ -25,7 +25,7 @@ Design tenets:
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, replace
 from typing import Generic, Optional, TypeVar
 
 T = TypeVar("T")
@@ -227,11 +227,6 @@ class SectionBlueprint:
     performance: Optional[Decision[PerformanceDecision]] = None
     fx: Optional[Decision[FxDecision]] = None
 
-    # Continuity: bookkeeping of which previous sections this one was composed
-    # against. Used by future agents to maintain narrative cohesion across the
-    # whole track.
-    previous_section_names: tuple[str, ...] = ()
-
     def filled_spheres(self) -> tuple[str, ...]:
         """Return the names of spheres that have a Decision filled."""
         return tuple(s for s in SPHERES if getattr(self, s) is not None)
@@ -253,13 +248,4 @@ class SectionBlueprint:
             raise ValueError(
                 f"Decision claims sphere={decision.sphere!r} but assigned to {sphere!r}"
             )
-        # dataclasses.replace would do, but explicit is clearer for one-off
-        kwargs = {s: getattr(self, s) for s in SPHERES}
-        kwargs[sphere] = decision
-        return SectionBlueprint(
-            name=self.name,
-            references=self.references,
-            brief=self.brief,
-            previous_section_names=self.previous_section_names,
-            **kwargs,
-        )
+        return replace(self, **{sphere: decision})

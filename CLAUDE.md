@@ -228,8 +228,8 @@ une équipe d'agents spécialisés par sphère et un audit de cohérence.
 |--------|------|
 | `composition_engine/advisor_bridge/song_loader.py` | Pont read-only vers les 35 chansons (`list_songs`, `get_song`, `find_song`, `query`, `get_advisor_section`). |
 | `composition_engine/blueprint/schema.py` | `SectionBlueprint` immuable avec un `Decision[T]` par sphère + provenance (`Citation`, `rationale`, `confidence`). |
-| `composition_engine/blueprint/cohesion.py` | Cohesion via `@cohesion_rule` decorator. Règles déclaratives, partial-fill safe (skip silencieux si sphères absentes). |
-| `composition_engine/director/director.py` | Orchestrateur avec DAG des sphères + 2 modes : `GHOST` (blueprint pré-rempli, validation seule), `LIVE` (Phase 2+, agents LLM). |
+| `composition_engine/blueprint/cohesion.py` | Infrastructure de cohésion via `@cohesion_rule` decorator (registry auto-collectée, partial-fill safe). **Phase 1 ne ship aucune règle concrète** — chaque règle naît avec l'agent qui motive son existence (couplage rule-with-consumer, anti-speculative). |
+| `composition_engine/director/director.py` | Orchestrateur avec DAG des sphères, mode `GHOST` (blueprint pré-rempli, validation seule). Live mode (LLM agents) ajouté en Phase 2 avec les agents eux-mêmes. |
 
 ### Règle d'or : un agent ne délègue jamais à un autre agent
 
