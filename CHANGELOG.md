@@ -1,5 +1,35 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.4] - 2026-04-27
+
+### Added
+- **`.claude/agents/rhythm-decider.md`** — third sphere agent (rhythm).
+  Given a brief + reference songs, decides tempo_bpm, time_signature
+  (including asymmetric meters like "16/8 with 3+3+4+3+3 internal
+  grouping"), drum_pattern (prose), subdivisions, swing, polyrhythms.
+  Reads `performance.tempo_feel_description / drum_style`,
+  `tempo_bpm_documented_range`, `time_signature`,
+  `composition.phrase_symmetry`, `stylistic_figures.special_effects_*`
+  from inspirations.json. Includes 3 in-context examples (single ref,
+  asymmetric meter signature, refusal payload) and a "Common pitfalls"
+  section.
+- **`parse_rhythm_decision(payload)`** + companion
+  `parse_rhythm_decision_from_response(text)` in `agent_parsers.py`.
+  Strict validation:
+    * `tempo_bpm` ∈ [40, 300] (out-of-range = almost certainly LLM bug)
+    * `subdivisions` ∈ {4, 8, 16, 32, 64} (powers of 2)
+    * `swing` ∈ [0.0, 1.0) — half-open interval, exactly 1.0 rejected
+    * `time_signature` non-empty (defaults to "4/4" if blank)
+
+### Tests
+- 23 new tests in `test_blueprint_agent_parsers.py` covering rhythm
+  parser: minimum-valid happy path, asymmetric meter accepted, optional
+  fields, 5 invalid tempos rejected, 7 valid tempos accepted, 9 invalid
+  subdivisions rejected, 5 valid subdivisions accepted, 4 invalid swing
+  values rejected, 6 valid swing values accepted, string coercion for
+  tempo and swing, polyrhythms list shape, error payload, raw-text →
+  Decision via *_from_response.
+
 ## [Unreleased — Phase 3 prep: Ableton catalog_loader] - 2026-04-27
 
 ### Added

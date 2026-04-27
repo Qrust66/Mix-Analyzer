@@ -9,6 +9,8 @@ from composition_engine.blueprint.agent_parsers import (
     extract_json_payload,
     parse_harmony_decision,
     parse_harmony_decision_from_response,
+    parse_rhythm_decision,
+    parse_rhythm_decision_from_response,
     parse_structure_decision,
     parse_structure_decision_from_response,
 )
@@ -16,6 +18,7 @@ from composition_engine.blueprint.schema import (
     Citation,
     Decision,
     HarmonyDecision,
+    RhythmDecision,
     StructureDecision,
     SubSection,
 )
@@ -475,3 +478,167 @@ def test_harmony_decision_can_be_assigned_to_blueprint():
     bp = SectionBlueprint(name="intro").with_decision("harmony", decision)
     assert bp.harmony is decision
     assert "harmony" in bp.filled_spheres()
+
+
+# ============================================================================
+# Phase 2.4 — rhythm parser
+# ============================================================================
+
+
+def _valid_rhythm_payload(**overrides):
+    """Return a minimum-valid rhythm-decider payload."""
+    base = {
+        "schema_version": "1.0",
+        "rhythm": {
+            "tempo_bpm": 100,
+            "time_signature": "4/4",
+            "drum_pattern": "kick on 1 and 3, snare on 2 and 4",
+            "subdivisions": 16,
+            "swing": 0.0,
+            "polyrhythms": [],
+        },
+        "rationale": "100 BPM 4/4 standard rock.",
+        "inspired_by": [
+            {"song": "Nirvana/Heart_Shaped_Box", "path": "tempo_bpm_documented_range",
+             "excerpt": "100-104 BPM"},
+        ],
+        "confidence": 0.85,
+    }
+    base.update(overrides)
+    return base
+
+
+def test_parses_minimal_valid_rhythm_payload():
+    decision = parse_rhythm_decision(_valid_rhythm_payload())
+    assert decision.sphere == "rhythm"
+    assert isinstance(decision.value, RhythmDecision)
+    assert decision.value.tempo_bpm == 100
+    assert decision.value.time_signature == "4/4"
+    assert decision.value.subdivisions == 16
+    assert decision.value.swing == 0.0
+
+
+def test_rhythm_empty_drum_pattern_is_valid():
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["drum_pattern"] = ""
+    decision = parse_rhythm_decision(payload)
+    assert decision.value.drum_pattern == ""
+
+
+def test_rhythm_polyrhythms_optional():
+    payload = _valid_rhythm_payload()
+    del payload["rhythm"]["polyrhythms"]
+    decision = parse_rhythm_decision(payload)
+    assert decision.value.polyrhythms == ()
+
+
+def test_rhythm_polyrhythms_with_strings():
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["polyrhythms"] = ["3:4 hihat over 4/4 kick"]
+    decision = parse_rhythm_decision(payload)
+    assert decision.value.polyrhythms == ("3:4 hihat over 4/4 kick",)
+
+
+def test_rhythm_default_subdivisions_is_16():
+    payload = _valid_rhythm_payload()
+    del payload["rhythm"]["subdivisions"]
+    decision = parse_rhythm_decision(payload)
+    assert decision.value.subdivisions == 16
+
+
+def test_rhythm_empty_time_signature_defaults_to_4_4():
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["time_signature"] = "   "
+    decision = parse_rhythm_decision(payload)
+    assert decision.value.time_signature == "4/4"
+
+
+def test_rhythm_asymmetric_time_signature_accepted():
+    """16/8 with internal grouping (Pyramid_Song style) is accepted."""
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["time_signature"] = "16/8 with 3+3+4+3+3 internal grouping"
+    decision = parse_rhythm_decision(payload)
+    assert "3+3+4+3+3" in decision.value.time_signature
+
+
+@pytest.mark.parametrize("invalid_tempo", [0, -1, 30, 350, 9999])
+def test_rhythm_tempo_out_of_range_raises(invalid_tempo):
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["tempo_bpm"] = invalid_tempo
+    with pytest.raises(AgentOutputError, match="tempo_bpm"):
+        parse_rhythm_decision(payload)
+
+
+@pytest.mark.parametrize("valid_tempo", [40, 60, 100, 120, 150, 200, 300])
+def test_rhythm_valid_tempos_accepted(valid_tempo):
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["tempo_bpm"] = valid_tempo
+    decision = parse_rhythm_decision(payload)
+    assert decision.value.tempo_bpm == valid_tempo
+
+
+def test_rhythm_string_tempo_coerced_to_int():
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["tempo_bpm"] = "120"
+    decision = parse_rhythm_decision(payload)
+    assert decision.value.tempo_bpm == 120
+
+
+@pytest.mark.parametrize("invalid_sub", [0, 1, 2, 3, 6, 12, 24, 48, 100])
+def test_rhythm_invalid_subdivisions_raises(invalid_sub):
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["subdivisions"] = invalid_sub
+    with pytest.raises(AgentOutputError, match="subdivisions"):
+        parse_rhythm_decision(payload)
+
+
+@pytest.mark.parametrize("valid_sub", [4, 8, 16, 32, 64])
+def test_rhythm_valid_subdivisions_accepted(valid_sub):
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["subdivisions"] = valid_sub
+    decision = parse_rhythm_decision(payload)
+    assert decision.value.subdivisions == valid_sub
+
+
+@pytest.mark.parametrize("invalid_swing", [-0.1, 1.0, 1.5, 2.0])
+def test_rhythm_swing_out_of_range_raises(invalid_swing):
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["swing"] = invalid_swing
+    with pytest.raises(AgentOutputError, match="swing"):
+        parse_rhythm_decision(payload)
+
+
+@pytest.mark.parametrize("valid_swing", [0.0, 0.1, 0.3, 0.5, 0.55, 0.99])
+def test_rhythm_valid_swing_accepted(valid_swing):
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["swing"] = valid_swing
+    decision = parse_rhythm_decision(payload)
+    assert decision.value.swing == valid_swing
+
+
+def test_rhythm_string_swing_coerced():
+    payload = _valid_rhythm_payload()
+    payload["rhythm"]["swing"] = "0.55"
+    decision = parse_rhythm_decision(payload)
+    assert decision.value.swing == 0.55
+
+
+def test_rhythm_error_payload_raises():
+    with pytest.raises(AgentOutputError, match="Agent returned error"):
+        parse_rhythm_decision({"error": "no usable refs"})
+
+
+def test_rhythm_from_response_handles_fences():
+    payload_str = json.dumps(_valid_rhythm_payload())
+    fenced = f"```json\n{payload_str}\n```"
+    decision = parse_rhythm_decision_from_response(fenced)
+    assert decision.value.tempo_bpm == 100
+
+
+def test_rhythm_decision_can_be_assigned_to_blueprint():
+    from composition_engine.blueprint import SectionBlueprint
+
+    decision = parse_rhythm_decision(_valid_rhythm_payload())
+    bp = SectionBlueprint(name="intro").with_decision("rhythm", decision)
+    assert bp.rhythm is decision
+    assert "rhythm" in bp.filled_spheres()

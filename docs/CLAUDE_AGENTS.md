@@ -106,6 +106,28 @@ Le hook `UserPromptSubmit` (cf. plus haut) injecte automatiquement un
 rappel quand le prompt matche les patterns d'architecture — filet de
 sécurité pour ne pas oublier l'agent.
 
+### rhythm-decider (`.claude/agents/rhythm-decider.md`)
+
+**Sphere agent rythmique (Phase 2.4).**
+
+**Invoquer** typiquement après `structure-decider` et `harmony-decider`.
+L'agent décide :
+- `tempo_bpm` (40-300, validé strictement)
+- `time_signature` (string libre — accepte "4/4", "10/4", "16/8 with 3+3+4+3+3 internal grouping" pour Pyramid_Song / March_Of_The_Pigs style)
+- `drum_pattern` (prose libre — pattern décrit, anti-générique)
+- `subdivisions` (∈ {4, 8, 16, 32, 64} — puissances de 2)
+- `swing` (∈ [0.0, 1.0))
+- `polyrhythms` (liste descriptive, peut être vide)
+
+Lit les `performance.tempo_feel_description`, `performance.drum_style`,
+`tempo_bpm_documented_range`, `time_signature`,
+`composition.phrase_symmetry`, `stylistic_figures.special_effects_*` des
+références. Optionnel : `rhythm_theory` + `rhythm_advanced` du rules layer.
+
+Output parsé via `parse_rhythm_decision()` ou
+`parse_rhythm_decision_from_response()`. Validation stricte : tempo dans
+plage musicale, subdivisions = puissance de 2, swing strictement < 1.0.
+
 ### harmony-decider (`.claude/agents/harmony-decider.md`)
 
 **Sphere agent harmonique (Phase 2.3).**

@@ -35,6 +35,7 @@ from composition_engine.blueprint.schema import (
     Citation,
     Decision,
     HarmonyDecision,
+    RhythmDecision,
     StructureDecision,
     SubSection,
 )
@@ -47,6 +48,16 @@ _LOG = logging.getLogger(__name__)
 # entries as long as we want to support backward compatibility.
 SUPPORTED_STRUCTURE_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_HARMONY_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_RHYTHM_SCHEMA_VERSIONS = frozenset({"1.0"})
+
+# Subdivision values accepted: powers of 2 from 4 to 64.
+# 4 = quarter-note grid (rare). 8 = eighth-note. 16 = standard. 32/64 = detailed.
+_VALID_SUBDIVISIONS = frozenset({4, 8, 16, 32, 64})
+
+# Hard cap on tempo_bpm. 40 is below most musical music; 300 is faster than
+# drum'n'bass / hardcore. Out-of-band values are almost certainly LLM bugs.
+_TEMPO_MIN_BPM = 40
+_TEMPO_MAX_BPM = 300
 
 # Key root validation imported from the central music_theory module —
 # single source of truth shared with composer_adapter, the music_theory
@@ -467,13 +478,105 @@ def parse_harmony_decision_from_response(text: str) -> Decision[HarmonyDecision]
     return parse_harmony_decision(extract_json_payload(text))
 
 
+# ============================================================================
+# Public parser — rhythm
+# ============================================================================
+
+
+def parse_rhythm_decision(payload: Mapping[str, Any]) -> Decision[RhythmDecision]:
+    """Parse a rhythm-decider agent payload into a Decision.
+
+    Expected shape (schema 1.0):
+        {
+          "schema_version": "1.0",
+          "rhythm": {
+            "tempo_bpm": int (40..300),
+            "time_signature": str ("4/4", "10/4", "16/8 with 3+3+4+3+3", etc.),
+            "drum_pattern": str (prose),
+            "subdivisions": int ∈ {4, 8, 16, 32, 64},
+            "swing": float ∈ [0.0, 1.0),
+            "polyrhythms": [str, …]
+          },
+          "rationale": str,
+          "inspired_by": [{"song", "path", "excerpt"}, …],
+          "confidence": float (0..1)
+        }
+
+    Or a refusal payload: {"error": "...", "details": "..."}
+
+    Lenient input + strict output, same conventions as parse_harmony_decision
+    and parse_structure_decision.
+    """
+    envelope = _parse_envelope(payload, supported_versions=SUPPORTED_RHYTHM_SCHEMA_VERSIONS)
+
+    rhythm_dict = _require(payload, "rhythm", where="root")
+    if not isinstance(rhythm_dict, Mapping):
+        raise AgentOutputError(
+            f"rhythm: expected object, got {type(rhythm_dict).__name__}"
+        )
+
+    tempo_bpm = _coerce_int(
+        _require(rhythm_dict, "tempo_bpm", where="rhythm"),
+        where="rhythm.tempo_bpm",
+    )
+    if not (_TEMPO_MIN_BPM <= tempo_bpm <= _TEMPO_MAX_BPM):
+        raise AgentOutputError(
+            f"rhythm.tempo_bpm must be in [{_TEMPO_MIN_BPM}, {_TEMPO_MAX_BPM}], "
+            f"got {tempo_bpm}"
+        )
+
+    time_signature = _coerce_str(rhythm_dict.get("time_signature", "4/4")).strip()
+    if not time_signature:
+        time_signature = "4/4"
+
+    drum_pattern = _coerce_str(rhythm_dict.get("drum_pattern", ""))
+
+    subdivisions = _coerce_int(
+        rhythm_dict.get("subdivisions", 16),
+        where="rhythm.subdivisions",
+    )
+    if subdivisions not in _VALID_SUBDIVISIONS:
+        raise AgentOutputError(
+            f"rhythm.subdivisions must be one of {sorted(_VALID_SUBDIVISIONS)}, "
+            f"got {subdivisions}"
+        )
+
+    swing = _coerce_float(rhythm_dict.get("swing", 0.0), where="rhythm.swing")
+    if not (0.0 <= swing < 1.0):
+        raise AgentOutputError(
+            f"rhythm.swing must be in [0.0, 1.0), got {swing}"
+        )
+
+    raw_poly = _coerce_list(rhythm_dict.get("polyrhythms", []), where="rhythm.polyrhythms")
+    polyrhythms = tuple(_coerce_str(p) for p in raw_poly)
+
+    rhythm_value = RhythmDecision(
+        tempo_bpm=tempo_bpm,
+        time_signature=time_signature,
+        drum_pattern=drum_pattern,
+        subdivisions=subdivisions,
+        swing=swing,
+        polyrhythms=polyrhythms,
+    )
+
+    return Decision(value=rhythm_value, sphere="rhythm", **envelope)
+
+
+def parse_rhythm_decision_from_response(text: str) -> Decision[RhythmDecision]:
+    """End-to-end: raw LLM response text → Decision[RhythmDecision]."""
+    return parse_rhythm_decision(extract_json_payload(text))
+
+
 __all__ = [
     "AgentOutputError",
     "SUPPORTED_STRUCTURE_SCHEMA_VERSIONS",
     "SUPPORTED_HARMONY_SCHEMA_VERSIONS",
+    "SUPPORTED_RHYTHM_SCHEMA_VERSIONS",
     "extract_json_payload",
     "parse_structure_decision",
     "parse_structure_decision_from_response",
     "parse_harmony_decision",
     "parse_harmony_decision_from_response",
+    "parse_rhythm_decision",
+    "parse_rhythm_decision_from_response",
 ]
