@@ -130,9 +130,20 @@ L'agent et le hook sont complémentaires :
 ## Composition Engine — Architecture multi-agent (Phase 1 en place)
 
 L'objectif : générer des compositions originales en s'inspirant de plusieurs
-chansons à la fois (corpus dans `composition_advisor/composition_advisor.json`),
-section par section, avec une équipe d'agents spécialisés par sphère et un
-audit de cohérence.
+chansons à la fois, section par section, avec une équipe d'agents spécialisés
+par sphère et un audit de cohérence.
+
+### Séparation rules / inspirations (depuis 2026-04-27)
+
+Le projet sépare les deux couches de données pour stabilité :
+
+| Fichier | Contenu | Volatilité |
+|---------|---------|------------|
+| `composition_advisor/composition_advisor.json` | **Règles** : theory, voice_leading, tension_release, voicings_recipes, silence_protocol, rhythm_theory, density_curves, recipes_index, philosophy | Stable (rarement modifié) |
+| `composition_advisor/inspirations.json` | **Data** : song_dissection_exhaustive (chansons en Schema A v2), song_dissection (light), reference_albums | Croît à chaque ajout de chanson |
+
+`song_loader.py` charge transparent les deux et expose une API unifiée. Pour
+ajouter une chanson, on touche **uniquement** `inspirations.json`.
 
 ### Sphères
 
@@ -165,7 +176,7 @@ agrège et audite. Cela évite les chaînes de subagents et les boucles.
 
 ### Comment ajouter une chanson au corpus
 
-1. Édite `composition_advisor/composition_advisor.json`, ajoute une entrée
+1. Édite `composition_advisor/inspirations.json`, ajoute une entrée
    sous `song_dissection_exhaustive.by_artist.<ARTIST>.<SONG>` en suivant
    le schéma des chansons existantes.
 2. Vérifie : `python -m composition_engine.advisor_bridge.song_loader`

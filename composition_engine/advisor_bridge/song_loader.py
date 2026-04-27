@@ -1,12 +1,16 @@
 """
-song_loader — Read access to the 35 reference song dissections.
+song_loader — Read access to the reference song dissections.
 
-Bridges composition_engine to composition_advisor/composition_advisor.json,
+Bridges composition_engine to composition_advisor/inspirations.json,
 specifically to song_dissection_exhaustive.by_artist.{ARTIST}.{SONG}.
 
 Designed as the single source-of-truth loader for any future agent or
 module that wants to consume reference-song data (structure, harmony,
 arrangement, dynamic arc, mixing, …) instead of hardcoding rules.
+
+Note: as of 2026-04-27 the inspiration data was separated from
+composition_advisor.json (rules layer) into a dedicated inspirations.json
+(data layer) so that adding new songs does not destabilize the rules.
 
 The JSON is loaded once via lru_cache; subsequent calls are free.
 """
@@ -17,17 +21,31 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-_ADVISOR_JSON = (
-    Path(__file__).resolve().parents[2]
-    / "composition_advisor"
-    / "composition_advisor.json"
-)
+_ADVISOR_DIR = Path(__file__).resolve().parents[2] / "composition_advisor"
+_RULES_JSON = _ADVISOR_DIR / "composition_advisor.json"
+_INSPIRATIONS_JSON = _ADVISOR_DIR / "inspirations.json"
 
 
 @lru_cache(maxsize=1)
 def _load_advisor() -> dict:
-    """Load and cache the full advisor JSON (~2.2 MB)."""
-    return json.loads(_ADVISOR_JSON.read_text(encoding="utf-8"))
+    """Load and cache the union of rules + inspirations.
+
+    Since 2026-04-27 the data is split:
+      - composition_advisor.json  → rules layer (theory, voice_leading,
+        tension_release, voicings_recipes, density_curves, recipes_index, …)
+      - inspirations.json         → data layer (song_dissection_exhaustive,
+        song_dissection, reference_albums)
+
+    This loader merges both transparently so existing callers
+    (query, get_advisor_section, get_song, find_song, list_songs,
+    list_artists) keep working without knowing about the split.
+
+    Inspirations win on key conflict — the data layer is authoritative for
+    anything it defines.
+    """
+    rules = json.loads(_RULES_JSON.read_text(encoding="utf-8"))
+    inspirations = json.loads(_INSPIRATIONS_JSON.read_text(encoding="utf-8"))
+    return {**rules, **inspirations}
 
 
 def _by_artist() -> dict:
