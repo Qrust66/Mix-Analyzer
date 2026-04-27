@@ -96,6 +96,7 @@ n'avertit pas — penser à le refaire après un fresh clone.
 | Hook | Rôle |
 |------|------|
 | `pre-commit` | Lance `check_version_sync.py` si un fichier de prod est staged. Bloque le commit en cas de drift de version. Bypass avec `--no-verify` (déconseillé). |
+| `pre-push` | Lance `check_regression.py` qui choisit entre la **suite rapide** (3 fichiers test : `test_spectral_evolution`, `test_eq8_automation`, `test_v25_integration`, ~10-15s) et la **suite complète** (`pytest tests/`, ~2 min). Critère : si un des 8 fichiers de prod ou un fichier `tests/*.py` est dans le push → suite complète, sinon suite rapide. Bloque le push en cas d'échec. Bypass avec `--no-verify` (déconseillé). |
 | `post-commit` | Hook graphify : rebuild AST-only de `graphify-out/graph.json` après chaque commit. Sans LLM, gratuit. |
 | `post-checkout` | Idem au changement de branche. |
 
@@ -178,6 +179,27 @@ fonction (graph donne la structure, pas le détail).
 Le hook `UserPromptSubmit` (cf. section Hooks plus haut) injecte
 automatiquement un rappel dans mon contexte quand le prompt matche les
 patterns d'architecture — filet de sécurité pour ne pas oublier l'agent.
+
+### regression-detector (`.claude/agents/regression-detector.md`)
+
+**Invoquer automatiquement** dans ces cas :
+
+1. **Avant tout commit qui touche un des 8 fichiers de prod** ou un
+   `tests/*.py` — analyser le diff, calculer le blast radius via le
+   graph, recommander les tests à lancer.
+2. **Avant un push** qui contient des modifs de prod — recommander si
+   la suite rapide suffit ou si la suite complète est nécessaire.
+3. **À la demande explicite** : "audit régression sur ce changement".
+
+L'agent fait l'**audit intelligent** (lit le diff, croise avec
+`graphify-out/graph.json` pour identifier qui dépend des fonctions
+modifiées, flagge HIGH RISK si un god node est touché). Il **ne lance
+pas les tests** — c'est le rôle du hook `pre-push` (cf. section Hooks).
+
+L'agent et le hook sont complémentaires :
+- Hook = filet de sécurité automatique au moment du push
+- Agent = audit raisonné, peut être invoqué avant le commit pour
+  anticiper et choisir le scope de tests à lancer manuellement
 
 ## Fichiers de production (8 fichiers, même dossier)
 

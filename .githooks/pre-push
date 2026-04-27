@@ -1,0 +1,29 @@
+#!/bin/sh
+# Mix Analyzer pre-push hook.
+# Runs a fast or full pytest suite based on what is being pushed:
+#   - prod file or test file changed -> full suite (~2 min)
+#   - only docs/scripts/.als changed -> fast suite (~10-15 s)
+
+# Detect a working Python interpreter (skip Microsoft Store shim)
+PY=""
+for candidate in py python3 python; do
+    if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c "" >/dev/null 2>&1; then
+        PY="$candidate"
+        break
+    fi
+done
+
+if [ -z "$PY" ]; then
+    echo "[pre-push] No working Python found, skipping regression check" >&2
+    exit 0
+fi
+
+# Confirm pytest is available before pretending to run it
+if ! "$PY" -m pytest --version >/dev/null 2>&1; then
+    echo "[pre-push] pytest not installed in $PY — skipping regression check" >&2
+    echo "    To install: $PY -m pip install pytest" >&2
+    exit 0
+fi
+
+"$PY" .githooks/check_regression.py
+exit $?
