@@ -106,6 +106,36 @@ Le hook `UserPromptSubmit` (cf. plus haut) injecte automatiquement un
 rappel quand le prompt matche les patterns d'architecture — filet de
 sécurité pour ne pas oublier l'agent.
 
+### arrangement-decider (`.claude/agents/arrangement-decider.md`)
+
+**Sphere agent arrangement (Phase 2.5).** **THE ONLY SPHERE** dont les
+décisions traversent réellement vers le `.mid` rendu — les autres
+(rhythm, dynamics, performance, fx) sont actuellement descriptives.
+
+**Invoquer** typiquement après structure-decider + harmony-decider +
+rhythm-decider (tous les 3 contextes utiles : `total_bars`, `key_root`,
+`tempo_bpm`).
+
+L'agent décide :
+- `layers` (liste **non-vide** de LayerSpec : role, instrument,
+  enters_at_bar, exits_at_bar, base_velocity 0-127)
+- `density_curve` ∈ {sparse, medium, dense, build, valley, sawtooth}
+- `instrumentation_changes` (liste de {bar, change})
+- `register_strategy` (string libre)
+
+Lit les `arrangement.instrumentation_complete / section_instrumentation /
+vocal_layering_strategy / harmonic_density_per_section /
+instrumental_role_assignment / arrangement_anti_patterns_avoided` des
+références. Optionnel : `density_curves.*` du rules layer.
+
+Validation stricte : layers non-vide, enters_at_bar ≥ 0, exits_at_bar >
+enters_at_bar, base_velocity ∈ [0, 127], density_curve dans la
+frozenset canonique.
+
+**Effet sur le rendu** : chaque LayerSpec devient une track MIDI
+(drum_kit → kick on 36, bass → tonic-12, lead → tonic+7, pad → minor
+triad). Décisions vraies = MIDI vrai.
+
 ### rhythm-decider (`.claude/agents/rhythm-decider.md`)
 
 **Sphere agent rythmique (Phase 2.4).**

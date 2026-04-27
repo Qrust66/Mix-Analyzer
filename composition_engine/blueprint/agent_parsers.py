@@ -32,9 +32,12 @@ import re
 from typing import Any, Mapping
 
 from composition_engine.blueprint.schema import (
+    ArrangementDecision,
     Citation,
     Decision,
     HarmonyDecision,
+    InstChange,
+    LayerSpec,
     RhythmDecision,
     StructureDecision,
     SubSection,
@@ -49,6 +52,19 @@ _LOG = logging.getLogger(__name__)
 SUPPORTED_STRUCTURE_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_HARMONY_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_RHYTHM_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_ARRANGEMENT_SCHEMA_VERSIONS = frozenset({"1.0"})
+
+# Density curve canonical values. Public so the test parametrize and any
+# downstream consumer (cohesion rules, composer extensions) share the
+# same source of truth.
+VALID_DENSITY_CURVES = frozenset({
+    "sparse", "medium", "dense", "build", "valley", "sawtooth",
+})
+
+# MIDI velocity range — 0 = silent, 127 = max. Public per the
+# Phase 2.4.1 pattern (no hardcoded duplicates between code and test).
+VELOCITY_MIN = 0
+VELOCITY_MAX = 127
 
 # Subdivision values accepted: powers of 2 from 4 to 64.
 # 4 = quarter-note grid (rare). 8 = eighth-note. 16 = standard. 32/64 = detailed.
@@ -568,14 +584,167 @@ def parse_rhythm_decision_from_response(text: str) -> Decision[RhythmDecision]:
     return parse_rhythm_decision(extract_json_payload(text))
 
 
+# ============================================================================
+# Public parser — arrangement
+# ============================================================================
+
+
+def _parse_layer_spec(payload: Mapping[str, Any], *, where: str) -> LayerSpec:
+    """Build a LayerSpec from a {role, instrument, enters_at_bar,
+    exits_at_bar, base_velocity?} dict."""
+    if not isinstance(payload, Mapping):
+        raise AgentOutputError(
+            f"{where}: expected object, got {type(payload).__name__}"
+        )
+    role = _coerce_str(_require(payload, "role", where=where)).strip()
+    if not role:
+        raise AgentOutputError(f"{where}.role must be non-empty")
+    instrument = _coerce_str(_require(payload, "instrument", where=where))
+    enters = _coerce_int(
+        _require(payload, "enters_at_bar", where=where),
+        where=f"{where}.enters_at_bar",
+    )
+    exits = _coerce_int(
+        _require(payload, "exits_at_bar", where=where),
+        where=f"{where}.exits_at_bar",
+    )
+    if enters < 0:
+        raise AgentOutputError(
+            f"{where}.enters_at_bar must be >= 0, got {enters}"
+        )
+    if exits <= enters:
+        raise AgentOutputError(
+            f"{where}: exits_at_bar ({exits}) must be > enters_at_bar ({enters})"
+        )
+    base_velocity = _coerce_int(
+        payload.get("base_velocity", 100),
+        where=f"{where}.base_velocity",
+    )
+    if not (VELOCITY_MIN <= base_velocity <= VELOCITY_MAX):
+        raise AgentOutputError(
+            f"{where}.base_velocity must be in [{VELOCITY_MIN}, {VELOCITY_MAX}], "
+            f"got {base_velocity}"
+        )
+    return LayerSpec(
+        role=role,
+        instrument=instrument,
+        enters_at_bar=enters,
+        exits_at_bar=exits,
+        base_velocity=base_velocity,
+    )
+
+
+def _parse_inst_change(payload: Mapping[str, Any], *, where: str) -> InstChange:
+    """Build an InstChange from a {bar, change} dict."""
+    if not isinstance(payload, Mapping):
+        raise AgentOutputError(
+            f"{where}: expected object, got {type(payload).__name__}"
+        )
+    bar = _coerce_int(
+        _require(payload, "bar", where=where), where=f"{where}.bar"
+    )
+    if bar < 0:
+        raise AgentOutputError(
+            f"{where}.bar must be >= 0, got {bar}"
+        )
+    change = _coerce_str(_require(payload, "change", where=where))
+    return InstChange(bar=bar, change=change)
+
+
+def parse_arrangement_decision(payload: Mapping[str, Any]) -> Decision[ArrangementDecision]:
+    """Parse an arrangement-decider agent payload into a Decision.
+
+    Expected shape (schema 1.0):
+        {
+          "schema_version": "1.0",
+          "arrangement": {
+            "layers": [
+              {"role", "instrument", "enters_at_bar", "exits_at_bar",
+               "base_velocity?"}, …
+            ],
+            "density_curve": str ∈ VALID_DENSITY_CURVES,
+            "instrumentation_changes": [{"bar", "change"}, …],
+            "register_strategy": str
+          },
+          "rationale": str,
+          "inspired_by": [{"song", "path", "excerpt"}, …],
+          "confidence": float (0..1)
+        }
+
+    Or a refusal payload: {"error": "...", "details": "..."}
+
+    Lenient input + strict output, same conventions as the other sphere
+    parsers. arrangement.layers MUST have at least one entry.
+    """
+    envelope = _parse_envelope(
+        payload, supported_versions=SUPPORTED_ARRANGEMENT_SCHEMA_VERSIONS
+    )
+
+    arr_dict = _require(payload, "arrangement", where="root")
+    if not isinstance(arr_dict, Mapping):
+        raise AgentOutputError(
+            f"arrangement: expected object, got {type(arr_dict).__name__}"
+        )
+
+    raw_layers = _coerce_list(
+        _require(arr_dict, "layers", where="arrangement"),
+        where="arrangement.layers",
+    )
+    if not raw_layers:
+        raise AgentOutputError(
+            "arrangement.layers must contain at least one LayerSpec; "
+            "an arrangement with no layers cannot be rendered to MIDI"
+        )
+    layers = tuple(
+        _parse_layer_spec(item, where=f"arrangement.layers[{i}]")
+        for i, item in enumerate(raw_layers)
+    )
+
+    density_curve = _coerce_str(arr_dict.get("density_curve", "medium")).strip()
+    if not density_curve:
+        density_curve = "medium"
+    if density_curve not in VALID_DENSITY_CURVES:
+        raise AgentOutputError(
+            f"arrangement.density_curve {density_curve!r} not recognized. "
+            f"Expected one of: {sorted(VALID_DENSITY_CURVES)}"
+        )
+
+    raw_changes = _coerce_list(
+        arr_dict.get("instrumentation_changes", []),
+        where="arrangement.instrumentation_changes",
+    )
+    instrumentation_changes = tuple(
+        _parse_inst_change(item, where=f"arrangement.instrumentation_changes[{i}]")
+        for i, item in enumerate(raw_changes)
+    )
+
+    arrangement_value = ArrangementDecision(
+        layers=layers,
+        density_curve=density_curve,
+        instrumentation_changes=instrumentation_changes,
+        register_strategy=_coerce_str(arr_dict.get("register_strategy", "")),
+    )
+
+    return Decision(value=arrangement_value, sphere="arrangement", **envelope)
+
+
+def parse_arrangement_decision_from_response(text: str) -> Decision[ArrangementDecision]:
+    """End-to-end: raw LLM response text → Decision[ArrangementDecision]."""
+    return parse_arrangement_decision(extract_json_payload(text))
+
+
 __all__ = [
     "AgentOutputError",
     "SUPPORTED_STRUCTURE_SCHEMA_VERSIONS",
     "SUPPORTED_HARMONY_SCHEMA_VERSIONS",
     "SUPPORTED_RHYTHM_SCHEMA_VERSIONS",
+    "SUPPORTED_ARRANGEMENT_SCHEMA_VERSIONS",
     "TEMPO_MIN_BPM",
     "TEMPO_MAX_BPM",
     "VALID_SUBDIVISIONS",
+    "VALID_DENSITY_CURVES",
+    "VELOCITY_MIN",
+    "VELOCITY_MAX",
     "extract_json_payload",
     "parse_structure_decision",
     "parse_structure_decision_from_response",
@@ -583,4 +752,6 @@ __all__ = [
     "parse_harmony_decision_from_response",
     "parse_rhythm_decision",
     "parse_rhythm_decision_from_response",
+    "parse_arrangement_decision",
+    "parse_arrangement_decision_from_response",
 ]

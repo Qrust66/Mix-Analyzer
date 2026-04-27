@@ -8,8 +8,13 @@ from composition_engine.blueprint.agent_parsers import (
     AgentOutputError,
     TEMPO_MAX_BPM,
     TEMPO_MIN_BPM,
+    VALID_DENSITY_CURVES,
     VALID_SUBDIVISIONS,
+    VELOCITY_MAX,
+    VELOCITY_MIN,
     extract_json_payload,
+    parse_arrangement_decision,
+    parse_arrangement_decision_from_response,
     parse_harmony_decision,
     parse_harmony_decision_from_response,
     parse_rhythm_decision,
@@ -18,9 +23,12 @@ from composition_engine.blueprint.agent_parsers import (
     parse_structure_decision_from_response,
 )
 from composition_engine.blueprint.schema import (
+    ArrangementDecision,
     Citation,
     Decision,
     HarmonyDecision,
+    InstChange,
+    LayerSpec,
     RhythmDecision,
     StructureDecision,
     SubSection,
@@ -661,3 +669,207 @@ def test_rhythm_decision_can_be_assigned_to_blueprint():
     bp = SectionBlueprint(name="intro").with_decision("rhythm", decision)
     assert bp.rhythm is decision
     assert "rhythm" in bp.filled_spheres()
+
+
+# ============================================================================
+# Phase 2.5 — arrangement parser
+# ============================================================================
+
+
+def _valid_arrangement_payload(**overrides):
+    """Return a minimum-valid arrangement-decider payload."""
+    base = {
+        "schema_version": "1.0",
+        "arrangement": {
+            "layers": [
+                {
+                    "role": "drum_kit",
+                    "instrument": "Roland TR-909",
+                    "enters_at_bar": 0,
+                    "exits_at_bar": 16,
+                    "base_velocity": 100,
+                },
+                {
+                    "role": "bass",
+                    "instrument": "sub synth",
+                    "enters_at_bar": 4,
+                    "exits_at_bar": 16,
+                    "base_velocity": 90,
+                },
+            ],
+            "density_curve": "build",
+            "instrumentation_changes": [
+                {"bar": 8, "change": "lead enters with filter sweep"},
+            ],
+            "register_strategy": "low + mid only at start, add upper later",
+        },
+        "rationale": "Build progressif 2 layers + 1 change.",
+        "inspired_by": [
+            {"song": "Daft_Punk/Veridis_Quo", "path": "arrangement.section_instrumentation",
+             "excerpt": "drum machine alone first, then bass arrival"},
+        ],
+        "confidence": 0.85,
+    }
+    base.update(overrides)
+    return base
+
+
+def test_parses_minimal_valid_arrangement_payload():
+    decision = parse_arrangement_decision(_valid_arrangement_payload())
+    assert decision.sphere == "arrangement"
+    assert isinstance(decision.value, ArrangementDecision)
+    assert len(decision.value.layers) == 2
+    assert decision.value.density_curve == "build"
+    assert len(decision.value.instrumentation_changes) == 1
+
+
+def test_arrangement_layers_must_be_non_empty():
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["layers"] = []
+    with pytest.raises(AgentOutputError, match="at least one LayerSpec"):
+        parse_arrangement_decision(payload)
+
+
+def test_arrangement_empty_instrumentation_changes_is_valid():
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["instrumentation_changes"] = []
+    decision = parse_arrangement_decision(payload)
+    assert decision.value.instrumentation_changes == ()
+
+
+def test_arrangement_default_density_curve_when_blank():
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["density_curve"] = "   "
+    decision = parse_arrangement_decision(payload)
+    assert decision.value.density_curve == "medium"
+
+
+@pytest.mark.parametrize("valid_curve", sorted(VALID_DENSITY_CURVES))
+def test_arrangement_all_valid_density_curves_accepted(valid_curve):
+    """Parametrize over the actual VALID_DENSITY_CURVES — no drift between
+    code and test."""
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["density_curve"] = valid_curve
+    decision = parse_arrangement_decision(payload)
+    assert decision.value.density_curve == valid_curve
+
+
+@pytest.mark.parametrize("invalid_curve", [
+    "exponential", "medium-build", "growing", "decay", "spiky", "",
+    "BUILD", "Sparse",  # case-sensitive
+])
+def test_arrangement_invalid_density_curve_raises(invalid_curve):
+    if invalid_curve == "":
+        # Empty string defaults to "medium" — not an error path
+        return
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["density_curve"] = invalid_curve
+    with pytest.raises(AgentOutputError, match="density_curve"):
+        parse_arrangement_decision(payload)
+
+
+def test_arrangement_layer_with_invalid_enters_at_bar_raises():
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["layers"][0]["enters_at_bar"] = -1
+    with pytest.raises(AgentOutputError, match="enters_at_bar"):
+        parse_arrangement_decision(payload)
+
+
+def test_arrangement_layer_with_exits_le_enters_raises():
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["layers"][0]["enters_at_bar"] = 8
+    payload["arrangement"]["layers"][0]["exits_at_bar"] = 8  # equal = invalid
+    with pytest.raises(AgentOutputError, match="exits_at_bar"):
+        parse_arrangement_decision(payload)
+
+
+def test_arrangement_layer_empty_role_raises():
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["layers"][0]["role"] = "   "
+    with pytest.raises(AgentOutputError, match="role"):
+        parse_arrangement_decision(payload)
+
+
+@pytest.mark.parametrize("invalid_velocity", [
+    -1, -100,                 # negative
+    VELOCITY_MAX + 1, 200,    # above MIDI ceiling
+])
+def test_arrangement_velocity_out_of_range_raises(invalid_velocity):
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["layers"][0]["base_velocity"] = invalid_velocity
+    with pytest.raises(AgentOutputError, match="base_velocity"):
+        parse_arrangement_decision(payload)
+
+
+@pytest.mark.parametrize("valid_velocity", [
+    VELOCITY_MIN, 1, 60, 100, 120, VELOCITY_MAX,
+])
+def test_arrangement_valid_velocities_accepted(valid_velocity):
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["layers"][0]["base_velocity"] = valid_velocity
+    decision = parse_arrangement_decision(payload)
+    assert decision.value.layers[0].base_velocity == valid_velocity
+
+
+def test_arrangement_default_velocity_when_absent():
+    payload = _valid_arrangement_payload()
+    del payload["arrangement"]["layers"][0]["base_velocity"]
+    decision = parse_arrangement_decision(payload)
+    assert decision.value.layers[0].base_velocity == 100
+
+
+def test_arrangement_inst_change_negative_bar_raises():
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["instrumentation_changes"][0]["bar"] = -1
+    with pytest.raises(AgentOutputError, match="bar"):
+        parse_arrangement_decision(payload)
+
+
+def test_arrangement_inst_change_missing_change_field_raises():
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["instrumentation_changes"][0] = {"bar": 4}
+    with pytest.raises(AgentOutputError, match="change"):
+        parse_arrangement_decision(payload)
+
+
+def test_arrangement_string_velocity_coerced():
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["layers"][0]["base_velocity"] = "120"
+    decision = parse_arrangement_decision(payload)
+    assert decision.value.layers[0].base_velocity == 120
+
+
+def test_arrangement_error_payload_raises():
+    with pytest.raises(AgentOutputError, match="Agent returned error"):
+        parse_arrangement_decision({"error": "no usable refs"})
+
+
+def test_arrangement_from_response_handles_fences():
+    payload_str = json.dumps(_valid_arrangement_payload())
+    fenced = f"```json\n{payload_str}\n```"
+    decision = parse_arrangement_decision_from_response(fenced)
+    assert len(decision.value.layers) == 2
+
+
+def test_arrangement_decision_can_be_assigned_to_blueprint():
+    from composition_engine.blueprint import SectionBlueprint
+
+    decision = parse_arrangement_decision(_valid_arrangement_payload())
+    bp = SectionBlueprint(name="intro").with_decision("arrangement", decision)
+    assert bp.arrangement is decision
+    assert "arrangement" in bp.filled_spheres()
+
+
+def test_arrangement_layers_with_overlapping_roles_kept_separate():
+    """Multiple layers with the same role (e.g. two bass voices) are
+    preserved — the composer_adapter groups them per-track downstream."""
+    payload = _valid_arrangement_payload()
+    payload["arrangement"]["layers"] = [
+        {"role": "bass", "instrument": "sub_low",
+         "enters_at_bar": 0, "exits_at_bar": 8, "base_velocity": 90},
+        {"role": "bass", "instrument": "sub_high",
+         "enters_at_bar": 8, "exits_at_bar": 16, "base_velocity": 90},
+    ]
+    decision = parse_arrangement_decision(payload)
+    assert len(decision.value.layers) == 2
+    assert all(l.role == "bass" for l in decision.value.layers)

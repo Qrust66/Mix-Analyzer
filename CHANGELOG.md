@@ -1,5 +1,53 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.5] - 2026-04-27
+
+### Added
+- **`.claude/agents/arrangement-decider.md`** — fourth sphere agent
+  (arrangement). **THE ONLY SPHERE WHOSE DECISIONS PRODUCE AUDIBLE
+  CHANGES IN THE RENDERED MIDI** (composer_adapter consumes
+  `arrangement.layers` directly to build the per-track MIDI). The
+  other 3 wired sphere (structure/harmony/rhythm) only contribute
+  total_bars / tonic_pitch / tempo_bpm to the renderer; arrangement
+  is what determines which voices play and when.
+- **`parse_arrangement_decision(payload)`** + companion
+  `parse_arrangement_decision_from_response(text)` in agent_parsers.py.
+  Strict validation:
+    * `layers` MUST be non-empty (a section with no layers cannot be
+      rendered to MIDI)
+    * each layer: `enters_at_bar >= 0`, `exits_at_bar > enters_at_bar`,
+      `base_velocity ∈ [0, 127]`, `role` non-empty
+    * `density_curve` ∈ {sparse, medium, dense, build, valley, sawtooth}
+    * `instrumentation_changes[*].bar >= 0`
+- **Public constants** `VALID_DENSITY_CURVES`, `VELOCITY_MIN`,
+  `VELOCITY_MAX` exposed via `__all__` per the Phase 2.4.1 single-source-
+  of-truth pattern. Test parametrize imports them — no drift between
+  code and tests.
+
+### Tests
+- 19 new test functions in `test_blueprint_agent_parsers.py` covering
+  arrangement parser. Parametrize tests (density_curves, velocities)
+  anchor on the public constants. Notably:
+    * `test_arrangement_layers_must_be_non_empty` — the only sphere
+      where empty is rejected
+    * `test_arrangement_all_valid_density_curves_accepted` — auto-syncs
+      with VALID_DENSITY_CURVES
+    * `test_arrangement_layers_with_overlapping_roles_kept_separate` —
+      multiple bass voices stay distinct, composer groups them downstream
+
+### End-to-end pipeline verified
+Smoke test:
+```
+4 spheres filled → compose_to_midi() →
+  1141-byte Format-1 MIDI, 5 tracks (1 tempo + 4 instrument tracks)
+  for layers [drum_kit(0-16), bass(4-16), pad(0-16), lead(8-16)]
+```
+Different arrangement decisions now yield different MIDI files.
+
+### Status after Phase 2.5
+4/7 sphere agents wired: structure, harmony, rhythm, **arrangement**.
+Remaining: dynamics (Phase 2.6), performance (Phase 2.7), fx (Phase 2.8).
+
 ## [Unreleased — composition_engine Phase 2.4.1] - 2026-04-27
 
 Closes 4 critiques from the Phase 2.4 self-audit:
