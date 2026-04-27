@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album/year (With Teeth, 2005) and runtime 3:31 confirmed. Tempo 122-128 BPM captures the ~125 BPM commonly cited. 4/4 commercial-single structure correct. Dave Grohl is documented as playing drums on multiple With Teeth tracks; the draft appropriately hedges THTF-specific drumming in _to_verify_fields. 'Hand That Feeds' political-protest lyrical content matches documented context. Hard-panned distorted guitars + live-drums-with-programmed-overlay hybrid characterization is well-documented for With Teeth. No factual corrections needed.",
   "_overall_confidence": "high_for_structure_tempo_and_live_drums_documentation_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "time_signature (4/4 throughout)",

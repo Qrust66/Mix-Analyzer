@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album/year (The Fragile, 1999) and runtime ~5:25 confirmed. Tempo 100-108 BPM plausible for mid-tempo Fragile-era NIN. The 'hybrid integration arc' framing (aggressive verses + atmospheric choruses with integrated transformations rather than abrupt cuts) matches documented critical reception of the track. Pitch-specific items (key G minor, exact tuning, exact bar counts) remain in _to_verify_fields. No factual corrections needed.",
   "_overall_confidence": "high_for_hybrid_arc_and_section_processing_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "tempo_bpm_documented_range (100-108 mid-tempo)",
