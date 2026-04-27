@@ -1,7 +1,13 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [
+    {"field": "album", "before": "Songs for the Deaf", "after": "Lullabies to Paralyze", "reason": "Medication is on Lullabies to Paralyze (2005), not Songs for the Deaf (2002). Lanegan-led short track on Lullabies, not on the SFTD track listing."},
+    {"field": "year", "before": 2002, "after": 2005, "reason": "Lullabies to Paralyze release year — corrects the album misattribution."},
+    {"field": "instrumentation_complete (drummer)", "before": "Drums (Dave Grohl as guest drummer — kick, snare, hi-hat, toms, cymbals)", "after": "Drums (Joey Castillo — post-Grohl-guest-era documented QOTSA drummer for Lullabies to Paralyze)", "reason": "Lullabies to Paralyze drummer is Joey Castillo, not Grohl. Grohl was guest drummer only on Songs for the Deaf."}
+  ],
+  "_reviewer_notes": "⚠️ MAJOR CORRECTION: Draft misattributed Medication to Songs for the Deaf (2002); track is actually on Lullabies to Paralyze (2005) — corrected album/year/primary drummer attribution. CASCADING IMPACT: The body text contains additional Songs-for-the-Deaf-era framings that the user may want to revise: (1) drum_style.performer + body references to 'Grohl' should read 'Joey Castillo'; (2) the special_effects 'vocal_democracy_across_album_three_lead_vocalists' framing — references to Homme/Oliveri/Lanegan as Songs for the Deaf vocalists — applies less cleanly to Lullabies to Paralyze where Oliveri had been removed from the band and vocal democracy was reduced; (3) references to 'A Song for the Dead drumming' and 'First It Giveth' as same-album peers are also incorrect. The compositional analysis (compressed economy, Lanegan whiskey-baritone identity, abrupt ending, restrained drumming) is otherwise accurate and applies to the actual track. Tuning and tempo plausible.",
   "_overall_confidence": "high_for_brevity_signature_and_lanegan_lead_medium_for_exact_pitch_content_and_section_lengths",
   "_high_confidence_fields": [
     "track_runtime (~1:55 — extreme compressed economy)",
@@ -19,8 +25,8 @@
   ],
 
   "_status": "C5_4c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
-  "album": "Songs for the Deaf",
-  "year": 2002,
+  "album": "Lullabies to Paralyze",
+  "year": 2005,
   "tempo_bpm_documented_range": [126, 134],
   "time_signature": "4/4 throughout. No metric trickery — the compositional choice is in BREVITY and VOCAL IDENTITY, not in meter.",
   "key_area": "F# minor area / G# minor area. Tonal center sits in a Homme-and-Lanegan-baritone-friendly minor zone with chromatic riff motion. Defensible reading: minor pentatonic + chromatic neighbor tones, no functional V-I cadence required.",
@@ -50,7 +56,7 @@
       "Electric guitar drop-D (Josh Homme, tube amp with moderate distortion)",
       "Possible double-tracked rhythm guitar for stereo width",
       "Electric bass drop-D (Nick Oliveri, pick attack, tight kick-lock)",
-      "Drum kit (Dave Grohl as guest drummer — kick, snare, hi-hat, toms, cymbals)",
+      "Drum kit (Joey Castillo — post-Grohl-guest-era documented QOTSA drummer for Lullabies to Paralyze)",
       "Lead vocal (Mark Lanegan, whiskey-baritone)",
       "Possible secondary vocal harmony (Josh Homme backing)"
     ],

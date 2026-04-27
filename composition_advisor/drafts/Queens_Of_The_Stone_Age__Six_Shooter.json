@@ -3,9 +3,9 @@
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
   "_review_status": "reviewed_by_claude_windows_v1",
   "_review_corrections": [
-    {"field": "track_runtime", "before": "~3:08", "after": "~3:08", "reason": "skipped — could not verify with confidence without web search. FLAG FOR USER VERIFICATION: Six Shooter on Songs for the Deaf is recalled as a much shorter hardcore-punk thrash track (~1:00), positioned between The Sky Is Fallin' (6:13) and Hangin' Tree (3:07) in the album sequence. The ~3:08 in the draft appears to match the runtime of Go With the Flow rather than Six Shooter; possible draft confusion. Kept original — please cross-check track listing."}
+    {"field": "track_runtime", "before": "~3:08", "after": "~1:00", "reason": "User confirmed track is very short. Six Shooter on Songs for the Deaf is the brief hardcore-punk thrash track positioned between The Sky Is Fallin' and Hangin' Tree; the ~3:08 in the draft appeared to match Go With the Flow's runtime instead. Corrected to ~1:00 per user confirmation."}
   ],
-  "_reviewer_notes": "Album/year (Songs for the Deaf, 2002) ✓. Tempo 184-192 BPM punk-speed plausible. Drop D tuning ✓. Nick Oliveri lead vocal (Mondo Generator hardcore lineage) confirmed for Oliveri-fronted tracks. Compositional democracy framing accurate. Punk-aggression/no-drops/abrupt-ending characterization matches the track's hardcore-punk identity. ⚠️ Runtime claim ~3:08 looks suspect against track listing recollection (~1:00 expected) — flagged in _review_corrections as skipped pending user verification.",
+  "_reviewer_notes": "Album/year (Songs for the Deaf, 2002) ✓. Tempo 184-192 BPM punk-speed plausible. Drop D tuning ✓. Nick Oliveri lead vocal (Mondo Generator hardcore lineage) confirmed. Compositional democracy framing accurate. The very short runtime is consistent with the punk-economy / abrupt-ending / perpetual-baseline-at-peak descriptions in the body — the track's hardcore identity demands brevity. Runtime corrected from ~3:08 to ~1:00 per user confirmation.",
   "_overall_confidence": "high_for_punk_aggression_and_oliveri_vocal_lead_documentation_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "time_signature (4/4 throughout)",
@@ -31,7 +31,7 @@
   "time_signature": "4/4 throughout — fast aggressive punk pulse. No metric tricks; the energy comes from sustained punk-speed 4/4 propulsion.",
   "key_area": "E minor or F minor area with chromatic riff motion. Tonic minor with chromatic chord shifts characteristic of hardcore-punk vocabulary. Voice-leading punk-rock-craft (Oliveri's documented Mondo Generator hardcore lineage informs harmonic vocabulary).",
   "tuning_documented": "Drop D tuning (Songs for the Deaf album convention) on guitars and bass — chromatic riff capability + low-end weight.",
-  "track_runtime": "~3:08",
+  "track_runtime": "~1:00",
 
   "composition": {
     "structural_blueprint": "aggressive_intro_full_band (Grohl drums + Homme guitar + Oliveri bass at full intensity, no gradual build, no atmospheric layer) -> verse1_oliveri_screamed_vocal (riff continues, Oliveri's screamed hardcore-punk vocal enters, Grohl drives at fast tempo, Homme + Oliveri instruments locked tight) -> chorus1 (hook expansion, screamed vocal projects, density retained at maximum) -> verse2 (returns to verse density) -> chorus2 (slight intensification) -> bridge_intensification (brief intensification — possibly rhythm break or hardcore-style breakdown, NOT a quiet bridge) -> final_chorus_with_abrupt_punk_ending (final chorus + abrupt punk-style ending, no fade)",
@@ -41,7 +41,7 @@
       "choruses": "Approximately 8 bars each",
       "bridge": "Approximately 4-8 bars of intensification (not a dynamic dip)",
       "final_chorus_and_ending": "Final chorus + abrupt cut",
-      "_note": "Bar counts approximate. Total runtime 3:08 = punk-economy maximum compression. Compositional movement compressed by fast tempo + punk economy. Even more compressed than First It Giveth's 3:19."
+      "_note": "Bar counts approximate. Total runtime ~1:00 = extreme punk-economy compression — one of the shortest tracks on Songs for the Deaf. Compositional movement maximally compressed by fast tempo + hardcore-punk economy. Far more compressed than First It Giveth's 3:19."
     },
     "harmonic_motion": "Minor-modal with chromatic punk-style riff motion. Tonic E/F minor with movement to relative areas via chromatic chord shifts. Voice-leading punk-rock-craft (Oliveri's documented hardcore lineage informs vocabulary).",
     "modal_choice": "Minor (Aeolian) with chromatic ornamentation characteristic of hardcore-punk vocabulary. Less melodic than Homme's stoner-rock material; more aggressive chromatic riff motion.",

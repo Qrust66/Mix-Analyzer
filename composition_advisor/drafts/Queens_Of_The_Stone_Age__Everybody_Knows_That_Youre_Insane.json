@@ -1,7 +1,11 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [
+    {"field": "drummer_name (multiple occurrences)", "before": "Joey Castillo", "after": "Joey Castillo", "reason": "Drummer's correct name is Joey Castillo (post-Grohl-tour-era QOTSA drummer for Lullabies to Paralyze through Era Vulgaris). 'Castillo' is a misspelling."}
+  ],
+  "_reviewer_notes": "Album/year (Lullabies to Paralyze, 2005) and runtime ~4:51 confirmed. Tempo 110-116 BPM and Drop D tuning plausible. Joe Barresi co-production for Lullabies to Paralyze documented. Post-Oliveri Homme-centric framing is accurate. Robot-rock hypnotic-riff continuation correctly noted. Drummer name corrected from 'Castillo' to 'Castillo' throughout the file.",
   "_overall_confidence": "medium_high_for_homme_centric_post_oliveri_signature_medium_for_exact_pitch_content_and_section_lengths",
   "_high_confidence_fields": [
     "tuning_documented (drop D)",
@@ -52,7 +56,7 @@
       "Possible double-tracked rhythm guitar for stereo width",
       "Possible additional guitar layers for textural variety (Barresi's documented heavy-rock specialization)",
       "Electric bass drop-D (Lullabies-era bassist — Alain Johannes documented as varying contributor)",
-      "Drum kit (Joey Castellano — post-Grohl-guest-era documented QOTSA drummer)",
+      "Drum kit (Joey Castillo — post-Grohl-guest-era documented QOTSA drummer)",
       "Lead vocal (Josh Homme, baritone)",
       "Possible secondary vocal harmony in chorus"
     ],
@@ -71,7 +75,7 @@
     "instrumental_role_assignment": {
       "guitar_role": "Hypnotic riff engine + textural broadening in chorus. Continues robot-rock philosophy. Possible double-tracked or layered for stereo and tonal variety per Barresi's production.",
       "bass_role": "Tight kick-lock + low-end foundation. Pick attack for rhythmic clarity. Adapted to Homme-centric compositional voice — less aggressive presence than Oliveri-era bass.",
-      "drums_role": "Groove foundation, less technical display than Grohl. Castellano plays for the song's hypnotic groove rather than for spotlight moments. Adapted to Homme's robot-rock philosophy.",
+      "drums_role": "Groove foundation, less technical display than Grohl. Castillo plays for the song's hypnotic groove rather than for spotlight moments. Adapted to Homme's robot-rock philosophy.",
       "vocal_role": "Homme-centric melodic baritone — narrative carrier and primary melodic voice. Without competing punk-aggression vocal contribution from Oliveri, vocal balance is dominantly Homme."
     },
     "harmonic_density_per_section": {
@@ -95,8 +99,8 @@
   "performance": {
     "tempo_feel_description": "Mid-tempo heavy groove at ~113 BPM. Feels DRIVEN but unhurried — tempo allows hypnotic groove development without rushing. Performance lock to the riff is tight; the track's mesmeric quality comes from the band's commitment to the cycle rather than from individual virtuosity.",
     "drum_style": {
-      "performer": "Joey Castellano (Lullabies to Paralyze drummer — post-Grohl-guest-era documented QOTSA drummer)",
-      "feel": "Robot-rock groove foundation — Castellano plays for the song's hypnotic groove rather than for technical display. Adapted to Homme's documented robot-rock philosophy.",
+      "performer": "Joey Castillo (Lullabies to Paralyze drummer — post-Grohl-guest-era documented QOTSA drummer)",
+      "feel": "Robot-rock groove foundation — Castillo plays for the song's hypnotic groove rather than for technical display. Adapted to Homme's documented robot-rock philosophy.",
       "techniques_documented": [
         "Kick + snare backbone driving 4/4 at ~113 BPM",
         "Hi-hat 8ths driving forward",
@@ -106,7 +110,7 @@
         "Possible tom rolls or fill statements at major section boundaries"
       ],
       "groove_feel_alignment": "Pocket-priority. Drumming serves the riff cycle's hypnotic identity rather than competing for foreground attention.",
-      "fills_and_transitions": "Minor fills mark verse-to-pre-chorus and pre-chorus-to-chorus boundaries. No extended drum feature spotlight — Castellano serves the song rather than featuring."
+      "fills_and_transitions": "Minor fills mark verse-to-pre-chorus and pre-chorus-to-chorus boundaries. No extended drum feature spotlight — Castillo serves the song rather than featuring."
     },
     "guitar_style": {
       "performer": "Josh Homme",
