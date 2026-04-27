@@ -1,7 +1,11 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [
+    {"field": "track_runtime", "before": "~3:08", "after": "~3:08", "reason": "skipped — could not verify with confidence without web search. FLAG FOR USER VERIFICATION: Six Shooter on Songs for the Deaf is recalled as a much shorter hardcore-punk thrash track (~1:00), positioned between The Sky Is Fallin' (6:13) and Hangin' Tree (3:07) in the album sequence. The ~3:08 in the draft appears to match the runtime of Go With the Flow rather than Six Shooter; possible draft confusion. Kept original — please cross-check track listing."}
+  ],
+  "_reviewer_notes": "Album/year (Songs for the Deaf, 2002) ✓. Tempo 184-192 BPM punk-speed plausible. Drop D tuning ✓. Nick Oliveri lead vocal (Mondo Generator hardcore lineage) confirmed for Oliveri-fronted tracks. Compositional democracy framing accurate. Punk-aggression/no-drops/abrupt-ending characterization matches the track's hardcore-punk identity. ⚠️ Runtime claim ~3:08 looks suspect against track listing recollection (~1:00 expected) — flagged in _review_corrections as skipped pending user verification.",
   "_overall_confidence": "high_for_punk_aggression_and_oliveri_vocal_lead_documentation_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "time_signature (4/4 throughout)",

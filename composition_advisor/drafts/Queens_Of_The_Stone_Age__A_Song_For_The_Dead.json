@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album/year (Songs for the Deaf, 2002) and runtime ~5:51 confirmed against track listing. Tempo 148-168 BPM range appropriately reflects the verse-vs-half-time-chorus interpretation ambiguity (the draft hedges this in _to_verify_fields explicitly). Drop D tuning ✓. The half-time chorus inversion and Grohl drum feature characterization are well-documented for this track — frequently cited as a drum-clinic reference performance. Extended 2+ minute instrumental outro confirmed. No factual corrections needed.",
   "_overall_confidence": "high_for_structure_and_drumming_signature_medium_for_exact_pitch_content_and_section_lengths",
   "_high_confidence_fields": [
     "structural_blueprint (fast-driving verse -> half-time-chorus inversion -> extended instrumental outro)",

@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album/year (Songs for the Deaf, 2002) and runtime ~3:19 confirmed against track listing. Tempo 126-132 BPM plausible (~129 commonly cited mid-tempo). Drop D tuning is the documented Songs for the Deaf convention. Dave Grohl as guest drummer for the entire album confirmed. Mark Lanegan harmony contributions across multiple Songs for the Deaf tracks documented; track-specific role appropriately hedged in _to_verify_fields. Robot-rock micro-variation framing matches Homme's documented compositional philosophy. No factual corrections needed.",
   "_overall_confidence": "high_for_groove_philosophy_and_grohl_drumming_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "time_signature (4/4 throughout)",
