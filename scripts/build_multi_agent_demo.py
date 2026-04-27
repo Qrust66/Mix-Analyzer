@@ -357,33 +357,75 @@ def _set_project_tempo(xml: str, bpm: int) -> str:
     return xml[: m.start(0)] + m.group(1) + str(bpm) + m.group(2) + xml[m.end(0):]
 
 
-def _inject_clips_into_track(xml: str, midi_track_id: int, clips: List[str]) -> str:
-    """Replace the track's `<ArrangerAutomation><Events />` with populated clips.
+def _bump_next_pointee_id(xml: str, new_value: int) -> str:
+    """Set NextPointeeId to `new_value` so Live won't reuse our shifted IDs."""
+    m = re.search(r'(<NextPointeeId Value=")(\d+)(")', xml)
+    if not m:
+        raise RuntimeError("<NextPointeeId> not found in project XML")
+    return xml[: m.start(2)] + str(new_value) + xml[m.end(2):]
 
-    Bound the search to the target MidiTrack to avoid matching other tracks.
+
+def _shift_big_ids(track_xml: str, offset: int, threshold: int = 4000) -> str:
+    """Shift every Id="N", Value="N", PointeeId Value="N" with N >= threshold.
+
+    Small Ids (1-3 digits) are local positional indices (Bands.0..7, ClipSlot
+    Id=0..N inside ClipSlotList) — leave untouched. Large Ids are unique
+    AutomationTarget / LomId / Pointee references that must not collide
+    with the original track's IDs after cloning.
     """
-    track_open = re.search(rf'<MidiTrack Id="{midi_track_id}"', xml)
-    if not track_open:
-        raise RuntimeError(f"MidiTrack Id={midi_track_id} not found")
-    track_start = track_open.start()
-    track_end = xml.find("</MidiTrack>", track_start) + len("</MidiTrack>")
-    if track_end < track_start:
-        raise RuntimeError(f"</MidiTrack> close for Id={midi_track_id} not found")
+    def sub(m: re.Match) -> str:
+        key, val = m.group(1), int(m.group(2))
+        if val >= threshold:
+            return f'{key}="{val + offset}"'
+        return m.group(0)
+    return re.sub(r'(Id|Value|Pointee Id)="(\d+)"', sub, track_xml)
 
-    track_xml = xml[track_start:track_end]
 
-    m = re.search(r"(<ArrangerAutomation>\s*)<Events />", track_xml)
+def _clone_midi_track(
+    template: str,
+    *,
+    new_track_id: int,
+    role: str,
+    display_name: str,
+    color: int,
+    id_offset: int,
+    clips: List[str],
+) -> str:
+    """Clone the empty MidiTrack template, retarget it for one role, attach
+    one or more pre-built MidiClip XML blocks.
+
+    template       — full <MidiTrack ...>...</MidiTrack> string of the seed
+    new_track_id   — small Id of the clone (the outer <MidiTrack Id="N">)
+    role           — internal role name (used by EffectiveName / UserName)
+    display_name   — what shows in Ableton's track header
+    color          — Live's color index (0-69)
+    id_offset      — added to every big Id (>= 4 digits) inside the clone
+    clips          — list of <MidiClip>...</MidiClip> XML blocks to inject
+                     into ArrangerAutomation/Events (timeline view)
+    """
+    clone = _shift_big_ids(template, id_offset, threshold=4000)
+    clone = re.sub(r'<MidiTrack Id="\d+"',
+                   f'<MidiTrack Id="{new_track_id}"', clone, count=1)
+    clone = re.sub(r'<EffectiveName Value="[^"]*"',
+                   f'<EffectiveName Value="{display_name}"', clone, count=1)
+    clone = re.sub(r'<UserName Value="[^"]*"',
+                   f'<UserName Value="{role}"', clone, count=1)
+    clone = re.sub(r'<Color Value="\d+"',
+                   f'<Color Value="{color}"', clone, count=1)
+
+    if not clips:
+        return clone
+
+    m = re.search(r"(<ArrangerAutomation>\s*)<Events />", clone)
     if not m:
         raise RuntimeError(
-            f"MidiTrack Id={midi_track_id}: empty <ArrangerAutomation><Events /> not found "
-            f"(track may already contain timeline clips)"
+            f"Cloned track for role={role!r}: <ArrangerAutomation><Events /> "
+            f"not found — template structure unexpected"
         )
-
     evt_pos = m.start(0) + len(m.group(1))
-    line_start = track_xml.rfind("\n", 0, evt_pos) + 1
-    indent = track_xml[line_start:evt_pos]
+    line_start = clone.rfind("\n", 0, evt_pos) + 1
+    indent = clone[line_start:evt_pos]
     inner_indent = indent + "\t"
-
     reindented = [_reindent(c, inner_indent) for c in clips]
     replacement = (
         m.group(1)
@@ -393,8 +435,29 @@ def _inject_clips_into_track(xml: str, midi_track_id: int, clips: List[str]) -> 
         + indent
         + "</Events>"
     )
-    new_track = track_xml[: m.start(0)] + replacement + track_xml[m.end(0):]
-    return xml[:track_start] + new_track + xml[track_end:]
+    return clone[: m.start(0)] + replacement + clone[m.end(0):]
+
+
+def _insert_tracks_after(xml: str, anchor_track_id: int, new_tracks: List[str]) -> str:
+    """Insert `new_tracks` (full <MidiTrack> blocks) right after the
+    closing tag of MidiTrack Id=`anchor_track_id`, before </Tracks>."""
+    anchor = re.search(rf'<MidiTrack Id="{anchor_track_id}"', xml)
+    if not anchor:
+        raise RuntimeError(f"Anchor MidiTrack Id={anchor_track_id} not found")
+    close_pos = xml.find("</MidiTrack>", anchor.start())
+    if close_pos < 0:
+        raise RuntimeError(f"</MidiTrack> for anchor Id={anchor_track_id} not found")
+    insertion_pos = close_pos + len("</MidiTrack>")
+
+    line_start = xml.rfind("\n", 0, anchor.start()) + 1
+    track_indent = xml[line_start:anchor.start()]
+
+    chunks = []
+    for tx in new_tracks:
+        # Each new_tracks entry is a full <MidiTrack ...> block with its own
+        # internal indentation already produced by _clone_midi_track().
+        chunks.append("\n" + track_indent + tx.lstrip())
+    return xml[:insertion_pos] + "".join(chunks) + xml[insertion_pos:]
 
 
 # ============================================================================
@@ -441,16 +504,29 @@ def main() -> None:
         mid = compose_to_midi(bp, OUT_DIR / f"{bp.name}.mid")
         print(f"  OK {mid.relative_to(ROOT)} ({mid.stat().st_size} bytes)")
 
-    # --- Phase 4: composer notes for .als injection ---
-    print("\n[4/5] Compose notes for .als injection")
-    notes_per_section: Dict[str, List[NoteDict]] = {}
+    # --- Phase 4: composer notes per role per section ---
+    # composer_adapter keys tracks by role.upper().replace(' ', '_'). One
+    # blueprint LayerSpec per role becomes one entry; multiple LayerSpecs
+    # sharing a role (Section 'Release' has bass+lead twice) are merged
+    # into the same role-track by the composer.
+    print("\n[4/5] Compose notes per role per section")
+    notes_per_section_role: Dict[str, Dict[str, List[NoteDict]]] = {}
     for bp in (bp_pressure, bp_release):
         result = compose_from_blueprint(bp)
-        flat = _flatten_notes(result["tracks"])
-        notes_per_section[bp.name] = flat
-        print(f"  OK {bp.name}: {len(flat)} notes across {len(result['tracks'])} tracks")
+        notes_per_section_role[bp.name] = result["tracks"]
+        per_role_summary = ", ".join(
+            f"{r}={len(notes)}n" for r, notes in result["tracks"].items()
+        )
+        print(f"  OK {bp.name}: {per_role_summary}")
 
-    # --- Phase 5: inject into .als copy ---
+    # Union of role keys across both sections — drives how many tracks we add.
+    all_roles = sorted(
+        set(notes_per_section_role["Pressure"].keys())
+        | set(notes_per_section_role["Release"].keys())
+    )
+    print(f"  -> Union of roles: {all_roles}")
+
+    # --- Phase 5: inject into .als copy (one cloned track per role) ---
     print(f"\n[5/5] Building {DST.name}")
     if SRC == DST:
         raise RuntimeError("Source and destination must differ")
@@ -463,27 +539,83 @@ def main() -> None:
     xml = _set_project_tempo(xml, PROJECT_TEMPO)
     print(f"  OK Project tempo set to {PROJECT_TEMPO} BPM")
 
-    # Color codes: 4 = orange (Pressure, tense), 14 = violet (Release, heavy)
-    pressure_clip = _build_midi_clip(
-        clip_id=1000,
-        start_beat=0,
-        length_beat=SECTION_LENGTH_BEATS,
-        name="Pressure",
-        color=4,
-        notes=notes_per_section["Pressure"],
+    # Extract MidiTrack Id=12 (the empty 1-MIDI seed) as clone source.
+    # Live emits MidiTracks with attributes after Id (SelectedToolPanel etc.),
+    # so match `Id="12"` followed by anything-but-`>` up to the closer.
+    seed_match = re.search(
+        r'<MidiTrack Id="12"[^>]*>.*?</MidiTrack>', xml, re.DOTALL,
     )
-    release_clip = _build_midi_clip(
-        clip_id=1001,
-        start_beat=SECTION_LENGTH_BEATS,
-        length_beat=SECTION_LENGTH_BEATS,
-        name="Release",
-        color=14,
-        notes=notes_per_section["Release"],
-    )
+    if not seed_match:
+        raise RuntimeError("Seed <MidiTrack Id=\"12\"> not found in Template")
+    seed_track = seed_match.group(0)
 
-    xml = _inject_clips_into_track(xml, midi_track_id=12, clips=[pressure_clip, release_clip])
-    print(f"  OK Injected 2 MidiClips into MidiTrack Id=12 "
-          f"(Pressure @ beat 0, Release @ beat {SECTION_LENGTH_BEATS})")
+    # Live colors per role (loose convention). 0-69 are valid Live indices.
+    ROLE_COLOR = {
+        "DRUM_KIT": 2,    # red
+        "PERC":     5,    # pink
+        "BASS":    14,    # teal
+        "SUB":     16,    # navy
+        "LEAD":    25,    # purple
+        "VOCAL":   33,    # gold
+        "PAD":     19,    # light blue
+        "FX":      38,    # gray
+    }
+    DEFAULT_COLOR = 22
+
+    # Plenty of headroom: each cloned track gets 100k of Id space; 8 clones
+    # = 800k. Original Template max big-Id ~22155, so first clone starts at
+    # 100000, last at 800000. NextPointeeId will be bumped to 1_000_000 to
+    # ensure Live can't allocate over our shifted range.
+    ID_OFFSET_BASE = 100_000
+    ID_OFFSET_STEP = 100_000
+
+    # Section timeline placement.
+    SECTION_PLACEMENT = {
+        "Pressure": (0,                     SECTION_LENGTH_BEATS, 4),  # color 4 (orange)
+        "Release":  (SECTION_LENGTH_BEATS,  SECTION_LENGTH_BEATS, 14), # color 14 (teal)
+    }
+
+    new_tracks_xml: List[str] = []
+    clip_id_counter = 1000
+    for i, role in enumerate(all_roles):
+        # Build one MidiClip per section that has notes for this role.
+        clips: List[str] = []
+        for section_name, (start_beat, length_beat, clip_color) in SECTION_PLACEMENT.items():
+            section_notes = notes_per_section_role[section_name].get(role, [])
+            if not section_notes:
+                continue
+            clips.append(_build_midi_clip(
+                clip_id=clip_id_counter,
+                start_beat=start_beat,
+                length_beat=length_beat,
+                name=f"{section_name} [{role}]",
+                color=clip_color,
+                notes=section_notes,
+            ))
+            clip_id_counter += 1
+
+        clone = _clone_midi_track(
+            seed_track,
+            new_track_id=300 + i,
+            role=role,
+            display_name=role.replace("_", " ").title(),  # "DRUM_KIT" -> "Drum Kit"
+            color=ROLE_COLOR.get(role, DEFAULT_COLOR),
+            id_offset=ID_OFFSET_BASE + i * ID_OFFSET_STEP,
+            clips=clips,
+        )
+        new_tracks_xml.append(clone)
+        clip_count = len(clips)
+        clip_str = f"{clip_count} clip{'s' if clip_count != 1 else ''}"
+        print(f"  OK Cloned track [{role}] (Id={300+i}, {clip_str})")
+
+    xml = _insert_tracks_after(xml, anchor_track_id=12, new_tracks=new_tracks_xml)
+    print(f"  OK Inserted {len(new_tracks_xml)} new MidiTracks after MidiTrack Id=12")
+
+    # Bump NextPointeeId beyond our highest shifted Id so Live cannot
+    # allocate over them when the user creates new automations.
+    safe_npi = ID_OFFSET_BASE + len(all_roles) * ID_OFFSET_STEP + 100_000
+    xml = _bump_next_pointee_id(xml, safe_npi)
+    print(f"  OK NextPointeeId set to {safe_npi}")
 
     # XML sanity: parse the full document before writing.
     ET.fromstring(xml)
