@@ -1,5 +1,70 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.6] - 2026-04-27
+
+Adds **dynamics-decider**, the 5th sphere agent. Phase 2.6 ships fully
+wired parsing + cohesion guard rails, but the resulting decisions remain
+**descriptive** at the MIDI rendering layer — `composer_adapter` now logs
+a WARNING when `dynamics` contains non-default values, identical pattern
+to Phase 2.4.1's rhythm warning. Phase 3+ will wire the arc to a per-note
+velocity envelope.
+
+### Added — `.claude/agents/dynamics-decider.md`
+
+5th sphere agent. Decides:
+- `arc_shape` ∈ {flat, rising, descending, valley, peak, exponential, sawtooth}
+- `start_db`, `end_db` (float ∈ [-60.0, 0.0], baseline = 0)
+- `peak_bar` (Optional[int] ∈ [0, total_bars), required when `arc_shape="peak"`)
+- `inflection_points` (list of `[bar, db]` pairs)
+
+Reads `arrangement.dynamic_arc_overall`, `stylistic_figures.climax_moments`,
+`stylistic_figures.transitions_between_sections`,
+`composition.harmonic_pacing` from references (optionally `tension_release.*`
+from rules layer). Includes 4 in-context examples (rising/Pyramid_Song,
+sawtooth/March_Of_The_Pigs, flat/Veridis_Quo, refusal).
+
+### Added — Parser in `agent_parsers.py`
+
+- **`parse_dynamics_decision(payload)`** + companion
+  `parse_dynamics_decision_from_response(text)`. Strict validation:
+    * `arc_shape` must be in `VALID_ARC_SHAPES` frozenset
+    * `start_db`, `end_db` ∈ [-60.0, 0.0] (`DB_MIN`/`DB_MAX`)
+    * Cross-field consistency: rising → end > start, descending → end < start,
+      flat → equal
+    * `arc_shape="peak"` requires non-null `peak_bar`
+    * `peak_bar` ≥ 0 (cohesion rule enforces upper bound)
+    * `inflection_points` accepts both `[bar, db]` pairs and `{bar, db}` objects
+- **Public constants**: `SUPPORTED_DYNAMICS_SCHEMA_VERSIONS`,
+  `VALID_ARC_SHAPES`, `DB_MIN`, `DB_MAX`. Single source of truth between
+  parser, tests, and any future cohesion rule that needs them.
+
+### Added — Cohesion rule `dynamics_within_structure_bounds`
+
+(severity: BLOCK) Rejects `peak_bar` outside `[0, total_bars)` or any
+`inflection_points[*].bar` outside `[0, total_bars]`. Fires only when
+both `structure` and `dynamics` are filled. Even though dynamics is
+currently descriptive at the renderer, out-of-bounds bars are nonsensical
+regardless and would silently misrepresent the section if/when wired.
+
+### Added — Composer warning for non-default dynamics
+
+`compose_from_blueprint` now logs a WARNING listing the dynamics fields
+when `arc_shape != "flat"`, levels deviate from defaults, or peak/inflections
+are present. Mirrors the Phase 2.4.1 rhythm warning pattern (descriptive-only
+fields surface their non-application explicitly).
+
+### Tests
+- ~20 new dynamics parser tests in `test_blueprint_agent_parsers.py`
+  (all `VALID_ARC_SHAPES` parametrized, dB range edges, cross-field
+  consistency rules, peak_bar required for `arc_shape="peak"`,
+  inflection_points list/dict input shapes, blueprint integration, error
+  payload, fences).
+- 6 new cohesion tests in `test_blueprint_cohesion.py` covering peak_bar
+  bounds, inflection_points bounds, peak_bar=None case, boundary
+  (bar == total_bars allowed for inflection).
+- Sanity test renamed from `test_phase251_ships_concrete_rules` to
+  `test_concrete_rules_registered` and updated to assert 4 production rules.
+
 ## [Unreleased — composition_engine Phase 2.5.1] - 2026-04-27
 
 Transforms the 5 self-audit weaknesses of Phase 2.5 into active guard

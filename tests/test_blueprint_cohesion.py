@@ -6,6 +6,7 @@ import pytest
 from composition_engine.blueprint import (
     ArrangementDecision,
     Decision,
+    DynamicsDecision,
     HarmonyDecision,
     InstChange,
     LayerSpec,
@@ -149,22 +150,26 @@ def test_cohesion_passes_when_rule_returns_none(isolated_rules):
     assert report.is_clean
 
 
-# Sanity: as of Phase 2.5.1 the production registry has 3 concrete rules
-# (all relating to structure↔arrangement coherence — landed alongside the
-# arrangement-decider agent that produces the values they constrain).
-def test_phase251_ships_concrete_rules():
-    """Phase 2.5.1 lands the first concrete rules (rule-with-consumer).
+# Sanity: production registry rules. Each new rule must be added here
+# under the phase that introduced it. This is a deliberate trip-wire —
+# adding/removing a rule without updating this assertion is a regression.
+def test_concrete_rules_registered():
+    """Concrete cohesion rules currently registered in production.
 
-    If you remove one or add one, update this assertion.
+    - Phase 2.5.1: 3 rules tying arrangement ↔ structure bounds.
+    - Phase 2.6.1: 1 rule tying dynamics  ↔ structure bounds.
+
+    If you remove or add a rule, update this assertion.
     """
     rule_names = sorted(r.__name__ for r in _RULES)
     expected = sorted([
         "arrangement_layers_within_structure_bounds",
         "instrumentation_changes_within_structure_bounds",
         "arrangement_coverage_check",
+        "dynamics_within_structure_bounds",
     ])
     assert rule_names == expected, (
-        f"Expected exactly the 3 Phase 2.5.1 rules. Got: {rule_names}"
+        f"Expected exactly the production rules. Got: {rule_names}"
     )
 
 
@@ -376,5 +381,147 @@ def test_rules_skip_when_arrangement_missing(isolated_rules):
     """If arrangement isn't filled yet, the cross-sphere rules don't fire."""
     # isolated_rules clears the registry — we need to re-register the prod rules
     # to test their skip behavior. Instead, use a fresh non-isolated check:
-    pass  # The default test_phase251_ships_concrete_rules + the bound tests
+    pass  # The default test_concrete_rules_registered + the bound tests
           # above already exercise the skip-when-missing case implicitly.
+
+
+# ============================================================================
+# Phase 2.6.1 — dynamics_within_structure_bounds rule
+# ============================================================================
+
+
+def _bp_with_structure_dynamics(
+    total_bars: int,
+    arc_shape: str = "flat",
+    start_db: float = -12.0,
+    end_db: float = -12.0,
+    peak_bar=None,
+    inflection_points=(),
+) -> SectionBlueprint:
+    """Build a minimal blueprint with structure + dynamics filled."""
+    bp = SectionBlueprint(name="x").with_decision(
+        "structure", _wrap(StructureDecision(total_bars=total_bars), "structure")
+    )
+    bp = bp.with_decision(
+        "dynamics",
+        _wrap(
+            DynamicsDecision(
+                arc_shape=arc_shape,
+                start_db=start_db,
+                end_db=end_db,
+                peak_bar=peak_bar,
+                inflection_points=tuple(inflection_points),
+            ),
+            "dynamics",
+        ),
+    )
+    return bp
+
+
+def test_dynamics_within_bounds_passes():
+    bp = _bp_with_structure_dynamics(
+        total_bars=16,
+        arc_shape="rising",
+        start_db=-18.0,
+        end_db=-6.0,
+        peak_bar=15,
+        inflection_points=[(7, -13.0), (11, -9.0)],
+    )
+    report = check_cohesion(bp)
+    assert all(
+        v.rule != "dynamics_within_structure_bounds"
+        for v in report.violations
+    )
+
+
+def test_dynamics_peak_bar_at_total_bars_blocks():
+    """peak_bar must be in [0, total_bars), so peak_bar=total_bars is rejected."""
+    bp = _bp_with_structure_dynamics(
+        total_bars=16,
+        arc_shape="peak",
+        peak_bar=16,
+    )
+    report = check_cohesion(bp)
+    blockers = [
+        v for v in report.blockers
+        if v.rule == "dynamics_within_structure_bounds"
+    ]
+    assert len(blockers) == 1
+    assert "peak_bar=16" in blockers[0].message
+
+
+def test_dynamics_peak_bar_negative_blocks():
+    bp = _bp_with_structure_dynamics(
+        total_bars=16,
+        arc_shape="peak",
+        peak_bar=-1,
+    )
+    report = check_cohesion(bp)
+    assert any(
+        v.rule == "dynamics_within_structure_bounds"
+        for v in report.blockers
+    )
+
+
+def test_dynamics_peak_bar_none_passes():
+    """peak_bar=None must not trigger the rule (only the arc_shape='peak' case
+    requires a value, and that's enforced by the parser, not cohesion)."""
+    bp = _bp_with_structure_dynamics(
+        total_bars=16,
+        arc_shape="flat",
+        peak_bar=None,
+    )
+    report = check_cohesion(bp)
+    assert all(
+        v.rule != "dynamics_within_structure_bounds"
+        for v in report.violations
+    )
+
+
+def test_dynamics_inflection_past_total_bars_blocks():
+    bp = _bp_with_structure_dynamics(
+        total_bars=16,
+        arc_shape="rising",
+        start_db=-18.0,
+        end_db=-6.0,
+        inflection_points=[(20, -9.0)],
+    )
+    report = check_cohesion(bp)
+    blockers = [
+        v for v in report.blockers
+        if v.rule == "dynamics_within_structure_bounds"
+    ]
+    assert len(blockers) == 1
+    assert "20" in blockers[0].message
+
+
+def test_dynamics_inflection_negative_bar_blocks():
+    bp = _bp_with_structure_dynamics(
+        total_bars=16,
+        arc_shape="rising",
+        start_db=-18.0,
+        end_db=-6.0,
+        inflection_points=[(-1, -9.0)],
+    )
+    report = check_cohesion(bp)
+    assert any(
+        v.rule == "dynamics_within_structure_bounds"
+        for v in report.blockers
+    )
+
+
+def test_dynamics_inflection_at_total_bars_passes():
+    """Boundary check: bar == total_bars is allowed for inflections (range is
+    [0, total_bars] inclusive — same convention as instrumentation_changes)."""
+    bp = _bp_with_structure_dynamics(
+        total_bars=16,
+        arc_shape="rising",
+        start_db=-18.0,
+        end_db=-6.0,
+        inflection_points=[(16, -6.0)],
+    )
+    report = check_cohesion(bp)
+    assert all(
+        v.rule != "dynamics_within_structure_bounds"
+        for v in report.violations
+    )

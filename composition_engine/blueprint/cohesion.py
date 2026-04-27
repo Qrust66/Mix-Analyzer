@@ -186,6 +186,48 @@ def instrumentation_changes_within_structure_bounds(
     return None
 
 
+@cohesion_rule(spheres=("structure", "dynamics"))
+def dynamics_within_structure_bounds(
+    bp: SectionBlueprint,
+) -> Optional[CohesionViolation]:
+    """peak_bar and inflection_points[*].bar must fit inside total_bars.
+
+    Phase 2.6 ships dynamics decisions as descriptive metadata (composer
+    doesn't yet apply velocity envelopes). But out-of-bounds bars in
+    dynamics are nonsensical regardless and would silently misrepresent
+    the section if/when wired downstream.
+    """
+    structure = bp.structure
+    dynamics = bp.dynamics
+    assert structure is not None and dynamics is not None
+    total_bars = structure.value.total_bars
+
+    if dynamics.value.peak_bar is not None:
+        if not (0 <= dynamics.value.peak_bar < total_bars):
+            return CohesionViolation(
+                rule="dynamics_within_structure_bounds",
+                severity="block",
+                message=(
+                    f"dynamics.peak_bar={dynamics.value.peak_bar} not in "
+                    f"[0, {total_bars}). Peak would land outside the section."
+                ),
+                spheres=("structure", "dynamics"),
+            )
+    for i, (bar, db) in enumerate(dynamics.value.inflection_points):
+        if not (0 <= bar <= total_bars):
+            return CohesionViolation(
+                rule="dynamics_within_structure_bounds",
+                severity="block",
+                message=(
+                    f"dynamics.inflection_points[{i}]: bar={bar} not in "
+                    f"[0, {total_bars}]. Inflection point at db={db} "
+                    f"would be invisible to the renderer."
+                ),
+                spheres=("structure", "dynamics"),
+            )
+    return None
+
+
 @cohesion_rule(spheres=("structure", "arrangement"))
 def arrangement_coverage_check(
     bp: SectionBlueprint,

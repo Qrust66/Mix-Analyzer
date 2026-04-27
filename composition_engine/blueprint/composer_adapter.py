@@ -171,19 +171,43 @@ def blueprint_to_composition(bp: SectionBlueprint) -> Composition:
     arrangement = bp.arrangement.value
 
     # Phase 2.1 only consumes the 4 essential spheres. If the caller filled
-    # dynamics / performance / fx, log it explicitly so they don't think
+    # performance / fx, log it explicitly so they don't think
     # those decisions are silently being applied.
     not_yet_wired = [
-        s for s in ("dynamics", "performance", "fx")
+        s for s in ("performance", "fx")
         if getattr(bp, s) is not None
     ]
     if not_yet_wired:
         _LOG.warning(
-            "[composer_adapter] Phase 2.1 ignores sphere(s) %s — values present "
+            "[composer_adapter] Phase 2.5 ignores sphere(s) %s — values present "
             "in the blueprint but not yet applied to the rendered output. "
-            "Phase 2.2+ will wire them.",
+            "Phase 2.7+ will wire them.",
             not_yet_wired,
         )
+
+    # Phase 2.6 added dynamics decisions but the composer pipeline does
+    # not yet translate the arc into a per-note velocity envelope. Warn
+    # explicitly if dynamics is present and non-flat, so the user knows
+    # their dB curve isn't reaching the .mid yet.
+    if bp.dynamics is not None:
+        dyn = bp.dynamics.value
+        non_default = (
+            dyn.arc_shape != "flat"
+            or dyn.start_db != -12.0
+            or dyn.end_db != -12.0
+            or dyn.peak_bar is not None
+            or dyn.inflection_points
+        )
+        if non_default:
+            _LOG.warning(
+                "[composer_adapter] Phase 2.6 dynamics fields not yet applied "
+                "to MIDI rendering: arc_shape=%r, start_db=%s, end_db=%s, "
+                "peak_bar=%s, inflection_points=%d entries. The composer "
+                "currently uses each layer's static base_velocity. Phase 3+ "
+                "will wire the arc to a per-note velocity envelope.",
+                dyn.arc_shape, dyn.start_db, dyn.end_db,
+                dyn.peak_bar, len(dyn.inflection_points),
+            )
 
     # Phase 2.4 added rich rhythm fields (time_signature, drum_pattern,
     # subdivisions, swing, polyrhythms) but the composer pipeline currently

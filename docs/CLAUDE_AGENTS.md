@@ -136,6 +136,32 @@ frozenset canonique.
 (drum_kit → kick on 36, bass → tonic-12, lead → tonic+7, pad → minor
 triad). Décisions vraies = MIDI vrai.
 
+### dynamics-decider (`.claude/agents/dynamics-decider.md`)
+
+**Sphere agent dynamics (Phase 2.6).** **Currently descriptive** — ses
+décisions ne traversent pas encore au MIDI rendu (le composer log un
+WARNING quand `dynamics` contient des valeurs non-default). Phase 3+
+wirera l'arc à un velocity envelope par-note.
+
+**Invoquer** typiquement après `structure-decider` (le `total_bars` est
+fixé, ce qui permet de placer `peak_bar` et `inflection_points` dans les
+bornes correctes). L'agent décide :
+- `arc_shape` ∈ {flat, rising, descending, valley, peak, exponential, sawtooth}
+- `start_db` / `end_db` (float ∈ [-60.0, 0.0], baseline = 0)
+- `peak_bar` (Optional[int] ∈ [0, total_bars), requis si `arc_shape="peak"`)
+- `inflection_points` (liste de `[bar, db]`, bar ∈ [0, total_bars], db ∈ [-60, 0])
+
+Lit les `arrangement.dynamic_arc_overall`, `stylistic_figures.climax_moments`,
+`stylistic_figures.transitions_between_sections`,
+`composition.harmonic_pacing` des références. Optionnel :
+`tension_release.*` du rules layer.
+
+Validation stricte : arc_shape dans la frozenset canonique, dB dans
+[-60, 0], cohérence shape/levels (rising → end > start, descending →
+end < start, flat → equal), `arc_shape="peak"` requiert `peak_bar`.
+Cohesion rule `dynamics_within_structure_bounds` (Phase 2.6.1) bloque
+peak_bar / inflection bars hors borne.
+
 ### rhythm-decider (`.claude/agents/rhythm-decider.md`)
 
 **Sphere agent rythmique (Phase 2.4).**

@@ -6,8 +6,11 @@ import pytest
 
 from composition_engine.blueprint.agent_parsers import (
     AgentOutputError,
+    DB_MAX,
+    DB_MIN,
     TEMPO_MAX_BPM,
     TEMPO_MIN_BPM,
+    VALID_ARC_SHAPES,
     VALID_DENSITY_CURVES,
     VALID_SUBDIVISIONS,
     VELOCITY_MAX,
@@ -15,6 +18,8 @@ from composition_engine.blueprint.agent_parsers import (
     extract_json_payload,
     parse_arrangement_decision,
     parse_arrangement_decision_from_response,
+    parse_dynamics_decision,
+    parse_dynamics_decision_from_response,
     parse_harmony_decision,
     parse_harmony_decision_from_response,
     parse_rhythm_decision,
@@ -26,6 +31,7 @@ from composition_engine.blueprint.schema import (
     ArrangementDecision,
     Citation,
     Decision,
+    DynamicsDecision,
     HarmonyDecision,
     InstChange,
     LayerSpec,
@@ -858,6 +864,214 @@ def test_arrangement_decision_can_be_assigned_to_blueprint():
     bp = SectionBlueprint(name="intro").with_decision("arrangement", decision)
     assert bp.arrangement is decision
     assert "arrangement" in bp.filled_spheres()
+
+
+# ============================================================================
+# Phase 2.6 — dynamics parser
+# ============================================================================
+
+
+def _valid_dynamics_payload(**overrides):
+    """Return a minimum-valid dynamics-decider payload."""
+    base = {
+        "schema_version": "1.0",
+        "dynamics": {
+            "arc_shape": "rising",
+            "start_db": -18.0,
+            "end_db": -6.0,
+            "peak_bar": 15,
+            "inflection_points": [[7, -13.0], [11, -9.0]],
+        },
+        "rationale": "Build progressif inspiré de Pyramid_Song.",
+        "inspired_by": [
+            {"song": "Radiohead/Pyramid_Song", "path": "arrangement.dynamic_arc_overall",
+             "excerpt": "monotonically-rising swell"},
+        ],
+        "confidence": 0.85,
+    }
+    base.update(overrides)
+    return base
+
+
+def test_parses_minimal_valid_dynamics_payload():
+    decision = parse_dynamics_decision(_valid_dynamics_payload())
+    assert decision.sphere == "dynamics"
+    assert isinstance(decision.value, DynamicsDecision)
+    assert decision.value.arc_shape == "rising"
+    assert decision.value.start_db == -18.0
+    assert decision.value.end_db == -6.0
+    assert decision.value.peak_bar == 15
+    assert len(decision.value.inflection_points) == 2
+
+
+@pytest.mark.parametrize("arc", sorted(VALID_ARC_SHAPES))
+def test_dynamics_all_valid_arc_shapes_accepted(arc):
+    """Parametrize over the actual VALID_ARC_SHAPES — single source of truth."""
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = arc
+    # Adapt levels to satisfy direction constraints
+    if arc == "rising":
+        payload["dynamics"]["start_db"] = -18.0
+        payload["dynamics"]["end_db"] = -6.0
+    elif arc == "descending":
+        payload["dynamics"]["start_db"] = -6.0
+        payload["dynamics"]["end_db"] = -18.0
+    elif arc == "flat":
+        payload["dynamics"]["start_db"] = -12.0
+        payload["dynamics"]["end_db"] = -12.0
+    elif arc == "peak":
+        payload["dynamics"]["peak_bar"] = 8  # required for peak
+    decision = parse_dynamics_decision(payload)
+    assert decision.value.arc_shape == arc
+
+
+@pytest.mark.parametrize("invalid_arc", ["plateau", "ramp", "smooth-build", "RISING", ""])
+def test_dynamics_invalid_arc_shape_raises(invalid_arc):
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = invalid_arc
+    with pytest.raises(AgentOutputError, match="arc_shape"):
+        parse_dynamics_decision(payload)
+
+
+@pytest.mark.parametrize("invalid_db", [DB_MIN - 0.1, -100.0, 0.1, 5.0, 100.0])
+def test_dynamics_db_out_of_range_raises(invalid_db):
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["start_db"] = invalid_db
+    with pytest.raises(AgentOutputError, match="start_db"):
+        parse_dynamics_decision(payload)
+
+
+@pytest.mark.parametrize("valid_db", [DB_MIN, -30.0, -12.0, -6.0, -1.0, DB_MAX])
+def test_dynamics_valid_db_levels_accepted(valid_db):
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "flat"
+    payload["dynamics"]["start_db"] = valid_db
+    payload["dynamics"]["end_db"] = valid_db
+    payload["dynamics"]["inflection_points"] = []
+    decision = parse_dynamics_decision(payload)
+    assert decision.value.start_db == valid_db
+
+
+def test_dynamics_rising_with_end_le_start_raises():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "rising"
+    payload["dynamics"]["start_db"] = -6.0
+    payload["dynamics"]["end_db"] = -10.0  # going down, not rising
+    with pytest.raises(AgentOutputError, match="rising"):
+        parse_dynamics_decision(payload)
+
+
+def test_dynamics_descending_with_end_ge_start_raises():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "descending"
+    payload["dynamics"]["start_db"] = -18.0
+    payload["dynamics"]["end_db"] = -6.0  # going up, not descending
+    with pytest.raises(AgentOutputError, match="descending"):
+        parse_dynamics_decision(payload)
+
+
+def test_dynamics_flat_with_unequal_levels_raises():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "flat"
+    payload["dynamics"]["start_db"] = -10.0
+    payload["dynamics"]["end_db"] = -8.0
+    with pytest.raises(AgentOutputError, match="flat"):
+        parse_dynamics_decision(payload)
+
+
+def test_dynamics_peak_shape_without_peak_bar_raises():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "peak"
+    payload["dynamics"]["peak_bar"] = None
+    with pytest.raises(AgentOutputError, match="peak"):
+        parse_dynamics_decision(payload)
+
+
+def test_dynamics_peak_bar_negative_raises():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["peak_bar"] = -1
+    with pytest.raises(AgentOutputError, match="peak_bar"):
+        parse_dynamics_decision(payload)
+
+
+def test_dynamics_peak_bar_null_accepted_for_non_peak_shapes():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "flat"
+    payload["dynamics"]["start_db"] = -12.0
+    payload["dynamics"]["end_db"] = -12.0
+    payload["dynamics"]["peak_bar"] = None
+    decision = parse_dynamics_decision(payload)
+    assert decision.value.peak_bar is None
+
+
+def test_dynamics_inflection_points_as_list_pairs():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["inflection_points"] = [[3, -10.0], [9, -8.0]]
+    decision = parse_dynamics_decision(payload)
+    assert decision.value.inflection_points == ((3, -10.0), (9, -8.0))
+
+
+def test_dynamics_inflection_points_as_dict_objects():
+    """LLMs may emit {bar, db} objects instead of [bar, db] arrays. Both ok."""
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["inflection_points"] = [
+        {"bar": 3, "db": -10.0},
+        {"bar": 9, "db": -8.0},
+    ]
+    decision = parse_dynamics_decision(payload)
+    assert decision.value.inflection_points == ((3, -10.0), (9, -8.0))
+
+
+def test_dynamics_inflection_db_out_of_range_raises():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["inflection_points"] = [[3, 10.0]]  # +10 dB invalid
+    with pytest.raises(AgentOutputError, match="db"):
+        parse_dynamics_decision(payload)
+
+
+def test_dynamics_inflection_negative_bar_raises():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["inflection_points"] = [[-1, -10.0]]
+    with pytest.raises(AgentOutputError, match="bar"):
+        parse_dynamics_decision(payload)
+
+
+def test_dynamics_empty_inflection_points_valid():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["inflection_points"] = []
+    decision = parse_dynamics_decision(payload)
+    assert decision.value.inflection_points == ()
+
+
+def test_dynamics_string_db_coerced():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "flat"
+    payload["dynamics"]["start_db"] = "-12.0"
+    payload["dynamics"]["end_db"] = "-12.0"
+    payload["dynamics"]["inflection_points"] = []
+    decision = parse_dynamics_decision(payload)
+    assert decision.value.start_db == -12.0
+
+
+def test_dynamics_error_payload_raises():
+    with pytest.raises(AgentOutputError, match="Agent returned error"):
+        parse_dynamics_decision({"error": "no usable refs"})
+
+
+def test_dynamics_from_response_handles_fences():
+    payload_str = json.dumps(_valid_dynamics_payload())
+    fenced = f"```json\n{payload_str}\n```"
+    decision = parse_dynamics_decision_from_response(fenced)
+    assert decision.value.arc_shape == "rising"
+
+
+def test_dynamics_decision_can_be_assigned_to_blueprint():
+    from composition_engine.blueprint import SectionBlueprint
+
+    decision = parse_dynamics_decision(_valid_dynamics_payload())
+    bp = SectionBlueprint(name="intro").with_decision("dynamics", decision)
+    assert bp.dynamics is decision
+    assert "dynamics" in bp.filled_spheres()
 
 
 def test_arrangement_layers_with_overlapping_roles_kept_separate():

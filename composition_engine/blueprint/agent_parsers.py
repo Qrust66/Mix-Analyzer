@@ -35,6 +35,7 @@ from composition_engine.blueprint.schema import (
     ArrangementDecision,
     Citation,
     Decision,
+    DynamicsDecision,
     HarmonyDecision,
     InstChange,
     LayerSpec,
@@ -53,6 +54,17 @@ SUPPORTED_STRUCTURE_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_HARMONY_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_RHYTHM_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_ARRANGEMENT_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_DYNAMICS_SCHEMA_VERSIONS = frozenset({"1.0"})
+
+# Canonical arc shapes for dynamics. Public per the Phase 2.4.1 pattern.
+VALID_ARC_SHAPES = frozenset({
+    "flat", "rising", "descending", "valley", "peak", "exponential", "sawtooth",
+})
+
+# dB range for dynamics levels. 0 = section baseline (max perceived);
+# -60 = quasi-silence. Outside this range = LLM bug.
+DB_MIN = -60.0
+DB_MAX = 0.0
 
 # Density curve canonical values. Public so the test parametrize and any
 # downstream consumer (cohesion rules, composer extensions) share the
@@ -733,18 +745,168 @@ def parse_arrangement_decision_from_response(text: str) -> Decision[ArrangementD
     return parse_arrangement_decision(extract_json_payload(text))
 
 
+# ============================================================================
+# Public parser — dynamics
+# ============================================================================
+
+
+def _parse_inflection_point(item: Any, *, where: str) -> tuple[int, float]:
+    """Parse a single inflection point: [bar, db] or {"bar": …, "db": …}."""
+    if isinstance(item, Mapping):
+        bar = _coerce_int(_require(item, "bar", where=where), where=f"{where}.bar")
+        db = _coerce_float(_require(item, "db", where=where), where=f"{where}.db")
+    elif isinstance(item, (list, tuple)):
+        if len(item) != 2:
+            raise AgentOutputError(
+                f"{where}: expected [bar, db] pair (length 2), got length {len(item)}"
+            )
+        bar = _coerce_int(item[0], where=f"{where}[0]")
+        db = _coerce_float(item[1], where=f"{where}[1]")
+    else:
+        raise AgentOutputError(
+            f"{where}: expected list/tuple [bar, db] or object {{bar, db}}, "
+            f"got {type(item).__name__}"
+        )
+    if bar < 0:
+        raise AgentOutputError(f"{where}.bar must be >= 0, got {bar}")
+    if not (DB_MIN <= db <= DB_MAX):
+        raise AgentOutputError(
+            f"{where}.db must be in [{DB_MIN}, {DB_MAX}], got {db}"
+        )
+    return (bar, db)
+
+
+def parse_dynamics_decision(payload: Mapping[str, Any]) -> Decision[DynamicsDecision]:
+    """Parse a dynamics-decider agent payload into a Decision.
+
+    Expected shape (schema 1.0):
+        {
+          "schema_version": "1.0",
+          "dynamics": {
+            "arc_shape": str ∈ VALID_ARC_SHAPES,
+            "start_db": float ∈ [DB_MIN, DB_MAX],
+            "end_db": float ∈ [DB_MIN, DB_MAX],
+            "peak_bar": Optional[int] (≥ 0),
+            "inflection_points": [[bar, db], …]
+          },
+          "rationale": str,
+          "inspired_by": [{"song", "path", "excerpt"}, …],
+          "confidence": float (0..1)
+        }
+
+    Or a refusal payload: {"error": "...", "details": "..."}
+
+    Strict output: arc_shape must be canonical, dB in [-60, 0],
+    inflection_points coordinates valid, peak_bar ≥ 0 when present,
+    arc_shape="peak" REQUIRES peak_bar, and rising/descending shapes
+    must have matching start/end direction.
+    """
+    envelope = _parse_envelope(
+        payload, supported_versions=SUPPORTED_DYNAMICS_SCHEMA_VERSIONS
+    )
+
+    dyn_dict = _require(payload, "dynamics", where="root")
+    if not isinstance(dyn_dict, Mapping):
+        raise AgentOutputError(
+            f"dynamics: expected object, got {type(dyn_dict).__name__}"
+        )
+
+    arc_shape = _coerce_str(_require(dyn_dict, "arc_shape", where="dynamics")).strip()
+    if arc_shape not in VALID_ARC_SHAPES:
+        raise AgentOutputError(
+            f"dynamics.arc_shape {arc_shape!r} not recognized. "
+            f"Expected one of: {sorted(VALID_ARC_SHAPES)}"
+        )
+
+    start_db = _coerce_float(
+        dyn_dict.get("start_db", -12.0), where="dynamics.start_db"
+    )
+    if not (DB_MIN <= start_db <= DB_MAX):
+        raise AgentOutputError(
+            f"dynamics.start_db must be in [{DB_MIN}, {DB_MAX}], got {start_db}"
+        )
+
+    end_db = _coerce_float(
+        dyn_dict.get("end_db", -12.0), where="dynamics.end_db"
+    )
+    if not (DB_MIN <= end_db <= DB_MAX):
+        raise AgentOutputError(
+            f"dynamics.end_db must be in [{DB_MIN}, {DB_MAX}], got {end_db}"
+        )
+
+    # Cross-field consistency: rising/descending must match dB direction.
+    if arc_shape == "rising" and end_db <= start_db:
+        raise AgentOutputError(
+            f"dynamics.arc_shape='rising' requires end_db > start_db, "
+            f"got start_db={start_db}, end_db={end_db}"
+        )
+    if arc_shape == "descending" and end_db >= start_db:
+        raise AgentOutputError(
+            f"dynamics.arc_shape='descending' requires end_db < start_db, "
+            f"got start_db={start_db}, end_db={end_db}"
+        )
+    if arc_shape == "flat" and start_db != end_db:
+        raise AgentOutputError(
+            f"dynamics.arc_shape='flat' requires start_db == end_db, "
+            f"got start_db={start_db}, end_db={end_db}"
+        )
+
+    raw_peak = dyn_dict.get("peak_bar", None)
+    if raw_peak is None:
+        peak_bar = None
+    else:
+        peak_bar = _coerce_int(raw_peak, where="dynamics.peak_bar")
+        if peak_bar < 0:
+            raise AgentOutputError(
+                f"dynamics.peak_bar must be >= 0, got {peak_bar}"
+            )
+
+    if arc_shape == "peak" and peak_bar is None:
+        raise AgentOutputError(
+            "dynamics.arc_shape='peak' requires peak_bar to be specified"
+        )
+
+    raw_inflections = _coerce_list(
+        dyn_dict.get("inflection_points", []),
+        where="dynamics.inflection_points",
+    )
+    inflection_points = tuple(
+        _parse_inflection_point(item, where=f"dynamics.inflection_points[{i}]")
+        for i, item in enumerate(raw_inflections)
+    )
+
+    dynamics_value = DynamicsDecision(
+        arc_shape=arc_shape,
+        start_db=start_db,
+        end_db=end_db,
+        peak_bar=peak_bar,
+        inflection_points=inflection_points,
+    )
+
+    return Decision(value=dynamics_value, sphere="dynamics", **envelope)
+
+
+def parse_dynamics_decision_from_response(text: str) -> Decision[DynamicsDecision]:
+    """End-to-end: raw LLM response text → Decision[DynamicsDecision]."""
+    return parse_dynamics_decision(extract_json_payload(text))
+
+
 __all__ = [
     "AgentOutputError",
     "SUPPORTED_STRUCTURE_SCHEMA_VERSIONS",
     "SUPPORTED_HARMONY_SCHEMA_VERSIONS",
     "SUPPORTED_RHYTHM_SCHEMA_VERSIONS",
     "SUPPORTED_ARRANGEMENT_SCHEMA_VERSIONS",
+    "SUPPORTED_DYNAMICS_SCHEMA_VERSIONS",
     "TEMPO_MIN_BPM",
     "TEMPO_MAX_BPM",
     "VALID_SUBDIVISIONS",
     "VALID_DENSITY_CURVES",
+    "VALID_ARC_SHAPES",
     "VELOCITY_MIN",
     "VELOCITY_MAX",
+    "DB_MIN",
+    "DB_MAX",
     "extract_json_payload",
     "parse_structure_decision",
     "parse_structure_decision_from_response",
@@ -754,4 +916,6 @@ __all__ = [
     "parse_rhythm_decision_from_response",
     "parse_arrangement_decision",
     "parse_arrangement_decision_from_response",
+    "parse_dynamics_decision",
+    "parse_dynamics_decision_from_response",
 ]
