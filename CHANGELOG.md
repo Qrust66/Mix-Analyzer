@@ -1,5 +1,65 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.5.1] - 2026-04-27
+
+Transforms the 5 self-audit weaknesses of Phase 2.5 into active guard
+rails. First concrete cohesion rules in the project — they land
+**alongside the agent that produces the values they constrain**, per
+the project's "rule-with-consumer" principle (Phase 1 cleanup retired
+all speculative rules; these are the first earned ones).
+
+### Added — 3 concrete cohesion rules in `cohesion.py`
+
+These fire only when both `structure` and `arrangement` spheres are
+filled (silently skip otherwise, per the partial-blueprint discipline):
+
+- **`arrangement_layers_within_structure_bounds`** (severity: BLOCK)
+    Rejects layers that overflow the section: `exits_at_bar > total_bars`
+    or `enters_at_bar < 0` or `enters_at_bar >= total_bars` (latter
+    means the layer never becomes active).
+- **`instrumentation_changes_within_structure_bounds`** (severity: BLOCK)
+    Rejects `inst_change.bar` outside `[0, total_bars]` — invisible to
+    the renderer.
+- **`arrangement_coverage_check`** (severity: WARN)
+    Surfaces sections where more than half the bars have zero active
+    layers. Sometimes intentional (compositional rest), so it warns
+    rather than blocks.
+
+### Added — Public canonical roles + warnings in composer_adapter
+
+- **`KNOWN_LAYER_ROLES`** frozenset exposed in `composer_adapter.py`:
+    `{drum_kit, perc, bass, sub, lead, vocal, pad, fx}`. Layers with
+    role outside this set fall through to `_default_motif` (tonic
+    only) but the adapter now logs a WARNING listing the unknown roles
+    and the canonical set.
+- **Warning when arrangement-side fields are descriptive-only** —
+    `density_curve != "medium"`, non-empty `instrumentation_changes`,
+    or non-empty `register_strategy` trigger a WARNING explaining
+    they're not yet wired to MIDI rendering. Same pattern as Phase 2.4.1
+    did for rhythm fields.
+
+### Tests
+- 11 new test functions in `test_blueprint_cohesion.py`:
+    * `test_phase251_ships_concrete_rules` — sanity invariant on the
+      registered rules
+    * 4 tests for `arrangement_layers_within_structure_bounds` (within
+      bounds passes, exits past blocks with helpful message, negative
+      enters blocks, enters >= total_bars blocks)
+    * 2 tests for `instrumentation_changes_within_structure_bounds`
+    * 4 tests for `arrangement_coverage_check` (full cov passes, 12/16
+      silent warns, exactly half does NOT warn — boundary, overlapping
+      layers count once)
+
+### Audit fixes — 5 weaknesses → 5 forces
+
+| Phase 2.5 weakness | Phase 2.5.1 force |
+|---|---|
+| ① Cross-sphere bounds not enforced | BLOCK rule via cohesion |
+| ② density_curve descriptive-only | WARN at composer_adapter |
+| ③ role free-string fallback silent | WARN + KNOWN_LAYER_ROLES public |
+| ④ Coverage gaps unsignaled | WARN rule via cohesion |
+| ⑤ Test count imprecise | (deferred — count varies with parametrize) |
+
 ## [Unreleased — composition_engine Phase 2.5] - 2026-04-27
 
 ### Added

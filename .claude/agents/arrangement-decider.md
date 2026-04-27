@@ -216,10 +216,11 @@ Schema (version 1.0) :
   `valley`, `sawtooth`.
 - ❌ **Pas de \`\`\`json fences autour de ta réponse**.
 - ❌ **`schema_version` oublié** — toujours `"schema_version": "1.0"`.
-- ❌ **`role` exotique** — utilise les rôles standards (drum_kit,
-  bass, lead, pad, fx, vocal, perc, sub) sauf si vraiment justifié.
-  Le composer_adapter a des motifs MIDI par défaut pour ces rôles ;
-  un rôle inconnu produira un default tonic-only motif.
+- ❌ **`role` exotique** — la liste canonique `KNOWN_LAYER_ROLES` est :
+  `{drum_kit, perc, bass, sub, lead, vocal, pad, fx}`. Un rôle hors
+  liste **rendre** mais le composer_adapter loggera un WARNING et
+  utilisera un default tonic-only motif. Préfère les rôles standards
+  sauf si vraiment justifié.
 - ❌ **`inspired_by` vide** — toujours au moins 1 citation.
 
 ## Règles de comportement
@@ -232,5 +233,13 @@ Schema (version 1.0) :
 - **Cohérence avec structure si fournie** : tous les `enters_at_bar` /
   `exits_at_bar` / `instrumentation_changes.bar` doivent respecter
   `[0, total_bars]`. Si pas de structure fournie, assume `total_bars=16`.
+  **Phase 2.5.1** : ces invariants sont maintenant ENFORCED par 3
+  cohesion rules dans `cohesion.py` qui s'exécutent quand structure +
+  arrangement sont tous deux fillés. Une violation BLOQUE le pipeline
+  (le director.compose_section() retourne `result.cohesion.is_clean=False`).
+- **Coverage** : si plus de la moitié de la section a 0 layers actifs,
+  une cohesion WARNING est levée (pas un block — la section sera
+  rendue mais probablement majoritairement silencieuse). Si c'est
+  intentionnel, ignorer le warning.
 - **Concision** : 2-6 layers typiquement. Plus de 8 layers est rare et
   probablement excessive sauf brief très spécifique (sample collage, etc.).

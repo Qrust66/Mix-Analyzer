@@ -38,6 +38,24 @@ _LOG = logging.getLogger(__name__)
 
 
 # ============================================================================
+# Canonical layer roles
+# ============================================================================
+#
+# Public so the arrangement-decider docs, the agent_parsers (informational),
+# and the test parametrize all share one source of truth. Roles outside this
+# frozenset still render — they fall through to _default_motif (single tonic
+# note) — but the composer logs a WARNING so the user knows the layer is
+# barely contributing.
+
+KNOWN_LAYER_ROLES = frozenset({
+    "drum_kit", "perc",
+    "bass", "sub",
+    "lead", "vocal",
+    "pad", "fx",
+})
+
+
+# ============================================================================
 # Note-name → MIDI pitch class
 # ============================================================================
 #
@@ -194,6 +212,42 @@ def blueprint_to_composition(bp: SectionBlueprint) -> Composition:
 
     tonic_pitch = key_root_to_midi(harmony.key_root, octave=3)
 
+    # Surface ignored arrangement-side fields (descriptive-only at Phase 2.5).
+    arrangement_ignored = []
+    if arrangement.density_curve and arrangement.density_curve != "medium":
+        arrangement_ignored.append(
+            f"density_curve={arrangement.density_curve!r}"
+        )
+    if arrangement.instrumentation_changes:
+        arrangement_ignored.append(
+            f"instrumentation_changes ({len(arrangement.instrumentation_changes)} entries)"
+        )
+    if arrangement.register_strategy:
+        arrangement_ignored.append("register_strategy (prose)")
+    if arrangement_ignored:
+        _LOG.warning(
+            "[composer_adapter] Phase 2.5 arrangement fields not yet applied "
+            "to MIDI rendering: %s. Layers ARE consumed (each becomes a "
+            "track). Phase 2.X+ will wire density_curve to a velocity "
+            "envelope and instrumentation_changes to mid-section drops.",
+            ", ".join(arrangement_ignored),
+        )
+
+    # Detect non-canonical layer roles — fall through to default tonic
+    # motif but warn so the user knows the layer is under-rendered.
+    unknown_roles = sorted({
+        l.role for l in arrangement.layers
+        if l.role and l.role not in KNOWN_LAYER_ROLES
+    })
+    if unknown_roles:
+        _LOG.warning(
+            "[composer_adapter] Layer role(s) %s are not in KNOWN_LAYER_ROLES "
+            "%s — these layers will render with the default single-tonic "
+            "motif. To get a richer pattern, use one of the canonical "
+            "roles or extend _motif_for_role().",
+            unknown_roles, sorted(KNOWN_LAYER_ROLES),
+        )
+
     # Group blueprint layers by their role string into "tracks" the composer
     # expects. Multiple layers with the same role share a track.
     layers_per_track: Dict[str, List[ComposerLayer]] = {}
@@ -263,6 +317,7 @@ def compose_to_midi(bp: SectionBlueprint, output_path: str | Path) -> Path:
 
 
 __all__ = [
+    "KNOWN_LAYER_ROLES",
     "key_root_to_midi",
     "blueprint_to_composition",
     "compose_from_blueprint",

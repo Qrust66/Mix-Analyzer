@@ -89,3 +89,139 @@ def check_cohesion(bp: SectionBlueprint) -> CohesionReport:
         if result is not None:
             violations.append(result)
     return CohesionReport(violations=tuple(violations))
+
+
+# ============================================================================
+# Concrete rules (added Phase 2.5.1)
+# ============================================================================
+#
+# Each rule lands together with the agent whose output it constrains, per
+# the project's "rule-with-consumer" principle. Phase 1 cleanup removed all
+# speculative rules; these are the first concrete rules — motivated by
+# real failure modes observed when arrangement-decider can produce layers
+# that overflow the structure-decider's section bounds.
+
+
+@cohesion_rule(spheres=("structure", "arrangement"))
+def arrangement_layers_within_structure_bounds(
+    bp: SectionBlueprint,
+) -> Optional[CohesionViolation]:
+    """Every arrangement.layers[*] must fit inside structure.total_bars.
+
+    Background: a layer with exits_at_bar > total_bars produces MIDI events
+    beyond the section's nominal end. The composer's track_layerer happily
+    extends the rendering, but the rest of the pipeline (multi-section
+    composition, .als injection) assumes layers are bounded.
+    """
+    structure = bp.structure
+    arrangement = bp.arrangement
+    assert structure is not None and arrangement is not None
+    total_bars = structure.value.total_bars
+
+    for i, layer in enumerate(arrangement.value.layers):
+        if layer.enters_at_bar < 0:
+            return CohesionViolation(
+                rule="arrangement_layers_within_structure_bounds",
+                severity="block",
+                message=(
+                    f"Layer #{i} ({layer.role!r}, {layer.instrument!r}): "
+                    f"enters_at_bar={layer.enters_at_bar} is negative."
+                ),
+                spheres=("structure", "arrangement"),
+            )
+        if layer.exits_at_bar > total_bars:
+            return CohesionViolation(
+                rule="arrangement_layers_within_structure_bounds",
+                severity="block",
+                message=(
+                    f"Layer #{i} ({layer.role!r}, {layer.instrument!r}): "
+                    f"exits_at_bar={layer.exits_at_bar} but "
+                    f"structure.total_bars={total_bars}. Layer would "
+                    f"extend past the section. Either trim the layer or "
+                    f"increase total_bars."
+                ),
+                spheres=("structure", "arrangement"),
+            )
+        if layer.enters_at_bar >= total_bars:
+            return CohesionViolation(
+                rule="arrangement_layers_within_structure_bounds",
+                severity="block",
+                message=(
+                    f"Layer #{i} ({layer.role!r}, {layer.instrument!r}): "
+                    f"enters_at_bar={layer.enters_at_bar} is not strictly "
+                    f"less than total_bars={total_bars} — layer would "
+                    f"never become active."
+                ),
+                spheres=("structure", "arrangement"),
+            )
+    return None
+
+
+@cohesion_rule(spheres=("structure", "arrangement"))
+def instrumentation_changes_within_structure_bounds(
+    bp: SectionBlueprint,
+) -> Optional[CohesionViolation]:
+    """Every instrumentation_changes[*].bar must fit inside total_bars.
+
+    A change at bar > total_bars or bar < 0 cannot be applied at any point
+    in the section.
+    """
+    structure = bp.structure
+    arrangement = bp.arrangement
+    assert structure is not None and arrangement is not None
+    total_bars = structure.value.total_bars
+
+    for i, change in enumerate(arrangement.value.instrumentation_changes):
+        if not (0 <= change.bar <= total_bars):
+            return CohesionViolation(
+                rule="instrumentation_changes_within_structure_bounds",
+                severity="block",
+                message=(
+                    f"instrumentation_changes[{i}]: bar={change.bar} not in "
+                    f"[0, {total_bars}]. Change would be invisible to the "
+                    f"renderer. ({change.change!r})"
+                ),
+                spheres=("structure", "arrangement"),
+            )
+    return None
+
+
+@cohesion_rule(spheres=("structure", "arrangement"))
+def arrangement_coverage_check(
+    bp: SectionBlueprint,
+) -> Optional[CohesionViolation]:
+    """Warn if more than half the section has no active layers.
+
+    Sometimes silence is intentional (compositional rest), so this is a
+    WARNING not a block. The section will render but be largely silent,
+    which is rarely what an agent intends. Surfacing it lets the user
+    confirm or fix.
+    """
+    structure = bp.structure
+    arrangement = bp.arrangement
+    assert structure is not None and arrangement is not None
+    total_bars = structure.value.total_bars
+    if total_bars <= 0:
+        return None
+
+    coverage = [False] * total_bars
+    for layer in arrangement.value.layers:
+        start = max(0, layer.enters_at_bar)
+        end = min(total_bars, layer.exits_at_bar)
+        for bar in range(start, end):
+            coverage[bar] = True
+
+    silent_bars = sum(1 for c in coverage if not c)
+    if silent_bars > total_bars // 2:
+        return CohesionViolation(
+            rule="arrangement_coverage_check",
+            severity="warn",
+            message=(
+                f"{silent_bars}/{total_bars} bars have no active layers. "
+                f"Section will be mostly silent. If intentional "
+                f"(compositional rest), ignore this warning. Otherwise "
+                f"extend layer bounds or add layers to fill the gap."
+            ),
+            spheres=("structure", "arrangement"),
+        )
+    return None
