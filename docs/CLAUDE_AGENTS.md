@@ -167,6 +167,8 @@ ajouter une chanson, on touche **uniquement** `inspirations.json`.
 | `composition_engine/blueprint/schema.py` | `SectionBlueprint` immuable avec un `Decision[T]` par sphère + provenance (`Citation`, `rationale`, `confidence`). |
 | `composition_engine/blueprint/cohesion.py` | Infrastructure de cohésion via `@cohesion_rule` decorator (registry auto-collectée, partial-fill safe). **Phase 1 ne ship aucune règle concrète** — chaque règle naît avec l'agent qui motive son existence (couplage rule-with-consumer, anti-speculative). |
 | `composition_engine/director/director.py` | Orchestrateur avec DAG des sphères, mode `GHOST` (blueprint pré-rempli, validation seule). Live mode (LLM agents) ajouté en Phase 2 avec les agents eux-mêmes. |
+| `composition_engine/blueprint/composer_adapter.py` | **Phase 2.1** : wire un `SectionBlueprint` au `composer.compose()` existant. API : `blueprint_to_composition(bp)`, `compose_from_blueprint(bp)`, `compose_to_midi(bp, path)`. Phase 2.1 consomme les 4 sphères essentielles (structure, harmony, rhythm, arrangement) ; les 3 autres (dynamics, performance, fx) sont loggées comme "not yet wired" si remplies. |
+| `composition_engine/blueprint/midi_export.py` | **Phase 2.1** : writer Standard MIDI File (Format 1, multi-track) en stdlib pur. Permet l'export `.mid` direct depuis un blueprint via `compose_to_midi()`. |
 
 ### Règle d'or : un agent ne délègue jamais à un autre agent
 

@@ -21,14 +21,19 @@ Public API:
 """
 from __future__ import annotations
 
+import logging
+from pathlib import Path
 from typing import Any, Callable, Dict, List
 
+from composition_engine.blueprint.midi_export import write_midi_file
 from composition_engine.blueprint.schema import (
     LayerSpec as BlueprintLayer,
     SectionBlueprint,
 )
 from composition_engine.composer.composer import Composition, compose
 from composition_engine.composer.track_layerer import LayerSpec as ComposerLayer
+
+_LOG = logging.getLogger(__name__)
 
 
 # ============================================================================
@@ -154,10 +159,31 @@ def blueprint_to_composition(bp: SectionBlueprint) -> Composition:
             f"Phase 2.1 requires structure, harmony, rhythm, arrangement to be filled."
         )
 
-    structure = bp.structure.value      # type: ignore[union-attr]
-    harmony = bp.harmony.value          # type: ignore[union-attr]
-    rhythm = bp.rhythm.value            # type: ignore[union-attr]
-    arrangement = bp.arrangement.value  # type: ignore[union-attr]
+    # Asserts for type narrowing — guaranteed not None by the check above.
+    assert bp.structure is not None
+    assert bp.harmony is not None
+    assert bp.rhythm is not None
+    assert bp.arrangement is not None
+
+    structure = bp.structure.value
+    harmony = bp.harmony.value
+    rhythm = bp.rhythm.value
+    arrangement = bp.arrangement.value
+
+    # Phase 2.1 only consumes the 4 essential spheres. If the caller filled
+    # dynamics / performance / fx, log it explicitly so they don't think
+    # those decisions are silently being applied.
+    not_yet_wired = [
+        s for s in ("dynamics", "performance", "fx")
+        if getattr(bp, s) is not None
+    ]
+    if not_yet_wired:
+        _LOG.warning(
+            "[composer_adapter] Phase 2.1 ignores sphere(s) %s — values present "
+            "in the blueprint but not yet applied to the rendered output. "
+            "Phase 2.2+ will wire them.",
+            not_yet_wired,
+        )
 
     tonic_pitch = key_root_to_midi(harmony.key_root, octave=3)
 
@@ -200,8 +226,38 @@ def compose_from_blueprint(bp: SectionBlueprint) -> Dict[str, Any]:
     return compose(blueprint_to_composition(bp))
 
 
+def compose_to_midi(bp: SectionBlueprint, output_path: str | Path) -> Path:
+    """Render a SectionBlueprint all the way to a Standard MIDI File.
+
+    The full Phase 2.1 pipeline:
+
+        SectionBlueprint
+            ↓ blueprint_to_composition
+        Composition
+            ↓ compose (track_layerer, finalization)
+        {tracks, tempo_bpm, …}
+            ↓ write_midi_file
+        .mid file on disk
+
+    Args:
+        bp: complete SectionBlueprint with at least the 4 essential
+            spheres filled (structure, harmony, rhythm, arrangement).
+        output_path: destination .mid path.
+
+    Returns:
+        The Path written.
+    """
+    result = compose_from_blueprint(bp)
+    return write_midi_file(
+        tracks=result["tracks"],
+        output_path=output_path,
+        tempo_bpm=float(result["tempo_bpm"]),
+    )
+
+
 __all__ = [
     "key_root_to_midi",
     "blueprint_to_composition",
     "compose_from_blueprint",
+    "compose_to_midi",
 ]

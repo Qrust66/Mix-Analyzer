@@ -1,5 +1,40 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.1] - 2026-04-27
+
+### Added
+- **`composition_engine/blueprint/composer_adapter.py`** — wires a
+  `SectionBlueprint` to the existing `composer.compose()` pipeline:
+    * `key_root_to_midi(key_root, octave=3)` — note-name → MIDI pitch.
+    * `blueprint_to_composition(bp)` — converts a blueprint to a
+      `Composition` the composer can render. Maps the 4 essential spheres
+      (structure, harmony, rhythm, arrangement); logs a warning when
+      dynamics/performance/fx are filled but not yet wired.
+    * `compose_from_blueprint(bp)` — convert + render to per-track note dict.
+    * `compose_to_midi(bp, output_path)` — full pipeline ending in a `.mid`
+      file on disk.
+- **`composition_engine/blueprint/midi_export.py`** — pure-stdlib Standard
+  MIDI File writer (Format 1, multi-track). No new dependency.
+- **34/34 songs in `composition_advisor/inspirations.json`** now uniformly
+  in Schema A v2 (with `stylistic_figures`). Includes the 9 original
+  Nirvana/Soundgarden Schema A v1 entries harmonized in this pass.
+- **`composition_advisor/inspirations.json`** split off from
+  `composition_advisor.json` so the rules layer (theory, voice_leading,
+  recipes_index, …) stays stable while the inspiration corpus grows.
+- **25 reviewed song drafts** merged into `inspirations.json` (status
+  `_REVIEWED_V1`).
+
+### Changed
+- **`composition_engine/advisor_bridge/song_loader.py`** — now merges
+  rules + inspirations transparently. Public API unchanged; callers don't
+  need to know about the file split.
+
+### Tests
+- `tests/test_blueprint_composer_adapter.py` — 13 tests (key mapping,
+  partial-blueprint error path, layer-grouping, end-to-end pipeline).
+- `tests/test_blueprint_midi_export.py` — VLQ encoding, MIDI chunk
+  structure, velocity clamping, overlapping notes, end-to-end .mid output.
+
 ## [2.3.1] - 2026-04-15
 
 ### Fixed
