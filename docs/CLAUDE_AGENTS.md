@@ -106,6 +106,28 @@ Le hook `UserPromptSubmit` (cf. plus haut) injecte automatiquement un
 rappel quand le prompt matche les patterns d'architecture — filet de
 sécurité pour ne pas oublier l'agent.
 
+### structure-decider (`.claude/agents/structure-decider.md`)
+
+**Premier sphere agent du composition_engine (Phase 2.2).**
+
+**Invoquer** quand l'utilisateur demande de composer une section et
+fournit au moins une chanson de référence ("intro 16 bars ambient
+inspirée de Pyramid_Song et Heart_Shaped_Box").
+
+L'agent :
+1. Lit les `composition.structural_blueprint` et
+   `section_count_and_lengths` des références via `song_loader`
+2. Synthétise une `StructureDecision` (total_bars, sub_sections,
+   breath_points, transition_in/out)
+3. Cite explicitement les passages des refs qui ont informé chaque choix
+4. Retourne un JSON pur que l'orchestrateur parse via
+   `composition_engine.blueprint.agent_parsers.parse_structure_decision()`
+
+Le JSON parsé donne directement un `Decision[StructureDecision]`
+assignable à un `SectionBlueprint` via `bp.with_decision("structure", decision)`.
+
+Read-only. Ne modifie jamais le repo.
+
 ### regression-detector (`.claude/agents/regression-detector.md`)
 
 **Invoquer automatiquement** dans ces cas :
@@ -169,6 +191,7 @@ ajouter une chanson, on touche **uniquement** `inspirations.json`.
 | `composition_engine/director/director.py` | Orchestrateur avec DAG des sphères, mode `GHOST` (blueprint pré-rempli, validation seule). Live mode (LLM agents) ajouté en Phase 2 avec les agents eux-mêmes. |
 | `composition_engine/blueprint/composer_adapter.py` | **Phase 2.1** : wire un `SectionBlueprint` au `composer.compose()` existant. API : `blueprint_to_composition(bp)`, `compose_from_blueprint(bp)`, `compose_to_midi(bp, path)`. Phase 2.1 consomme les 4 sphères essentielles (structure, harmony, rhythm, arrangement) ; les 3 autres (dynamics, performance, fx) sont loggées comme "not yet wired" si remplies. |
 | `composition_engine/blueprint/midi_export.py` | **Phase 2.1** : writer Standard MIDI File (Format 1, multi-track) en stdlib pur. Permet l'export `.mid` direct depuis un blueprint via `compose_to_midi()`. |
+| `composition_engine/blueprint/agent_parsers.py` | **Phase 2.2** : parsers du JSON émis par les sphere agents. Phase 2.2 ship `parse_structure_decision()` qui valide et construit un `Decision[StructureDecision]` à partir du payload de `structure-decider`. Lève `AgentOutputError` si le payload est mal formé. |
 
 ### Règle d'or : un agent ne délègue jamais à un autre agent
 

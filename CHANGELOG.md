@@ -1,5 +1,24 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.2] - 2026-04-27
+
+### Added
+- **`.claude/agents/structure-decider.md`** — first sphere agent of the
+  multi-agent composition system. Given a brief + reference songs,
+  synthesizes a `Decision[StructureDecision]` JSON by reading
+  `composition.structural_blueprint` and `section_count_and_lengths`
+  from each reference via `song_loader`. Read-only.
+- **`composition_engine/blueprint/agent_parsers.py`** — orchestrator-side
+  parsers that validate and convert agent JSON payloads into typed
+  `Decision[T]` objects. Phase 2.2 ships `parse_structure_decision()`;
+  raises `AgentOutputError` on malformed payloads.
+
+### Tests
+- `tests/test_blueprint_agent_parsers.py` — 16 tests covering the happy
+  path, all error paths (missing keys, wrong types, out-of-range
+  confidence, agent-error refusal), and integration with
+  `SectionBlueprint.with_decision()`.
+
 ## [Unreleased — composition_engine Phase 2.1] - 2026-04-27
 
 ### Added
