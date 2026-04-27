@@ -1,5 +1,47 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.3.1] - 2026-04-27
+
+### Added
+- **`composition_engine/music_theory.py`** — single source of truth for
+  note name → pitch class / MIDI mapping. Exports `KEY_ROOTS` (frozenset
+  of 17 valid note names), `note_to_pitch_class()`, `key_root_to_midi()`.
+- **`tests/test_music_theory.py`** — 10 tests covering enharmonic pairs,
+  unknown notes, MIDI conversion, defensive fallback.
+- **`tests/conftest.py::complete_blueprint`** fixture — fully-filled
+  7-sphere blueprint with provenance citations, used by test_director.py
+  end-to-end tests.
+- **`docs/COMPOSITION_WORKFLOW.md`** — concrete end-to-end example from
+  brief + refs to .mid file, showing structure-decider → harmony-decider
+  → manual fill of remaining spheres → composer.compose_to_midi.
+  Documents the recommended invocation order and cross-sphere coherence
+  invariants.
+
+### Changed
+- **`composition_engine/blueprint/composer_adapter.py`** now imports
+  `key_root_to_midi` from `music_theory` instead of redefining the
+  pitch-class table locally. The local symbol is kept as a thin
+  re-export for backward compatibility.
+- **`composition_engine/blueprint/agent_parsers.py`** now imports
+  `KEY_ROOTS` from `music_theory` instead of `_VALID_KEY_ROOTS`. Single
+  source of truth for the 17 valid note names — no more drift risk
+  between code and test parametrize.
+- **`tests/test_blueprint_agent_parsers.py`** — `test_harmony_all_valid_roots_accepted`
+  now parametrizes over `sorted(KEY_ROOTS)` from music_theory instead
+  of hardcoding the 17 names.
+- **`tests/test_director.py`** — `_complete_blueprint()` helper removed;
+  tests now consume `complete_blueprint` fixture from conftest.py.
+- **`tests/test_blueprint_composer_adapter.py`** — `_minimal_blueprint()`
+  helper removed; tests now consume `minimal_blueprint` fixture.
+
+### Audit-fix summary
+This release closes the 3 sérieuses critiques from the Phase 2.3 self-audit:
+1. ✅ `minimal_blueprint` fixture now actually used (was orphan)
+2. ✅ Two music-theory sources of truth merged into one (`music_theory.py`)
+3. ✅ `KEY_ROOTS` shared between code and test parametrize
+
+Plus the most actionable point #5: end-to-end workflow now documented.
+
 ## [Unreleased — composition_engine Phase 2.3] - 2026-04-27
 
 ### Added
