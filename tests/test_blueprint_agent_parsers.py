@@ -7,12 +7,15 @@ import pytest
 from composition_engine.blueprint.agent_parsers import (
     AgentOutputError,
     extract_json_payload,
+    parse_harmony_decision,
+    parse_harmony_decision_from_response,
     parse_structure_decision,
     parse_structure_decision_from_response,
 )
 from composition_engine.blueprint.schema import (
     Citation,
     Decision,
+    HarmonyDecision,
     StructureDecision,
     SubSection,
 )
@@ -323,6 +326,134 @@ def test_parse_from_response_handles_prose_wrap():
 
 
 # ============================================================================
+# Phase 2.3 — harmony parser
+# ============================================================================
+
+
+def _valid_harmony_payload(**overrides):
+    """Return a minimum-valid harmony-decider payload."""
+    base = {
+        "schema_version": "1.0",
+        "harmony": {
+            "mode": "Aeolian",
+            "key_root": "A",
+            "progression": ["i", "bVI", "bVII", "i"],
+            "harmonic_rhythm": 0.5,
+            "voicing_strategy": "close-voiced piano",
+            "cadence_at_end": "open",
+        },
+        "rationale": "A minor avec progression descendante.",
+        "inspired_by": [
+            {"song": "Nirvana/Heart_Shaped_Box", "path": "composition.modal_choice",
+             "excerpt": "Aeolian throughout"},
+        ],
+        "confidence": 0.85,
+    }
+    base.update(overrides)
+    return base
+
+
+def test_parses_minimal_valid_harmony_payload():
+    decision = parse_harmony_decision(_valid_harmony_payload())
+    assert decision.sphere == "harmony"
+    assert isinstance(decision.value, HarmonyDecision)
+    assert decision.value.mode == "Aeolian"
+    assert decision.value.key_root == "A"
+    assert decision.value.progression == ("i", "bVI", "bVII", "i")
+    assert decision.value.harmonic_rhythm == 0.5
+
+
+def test_harmony_empty_progression_is_valid():
+    """Static-modal harmonies (Around_The_World style) have no progression."""
+    payload = _valid_harmony_payload()
+    payload["harmony"]["progression"] = []
+    decision = parse_harmony_decision(payload)
+    assert decision.value.progression == ()
+
+
+def test_harmony_optional_fields_default_to_empty_string():
+    payload = _valid_harmony_payload()
+    del payload["harmony"]["voicing_strategy"]
+    del payload["harmony"]["cadence_at_end"]
+    decision = parse_harmony_decision(payload)
+    assert decision.value.voicing_strategy == ""
+    assert decision.value.cadence_at_end == ""
+
+
+def test_harmony_default_harmonic_rhythm_when_absent():
+    payload = _valid_harmony_payload()
+    del payload["harmony"]["harmonic_rhythm"]
+    decision = parse_harmony_decision(payload)
+    assert decision.value.harmonic_rhythm == 1.0  # documented default
+
+
+@pytest.mark.parametrize("invalid_root", [
+    "Am",          # mode-tagged, not a note name
+    "A minor",     # mode-name string
+    "H",           # German notation, not in our alphabet
+    "X",           # nonsense
+    "C natural",   # extra qualifier
+    "",            # empty
+])
+def test_harmony_invalid_key_root_raises(invalid_root):
+    payload = _valid_harmony_payload()
+    payload["harmony"]["key_root"] = invalid_root
+    with pytest.raises(AgentOutputError, match="key_root"):
+        parse_harmony_decision(payload)
+
+
+@pytest.mark.parametrize("valid_root", [
+    "C", "C#", "Db", "D", "D#", "Eb", "E",
+    "F", "F#", "Gb", "G", "G#", "Ab", "A",
+    "A#", "Bb", "B",
+])
+def test_harmony_all_valid_roots_accepted(valid_root):
+    payload = _valid_harmony_payload()
+    payload["harmony"]["key_root"] = valid_root
+    decision = parse_harmony_decision(payload)
+    assert decision.value.key_root == valid_root
+
+
+def test_harmony_zero_or_negative_harmonic_rhythm_raises():
+    payload = _valid_harmony_payload()
+    payload["harmony"]["harmonic_rhythm"] = 0.0
+    with pytest.raises(AgentOutputError, match="harmonic_rhythm"):
+        parse_harmony_decision(payload)
+
+    payload2 = _valid_harmony_payload()
+    payload2["harmony"]["harmonic_rhythm"] = -1.0
+    with pytest.raises(AgentOutputError, match="harmonic_rhythm"):
+        parse_harmony_decision(payload2)
+
+
+def test_harmony_empty_mode_raises():
+    payload = _valid_harmony_payload()
+    payload["harmony"]["mode"] = "   "
+    with pytest.raises(AgentOutputError, match="mode"):
+        parse_harmony_decision(payload)
+
+
+def test_harmony_string_harmonic_rhythm_coerced():
+    """Same lenience as structure parser — accept "0.5" string."""
+    payload = _valid_harmony_payload()
+    payload["harmony"]["harmonic_rhythm"] = "0.5"
+    decision = parse_harmony_decision(payload)
+    assert decision.value.harmonic_rhythm == 0.5
+
+
+def test_harmony_error_payload_raises():
+    with pytest.raises(AgentOutputError, match="Agent returned error"):
+        parse_harmony_decision({"error": "no usable refs", "details": "..."})
+
+
+def test_harmony_from_response_handles_fences():
+    payload_str = json.dumps(_valid_harmony_payload())
+    fenced = f"```json\n{payload_str}\n```"
+    decision = parse_harmony_decision_from_response(fenced)
+    assert decision.value.key_root == "A"
+
+
+# ============================================================================
 # Integration — parser output feeds the blueprint
 # ============================================================================
 
@@ -335,3 +466,13 @@ def test_decision_can_be_assigned_to_blueprint():
     bp = SectionBlueprint(name="intro").with_decision("structure", decision)
     assert bp.structure is decision
     assert "structure" in bp.filled_spheres()
+
+
+def test_harmony_decision_can_be_assigned_to_blueprint():
+    """Parsed harmony decision is valid input for blueprint."""
+    from composition_engine.blueprint import SectionBlueprint
+
+    decision = parse_harmony_decision(_valid_harmony_payload())
+    bp = SectionBlueprint(name="intro").with_decision("harmony", decision)
+    assert bp.harmony is decision
+    assert "harmony" in bp.filled_spheres()

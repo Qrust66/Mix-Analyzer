@@ -34,6 +34,7 @@ from typing import Any, Mapping
 from composition_engine.blueprint.schema import (
     Citation,
     Decision,
+    HarmonyDecision,
     StructureDecision,
     SubSection,
 )
@@ -44,6 +45,16 @@ _LOG = logging.getLogger(__name__)
 # changes in a way that requires a parser update; keep the old version
 # entries as long as we want to support backward compatibility.
 SUPPORTED_STRUCTURE_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_HARMONY_SCHEMA_VERSIONS = frozenset({"1.0"})
+
+# Note-letter alphabet for key_root validation. Defensive — the composer
+# adapter falls back to C if key_root is unrecognized, but catching it
+# at parse time gives a better error message.
+_VALID_KEY_ROOTS = frozenset({
+    "C", "C#", "Db", "D", "D#", "Eb", "E",
+    "F", "F#", "Gb", "G", "G#", "Ab", "A",
+    "A#", "Bb", "B",
+})
 
 
 class AgentOutputError(ValueError):
@@ -247,7 +258,63 @@ def _check_schema_version(payload: Mapping[str, Any], supported: frozenset) -> N
 
 
 # ============================================================================
-# Public parser
+# Common envelope parser — shared by all sphere parsers
+# ============================================================================
+
+
+def _parse_envelope(
+    payload: Mapping[str, Any],
+    *,
+    supported_versions: frozenset,
+) -> dict:
+    """Parse the cross-sphere fields: error, schema_version, inspired_by,
+    rationale, confidence.
+
+    Returns a dict ready to splat into Decision(...): keys are
+    `inspired_by`, `rationale`, `confidence`.
+
+    Raises AgentOutputError on the agent-error refusal path or on
+    out-of-range confidence.
+    """
+    if not isinstance(payload, Mapping):
+        raise AgentOutputError(
+            f"payload must be a JSON object, got {type(payload).__name__}"
+        )
+    if "error" in payload:
+        raise AgentOutputError(
+            f"Agent returned error: {payload['error']} "
+            f"(details: {payload.get('details', 'none')})"
+        )
+
+    _check_schema_version(payload, supported_versions)
+
+    raw_inspired = _coerce_list(payload.get("inspired_by", []), where="inspired_by")
+    inspired_by = tuple(
+        _parse_citation(c, where=f"inspired_by[{i}]")
+        for i, c in enumerate(raw_inspired)
+    )
+
+    confidence = _coerce_float(payload.get("confidence", 0.8), where="confidence")
+    if not (0.0 <= confidence <= 1.0):
+        raise AgentOutputError(
+            f"confidence must be in [0.0, 1.0], got {confidence}"
+        )
+    if confidence < 0.5:
+        _LOG.warning(
+            "agent returned low confidence=%.2f — "
+            "consider rerunning with clearer brief or refs",
+            confidence,
+        )
+
+    return {
+        "inspired_by": inspired_by,
+        "rationale": _coerce_str(payload.get("rationale", "")),
+        "confidence": confidence,
+    }
+
+
+# ============================================================================
+# Public parser — structure
 # ============================================================================
 
 
@@ -279,18 +346,7 @@ def parse_structure_decision(payload: Mapping[str, Any]) -> Decision[StructureDe
     Raises AgentOutputError on truly broken payloads (missing required
     keys, semantically invalid values).
     """
-    if not isinstance(payload, Mapping):
-        raise AgentOutputError(
-            f"payload must be a JSON object, got {type(payload).__name__}"
-        )
-
-    if "error" in payload:
-        raise AgentOutputError(
-            f"Agent returned error: {payload['error']} "
-            f"(details: {payload.get('details', 'none')})"
-        )
-
-    _check_schema_version(payload, SUPPORTED_STRUCTURE_SCHEMA_VERSIONS)
+    envelope = _parse_envelope(payload, supported_versions=SUPPORTED_STRUCTURE_SCHEMA_VERSIONS)
 
     structure_dict = _require(payload, "structure", where="root")
     if not isinstance(structure_dict, Mapping):
@@ -327,48 +383,100 @@ def parse_structure_decision(payload: Mapping[str, Any]) -> Decision[StructureDe
         transition_out=_coerce_str(structure_dict.get("transition_out", "")),
     )
 
-    raw_inspired = _coerce_list(payload.get("inspired_by", []), where="inspired_by")
-    inspired_by = tuple(
-        _parse_citation(c, where=f"inspired_by[{i}]")
-        for i, c in enumerate(raw_inspired)
-    )
-
-    confidence = _coerce_float(payload.get("confidence", 0.8), where="confidence")
-    if not (0.0 <= confidence <= 1.0):
-        raise AgentOutputError(
-            f"confidence must be in [0.0, 1.0], got {confidence}"
-        )
-    if confidence < 0.5:
-        _LOG.warning(
-            "structure-decider returned low confidence=%.2f — "
-            "consider rerunning with clearer brief or refs",
-            confidence,
-        )
-
-    return Decision(
-        value=structure_value,
-        sphere="structure",
-        inspired_by=inspired_by,
-        rationale=_coerce_str(payload.get("rationale", "")),
-        confidence=confidence,
-    )
+    return Decision(value=structure_value, sphere="structure", **envelope)
 
 
 def parse_structure_decision_from_response(text: str) -> Decision[StructureDecision]:
-    """End-to-end: raw LLM response text → Decision[StructureDecision].
+    """End-to-end: raw LLM response text → Decision[StructureDecision]."""
+    return parse_structure_decision(extract_json_payload(text))
 
-    Combines extract_json_payload (strip fences, extract from prose) with
-    parse_structure_decision (schema validation + coercion). Use this from
-    orchestrator code that gets the raw agent output as a string.
+
+# ============================================================================
+# Public parser — harmony
+# ============================================================================
+
+
+def parse_harmony_decision(payload: Mapping[str, Any]) -> Decision[HarmonyDecision]:
+    """Parse a harmony-decider agent payload into a Decision.
+
+    Expected shape (schema 1.0):
+        {
+          "schema_version": "1.0",
+          "harmony": {
+            "mode": str,
+            "key_root": str,           // C, C#, Db, D, ..., G#, Ab, A, ...
+            "progression": [str, …],    // e.g. ["i", "bVI", "bVII", "i"]
+            "harmonic_rhythm": float,   // chords per bar, > 0
+            "voicing_strategy": str,
+            "cadence_at_end": str
+          },
+          "rationale": str,
+          "inspired_by": [{"song", "path", "excerpt"}, …],
+          "confidence": float (0..1)
+        }
+
+    Or a refusal payload: {"error": "...", "details": "..."}
+
+    Lenient input + strict output, same conventions as
+    parse_structure_decision.
     """
-    payload = extract_json_payload(text)
-    return parse_structure_decision(payload)
+    envelope = _parse_envelope(payload, supported_versions=SUPPORTED_HARMONY_SCHEMA_VERSIONS)
+
+    harmony_dict = _require(payload, "harmony", where="root")
+    if not isinstance(harmony_dict, Mapping):
+        raise AgentOutputError(
+            f"harmony: expected object, got {type(harmony_dict).__name__}"
+        )
+
+    mode = _coerce_str(_require(harmony_dict, "mode", where="harmony"))
+    if not mode.strip():
+        raise AgentOutputError("harmony.mode must be non-empty")
+
+    key_root = _coerce_str(_require(harmony_dict, "key_root", where="harmony")).strip()
+    if key_root not in _VALID_KEY_ROOTS:
+        raise AgentOutputError(
+            f"harmony.key_root {key_root!r} is not a recognized note name. "
+            f"Expected one of: {sorted(_VALID_KEY_ROOTS)}"
+        )
+
+    raw_progression = _coerce_list(harmony_dict.get("progression", []), where="harmony.progression")
+    progression = tuple(
+        _coerce_str(p) for p in raw_progression
+    )
+
+    harmonic_rhythm = _coerce_float(
+        harmony_dict.get("harmonic_rhythm", 1.0),
+        where="harmony.harmonic_rhythm",
+    )
+    if harmonic_rhythm <= 0:
+        raise AgentOutputError(
+            f"harmony.harmonic_rhythm must be > 0, got {harmonic_rhythm}"
+        )
+
+    harmony_value = HarmonyDecision(
+        mode=mode,
+        key_root=key_root,
+        progression=progression,
+        harmonic_rhythm=harmonic_rhythm,
+        voicing_strategy=_coerce_str(harmony_dict.get("voicing_strategy", "")),
+        cadence_at_end=_coerce_str(harmony_dict.get("cadence_at_end", "")),
+    )
+
+    return Decision(value=harmony_value, sphere="harmony", **envelope)
+
+
+def parse_harmony_decision_from_response(text: str) -> Decision[HarmonyDecision]:
+    """End-to-end: raw LLM response text → Decision[HarmonyDecision]."""
+    return parse_harmony_decision(extract_json_payload(text))
 
 
 __all__ = [
     "AgentOutputError",
     "SUPPORTED_STRUCTURE_SCHEMA_VERSIONS",
+    "SUPPORTED_HARMONY_SCHEMA_VERSIONS",
     "extract_json_payload",
     "parse_structure_decision",
     "parse_structure_decision_from_response",
+    "parse_harmony_decision",
+    "parse_harmony_decision_from_response",
 ]

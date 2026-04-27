@@ -1,5 +1,41 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.3] - 2026-04-27
+
+### Added
+- **`.claude/agents/harmony-decider.md`** — second sphere agent
+  (harmony). Given a brief + reference songs, decides mode, key_root,
+  progression, harmonic_rhythm, voicing_strategy, cadence_at_end.
+  Reads `composition.harmonic_motion / modal_choice / harmonic_pacing /
+  characteristic_riff_construction / key_area`. Includes 3 in-context
+  examples (single ref, fusion of 2 refs, refusal payload) and a
+  "Common pitfalls" section.
+- **`parse_harmony_decision(payload)`** + companion
+  `parse_harmony_decision_from_response(text)` in `agent_parsers.py`.
+  Strict validation: `key_root` must be a canonical note name (one of
+  17 letter+accidental combinations); `harmonic_rhythm` strictly > 0;
+  `mode` non-empty.
+- **`tests/conftest.py`** — shared `minimal_blueprint` fixture
+  consolidating the 4-sphere setup that was duplicated across
+  test_director.py, test_blueprint_composer_adapter.py, and
+  test_blueprint_agent_parsers.py. Audit fix from Phase 2.2 self-review.
+
+### Changed
+- **Refactor `agent_parsers.py`** — extracted `_parse_envelope(payload,
+  supported_versions)` to handle the cross-sphere fields (error path,
+  schema_version, inspired_by, rationale, confidence). Each sphere's
+  public parser now reduces to the 5-10 lines of sphere-specific
+  validation. Avoids 6× duplication when the remaining 5 sphere agents
+  land.
+
+### Tests
+- 18 new tests in `test_blueprint_agent_parsers.py` covering harmony
+  parser: minimum-valid happy path, all 17 valid key_roots accepted, 6
+  invalid key_root strings rejected, zero/negative harmonic_rhythm
+  rejected, empty mode rejected, optional fields, default
+  harmonic_rhythm, string coercion, error payload, end-to-end raw text
+  → Decision.
+
 ## [Unreleased — composition_engine Phase 2.2.1] - 2026-04-27
 
 ### Added

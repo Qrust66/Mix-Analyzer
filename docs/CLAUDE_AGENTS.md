@@ -106,6 +106,27 @@ Le hook `UserPromptSubmit` (cf. plus haut) injecte automatiquement un
 rappel quand le prompt matche les patterns d'architecture — filet de
 sécurité pour ne pas oublier l'agent.
 
+### harmony-decider (`.claude/agents/harmony-decider.md`)
+
+**Sphere agent harmonique (Phase 2.3).**
+
+**Invoquer** typiquement après `structure-decider` (le `total_bars` et
+`sub_sections` sont déjà fixés). L'agent décide :
+- `mode` (Aeolian, Dorian, Phrygian, Major, etc.)
+- `key_root` (note seule : C, F#, A, etc. — validé strictement)
+- `progression` (chiffres romains ou noms d'accords, peut être vide
+  pour harmonie statique-modale)
+- `harmonic_rhythm` (chords par bar, > 0)
+- `voicing_strategy` + `cadence_at_end`
+
+Lit les `composition.harmonic_motion`, `modal_choice`, `harmonic_pacing`,
+`characteristic_riff_construction`, `key_area` des références.
+
+Output parsé via `parse_harmony_decision()` (ou
+`parse_harmony_decision_from_response()` pour le raw text). Validation
+stricte : `key_root` doit être une note canonique, `harmonic_rhythm`
+strictement positif, `mode` non-vide.
+
 ### structure-decider (`.claude/agents/structure-decider.md`)
 
 **Premier sphere agent du composition_engine (Phase 2.2).**
