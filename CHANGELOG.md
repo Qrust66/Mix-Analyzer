@@ -1,5 +1,73 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.6.1] - 2026-04-27
+
+Audit-driven cleanup of the 4 high+medium weaknesses found in Phase 2.6.
+Same pattern as Phase 2.5.1: weakness → force, with rule-with-consumer
+discipline (constraints land in the parser that produces the values they
+police, not in speculative cohesion rules).
+
+### Changed — `parse_dynamics_decision` tightened
+
+- **`inflection_points` must be strictly bar-ascending** (no duplicate
+  bars). Out-of-order lists were silently accepted in Phase 2.6 — they
+  would have been a latent bug as soon as Phase 3+ wires the velocity
+  envelope, which assumes ordered timestamps. Sort-and-warn was rejected
+  in favor of raise-on-violation: silent reordering hides upstream
+  agent bugs.
+- **Per-shape minimum inflection points** enforced:
+    * `valley` → ≥ 1 inflection (sinon pas de creux)
+    * `sawtooth` → ≥ 2 inflections (sinon pas de cycles)
+    * Other shapes unchanged (well-defined by start/end/peak alone).
+- **`start_db` / `end_db` now formally optional**, defaulting to the
+  section baseline. Phase 2.6 had `dyn_dict.get(field, -12.0)` while
+  the agent .md said the fields were required — contract divergence.
+  Phase 2.6.1 aligns: parser accepts the omission and falls back to
+  `DYNAMICS_BASELINE_DB`, agent .md documents this explicitly.
+
+### Added — `DYNAMICS_BASELINE_DB` constant
+
+The literal `-12.0` appeared in 6 places across `schema.py`,
+`agent_parsers.py`, and `composer_adapter.py` (dataclass default,
+parser fallbacks, composer "non-default?" check). Single source of
+truth hoisted into `schema.py`; the schema is the canonical owner of
+the dataclass default value. Both other modules import the constant.
+Re-exported through `composition_engine.blueprint.__init__`.
+
+Same anti-pattern Phase 2.4.1 fixed for `VALID_SUBDIVISIONS`. Today,
+changing the baseline is one edit; before, it was six places to keep
+in lockstep.
+
+### Updated — `.claude/agents/dynamics-decider.md`
+
+- Documents `start_db` / `end_db` as optional (default = baseline) — was
+  silently optional in Phase 2.6, now formally so.
+- Documents the strict ascending-bar requirement for `inflection_points`.
+- Documents the per-shape minimum inflection count.
+- Adds 3 new pitfalls to the "Pièges courants à éviter" section.
+
+### Tests
+- 9 new dynamics parser tests covering: constant equals dataclass
+  default, missing start/end_db defaults to baseline, valley with 0
+  inflections rejected / with 1 accepted, sawtooth with 1 rejected /
+  with 2 accepted, unsorted bars rejected, duplicate bar rejected,
+  sorted happy path.
+
+### Audit fixes — 4 weaknesses → 4 forces
+
+| Phase 2.6 weakness | Phase 2.6.1 force |
+|---|---|
+| ① 4/7 arc_shapes not validated | Per-shape min inflection enforced (parser raises) |
+| ② inflection_points unsorted accepted | Strict ascending-bar check (parser raises) |
+| ③ Magic -12.0 in 6 places | `DYNAMICS_BASELINE_DB` exported, used everywhere |
+| ④ start/end_db default divergence | Agent .md + parser aligned: optional, default = baseline |
+
+The remaining 3 lower-severity weaknesses (peak/inflection collision,
+pre-existing test_raises_on_wrong_type_for_total_bars failure, warning
+noise on multi-section composition) are deferred — they don't justify
+a release of their own and will land when Phase 3+ wires dynamics to
+real velocity envelopes.
+
 ## [Unreleased — composition_engine Phase 2.6] - 2026-04-27
 
 Adds **dynamics-decider**, the 5th sphere agent. Phase 2.6 ships fully

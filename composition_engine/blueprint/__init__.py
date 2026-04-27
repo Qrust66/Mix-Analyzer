@@ -12,6 +12,7 @@ Public API:
     CohesionReport, CohesionViolation
 """
 from composition_engine.blueprint.schema import (
+    DYNAMICS_BASELINE_DB,
     SPHERES,
     ArrangementDecision,
     Citation,
@@ -35,6 +36,7 @@ from composition_engine.blueprint.cohesion import (
 )
 
 __all__ = [
+    "DYNAMICS_BASELINE_DB",
     "SPHERES",
     "ArrangementDecision",
     "Citation",

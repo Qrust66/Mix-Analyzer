@@ -32,6 +32,7 @@ import re
 from typing import Any, Mapping
 
 from composition_engine.blueprint.schema import (
+    DYNAMICS_BASELINE_DB,
     ArrangementDecision,
     Citation,
     Decision,
@@ -776,6 +777,17 @@ def _parse_inflection_point(item: Any, *, where: str) -> tuple[int, float]:
     return (bar, db)
 
 
+# Per-shape minimum inflection count. A `valley` shape that declares zero
+# inflection points has no valley; a `sawtooth` with fewer than two has no
+# saw. These are the only shapes whose semantics inherently require
+# intermediate points; others (rising/descending/flat/peak/exponential)
+# are well-defined by their start/end/peak alone.
+_SHAPE_MIN_INFLECTIONS: Mapping[str, int] = {
+    "valley": 1,
+    "sawtooth": 2,
+}
+
+
 def parse_dynamics_decision(payload: Mapping[str, Any]) -> Decision[DynamicsDecision]:
     """Parse a dynamics-decider agent payload into a Decision.
 
@@ -784,10 +796,10 @@ def parse_dynamics_decision(payload: Mapping[str, Any]) -> Decision[DynamicsDeci
           "schema_version": "1.0",
           "dynamics": {
             "arc_shape": str ∈ VALID_ARC_SHAPES,
-            "start_db": float ∈ [DB_MIN, DB_MAX],
-            "end_db": float ∈ [DB_MIN, DB_MAX],
+            "start_db": float ∈ [DB_MIN, DB_MAX]   # optional, default = baseline
+            "end_db":   float ∈ [DB_MIN, DB_MAX]   # optional, default = baseline
             "peak_bar": Optional[int] (≥ 0),
-            "inflection_points": [[bar, db], …]
+            "inflection_points": [[bar, db], …]    # ordered by bar, ascending
           },
           "rationale": str,
           "inspired_by": [{"song", "path", "excerpt"}, …],
@@ -797,9 +809,14 @@ def parse_dynamics_decision(payload: Mapping[str, Any]) -> Decision[DynamicsDeci
     Or a refusal payload: {"error": "...", "details": "..."}
 
     Strict output: arc_shape must be canonical, dB in [-60, 0],
-    inflection_points coordinates valid, peak_bar ≥ 0 when present,
-    arc_shape="peak" REQUIRES peak_bar, and rising/descending shapes
-    must have matching start/end direction.
+    inflection_points strictly bar-ascending, peak_bar ≥ 0 when present,
+    arc_shape="peak" REQUIRES peak_bar, rising/descending shapes must
+    match start/end direction, and valley/sawtooth require their minimum
+    intermediate inflection points (1 / 2 respectively).
+
+    Missing start_db / end_db default to DYNAMICS_BASELINE_DB (the
+    section baseline). The agent .md documents this; if you want
+    explicit values, supply them.
     """
     envelope = _parse_envelope(
         payload, supported_versions=SUPPORTED_DYNAMICS_SCHEMA_VERSIONS
@@ -819,7 +836,8 @@ def parse_dynamics_decision(payload: Mapping[str, Any]) -> Decision[DynamicsDeci
         )
 
     start_db = _coerce_float(
-        dyn_dict.get("start_db", -12.0), where="dynamics.start_db"
+        dyn_dict.get("start_db", DYNAMICS_BASELINE_DB),
+        where="dynamics.start_db",
     )
     if not (DB_MIN <= start_db <= DB_MAX):
         raise AgentOutputError(
@@ -827,7 +845,8 @@ def parse_dynamics_decision(payload: Mapping[str, Any]) -> Decision[DynamicsDeci
         )
 
     end_db = _coerce_float(
-        dyn_dict.get("end_db", -12.0), where="dynamics.end_db"
+        dyn_dict.get("end_db", DYNAMICS_BASELINE_DB),
+        where="dynamics.end_db",
     )
     if not (DB_MIN <= end_db <= DB_MAX):
         raise AgentOutputError(
@@ -874,6 +893,27 @@ def parse_dynamics_decision(payload: Mapping[str, Any]) -> Decision[DynamicsDeci
         _parse_inflection_point(item, where=f"dynamics.inflection_points[{i}]")
         for i, item in enumerate(raw_inflections)
     )
+
+    # Inflections must be strictly bar-ascending. Repeated bars are
+    # rejected because two dB values at the same bar are contradictory
+    # (the consumer cannot pick one). Sort-and-warn would hide upstream
+    # bugs in the agent; raising surfaces them.
+    bars = [bar for bar, _ in inflection_points]
+    if bars != sorted(set(bars)) or len(set(bars)) != len(bars):
+        raise AgentOutputError(
+            f"dynamics.inflection_points must be strictly bar-ascending "
+            f"(no repeats). Got bars: {bars}"
+        )
+
+    # Per-shape minimum inflection count: valley needs ≥1, sawtooth ≥2.
+    # Without these, the shape's defining feature is missing entirely.
+    min_required = _SHAPE_MIN_INFLECTIONS.get(arc_shape, 0)
+    if len(inflection_points) < min_required:
+        raise AgentOutputError(
+            f"dynamics.arc_shape={arc_shape!r} requires at least "
+            f"{min_required} inflection point(s); got {len(inflection_points)}. "
+            f"A {arc_shape} without intermediate points has no defining feature."
+        )
 
     dynamics_value = DynamicsDecision(
         arc_shape=arc_shape,

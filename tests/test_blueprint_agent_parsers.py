@@ -1074,6 +1074,109 @@ def test_dynamics_decision_can_be_assigned_to_blueprint():
     assert "dynamics" in bp.filled_spheres()
 
 
+# ============================================================================
+# Phase 2.6.1 — tightened parser constraints
+# ============================================================================
+
+
+def test_dynamics_baseline_db_is_canonical():
+    """The DYNAMICS_BASELINE_DB constant is the single source of truth for
+    the section baseline used as default for missing start/end_db."""
+    from composition_engine.blueprint import DYNAMICS_BASELINE_DB
+    from composition_engine.blueprint.schema import DynamicsDecision
+
+    # The dataclass default must equal the published constant.
+    default = DynamicsDecision()
+    assert default.start_db == DYNAMICS_BASELINE_DB
+    assert default.end_db == DYNAMICS_BASELINE_DB
+
+
+def test_dynamics_missing_start_db_defaults_to_baseline():
+    """start_db is documented as optional with default = baseline."""
+    from composition_engine.blueprint import DYNAMICS_BASELINE_DB
+
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "flat"
+    del payload["dynamics"]["start_db"]
+    del payload["dynamics"]["end_db"]
+    payload["dynamics"]["peak_bar"] = None
+    payload["dynamics"]["inflection_points"] = []
+    decision = parse_dynamics_decision(payload)
+    assert decision.value.start_db == DYNAMICS_BASELINE_DB
+    assert decision.value.end_db == DYNAMICS_BASELINE_DB
+
+
+def test_dynamics_valley_requires_inflection_point():
+    """A valley with zero inflection points has no valley — rejected."""
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "valley"
+    payload["dynamics"]["start_db"] = -6.0
+    payload["dynamics"]["end_db"] = -6.0
+    payload["dynamics"]["peak_bar"] = None
+    payload["dynamics"]["inflection_points"] = []
+    with pytest.raises(AgentOutputError, match="valley"):
+        parse_dynamics_decision(payload)
+
+
+def test_dynamics_valley_with_one_inflection_accepted():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "valley"
+    payload["dynamics"]["start_db"] = -6.0
+    payload["dynamics"]["end_db"] = -6.0
+    payload["dynamics"]["peak_bar"] = None
+    payload["dynamics"]["inflection_points"] = [[8, -20.0]]
+    decision = parse_dynamics_decision(payload)
+    assert decision.value.arc_shape == "valley"
+    assert len(decision.value.inflection_points) == 1
+
+
+def test_dynamics_sawtooth_requires_two_inflection_points():
+    """A sawtooth with fewer than two cycles is not a sawtooth."""
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "sawtooth"
+    payload["dynamics"]["start_db"] = -3.0
+    payload["dynamics"]["end_db"] = -3.0
+    payload["dynamics"]["peak_bar"] = None
+    payload["dynamics"]["inflection_points"] = [[4, -15.0]]  # only 1
+    with pytest.raises(AgentOutputError, match="sawtooth"):
+        parse_dynamics_decision(payload)
+
+
+def test_dynamics_sawtooth_with_two_inflections_accepted():
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["arc_shape"] = "sawtooth"
+    payload["dynamics"]["start_db"] = -3.0
+    payload["dynamics"]["end_db"] = -3.0
+    payload["dynamics"]["peak_bar"] = None
+    payload["dynamics"]["inflection_points"] = [[2, -15.0], [6, -3.0]]
+    decision = parse_dynamics_decision(payload)
+    assert decision.value.arc_shape == "sawtooth"
+
+
+def test_dynamics_inflection_points_unsorted_rejected():
+    """Bar order must be strictly ascending — out-of-order is a parser bug."""
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["inflection_points"] = [[15, -6.0], [3, -10.0]]  # bars 15, 3
+    with pytest.raises(AgentOutputError, match="ascending"):
+        parse_dynamics_decision(payload)
+
+
+def test_dynamics_inflection_points_duplicate_bar_rejected():
+    """Two dB values at the same bar are contradictory."""
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["inflection_points"] = [[7, -10.0], [7, -8.0]]
+    with pytest.raises(AgentOutputError, match="ascending"):
+        parse_dynamics_decision(payload)
+
+
+def test_dynamics_inflection_points_already_sorted_accepted():
+    """Sanity: the happy path still works after the ordering check."""
+    payload = _valid_dynamics_payload()
+    payload["dynamics"]["inflection_points"] = [[3, -15.0], [7, -10.0], [11, -8.0]]
+    decision = parse_dynamics_decision(payload)
+    assert [bar for bar, _ in decision.value.inflection_points] == [3, 7, 11]
+
+
 def test_arrangement_layers_with_overlapping_roles_kept_separate():
     """Multiple layers with the same role (e.g. two bass voices) are
     preserved — the composer_adapter groups them per-track downstream."""

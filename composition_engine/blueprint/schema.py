@@ -155,13 +155,22 @@ class ArrangementDecision:
     register_strategy: str = ""  # "low+mid only", "wide spread bass-to-air", ...
 
 
+# Section-baseline dB. 0 dB = max perceived intensity; this baseline is
+# the default a section sits at when no dynamic arc is specified. The
+# parser falls back to this value for missing start_db/end_db, the
+# composer uses it as the "is this dynamics decision actually doing
+# anything?" sentinel, and the dataclass default sets the same level.
+# Single source of truth — Phase 2.6.1 hoist.
+DYNAMICS_BASELINE_DB: float = -12.0
+
+
 @dataclass(frozen=True)
 class DynamicsDecision:
     """The volume/intensity arc across the section."""
 
     arc_shape: str = "flat"  # "rising", "valley", "flat", "exponential", "sawtooth"
-    start_db: float = -12.0  # relative to section baseline
-    end_db: float = -12.0
+    start_db: float = DYNAMICS_BASELINE_DB  # relative to section baseline
+    end_db: float = DYNAMICS_BASELINE_DB
     peak_bar: Optional[int] = None  # bar of the dynamic peak, if any
     inflection_points: tuple[tuple[int, float], ...] = ()  # (bar, db) pairs
 

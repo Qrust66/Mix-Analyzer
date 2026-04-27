@@ -27,6 +27,7 @@ from typing import Any, Callable, Dict, List
 
 from composition_engine.blueprint.midi_export import write_midi_file
 from composition_engine.blueprint.schema import (
+    DYNAMICS_BASELINE_DB,
     LayerSpec as BlueprintLayer,
     SectionBlueprint,
 )
@@ -193,8 +194,8 @@ def blueprint_to_composition(bp: SectionBlueprint) -> Composition:
         dyn = bp.dynamics.value
         non_default = (
             dyn.arc_shape != "flat"
-            or dyn.start_db != -12.0
-            or dyn.end_db != -12.0
+            or dyn.start_db != DYNAMICS_BASELINE_DB
+            or dyn.end_db != DYNAMICS_BASELINE_DB
             or dyn.peak_bar is not None
             or dyn.inflection_points
         )

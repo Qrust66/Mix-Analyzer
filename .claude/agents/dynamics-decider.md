@@ -76,18 +76,24 @@ Schema (version 1.0) :
   - `exponential` : rise non-linéaire concentré à la fin
   - `sawtooth` : cycles répétés (NIN/March_Of_The_Pigs verse-chorus
     inversion)
-- `start_db` : float ∈ [-60.0, 0.0]. 0 = section baseline (max
-  perceived). -12 typique pour intro silencieuse. -60 quasi-silence
-  (rarement utile en composition).
-- `end_db` : float ∈ [-60.0, 0.0]. Same range.
+- `start_db` : float ∈ [-60.0, 0.0]. **Optionnel** — si omis, défaut =
+  section baseline (-12 dB, constante `DYNAMICS_BASELINE_DB`). 0 = max
+  perceived. -60 quasi-silence (rarement utile en composition).
+  Recommandé : toujours le spécifier explicitement, sauf pour `flat`.
+- `end_db` : float ∈ [-60.0, 0.0]. **Optionnel** — même règle de défaut
+  que `start_db`.
 - `peak_bar` : Optional[int] (peut être null). Si fourni, doit être
   dans `[0, total_bars)` (cohesion rule l'enforce). Requis pour
   `arc_shape="peak"`.
-- `inflection_points` : liste (peut être vide) de paires `[bar, db]`.
-  Chaque entrée : bar int dans `[0, total_bars]`, db float dans
-  `[-60, 0]`. Décrit des points intermédiaires au sein du shape pour
-  affiner la courbe (par exemple un peak intermédiaire avant le peak
-  final).
+- `inflection_points` : liste de paires `[bar, db]`. Chaque entrée :
+  bar int dans `[0, total_bars]`, db float dans `[-60, 0]`. **Doit
+  être triée par bar ascendant strict** (pas de bar dupliqué) — le
+  parser rejette les listes non-triées.
+
+  **Minimums par shape** (Phase 2.6.1) :
+  - `valley` : ≥ 1 inflection point (sinon pas de creux)
+  - `sawtooth` : ≥ 2 inflection points (sinon pas de cycles)
+  - autres shapes : 0 minimum, liste vide acceptée
 
 ## Procédure
 
@@ -176,6 +182,13 @@ Schema (version 1.0) :
   `dynamics_within_structure_bounds` (Phase 2.6.1) le rejette.
 - ❌ **`arc_shape="peak"` sans `peak_bar`** — incohérent ; le parser
   rejette.
+- ❌ **`arc_shape="valley"` avec `inflection_points=[]`** — un valley
+  sans creux n'existe pas ; le parser exige ≥ 1 inflection (Phase 2.6.1).
+- ❌ **`arc_shape="sawtooth"` avec moins de 2 inflection_points** — un
+  sawtooth nécessite ≥ 2 cycles ; le parser exige ≥ 2 (Phase 2.6.1).
+- ❌ **`inflection_points` non trié par bar** — `[[15, -6], [3, -10]]`
+  est rejeté ; toujours trier par bar ascendant. Bars dupliqués aussi
+  rejetés.
 - ❌ **Pas de \`\`\`json fences autour de ta réponse**.
 - ❌ **`schema_version` oublié** — toujours `"schema_version": "1.0"`.
 - ❌ **`inspired_by` vide** — toujours au moins 1 citation.
