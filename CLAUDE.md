@@ -79,6 +79,31 @@ propage à >130 voisins — toujours vérifier via `/graphify explain` avant.
 - **Ne jamais commit `graphify-out/`** : c'est un artefact local, déjà
   ignoré dans `.gitignore`.
 
+## Hooks git automatiques (filet de sécurité)
+
+Le projet versionne ses hooks git dans `.githooks/`. Configurer une fois
+par clone :
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Sans cette commande, **les hooks ne s'exécutent pas**. Le `git status`
+n'avertit pas — penser à le refaire après un fresh clone.
+
+### Hooks installés
+
+| Hook | Rôle |
+|------|------|
+| `pre-commit` | Lance `check_version_sync.py` si un fichier de prod est staged. Bloque le commit en cas de drift de version. Bypass avec `--no-verify` (déconseillé). |
+| `post-commit` | Hook graphify : rebuild AST-only de `graphify-out/graph.json` après chaque commit. Sans LLM, gratuit. |
+| `post-checkout` | Idem au changement de branche. |
+
+Les hooks sont des **filets de sécurité déterministes** (pas de LLM, pas
+de magie) qui complètent les agents Claude Code. Si un check est purement
+mécanique (grep + comparaison), il vaut mieux l'avoir comme hook que comme
+agent — l'agent peut être oublié, le hook ne peut pas.
+
 ## Agents automatiques
 
 Le projet déclare des subagents Claude Code dans `.claude/agents/`. Certains
