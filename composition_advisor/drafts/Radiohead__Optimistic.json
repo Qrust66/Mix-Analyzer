@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album/year (Kid A, 2000) and runtime ~5:15 confirmed. Tempo 120-122 BPM plausible (~120). 4/4 ✓ with cross-rhythmic guitar accents over the grid. D Dorian modal color (raised 6th B-natural over D-minor tonic) is the documented compositional signature giving the track its bittersweet 'hopeful but troubled' affect. Twin clean-tremolo guitar interlock (Jonny Greenwood + Ed O'Brien with post-punk Television lineage) is the documented textural engine. Half-time dub-influenced ambient outro is the well-documented structural signature event. Lyric hook 'try the best you can / the best you can is good enough' correctly cited. Optimistic is widely recognized as the most band-rock track on Kid A. No factual corrections needed.",
   "_overall_confidence": "high_for_structure_meter_and_arrangement_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "tempo_bpm (~120-122 — one of the more conventional tempos on Kid A)",
