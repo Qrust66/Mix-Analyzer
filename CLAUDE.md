@@ -201,6 +201,66 @@ L'agent et le hook sont complémentaires :
 - Agent = audit raisonné, peut être invoqué avant le commit pour
   anticiper et choisir le scope de tests à lancer manuellement
 
+## Composition Engine — Architecture multi-agent (Phase 1 en place)
+
+L'objectif : générer des compositions originales en s'inspirant de plusieurs
+chansons à la fois (corpus de 35 chansons dans
+`composition_advisor/composition_advisor.json`), section par section, avec
+une équipe d'agents spécialisés par sphère et un audit de cohérence.
+
+### Sphères
+
+7 sphères couvrent les aspects d'une section :
+
+| Sphère | Décide | Source JSON |
+|--------|--------|-------------|
+| `structure` | bars, sub-sections, breath points | `composition.structural_blueprint`, `section_count_and_lengths` |
+| `harmony` | mode, progression, voicings, harmonic_rhythm | `composition.harmonic_motion`, `modal_choice`, `voicings_recipes` |
+| `rhythm` | drum pattern, BPM, swing, polyrhythms | `performance.drum_style`, `rhythm_theory`, `rhythm_advanced` |
+| `arrangement` | layers, density_curve, instrumentation_changes | `arrangement.section_instrumentation`, `harmonic_density_per_section`, `density_curves` |
+| `dynamics` | arc_shape, start/end dB, peak_bar | `arrangement.dynamic_arc_overall`, `tension_release` |
+| `performance` | feel, humanization, articulation, anti-patterns | `performance.tempo_feel_description`, `performance.guitar_style` |
+| `fx` | reverb, filter, saturation, stéréo, sidechain | `mixing.compression_philosophy`, `stereo_image_strategy`, `vocal_treatment` |
+
+### Modules clés (Phase 1)
+
+| Module | Rôle |
+|--------|------|
+| `composition_engine/advisor_bridge/song_loader.py` | Pont read-only vers les 35 chansons (`list_songs`, `get_song`, `find_song`, `query`, `get_advisor_section`). |
+| `composition_engine/blueprint/schema.py` | `SectionBlueprint` immuable avec un `Decision[T]` par sphère + provenance (`Citation`, `rationale`, `confidence`). |
+| `composition_engine/blueprint/cohesion.py` | Cohesion via `@cohesion_rule` decorator. Règles déclaratives, partial-fill safe (skip silencieux si sphères absentes). |
+| `composition_engine/director/director.py` | Orchestrateur avec DAG des sphères + 2 modes : `GHOST` (blueprint pré-rempli, validation seule), `LIVE` (Phase 2+, agents LLM). |
+
+### Règle d'or : un agent ne délègue jamais à un autre agent
+
+Les agents ne s'invoquent **pas** entre eux. Chaque agent retourne sa
+décision pour sa sphère, le **Director** (code Python, déterministe)
+agrège et audite. Cela évite les chaînes de subagents et les boucles.
+
+### Comment ajouter une chanson au corpus
+
+1. Édite `composition_advisor/composition_advisor.json`, ajoute une entrée
+   sous `song_dissection_exhaustive.by_artist.<ARTIST>.<SONG>` en suivant
+   le schéma des 35 chansons existantes.
+2. Vérifie : `python -m composition_engine.advisor_bridge.song_loader`
+   doit afficher 36 (ou plus) songs et retrouver la nouvelle chanson via
+   `find_song`.
+3. Aucun code Python à toucher : tous les agents lisent automatiquement
+   via `song_loader`.
+
+### Comment ajouter une sphère
+
+1. Ajoute un dataclass `XyzDecision` dans `blueprint/schema.py`.
+2. Ajoute le nom dans la tuple `SPHERES`.
+3. Ajoute un champ `xyz: Optional[Decision[XyzDecision]] = None` sur
+   `SectionBlueprint`.
+4. Mets à jour `SPHERE_DEPENDENCIES` dans `director/director.py` pour
+   placer la nouvelle sphère dans le DAG.
+5. (Optionnel) Ajoute des `@cohesion_rule` qui croisent la nouvelle
+   sphère avec les existantes.
+6. (Phase 2+) Crée `.claude/agents/<xyz>-decider.md` quand prêt à wirer
+   le LLM.
+
 ## Fichiers de production (8 fichiers, même dossier)
 
 | Fichier | Rôle |
