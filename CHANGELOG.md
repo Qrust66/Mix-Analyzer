@@ -1,5 +1,40 @@
 # Changelog
 
+## [Unreleased — Phase 3 prep: Ableton catalog_loader] - 2026-04-27
+
+### Added
+- **`composition_engine/ableton_bridge/`** package — bridges blueprint
+  decisions to Ableton .als manipulation. Phase 3 will add the actual
+  Ableton-side agents; this commit lands the read-only catalog access.
+- **`composition_engine/ableton_bridge/catalog_loader.py`** — sliced
+  access to `ableton/ableton_devices_mapping.json` (~5500-line hand-curated
+  catalog of 9 stock devices + 2 VST3 plugins + automation conventions
+  + 9 known bugs from past sessions). Loading the full catalog into a
+  device-config agent's prompt would cost ~15K tokens per invocation;
+  the loader carves it into actionable slices:
+    * `get_device_spec(name)` → just the spec for one device (Eq8,
+      Compressor2, …) or VST3 plugin (Trackspacer, SmartLimit).
+    * `get_automation_conventions()` → for the future automation-engineer.
+    * `get_validation_rules()` → write_rules + validation + e2e checks.
+    * `get_xml_pattern()` → universal XML-shape conventions every Ableton-
+      side agent should be primed with.
+    * `get_known_bugs(device=None)` → filtered or full list of past bugs
+      to prime into agent prompts so we don't repeat them.
+    * `get_ableton_conventions()`, `get_tempo_mapping()`, `get_meta()`.
+  The master JSON file stays monolithic (8+ versions of hand-curation by
+  the user); the loader is the layer that makes it agent-friendly.
+- **`tests/test_ableton_catalog_loader.py`** — 16 tests covering caching,
+  device list / VST3 list, slice accessors, case-insensitive bug filtering,
+  unknown-device error path, integration smoke for a hypothetical
+  eq-eight-config agent priming.
+
+### Architecture decision
+Per user feedback (memory: ableton_agent_partitioning), all future
+Ableton-side agents must split concerns strictly: device-config agents
+DO NOT touch automation; a single dedicated `automation-engineer` agent
+handles all envelopes. The catalog_loader's accessor split mirrors this
+partitioning so each agent receives only what its scope requires.
+
 ## [Unreleased — composition_engine Phase 2.3.1] - 2026-04-27
 
 ### Added

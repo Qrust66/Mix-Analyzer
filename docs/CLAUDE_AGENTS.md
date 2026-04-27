@@ -213,6 +213,7 @@ ajouter une chanson, on touche **uniquement** `inspirations.json`.
 | `composition_engine/blueprint/composer_adapter.py` | **Phase 2.1** : wire un `SectionBlueprint` au `composer.compose()` existant. API : `blueprint_to_composition(bp)`, `compose_from_blueprint(bp)`, `compose_to_midi(bp, path)`. Phase 2.1 consomme les 4 sphères essentielles (structure, harmony, rhythm, arrangement) ; les 3 autres (dynamics, performance, fx) sont loggées comme "not yet wired" si remplies. |
 | `composition_engine/blueprint/midi_export.py` | **Phase 2.1** : writer Standard MIDI File (Format 1, multi-track) en stdlib pur. Permet l'export `.mid` direct depuis un blueprint via `compose_to_midi()`. |
 | `composition_engine/blueprint/agent_parsers.py` | **Phase 2.2** : parsers du JSON émis par les sphere agents. Phase 2.2 ship `parse_structure_decision()` qui valide et construit un `Decision[StructureDecision]` à partir du payload de `structure-decider`. Lève `AgentOutputError` si le payload est mal formé. |
+| `composition_engine/ableton_bridge/catalog_loader.py` | **Phase 3 prep** : sliced read-only access à `ableton/ableton_devices_mapping.json` (~5500 lignes). Permet à un device-config agent de charger UNIQUEMENT la slice pertinente (~500-800 lignes) au lieu du catalog complet. API : `get_device_spec(name)`, `get_automation_conventions()`, `get_xml_pattern()`, `get_known_bugs(device=None)`, `get_validation_rules()`, etc. Single source of truth — le fichier JSON reste hand-curated par l'utilisateur. |
 
 ### Règle d'or : un agent ne délègue jamais à un autre agent
 
