@@ -55,7 +55,8 @@ Execution, Use the Knowledge Graph).
 | Document | Contenu |
 |----------|---------|
 | **`docs/CLAUDE_PROJECT.md`** | Versioning (8 fichiers), fichiers de production, observations ALS, guide manipulation `.als`, **5 pièges critiques** déjà rencontrés |
-| **`docs/CLAUDE_AGENTS.md`** | Hooks git (pre-commit, pre-push, post-commit), hooks Claude Code, 4 subagents (`als-safety-guardian`, `version-sync-checker`, `graph-first-explorer`, `regression-detector`), composition engine architecture (Phase 1) |
+| **`docs/CLAUDE_AGENTS.md`** | Hooks git, hooks Claude Code, hiérarchie complète des subagents : housekeeping + 7 sphere agents compo (Phase 2.X) + 2 oracles Ableton-expertise (Phase 4.0) + 12 mix agents prévus (Phase 4.1+) |
+| **`docs/MIX_ENGINE_ARCHITECTURE.md`** | Phase 4.0 design doc — module `mix_engine/` parallèle à `composition_engine/`, MixBlueprint, DAG, hooks d'intégration, plan d'évolution graduel du device mapping JSON |
 | **`docs/CLAUDE_GRAPHIFY.md`** | Knowledge graph `graphify-out/graph.json` — quand consulter, commandes `/graphify`, god nodes, maintenance |
 | **`docs/CODING_PRINCIPLES.md`** | 5 principes coding (Think Before, Simplicity, Surgical, Goal-Driven, Use Graph) |
 | **`.claude/COST_DISCIPLINE.md`** | 10 règles d'économie de tokens |

@@ -43,6 +43,23 @@ de magie) qui complètent les agents Claude Code. Si un check est purement
 mécanique, il vaut mieux l'avoir comme hook que comme agent — l'agent peut
 être oublié, le hook ne peut pas.
 
+## Hiérarchie complète des agents
+
+| Catégorie | Agents | Phase | État |
+|---|---|---|---|
+| **Housekeeping** | als-safety-guardian, version-sync-checker, graph-first-explorer, regression-detector | toutes | ✅ |
+| **Composition spheres** | structure, harmony, rhythm, arrangement, dynamics deciders | 2.2-2.6 | ✅ |
+| **Composition spheres restantes** | performance-decider, fx-decider | 2.7-2.8 | ⏳ |
+| **Ableton-expertise oracles** | device-mapping-oracle, als-manipulation-oracle | 4.0 | ✅ |
+| **Mix lanes** | mix-diagnostician, routing-and-sidechain-architect, eq-corrective-engineer, eq-creative-colorist, dynamics-corrective-engineer, saturation-and-color-engineer, stereo-and-spatial-engineer, automation-engineer, chain-builder, mastering-engineer, mix-orchestrator, mix-safety-guardian | 4.1+ | ⏳ |
+
+Les **oracles** (Phase 4.0) sont la couche d'expertise active sur la
+documentation Ableton (device mapping JSON + manipulation guide). Tout
+mix agent les interroge plutôt que de re-charger 5500 lignes de JSON.
+Symétrie : oracle = prof avant l'action, guardian = correcteur après.
+
+Voir **`docs/MIX_ENGINE_ARCHITECTURE.md`** pour le design Phase 4.0+.
+
 ## Agents automatiques
 
 Le projet déclare des subagents Claude Code dans `.claude/agents/`. Certains
@@ -135,6 +152,46 @@ frozenset canonique.
 **Effet sur le rendu** : chaque LayerSpec devient une track MIDI
 (drum_kit → kick on 36, bass → tonic-12, lead → tonic+7, pad → minor
 triad). Décisions vraies = MIDI vrai.
+
+### device-mapping-oracle (`.claude/agents/device-mapping-oracle.md`)
+
+**Ableton-expertise oracle (Phase 4.0).** Interface LLM proactive sur
+`ableton/ableton_devices_mapping.json`. Quand n'importe quel agent ou
+session a besoin de connaître le pattern XML, write rules, validation,
+automation compatibility, bugs connus, ou interactions device-à-device
+pour un paramètre Ableton, il interroge cet oracle.
+
+**Invoquer** typiquement avant tout move sur un device : eq-corrective
+qui veut connaître l'attribut XML pour `Frequency.Band1`, automation-engineer
+qui veut savoir si un param est automatable et avec quel envelope kind,
+chain-builder qui veut les warnings d'interaction Saturator → Compressor.
+
+Backed par `composition_engine/ableton_bridge/catalog_loader.py` (slice
+JSON déterministe). Output JSON structuré avec `cited_from[]`. Ne dump
+**jamais** le catalog brut — synthétise.
+
+Read-only. Voir `docs/MIX_ENGINE_ARCHITECTURE.md` §4.
+
+### als-manipulation-oracle (`.claude/agents/als-manipulation-oracle.md`)
+
+**Ableton-expertise oracle (Phase 4.0).** Interface LLM proactive sur
+`ableton/ALS_MANIPULATION_GUIDE.md` + `als_utils.py`. Quand n'importe
+quel agent s'apprête à modifier un .als, il interroge cet oracle pour
+obtenir la procédure SAFE étape par étape, avec citation explicite des
+5 pièges canoniques relevant.
+
+**Invoquer** typiquement avant toute opération .als : injection de
+device, patch param, écriture d'automation envelope, modification de
+routing. L'oracle enseigne avant l'action ; **als-safety-guardian**
+valide après l'action — ne pas confondre les rôles.
+
+Output JSON procédural (steps + watch_out_for + verification_after +
+save_path_recommendation non-destructif). Cite toujours les pièges
+relevant parmi les 5 canoniques (double_gzip, devices_self_closing,
+envelopes_self_closing, post_write_verification, name_every_injected_device).
+
+Read-only — l'oracle ne modifie jamais un .als lui-même. Voir
+`docs/MIX_ENGINE_ARCHITECTURE.md` §4.
 
 ### dynamics-decider (`.claude/agents/dynamics-decider.md`)
 

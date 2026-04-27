@@ -1,5 +1,70 @@
 # Changelog
 
+## [Unreleased — mix_engine Phase 4.0] - 2026-04-27
+
+Foundation for the mix-side multi-agent system. **Architecture-only**
+release: zero functional code, the rails are posed. Concrete agents
+land Phase 4.1+ rule-with-consumer style, same discipline as the
+composition engine's incremental sphere build-out.
+
+### Added — design doc
+
+- **`docs/MIX_ENGINE_ARCHITECTURE.md`** — Phase 4.0 North Star.
+  Justifies the parallel module layout, defines `MixBlueprint` /
+  `MixDecision[T]`, lays out the 12-lane DAG (mix-diagnostician →
+  routing → corrective lanes → creative color → chain → automation →
+  mastering → safety-guardian), specifies the 2-oracle pattern,
+  enumerates the planned cohesion rules, sketches the hook integration
+  points, and plans the gradual evolution of `ableton_devices_mapping.json`.
+
+### Added — `mix_engine/` module skeleton
+
+Parallel to `composition_engine/`. All files ship with docstrings only
+(no implementation):
+- `mix_engine/__init__.py`
+- `mix_engine/blueprint/{__init__,schema,cohesion,agent_parsers,als_writer}.py`
+- `mix_engine/director/{__init__,director}.py` — `MIX_DEPENDENCIES` DAG
+  declared in full, ready to be consumed once concrete agents land
+- `mix_engine/diagnostic/{__init__,excel_loader}.py` — read-only Excel
+  report interface (skeleton)
+- `mix_engine/README.md`
+
+### Added — 2 Ableton-expertise oracles
+
+The `.claude/agents/` family gains its first **oracle** pattern (active
+LLM interface on top of curated documentation):
+
+- **`device-mapping-oracle.md`** — fronts `ableton_devices_mapping.json`
+  (5500 lines). Returns synthesized, citation-backed slices for any
+  device/param query. Backed deterministically by the existing
+  `catalog_loader.py`.
+- **`als-manipulation-oracle.md`** — fronts `ALS_MANIPULATION_GUIDE.md`
+  + `als_utils.py`. Returns step-by-step safe procedures for any .als
+  operation, with the 5 canonical pitfalls cited inline.
+
+Together with the existing `als-safety-guardian` they form the
+**Ableton-expertise layer**: oracles teach before the action, guardian
+validates after. Mix agents (Phase 4.1+) consult oracles instead of
+re-loading raw JSON or markdown.
+
+### Updated — hub
+
+- `CLAUDE.md` references the new architecture doc + oracles
+- `docs/CLAUDE_AGENTS.md` carries a complete agent hierarchy table
+  (housekeeping × 4 / composition spheres × 7 / oracles × 2 / mix
+  lanes × 12) plus full per-oracle entries
+
+### Phase 4.1 cohort planned (not in this release)
+
+1. `device-mapping-oracle` — wire it into a real query workflow
+2. `mix-diagnostician` — produces the structured report all other
+   mix agents consume
+3. `eq-corrective-engineer` — first lane agent (Eq8 is the most
+   thoroughly mapped device + most testable via Mix Analyzer)
+
+Everything else (dynamics-corrective, automation-engineer, mastering,
+…) lands when a real project demands it.
+
 ## [Unreleased — composition_engine Phase 2.6.1] - 2026-04-27
 
 Audit-driven cleanup of the 4 high+medium weaknesses found in Phase 2.6.
