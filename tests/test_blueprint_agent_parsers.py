@@ -146,9 +146,28 @@ def test_raises_on_non_positive_total_bars():
         parse_structure_decision(payload)
 
 
-def test_raises_on_wrong_type_for_total_bars():
+def test_string_of_int_total_bars_coerced():
+    """The parser is lenient-on-input by design (Phase 2.2.1): a string
+    that contains a valid integer is coerced. This test pins that contract.
+
+    Phase 2.6.1 cleanup: the previous test
+    (`test_raises_on_wrong_type_for_total_bars`) expected a string to be
+    rejected, but `_coerce_int` accepts numeric strings. The expectation
+    contradicted the documented module policy. Replaced with this test
+    that asserts the intentional coercion + a sibling test below that
+    asserts truly malformed strings ARE rejected.
+    """
     payload = _valid_payload()
     payload["structure"]["total_bars"] = "16"
+    decision = parse_structure_decision(payload)
+    assert decision.value.total_bars == 16
+    assert isinstance(decision.value.total_bars, int)
+
+
+def test_non_numeric_total_bars_string_raises():
+    """Lenient ≠ blind: a string that isn't a number is still rejected."""
+    payload = _valid_payload()
+    payload["structure"]["total_bars"] = "sixteen"
     with pytest.raises(AgentOutputError, match="total_bars"):
         parse_structure_decision(payload)
 
