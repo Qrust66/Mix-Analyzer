@@ -11,9 +11,10 @@ def test_list_artists_returns_seven_artists():
     assert "Radiohead" in artists
 
 
-def test_list_songs_returns_35_real_songs():
+def test_list_songs_returns_34_real_songs():
     songs = sl.list_songs()
-    assert len(songs) == 35
+    # Was 35; Around_The_World removed by user request (out of stylistic scope).
+    assert len(songs) == 34
     # _meta keys must be excluded
     for artist, song in songs:
         assert not song.startswith("_")
