@@ -1,0 +1,188 @@
+# CLAUDE_AGENTS.md — Subagents, hooks, composition engine architecture
+
+Document chargé à la demande pour les détails du système multi-agent et des
+hooks Claude Code / git. Le hub `CLAUDE.md` à la racine du repo y pointe.
+
+## Hooks git automatiques (filet de sécurité)
+
+Le projet versionne ses hooks git dans `.githooks/`. Configurer une fois
+par clone :
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Sans cette commande, **les hooks ne s'exécutent pas**. Le `git status`
+n'avertit pas — penser à le refaire après un fresh clone.
+
+### Hooks installés
+
+| Hook | Rôle |
+|------|------|
+| `pre-commit` | Lance `check_version_sync.py` si un fichier de prod est staged. Bloque le commit en cas de drift de version. Bypass avec `--no-verify` (déconseillé). |
+| `pre-push` | Lance `check_regression.py` qui choisit entre la **suite rapide** (3 fichiers test : `test_spectral_evolution`, `test_eq8_automation`, `test_v25_integration`, ~10-15s) et la **suite complète** (`pytest tests/`, ~2 min). Critère : si un des 8 fichiers de prod ou un fichier `tests/*.py` est dans le push → suite complète, sinon suite rapide. Bloque le push en cas d'échec. Bypass avec `--no-verify` (déconseillé). |
+| `post-commit` | Hook graphify : rebuild AST-only de `graphify-out/graph.json` après chaque commit. Sans LLM, gratuit. |
+| `post-checkout` | Idem au changement de branche. |
+
+### Hooks Claude Code (`.claude/hooks/`)
+
+`UserPromptSubmit` (configuré dans `.claude/settings.json`) lance deux
+scripts à chaque prompt :
+
+1. **`graphify_reminder.py`** : si le prompt matche des patterns
+   d'architecture / dépendance / cross-module, injecte un rappel pour
+   consulter `graphify-out/graph.json` avant tout grep/Read.
+2. **`cost_discipline_reminder.py`** : si le prompt matche un pattern à
+   risque coût (scale-without-pilot, brief ouvert), injecte un rappel
+   pointant vers `.claude/COST_DISCIPLINE.md`.
+
+Coût : ~50 tokens par prompt qui matche, 0 sinon.
+
+Les hooks sont des **filets de sécurité déterministes** (pas de LLM, pas
+de magie) qui complètent les agents Claude Code. Si un check est purement
+mécanique, il vaut mieux l'avoir comme hook que comme agent — l'agent peut
+être oublié, le hook ne peut pas.
+
+## Agents automatiques
+
+Le projet déclare des subagents Claude Code dans `.claude/agents/`. Certains
+doivent être invoqués proactivement aux moments listés ci-dessous, sans
+attendre que l'utilisateur les demande.
+
+### als-safety-guardian (`.claude/agents/als-safety-guardian.md`)
+
+**Invoquer automatiquement** dans ces cas :
+
+1. **Après l'exécution d'un script qui produit un `.als`** : tout script de
+   `composition_engine/`, `scripts/build_*`, `ableton/build_*`, ou tout
+   appel à `als_utils.compress_to_als()` qui écrit un nouveau fichier.
+2. **Avant un commit qui modifie ou ajoute un `.als`** (`git status`
+   montre un `.als` staged ou modified).
+3. **Avant de livrer un `.als` à l'utilisateur** — passer la checklist en
+   silence avant la livraison.
+
+L'agent est read-only (tools restreints à `Read, Bash, Grep, Glob`). Reporte
+PASS / FAIL / WARN par règle puis verdict global. Si verdict = FAIL,
+**ne pas livrer le `.als`** sans fix manuel.
+
+Référence : `ableton/ALS_MANIPULATION_GUIDE.md` + section "Pièges critiques"
+de `docs/CLAUDE_PROJECT.md`.
+
+### version-sync-checker (`.claude/agents/version-sync-checker.md`)
+
+**Invoquer automatiquement** dans ces cas :
+
+1. **Avant tout commit qui touche `mix_analyzer.py`** — la constante
+   canonique `VERSION` peut avoir bougé sans que les 7 autres docstrings
+   suivent.
+2. **Avant tout commit dont le message contient `bump`, `version` ou
+   `release`**.
+3. **Avant un push sur `main`** — dernière vérif avant publication.
+
+L'agent compare la constante `VERSION` dans `mix_analyzer.py` aux docstrings
+des 7 autres fichiers (cf. section "Versioning" de `docs/CLAUDE_PROJECT.md`).
+Reporte un tableau PASS/FAIL et refuse de patcher (read-only).
+
+Si verdict = OUT-OF-SYNC, **ne pas push** sans aligner manuellement les
+fichiers en drift.
+
+### graph-first-explorer (`.claude/agents/graph-first-explorer.md`)
+
+**Invoquer automatiquement** quand l'utilisateur pose une question :
+
+1. **D'architecture / cross-module** : "comment fonctionne la pipeline X",
+   "qui dépend de Y", "lien entre A et B", "trace le flux de … à …".
+2. **Multi-query** : la réponse nécessite de croiser plusieurs concepts ou
+   modules (>2 fichiers à explorer).
+3. **De premier contact avec un module inconnu** : avant de plonger dans
+   un dossier que je n'ai pas encore visité dans la session.
+
+L'agent consulte `graphify-out/graph.json` **avant** tout grep/Read et
+revient avec une synthèse citée. Ne pas l'invoquer pour les questions
+triviales (1 Read suffit) ou pour les détails algorithmiques d'une
+fonction (graph donne la structure, pas le détail).
+
+Le hook `UserPromptSubmit` (cf. plus haut) injecte automatiquement un
+rappel quand le prompt matche les patterns d'architecture — filet de
+sécurité pour ne pas oublier l'agent.
+
+### regression-detector (`.claude/agents/regression-detector.md`)
+
+**Invoquer automatiquement** dans ces cas :
+
+1. **Avant tout commit qui touche un des 8 fichiers de prod** ou un
+   `tests/*.py` — analyser le diff, calculer le blast radius via le
+   graph, recommander les tests à lancer.
+2. **Avant un push** qui contient des modifs de prod — recommander si
+   la suite rapide suffit ou si la suite complète est nécessaire.
+3. **À la demande explicite** : "audit régression sur ce changement".
+
+L'agent fait l'**audit intelligent** (lit le diff, croise avec
+`graphify-out/graph.json` pour identifier qui dépend des fonctions
+modifiées, flagge HIGH RISK si un god node est touché). Il **ne lance
+pas les tests** — c'est le rôle du hook `pre-push`.
+
+L'agent et le hook sont complémentaires :
+- Hook = filet de sécurité automatique au moment du push
+- Agent = audit raisonné, peut être invoqué avant le commit pour
+  anticiper et choisir le scope de tests à lancer manuellement
+
+## Composition Engine — Architecture multi-agent (Phase 1 en place)
+
+L'objectif : générer des compositions originales en s'inspirant de plusieurs
+chansons à la fois (corpus dans `composition_advisor/composition_advisor.json`),
+section par section, avec une équipe d'agents spécialisés par sphère et un
+audit de cohérence.
+
+### Sphères
+
+7 sphères couvrent les aspects d'une section :
+
+| Sphère | Décide | Source JSON |
+|--------|--------|-------------|
+| `structure` | bars, sub-sections, breath points | `composition.structural_blueprint`, `section_count_and_lengths` |
+| `harmony` | mode, progression, voicings, harmonic_rhythm | `composition.harmonic_motion`, `modal_choice`, `voicings_recipes` |
+| `rhythm` | drum pattern, BPM, swing, polyrhythms | `performance.drum_style`, `rhythm_theory`, `rhythm_advanced` |
+| `arrangement` | layers, density_curve, instrumentation_changes | `arrangement.section_instrumentation`, `harmonic_density_per_section`, `density_curves` |
+| `dynamics` | arc_shape, start/end dB, peak_bar | `arrangement.dynamic_arc_overall`, `tension_release` |
+| `performance` | feel, humanization, articulation, anti-patterns | `performance.tempo_feel_description`, `performance.guitar_style` |
+| `fx` | reverb, filter, saturation, stéréo, sidechain | `mixing.compression_philosophy`, `stereo_image_strategy`, `vocal_treatment` |
+
+### Modules clés (Phase 1)
+
+| Module | Rôle |
+|--------|------|
+| `composition_engine/advisor_bridge/song_loader.py` | Pont read-only vers les chansons (`list_songs`, `get_song`, `find_song`, `query`, `get_advisor_section`). |
+| `composition_engine/blueprint/schema.py` | `SectionBlueprint` immuable avec un `Decision[T]` par sphère + provenance (`Citation`, `rationale`, `confidence`). |
+| `composition_engine/blueprint/cohesion.py` | Infrastructure de cohésion via `@cohesion_rule` decorator (registry auto-collectée, partial-fill safe). **Phase 1 ne ship aucune règle concrète** — chaque règle naît avec l'agent qui motive son existence (couplage rule-with-consumer, anti-speculative). |
+| `composition_engine/director/director.py` | Orchestrateur avec DAG des sphères, mode `GHOST` (blueprint pré-rempli, validation seule). Live mode (LLM agents) ajouté en Phase 2 avec les agents eux-mêmes. |
+
+### Règle d'or : un agent ne délègue jamais à un autre agent
+
+Les agents ne s'invoquent **pas** entre eux. Chaque agent retourne sa
+décision pour sa sphère, le **Director** (code Python, déterministe)
+agrège et audite. Cela évite les chaînes de subagents et les boucles.
+
+### Comment ajouter une chanson au corpus
+
+1. Édite `composition_advisor/composition_advisor.json`, ajoute une entrée
+   sous `song_dissection_exhaustive.by_artist.<ARTIST>.<SONG>` en suivant
+   le schéma des chansons existantes.
+2. Vérifie : `python -m composition_engine.advisor_bridge.song_loader`
+   doit afficher le nouveau total et retrouver la nouvelle chanson via
+   `find_song`.
+3. Aucun code Python à toucher : tous les agents lisent automatiquement
+   via `song_loader`.
+
+### Comment ajouter une sphère
+
+1. Ajoute un dataclass `XyzDecision` dans `blueprint/schema.py`.
+2. Ajoute le nom dans la tuple `SPHERES`.
+3. Ajoute un champ `xyz: Optional[Decision[XyzDecision]] = None` sur
+   `SectionBlueprint`.
+4. Mets à jour `SPHERE_DEPENDENCIES` dans `director/director.py` pour
+   placer la nouvelle sphère dans le DAG.
+5. (Optionnel) Ajoute des `@cohesion_rule` qui croisent la nouvelle
+   sphère avec les existantes.
+6. (Phase 2+) Crée `.claude/agents/<xyz>-decider.md` quand prêt à wirer
+   le LLM.

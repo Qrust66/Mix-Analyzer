@@ -1,4 +1,8 @@
-# CLAUDE.md — Instructions récurrentes pour Claude Code
+# CLAUDE.md — Hub du projet Mix Analyzer
+
+Ce fichier est chargé automatiquement à chaque session Claude Code. Il est
+volontairement court (~100 lignes) ; les détails sont dans `docs/CLAUDE_*.md`
+et chargés à la demande quand pertinent.
 
 ## Projet
 
@@ -7,391 +11,54 @@ et des automations EQ8 dynamiques pour Ableton Live. Depuis v2.7.0, produit
 également un fichier `<projet>_diagnostics.json` à côté du `.als` via le
 Correction Diagnostic Engine (Feature 3.6 B1, cf. `cde_engine.py`).
 
-## Versioning
-
-La version canonique est la constante `VERSION` dans `mix_analyzer.py`.
-Tous les fichiers .py de production doivent afficher la même version.
-Endroits à maintenir synchronisés si la version change :
-
-- `mix_analyzer.py` `VERSION = 'X.Y.Z'` (constante canonique)
-- `mix_analyzer.py` ligne 4 (docstring)
-- `mix_analyzer.py` titre fenêtre, Help, logo subtitle (utilisent `VERSION`)
-- `als_utils.py` docstring ligne 4
-- `spectral_evolution.py` docstring ligne 4
-- `feature_storage.py` docstring ligne 4
-- `eq8_automation.py` docstring ligne 4
-- `automation_map.py` docstring ligne 4
-- `section_detector.py` docstring ligne 4
-- `cde_engine.py` docstring ligne 4 (depuis v2.7.0)
-
-La version est estampillée dans chaque rapport Excel (Index + AI Context).
-Ne jamais laisser des versions désynchronisées entre fichiers.
-
 ## Communication avec l'utilisateur
 
-- **Toujours indiquer si les changements sont disponibles sur `main`** après un commit/push.
-  L'utilisateur utilise **GitHub Desktop** pour synchroniser. Dire explicitement :
+- **Toujours indiquer si les changements sont disponibles sur `main`** après
+  un commit/push. L'utilisateur utilise **GitHub Desktop**. Dire explicitement :
   "C'est pushé sur main, tu peux faire **Pull** dans GitHub Desktop."
-- Si le travail est sur une branche feature, le préciser : "C'est sur la branche X,
-  pas encore sur main. Je te dirai quand merger."
-- L'utilisateur n'est pas familier avec git/GitHub — toujours guider simplement,
-  pas de jargon inutile. Le workflow est :
-  1. On travaille ici dans Claude Code
-  2. Je push sur GitHub quand c'est prêt
-  3. L'utilisateur fait **Pull** dans GitHub Desktop → fichiers locaux à jour
-
-## Knowledge Graph (graphify)
-
-Le projet a un knowledge graph persistant à `graphify-out/graph.json` (4334 nœuds,
-10757 arêtes, 96 communautés). Couvre code Python + docs + briefs + composition_engine.
-
-### Quand consulter le graph (réflexe à adopter)
-
-- **Avant d'explorer le code par grep/Glob/Read** pour répondre à une question
-  d'architecture ou trouver "qui appelle quoi" — `13×` moins de tokens en moyenne,
-  jusqu'à `100×+` pour les questions cross-module.
-- **Avant de modifier un fichier de production** : vérifier ses connexions sortantes
-  (qui en dépend) pour estimer le rayon de blast.
-- **Quand l'utilisateur référence un concept abstrait** (ex. "le moteur CDE",
-  "les sections", "TFP") plutôt qu'un fichier précis — le graph trouve le bon
-  point d'entrée.
-
-### Commandes
-
-- `/graphify query "<question>"` — réponse cross-fichiers via traversée BFS
-- `/graphify query "<question>" --dfs` — trace une chaîne de dépendances précise
-- `/graphify path "X" "Y"` — chemin le plus court entre deux concepts
-- `/graphify explain "X"` — tout ce qui se connecte au nœud X
-
-### God nodes (abstractions centrales — toucher avec précaution)
-
-`Section`, `CorrectionDiagnostic`, `CorrectionRecipe`, `ProblemMeasurement`,
-`PeakTrajectory`, `TFPContext`, `SectionContext`. Modifier l'un de ces types
-propage à >130 voisins — toujours vérifier via `/graphify explain` avant.
-
-### Maintenance du graph
-
-- **Code modifié** : si un commit a été fait, le post-commit hook (s'il est
-  installé via `graphify hook install`) recalcule l'AST automatiquement —
-  rien à faire. Sinon, `/graphify . --update` après une session de modifs.
-- **Docs / briefs / features modifiés ou ajoutés** : nécessite re-extraction
-  sémantique (LLM). Lancer `/graphify . --update` manuellement.
-- **Ne jamais commit `graphify-out/`** : c'est un artefact local, déjà
-  ignoré dans `.gitignore`.
+- Si le travail est sur une branche feature, le préciser.
+- L'utilisateur n'est pas familier avec git/GitHub — guider simplement, pas
+  de jargon inutile. Workflow : on travaille ici → je push → l'utilisateur
+  fait Pull dans GitHub Desktop.
 
 ## Économiser des tokens
 
-Règles comportementales que je dois respecter sans rappel. L'utilisateur
-paye chaque token de mes réponses et de mes lectures de fichiers — chaque
-règle ici a été motivée par une perte observée dans une session passée.
+10 règles comportementales canoniques dans **`.claude/COST_DISCIPLINE.md`**.
+Le hook `cost_discipline_reminder.py` injecte un rappel ciblé quand le
+prompt utilisateur matche un pattern à risque. Détails et incidents
+motivants en mémoire user-level (`memory/cost_discipline.md`).
 
-1. **Réponses courtes par défaut.** Pas de tableau si une phrase suffit.
-   Pas de section "Niveau 1 / 2 / 3" si une recommandation directe
-   convient. Si l'utilisateur veut un long raisonnement, il le demandera.
-
-2. **Pas de "tu valides ?" répétitifs.** Si l'intention est claire dans
-   la requête, exécuter. Demander confirmation seulement pour les actions
-   destructrices ou irréversibles (force-push, suppression de fichiers
-   trackés, modification du master JSON `composition_advisor.json`, etc.).
-
-3. **Mini-pilote avant de scaler.** Pour tout format produit à grande
-   échelle (N agents, N drafts, N fichiers similaires), produire d'abord
-   1-2 exemples courts, attendre validation explicite, puis scaler. Ne
-   jamais produire 25 fichiers au mauvais format.
-
-4. **Cadrer le scope avant le pilote.** Avant de lancer un travail de
-   production, lister explicitement avec l'utilisateur ce qui est IN et
-   ce qui est OUT. Une mini-vérification de 30 secondes économise des
-   heures de re-travail.
-
-5. **Déléguer au subagent `graph-first-explorer`** pour les questions
-   d'architecture / cross-module / "comment marche X" / "qui utilise Y"
-   plutôt que charger plusieurs fichiers dans mon contexte principal.
-   ~10× moins cher pour mon contexte. Le hook UserPromptSubmit me le
-   rappelle automatiquement, mais je dois le faire même sans rappel.
-
-6. **Laisser les hooks git faire les checks mécaniques** (version sync,
-   pre-push regression, ALS pitfalls). Ne pas les ré-implémenter à chaque
-   tour.
-
-7. **Subagents parallèles : fournir UNE référence canonique** (un fichier
-   pilote déjà produit, lu par chaque subagent) plutôt que répéter le
-   format dans le prompt de chaque subagent. Économise la duplication.
-
-8. **Ne pas suggérer de switch de modèle proactivement.** L'utilisateur
-   sait qu'Opus est cher. Il switche vers Sonnet via `/model sonnet`
-   quand il veut. Sonnet suffit pour : code Python propre, drafts de
-   doc, review de fichiers, tâches mécaniques. Opus pour : archi,
-   raisonnement multi-étapes, design.
-
-9. **Suggérer `/clear` ou `/compact`** quand l'utilisateur démarre un
-   sujet vraiment nouveau (changement de projet, fin d'une grosse phase
-   de travail). Pas la peine de trimballer 50K tokens de contexte
-   précédent qui ne sert plus.
-
-10. **Ne pas re-lire les mêmes fichiers à chaque tour.** Si j'ai déjà
-    chargé `CLAUDE.md` ou un fichier de référence dans la session, m'y
-    référer en mémoire — ne pas le ré-ouvrir.
-
-## Économiser des tokens
-
-Règles comportementales canoniques : voir **`.claude/COST_DISCIPLINE.md`**
-(10 règles courtes). Le hook Claude Code `cost_discipline_reminder.py`
-injecte un rappel ciblé quand le prompt utilisateur matche un pattern à
-risque (scale-without-pilot, brief ouvert). Détails et incidents motivants
-en mémoire user-level (`memory/cost_discipline.md`).
-
-## Hooks git automatiques (filet de sécurité)
-
-Le projet versionne ses hooks git dans `.githooks/`. Configurer une fois
-par clone :
-
-```bash
-git config core.hooksPath .githooks
-```
-
-Sans cette commande, **les hooks ne s'exécutent pas**. Le `git status`
-n'avertit pas — penser à le refaire après un fresh clone.
-
-### Hooks installés
-
-| Hook | Rôle |
-|------|------|
-| `pre-commit` | Lance `check_version_sync.py` si un fichier de prod est staged. Bloque le commit en cas de drift de version. Bypass avec `--no-verify` (déconseillé). |
-| `pre-push` | Lance `check_regression.py` qui choisit entre la **suite rapide** (3 fichiers test : `test_spectral_evolution`, `test_eq8_automation`, `test_v25_integration`, ~10-15s) et la **suite complète** (`pytest tests/`, ~2 min). Critère : si un des 8 fichiers de prod ou un fichier `tests/*.py` est dans le push → suite complète, sinon suite rapide. Bloque le push en cas d'échec. Bypass avec `--no-verify` (déconseillé). |
-| `post-commit` | Hook graphify : rebuild AST-only de `graphify-out/graph.json` après chaque commit. Sans LLM, gratuit. |
-| `post-checkout` | Idem au changement de branche. |
-
-### Hook Claude Code (`.claude/hooks/`)
-
-`UserPromptSubmit` (configuré dans `.claude/settings.json`) lance
-`.claude/hooks/graphify_reminder.py` à chaque prompt. Si le prompt matche
-des patterns d'architecture / dépendance / cross-module (regex sur
-`how does X work`, `qui utilise`, `pipeline`, `relation entre`, etc.),
-le hook **injecte un rappel** dans le contexte de Claude pour qu'il
-consulte `graphify-out/graph.json` avant tout grep/Read. Coût : ~50
-tokens par prompt qui matche, 0 sinon.
-
-Les hooks sont des **filets de sécurité déterministes** (pas de LLM, pas
-de magie) qui complètent les agents Claude Code. Si un check est purement
-mécanique (grep + comparaison), il vaut mieux l'avoir comme hook que comme
-agent — l'agent peut être oublié, le hook ne peut pas.
-
-## Agents automatiques
-
-Le projet déclare des subagents Claude Code dans `.claude/agents/`. Certains
-doivent être invoqués proactivement aux moments listés ci-dessous, sans
-attendre que l'utilisateur les demande.
-
-### als-safety-guardian (`.claude/agents/als-safety-guardian.md`)
-
-**Invoquer automatiquement** dans ces cas :
-
-1. **Après l'exécution d'un script qui produit un `.als`** : tout script de
-   `composition_engine/`, `scripts/build_*`, `ableton/build_*`, ou tout
-   appel à `als_utils.compress_to_als()` qui écrit un nouveau fichier.
-2. **Avant un commit qui modifie ou ajoute un `.als`** (`git status`
-   montre un `.als` staged ou modified).
-3. **Avant de livrer un `.als` à l'utilisateur** (par exemple : "voilà ton
-   Banger_v3.als") — passer la checklist en silence avant la livraison.
-
-L'agent est read-only (tools restreints à `Read, Bash, Grep, Glob`) — aucun
-risque qu'il modifie le fichier. Il reporte PASS / FAIL / WARN par règle
-puis un verdict global. Si verdict = FAIL, **ne pas livrer le `.als`** sans
-fix manuel.
-
-L'agent est défini en français et référence `ableton/ALS_MANIPULATION_GUIDE.md`
-+ la section "Pièges critiques" du présent CLAUDE.md comme source de vérité.
-Mettre à jour ces deux documents propage automatiquement aux validations.
-
-### version-sync-checker (`.claude/agents/version-sync-checker.md`)
-
-**Invoquer automatiquement** dans ces cas :
-
-1. **Avant tout commit qui touche `mix_analyzer.py`** — la constante canonique
-   `VERSION` peut avoir bougé sans que les 7 autres docstrings suivent.
-2. **Avant tout commit dont le message contient `bump`, `version` ou `release`**
-   — il s'agit explicitement d'un bump de version, validation obligatoire.
-3. **Avant un push sur `main`** — dernière vérif avant publication.
-
-L'agent compare la constante `VERSION` dans `mix_analyzer.py` aux docstrings
-des 7 autres fichiers listés en section "Versioning" plus haut. Reporte un
-tableau PASS/FAIL et refuse de patcher (read-only).
-
-Si verdict = OUT-OF-SYNC, **ne pas push** sans aligner manuellement les
-fichiers en drift. La règle projet est explicite : *"Ne jamais laisser des
-versions désynchronisées entre fichiers."*
-
-### graph-first-explorer (`.claude/agents/graph-first-explorer.md`)
-
-**Invoquer automatiquement** quand l'utilisateur pose une question :
-
-1. **D'architecture / cross-module** : "comment fonctionne la pipeline X",
-   "qui dépend de Y", "lien entre A et B", "trace le flux de … à …".
-2. **Multi-query** : la réponse nécessite de croiser plusieurs concepts ou
-   modules (>2 fichiers à explorer).
-3. **De premier contact avec un module inconnu** : avant de plonger dans
-   un dossier que je n'ai pas encore visité dans la session.
-
-L'agent consulte `graphify-out/graph.json` **avant** tout grep/Read et
-revient avec une synthèse citée. Ne pas l'invoquer pour les questions
-triviales (1 Read suffit) ou pour les détails algorithmiques d'une
-fonction (graph donne la structure, pas le détail).
-
-Le hook `UserPromptSubmit` (cf. section Hooks plus haut) injecte
-automatiquement un rappel dans mon contexte quand le prompt matche les
-patterns d'architecture — filet de sécurité pour ne pas oublier l'agent.
-
-### regression-detector (`.claude/agents/regression-detector.md`)
-
-**Invoquer automatiquement** dans ces cas :
-
-1. **Avant tout commit qui touche un des 8 fichiers de prod** ou un
-   `tests/*.py` — analyser le diff, calculer le blast radius via le
-   graph, recommander les tests à lancer.
-2. **Avant un push** qui contient des modifs de prod — recommander si
-   la suite rapide suffit ou si la suite complète est nécessaire.
-3. **À la demande explicite** : "audit régression sur ce changement".
-
-L'agent fait l'**audit intelligent** (lit le diff, croise avec
-`graphify-out/graph.json` pour identifier qui dépend des fonctions
-modifiées, flagge HIGH RISK si un god node est touché). Il **ne lance
-pas les tests** — c'est le rôle du hook `pre-push` (cf. section Hooks).
-
-L'agent et le hook sont complémentaires :
-- Hook = filet de sécurité automatique au moment du push
-- Agent = audit raisonné, peut être invoqué avant le commit pour
-  anticiper et choisir le scope de tests à lancer manuellement
-
-## Composition Engine — Architecture multi-agent (Phase 1 en place)
-
-L'objectif : générer des compositions originales en s'inspirant de plusieurs
-chansons à la fois (corpus de 35 chansons dans
-`composition_advisor/composition_advisor.json`), section par section, avec
-une équipe d'agents spécialisés par sphère et un audit de cohérence.
-
-### Sphères
-
-7 sphères couvrent les aspects d'une section :
-
-| Sphère | Décide | Source JSON |
-|--------|--------|-------------|
-| `structure` | bars, sub-sections, breath points | `composition.structural_blueprint`, `section_count_and_lengths` |
-| `harmony` | mode, progression, voicings, harmonic_rhythm | `composition.harmonic_motion`, `modal_choice`, `voicings_recipes` |
-| `rhythm` | drum pattern, BPM, swing, polyrhythms | `performance.drum_style`, `rhythm_theory`, `rhythm_advanced` |
-| `arrangement` | layers, density_curve, instrumentation_changes | `arrangement.section_instrumentation`, `harmonic_density_per_section`, `density_curves` |
-| `dynamics` | arc_shape, start/end dB, peak_bar | `arrangement.dynamic_arc_overall`, `tension_release` |
-| `performance` | feel, humanization, articulation, anti-patterns | `performance.tempo_feel_description`, `performance.guitar_style` |
-| `fx` | reverb, filter, saturation, stéréo, sidechain | `mixing.compression_philosophy`, `stereo_image_strategy`, `vocal_treatment` |
-
-### Modules clés (Phase 1)
-
-| Module | Rôle |
-|--------|------|
-| `composition_engine/advisor_bridge/song_loader.py` | Pont read-only vers les 35 chansons (`list_songs`, `get_song`, `find_song`, `query`, `get_advisor_section`). |
-| `composition_engine/blueprint/schema.py` | `SectionBlueprint` immuable avec un `Decision[T]` par sphère + provenance (`Citation`, `rationale`, `confidence`). |
-| `composition_engine/blueprint/cohesion.py` | Infrastructure de cohésion via `@cohesion_rule` decorator (registry auto-collectée, partial-fill safe). **Phase 1 ne ship aucune règle concrète** — chaque règle naît avec l'agent qui motive son existence (couplage rule-with-consumer, anti-speculative). |
-| `composition_engine/director/director.py` | Orchestrateur avec DAG des sphères, mode `GHOST` (blueprint pré-rempli, validation seule). Live mode (LLM agents) ajouté en Phase 2 avec les agents eux-mêmes. |
-
-### Règle d'or : un agent ne délègue jamais à un autre agent
-
-Les agents ne s'invoquent **pas** entre eux. Chaque agent retourne sa
-décision pour sa sphère, le **Director** (code Python, déterministe)
-agrège et audite. Cela évite les chaînes de subagents et les boucles.
-
-### Comment ajouter une chanson au corpus
-
-1. Édite `composition_advisor/composition_advisor.json`, ajoute une entrée
-   sous `song_dissection_exhaustive.by_artist.<ARTIST>.<SONG>` en suivant
-   le schéma des 35 chansons existantes.
-2. Vérifie : `python -m composition_engine.advisor_bridge.song_loader`
-   doit afficher 36 (ou plus) songs et retrouver la nouvelle chanson via
-   `find_song`.
-3. Aucun code Python à toucher : tous les agents lisent automatiquement
-   via `song_loader`.
-
-### Comment ajouter une sphère
-
-1. Ajoute un dataclass `XyzDecision` dans `blueprint/schema.py`.
-2. Ajoute le nom dans la tuple `SPHERES`.
-3. Ajoute un champ `xyz: Optional[Decision[XyzDecision]] = None` sur
-   `SectionBlueprint`.
-4. Mets à jour `SPHERE_DEPENDENCIES` dans `director/director.py` pour
-   placer la nouvelle sphère dans le DAG.
-5. (Optionnel) Ajoute des `@cohesion_rule` qui croisent la nouvelle
-   sphère avec les existantes.
-6. (Phase 2+) Crée `.claude/agents/<xyz>-decider.md` quand prêt à wirer
-   le LLM.
-
-## Fichiers de production (8 fichiers, même dossier)
-
-| Fichier | Rôle |
-|---------|------|
-| `mix_analyzer.py` | App principale (UI tkinter + analyse + rapport Excel + orchestration CDE depuis v2.7.0) |
-| `spectral_evolution.py` | Moteur CQT + extraction features v2.5 |
-| `feature_storage.py` | Écriture des sheets cachés Excel v2.5 |
-| `als_utils.py` | Manipulation des fichiers .als (lecture/écriture EQ8) |
-| `eq8_automation.py` | 15 fonctions d'automation EQ8 dynamique |
-| `section_detector.py` | Détection / lecture des sections Ableton + sheet Sections Timeline (Feature 3/3.5/3.6 hooks) |
-| `tfp_parser.py` + `tfp_coherence.py` | TFP roles (Feature 3.5) — parsing + score de cohérence par section |
-| `cde_engine.py` | Correction Diagnostic Engine (Feature 3.6 B1) — diagnostics masking + JSON dump |
+Voir aussi **`docs/CODING_PRINCIPLES.md`** pour les principes coding
+(Think Before Coding, Simplicity First, Surgical Changes, Goal-Driven
+Execution, Use the Knowledge Graph).
 
 ## Tests
 
-- `tests/test_spectral_evolution.py` — 22 tests (phases 1-2)
-- `tests/test_eq8_automation.py` — 45 tests (phases 3-8)
+- `tests/test_spectral_evolution.py` — 22 tests
+- `tests/test_eq8_automation.py` — 45 tests
 - `tests/test_v25_integration.py` — 4 tests d'intégration pipeline
 - Lancer : `python -m pytest tests/ -v`
-- Toujours lancer les tests avant de push.
+- Toujours lancer les tests avant de push (le hook `pre-push` le fait
+  automatiquement).
 
-## Conventions
+## Conventions essentielles
 
-- Style : black, type hints, docstrings sur chaque fonction publique.
-- Zéro régression v2.4 : les sheets et analyses existants ne doivent pas changer.
-- Pas de nouvelle dépendance sans justification (stack : numpy, scipy, librosa,
-  openpyxl, soundfile, pyloudnorm).
-- Commits format conventionnel : `feat(scope):`, `fix(scope):`, `chore:`, `test:`.
-- Anti-timeout : max 3 fichiers modifiés par réponse, checkpoint commits fréquents.
+- Style : black, type hints, docstrings.
+- **Zéro régression v2.4** : sheets et analyses existants ne doivent pas
+  changer. Le hook `pre-push` le vérifie via pytest.
+- Commits format conventionnel : `feat(scope):`, `fix(scope):`, etc.
+- Anti-timeout : max 3 fichiers modifiés par réponse, checkpoint commits
+  fréquents.
 
-## Observations techniques ALS (référence)
+## Détails (chargés à la demande via Read)
 
-- EQ8 bands : `Bands.0` à `Bands.7`, chaque band a `ParameterA` avec
-  `IsOn`, `Mode`, `Freq`, `Gain`, `Q`
-- Modes EQ8 : 0=LowCut48, 1=LowCut12, 2=LowShelf, 3=Bell, 4=Notch,
-  5=HighShelf, 6=HighCut12, 7=HighCut48
-- Automation : `AutomationEnvelopes/Envelopes/AutomationEnvelope` au niveau track
-- FloatEvent : `Id` (unique), `Time` (en beats), `Value`
-- Time=-63072000 = event pré-song (état initial)
-- DeviceChain path = `DeviceChain/DeviceChain/Devices` (doublé)
+| Document | Contenu |
+|----------|---------|
+| **`docs/CLAUDE_PROJECT.md`** | Versioning (8 fichiers), fichiers de production, observations ALS, guide manipulation `.als`, **5 pièges critiques** déjà rencontrés |
+| **`docs/CLAUDE_AGENTS.md`** | Hooks git (pre-commit, pre-push, post-commit), hooks Claude Code, 4 subagents (`als-safety-guardian`, `version-sync-checker`, `graph-first-explorer`, `regression-detector`), composition engine architecture (Phase 1) |
+| **`docs/CLAUDE_GRAPHIFY.md`** | Knowledge graph `graphify-out/graph.json` — quand consulter, commandes `/graphify`, god nodes, maintenance |
+| **`docs/CODING_PRINCIPLES.md`** | 5 principes coding (Think Before, Simplicity, Surgical, Goal-Driven, Use Graph) |
+| **`.claude/COST_DISCIPLINE.md`** | 10 règles d'économie de tokens |
 
-## Guide technique manipulation .als
-
-Voir **`ableton/ALS_MANIPULATION_GUIDE.md`** pour les APIs Python génériques
-(applicable à tout projet Ableton, pas seulement Acid Drops) : lecture/écriture
-gzip, bornage de track, injection de device avec `<Devices />` self-closing,
-calcul de `safe_id`, règle des grands IDs, tempo map, automations.
-
-**Pièges critiques déjà rencontrés** :
-
-1. **Double gzip** : `gzip.open('wb').write(gzip.compress(...))` → Ableton
-   refuse d'ouvrir. Utiliser soit `gzip.open('wb').write(xml.encode())` soit
-   `open('wb').write(gzip.compress(...))`, pas les deux.
-
-2. **`<Devices />` self-closing** : les tracks sans device ont `<Devices />`
-   auto-fermant. `xml.find('<Devices>', ...)` ne matche pas cette forme et
-   saute sur la track suivante → device injecté sur la mauvaise track.
-   Toujours borner la recherche aux limites de la track et détecter les
-   deux formes (`<Devices />` et `<Devices>`).
-
-3. **`<Envelopes />` self-closing** : même piège côté AutomationEnvelopes
-   pour une track sans automation existante.
-
-4. **Vérification post-écriture obligatoire** : relire le fichier produit,
-   premiers octets doivent être `<?xml` (sinon double-gzip), et vérifier
-   que le nouveau device Id se trouve bien dans les bornes de la track cible.
-
-5. **Nommer tout device injecté** : chaque device créé par Claude doit
-   avoir un `<UserName Value="..." />` explicite révélant sa fonction
-   (ex. `"Peak Resonance"`). Ne jamais laisser vide — l'utilisateur doit
-   voir d'un coup d'œil à quoi sert chaque device dans sa chain. Voir
-   `ableton/ALS_MANIPULATION_GUIDE.md` section "Nommer un device injecté".
+Quand une tâche concerne explicitement un de ces sujets, lire le document
+associé. Sinon ne pas le charger (économise contexte).

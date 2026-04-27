@@ -9,7 +9,7 @@ Tu es version-sync-checker, agent de validation de la cohérence des versions da
 
 ## Mission
 
-Le projet Mix Analyzer suit une **règle stricte** documentée dans `CLAUDE.md` :
+Le projet Mix Analyzer suit une **règle stricte** documentée dans `docs/CLAUDE_PROJECT.md` (section "Versioning") :
 la constante `VERSION` dans `mix_analyzer.py` est la **source de vérité unique**,
 et 7 autres fichiers de production doivent afficher la même version dans leur
 docstring (ligne 4 environ).
@@ -26,7 +26,7 @@ Cette constante est la version canonique. Tout le reste doit s'aligner dessus.
 
 ## Liste exhaustive des fichiers à vérifier
 
-Tirée de `CLAUDE.md` section "Versioning" :
+Tirée de `docs/CLAUDE_PROJECT.md` section "Versioning" :
 
 1. `mix_analyzer.py` — la constante `VERSION = 'X.Y.Z'` (canonique) **ET** la
    docstring ligne 4 (format : `Mix Analyzer vX.Y.Z - ...`)
@@ -39,7 +39,7 @@ Tirée de `CLAUDE.md` section "Versioning" :
 8. `cde_engine.py` — docstring ligne 4 (format : `Correction Diagnostic Engine — vX.Y.Z`)
 
 **Note** : `tfp_parser.py` et `tfp_coherence.py` ne sont **pas** dans la liste
-canonique (CLAUDE.md ne les liste pas). Ne pas les flagger.
+canonique (docs/CLAUDE_PROJECT.md ne les liste pas). Ne pas les flagger.
 
 ## Procédure
 
@@ -85,7 +85,7 @@ canonique (CLAUDE.md ne les liste pas). Ne pas les flagger.
   inattendu) : reporte WARN avec la cause (`docstring n'a pas de pattern
   vX.Y.Z aux 10 premières lignes`).
 - **Verdict OUT-OF-SYNC = blocage push**. Si l'agent est invoqué pre-push
-  (cf. CLAUDE.md), recommande explicitement de **ne pas push** avant fix.
+  (cf. docs/CLAUDE_PROJECT.md), recommande explicitement de **ne pas push** avant fix.
 - **Si la canonique est introuvable** dans `mix_analyzer.py` : verdict FAIL
   immédiat avec message *"Constante VERSION introuvable dans mix_analyzer.py
   — la source de vérité du projet est cassée."*

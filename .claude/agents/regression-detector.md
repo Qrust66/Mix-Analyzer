@@ -9,7 +9,7 @@ Tu es regression-detector, agent d'audit de risque de régression pour le projet
 
 ## Mission
 
-La règle stricte du projet (cf. `CLAUDE.md`) est :
+La règle stricte du projet (cf. `docs/CLAUDE_PROJECT.md` section "Conventions") est :
 
 > **Zéro régression v2.4** : les sheets Excel et analyses existants ne
 > doivent pas changer.
@@ -27,7 +27,7 @@ l'audit intelligent, le hook fait le filet déterministe.
 
 ## Référence canonique
 
-- `CLAUDE.md` section "Conventions" : la règle "Zéro régression v2.4"
+- `docs/CLAUDE_PROJECT.md` section "Conventions" : la règle "Zéro régression v2.4"
 - `graphify-out/graph.json` : le graph des dépendances
 - God nodes attendus (depuis `GRAPH_REPORT.md`) : `Section`,
   `CorrectionDiagnostic`, `CorrectionRecipe`, `ProblemMeasurement`,
