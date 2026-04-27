@@ -1,7 +1,11 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [
+    {"field": "key_area", "before": "F-sharp minor area", "after": "F-sharp minor area", "reason": "skipped — could not verify with confidence; some analyses place Soma in C# minor area, but draft already hedges in _to_verify_fields. Kept original."}
+  ],
+  "_reviewer_notes": "Runtime 6:39 and tempo 82-88 BPM (Soma famously ~82 BPM) are correct. 4/4 and half-step-down tuning match Siamese Dream conventions. Mike Mills (R.E.M.) piano credit is documented for the album per liner notes; exact role on Soma kept as to-verify. Key area reading flagged as skipped — could not independently verify F# minor vs C# minor without source.",
   "_overall_confidence": "high_for_dynamic_arc_structure_and_long_form_intent_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "tempo_bpm_documented_range (82-88)",
