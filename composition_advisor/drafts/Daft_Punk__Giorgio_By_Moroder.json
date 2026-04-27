@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album/year (Random Access Memories, 2013) and runtime ~9:04 confirmed (the iconic extended runtime of this track). 4/4 confirmed. Tempo 115-125 BPM range plausible for the multi-section evolving feel. Session musician credits (JR Robinson drums, Nathan East bass, Paul Jackson Jr guitar, Chris Caswell keys) consistent with documented RAM personnel; track-specific JR Robinson drumming is the standard documented attribution for Giorgio By Moroder. Giorgio Moroder's spoken-word interview audio as compositional layer documented. Moog modular + analog tape recording match RAM's documented production approach. 'I Feel Love' arpeggio reference is the explicit homage. Multi-section film-score-adjacent build-to-orchestral-peak (anti-EDM in 2013 context) characterization accurate. No factual corrections needed.",
   "_overall_confidence": "high_for_multi_section_arc_spoken_word_integration_arpeggio_engine_medium_for_exact_pitch_content_and_section_boundaries",
   "_high_confidence_fields": [
     "track_runtime (~9:04 — extended-form)",
