@@ -1,0 +1,274 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_punk_aggression_and_oliveri_vocal_lead_documentation_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "time_signature (4/4 throughout)",
+    "track_runtime",
+    "tempo (184-192 BPM punk speed)",
+    "tuning_documented (Drop D — Songs for the Deaf convention)",
+    "Nick Oliveri lead vocal (documented Oliveri-fronted track within Songs for the Deaf)",
+    "Dave Grohl drums (documented Songs for the Deaf album drummer)",
+    "punk-aggression power-trio arrangement (no atmospheric layers, no guest harmony)",
+    "compositional democracy via band-member vocal-lead"
+  ],
+  "_to_verify_fields": [
+    "exact key area E minor vs F minor reading",
+    "exact bar counts of bridge",
+    "specific vocal saturation chain",
+    "whether Homme provides any backing vocal layer or pure Oliveri solo lead"
+  ],
+
+  "_status": "C5_2c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Songs for the Deaf",
+  "year": 2002,
+  "tempo_bpm_documented_range": [184, 192],
+  "time_signature": "4/4 throughout — fast aggressive punk pulse. No metric tricks; the energy comes from sustained punk-speed 4/4 propulsion.",
+  "key_area": "E minor or F minor area with chromatic riff motion. Tonic minor with chromatic chord shifts characteristic of hardcore-punk vocabulary. Voice-leading punk-rock-craft (Oliveri's documented Mondo Generator hardcore lineage informs harmonic vocabulary).",
+  "tuning_documented": "Drop D tuning (Songs for the Deaf album convention) on guitars and bass — chromatic riff capability + low-end weight.",
+  "track_runtime": "~3:08",
+
+  "composition": {
+    "structural_blueprint": "aggressive_intro_full_band (Grohl drums + Homme guitar + Oliveri bass at full intensity, no gradual build, no atmospheric layer) -> verse1_oliveri_screamed_vocal (riff continues, Oliveri's screamed hardcore-punk vocal enters, Grohl drives at fast tempo, Homme + Oliveri instruments locked tight) -> chorus1 (hook expansion, screamed vocal projects, density retained at maximum) -> verse2 (returns to verse density) -> chorus2 (slight intensification) -> bridge_intensification (brief intensification — possibly rhythm break or hardcore-style breakdown, NOT a quiet bridge) -> final_chorus_with_abrupt_punk_ending (final chorus + abrupt punk-style ending, no fade)",
+    "section_count_and_lengths": {
+      "intro": "Brief — 2-4 bars of aggressive riff before vocal entry",
+      "verses": "Approximately 8 bars each — punk-economy compressed by fast tempo",
+      "choruses": "Approximately 8 bars each",
+      "bridge": "Approximately 4-8 bars of intensification (not a dynamic dip)",
+      "final_chorus_and_ending": "Final chorus + abrupt cut",
+      "_note": "Bar counts approximate. Total runtime 3:08 = punk-economy maximum compression. Compositional movement compressed by fast tempo + punk economy. Even more compressed than First It Giveth's 3:19."
+    },
+    "harmonic_motion": "Minor-modal with chromatic punk-style riff motion. Tonic E/F minor with movement to relative areas via chromatic chord shifts. Voice-leading punk-rock-craft (Oliveri's documented hardcore lineage informs vocabulary).",
+    "modal_choice": "Minor (Aeolian) with chromatic ornamentation characteristic of hardcore-punk vocabulary. Less melodic than Homme's stoner-rock material; more aggressive chromatic riff motion.",
+    "melodic_contour": "Oliveri's vocal contour is SCREAMED-DECLAMATORY — phrases align with metric accents rather than tracing sustained melody. Hardcore-punk vocal aesthetic deployed within QOTSA context. Lyrics SPAT rather than sung. Pitch content less central than rhythmic placement. Chorus contour may briefly open with sustained shouted notes for hook emphasis but dominated by declamation.",
+    "characteristic_riff_construction": "PUNK-AGGRESSIVE CHROMATIC RIFF AT FAST TEMPO — Homme adapts robot-rock vocabulary to punk-speed context. Drop D tuning provides low chromatic riff capability. Less micro-variation than First It Giveth — punk-speed economy doesn't allow same hypnotic-repetition luxury. Riff aggression and tempo are the compositional priorities.",
+    "harmonic_pacing": "Fast at the riff/event level — chromatic shifts happen frequently within phrases. Tempo and aggression dominate; harmonic subtlety subordinated to drive.",
+    "phrase_symmetry": "Symmetric short-phrase punk structure — 4-bar and 8-bar units. Phrase compression by fast tempo: a 4-bar phrase passes in ~5 seconds at 188 BPM. Symmetry serves punk-aggression directness; no asymmetric meter games."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Lead electric guitar (Josh Homme — Drop D tuned, aggressive distortion, tube amps)",
+      "Possible double-tracked rhythm guitar for stereo width",
+      "Electric bass (Nick Oliveri — Drop D tuned, aggressive pick attack)",
+      "Drums (Dave Grohl — full kit, fast-tempo precision)",
+      "Lead vocal (Nick Oliveri — screamed hardcore-punk delivery, double-duty with bass)"
+    ],
+    "section_instrumentation": {
+      "intro": "Aggressive riff opens with full-band entry — Grohl drums + Homme guitar + Oliveri bass at full intensity, no gradual build",
+      "verse": "Riff continues, Oliveri SCREAMED VOCAL enters, Grohl drives at fast tempo, Homme + Oliveri instruments locked tight",
+      "chorus": "Hook expansion, screamed vocal projects, density retained — no Lanegan harmony, no atmospheric layers",
+      "verse2": "Returns to verse density",
+      "second_chorus": "Slight intensification",
+      "bridge": "Brief intensification — possibly rhythm break or hardcore-style breakdown (intensifies rather than dipping)",
+      "outro": "Final chorus + abrupt punk-style ending"
+    },
+    "vocal_layering_strategy": "PUNK-ECONOMY single-vocal aesthetic — Oliveri's screamed lead carries the aggression alone. No Lanegan harmony (unlike First It Giveth), possibly minimal Homme backing. Vocal saturation/distortion processing is the textural device, not vocal stacking. Single screamed vocal projecting hardcore-punk identity.",
+    "dynamic_arc_overall": "Sustained maximum-aggression throughout — minimal dynamic arc. The track lives at full intensity from start to abrupt ending. Bridge intensifies rather than dipping (inverse of First It Giveth's bridge dip). Punk-aggression baseline is maximum.",
+    "instrumental_role_assignment": {
+      "guitar_role": "Punk-aggressive chromatic riff + chromatic motion — Homme adapts robot-rock vocabulary to punk-speed context. Less micro-variation than First It Giveth; punk-speed economy doesn't allow same hypnotic-repetition luxury.",
+      "bass_role": "Aggressive pick attack + tight kick coordination + backing vocal-instrument double duty (Oliveri performs vocal + bass simultaneously). Hardcore-punk-influenced bass approach at peak intensity.",
+      "drums_role": "Fast power + punk-influenced driving. Grohl adapts to punk-speed context with fast-tempo precision + aggressive power. Grohl's documented punk-influence (his pre-Nirvana hardcore band Scream) audible at this tempo.",
+      "vocal_role": "Oliveri-led HARDCORE-PUNK VOCAL — vocal-lead democracy demonstrated. Bassist with documented Mondo Generator hardcore credentials leads vocal where suited. Vocal as TEXTURAL AGGRESSION element, not as clean-melodic primary."
+    },
+    "harmonic_density_per_section": {
+      "intro": "High — full-band immediate entry, no build",
+      "verse": "High — power-trio + screamed vocal, no thinning",
+      "chorus": "High — same as verse with hook emphasis",
+      "bridge": "High — intensification rather than dip",
+      "final_chorus": "High — sustained maximum density"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No tempo changes (sustained punk-speed)",
+      "No drum sample replacement",
+      "No vocal pitch correction (raw screamed quality preserved)",
+      "No atmospheric layers (punk-economy aesthetic)",
+      "No extended sections",
+      "No guest harmony vocal (unlike First It Giveth's Lanegan harmony)",
+      "No quiet bridge (bridge intensifies, doesn't dip)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Fast aggressive punk forward motion at sustained ~188 BPM. Feels relentless and driving — punk-speed precision required from all players. Hardcore-punk energy at peak intensity. The tempo is the song's defining performance feature.",
+    "drum_style": {
+      "performer": "Dave Grohl",
+      "feel": "Fast power + punk-influenced driving. Grohl adapts to punk-speed context with fast-tempo precision + aggressive power. Documented punk-influence (his pre-Nirvana hardcore band Scream) audible at this tempo.",
+      "techniques_documented": [
+        "Kick + snare driving punk-speed 4/4 — fast-tempo precision required",
+        "Hi-hat 8ths driving forward at fast tempo",
+        "Snare strong on 2+4 with possible occasional ghost notes",
+        "Fewer technical fills than mid-tempo groove tracks — punk-speed economy",
+        "Cymbal accents articulate chorus moments",
+        "Crash + China cymbal punctuation possibly more aggressive than First It Giveth"
+      ],
+      "groove_feel_alignment": "Punk-aggressive groove with Oliveri's bass — bass-kick lock at fast tempo. The pocket is tight-and-driving rather than tight-and-hypnotic.",
+      "fills_and_transitions": "Brief fills mark verse-chorus boundaries; fewer technical fills than mid-tempo material. Bridge intensification may feature drum fill build rather than fill release."
+    },
+    "guitar_style": {
+      "performer": "Josh Homme",
+      "feel_per_section": {
+        "intro_riff": "Aggressive riff at full intensity from first downbeat",
+        "verse": "Punk-aggressive chromatic riff at fast tempo, palm-muted feel possibly within distortion",
+        "pre_chorus": "N/A (compressed structure)",
+        "chorus": "Chord-emphasized chorus guitars sustaining the aggression",
+        "bridge_solo": "No traditional solo. Bridge possibly features rhythm break or chromatic intensification."
+      },
+      "techniques_documented": [
+        "Drop D tuning (Songs for the Deaf convention)",
+        "Aggressive distortion + tube amps",
+        "Picking precision required for fast tempo",
+        "Chromatic riff motion creating punk-aggressive feel",
+        "Less micro-variation than First It Giveth — punk-speed economy doesn't allow same hypnotic-repetition luxury",
+        "Possible double-tracked rhythm guitar for stereo width"
+      ],
+      "playing_style_versus_other_grunge": "Closer to hardcore-punk guitar paradigm than to grunge. Where Cobain plays minimal-melodic, Cornell plays melodic-intensity, Homme on First It Giveth plays groove-foundation, Homme on Six Shooter plays PUNK-AGGRESSIVE adaptation of his vocabulary. Same guitarist, opposite tempo + intent."
+    },
+    "vocal_delivery": {
+      "performer": "Nick Oliveri (lead vocal — Oliveri-fronted track within Songs for the Deaf)",
+      "verse_delivery": "Screamed hardcore-punk — Oliveri's documented Mondo Generator vocal aesthetic deployed within QOTSA context. Phrases SPAT rather than sung; declamatory percussive delivery aligned with metric accents.",
+      "chorus_delivery": "Sustained screamed delivery, possibly slight Homme harmony backing in mix or pure Oliveri solo lead",
+      "outro_delivery": "Final screamed phrase before abrupt ending",
+      "documented_vocal_quirks": [
+        "Oliveri's hardcore-punk vocal aesthetic distinct from Homme's baritone melodic approach",
+        "Vocal saturated/processed for aggressive impact (committed during recording, similar to Reznor philosophy)",
+        "Multiple complete takes selected per Eric Valentine production approach",
+        "Demonstrates QOTSA's vocal-lead democracy — bassist can lead vocal where suited",
+        "Oliveri performs vocal + bass simultaneously, demonstrating his documented capacity"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No quantization",
+      "No vocal pitch correction (raw screamed quality preserved)",
+      "No tempo changes",
+      "No vocal layering as primary device — single screamed vocal carries the aggression",
+      "No drum sample replacement",
+      "No melodic vocal substitution (commits to screamed aesthetic)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target.",
+    "transitions_between_sections": [
+      {
+        "where": "intro -> verse1",
+        "type": "screamed_vocal_drop_in_over_continuing_riff",
+        "description": "After the immediate full-band intro, Oliveri's screamed vocal simply enters on top of the continuing riff — no fill, no riser, no anticipation. Pure punk-aggression entry vocabulary.",
+        "extractable_concept": "screamed_vocal_drop_in_over_continuing_riff"
+      },
+      {
+        "where": "verse -> chorus",
+        "type": "compact_drum_punctuation_no_extended_fill",
+        "description": "Verse-to-chorus transition marked by brief drum punctuation, not extended fill. Punk-economy doesn't allow extended fills; transitions are compact and immediate.",
+        "extractable_concept": "compact_drum_punctuation_punk_economy_transition"
+      },
+      {
+        "where": "chorus -> verse2",
+        "type": "immediate_riff_return",
+        "description": "Chorus-to-verse return is immediate — no transition device, riff continues at same density. Punk-economy direct approach.",
+        "extractable_concept": "immediate_riff_return_no_transition_device"
+      },
+      {
+        "where": "chorus2 -> bridge_intensification",
+        "type": "intensification_via_rhythm_break_or_chromatic_break",
+        "description": "Bridge entry marked by intensification — possibly rhythm break or chromatic break that BUILDS rather than DIPS. Inverted from typical rock-bridge dip vocabulary.",
+        "extractable_concept": "bridge_intensification_inverse_of_typical_rock_dip"
+      },
+      {
+        "where": "bridge -> final_chorus",
+        "type": "punk_re_engagement_at_full_intensity",
+        "description": "Final chorus arrives via direct re-engagement at full intensity. No riser, no fill, no anticipation — characteristic punk-aggression directness.",
+        "extractable_concept": "punk_re_engagement_at_full_intensity"
+      },
+      {
+        "where": "final_chorus -> nothing (ending)",
+        "type": "abrupt_punk_style_ending",
+        "description": "Track ENDS rather than concludes — abrupt cut on final chord/beat, no fade, no held note, no resolution. Characteristic hardcore-punk ending vocabulary, similar to March of the Pigs' abrupt termination.",
+        "extractable_concept": "abrupt_punk_style_ending_no_fade"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "no traditional risers",
+        "type": "no_risers_punk_aggression_lives_at_peak",
+        "description": "Six Shooter has no traditional risers. The track operates at maximum aggression from start to finish; there is no build to a climax because the climax is the BASELINE.",
+        "extractable_concept": "no_risers_perpetual_baseline_at_peak"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "no filter moves",
+        "type": "no_filter_automation_punk_aesthetic",
+        "description": "Punk-aggression aesthetic rejects filter automation as inappropriately atmospheric. No subtle filter sweeps, no automated EQ moves — committed dry punk-aggressive timbre throughout.",
+        "extractable_concept": "no_filter_moves_committed_dry_punk_timbre"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "bridge intensification (NOT a drop)",
+        "type": "no_drops_bridge_intensifies",
+        "description": "Six Shooter has no drops in any sense — no quiet bridge dip (unlike First It Giveth's brief textural shift), no inverted-drop quiet section (unlike March of the Pigs). The bridge INTENSIFIES rather than DIPS.",
+        "extractable_concept": "no_drops_bridge_intensifies_punk_aggression"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "every chorus / every verse",
+        "type": "perpetual_climax_punk_aggression_baseline",
+        "description": "There is no single climax — every section operates at maximum aggression. The track lives at the climax level. Similar in philosophy to March of the Pigs' 'no single climax / perpetual baseline at peak,' but at punk-speed rather than at industrial-extremity.",
+        "extractable_concept": "perpetual_climax_punk_aggression_baseline"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "screamed_vocal_with_committed_saturation",
+        "description": "Oliveri's screamed vocal carries committed saturation/distortion processing baked into the track during recording rather than added in mix. Vocal as TEXTURAL AGGRESSION element. Continuation of the punk-hardcore + Reznor industrial vocal-distortion philosophy.",
+        "extractable_concept": "screamed_vocal_with_committed_saturation"
+      },
+      {
+        "type": "vocal_lead_democracy_via_band_member_with_hardcore_credentials",
+        "description": "Oliveri (bassist with documented Mondo Generator hardcore credentials) leads vocal — frontman Homme steps aside. Compositional democracy within band framework allows tracks suited to band-member-vocalist's distinct identity.",
+        "extractable_concept": "vocal_lead_democracy_band_member_with_hardcore_vocabulary"
+      },
+      {
+        "type": "punk_speed_at_188_bpm_within_diverse_album",
+        "description": "Within Songs for the Deaf's diverse album of mid-tempo grooves and extended-form heavy rock, Six Shooter stakes the PUNK-SPEED pole at ~188 BPM. Adjacent to First It Giveth in album sequence — direct adjacency demonstrates band's tonal range without requiring whole-album scan.",
+        "extractable_concept": "punk_aggression_pole_adjacent_to_mid_tempo_groove_pole_in_album_sequence"
+      },
+      {
+        "type": "punk_economy_arrangement_no_atmospheric_layers",
+        "description": "Lean power-trio arrangement at fast tempo — no atmospheric layers, no guest harmonies, no extended sections. Every element earns its presence; atmosphere rejected as inappropriate to punk-aggression.",
+        "extractable_concept": "punk_economy_arrangement_no_atmospheric_layers"
+      },
+      {
+        "type": "bassist_vocalist_double_duty",
+        "description": "Oliveri performs vocal AND bass simultaneously — demonstrates his documented capacity. Live and studio realization of bassist-vocalist double-duty within hardcore-punk lineage.",
+        "extractable_concept": "bassist_vocalist_double_duty_hardcore_lineage"
+      },
+      {
+        "type": "drop_d_tuning_punk_aggression_application",
+        "description": "Same Drop D tuning as First It Giveth, but deployed for punk-aggression chromatic riff capability rather than for hypnotic robot-rock groove. Same tuning, opposite compositional intent.",
+        "extractable_concept": "drop_d_tuning_for_punk_aggression_chromatic_riff"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "Oliveri's screamed hardcore-punk vocal at punk-speed — the album's most-aggressive vocal pole, distinct from Homme's baritone elsewhere on the record. Listeners remember Six Shooter as 'the screamed one.'",
+    "secondary": "The fast aggressive tempo — 188 BPM punk-speed contrasting with First It Giveth's ~129 BPM mid-tempo groove on the adjacent track. Album's tonal range demonstrated via adjacency.",
+    "tertiary": "The abrupt punk-style ending — track ends rather than concludes, leaving the listener inside the aggression"
+  },
+
+  "advisor_extract": [
+    "vocal_lead_democracy_band_member_with_hardcore_vocabulary",
+    "punk_aggression_pole_adjacent_to_mid_tempo_groove_pole_in_album_sequence",
+    "drummer_punk_speed_capacity_within_diverse_album",
+    "punk_economy_arrangement_no_atmospheric_layers",
+    "screamed_vocal_with_committed_saturation",
+    "perpetual_climax_punk_aggression_baseline",
+    "abrupt_punk_style_ending_no_fade",
+    "bridge_intensification_inverse_of_typical_rock_dip",
+    "drop_d_tuning_for_punk_aggression_chromatic_riff"
+  ]
+}

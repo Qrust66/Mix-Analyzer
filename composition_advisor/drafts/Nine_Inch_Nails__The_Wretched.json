@@ -1,0 +1,267 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_hybrid_arc_and_section_processing_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "tempo_bpm_documented_range (100-108 mid-tempo)",
+    "track_runtime (~5:25)",
+    "modal_choice (G minor area / chromatic dark)",
+    "structural_blueprint (aggressive verses + atmospheric choruses + hybrid bridge — integrated rather than alternating)",
+    "section-specific processing chains (vocal saturated in verses / clean in choruses)",
+    "stylistic_figures around the hybrid integration of aggressive + atmospheric vocabularies"
+  ],
+  "_to_verify_fields": [
+    "exact tempo (100-108 range)",
+    "exact key area (G minor frequently cited but chromatic motion blurs tonic)",
+    "exact bar counts of each section",
+    "specific guitar tuning (likely drop-D variant or detuned standard)"
+  ],
+
+  "_status": "C4_4c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "The Fragile",
+  "year": 1999,
+  "tempo_bpm_documented_range": [100, 108],
+  "time_signature": "4/4 throughout, with documented occasional metric displacement and syncopation creating off-balance moments. The 4/4 grid is preserved but the riff phrasing sometimes pushes against the bar line, creating subtle disorientation without fully breaking the meter.",
+  "key_area": "G minor area with chromatic chord motion creating dark mood. Verse harmonic motion is dense and chromatic; chorus harmonic motion opens to suspended voicings and atmospheric sustain. The chromatic verse motion contrasts with the open chorus voicings — the contrast IS the song's harmonic engine.",
+  "tuning_documented": "Standard tuning with extensive synth and sample content augmenting guitars. Likely drop-D or detuned standard for the verse riff's heavy character. Tuning is less load-bearing than on pure-guitar Reznor tracks because synth and sample layers carry significant harmonic weight.",
+  "track_runtime": "~5:25",
+
+  "composition": {
+    "structural_blueprint": "aggressive_industrial_intro (programmed drums + processed guitar + distorted bass synth establish aggressive vocabulary; brief atmospheric pad hint sets up chorus contrast) -> verse_1_aggressive (driving programmed drums at ~104 BPM + distorted bass + processed guitars; Reznor vocal moderate aggression between scream and sing) -> ATMOSPHERIC_CHORUS_1_DRAMATIC_TEXTURAL_SHIFT (synth pads enter; drums simplify or atmospheric processing applied; distorted elements reduce; Reznor vocal lifts to MELODIC SUSTAINED delivery) -> verse_2_intensified (returns to aggression with possibly intensified elements: additional sample triggers, more driving programming) -> chorus_2_more_developed (atmospheric chorus extended slightly; atmospheric vocabulary more developed) -> EXTENDED_BRIDGE_HYBRID_INTEGRATION (programmed drums + atmospheric synth pads + processed guitar leads + bass synth all simultaneously — both vocabularies coexisting at peak integration) -> final_chorus_full_hybrid (atmospheric chorus with retained aggression-elements creating maximum textural density of integrated genres) -> outro_atmospheric_fade (atmospheric texture continues; aggressive elements recede; gradual fade)",
+    "section_count_and_lengths": {
+      "intro": "Approximately 8-12 bars of aggressive industrial setup with atmospheric foreshadowing",
+      "verses": "Each verse approximately 16 bars at ~104 BPM",
+      "atmospheric_choruses": "Each chorus approximately 16 bars; second chorus extended slightly",
+      "extended_bridge": "Approximately 16-24 bars of hybrid instrumental integration",
+      "final_chorus": "Approximately 16-24 bars of full hybrid integration",
+      "outro": "Long atmospheric fade with aggressive elements gradually receding",
+      "_note": "Bar counts approximate. Sections are deliberately INTEGRATED rather than CLEANLY-SEPARATED — the song's identity is the genre-fluidity, so section boundaries blur."
+    },
+    "harmonic_motion": "Minor-modal with chromatic motion in aggressive sections + atmospheric harmonic suspension in atmospheric sections. Verse harmonic motion is DENSE and DARK (chromatic chord shifts, small neighbor moves, possibly tritone substitutions). Chorus harmonic motion is OPEN and SUSPENDED (sustained voicings, modal inflection, less functional). Voice-leading is deliberate and emotional — the contrast between chromatic verse and suspended chorus is the song's harmonic identity.",
+    "modal_choice": "G minor (Aeolian) with chromatic verse inflections and atmospheric chorus suspension. Verses may use Phrygian #2 or Locrian inflections for dark color. Choruses open to sustained modal voicings that feel emotionally released. The mode is not static — it transforms section to section.",
+    "melodic_contour": "Vocal contour is HYBRID — verse phrases are URGENT and percussive, aligned to rhythmic accents (closer to declamation than melody). Chorus phrases are MELODIC SUSTAINED — vocal lifts to upper-mid register and holds notes for emotional weight. The contour shift verse-to-chorus is the song's melodic engine and parallels the textural shift.",
+    "characteristic_riff_construction": "The verse riff is a distorted-guitar figure with chromatic motion, palm-muted aggressive stabs, and atmospheric pad hints in the gaps between phrases. The riff carries aggressive character but is NOT pure-aggressive — atmospheric elements are seeded throughout the verse so the chorus shift feels integrated rather than abrupt. Constructed for genre-fluidity rather than for single-vocabulary purity.",
+    "harmonic_pacing": "Variable — fast at chord level in verses (chromatic motion every 1-2 bars), slow in choruses (sustained voicings held for many bars). The pacing shift parallels the textural shift. The bridge integrates fast and slow harmonic pacing simultaneously across the layered vocabularies.",
+    "phrase_symmetry": "Symmetric 4-bar and 8-bar phrasing throughout, but with documented occasional metric displacement and syncopation. The 4/4 grid is preserved at the phrase level but riff phrasing sometimes pushes against bar lines for subtle off-balance feel. Symmetry serves the integrated arc; asymmetry within phrases adds dark unease."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Programmed drums (kit elements + industrial percussion samples + atmospheric/filtered drum elements)",
+      "Distorted bass synth (adaptive — more distorted in verses, more sustained in choruses)",
+      "Multiple processed guitar layers (distorted aggressive layers + clean atmospheric layers tracked separately for section deployment)",
+      "Atmospheric synth pads (multiple layers carrying chorus harmonic field)",
+      "Lead vocal (Trent Reznor — hybrid delivery: urgent verses + melodic choruses)",
+      "Selective vocal layering in chorus expansion (subtle doubles)",
+      "Industrial sample triggers (metal hits, processed found-sound) for verse aggression"
+    ],
+    "section_instrumentation": {
+      "intro": "Aggressive industrial-textured setup — programmed drums + processed guitar + distorted bass synth; brief atmospheric pad hint",
+      "verse": "Programmed drums DRIVING (kick + snare backbone) + industrial percussion samples + distorted bass synth + processed guitars + Reznor vocal moderate aggression",
+      "atmospheric_chorus": "DRAMATIC TEXTURAL SHIFT — synth pads enter; drums simplify or atmospheric processing applied; distorted elements reduce; Reznor vocal melodic sustained",
+      "verse_2": "Verse aggression with possibly additional sample triggers and more driving programming",
+      "chorus_2": "Atmospheric chorus extended slightly; more developed atmospheric vocabulary",
+      "extended_bridge": "Programmed drums + atmospheric synth pads + processed guitar leads + bass synth ALL SIMULTANEOUSLY — peak hybrid integration",
+      "final_chorus": "Full hybrid integration — atmospheric chorus retains aggression-elements for maximum textural density",
+      "outro": "Atmospheric fade with aggressive elements gradually receding"
+    },
+    "vocal_layering_strategy": "Single lead vocal with HYBRID DELIVERY — urgent moderate-aggression in verses + melodic sustained in choruses. Different processing chains active in different sections (saturation in verses, clean with reverb in choruses). Selective subtle layering in chorus expansion (doubles or octave-ghost-doubles for emotional fullness). Vocal hybrid carries the song's emotional integration.",
+    "dynamic_arc_overall": "HYBRID INTEGRATION ARC — not a single peak, not a sawtooth, but a sequence of integrated transformations. Verse aggression -> atmospheric chorus relief -> intensified verse -> atmospheric chorus -> hybrid bridge integration -> full hybrid final chorus -> atmospheric fade. Each section emphasizes one vocabulary while retaining elements from the other.",
+    "instrumental_role_assignment": {
+      "guitar_role": "PROCESSED RHYTHMIC VERSES + ATMOSPHERIC CHORUSES — guitars adapt vocabulary to section. Verse guitars distorted and heavily processed; chorus guitars cleaner with atmospheric reverb chains (or replaced by synth pads). Bridge has both vocabularies layered.",
+      "bass_role": "Distorted bass synth ADAPTING TO SECTION — aggressive in verses, less distorted and more sustained in choruses. Bass-kick coordination tighter in verses, more spacious in choruses.",
+      "drums_role": "Programmed hybrid kit — kit-style backbone in verses, atmospheric percussion in choruses, all within same programmed arrangement. Drum density rides up to chorus then RELEASES into chorus atmospheric texture.",
+      "vocal_role": "Hybrid delivery carries the song's identity — urgent in verses, melodic sustained in choruses. Different processing chains for different sections."
+    },
+    "harmonic_density_per_section": {
+      "intro": "Medium — aggressive setup with atmospheric foreshadowing",
+      "verse": "High — full aggressive vocabulary",
+      "atmospheric_chorus": "Medium-high but FELT as relief — atmospheric vocabulary feels lighter even when density is significant because compression and saturation reduce",
+      "extended_bridge": "Maximum — both vocabularies layered simultaneously",
+      "final_chorus": "Maximum hybrid integration",
+      "outro": "Tapering — atmospheric fade"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No tempo changes (sustained 100-108 BPM)",
+      "No drum sample replacement",
+      "No vocal pitch correction",
+      "No abrupt section-cuts between aggressive and atmospheric vocabularies (integrated transformation priority)",
+      "No genre-template imposed (arrangement adapts to compositional hybrid intent)",
+      "No 'big release' chorus in the conventional rock-anthem sense — chorus is RELIEF (atmospheric) not EXPLOSION (louder)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "DRIVING DARK FORWARD MOTION — 100-108 BPM at sustained intensity feels both DRIVING (verses) and ATMOSPHERIC (choruses) within the same tempo. The pulse does not change but the FEEL shifts via density and texture. Listeners experience tempo-stasis with feel-transformation.",
+    "drum_style": {
+      "performer": "Programmed (Trent Reznor — Fragile-era programming with adaptive section character)",
+      "feel": "Programmed hybrid drums — kit-style backbone in verses, atmospheric percussion in choruses, all within same programmed arrangement. The drum bus shifts character between sections via processing automation.",
+      "techniques_documented": [
+        "Programmed kick + snare backbone in verses — driving rhythmic foundation",
+        "Industrial percussion samples (metal hits, processed found-sound) layered for verse aggression",
+        "Atmospheric percussion in chorus — possibly pulsed kick + filtered/processed snare or muted samples",
+        "Drum density INCREASES verse-to-chorus transition then RELEASES into chorus atmospheric texture",
+        "Cymbal samples articulate transitions between aggressive and atmospheric vocabularies"
+      ],
+      "groove_feel_alignment": "Adaptive groove — drums drive verse aggression and support chorus atmosphere via the same programming with different processing applied.",
+      "fills_and_transitions": "Cymbal samples articulate verse-to-chorus transitions; drum fill at bridge entry; integrated fill-into-atmospheric for the bridge transition."
+    },
+    "guitar_style": {
+      "performer": "Trent Reznor",
+      "feel_per_section": {
+        "intro_riff": "Aggressive setup with atmospheric foreshadowing; distorted guitars + brief pad hint",
+        "verse": "Distorted and heavily processed for aggressive textural support; chromatic chord motion; palm-muted stabs",
+        "pre_chorus": "Brief transitional moments where guitar texture starts to thin in preparation for chorus shift",
+        "chorus": "Cleaner / atmospheric processing — possibly clean with reverb chains, possibly replaced by synth-pad textures",
+        "bridge_solo": "Both aggressive and atmospheric guitars layered for hybrid integration; possible textural lead phrases"
+      },
+      "techniques_documented": [
+        "Distorted guitar amps + heavy pedal chains for aggressive verse layers",
+        "Clean amps + atmospheric reverb chains for chorus atmospheric layers",
+        "Multiple guitar layers tracked separately for section-specific deployment",
+        "Possible re-amping for additional textural variety",
+        "Stereo placement aggressive in verses, wider/atmospheric in choruses"
+      ],
+      "playing_style_versus_other_grunge": "Where grunge guitars maintain consistent character throughout a song, Wretched's guitars TRANSFORM section-to-section. The hybrid vocabulary requires multi-vocabulary tracking and section-specific deployment — closer to electronic-music sound-design philosophy than to band-format consistency."
+    },
+    "vocal_delivery": {
+      "performer": "Trent Reznor",
+      "verse_delivery": "URGENT MODERATE-AGGRESSION — between scream and sing. Vocal phrasing aligned with verse rhythmic emphasis. Saturated/aggressive processing chain active.",
+      "chorus_delivery": "MELODIC SUSTAINED — vocal lifts to upper-mid register, sustained held phrases, emotional release. Different processing chain (cleaner with deeper reverb) active.",
+      "verse_2_delivery": "May intensify slightly compared to verse 1",
+      "second_chorus_delivery": "More invested than first chorus",
+      "bridge_delivery": "Brief vocal pause during instrumental expansion",
+      "final_chorus_delivery": "MAXIMUM EMOTIONAL INVESTMENT — vocal at peak intensity within atmospheric chorus context",
+      "documented_vocal_quirks": [
+        "Reznor demonstrates vocal HYBRID — aggressive verse + atmospheric chorus delivery within same song",
+        "Vocal processing changes BETWEEN sections — saturation in verses, cleaner with reverb in choruses",
+        "Multiple takes selected/comped per Reznor approach",
+        "Selective vocal layering in chorus expansion (subtle doubles for emotional fullness)"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No quantization-corrected programming",
+      "No vocal pitch correction",
+      "No tempo changes",
+      "No abrupt section-shifts (integrated transitions priority)",
+      "No single-vocabulary delivery (the hybrid IS the performance)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity. Cross-mining target for hybrid-integration MIDI extraction.",
+    "transitions_between_sections": [
+      {
+        "where": "verse_aggressive -> atmospheric_chorus (signature transition of the track)",
+        "type": "integrated_textural_transformation_not_abrupt_cut",
+        "description": "The verse-to-chorus transition is NOT an abrupt cut. Instead, aggressive elements gradually thin (distorted guitars reduce, drum samples filter into atmospheric variants, bass softens) WHILE atmospheric elements simultaneously enter (synth pads rise, vocal processing shifts to clean+reverb). The two vocabularies INTERPENETRATE for a measure or two. Listener experience: gradual transformation rather than jump-cut.",
+        "extractable_concept": "integrated_textural_transformation_via_simultaneous_thin_and_rise"
+      },
+      {
+        "where": "atmospheric_chorus -> verse_2_aggressive_return",
+        "type": "mirror_integrated_transformation",
+        "description": "The chorus-to-verse return mirrors the verse-to-chorus transition. Atmospheric elements gradually recede while aggressive elements re-engage. The bar of overlap creates an unsettled middle-zone where neither vocabulary dominates.",
+        "extractable_concept": "mirror_integrated_transformation_chorus_back_to_verse"
+      },
+      {
+        "where": "chorus_2 -> extended_bridge",
+        "type": "vocabulary_overlay_into_bridge",
+        "description": "The bridge entry is marked by ADDING the aggressive vocabulary BACK while atmospheric chorus elements REMAIN. Both layers are now active simultaneously — the bridge integrates rather than replaces. Vocal exits to allow the instrumental hybrid to be heard clearly.",
+        "extractable_concept": "vocabulary_overlay_bridge_entry"
+      },
+      {
+        "where": "final_chorus -> outro_fade",
+        "type": "atmospheric_persistence_aggressive_recession",
+        "description": "The outro is achieved by RECEDING the aggressive vocabulary while atmospheric pads CONTINUE. The fade is unbalanced toward atmospheric — the song dissolves into its atmospheric pole rather than its aggressive pole.",
+        "extractable_concept": "asymmetric_fade_atmospheric_persists_aggressive_recedes"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "verse build into chorus (less obvious because the chorus is QUIETER, not louder)",
+        "type": "inverted_build_thinning_into_atmospheric_release",
+        "duration_bars": "approximately 2-4 bars at the verse-to-chorus boundary",
+        "description": "The 'build' here is inverted — instead of adding density, elements THIN. The result is that the chorus arrives as a textural opening rather than as a textural impact. Reverse-engineered build: silence is the destination.",
+        "extractable_concept": "inverted_build_thinning_into_atmospheric_chorus_release"
+      },
+      {
+        "where": "extended bridge into final chorus",
+        "type": "hybrid_density_build_into_full_integration",
+        "duration_bars": "approximately 8-16 bars",
+        "description": "The bridge builds density via SIMULTANEOUS LAYERING of aggressive and atmospheric vocabularies. By the time the final chorus arrives, both vocabularies are at full strength and integrated. The build is by ACCUMULATION across vocabularies rather than by addition within one vocabulary.",
+        "extractable_concept": "hybrid_density_build_via_cross_vocabulary_layering"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "verse-to-chorus transition — drum bus and guitar bus filter automation",
+        "type": "filter_swell_driving_textural_transformation",
+        "description": "Filter automation on the drum bus (low-pass closing) and guitar bus (high-pass opening) drives the textural transformation at section boundaries. The filters are not aggressive sweeps but gradual modulations that support the integrated transformation.",
+        "extractable_concept": "filter_automation_supporting_integrated_textural_transformation"
+      },
+      {
+        "where": "chorus atmospheric shift",
+        "type": "vocal_processing_chain_swap",
+        "description": "Vocal processing is automated to swap chains at the chorus boundary — saturation chain disengages, clean+reverb chain engages. Section-specific processing as compositional gesture.",
+        "extractable_concept": "vocal_processing_chain_swap_at_section_boundary"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "verse-to-chorus boundary (signature event of the track)",
+        "type": "INVERTED_drop_to_atmospheric_quiet",
+        "description": "Like March of the Pigs, Wretched inverts the dance-music drop convention. The 'drop' here is the verse releasing into the QUIETER atmospheric chorus. But unlike March of the Pigs's instantaneous cliff-edge, Wretched's drop is INTEGRATED — the textures transform across a measure rather than jump-cut. Drop-by-dissolution rather than drop-by-cut.",
+        "extractable_concept": "inverted_drop_via_dissolution_not_cut"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "final chorus — full hybrid integration",
+        "type": "climax_via_cross_vocabulary_density_integration",
+        "description": "The climax is the moment both vocabularies are at full strength simultaneously — atmospheric pads + distorted bass + aggressive drum samples + lyrical sustained vocal all coexisting. Not loudest, not densest in any single vocabulary, but maximally INTEGRATED. Climax via fusion rather than via amplitude.",
+        "extractable_concept": "climax_via_cross_vocabulary_full_integration"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "section_specific_processing_chains_per_genre_vocabulary",
+        "description": "Track and mix elements use DIFFERENT PROCESSING CHAINS for different sections of the same song — vocal saturated in verses + clean in choruses, drums punchy in verses + atmospheric in choruses, bass distorted in verses + sustained in choruses. The processing IS the vocabulary signal to the listener.",
+        "extractable_concept": "section_specific_processing_chains_per_vocabulary"
+      },
+      {
+        "type": "extensive_section_specific_mix_automation",
+        "description": "Mix automation is more extensive on Wretched than on most NIN tracks — drum bus character, guitar layer levels, vocal processing, reverb sends all SHIFT between sections. Mix automation IS COMPOSITION at the production stage.",
+        "extractable_concept": "extensive_section_specific_mix_automation_as_composition"
+      },
+      {
+        "type": "multi_vocabulary_guitar_tracking",
+        "description": "Distorted aggressive guitar layers and clean atmospheric guitar layers are tracked SEPARATELY and deployed section-specifically. The same chord motion may be played twice — once distorted, once clean — and the mix decides which is heard when. Multi-vocabulary tracking enables section deployment flexibility.",
+        "extractable_concept": "multi_vocabulary_guitar_tracking_for_section_deployment"
+      },
+      {
+        "type": "atmospheric_pad_seeded_during_verse_for_integration",
+        "description": "Atmospheric synth pads are seeded subtly during aggressive verses (low in mix, possibly only audible to careful listeners) so that the chorus shift feels like an EMERGENCE rather than an INTRODUCTION. The atmospheric vocabulary is always present — the chorus is when it becomes prominent.",
+        "extractable_concept": "atmospheric_pad_seeded_in_verse_for_integrated_chorus_emergence"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The integrated transformation between aggressive verses and atmospheric choruses — listeners hear NIN moving fluidly between two vocabularies within a single song, with INTEGRATED TRANSITIONS rather than abrupt section-cuts. The hybrid integration is the song's identity.",
+    "secondary": "The atmospheric chorus shift — the moment the verse aggression dissolves and Reznor's vocal lifts to melodic sustained delivery. The contrast is the song's emotional payoff.",
+    "tertiary": "The extended bridge where both vocabularies are layered simultaneously — Reznor's compositional sophistication on display."
+  },
+
+  "advisor_extract": [
+    "hybrid_vocabulary_integration_within_sections",
+    "section_specific_processing_chains_per_vocabulary",
+    "integrated_textural_transformation_not_abrupt_cut",
+    "inverted_drop_via_dissolution_not_cut",
+    "atmospheric_pad_seeded_in_verse_for_integrated_emergence",
+    "vocal_hybrid_delivery_urgent_verses_melodic_choruses",
+    "extensive_section_specific_mix_automation",
+    "climax_via_cross_vocabulary_full_integration",
+    "multi_vocabulary_guitar_tracking_for_section_deployment"
+  ]
+}

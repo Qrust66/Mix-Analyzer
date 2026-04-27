@@ -1,0 +1,281 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_modular_electronic_palette_and_pattern_evolution_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "time_signature (4/4 throughout)",
+    "track_runtime",
+    "tempo (114-120 BPM)",
+    "modular_electronic_pattern_foundation (analog synth pulses + arpeggiated patterns)",
+    "auteur_co_auteur_pipeline (Reznor + Atticus Ross full co-production by 2013)",
+    "external_contributor (Adrian Belew documented on Hesitation Marks)",
+    "structural_blueprint (electronic-modular intro -> verse -> chorus -> verse -> chorus -> bridge -> final chorus -> fade)",
+    "pattern evolution as compositional movement device"
+  ],
+  "_to_verify_fields": [
+    "exact key area C minor reading",
+    "whether Belew specifically plays on Copy of A vs other Hesitation Marks tracks",
+    "exact arpeggiated synth pitch content",
+    "exact bar count of bridge expansion"
+  ],
+
+  "_status": "C4_6c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Hesitation Marks",
+  "year": 2013,
+  "tempo_bpm_documented_range": [114, 120],
+  "time_signature": "4/4 throughout — steady danceable electronic-music pulse. The 4/4 grid serves modular electronic pattern repetition; tempo sits in the electronic-dance-adjacent zone (~117 BPM) without committing to a club-track context.",
+  "key_area": "C minor area with chromatic synth motion and characteristic Reznor suspended voicings. Tonal center reads as C minor but harmonic motion happens primarily through filter-cutoff and envelope modulation rather than via traditional chord progression. Modal-static at the chord level, dynamic at the filter/timbre level.",
+  "tuning_documented": "Standard tuning on the secondary guitar layers (guitars present but minimal/textural). Modular-electronic palette is primary — tuning question less central than for guitar-foundation tracks.",
+  "track_runtime": "~5:23",
+
+  "composition": {
+    "structural_blueprint": "modular_electronic_intro (analog synth pulses + arpeggiated patterns + filter modulation establish the modular-electronic palette over multiple measures, building gradually) -> verse1_with_vocal_entry (electronic foundation continues, Reznor melodic-restrained vocal enters, programmed drums sparse + electronic-styled, possible processed clean guitar texture) -> chorus1 (pattern expansion + harmonic shift, vocal lifts to melodic chorus, additional electronic textures) -> verse2 (returns to verse density with possibly intensified electronic texture) -> chorus2 (slight intensification + textural development) -> bridge_modular_expansion (extended modular texture exploration, possibly featuring Adrian Belew avant-rock guitar contribution, atmospheric expansion) -> final_chorus (full chorus with maximum electronic-pattern density) -> outro_gradual_fade (electronic patterns recede, textures resolve via filter close)",
+    "section_count_and_lengths": {
+      "intro": "Approximately 8-16 bars — patterns establish gradually rather than punching in, characteristic modular-electronic patient build",
+      "verses": "Approximately 16 bars each",
+      "choruses": "Approximately 16 bars each with hook delivered",
+      "bridge": "Approximately 16-32 bars — extended modular texture exploration, longer than typical NIN bridges",
+      "final_chorus_and_outro": "Final chorus + extended fade-out via filter close",
+      "_note": "Bar counts approximate. Total runtime 5:23 = patient extended-form by post-2005 NIN standards but not Fragile-extreme. Extended bridge serves modular-electronic pattern exploration ambition."
+    },
+    "harmonic_motion": "Modal with electronic-pattern-driven motion. Tonic C minor with chromatic synth motion. Chord shifts often expressed via filter-cutoff modulation + envelope shaping rather than via discrete chord changes — the harmonic 'event' may be a filter sweep on a static chord rather than a new chord. Voice-leading deliberate but with electronic-modal sensibility distinct from rock-band harmonic motion.",
+    "modal_choice": "C minor (Aeolian) with chromatic ornamentation. More electronic-modal than rock-modal — modal stability over filter-modulated patterns rather than over chord progression.",
+    "melodic_contour": "Reznor's vocal contour is melodic-restrained throughout — neither aggressive declamation (Spiral) nor atmospheric vulnerability (TDTWWA) but a mature middle path. Phrases trace controlled intervallic shapes, often descending from a held high note to a lower resolution. Chorus contour opens slightly with melodic lift but stays disciplined. Bridge often abstracts vocal melody into more textural placement.",
+    "characteristic_riff_construction": "The compositional 'riff' is an arpeggiated synthesizer pattern rather than a guitar riff. Pattern is short (typically 1-2 bar cycle), modular-synth in character (clearly modulated by filter envelope and possibly LFO), and EVOLVES across the track via filter-cutoff and envelope changes. The pattern is the same notes throughout but the perceived character shifts as filters open/close — modular-electronic compositional engine.",
+    "harmonic_pacing": "Slow at the chord level (modal-static) but RAPID at the timbre/filter level (constant filter modulation creates perceived harmonic motion within the static chord). Pattern evolution provides compositional 'movement' that traditional rock-band arrangements achieve via dynamic shifts.",
+    "phrase_symmetry": "Symmetric 4-bar and 8-bar phrasing throughout, electronic-music standard. Pattern cycles align with 1-bar, 2-bar, or 4-bar boundaries. The asymmetry, where it exists, is at the filter-envelope level (envelopes that don't quantize to bar boundaries) rather than at the meter or phrase level."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Analog synthesizers + modular synth elements (Reznor + Ross's Hesitation Marks-era expanded modular palette, including Eurorack-era patches)",
+      "Arpeggiated synthesizer patterns (the compositional foundation)",
+      "Programmed drum tracks built in DAW environment (electronic-styled, less aggressive than Spiral, less rock-physical than With Teeth)",
+      "Sample triggers + electronic percussion samples blended within drum foundation",
+      "Distorted bass synth with subtle filtering + modulation (less heavily distorted than Spiral material)",
+      "Possible occasional live percussion overdubs for textural color",
+      "Possible processed clean guitar textures (selective deployment)",
+      "Adrian Belew avant-rock guitar contribution (documented Hesitation Marks contributor; Belew's Roland synth-guitar + treated guitar vocabulary)",
+      "Lead vocal (Trent Reznor, mature melodic-restrained delivery)"
+    ],
+    "section_instrumentation": {
+      "intro": "Analog synth pulses + arpeggiated electronic patterns + filter modulation establishing modular-electronic palette. Drums absent or extremely sparse. Pattern evolves over multiple measures.",
+      "verse": "Electronic foundation continues, vocal enters with melodic line, possible processed clean guitar texture, distorted bass synth provides low-frequency foundation, programmed drums sparse + electronic-styled",
+      "chorus": "Pattern expansion + harmonic shift, vocal lifts to melodic chorus, additional electronic textures layer in. Possible Belew guitar contribution providing avant-rock dimensional color.",
+      "bridge": "Extended modular texture exploration — modular synth patterns evolve, possibly featuring Belew guitar contributions, atmospheric expansion, possibly the densest pattern-density section of the track",
+      "final_chorus": "Full chorus with maximum electronic-pattern density",
+      "outro": "Gradual electronic fade — patterns recede via filter close, textures resolve, possibly final pattern stripped to its arpeggiated core before silence"
+    },
+    "vocal_layering_strategy": "Less vocal layering than We're In This Together's anthemic stacking — modular-electronic prefers tighter vocal element-count for pattern clarity. Lead vocal forward, with selective backing/doubling on chorus hook only. Mature melodic delivery requires intelligible placement; layering would muddy the pattern landscape.",
+    "dynamic_arc_overall": "Patient extended-form arc with pattern evolution as primary movement device. Intro builds gradually, verses establish, choruses lift via pattern density, bridge expands via modular texture, final chorus peaks, outro fades via filter close. Less sawtooth than Spiral/Fragile dynamics, less anthemic-lift than Hand That Feeds — modular-electronic patient evolution.",
+    "instrumental_role_assignment": {
+      "guitar_role": "Minimal/textural — guitars secondary to electronic palette in Copy of A. Where present, guitars provide atmospheric color rather than rock-band rhythmic-harmonic primary. Possible Belew avant-rock contribution as documented external dimensional color.",
+      "bass_role": "Distorted bass synth integrated with modular-electronic foundation. Bass-kick coordination tight for danceable electronic groove. Less rock-band-bass-element character; more synthesis element within the modular landscape.",
+      "drums_role": "Programmed electronic-styled drums INTEGRATED with modular synth patterns rather than dominating. Drums + modular synth patterns composed together as integrated electronic-music foundation. Reznor + Ross's film-scoring discipline (where music is composed as integrated whole) audible in this approach.",
+      "vocal_role": "Melodic anchor for the electronic pattern landscape. Mature melodic delivery — neither aggressive nor vulnerable but melodically deliberate. Vocal carries narrative content while modular patterns carry atmospheric/emotional content."
+    },
+    "harmonic_density_per_section": {
+      "intro": "Low — sparse arpeggiated patterns, filter modulation, no full chord stacks",
+      "verse": "Medium-low — pattern + vocal + sparse drums + bass synth, electronic-music aesthetic spacing",
+      "chorus": "Medium — pattern expansion + additional electronic textures + vocal lift, but still tighter than rock-band wall-of-sound",
+      "bridge": "Medium-high — extended modular textures + possible Belew guitar + atmospheric expansion, the densest section",
+      "outro": "Tapering low — patterns recede via filter close"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No tempo changes",
+      "No drum sample replacement (programmed elements ARE the drums; no live-drum-then-replaced workflow)",
+      "No vocal pitch correction (continued Reznor approach)",
+      "No abrupt section-cuts (modular electronic favors evolving transitions, opposite of March of the Pigs cliff edges)",
+      "No wall-of-sound layering (modular-electronic prefers element-discipline)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Evolving electronic pattern-driven motion at sustained ~117 BPM. Feels both electronic-dance-adjacent (steady pulse) and atmospheric (pattern evolution via filter modulation). Tempo enables danceable pulse plus pattern development. Less aggressive than Spiral, less rock-physical than With Teeth, more electronic-mature than any prior NIN.",
+    "drum_style": {
+      "performer": "Trent Reznor + Atticus Ross (programming + sample triggering — Hesitation Marks fully co-produced)",
+      "feel": "Electronic-styled programmed drums with modular integration. Programmed in modular-electronic-music aesthetic rather than industrial-rock-aesthetic. Drums + modular synth patterns composed together rather than drums supporting separately-composed song.",
+      "techniques_documented": [
+        "Programmed kick + snare backbone aligned with electronic-pattern foundation",
+        "Hi-hat / cymbal samples driving the ~117 BPM pulse",
+        "Sample triggers + electronic percussion layered for textural variety",
+        "Drum patterns INTEGRATE with modular synth patterns rather than dominating them",
+        "Possible occasional live percussion for textural color",
+        "Less aggressive than Spiral programming, less atmospheric-restraint than Fragile, less rock-physical than With Teeth Grohl drums — distinct fourth NIN drum aesthetic"
+      ],
+      "groove_feel_alignment": "Electronic-music groove integrated with modular pattern evolution. Listener feels danceable pulse but also pattern-evolution character; drums and synth patterns breathe together.",
+      "fills_and_transitions": "Few traditional drum fills — transitions accomplished primarily by pattern evolution (filter changes, envelope shifts, layer add/subtract) rather than by drum punctuation. Modular-electronic transition vocabulary."
+    },
+    "guitar_style": {
+      "performer": "Trent Reznor (primary) + Adrian Belew (King Crimson guitarist, documented contributor on Hesitation Marks)",
+      "feel_per_section": {
+        "intro_riff": "N/A — modular electronic intro, no guitar",
+        "verse": "Possible processed clean guitar textures used selectively for atmospheric color",
+        "pre_chorus": "N/A",
+        "chorus": "Possible Belew avant-rock guitar contribution providing dimensional color",
+        "bridge_solo": "Possible Belew avant-rock guitar feature in the bridge expansion section — Belew's documented King Crimson + Bowie-era + Talking Heads vocabulary informing his contribution"
+      },
+      "techniques_documented": [
+        "Standard tuning",
+        "Possible processed clean guitar textures with atmospheric chains",
+        "Belew's documented Roland synth-guitar + treated-guitar vocabulary",
+        "Less guitar wall-of-sound than other NIN tracks — electronic palette primary",
+        "Guitar deployed for textural color, not rhythmic-harmonic foundation"
+      ],
+      "playing_style_versus_other_grunge": "Copy of A guitar role completely opposite from grunge guitar paradigm. Where grunge centers guitar as dominant voice, Copy of A reduces guitar to atmospheric color in service of modular-electronic foundation. Belew's avant-rock contribution operates at a sophistication level beyond grunge vocabulary."
+    },
+    "vocal_delivery": {
+      "performer": "Trent Reznor",
+      "verse_delivery": "Melodic + restrained — Reznor's 2013 mature evolution. Less aggressive than Spiral verses, less atmospheric-vulnerable than TDTWWA, more melodic-deliberate. Phrases controlled, breath-supported, restrained-but-engaged.",
+      "chorus_delivery": "Melodic lift + emotional engagement — chorus designed for melodic memorability without commercial-single hook obviousness. Wider intervallic range than verse but still disciplined.",
+      "outro_delivery": "Phases out as electronic patterns recede; possibly final melodic phrase before fade",
+      "documented_vocal_quirks": [
+        "Reznor's 2013 vocal MATURE — recovery period (sober since ~2002), film-scoring discipline reflected in vocal restraint",
+        "Multiple complete takes selected/comped per Reznor approach",
+        "Less vocal layering than We're In This Together (modular-electronic prefers tighter vocal element-count)",
+        "Demonstrates Reznor's third vocal pole: aggression (Spiral) + vulnerability (Fragile) + mature melodic (Hesitation Marks)"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No quantization-corrected programming (Reznor + Ross still preserve human feel within programmed contexts)",
+      "No vocal pitch correction (continued Reznor approach)",
+      "No tempo changes",
+      "No abrupt section-cuts (modular-electronic favors evolving transitions)",
+      "No aggressive vocal scream (mature melodic pole emphasized)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target.",
+    "transitions_between_sections": [
+      {
+        "where": "intro -> verse1",
+        "type": "vocal_entry_over_continuing_modular_pattern",
+        "description": "After the modular-electronic intro establishes the pattern, Reznor's vocal enters smoothly over the continuing pattern. No drum-fill announcement; the pattern simply continues and the vocal joins it.",
+        "extractable_concept": "vocal_entry_over_continuing_pattern_no_fill_announcement"
+      },
+      {
+        "where": "verse -> chorus",
+        "type": "pattern_density_lift_via_filter_open_and_layer_add",
+        "description": "Verse-to-chorus transition accomplished by filter opening on the modular pattern + adding a layer or two (possibly Belew guitar entry). Lift is gradual rather than sudden — modular-electronic transition vocabulary.",
+        "extractable_concept": "filter_open_plus_layer_add_as_chorus_lift"
+      },
+      {
+        "where": "chorus -> verse2",
+        "type": "filter_close_plus_layer_subtract_to_verse_density",
+        "description": "Chorus-to-verse return mirrors the lift — filter closes slightly + subtracted layer removes added density. Pattern continues evolving but at lower density.",
+        "extractable_concept": "filter_close_plus_layer_subtract_back_to_verse"
+      },
+      {
+        "where": "chorus2 -> bridge_modular_expansion",
+        "type": "modular_pattern_evolution_into_extended_texture",
+        "description": "Bridge entry not announced by fill but by gradual modular pattern evolution — patterns shift, filters open further, additional textures (possibly Belew guitar) enter. The bridge is a modular-electronic territorial expansion.",
+        "extractable_concept": "modular_pattern_evolution_as_bridge_entry"
+      },
+      {
+        "where": "bridge -> final_chorus",
+        "type": "pattern_re_engagement_into_chorus_density",
+        "description": "Bridge expansion resolves by patterns returning to chorus configuration — final chorus arrives via pattern recall rather than via drum-fill or riser. Compositional bookending.",
+        "extractable_concept": "pattern_recall_as_final_chorus_entry"
+      },
+      {
+        "where": "final_chorus -> outro_fade",
+        "type": "gradual_filter_close_fade_out",
+        "description": "Outro accomplished via gradual filter close on modular patterns — patterns lose brightness, layers strip away, eventually only the arpeggiated core remains before silence. Pure modular-electronic outro vocabulary.",
+        "extractable_concept": "gradual_filter_close_fade_modular_outro"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "intro to verse1",
+        "type": "modular_pattern_establishment_via_filter_opening",
+        "duration_bars": "approximately 8-16 bars",
+        "description": "Intro builds via filter opening on the arpeggiated modular pattern — pattern starts dark/closed and brightens gradually as filter cutoff opens, additional layers enter. Modular-electronic 'riser' vocabulary distinct from synth noise sweeps.",
+        "extractable_concept": "filter_opening_riser_on_modular_pattern"
+      },
+      {
+        "where": "bridge expansion",
+        "type": "modular_texture_layering_build",
+        "duration_bars": "approximately 8-16 bars",
+        "description": "Bridge builds via additional modular texture layers entering — possible Belew guitar, additional pattern voices, atmospheric pads. Build is textural-additive rather than dynamic-aggressive.",
+        "extractable_concept": "additive_modular_texture_layer_build"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "throughout — modular synth filter modulation is constant",
+        "type": "filter_modulation_as_primary_compositional_motion",
+        "description": "Modular synth patterns evolve throughout the track via filter cutoff and envelope modulation. This is the PRIMARY compositional motion device — replacing what would be chord changes in a rock-band paradigm. Filter is treated as a melodic/harmonic instrument.",
+        "extractable_concept": "filter_modulation_as_primary_compositional_motion"
+      },
+      {
+        "where": "outro",
+        "type": "long_filter_close_as_fade_device",
+        "description": "Outro fade accomplished via gradual filter close rather than via mix-fader fade. Patterns lose their high-frequency content as filter closes, eventually reducing to dark thumps before silence.",
+        "extractable_concept": "long_filter_close_replaces_mix_fader_fade"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "no traditional drops",
+        "type": "no_drops_pattern_evolution_only",
+        "description": "Copy of A has no drops in the dance-music sense and no breakdowns in the rock sense. Compositional motion is via pattern evolution + filter modulation throughout. The bridge is the closest equivalent to a 'breakdown' but is more of a textural expansion than a dynamic dip.",
+        "extractable_concept": "no_drops_pattern_evolution_replaces_dynamic_event"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "final_chorus or peak of bridge expansion",
+        "type": "pattern_density_peak_with_belew_guitar",
+        "description": "Climax via maximum pattern density + possibly Belew avant-rock guitar feature in bridge expansion or final chorus. Climax is textural-density rather than dynamic-loudness — modular-electronic climax vocabulary, similar in philosophy to Everything In Its Right Place's textural climax via vocal-sample accumulation.",
+        "extractable_concept": "climax_via_pattern_density_not_loudness"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "modular_synth_arpeggiator_as_compositional_engine",
+        "description": "The track's compositional foundation is a modular-synth arpeggiator pattern. Pattern's pitch content stays constant; pattern's character changes via filter and envelope modulation. The arpeggiator is doing the harmonic 'work' that a chord-progression would do in a rock-band track.",
+        "extractable_concept": "arpeggiator_pattern_as_compositional_engine"
+      },
+      {
+        "type": "pattern_evolution_via_filter_envelope_modulation",
+        "description": "Throughout the track, modular patterns evolve via filter cutoff and envelope modulation. Pattern A in the intro reads as a different perceptual object than Pattern A in the bridge, even though pitches are identical — filter has changed its character. Modular-electronic perceptual vocabulary.",
+        "extractable_concept": "filter_envelope_modulation_as_perceptual_pattern_evolution"
+      },
+      {
+        "type": "external_avant_rock_guitar_contribution_for_dimensional_color",
+        "description": "Adrian Belew (King Crimson + Bowie-era + Talking Heads guitarist) contributes avant-rock guitar texture to specific Hesitation Marks tracks. His distinct identity (Roland synth-guitar, treated guitar) adds dimensional color without overwhelming the modular-electronic foundation.",
+        "extractable_concept": "external_avant_rock_guitar_contribution_for_dimensional_color"
+      },
+      {
+        "type": "film_scoring_discipline_integrated_into_song_composition",
+        "description": "Reznor + Ross's film-scoring work (Social Network, Girl with the Dragon Tattoo) discipline audible in compositional integration — music as integrated whole, pattern evolution + texture transformation supporting emotional arc. Less reliance on traditional song-structure templates.",
+        "extractable_concept": "film_scoring_discipline_in_song_composition"
+      },
+      {
+        "type": "auteur_co_auteur_pipeline_audible_in_production",
+        "description": "Reznor + Ross full co-production audible — neither pure-Reznor nor pure-Ross but integrated approach. Co-production pipeline with Moulder mixing carries shared creative perspective from tracking through final master.",
+        "extractable_concept": "auteur_co_auteur_pipeline_integration"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The arpeggiated modular synth pattern that opens and propels the track — its filter-evolving character is the song's signature texture. Listeners recognize Copy of A by the synth pattern, not by a vocal hook.",
+    "secondary": "Reznor's mature melodic vocal delivery — restraint and breath-support rather than scream or vulnerability. His third vocal pole demonstrated within his catalog.",
+    "tertiary": "The bridge expansion with Belew avant-rock guitar contribution — the moment the track expands beyond pure-electronic into avant-rock-electronic hybrid territory"
+  },
+
+  "advisor_extract": [
+    "modular_electronic_patterns_as_compositional_foundation",
+    "arpeggiator_pattern_as_compositional_engine",
+    "filter_modulation_as_primary_compositional_motion",
+    "filter_envelope_modulation_as_perceptual_pattern_evolution",
+    "external_avant_rock_guitar_for_dimensional_color",
+    "film_scoring_discipline_in_song_composition",
+    "mature_vocal_aesthetic_post_aggression_post_vulnerability",
+    "auteur_co_auteur_pipeline_integration",
+    "no_drops_pattern_evolution_replaces_dynamic_event"
+  ]
+}

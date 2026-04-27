@@ -1,0 +1,221 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_composition_and_meter_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "time_signature (10/4 iconic)",
+    "track_runtime",
+    "modal_choice (modal-static, F-area)",
+    "structural_blueprint (Rhodes alone -> vocal -> sample-loop accumulation -> outro)",
+    "instrumentation (Rhodes, vocal, programmed minimal percussion)",
+    "performance approach (Yorke deadpan, no drum kit)",
+    "stylistic_figures around the live-sample-loop technique"
+  ],
+  "_to_verify_fields": [
+    "tempo_bpm (108-113 range — exact value debated)",
+    "exact pitch identity of the Rhodes two-chord oscillation",
+    "key area F major vs C major reading",
+    "exact bar count of intro and outro"
+  ],
+
+  "_status": "C7_1c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Kid A",
+  "year": 2000,
+  "tempo_bpm_documented_range": [108, 113],
+  "time_signature": "10/4 throughout — iconic. The 10-beat measure is the song's defining metric signature. Felt as 5+5, or sometimes as 4+4+2; not as 4/4 with extension. The unusual meter is part of the compositional payload — it disorients ears expecting square 4/4 and creates the floating quality.",
+  "key_area": "F major area with prominent Phrygian-tinged b2 dissonance in the upper voice line. Some analyses place it in C major (treating F as IV); functionally the gravity is on F. Two-chord oscillation, debated as F-major-ish to G-major-ish, or F-add9 to G-add4 voicings.",
+  "tuning_documented": "N/A — keyboard composition, no guitars",
+  "track_runtime": "~4:11",
+
+  "composition": {
+    "structural_blueprint": "rhodes_riff_alone_extended (the iconic two-chord oscillation in 10/4 establishes the modal center and the meter without any other element) -> vocal_verse_entry (Yorke's first lyric 'everything in its right place' enters with minimal accompaniment, vocal central over the Rhodes) -> vocal_continues_with_glitch_percussion_emerging (programmed glitchy percussion enters subtly, never coalescing into a beat) -> live_sample_loop_layer_begins (Godrich starts capturing Yorke's vocal phrases on a sampler and replaying them looped — this is the structural pivot of the track) -> sample_loop_accumulation (multiple fragments of the lead vocal accumulate, creating a self-replicating choir of Yorke's own voice) -> climax_density_peak (maximum loop layering simultaneous with continuing lead vocal — the song's emotional and textural peak) -> dissolution_outro (lead vocal drops out, sample loops persist as ambient wash, fade)",
+    "section_count_and_lengths": {
+      "rhodes_intro_alone": "Approximately 12-16 bars at 10/4 (bar count to verify)",
+      "vocal_verses": "Yorke's lyrics occupy multiple iterations of the 10-beat cycle; not segmented into separate verse/chorus, more a continuous vocal deployment",
+      "sample_loop_emergence": "Begins around the midpoint of the track; Godrich triggers the first looped vocal samples after Yorke has delivered enough source material",
+      "climax": "The maximum density of vocal-sample layers; not a single bar but a sustained zone in the latter third of the track",
+      "outro": "Long fade with vocal loops persisting as the lead vocal recedes",
+      "_note": "The track does NOT have traditional verse/pre-chorus/chorus/bridge segmentation. It is a single evolving texture over a static modal anchor, with the introduction of live-sampled vocal looping as the principal structural event."
+    },
+    "harmonic_motion": "Static modal with no functional progression. The Rhodes oscillates between two chords — typically transcribed as F major to G major, or as F-add9 to G-add4, or some authors hear it as F to G with Lydian #4 ornamentation. Voicings debated. The motion is non-functional (no leading-tone resolution, no V-I cadences). Tension-release happens textually — the b2 dissonance in the upper voice line creates a constant chromatic rub against the F tonic.",
+    "modal_choice": "F major / F Lydian-tinged. The Lydian #4 reading comes from the prominent B natural in the upper voice. Some hear it as F Phrygian dominant (especially because of the b2 inflection). The defensible reading: modal-static F-major area with constant b2 ornament rather than a strict scale.",
+    "melodic_contour": "Yorke's vocal phrases are predominantly DESCENDING — each phrase lands on a low gravity note in the F-area. The Rhodes riff itself is a falling-then-rising figure (descending arpeggio that returns up to start). The vocal manipulations later in the track are not continuous melodies but FRAGMENTARY loops — the contour at that point becomes textural-rhythmic rather than melodic.",
+    "characteristic_riff_construction": "The two-chord Rhodes oscillation, ~10 beats per measure, played close-voiced in the C4-G4 area. The figure is a falling minor third or fourth then a return — feels both relentless and unmoored because the listener's ear loses track of measure boundaries due to the 10-beat grouping. The riff is identical in pitch content every iteration, but the perceptual experience changes as layers accumulate. Constructed for HYPNOTIC repetition, not for development.",
+    "harmonic_pacing": "Effectively zero — two chords cycle for the entire track. Pacing is generated by the entry of vocal-sample loop layers (the principal compositional event), not chord changes. This is a 'static-harmony, dynamic-texture' philosophy that Radiohead deepened across Kid A and Amnesiac.",
+    "phrase_symmetry": "10-beat phrase boundary is the dominant structural unit, treated symmetrically. Yorke's vocal phrases are 1, 2, or 4 cycles long, all starting on cycle downbeats. The asymmetry is at the meter level (10/4 against expectations of 4/4), not at the phrase level. Internally the cycles feel symmetric."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Rhodes electric piano (principal melodic and harmonic instrument — likely Mark I Suitcase or similar)",
+      "Programmed/glitched percussion (sample fragments, no traditional drum kit)",
+      "Sub-bass synth or pad (sparse, grounding the modal root)",
+      "Lead vocal (Thom Yorke, dry direct)",
+      "LIVE-SAMPLED VOCAL LAYER (Yorke vocals captured live and re-played by Godrich on hardware sampler — this is the production-as-composition gesture that defines the track)"
+    ],
+    "section_instrumentation": {
+      "rhodes_intro": "Rhodes alone, possibly with faint sub-bass underpinning",
+      "vocal_entry": "Rhodes + lead vocal + minimal sub-bass",
+      "midsection": "Rhodes + lead vocal + glitched percussion fragments + first sampled vocal loops beginning to enter",
+      "climax_density": "Rhodes + lead vocal + multiple layers of looped vocal samples + percussion remnants — the densest moment of the track",
+      "outro": "Sample loops persist; lead vocal drops; Rhodes thins; long fade"
+    },
+    "vocal_layering_strategy": "Single-tracked lead vocal performed straightforwardly. Real-time sampling and looping by Nigel Godrich at the studio console. The samples are captured FROM the very vocal performance you are hearing, then re-played in fragments. The 'choir' that emerges is not overdubbed — it is Yorke's own lead vocal sampled and looped on hardware. The technique creates a self-replicating vocal texture that becomes the climax.",
+    "dynamic_arc_overall": "Slow, monotonic-accumulating swell. Spare start (Rhodes alone) -> add vocal -> add percussion fragments -> add sample loop layers -> peak at maximum loop density -> dissolution. The dynamic range is moderate (not loud), but PERCEIVED intensity rises markedly with textural accumulation. No traditional 'chorus drops' — the build is cumulative without retreat.",
+    "instrumental_role_assignment": {
+      "guitar_role": "N/A",
+      "bass_role": "Sparse modal anchor — present subliminally, marking F tonic at phrase boundaries",
+      "drums_role": "Textural fragmentation rather than rhythmic foundation. Provides micro-rhythmic activity but does not establish a 'beat' for body movement.",
+      "vocal_role": "Dual function — narrative carrier of the lyrics AND raw material for the live-sampled looped layer that emerges later. The vocal performance is intentionally undemonstrative because it must be both."
+    },
+    "harmonic_density_per_section": {
+      "intro": "Very low — two-chord oscillation, no upper-voice elaboration",
+      "vocal_entry": "Low — vocal adds melody line, no chord stack",
+      "sample_loops_emerging": "Medium — vocal samples accumulate but each is monophonic; richness is contrapuntal not vertical",
+      "climax": "Medium-high — multiple monophonic vocal lines create pseudo-chord stacks via formant resonances",
+      "outro": "Tapering low"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No conventional drum kit (preserves floating modal-static feel)",
+      "No verse-chorus structure (the song is one continuous textural evolution)",
+      "No instrumental solo — vocal manipulation IS the lead element of the second half",
+      "No harmonic 'lift' for the climax — climax is purely textural, not harmonic"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Mid-tempo, hypnotic, slightly behind-the-beat in the Rhodes performance — Yorke's piano part has a marginal human looseness that becomes the only 'live' element against the increasingly programmed surroundings. The 10/4 meter prevents finding a comfortable groove pocket — you cannot tap your foot conventionally to this track. INTENDED EFFECT.",
+    "drum_style": {
+      "performer": "Programmed (Nigel Godrich and Thom Yorke working with hardware samplers/sequencers, likely Akai workflow)",
+      "feel": "Glitchy, fragmentary, NON-quantized in feel — drum sample fragments triggered at irregular intervals. Does not establish a beat.",
+      "techniques_documented": [
+        "Sampled drum micro-fragments (hits shorter than 100ms) rather than full kit hits",
+        "Sparse rhythmic activity — long stretches with no percussion, then sudden bursts",
+        "No traditional kick-snare backbeat anywhere"
+      ],
+      "groove_feel_alignment": "Anti-groove. The percussion contributes to floating disorientation rather than supporting body movement.",
+      "fills_and_transitions": "No drum fills. Transitions accomplished by Rhodes phrase punctuation, vocal entry/exit, and gradual entry of processed vocal layers."
+    },
+    "guitar_style": {
+      "performer": "N/A",
+      "feel_per_section": {
+        "intro_riff": "N/A",
+        "verse": "N/A",
+        "pre_chorus": "N/A",
+        "chorus": "N/A",
+        "bridge_solo": "N/A"
+      },
+      "techniques_documented": [],
+      "playing_style_versus_other_grunge": "N/A"
+    },
+    "vocal_delivery": {
+      "performer": "Thom Yorke",
+      "verse_delivery": "Direct, undemonstrative, slightly held-back. Minimal vibrato, mid-register. Almost spoken-melody — emotional resonance through restraint, not projection.",
+      "chorus_delivery": "N/A — no separate chorus section",
+      "outro_delivery": "Lead vocal phases out as the looped/processed vocal layer takes over. Lead drops to silence by mid-outro.",
+      "documented_vocal_quirks": [
+        "Yorke's signature wavering vibrato is largely ABSENT — the vocal is more deadpan than typical Yorke",
+        "Lyrics 'everything in its right place' / 'yesterday I woke up sucking on a lemon' are anti-narrative surreal fragments",
+        "Performance is compositionally crucial — every line in the lead becomes raw material for the looped-sample layer"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No drum kit (would contradict the floating texture)",
+      "No vocal melisma or held high notes (would draw attention to performance technique rather than texture)",
+      "No metric resolution into 4/4 (would relieve the disorientation that is the point)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. These are extraction targets for cross-song mining.",
+    "transitions_between_sections": [
+      {
+        "where": "rhodes_intro -> vocal_entry",
+        "type": "vocal_drop_in_no_anticipation",
+        "description": "Yorke's voice simply enters on top of the Rhodes oscillation — no fill, no riser, no anticipation. The Rhodes continues unchanged.",
+        "extractable_concept": "vocal_first_entry_with_zero_transition_device"
+      },
+      {
+        "where": "verse -> sample_loop_emergence (midpoint structural pivot)",
+        "type": "imperceptible_textural_threshold",
+        "description": "The sampled vocal loops do not announce themselves with a fill or sweep — they simply begin to recur in the background, growing in density. The listener may not notice the moment they 'began'.",
+        "extractable_concept": "imperceptible_layer_introduction_via_self_sampling"
+      },
+      {
+        "where": "climax -> outro",
+        "type": "lead_subtraction",
+        "description": "The lead vocal drops out while the loops persist. The transition is achieved by removing the focal element rather than adding a new one — inverse of the conventional 'lift' transition.",
+        "extractable_concept": "transition_by_lead_subtraction"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "midpoint to climax",
+        "type": "textural_accumulation_via_self_sampling",
+        "duration_bars": "approximately 8-16 cycles of 10/4",
+        "description": "The classic 'riser' here is not a synthesized noise sweep but the gradual accumulation of looped vocal samples. Each new loop adds harmonic and rhythmic content. The energy builds without traditional dynamic elevation — purely textural.",
+        "extractable_concept": "build_via_organic_self_sampling_not_synthesis"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "throughout — particularly Rhodes processing",
+        "type": "subtle_lowpass_motion_on_rhodes",
+        "description": "The Rhodes electric piano has subtle low-pass filtering that varies slightly across the track, brightening or muting the timbre in different sections. This is a Godrich production gesture — not aggressive filter sweeps but subtle tonal modulation.",
+        "extractable_concept": "subtle_static_filter_motion_as_textural_pacing"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "between verse iterations",
+        "type": "no_drops_in_dance_sense",
+        "description": "The track has NO drops. The arrangement only ADDS, never SUBTRACTS until the outro. This is a deliberate choice — the song refuses the dance-music release/tension cycle.",
+        "extractable_concept": "no_drops_only_accumulation"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "approximately 3:00-3:30 in the track",
+        "type": "textural_density_peak",
+        "description": "Maximum overlap of looped vocal samples with the lead vocal still active. The harmonic content from sample formants, combined with Yorke's lead and the Rhodes oscillation, creates the densest moment of the track. NOT a loud climax — moderate dynamic — but maximally THICK.",
+        "extractable_concept": "climax_via_thickness_not_loudness"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "live_real_time_sampling_at_console",
+        "description": "Godrich operates a hardware sampler (likely Akai) DURING the vocal take, capturing fragments of Yorke's lead in real time and triggering them looped within the same take. This is the track's defining production technique. Composition-as-performance at the engineering desk.",
+        "extractable_concept": "live_sampling_during_recording_as_composition"
+      },
+      {
+        "type": "vocal_fragment_pitch_shifting",
+        "description": "Some of the looped vocal samples are pitch-shifted slightly, creating ghostly micro-harmonies with the lead. Subtle but present — adds to the choir-like illusion.",
+        "extractable_concept": "looped_vocal_with_subtle_pitch_shifts"
+      },
+      {
+        "type": "vocal_fragment_reversal",
+        "description": "Some of the looped fragments are played reversed, especially in the outro where lyrical content dissolves into texture.",
+        "extractable_concept": "reverse_vocal_fragments_in_outro"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The opening Rhodes riff in 10/4 — the instant the song establishes its modal-static, off-balance identity. One of the most recognizable openings in 21st-century rock music.",
+    "secondary": "The vocal-loop accumulation in the second half — when Yorke's lyric becomes raw material for a self-generating choir of his own voice.",
+    "tertiary": "The Phrygian b2 dissonance in the upper voice of the Rhodes part — the chromatic rub that gives the static modal texture its quiet anxiety"
+  },
+
+  "advisor_extract": [
+    "static_modal_with_textural_accumulation",
+    "irregular_meter_as_compositional_signature_10_4",
+    "vocal_as_raw_material_for_live_sampling",
+    "anti_drum_kit_arrangement",
+    "harmonic_pacing_zero_textural_pacing_high",
+    "transition_by_lead_subtraction",
+    "build_via_organic_self_sampling_not_synthesis",
+    "climax_via_thickness_not_loudness",
+    "no_drops_only_accumulation"
+  ]
+}

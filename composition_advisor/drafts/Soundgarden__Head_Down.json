@@ -1,0 +1,267 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_meter_drone_structure_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "time_signature (7/4 throughout — Cameron's odd-meter mastery)",
+    "track_runtime (~6:08)",
+    "modal_choice (B minor area / Aeolian / drone-modal)",
+    "tuning_documented (drop D / flat tunings for low drone capability)",
+    "structural_blueprint (drone build -> 7/4 verse -> atmospheric chorus -> bridge -> outro fade)",
+    "Shepherd-driven compositional identity (bassist-as-composer)",
+    "drone-foundation-as-compositional-anchor",
+    "stylistic_figures around the asymmetric meter and meditative drone aesthetic"
+  ],
+  "_to_verify_fields": [
+    "exact tempo (86-92 range)",
+    "exact 7/4 subdivision feel (4+3 vs 3+4 vs 3+2+2 phrasing)",
+    "exact tuning (drop D vs further flat tunings)",
+    "exact bar counts of each section"
+  ],
+
+  "_status": "C2_5c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Superunknown",
+  "year": 1994,
+  "tempo_bpm_documented_range": [86, 92],
+  "time_signature": "7/4 throughout — predominantly. Different from My Wave's 5/4 lilt; 7/4 creates a longer asymmetric cycle felt as STATELY and HYPNOTIC rather than as playful or jagged. Cameron subdivides the 7-beat cycle naturally — possibly 4+3 or 3+4 grouping with kick/snare placements that articulate the asymmetry. The meter is the song's structural identity.",
+  "key_area": "B minor area (Aeolian) with drone-modal harmonic gravity. Tonic B established by Shepherd's sustained low B drone; harmonic motion above the drone uses suspended voicings and modal inflections rather than functional chord progression. Occasional Phrygian inflection (b2 motion) for darker color. The drone IS the harmonic gravity well.",
+  "tuning_documented": "Drop D + flat tunings explored on Superunknown — Head Down operates with low drone-friendly tuning. Specific flat-tuning to verify (possibly Drop D-flat or further down). The low tuning is functional: it enables the sustained low B drone foundation that defines the song.",
+  "track_runtime": "~6:08",
+
+  "composition": {
+    "structural_blueprint": "slow_drone_build_intro (Shepherd's bass establishes sustained low B; drums enter with 7/4 cycle; guitars layer atmospheric texture across several measures of meter establishment) -> verse_1_drone_modal (bass DRONE on tonic B sustained; drums drive 7/4 cycle; two guitars provide harmonic texture above drone; Cornell vocal sustained-melodic floats over architecture) -> atmospheric_chorus_harmonic_field_expansion (chord motion ABOVE the drone — drone remains constant; Cornell vocal lifts to upper-mid register; drums maintain 7/4) -> verse_2 (returns to verse-style drone foundation) -> chorus_2 -> EXTENDED_INSTRUMENTAL_BRIDGE (intensified drone — bass + low guitars together emphasize low foundation; atmospheric guitar leads/textures above; drums maintain 7/4) -> return_to_verse_or_chorus -> extended_outro (drone resolves slowly; atmospheric texture continues; song fades)",
+    "section_count_and_lengths": {
+      "intro": "Approximately 4-8 cycles of 7/4 (drone build with meter establishment before vocal)",
+      "verses": "Each verse approximately 4-8 cycles of 7/4",
+      "choruses": "Each chorus approximately 4-8 cycles of 7/4 with harmonic field expansion",
+      "extended_bridge": "Approximately 8-16 cycles of 7/4 with intensified drone and atmospheric leads",
+      "outro": "Long fade with drone resolution and atmospheric texture continuing",
+      "_note": "Bar counts approximate. The 7/4 cycle is the structural unit — listeners count cycles rather than 4-bar phrases. The 6:08 runtime is justified by HARMONIC MEDITATION on the drone."
+    },
+    "harmonic_motion": "MODAL + DRONE-CENTERED. Tonic B minor as drone anchor; harmonic motion happens via SUSPENDED VOICINGS over the sustained low B foundation rather than via traditional chord progression. Aeolian + occasional Phrygian inflection. Chord motion in choruses and bridge happens ABOVE the drone — the drone never moves. The drone is the song's harmonic gravity well; everything else orbits it.",
+    "modal_choice": "B Aeolian (natural minor) with occasional Phrygian inflection (b2 motion). Some passages may suggest B Dorian briefly. The mode is felt rather than declared — the drone enforces tonal gravity while the upper voices use modal voicings that preserve openness.",
+    "melodic_contour": "Cornell's vocal contour is FLOATING and SUSTAINED — long held phrases that hover above the drone foundation rather than driving forward. Phrases are predominantly mid-register with occasional upper-register lifts in the chorus. The contour aligns with the long 7/4 cycle — phrase length matches structural cycle length.",
+    "characteristic_riff_construction": "There is no riff in the conventional sense. The song's hook is the COMBINATION of the 7/4 cycle + the sustained drone + the modal voicings above. The 'compositional figure' is the relationship between these three layers held in tension. The bass drone is the bedrock; the 7/4 cycle is the temporal cycle; the modal voicings are the harmonic field. Constructed for harmonic meditation rather than for hook-driven recall.",
+    "harmonic_pacing": "Very slow — chord changes (above the drone) happen on the order of every 4-8 bars. The drone NEVER changes. Pacing is generated by voicing shifts and atmospheric texture changes, not by chord progression. Listeners are invited to inhabit the harmonic space rather than track motion.",
+    "phrase_symmetry": "The 7/4 cycle is the dominant phrase unit, treated as a long asymmetric symmetric (the 7-beat cycle repeats consistently). Vocal phrases align with the cycle — phrases are 1, 2, or 4 cycles long. Asymmetry is at the meter level (7/4 against 4/4 expectation), not at the phrase level. Internally cycles feel symmetric and meditative."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Ben Shepherd bass (sustained low B drone — compositional anchor)",
+      "Matt Cameron drums (7/4 cycle articulation)",
+      "Kim Thayil guitar (sustained chord voicings; atmospheric texture)",
+      "Chris Cornell guitar (atmospheric layer; possible lead phrases in bridge)",
+      "Chris Cornell vocal (floating sustained-melodic delivery)",
+      "Possible additional atmospheric layers (sustained feedback, ambient guitar texture)"
+    ],
+    "section_instrumentation": {
+      "intro": "Bass drone establishes; drums enter with 7/4 cycle; guitars layer atmospheric texture. Several measures of meter establishment before vocal entry.",
+      "verse": "Bass DRONE on tonic B (sustained low frequency anchor); drums in 7/4 (kick/snare adapted to asymmetric cycle); two guitars with sustained chord voicings above; Cornell vocal sustained-melodic over architecture.",
+      "chorus": "Slight harmonic expansion — chord motion ABOVE the drone (drone constant); Cornell vocal lifts to upper-mid register; drums maintain 7/4 cycle.",
+      "extended_bridge": "INTENSIFIED drone — bass + low guitars together emphasize low foundation; atmospheric guitar leads/textures float above; drums maintain 7/4 throughout.",
+      "outro": "Return to verse-style arrangement with extended fade — drone resolves slowly; atmospheric texture continues until fade."
+    },
+    "vocal_layering_strategy": "Single-tracked Cornell vocal — no primary vocal layering as dynamic device. The single voice carries the atmospheric quality. Possible subtle harmony or ghost-double in chorus expansion, but the lead stays foregrounded. Cornell's sustained melodic capacity replaces stacked-vocal anthemic strategies.",
+    "dynamic_arc_overall": "ATMOSPHERIC CONTINUITY with subtle structural lifts. The arc is meditative — verses and choruses do not contrast dramatically in dynamic terms, but the harmonic field opens slightly in choruses and the bridge intensifies the drone. Listeners conditioned to verse-chorus dynamic explosion may miss the subtle structure; listeners attuned to atmospheric continuity hear it as meditative.",
+    "instrumental_role_assignment": {
+      "guitar_role": "SUSTAINED HARMONIC TEXTURE above the drone foundation. Chord voicings held for long durations; minimal palm-muting or rhythmic chunking. Two guitars (Thayil + Cornell) layered for stereo width and harmonic density. Atmospheric leads in bridge.",
+      "bass_role": "DRONE-FOUNDATION + COMPOSITIONAL DRIVER. Shepherd co-wrote the song; his bass drone is its compositional anchor. Sustained low B notes form the harmonic gravity well. Bass functions as drone instrument NOT as walking/rhythmic bass.",
+      "drums_role": "7/4 CYCLE ARTICULATION. Cameron's drums anchor the asymmetric meter — kicks/snares/cymbals placed to articulate the long cycle. Restrained intensity — not driving the song forward but anchoring the drone foundation.",
+      "vocal_role": "FLOATING HARMONIC LAYER. Cornell's vocal hovers above the drone rather than driving the song. Long held phrases match the long 7/4 cycle. The vocal is part of the atmospheric field, not its conductor."
+    },
+    "harmonic_density_per_section": {
+      "intro": "Low — drone + drums + sparse guitar texture",
+      "verse": "Medium — drone + two guitars + vocal + drums; harmonic field but no upper-voice elaboration",
+      "chorus": "Medium-high — additional harmonic motion above drone; vocal lift adds upper-voice content",
+      "extended_bridge": "High — intensified drone + atmospheric leads + full guitar layering",
+      "outro": "Tapering low — drone resolves; atmospheric texture fades"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No tempo changes (sustained 86-92 BPM throughout)",
+      "No meter changes (sustained 7/4 cycle)",
+      "No traditional verse-chorus dynamic contrast (atmospheric continuity priority)",
+      "No drum sample replacement or loops",
+      "No vocal pitch correction",
+      "No 4/4 'normalization' of the asymmetric meter",
+      "No clean-to-distorted dynamic shift (drone aesthetic stays consistent throughout)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "STATELY HYPNOTIC — 86-92 BPM in 7/4 cycle creates a long asymmetric pulse that feels MEDITATIVE rather than driving. The 7-beat cycle is long enough to feel SPACIOUS rather than urgent. Listeners cannot tap their foot conventionally — the cycle requires them to inhabit it rather than count it.",
+    "drum_style": {
+      "performer": "Matt Cameron",
+      "feel": "ASYMMETRIC METER MASTERY — Cameron documented as one of rock's most fluent odd-meter drummers. The 7/4 cycle is played with confidence and groove rather than counted-stiffly. Restrained intensity — anchoring the drone foundation, not driving the song forward.",
+      "techniques_documented": [
+        "7/4 cycle subdivided naturally — Cameron's documented approach to odd meters: feel the long cycle, place kicks/snares/cymbals to articulate the asymmetric pulse",
+        "Possible 4+3 or 3+4 grouping with kick on beats 1 and 5, snare on beats 3 and 6 (or similar — exact placement to verify)",
+        "Hi-hat + ride cymbal articulation prominent in mid-range — keeps the cycle audible",
+        "Minimal fills — fills would interrupt the meditative cycle",
+        "Restrained dynamics throughout — drums anchor rather than punctuate"
+      ],
+      "groove_feel_alignment": "Meditative groove — drums support the drone-meditation rather than driving body movement. The 7/4 cycle becomes a body-rhythm only after the listener locks in.",
+      "fills_and_transitions": "Almost no drum fills. Section transitions are accomplished by harmonic and textural shifts rather than by drum punctuation. Possibly a single cymbal swell or fill at bridge entry but otherwise drums maintain consistent cycle articulation."
+    },
+    "guitar_style": {
+      "performer": "Kim Thayil + Chris Cornell",
+      "feel_per_section": {
+        "intro_riff": "Sustained chord voicings establish atmospheric texture above the drone",
+        "verse": "Sustained chord voicings continue; minimal palm-muting; harmonic field above drone",
+        "pre_chorus": "N/A — there is no traditional pre-chorus build",
+        "chorus": "Slight harmonic expansion via voicing shifts; possibly slightly more sustain or feedback",
+        "bridge_solo": "Atmospheric guitar leads float above intensified drone — possible feedback-friendly sustained phrases"
+      },
+      "techniques_documented": [
+        "Drop D + flat tunings (Soundgarden Superunknown era exploration of low-tunings)",
+        "Distortion with sustain emphasis — long held chords with controlled feedback",
+        "Voicings often suspended or modal (sus2, sus4, modal voicings) — preserve drone-friendly harmonic openness",
+        "Lead guitar atmospheric phrases in bridge sections — sustained held notes rather than fast runs",
+        "Minimal rhythmic chunking — guitars provide harmonic field, not rhythmic drive"
+      ],
+      "playing_style_versus_other_grunge": "Most grunge guitar work is riff-driven and rhythm-forward. Head Down's guitars are SUSTAIN-driven and texture-forward. Closer to Black Sabbath's drone-doom influence (heavy sustain, modal voicings, low tuning) than to Pearl Jam-style rock-anthem riffs. Within Soundgarden's catalog, this is the band's most drone-doom-adjacent approach."
+    },
+    "vocal_delivery": {
+      "performer": "Chris Cornell",
+      "verse_delivery": "FLOATING + SUSTAINED — Cornell's vocal hovers above the drone foundation rather than driving the song forward. Long held phrases, breath-supported delivery, less aggressive than JCP or even FOBD chorus. Mid-register sustained tone.",
+      "chorus_delivery": "Slight upper-register lift but still atmospheric — chorus is harmonic and melodic field expansion, not explosion. Vocal opens slightly without abandoning the meditative quality.",
+      "extended_bridge_delivery": "Vocal less prominent in bridge — instrumental drone foundation carries the section. Cornell may be absent or minimal during bridge.",
+      "outro_delivery": "Recedes naturally with the atmospheric fade",
+      "documented_vocal_quirks": [
+        "Cornell adapts to atmospheric drone context — more SUSTAINED than ARGUMENTATIVE",
+        "Long phrasing matches the long 7/4 cycle — vocal phrases align with structural cycle length",
+        "Less wide dynamic range than other Superunknown vocals — Head Down requires consistent atmospheric vocal",
+        "Cornell's signature high-register screaming is absent here — the song requires restraint, not power"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No quantization or pitch correction (preserves natural feel)",
+      "No drum sample replacement",
+      "No tempo changes (sustained throughout)",
+      "No meter changes (sustained 7/4)",
+      "No vocal layering as dynamic device — single voice carries atmospheric quality",
+      "No high-register screaming (would shatter the meditative atmosphere)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity. Cross-mining target for asymmetric-meter + drone-modal MIDI extraction.",
+    "transitions_between_sections": [
+      {
+        "where": "intro_drone_build -> verse_1_vocal_entry",
+        "type": "vocal_drop_in_no_anticipation_into_established_drone",
+        "description": "After several cycles of 7/4 establishing the drone foundation and the meter, Cornell's vocal enters atop the architecture without fanfare. No fill, no riser, no harmonic cadence. The drone and 7/4 cycle continue unchanged; the vocal simply joins the texture.",
+        "extractable_concept": "vocal_first_entry_with_zero_transition_device_into_drone_foundation"
+      },
+      {
+        "where": "verse -> chorus",
+        "type": "harmonic_field_expansion_above_constant_drone",
+        "description": "The verse-to-chorus transition is achieved by EXPANDING the harmonic field above the drone — voicing shifts in the guitars, vocal lifts in pitch — while the drone remains absolutely constant. There is no dynamic explosion, no drum fill, no riser. The chorus is felt as a harmonic OPENING above the drone.",
+        "extractable_concept": "harmonic_field_expansion_above_constant_drone_for_chorus_lift"
+      },
+      {
+        "where": "chorus -> verse_2 or extended_bridge",
+        "type": "harmonic_field_contraction_back_to_verse_or_intensification_into_bridge",
+        "description": "The chorus dissolves back to the verse harmonic field by removing the upper-voice expansion; or it intensifies into the bridge by ADDING atmospheric guitar leads and intensifying the drone. Either transition happens via voicing shift, not via drum fill or section cut.",
+        "extractable_concept": "transitions_via_voicing_shift_not_drum_punctuation"
+      },
+      {
+        "where": "extended_bridge -> outro",
+        "type": "drone_resolution_into_atmospheric_fade",
+        "description": "The bridge's intensified drone gradually resolves back to verse-style drone, then continues into a long atmospheric fade. The transition is a gradual relaxation rather than a structural cut. Drone persists into the fade — the song dissolves into its compositional anchor.",
+        "extractable_concept": "song_dissolves_into_its_drone_anchor_during_outro"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "intro drone build",
+        "type": "drone_establishment_as_intro_build",
+        "duration_bars": "approximately 4-8 cycles of 7/4",
+        "description": "The opening 'build' is the GRADUAL ESTABLISHMENT of the drone, the meter, and the texture. Bass enters first with sustained low B; drums enter with 7/4 cycle; guitars layer atmospheric texture. By the time the vocal enters, the foundation is fully established. The build is by ACCUMULATION of foundational layers, not by tension-toward-release.",
+        "extractable_concept": "intro_build_via_foundational_layer_accumulation_not_tension_release"
+      },
+      {
+        "where": "extended bridge",
+        "type": "drone_intensification_with_atmospheric_lead_layering",
+        "duration_bars": "approximately 8-16 cycles of 7/4",
+        "description": "The bridge builds by INTENSIFYING the drone (bass + low-tuned guitars together emphasize the low foundation) while adding atmospheric guitar leads above. The intensification is via low-frequency thickening and upper-voice elaboration — not via drum fills or tempo increases.",
+        "extractable_concept": "bridge_build_via_drone_thickening_plus_atmospheric_lead_elaboration"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "throughout — subtle filter modulation on guitar layers",
+        "type": "subtle_filter_motion_on_guitar_texture",
+        "description": "Subtle low-pass or high-pass filter modulation on guitar layers across the song's runtime adds gentle textural variation without abrupt sweeps. The filter motion is part of the meditative atmospheric flow.",
+        "extractable_concept": "subtle_static_filter_motion_for_atmospheric_pacing"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "N/A — no drops in this track",
+        "type": "no_drops_atmospheric_continuity",
+        "description": "Head Down has no drops in the dance/rock sense. The arrangement only adds and subtracts gradually around the constant drone foundation. The song refuses tension-release cycles in favor of meditative continuity. The drone is always there; everything else floats around it.",
+        "extractable_concept": "no_drops_atmospheric_continuity_around_constant_drone"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "extended bridge — intensified drone with atmospheric leads",
+        "type": "drone_intensification_climax_not_loudness_climax",
+        "description": "The 'climax' is the bridge's intensified drone with atmospheric guitar leads above. Maximum harmonic density of the song, but NOT loud-and-explosive in the rock-anthem sense. Climax via low-frequency thickening + harmonic field elaboration rather than via dynamic explosion. Listeners conditioned to dynamic-arc rock may miss it; listeners attuned to drone-doom recognize it as the song's peak.",
+        "extractable_concept": "climax_via_drone_thickening_not_dynamic_explosion"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "asymmetric_meter_as_meditative_structural_device",
+        "description": "The 7/4 meter is the song's structural identity. Used as MEDITATIVE DEVICE (long cycle the listener inhabits) rather than as virtuosic complexity. Cameron's mastery makes the 7/4 feel natural rather than counted. The meter is felt as a long asymmetric breath rather than as a technical exercise.",
+        "extractable_concept": "asymmetric_seven_four_as_meditative_structural_device"
+      },
+      {
+        "type": "drone_foundation_as_compositional_anchor",
+        "description": "The sustained low B drone is the harmonic gravity well of the entire song. All other harmonic motion happens RELATIVE to this drone. The drone is present 90%+ of the song duration. This compositional engine differs fundamentally from chord-progression-based rock writing.",
+        "extractable_concept": "drone_foundation_as_compositional_anchor_replaces_chord_progression"
+      },
+      {
+        "type": "modal_voicings_above_drone_replace_chord_progression",
+        "description": "Instead of standard chord progression (i-VI-VII-i or similar), the song uses SUSTAINED MODAL VOICINGS above the drone foundation. Suspensions (sus2, sus4), modal inflections (Aeolian, occasional Phrygian), and quartal/quintal voicings preserve harmonic openness while creating subtle motion above the constant bass.",
+        "extractable_concept": "modal_voicings_above_drone_as_alternative_to_chord_progression"
+      },
+      {
+        "type": "bassist_driven_compositional_identity",
+        "description": "Ben Shepherd co-wrote the song; his bass drone is its compositional engine. The track demonstrates that a bassist can drive primary compositional identity — riff, structure, harmonic foundation — rather than always supporting a guitarist's riff. Shepherd's drone IS the song.",
+        "extractable_concept": "bassist_driven_compositional_identity_via_drone_foundation"
+      },
+      {
+        "type": "long_cycle_phrase_alignment",
+        "description": "Vocal phrases and structural phrases are aligned with the long 7/4 cycle — typically 1, 2, or 4 cycles per phrase. The phrase length matches the structural cycle length, which is unusual in rock (where phrases typically align with 4-bar 4/4 groupings). The result: phrases feel long and sustained.",
+        "extractable_concept": "phrase_alignment_with_long_asymmetric_cycle"
+      },
+      {
+        "type": "low_tuned_guitars_doubling_bass_drone_for_low_thickening",
+        "description": "In the bridge, low-tuned guitars double or harmonize with the bass drone for low-frequency thickening. The result: the drone becomes a wall of low-frequency content rather than a single sustained note. This gives the bridge its intensified character without raising the overall dynamic level.",
+        "extractable_concept": "low_tuned_guitars_doubling_bass_drone_for_bridge_intensification"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The 7/4 asymmetric cycle over the drone — listeners feel the long asymmetric pulse over Shepherd's sustained low foundation. The cycle creates a HYPNOTIC and STATELY feel rare in mainstream rock context. The 'weird time signature in slow motion' is the song's identity.",
+    "secondary": "The drone-foundation arrangement — bass holds sustained low drone, drums establish 7/4 cycle, guitars provide harmonic field above the drone, vocal floats over architecture. A meditation-music compositional engine within rock instrumentation.",
+    "tertiary": "Cornell's restrained vocal delivery — the moment listeners realize this is the same singer who screams on Spoonman and Black Hole Sun. Cornell adapting his voice to atmospheric drone context demonstrates his range."
+  },
+
+  "advisor_extract": [
+    "asymmetric_seven_four_as_meditative_structural_device",
+    "drone_foundation_as_compositional_anchor",
+    "modal_voicings_above_drone_replace_chord_progression",
+    "bassist_driven_compositional_identity",
+    "phrase_alignment_with_long_asymmetric_cycle",
+    "low_tuned_guitars_doubling_bass_drone_for_bridge_intensification",
+    "harmonic_field_expansion_above_constant_drone_for_chorus_lift",
+    "no_drops_atmospheric_continuity_around_constant_drone",
+    "climax_via_drone_thickening_not_dynamic_explosion"
+  ]
+}

@@ -1,0 +1,285 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_multi_section_arc_spoken_word_integration_arpeggio_engine_medium_for_exact_pitch_content_and_section_boundaries",
+  "_high_confidence_fields": [
+    "track_runtime (~9:04 — extended-form)",
+    "structural_blueprint (spoken-word over arpeggio -> live drums + bass enter -> instrumental disco jam -> orchestral peak -> resolution)",
+    "Giorgio Moroder's spoken-word interview audio as documented compositional element",
+    "documented session musicians (JR Robinson drums, Nathan East bass, Paul Jackson Jr. guitar, Chris Caswell keys)",
+    "synth arpeggio as Moroder-tribute compositional engine",
+    "stylistic_figures around section transitions, filter modulation, instrumental jam feature"
+  ],
+  "_to_verify_fields": [
+    "exact key area and any modulations across the multi-section arc — analyses give C minor / Eb major movement",
+    "exact tempo behaviour — 115-125 range cited; whether tempo varies between sections or stays fixed",
+    "exact bar counts of each section",
+    "specific Moog modular and other analog synths used for the arpeggio",
+    "exact moment(s) where the orchestral string layer enters and exits"
+  ],
+
+  "_status": "C6_4c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Random Access Memories",
+  "year": 2013,
+  "tempo_bpm_documented_range": [115, 125],
+  "time_signature": "4/4 throughout, but the FEEL evolves dramatically across sections. The opening spoken-word section has a slow, conversational pulse with a slow-developing arpeggio underneath; the disco-jam middle locks to a tight 4-on-the-floor; the climactic instrumental peak loosens slightly into film-score-orchestral feel. The metric grid is constant; the perceived feel is not.",
+  "key_area": "Minor-modal areas — most analyses cite C minor for the opening + early sections, with movement toward Eb major / G minor in the middle/late sections as the harmony develops. The arpeggio itself outlines a modal cell that the live band harmonizes against.",
+  "tuning_documented": "Standard tuning for live instruments (bass, guitar). Extensive analog synth content (Moog modular documented). Recorded to analog tape.",
+  "track_runtime": "~9:04",
+
+  "composition": {
+    "structural_blueprint": "spoken_word_intro_with_arpeggio_emerging (Giorgio Moroder narrating his career, intimate microphone presence; analog synth arpeggio enters underneath and gradually establishes the rhythmic + harmonic foundation) -> arpeggio_solo_zone (Moroder's monologue continues with the arpeggio now leading; tempo grid becomes felt) -> live_drums_enter (JR Robinson drum entry — first major arrangement event; track becomes a song) -> live_bass_enter (Nathan East bass anchors the harmony) -> instrumental_disco_groove (full live band locked to 4-on-the-floor disco feel; arpeggio still running; spoken-word recedes) -> ARPEGGIO+BAND_JAM_SECTION (extended instrumental jam — the Moroder-tribute centerpiece; synth solos, filter modulation, drum fills) -> ORCHESTRAL_BUILD (string section enters, arrangement thickens for film-score-adjacent peak) -> CLIMACTIC_PEAK (full electronic + live + orchestra simultaneously, arpeggio still as the through-line) -> RESOLUTION_AND_OUTRO (layers strip back progressively, return to electronic + bass foundation, possible final spoken-word line from Moroder, fade)",
+    "section_count_and_lengths": {
+      "spoken_word_intro": "Approximately 0:00-1:30 — Moroder's monologue with arpeggio entering during this zone",
+      "drum_entry_and_groove_lock": "Around 1:30-2:30 — drums and bass progressively enter, song becomes danceable",
+      "instrumental_disco_jam": "Approximately 2:30-5:30 — extended jam zone with the arpeggio as through-line, synth solos, drum fills, filter modulation",
+      "orchestral_build_and_peak": "Approximately 5:30-7:30 — strings enter, arrangement thickens, climax",
+      "resolution_outro": "Approximately 7:30-9:04 — layers strip back, fade",
+      "_note": "Section timestamps approximate. The track is FILM-SCORE-LIKE in length and form — not a song with verses but a multi-section composition with progressive arrangement evolution."
+    },
+    "harmonic_motion": "Multi-section harmonic evolution. Opening sections cycle a small minor-modal chord set under the arpeggio (the arpeggio outlines a 4-bar harmonic cell). Middle/late sections introduce harmonic development — modulation through related keys, additional chord complexity for the disco jam, traditional film-score harmonic motion for the orchestral peak. Voice-leading is more sophisticated than typical Daft Punk dance tracks — the live musicians' chord voicings and the eventual string arrangement bring traditional harmonic craft.",
+    "modal_choice": "Minor-modal opening (C minor area) with movement through related keys/modes across the multi-section arc. The arpeggio itself is a minor-mode 16th-note pattern (Moroder-tradition disco-arpeggio vocabulary).",
+    "melodic_contour": "There is no sung lead vocal — Moroder's spoken-word audio is the principal 'voice' of the early sections. Melodic content in the instrumental sections is carried by: (a) the arpeggio's outlined chord-tones; (b) synth lead lines that emerge during the jam zone; (c) the string section's upper voices in the orchestral peak. Contour is generally arching — building to the climactic peak then resolving downward.",
+    "characteristic_riff_construction": "The compositional cell is the SYNTH ARPEGGIO — a fast 16th-note pattern in the Moroder tradition (the arpeggiated bass-line of 'I Feel Love' is the explicit reference point). The arpeggio is the THROUGH-LINE of the entire track — it begins under the spoken-word intro and never stops, surviving through the drum entry, the disco jam, the orchestral peak, and the outro. Other layers are arranged AROUND the arpeggio. Daft Punk's compositional craft is in the arpeggio's pattern + the way it locks with the live band.",
+    "harmonic_pacing": "Slow-but-progressive at the section level (each major section spans 1-3 minutes). Faster at the chord-cycle level within sections (chord changes every 2-4 bars). Faster still at the arpeggio level (16th-note arpeggio creates constant micro-motion). Three-tier pacing — film-score-adjacent slow form, song-level chord cycles, and arpeggio micro-rhythm.",
+    "phrase_symmetry": "The arpeggio cycle is symmetric (4-bar or 8-bar). Sections are in 16-bar or 32-bar groups. Symmetry is preserved at every level; the asymmetry of the track is at the FORM level (it is a 9-minute extended composition rather than a 3-minute song), not at the bar/phrase level."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Giorgio Moroder spoken-word interview audio (documentary monologue narrating his career — central compositional element of the early sections)",
+      "Analog synth arpeggio (Moog modular and other analog synths — the through-line of the entire track)",
+      "Additional analog synth pads, leads, and textures (multiple layers across the multi-section arc)",
+      "Live drums (John 'JR' Robinson — legendary session drummer with documented disco-era credentials)",
+      "Live bass (Nathan East — legendary session bassist)",
+      "Live guitar (Paul Jackson Jr. — legendary session guitarist)",
+      "Keyboards (Chris Caswell — piano, electric piano, additional keys)",
+      "Orchestral string section (recorded at orchestral session for the climactic peak)",
+      "Possible additional orchestral elements (brass, percussion) for film-score-adjacent peak"
+    ],
+    "section_instrumentation": {
+      "spoken_word_intro": "Moroder's voice intimate + close — sometimes alone, sometimes with the arpeggio entering underneath",
+      "arpeggio_solo_zone": "Synth arpeggio + Moroder's continuing narration; possibly subtle pad",
+      "live_drums_enter": "Arpeggio + drums (Robinson) — major arrangement event",
+      "live_bass_enter": "Arpeggio + drums + bass (East) — rhythm section now complete",
+      "instrumental_disco_groove": "Arpeggio + drums + bass + guitar + keys — full disco-jam ensemble",
+      "arpeggio_band_jam_section": "Full live band + multiple synth layers + filter modulation + synth solos + drum fills",
+      "orchestral_build": "Strings enter, arrangement thickens — multi-element layering",
+      "climactic_peak": "Full ensemble simultaneously — synth arpeggio + live band + orchestral strings (and possibly additional orchestral elements). Maximum density.",
+      "resolution_outro": "Layers strip back; arpeggio + bass + drum remnants persist; possible Moroder final line; fade"
+    },
+    "vocal_layering_strategy": "There is NO sung vocal. The 'vocal' element is Moroder's documentary spoken-word audio, which is recorded separately (interview session) and integrated into the early sections. Spoken-word is treated as a compositional layer — centered, intimate, with minimal effects, allowed to recede as the arrangement builds. After roughly the first third, the spoken word is gone and the composition is purely instrumental. This is unusual for Daft Punk and unusual for any dance/electronic track of this length.",
+    "dynamic_arc_overall": "FILM-SCORE-ADJACENT MULTI-PEAK ARC. Spoken-word intro at intimate dynamic. Drum entry lifts to song-level dynamic. Disco jam sustains at high energy. Orchestral peak is the climactic moment — densest, loudest, most dramatic. Resolution outro returns to lower dynamic, ending with the arpeggio and bass. Unlike a typical dance track (one drop), Giorgio has a CONTINUOUS BUILD over many minutes to a single climactic peak followed by extended resolution — orchestral form rather than dance form.",
+    "instrumental_role_assignment": {
+      "guitar_role": "Paul Jackson Jr. — disco/funk session-guitarist precision. Plays rhythmic chord stabs and textural fills in the disco-jam zone. Not a featured solo instrument; serves the groove.",
+      "bass_role": "Nathan East — locked groove + harmonic anchor. East's documented session-bassist precision provides the bass-line that ties the live band to the synth arpeggio.",
+      "drums_role": "JR Robinson — disco-tradition 4-on-the-floor with session-drummer precision and humanization. Robinson's documented disco-era credentials (Off the Wall, Thriller) legitimize the Moroder homage. Drum fills throughout the jam zone are a featured element.",
+      "vocal_role": "Moroder's spoken-word audio carries the early sections; no sung vocal. Instrumental priority for the bulk of the runtime."
+    },
+    "harmonic_density_per_section": {
+      "spoken_word_intro": "Very low — voice + slowly emerging arpeggio + sparse pad",
+      "arpeggio_solo_zone": "Low — arpeggio + voice + minimal accompaniment",
+      "live_drums_enter": "Medium — arpeggio + rhythm section + voice",
+      "instrumental_disco_groove": "Medium-high — full live band + synths, no voice",
+      "arpeggio_band_jam_section": "High — multiple synth layers + filter mod + live band",
+      "orchestral_peak": "Maximum — synth + live band + orchestra simultaneously",
+      "resolution_outro": "Tapering down to bass + arpeggio fade"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No sung vocal hook (commitment to spoken-word + instrumental form)",
+      "No commercial-single economy (multi-section extended form for film-score-adjacent ambition)",
+      "No drum sample replacement (live drums priority, Robinson's feel preserved)",
+      "No quantization of live musicians (interpretive humanization preserved)",
+      "No abrupt section cuts (gradual section transitions for film-score continuity)",
+      "No EDM-era 'drop' shape (continuous build to one peak, not repeated drops)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "EVOLVING TEMPO FEEL — the metric grid is steady (115-125 BPM range, possibly fixed at one tempo), but the feel evolves: spoken-word intro feels conversational and slow despite the underlying tempo; disco-jam feels fast and danceable; orchestral peak feels grand and broad; resolution feels reflective. Same metronome tempo but radically different perceived feels. Documented as deliberate compositional choice — arrangement context shifts perception.",
+    "drum_style": {
+      "performer": "John 'JR' Robinson (legendary session drummer — Michael Jackson Off the Wall and Thriller, Steve Winwood, Quincy Jones, hundreds of disco/pop sessions)",
+      "feel": "Disco-tradition 4-on-the-floor with session-drummer humanization — slight micro-time variations, dynamic accents, interpretive choices that programmed drums cannot supply.",
+      "techniques_documented": [
+        "4-on-the-floor kick pattern (disco tradition)",
+        "Hi-hat 16ths driving forward",
+        "Snare on 2 and 4 with occasional ghosted ornaments",
+        "Drum fills throughout the jam zone — Robinson's documented session-drummer fill vocabulary",
+        "Live kit miced extensively at analog studio (Capitol or Henson)",
+        "Track recorded to analog tape — feel is committed to tape grain"
+      ],
+      "groove_feel_alignment": "Robinson's groove locks tightly to the synth arpeggio — the groove is the marriage of human disco drumming to machine arpeggio. This pairing IS the Moroder-tribute compositional engine.",
+      "fills_and_transitions": "Drum fills are featured — Robinson plays interpretive transitions between sections (lead-in to the disco jam, build into the orchestral peak). Unlike Daft Punk's earlier programmed-only paradigm, Giorgio FOREGROUNDS drum performance."
+    },
+    "guitar_style": {
+      "performer": "Paul Jackson Jr. (legendary session guitarist — Michael Jackson, Whitney Houston, Quincy Jones)",
+      "feel_per_section": {
+        "intro_riff": "Mostly absent during spoken-word section",
+        "verse": "N/A (no verses)",
+        "pre_chorus": "N/A",
+        "chorus": "N/A",
+        "bridge_solo": "Featured during the instrumental jam zone — disco-funk rhythm guitar with chord stabs and textural fills"
+      },
+      "techniques_documented": [
+        "Disco-funk strumming + chord stabs locked to the groove",
+        "Tube amp + mic capture at analog studio",
+        "Session-guitarist precision and interpretive sensitivity",
+        "Possible clean tones with subtle compression for disco-tradition tonal palette"
+      ],
+      "playing_style_versus_other_grunge": "Jackson's disco-funk session vocabulary is the OPPOSITE of grunge guitar — clean, precise, groove-serving, no distortion or feedback. Genre-specific session craft."
+    },
+    "vocal_delivery": {
+      "performer": "Giorgio Moroder (documentary spoken-word interview audio — narrating his pioneering career)",
+      "verse_delivery": "Conversational, intimate, close-mic'd. Moroder describes his early career, his decision to build the 'Click' with synths and drum machines, his philosophy of 'the sound of the future'. Pace is natural speech, not performed.",
+      "chorus_delivery": "N/A — no chorus",
+      "outro_delivery": "Possible final spoken-word phrase late in the track, marking compositional return to the documentary frame",
+      "documented_vocal_quirks": [
+        "Spoken-word audio is from a separate interview session, integrated into the composition during arrangement",
+        "Microphone presence is intimate — close, conversational, minimal effects",
+        "Audio is centered in the mix, treated with minimal reverb during spoken sections for intelligibility",
+        "Moroder's monologue IS the 'lyrical content' of the early sections — track is a documentary tribute to him"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No quantization of live musicians (interpretive humanization preserved)",
+      "No drum sample replacement",
+      "No vocal pitch correction (irrelevant — no sung vocal)",
+      "No tempo automation",
+      "No abrupt section cuts (gradual transitions priority)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target. For Daft Punk specifically: the arpeggio as a through-line, filter automation across sections, the spoken-word integration, and the orchestral build are the gold extractions.",
+    "transitions_between_sections": [
+      {
+        "where": "spoken_word_intro -> arpeggio_emergence",
+        "type": "imperceptible_arpeggio_introduction_under_voice",
+        "description": "The synth arpeggio enters QUIETLY underneath Moroder's continuing monologue, emerging from the silence almost imperceptibly. Listener becomes aware of it gradually rather than at a clear entry point. Documentary frame is preserved while music begins building.",
+        "extractable_concept": "imperceptible_instrumental_emergence_under_spoken_word"
+      },
+      {
+        "where": "arpeggio_solo -> live_drums_enter",
+        "type": "drum_entry_as_song_arrival",
+        "description": "When JR Robinson's drums enter, the track CRYSTALLIZES into a song — the 4-on-the-floor kick lands and the listener's body recognizes it as music to move to. Moroder's voice has receded by this point. The transition is the documented moment when 'the song begins'.",
+        "extractable_concept": "drum_entry_as_documentary_to_song_threshold"
+      },
+      {
+        "where": "instrumental_jam -> orchestral_build",
+        "type": "string_section_entry_for_orchestral_lift",
+        "description": "Strings enter during the late jam to begin the build toward the climactic peak. The transition is gradual — strings sustain low at first, gradually rise in presence. Film-score-adjacent transition technique.",
+        "extractable_concept": "gradual_orchestral_string_entry_for_climactic_lift"
+      },
+      {
+        "where": "climactic_peak -> resolution_outro",
+        "type": "progressive_layer_subtraction_post_peak",
+        "description": "After the orchestral peak, layers strip away in reverse order — strings first, then orchestral elements, then live band, until just arpeggio + bass + drum remnants remain. Mirror of the build. Outro is long, allowing the listener to come down from the peak gradually.",
+        "extractable_concept": "extended_resolution_outro_via_progressive_layer_subtraction"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "across the entire track — multi-section continuous build",
+        "type": "multi_section_film_score_build_to_one_peak",
+        "duration_bars": "approximately the first 7-8 minutes (the entire track until the orchestral peak)",
+        "description": "Unlike a dance track (build to drop, then repeat), Giorgio executes a SINGLE CONTINUOUS BUILD across most of its 9-minute runtime. Each major section adds new instrumental elements (drums, then bass, then guitar, then synth solos, then strings, then orchestral peak). Build duration measured in MINUTES, not bars. Film-score-adjacent build form.",
+        "extractable_concept": "multi_minute_continuous_build_to_single_peak_film_score_form"
+      },
+      {
+        "where": "during the instrumental jam — synth solo build",
+        "type": "synth_solo_build_with_filter_modulation",
+        "duration_bars": "approximately 16-32 bars",
+        "description": "Within the jam zone, synth solos build via filter modulation — the cutoff opens progressively, brightening the synth lead until it pierces the mix. Classic Moroder-tradition filter automation (Daft Punk's homage to Moroder's pioneering filter-house technique).",
+        "extractable_concept": "synth_solo_build_via_filter_cutoff_opening"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "throughout the instrumental jam — on the arpeggio and synth leads",
+        "type": "extensive_filter_modulation_moroder_tribute",
+        "description": "The arpeggio receives substantial filter cutoff automation across the jam zone — opening for build energy, closing for dropouts, modulating in time-with-the-drums for rhythmic interest. This is a deliberate Moroder/filter-house tribute (Daft Punk's documented filter-modulation expertise applied here in the spirit of Giorgio's pioneering work).",
+        "extractable_concept": "filter_modulation_on_arpeggio_as_moroder_tribute_engine"
+      },
+      {
+        "where": "section transitions",
+        "type": "filter_resets_between_sections",
+        "description": "Between major sections, filter cutoffs may reset (closing momentarily then re-opening) to mark the transition. Subtle but functional — the listener feels the section change partly through filter motion.",
+        "extractable_concept": "filter_cutoff_reset_at_section_boundary"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "occasional brief breakdowns within the jam zone",
+        "type": "micro_breakdowns_within_jam",
+        "description": "The instrumental jam zone may include brief moments where elements drop out (e.g., drums pull for a couple of bars, or live band thins to leave the arpeggio exposed) before re-engaging. These are MICRO-breakdowns within the larger jam — they don't function as the track's climactic structural drop, just as textural breathing.",
+        "extractable_concept": "micro_breakdowns_within_extended_jam_for_textural_breathing"
+      },
+      {
+        "where": "no dance-music-style drops at the song level",
+        "type": "no_edm_drop_form",
+        "description": "Giorgio is the FILM-SCORE-ADJACENT alternative to EDM-era drops. The track does not build to a drop — it builds to an ORCHESTRAL PEAK. Documented as an anti-EDM compositional gesture from Daft Punk in the 2013 EDM-mainstream context.",
+        "extractable_concept": "anti_edm_no_drop_form_orchestral_peak_instead"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "approximately 6:30-7:30 — orchestral peak",
+        "type": "film_score_orchestral_climax",
+        "description": "The orchestral peak — strings + synth arpeggio + full live band + additional orchestral elements all simultaneously at maximum density. Film-score-adjacent climactic moment. Loud, dense, sustained — but emotional rather than aggressive. Most-cited 'big moment' of RAM.",
+        "extractable_concept": "orchestral_climax_via_strings_plus_full_band_plus_arpeggio"
+      },
+      {
+        "where": "the synth solos in the jam zone",
+        "type": "secondary_climax_via_synth_solo",
+        "description": "Within the jam zone, synth solos function as secondary climactic events — virtuosic synth playing built via filter modulation peaks. Smaller in scale than the orchestral peak but compositionally important.",
+        "extractable_concept": "synth_solo_as_secondary_climactic_event"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "documentary_spoken_word_as_compositional_element",
+        "description": "Moroder's interview audio is treated as a COMPOSITIONAL LAYER, not as a voiceover or intro. The audio integrates with the developing arpeggio, recedes naturally as the band enters, and possibly returns at the outro. Documentary integration is the track's defining compositional device.",
+        "extractable_concept": "spoken_word_interview_audio_as_compositional_layer_not_intro"
+      },
+      {
+        "type": "synth_arpeggio_as_through_line",
+        "description": "The 16th-note synth arpeggio runs from approximately the 1-minute mark to the very end of the track — through every section, every transition, every climax. It is the CONNECTIVE TISSUE of the multi-section composition. Without this through-line, the track would feel like a suite of disconnected sections; with it, the 9 minutes feel unified.",
+        "extractable_concept": "single_arpeggio_as_through_line_for_multi_section_composition"
+      },
+      {
+        "type": "live_band_locked_to_machine_arpeggio",
+        "description": "The live disco-tradition rhythm section (Robinson + East + Jackson Jr.) plays IN LOCK with the machine arpeggio — the marriage of human disco groove and machine arpeggio is Daft Punk's homage to Moroder's pioneering 'I Feel Love' synthesis (where he first married machine arpeggio with human-feeling production).",
+        "extractable_concept": "live_human_disco_rhythm_section_locked_to_machine_arpeggio"
+      },
+      {
+        "type": "orchestral_strings_in_electronic_track",
+        "description": "Strings enter for the climactic peak — film-score-tradition orchestral arrangement integrated with the electronic + live-band foundation. Most-celebrated string arrangement on RAM. Demonstrates Daft Punk's compositional ambition beyond electronic-music vocabulary.",
+        "extractable_concept": "orchestral_string_section_for_film_score_climax_in_electronic_track"
+      },
+      {
+        "type": "extended_form_film_score_composition",
+        "description": "9:04 runtime is unprecedented for a non-medley pop/electronic single in 2013 mainstream context. Daft Punk deliberately chose film-score-adjacent extended-form composition to honor Moroder's career-spanning narrative. Length itself is a compositional gesture.",
+        "extractable_concept": "extended_runtime_as_compositional_gesture_for_career_narrative"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The synth arpeggio building under Moroder's spoken-word monologue and the moment when JR Robinson's drums enter, transforming the documentary frame into a disco anthem.",
+    "secondary": "The orchestral peak — strings + arpeggio + full band + film-score-adjacent climactic density. Most-cited 'big moment' of RAM.",
+    "tertiary": "Moroder's quote 'I knew it was going to be the sound of the future' — culturally iconic line that ties the track's compositional intent to its historical homage."
+  },
+
+  "advisor_extract": [
+    "spoken_word_interview_audio_as_compositional_layer_not_intro",
+    "single_arpeggio_as_through_line_for_multi_section_composition",
+    "live_human_disco_rhythm_section_locked_to_machine_arpeggio",
+    "orchestral_string_section_for_film_score_climax_in_electronic_track",
+    "multi_minute_continuous_build_to_single_peak_film_score_form",
+    "filter_modulation_on_arpeggio_as_moroder_tribute_engine",
+    "extended_runtime_as_compositional_gesture_for_career_narrative",
+    "anti_edm_no_drop_form_orchestral_peak_instead",
+    "extended_resolution_outro_via_progressive_layer_subtraction"
+  ]
+}

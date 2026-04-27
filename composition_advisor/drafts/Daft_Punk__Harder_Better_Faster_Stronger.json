@@ -1,0 +1,244 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_structure_vocoder_role_sample_basis_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "time_signature (4/4 throughout)",
+    "track_runtime",
+    "tempo_bpm_documented_range (122-124)",
+    "structural_blueprint (sample-loop foundation + vocoder verses/chorus + bridge breakdown)",
+    "vocoded vocal as primary melodic carrier (not secondary phrase)",
+    "Edwin Birdsong 'Cola Bottle Baby' sample as documented compositional foundation",
+    "stylistic_figures around vocoder layering, build/drop on the bridge, sample chops"
+  ],
+  "_to_verify_fields": [
+    "exact key area — analyses give F# minor or G minor depending on which chord set is treated as tonic",
+    "exact bar counts of each section",
+    "specific vocoder unit used (analog vs digital — Daft Punk used several across the album)",
+    "exact composition of bridge breakdown — many transcriptions disagree on number of beats"
+  ],
+
+  "_status": "C6_2c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Discovery",
+  "year": 2001,
+  "tempo_bpm_documented_range": [122, 124],
+  "time_signature": "4/4 throughout. The track is rigidly square — every bar is a clean four. The song's compositional movement comes from layer addition, vocoder phrase placement, and the bridge breakdown, NOT from any metric variation.",
+  "key_area": "Minor-modal area — most commonly transcribed as F# minor (chord set roughly F#m / E / D / C#m or similar voicings derived from the Edwin Birdsong sample). Some transcriptions read it in G minor. The harmonic motion is sample-derived rather than freshly composed, so the key area is whatever the sample loop establishes.",
+  "tuning_documented": "N/A — synthesizer-based composition, no guitars",
+  "track_runtime": "~3:45",
+
+  "composition": {
+    "structural_blueprint": "sample_intro (Edwin Birdsong 'Cola Bottle Baby' loop establishes the chord/groove foundation alone for a few bars) -> verse1_vocoder_entry (vocoded lead enters delivering the 'work it / make it / do it / makes us' enumeration over the sample) -> chorus1_full_density ('our work is never over' tagline against fuller drum pattern) -> verse2 -> chorus2 -> BRIDGE_BREAKDOWN (the famous 'work it harder make it better...' stack — vocoder phrases layered/stuttered/multiplied, drums often subtracted then re-introduced for the build) -> final_chorus_max_density -> outro (sample loop tails off / fade)",
+    "section_count_and_lengths": {
+      "intro": "Approximately 4-8 bars of sample loop alone before vocoder entry",
+      "verses": "Each verse approximately 8 bars over the looped sample",
+      "choruses": "Approximately 8 bars each, marked by 'our work is never over' tagline",
+      "bridge_breakdown": "Extended — approximately 16-32 bars where the four-line vocoder enumeration accumulates, fragments, multiplies. The compositional centerpiece.",
+      "final_chorus": "8-16 bars at maximum density",
+      "outro": "Brief tail",
+      "_note": "Bar counts approximate. Pop-single economy (~3:45). The bridge breakdown is the section everyone remembers — disproportionate compositional weight relative to its bar count."
+    },
+    "harmonic_motion": "Sample-derived — the chord progression is essentially what Edwin Birdsong already composed in 'Cola Bottle Baby'. Daft Punk loop a small chord set (commonly read as i - bVII - bVI - v in the chosen minor or close variants). Voice-leading is more traditional than typical filter-house because the source sample provides traditional progression. The motion is non-functional in dance-music sense (no V-i resolution), but more harmonically active than something like Around the World.",
+    "modal_choice": "Minor-mode (Aeolian-ish), source-sample-defined. Vocoded melody traces the sample's chord changes rather than imposing new harmonic content.",
+    "melodic_contour": "The vocoder lead carries SHORT IMPERATIVE PHRASES — each line is a 2-bar enumeration: 'work it / make it / do it / makes us'. Each phrase is a small descending or oscillating melodic cell, NOT a sustained sung melody. The chorus tagline 'our work is never over' is also a compact phrase. Contour is more rhythmic-textural than lyrical-melodic. The bridge accumulates these phrases into a self-multiplying texture.",
+    "characteristic_riff_construction": "There is no instrumental 'riff' in the rock sense — the riff is the SAMPLE LOOP itself (Edwin Birdsong 'Cola Bottle Baby' chops). Daft Punk's compositional craft is in HOW THE LOOP IS CHOPPED + how the vocoder phrases lock into the sample's groove + which bars of the sample are kept and which are subtracted. The vocoder enumeration ('work it harder make it better...') functions as a secondary 'riff' once it accumulates in the bridge.",
+    "harmonic_pacing": "Slow at the chord level (the looped chord set cycles every 4-8 bars without development) but RAPID at the event level (vocoder phrase entries, drum pattern shifts, sample-chop variations create constant micro-events on top of the static loop). Pop-single pacing — section changes every 16-32 bars.",
+    "phrase_symmetry": "Highly symmetric — 4-bar and 8-bar phrasing throughout. The vocoder enumeration is 2-bar units assembled into 8-bar groups. Symmetry is a feature: it makes the song danceable + radio-friendly. The bridge plays SYMMETRY against itself (the four enumeration lines stack and overlap, creating perceived complexity over a still-symmetric base)."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Edwin Birdsong 'Cola Bottle Baby' sample loop (compositional foundation — chord progression + groove derive from this)",
+      "Programmed drum kit (kick + snare + hi-hat 16ths + clap)",
+      "Synth bass (doubling or replacing sample bass-line, depending on section)",
+      "Additional synth pad/lead layers above sample for chorus density",
+      "Vocoder (the lead vocal — recorded vocal performance fed into vocoder unit and used as PRIMARY MELODIC CARRIER for the entire track)",
+      "Possible additional sample-derived percussion hits"
+    ],
+    "section_instrumentation": {
+      "intro": "Sample loop alone (or with sparse drum support) — establishes chord/groove",
+      "verse": "Sample + drums + bass + vocoder lead delivering the imperatives",
+      "chorus": "Sample + fuller drum pattern + additional synth layer + vocoder 'our work is never over' tagline",
+      "bridge_breakdown": "Drums often subtracted at the start, then re-introduced. Vocoder phrases stack: each new bar adds a different enumeration line, eventually all four lines play simultaneously. The arrangement THICKENS via vocoder multiplication, not via new instruments.",
+      "final_chorus": "Maximum density — sample + full drums + full vocoder stack + synth layers",
+      "outro": "Layers strip back, sample tail or fade"
+    },
+    "vocal_layering_strategy": "ALL vocal is vocoder-processed. The 'voice' you hear is a recorded vocal performance fed into a vocoder, which carries melodic/harmonic content via the synth carrier. Multiple vocoder takes are used for stacking in the bridge and final chorus — different enumeration lines occupy different harmony layers, creating a SELF-HARMONIZED VOCODER CHOIR. Strategy: vocoder is the LEAD INSTRUMENT, not an effect. The track has no clean human vocal anywhere.",
+    "dynamic_arc_overall": "Pop-electronic build-and-release across short runtime. Verse moderate density -> chorus higher density -> bridge BREAKDOWN (drums often pulled, then triumphantly re-engaged) -> final chorus maximum density. The bridge is the song's compositional + dynamic peak — the famous phrase-stack moment. Outro fade.",
+    "instrumental_role_assignment": {
+      "guitar_role": "N/A",
+      "bass_role": "Sample-derived bass-line + synth bass doubling for low-end weight. Locked to the sample's harmonic motion.",
+      "drums_role": "Programmed 4/4 dance foundation. Pattern variation between sections (sparser verses, fuller choruses, breakdown drop in bridge) is the principal dynamic engine.",
+      "vocal_role": "VOCODER LEAD AS PRIMARY MELODIC CARRIER. Carries lyric (such as it is — imperative verbs and the chorus tagline), melody, and texture. The vocoder is not 'a vocal effect' — it is the lead instrument."
+    },
+    "harmonic_density_per_section": {
+      "intro": "Low-medium — sample loop alone",
+      "verse": "Medium — sample + drums + single vocoder line",
+      "chorus": "Medium-high — added synth layer + chorus tagline",
+      "bridge_breakdown": "Variable — starts LOW (drums dropped, just sample + accumulating vocoder), builds to HIGH as enumeration lines stack",
+      "final_chorus": "Maximum — full stack",
+      "outro": "Tapering low"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No human clean vocal anywhere (commitment to vocoder as lead — not a guest hook)",
+      "No tempo change",
+      "No live drums (programmed-only Discovery aesthetic)",
+      "No instrumental solo (the bridge is a vocoder-stack feature, not a synth-lead feature)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Driving 4/4 dance feel at 122-124 BPM. Pocket is locked to the programmed grid + the sample's groove — feel is mechanical-tight but the sample brings a slight human soul-music swing inherited from the Edwin Birdsong source. Combination of machine precision + sampled human groove is part of Daft Punk's Discovery-era signature.",
+    "drum_style": {
+      "performer": "Programmed (Bangalter + de Homem-Christo at home studio)",
+      "feel": "Machine-tight 4/4 dance foundation — kick on every beat, snare on 2 and 4, hi-hat 16ths, clap layer",
+      "techniques_documented": [
+        "Programmed pattern variation across sections (intro sparser, chorus fuller)",
+        "Bridge breakdown — drums often pulled completely for some bars then re-engaged on the build back",
+        "Possible sample-derived percussion accents pulled from the Edwin Birdsong source"
+      ],
+      "groove_feel_alignment": "Drums lock TIGHTLY to the sample's groove — they reinforce rather than fight the source-sample feel.",
+      "fills_and_transitions": "Transitions accomplished via SUBTRACTION (pulling drums on the bridge dropoff) and ADDITION (re-engaging on the build), not via traditional drum fills."
+    },
+    "guitar_style": {
+      "performer": "N/A",
+      "feel_per_section": {
+        "intro_riff": "N/A",
+        "verse": "N/A",
+        "pre_chorus": "N/A",
+        "chorus": "N/A",
+        "bridge_solo": "N/A"
+      },
+      "techniques_documented": [],
+      "playing_style_versus_other_grunge": "N/A"
+    },
+    "vocal_delivery": {
+      "performer": "Bangalter + de Homem-Christo (recorded vocal performance fed into vocoder)",
+      "verse_delivery": "Vocoder carries the verb-enumeration — 'work it / make it / do it / makes us'. Phrasing is compact, percussive, locked to 2-bar units. Vocoder character is robotic-melodic.",
+      "chorus_delivery": "Vocoder delivers 'our work is never over' as a longer melodic tagline. Slightly more sustained tones than the verses — vocoder formants more audible.",
+      "outro_delivery": "Vocoder phrases recede with the fade. No held final note — the song just stops looping.",
+      "documented_vocal_quirks": [
+        "Zero clean human vocal — total commitment to vocoder as lead",
+        "Bridge phrase-stack — four enumeration lines layered such that all four play simultaneously, creating a self-harmonized vocoder choir",
+        "Vocoder character is intentionally synthetic-sounding — no attempt to mask the vocoder formants",
+        "Lyrical content is intentionally minimal (imperatives + tagline) — the words are part of the rhythmic-textural grid, not a narrative"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No clean vocal hook (would dilute the vocoder commitment)",
+      "No virtuoso synth solo (would shift focus from the sample + vocoder)",
+      "No live drum performance (would conflict with sample's grid-locked feel)",
+      "No tempo rubato (radio-pop demands strict 4/4)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target. For Daft Punk specifically: vocoder phrase-stacking, sample-chop choices, drum subtraction/addition cycles, and filter automation are the gold extractions.",
+    "transitions_between_sections": [
+      {
+        "where": "intro_sample_alone -> verse_with_vocoder",
+        "type": "vocoder_drop_in_no_riser",
+        "description": "The vocoder simply enters on a downbeat over the looped sample. No riser, no sweep, no anticipation. The sample loop continues unchanged underneath.",
+        "extractable_concept": "vocoder_first_entry_with_zero_transition_device"
+      },
+      {
+        "where": "chorus2 -> bridge_breakdown",
+        "type": "drum_subtraction_dropoff_into_breakdown",
+        "description": "On the bridge entry, the drums often pull out (or at least thin dramatically) so that just the sample + vocoder phrases remain. The dropoff is on a downbeat — abrupt, not faded. This sets up the famous phrase-stack accumulation.",
+        "extractable_concept": "drum_dropout_into_breakdown_on_downbeat"
+      },
+      {
+        "where": "bridge breakdown -> final chorus",
+        "type": "phrase_stack_build_then_full_band_re_engage",
+        "description": "The four enumeration lines have stacked across the bridge; when the final chorus arrives, drums slam back in at full density on a downbeat with all vocoder layers still active. Classic dance-music build-then-drop, here delivered via VOCODER STACK rather than synth riser.",
+        "extractable_concept": "build_via_phrase_stacking_drop_via_drum_reengage"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "bridge breakdown — phrase accumulation",
+        "type": "vocoder_phrase_stack_as_riser",
+        "duration_bars": "approximately 16-32 bars, with the full stack assembling in the second half",
+        "description": "The classic 'riser' here is not a noise sweep but the gradual accumulation of vocoded enumeration lines. Bar 1: 'work it harder' alone. Bar 3: + 'make it better'. Bar 5: + 'do it faster'. Bar 7: + 'makes us stronger'. Eventually all four phrases play simultaneously, each on a different harmony layer, creating a self-multiplying choir build.",
+        "extractable_concept": "build_via_vocoder_phrase_stacking_each_line_a_new_layer"
+      },
+      {
+        "where": "verse to chorus boundaries",
+        "type": "additive_synth_layer_lift",
+        "description": "On chorus entries, an additional synth pad/lead layer enters above the sample to thicken the harmonic field. Subtle but audibly different from the verse texture.",
+        "extractable_concept": "subtle_synth_layer_addition_to_mark_chorus_lift"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "throughout — particularly on the sample loop",
+        "type": "subtle_lowpass_motion_on_sample",
+        "description": "The Edwin Birdsong sample receives subtle low-pass filtering modulation across sections — verses brighter, breakdown darker, choruses brightest. Less aggressive than Around the World's filter-house automation, but the technique is present.",
+        "extractable_concept": "subtle_filter_modulation_as_section_pacing"
+      },
+      {
+        "where": "drum bus on bridge entry",
+        "type": "instantaneous_full_band_subtraction_on_downbeat",
+        "description": "Drums cut entirely on the bridge downbeat (not faded) — a hard cutoff that creates the breakdown space. Inverse-cliff: a 'low-pass to silence' but accomplished by muting rather than filtering.",
+        "extractable_concept": "drum_hard_cutoff_at_breakdown_entry"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "bridge breakdown",
+        "type": "classic_dance_breakdown_then_drop",
+        "description": "The bridge IS the breakdown — drums pulled, vocoder phrases accumulate, tension builds. The 'drop' is the final chorus arrival when drums slam back in with all vocoder layers active. Textbook dance-music shape, executed via vocoder phrase-stacking instead of synth-riser+drop.",
+        "extractable_concept": "breakdown_then_drop_via_vocoder_stack_not_synth_riser"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "bridge final bars + final chorus arrival",
+        "type": "vocoder_phrase_density_peak",
+        "description": "The moment when all four enumeration lines play simultaneously is the textural peak — the four-fold self-harmonized vocoder choir. The drum re-entry on the final chorus extends this peak with maximum density across all elements.",
+        "extractable_concept": "climax_via_vocoder_phrase_stack_max_density_plus_drum_reengage"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "vocoder_as_lead_instrument_not_effect",
+        "description": "The defining production technique. Recorded vocal fed into a vocoder, with the vocoder's synth carrier providing the actual pitch content. The voice you hear is half-human (formants) and half-synth (carrier oscillator). Daft Punk commit to this as the LEAD — not as a hook layer over a sung vocal.",
+        "extractable_concept": "vocoder_as_full_song_lead_instrument"
+      },
+      {
+        "type": "sample_chop_as_compositional_foundation",
+        "description": "The Edwin Birdsong 'Cola Bottle Baby' sample is chopped, looped, and pitched/filtered to provide the song's chord progression and groove. The sample is not a hook on top — it IS the harmonic + rhythmic foundation. Daft Punk's compositional contribution is the chop choice, the loop, and the layers added.",
+        "extractable_concept": "sample_as_chord_progression_foundation_not_hook_layer"
+      },
+      {
+        "type": "self_multiplying_vocoder_phrase_stack",
+        "description": "The bridge's phrase-stacking technique — four short enumeration lines accumulate over multiple bars until all four play simultaneously, each on its own harmony layer. Creates an illusion of MORE complexity than is actually present (still the same chord set looping). Audio-illusion compositional device.",
+        "extractable_concept": "phrase_stacking_for_perceived_complexity_over_static_loop"
+      },
+      {
+        "type": "robotic_imperative_lyric_as_grid_element",
+        "description": "Lyrical content is reduced to verb imperatives ('work it / make it / do it / makes us') that function as RHYTHMIC GRID ELEMENTS more than narrative content. The robotic lyric reinforces the robotic vocoder character. Lyric and timbre conspire.",
+        "extractable_concept": "minimal_imperative_lyric_locked_to_grid_as_rhythmic_unit"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The bridge phrase-stack — 'work it harder / make it better / do it faster / makes us stronger' accumulating into a self-multiplying vocoder choir. The track's centerpiece and the cultural meme.",
+    "secondary": "The vocoded chorus tagline 'our work is never over' — Daft Punk's robot-anthem signature.",
+    "tertiary": "The Edwin Birdsong sample loop itself — instantly recognizable to anyone who knows the source, and the harmonic engine of the entire track."
+  },
+
+  "advisor_extract": [
+    "vocoder_as_full_song_lead_instrument",
+    "sample_as_chord_progression_foundation_not_hook_layer",
+    "phrase_stacking_for_perceived_complexity_over_static_loop",
+    "drum_dropout_into_breakdown_on_downbeat",
+    "build_via_vocoder_phrase_stacking_each_line_a_new_layer",
+    "minimal_imperative_lyric_locked_to_grid_as_rhythmic_unit",
+    "subtle_filter_modulation_as_section_pacing",
+    "pop_song_structure_within_electronic_vocabulary",
+    "breakdown_then_drop_via_vocoder_stack_not_synth_riser"
+  ]
+}

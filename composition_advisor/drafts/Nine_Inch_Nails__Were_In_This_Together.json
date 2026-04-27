@@ -1,0 +1,262 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_structural_arc_dynamics_anthemic_intent_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "tempo_bpm_documented_range (114-122 anthemic mid-tempo)",
+    "track_runtime (~7:16 extended form)",
+    "modal_choice (C# minor / D minor area)",
+    "structural_blueprint (intro -> verse -> pre-chorus build -> anthemic chorus -> verse 2 -> chorus -> bridge -> intensifying final choruses -> outro fade)",
+    "anthemic industrial-rock fusion compositional intent",
+    "multiple chorus iterations with cumulative intensification",
+    "stylistic_figures around extended-form anthem with industrial vocabulary"
+  ],
+  "_to_verify_fields": [
+    "exact tempo (114-122 range)",
+    "exact key area (C# minor vs D minor — chromatic riff motion blurs tonic)",
+    "exact bar counts of each chorus iteration",
+    "guitar tuning (likely drop-D variant or half-step-down)"
+  ],
+
+  "_status": "C4_3c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "The Fragile",
+  "year": 1999,
+  "_canonical_title": "We're In This Together",
+  "tempo_bpm_documented_range": [114, 122],
+  "time_signature": "4/4 throughout. Anthemic-rock-pulse meter — accessible 4/4 is required for the song's anthem intent. No metric tricks; the 4/4 grid is the foundation that lets the multiple chorus iterations build emotional weight.",
+  "key_area": "C# minor area / D minor area. Chromatic riff motion blurs the exact tonic between these neighbors. Chorus harmonic expansion may briefly suggest the relative major. Voice-leading is traditional anthem-rock craft: minor verses with dark harmonic tension, choruses that open the harmonic field.",
+  "tuning_documented": "Detuned electric guitar — likely drop-D or a half-step-down variant. Reznor's Fragile-era guitar work uses various detunings; the heavy-but-not-extreme distortion suggests drop-tuned chord shapes for the rock-anthem riff.",
+  "track_runtime": "~7:16",
+
+  "composition": {
+    "structural_blueprint": "atmospheric_intro_brief (synth pad + ambient texture sets harmonic mood) -> riff_driven_full_band_entry (programmed drums + distorted bass synth + processed guitars + Reznor vocal) -> verse_1 (driving ~118 BPM rhythmic foundation; vocal moderate intensity) -> pre_chorus_build (additional synth layer; drum intensification; vocal lifts) -> ANTHEMIC_CHORUS_1 (maximum density; vocal projects with emotional commitment; harmonic field opens; multi-layer vocal stacks) -> verse_2 (returns to verse density with additional textural elements retained) -> chorus_2 (slightly more intensified than chorus 1) -> EXTENDED_INSTRUMENTAL_BRIDGE (sustained section without vocal — programmed drums + atmospheric synth + textural guitar exploration) -> final_chorus_repetitions_intensifying (3-5 chorus iterations each more invested than the last; vocal pushes harder; possible additional vocal layering) -> outro_fade (gradual fade with atmospheric texture continuing — emotional resolution rather than abrupt end)",
+    "section_count_and_lengths": {
+      "intro": "Approximately 8-16 bars of atmospheric setup before full-band entry",
+      "verses": "Each verse approximately 16 bars at ~118 BPM",
+      "pre_chorus": "Approximately 8 bars of build",
+      "choruses": "Each chorus approximately 16 bars; multiple iterations across runtime",
+      "extended_bridge": "Approximately 16-32 bars of instrumental expansion — uses extended runtime to allow band-as-instrumental-statement",
+      "final_chorus_repetitions": "3-5 chorus iterations stacked with cumulative intensification",
+      "outro": "Long atmospheric fade with pads continuing past vocal exit",
+      "_note": "Bar counts approximate. The 7:16 runtime is the COMPOSITIONAL RESOURCE — extended form allows multiple chorus iterations to build cumulative weight that a single chorus iteration cannot achieve."
+    },
+    "harmonic_motion": "Minor-modal with chromatic riff motion and characteristic Reznor suspended voicings. Verse harmonic motion uses dark chromatic chord shifts (small chromatic neighbor moves rather than functional V-I cadences). Chorus harmonic motion opens — possibly relative major area or open-voiced suspensions. Voice-leading is traditional rock-anthem craft compared to March of the Pigs's mode-blurred aggression or TDTWWA's harmonic suspension.",
+    "modal_choice": "C# minor or D minor (Aeolian) with chromatic verse inflections. Chorus expansion may suggest relative major (E or F) for emotional release without abandoning the minor center. The mode is anthemic-minor: dark enough for tension, open enough for emotional release.",
+    "melodic_contour": "Vocal contour ASCENDS in the chorus and DESCENDS in the verses — classic anthem shape. Verses are mid-register, contained, slightly aggressive. Chorus phrases climb to upper-mid register and sustain. The contrast in contour between verse and chorus is the song's melodic engine.",
+    "characteristic_riff_construction": "The verse riff is a driving distorted-guitar figure aligned to the ~118 BPM kick-snare grid. Heavy enough for industrial-rock context, accessible enough for anthem intent. The riff is repeated through verses and partially deployed in choruses where it cedes some space to the vocal projection. Constructed for body movement and head-nod, not for metric disorientation.",
+    "harmonic_pacing": "Moderate at the chord level — chord changes happen approximately every 2-4 bars in verses, possibly faster in chorus expansion. Pacing is anthem-appropriate: enough motion to feel direction, not so much motion that the listener cannot hold the chorus in their head.",
+    "phrase_symmetry": "Symmetric 4-bar and 8-bar phrasing throughout. The 4/4 grid and 8/16-bar phrases are accessible — the song is meant to be sung along to. Symmetry IS the anthem device. The extended runtime stacks symmetric phrases to build cumulative weight."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Programmed drum kit (kick + snare + hi-hat + cymbal samples + occasional industrial percussion)",
+      "Distorted bass synth (rock-anthem foundation; less distorted than March of the Pigs)",
+      "Multiple distorted guitar layers (rhythm guitar + textural layers; hard L/R panning)",
+      "Atmospheric synth pads (multiple layers, harmonic field underneath)",
+      "Lead vocal (Trent Reznor — middle-register anthemic projection)",
+      "Chorus vocal layering (doubles + octave doubles + possibly background harmonies)",
+      "Additional ambient/textural elements for atmospheric depth"
+    ],
+    "section_instrumentation": {
+      "intro": "Atmospheric synth pad + ambient texture; brief setup before full band",
+      "verse": "Programmed drums driving + distorted bass + processed guitars + Reznor vocal moderate intensity",
+      "pre_chorus": "Additional synth layer; drum intensification; vocal lifts toward chorus",
+      "chorus": "Maximum density — drums full, guitars wide, multi-layer vocals, harmonic field open",
+      "verse_2": "Returns to verse density with chorus textural residue retained",
+      "extended_bridge": "Programmed drums + atmospheric synth + textural guitar leads — vocal absent or minimal",
+      "final_chorus_repetitions": "Multiple chorus iterations with progressively MORE vocal layering, density, emotional commitment",
+      "outro": "Gradual fade with atmospheric pads continuing"
+    },
+    "vocal_layering_strategy": "ANTHEMIC MULTI-LAYER CHORUS STACKING. Verses use single lead vocal with moderate processing. Choruses use lead + double + octave-double + possible background harmonies layered for ANTHEMIC FULLNESS. Final chorus repetitions intensify the layering — additional doubles and possibly chorus-vocal-elements stacked for cumulative weight. Opposite of TDTWWA's single-vocal philosophy.",
+    "dynamic_arc_overall": "EXTENDED ANTHEMIC ARC — verse moderate, chorus full, bridge instrumental, FINAL CHORUS REPETITIONS INTENSIFYING across 7:16. The arc is not a single peak but a CUMULATIVE INTENSIFICATION across multiple chorus iterations. Each chorus is slightly bigger than the previous one.",
+    "instrumental_role_assignment": {
+      "guitar_role": "Rock-anthem rhythmic-harmonic primary alongside synth elements. More traditional rock guitar role than TDTWWA (where guitars are minimal/absent). Multiple layers for stereo width.",
+      "bass_role": "Distorted bass synth provides rock-anthem rhythmic-harmonic foundation. Tight bass-kick coordination for anthemic punch.",
+      "drums_role": "Programmed kit evoking live rock-anthem drumming with industrial-sample textural overlays. Drives the song; density rides up across the arc.",
+      "vocal_role": "Anthemic emotional projection in middle register. Multi-layer chorus stacking. Final chorus intensification carries the song's emotional payoff."
+    },
+    "harmonic_density_per_section": {
+      "intro": "Low — atmospheric pad alone",
+      "verse": "Medium — drums + bass + guitars + single vocal",
+      "chorus": "High — full band + multi-layer vocal + harmonic field opening",
+      "extended_bridge": "Medium-high — instrumental density without vocal",
+      "final_chorus_repetitions": "Maximum — stacking grows iteration over iteration",
+      "outro": "Tapering — atmospheric fade"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No tempo changes (sustained 114-122 BPM)",
+      "No live drums (programmed elements primary)",
+      "No vocal pitch correction",
+      "No fast asymmetric meter (anthemic intent requires accessible 4/4)",
+      "No abrupt ending (gradual atmospheric fade matches emotional resolution)",
+      "No 4/4-pop-rock-template imposed — the industrial vocabulary stays even within anthem structure"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "DRIVING ANTHEMIC FORWARD MOTION — 114-122 BPM at sustained intensity feels powerful and emotionally invested. Tempo enables anthemic-rock pulse without going extreme. The pulse is body-movable; the song is meant to be sung along to in arenas.",
+    "drum_style": {
+      "performer": "Programmed (Trent Reznor — Fragile-era programming with fuller programmed kit than other Fragile tracks)",
+      "feel": "Programmed rock-anthem drums with industrial textural overlays. Reznor builds a programmed track that EVOKES live rock drumming while retaining industrial-sample textural variety. Less aggressive than March of the Pigs, fuller than TDTWWA.",
+      "techniques_documented": [
+        "Programmed kick + snare backbone driving at ~118 BPM — rock-anthem-style",
+        "Hi-hat 8ths or 16ths driving forward motion",
+        "Industrial percussion samples layered for textural variety (less aggressive than March of the Pigs)",
+        "Drum density INCREASES through the arc — verse moderate, chorus full, final chorus intensifying",
+        "Cymbal samples articulate chorus moments and section transitions"
+      ],
+      "groove_feel_alignment": "Anthemic groove — drums drive body movement and emotional commitment. Programming designed for ROCK-ANTHEM PULSE rather than industrial extremity.",
+      "fills_and_transitions": "Programmed fills mark verse-to-chorus transitions. Cymbal swells and brief drum-fill samples articulate section boundaries. Bridge entry and final chorus entry use larger fills."
+    },
+    "guitar_style": {
+      "performer": "Trent Reznor (and possibly studio collaborators)",
+      "feel_per_section": {
+        "intro_riff": "Atmospheric setup; guitars enter with band on first verse",
+        "verse": "Distorted, driving the harmonic motion with palm-muted chord stabs and sustained chord work",
+        "pre_chorus": "Density increases — additional layers or sustained chord work building toward chorus",
+        "chorus": "Sustained chord voicings; wide stereo placement; harmonic field opens",
+        "bridge_solo": "Textural guitar leads possibly with atmospheric processing — extended bridge as instrumental statement"
+      },
+      "techniques_documented": [
+        "Drop-tuned or half-step-down chord work",
+        "Heavy distortion (similar palette to March of the Pigs but deployed for anthemic rock)",
+        "Multiple guitar layers tracked separately for stereo width — hard L/R + center placements",
+        "Each layer with different mic placement / amp / pedal for textural variety",
+        "Sustained chord voicings in chorus expansion; rhythmic stabs in verses"
+      ],
+      "playing_style_versus_other_grunge": "Where Soundgarden/Pumpkins guitar is the central voice of the band, We're In This Together's guitar is one element of an electronic-industrial-rock ensemble. Compared to Soma's guitar wall (also extended-form anthem), Reznor's wall is hybridized with programmed drums and synth pads — different production-vocabulary axis."
+    },
+    "vocal_delivery": {
+      "performer": "Trent Reznor",
+      "verse_delivery": "MODERATE INTENSITY — between aggressive (March of the Pigs verses) and reflective (TDTWWA verses) Reznor poles. Vocal projects with rock-anthem energy without screaming. Mid-register sustained phrasing.",
+      "chorus_delivery": "FULL EMOTIONAL PROJECTION — anthemic vocal release. Multi-layer stacking (doubles + octave-doubles + possible background vocal chorus elements) for anthemic fullness.",
+      "outro_delivery": "Receding investment as atmospheric texture takes over",
+      "documented_vocal_quirks": [
+        "Reznor demonstrates middle-register vocal capacity — between scream-aggression and atmospheric-vulnerability poles",
+        "Multiple vocal takes selected/comped per Reznor approach",
+        "Chorus vocal layering more prominent than other Reznor tracks — anthemic emphasis",
+        "Possible additional chorus harmonies/background-vocal elements for anthemic fullness",
+        "Final chorus repetitions: vocal commitment intensifies iteration over iteration"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No quantization-corrected programming (preserves industrial-flavor in the rock-anthem)",
+      "No vocal pitch correction",
+      "No tempo changes",
+      "No abrupt ending",
+      "No screaming-throughout (would undermine anthemic accessibility)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity. Cross-mining target for extended-form industrial-anthem MIDI extraction.",
+    "transitions_between_sections": [
+      {
+        "where": "intro_atmospheric -> verse_1_full_band_entry",
+        "type": "atmospheric_to_band_with_drum_fill_anchor",
+        "description": "The atmospheric intro gives way to full-band entry on a downbeat. Drum fill or cymbal swell anchors the transition. The atmospheric pad continues underneath even as the band enters — atmospheric vocabulary is retained as a background layer.",
+        "extractable_concept": "atmospheric_pad_persists_under_band_entry_no_clean_break"
+      },
+      {
+        "where": "pre_chorus -> anthemic_chorus",
+        "type": "build_release_with_density_jump",
+        "description": "The pre-chorus builds tension via additional synth layer and drum intensification, then the chorus releases with a density jump — multi-layer vocal stack enters, harmonic field opens, drums hit full intensity. Classic anthem-build-release in industrial-rock vocabulary.",
+        "extractable_concept": "anthem_build_release_with_industrial_vocabulary"
+      },
+      {
+        "where": "chorus_2 -> extended_instrumental_bridge",
+        "type": "vocal_subtraction_into_instrumental_expansion",
+        "description": "The chorus dissolves into the bridge by removing the vocal — the band continues at slightly reduced density, programmed drums + atmospheric synth + textural guitar lead carry the section. The vocal absence is the structural cue.",
+        "extractable_concept": "vocal_subtraction_marks_bridge_entry"
+      },
+      {
+        "where": "extended_bridge -> final_chorus_repetitions",
+        "type": "vocal_re_entry_with_intensified_layering",
+        "description": "The bridge gives way to the final chorus repetitions with a vocal re-entry that is MORE LAYERED than previous choruses. The intensification announces itself via stacked vocals returning at higher density than they left.",
+        "extractable_concept": "vocal_re_entry_with_intensified_layer_count"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "pre_chorus before each chorus (especially chorus 1)",
+        "type": "anthem_pre_chorus_build_via_density_addition",
+        "duration_bars": "approximately 4-8 bars",
+        "description": "Pre-chorus build uses traditional anthem techniques: additional synth layer enters, drum pattern intensifies (more cymbals, possibly tom rolls), bass becomes more active, vocal lifts in pitch and intensity. The classic anthem build, executed with industrial-rock vocabulary.",
+        "extractable_concept": "anthem_pre_chorus_build_via_layer_addition_and_drum_intensification"
+      },
+      {
+        "where": "across the song's runtime — final chorus repetitions",
+        "type": "iteration_over_iteration_intensification",
+        "duration_bars": "spans the final 2-3 minutes",
+        "description": "The most distinctive build is the CUMULATIVE INTENSIFICATION across multiple chorus iterations in the song's last third. Each chorus repetition adds layers, adds vocal stacking, adds density. The build is not one section — it is a SEQUENCE of choruses that get bigger.",
+        "extractable_concept": "iteration_over_iteration_chorus_intensification_as_extended_build"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "section transitions throughout",
+        "type": "drum_bus_filter_swell_at_transitions",
+        "description": "Filter sweeps on the drum bus or atmospheric pad bus accent section transitions. Brief filter opening or closing creates a sense of movement at the section boundary. Used moderately, not as the primary structural device.",
+        "extractable_concept": "drum_bus_filter_swell_for_section_transition_accent"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "between extended bridge and final chorus return",
+        "type": "soft_drop_into_anthem_re_entry",
+        "description": "The bridge does not drop to silence in the dance-music sense, but it does thin to allow the final chorus re-entry to feel like a release. The 'drop' here is dynamic relief — bridge less dense than verse — that sets up the final chorus payoff.",
+        "extractable_concept": "soft_dynamic_drop_in_bridge_setting_up_chorus_payoff"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "final chorus repetitions in the song's last third",
+        "type": "cumulative_climax_via_iteration_stacking",
+        "description": "There is no single climax bar — the climax is the SEQUENCE of final chorus repetitions, each more invested than the last. The last chorus iteration is the song's emotional peak, but it gets there by accumulation across the previous iterations. Climax via cumulative weight, not single-moment explosion.",
+        "extractable_concept": "cumulative_climax_via_chorus_iteration_stacking"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "industrial_vocabulary_in_rock_anthem_structure",
+        "description": "The defining stylistic gesture is the FUSION of industrial production vocabulary (programmed drums, distorted bass synth, processed guitars, sample-based percussion) with TRADITIONAL ROCK ANTHEM STRUCTURE (verse-chorus-bridge-final-chorus, 4/4, multi-layer vocal stacking). The HYBRID is the song's identity — neither pure industrial nor pure rock.",
+        "extractable_concept": "industrial_production_vocabulary_in_rock_anthem_structure"
+      },
+      {
+        "type": "extended_form_seven_plus_minutes",
+        "description": "The 7:16 runtime extends beyond commercial-single economy specifically to allow multiple chorus repetitions with intensifying weight. The extended form IS a compositional choice — shorter form would not allow the cumulative climax to function.",
+        "extractable_concept": "extended_form_seven_plus_minutes_for_cumulative_payoff"
+      },
+      {
+        "type": "multi_layer_chorus_vocal_stacking",
+        "description": "Chorus vocals are layered with doubles + octave-doubles + possible background harmonies. The stacking is more prominent than on most other Reznor tracks — anthemic intent demands the vocal fullness. Each chorus iteration adds layers.",
+        "extractable_concept": "multi_layer_chorus_vocal_stacking_growing_iteration_over_iteration"
+      },
+      {
+        "type": "extended_instrumental_bridge_as_instrumental_statement",
+        "description": "The 7:16 runtime allocates substantial time to an instrumental bridge — programmed drums + atmospheric synth + textural guitar exploration. This is not a 4-bar instrumental break; it is a statement of the band-as-instrumental-ensemble. Uses the extended form to give the music room to breathe between vocal sections.",
+        "extractable_concept": "extended_instrumental_bridge_as_band_statement_within_anthem"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The anthemic chorus with multi-layer vocal stacking — listeners hear NIN at peak ANTHEMIC EMOTIONAL POWER. The chorus is meant to be sung along to in arenas; it is one of NIN's most accessible-yet-still-industrial moments.",
+    "secondary": "The extended runtime allowing the song to BREATHE — the final chorus repetitions intensifying across multiple iterations build a cumulative emotional weight that a 3-minute version could not achieve.",
+    "tertiary": "The fusion of industrial production vocabulary with traditional rock-anthem structure — a hybrid that proves Reznor's toolkit can serve emotional anthem composition, not just industrial extremity."
+  },
+
+  "advisor_extract": [
+    "industrial_vocabulary_in_anthemic_rock_structure",
+    "extended_form_seven_plus_minutes_for_cumulative_payoff",
+    "iteration_over_iteration_chorus_intensification",
+    "multi_layer_chorus_vocal_stacking",
+    "extended_instrumental_bridge_as_band_statement",
+    "anthem_pre_chorus_build_via_layer_addition",
+    "vocal_subtraction_marks_bridge_entry",
+    "cumulative_climax_via_iteration_stacking",
+    "atmospheric_pad_persists_under_band_entry"
+  ]
+}

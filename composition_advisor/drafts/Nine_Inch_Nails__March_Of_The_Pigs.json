@@ -1,0 +1,227 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_meter_structure_dynamics_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "time_signature (29-beat compound cycle)",
+    "track_runtime",
+    "modal_choice (C# minor)",
+    "structural_blueprint (verse/chorus-break inversion)",
+    "verse_chorus_dynamic_inversion (the song's central gesture)",
+    "vocal persona shift (distorted scream vs clean melodic break)",
+    "stylistic_figures around the abrupt meter shifts and quiet chorus drops"
+  ],
+  "_to_verify_fields": [
+    "tempo_bpm exact citation (134-145 range)",
+    "exact metric grouping (3x7/8 + 8/8 vs alternate readings)",
+    "tuning_documented (drop-D vs detuned standard)",
+    "exact pitch identity of verse riff"
+  ],
+
+  "_status": "C4_1c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "The Downward Spiral",
+  "year": 1994,
+  "tempo_bpm_documented_range": [134, 145],
+  "time_signature": "Compound 29-beat cycle, conventionally analyzed as three measures of 7/8 followed by one measure of 8/8 (so 7+7+7+8 = 29 eighth-notes per cycle). The chorus break temporarily resolves into 4/4 — the contrast between the aggressive 29-beat verse cycle and the relaxed 4/4 chorus is the song's central compositional gesture. Some analyses count it as 33-beat or as alternating 7/4 + 4/4.",
+  "key_area": "C# minor area. The riff is built around an open-string-driven chordal pattern centered on C#. The vocal melody and brief chorus break reinforce C# minor as modal center, with occasional Phrygian-tinged inflection (b2 motion) characteristic of Reznor's Downward Spiral writing.",
+  "tuning_documented": "Detuned electric guitar — likely Drop-D (D-A-D-G-B-E low-to-high) or a half-step-down variant. Reznor's NIN era used various detunings; specific tuning to verify.",
+  "track_runtime": "~2:58",
+
+  "composition": {
+    "structural_blueprint": "intro_drum_machine_alone (a few cycles of the 29-beat pattern establish the meter without harmonic content) -> verse1_full_band_aggressive_29_beat (guitar + drum machine + bass + scream-vocal lock onto the 7+7+7+8 cycle) -> CHORUS_BREAK_4_4_QUIET (METRIC SHIFT — 4/4 enters, dynamic drops dramatically, Reznor sings melodically 'I want to know everything', clean-or-near-clean vocal) -> verse2_aggressive_29_beat_return -> chorus_break_2 -> instrumental_chaos_short -> final_chorus_break_or_outro -> abrupt_end (the song stops mid-cycle, no fade or resolution)",
+    "section_count_and_lengths": {
+      "intro": "Brief — 2-3 cycles of the 29-beat pattern before vocal entry",
+      "verses": "Multiple iterations of the 29-beat cycle, each verse approximately 4 cycles (~116 eighth notes)",
+      "chorus_breaks": "Approximately 8 bars of 4/4 each — the contrast is more about meter and dynamics than about length",
+      "outro": "Abrupt — the song stops rather than fades",
+      "_note": "Bar counts approximate. Track is short (~3 min) so total cycle count is limited; structural impact comes from the violent contrast between metric environments rather than from extended development."
+    },
+    "harmonic_motion": "Riff-based with limited harmonic functionality. The verse riff cycles a small chord set in C# minor — typically i, bVII, bVI motions. The chorus break introduces a clearer harmonic frame (briefly reading as C#m to E to A or similar relaxed minor-key motion). The harmonic motion is SECONDARY to the rhythmic-metric content.",
+    "modal_choice": "C# minor (Aeolian) with Phrygian-tinged inflections. Aggressive verse firmly in minor; chorus break maintains the modal center but presents it less harmonically dense.",
+    "melodic_contour": "Vocal contour in the verses is largely DECLAMATORY — Reznor screams short, percussive phrases that align with metric accents rather than tracing a sustained melody. The chorus break vocal ('I want to know everything') is the song's only clearly melodic line — descending phrases on a small interval set, sung with softer dynamic and clearer pitch. The contrast between speech-melody verse and sung-melody chorus is intentional.",
+    "characteristic_riff_construction": "The verse riff is constructed to fit the 29-beat cycle EXACTLY — its rhythmic figure plays out across 7+7+7+8 with accents on the meter changes. This means the riff is unrepeatable in 4/4 context and disorients headbangers (deliberate effect — the song resists being pumped to). Uses drop-tuned chord shapes that can be played fast on heavy distorted guitar. The 'tightness' of the band lock to this odd meter is part of the track's claim to virtuosity.",
+    "harmonic_pacing": "Slow at the chord level (same mode/tonal center for the entire track) but RAPID at the riff/event level (the 7+7+7+8 cycle creates frequent metric jolts). The chorus break breath: harmonic pacing slows perceptibly because the listener can finally feel a 4/4 pulse.",
+    "phrase_symmetry": "Asymmetric BY DESIGN. The 29-beat verse cycle is the headline asymmetry — does not divide evenly into Western 4-bar phrasing. The 4/4 chorus break is symmetric (4 or 8 bars) and that symmetry is FELT as relief because of the asymmetric verses. The song uses asymmetry as a tension-creating device that requires symmetric chorus to release."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Detuned electric guitar (heavy distortion, drop-tuned)",
+      "Programmed drum machine (samples both synthetic and processed real drums)",
+      "Bass synth or distorted electric bass",
+      "Lead vocal (distorted in verses, near-clean in chorus break)",
+      "Backing/screamed vocal layers in verses",
+      "Possibly pad/synth layer underneath the chorus break for dynamic contrast"
+    ],
+    "section_instrumentation": {
+      "intro": "Drum machine alone — establishing the meter without melodic content",
+      "verse_aggressive": "Drums + heavy distorted guitar + bass + screamed/distorted lead vocal + backing screams",
+      "chorus_break": "SPARSE — minimal drum activity, clean or near-clean guitar/synth pad, Reznor's melodic vocal foregrounded. Contrast in instrumentation density is the principal arrangement gesture.",
+      "outro": "Abrupt cut — texture does not gradually thin; song ends mid-cycle"
+    },
+    "vocal_layering_strategy": "Lead vocal screamed/distorted in verses with backing screams layered for density. Chorus break drops the layering entirely — single clean lead vocal foregrounded. Strategy creates two distinct vocal personae: the aggressive multi-layered scream and the vulnerable single voice.",
+    "dynamic_arc_overall": "SAWTOOTH — repeated aggressive-to-quiet shifts. Verse at maximum density and loudness; chorus break at near-minimum. Pattern repeats across the track. Unlike a track that builds to a climax, March of the Pigs operates in repeated CONVULSIVE CYCLES.",
+    "instrumental_role_assignment": {
+      "guitar_role": "Rhythmic and harmonic engine in verses — driving the 29-beat cycle. Backs off in chorus break.",
+      "bass_role": "Doubles guitar root motion in verses, providing low-end punch. Drops or thins in chorus break.",
+      "drums_role": "Foundation for the 29-beat metric cycle. The programmed drum machine articulates 7+7+7+8 with accent patterns that make the meter audible.",
+      "vocal_role": "Dual personality — aggressive screamer in verses, melodic singer in chorus breaks. Vocal contrast carries the song's emotional content; lyrics ('I want to know everything') are simple but the delivery shift makes them devastating."
+    },
+    "harmonic_density_per_section": {
+      "verse_aggressive": "High — distorted guitar chord stacks, bass, drum harmonic content, vocal harmonics from distortion",
+      "chorus_break": "Low — clean instrumentation, single melodic vocal line, sparse harmonic content",
+      "_note": "Verse-vs-chorus contrast operates not just on dynamic but on harmonic density — the breath of the chorus is partly a relief from sonic fullness."
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No predictable 4/4 verse-to-chorus build (the meter shift IS the build)",
+      "No conventional cathartic loud chorus (the chorus is the QUIET section — inversion of the rock cliché)",
+      "No fadeout (abrupt end matches the album's aesthetic of incompletion)",
+      "No guitar solo (would be tonal indulgence not aligned with industrial-aggressive vocabulary)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Verses are aggressive, machine-tight — the metric complexity demands precise ensemble performance, achieved here via programming + tightly-tracked guitar/bass overdubs. Feel is mechanical-aggressive, NOT human-loose. The chorus break shifts to felt human feel — slightly behind-the-beat clean vocal, more breathing room. The contrast between machine-tight and human-loose is part of the song's narrative.",
+    "drum_style": {
+      "performer": "Programmed (Trent Reznor on hardware sampler/sequencer — likely Akai S1000 era workflow)",
+      "feel": "Machine-precise but with sample selection that imitates aggressive live drumming — snare and kick samples sound human-recorded then triggered programmatically, not synthetic.",
+      "techniques_documented": [
+        "Programmed accent pattern that articulates the 7+7+7+8 grouping — listener can hear the meter change because snare hits land on metric accent points",
+        "Drum samples likely include real snare/kick samples processed for distortion and compression",
+        "No drum fills in conventional sense — transitions accomplished by meter shift and full-band gesture, not snare rolls"
+      ],
+      "groove_feel_alignment": "Mechanical groove tightly aligned with the band's overdubs — entire track locked to programmed grid, which is part of why the meter feels relentless and inescapable.",
+      "fills_and_transitions": "Transitions between verse and chorus break are ABRUPT — single beat of silence or vocal cue marks the change. No fills in the rock-ballad sense."
+    },
+    "guitar_style": {
+      "performer": "Trent Reznor (and possibly studio-track collaborators)",
+      "feel_per_section": {
+        "intro_riff": "Riff first establishes after the drum-only intro; entry is sharp, distorted, locked to the metric grid",
+        "verse": "Aggressive, distorted, driving the 7+7+7+8 cycle with palm-muted chord stabs and short note durations",
+        "pre_chorus": "N/A",
+        "chorus": "Drops back to clean or thin distortion (chorus break) — striking dynamic shift",
+        "bridge_solo": "N/A"
+      },
+      "techniques_documented": [
+        "Drop-tuned chord work (specific tuning to verify)",
+        "Heavy distortion with controlled feedback — distortion supports aggressive verses",
+        "Palm-muted chord stabs aligned to metric grid"
+      ],
+      "playing_style_versus_other_grunge": "NIN's industrial-rock approach differs from grunge: the guitar is one element of an electronic/programmed ensemble, not the central voice of the band. Compared to a Soundgarden or Nirvana track of the period, March of the Pigs' guitar is more rhythmic-textural (serving the drum machine's grid) than vocal-melodic."
+    },
+    "vocal_delivery": {
+      "performer": "Trent Reznor",
+      "verse_delivery": "Screamed/distorted, declamatory, percussive — phrases fit metric accents rather than tracing sustained melody. Lyrics SPAT rather than sung in verses.",
+      "chorus_delivery": "Clean to near-clean, melodic, dynamic-soft. Reznor sings 'I want to know everything' with vulnerable quality — almost spoken-melody. Contrast with verse vocal is the song's emotional heart.",
+      "outro_delivery": "Returns to scream or cuts abruptly with the song's end",
+      "documented_vocal_quirks": [
+        "Two-mode vocal performance — aggressive distorted verses vs. clean vulnerable chorus break",
+        "Lyric 'I want to know everything' delivered with melodic restraint that contrasts with the album's lyrical aggression elsewhere",
+        "Distortion on verse vocal is part of production aesthetic, not just live screaming captured raw"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No vocal melisma (would soften percussive verse delivery)",
+      "No sustained held notes in verses (would fight metric activity)",
+      "No drum fills marking transitions (would supply rhythmic info that the meter shift already provides)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target.",
+    "transitions_between_sections": [
+      {
+        "where": "intro_drum_alone -> verse1_full_band",
+        "type": "abrupt_full_band_entry_no_riser",
+        "description": "The full band enters on a downbeat with no warning gesture — no riser, no fill, no anticipation. Drum machine continues unchanged underneath while guitar + bass + scream slam in.",
+        "extractable_concept": "abrupt_full_band_entry_no_anticipation_device"
+      },
+      {
+        "where": "verse_aggressive -> chorus_break_quiet (the song's signature transition)",
+        "type": "metric_shift_with_dynamic_cliff",
+        "description": "The transition from aggressive 29-beat verse to quiet 4/4 chorus break happens INSTANTLY — single beat of silence, then the new meter establishes with the band thinned to clean instruments + Reznor's clean vocal. No riser, no descending sweep, no transitional bar — it is a CLIFF EDGE between two different songs juxtaposed.",
+        "extractable_concept": "metric_cliff_edge_loud_to_quiet_no_transition_device"
+      },
+      {
+        "where": "chorus_break -> verse2_aggressive_return",
+        "type": "abrupt_meter_re_engagement",
+        "description": "Mirror of the verse-to-chorus transition. The 29-beat cycle re-engages instantly, the band re-distorts, and the scream returns. The relief of the chorus break is shattered without preparation.",
+        "extractable_concept": "metric_cliff_edge_quiet_to_loud_no_transition_device"
+      },
+      {
+        "where": "song -> nothing (ending)",
+        "type": "abrupt_termination_mid_cycle",
+        "description": "The song ENDS rather than concludes. No fade, no held note, no resolution — the band simply stops mid-cycle. Echo of the opening gesture's commitment to non-conventionality.",
+        "extractable_concept": "abrupt_termination_mid_phrase"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "N/A — no risers in this track",
+        "type": "no_risers_used",
+        "description": "March of the Pigs deliberately avoids rising-build gestures. The track does not build toward a climax — it operates in repeated convulsive verse-chorus cycles. Each verse arrives at full intensity from the start; each chorus break drops to minimum.",
+        "extractable_concept": "compositional_choice_no_rising_builds"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "verse to chorus break transition",
+        "type": "instrumentation_subtraction_as_cutoff",
+        "description": "The 'cutoff' here is not filter automation but FULL-BAND SUBTRACTION — the distorted guitars and screams cut entirely on a single beat, leaving only clean instruments + clean vocal. Functions like a 'low-pass cutoff to zero' but accomplished through performance rather than filter automation.",
+        "extractable_concept": "subtractive_cutoff_via_band_dropout_not_filter_sweep"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "every verse-to-chorus-break boundary (the song's signature event)",
+        "type": "INVERTED_drop_to_quiet",
+        "description": "In dance music a 'drop' is when the beat lands at maximum intensity. Here the equivalent event is INVERTED — the band 'drops' to the QUIET chorus break. This is the rock-music equivalent of a drop, but tension is released into stillness rather than into bigger hit. Compositionally the same gesture (massive dynamic shift on a downbeat) but reversed direction.",
+        "extractable_concept": "inverted_drop_release_into_quiet_not_loud"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "every verse",
+        "type": "max_aggression_at_song_top",
+        "description": "There is no single 'climax' — every verse operates at the maximum aggression level. The track refuses to climb to a single peak; it lives at the peak and breathes briefly into the chorus breaks. The climax is the BASELINE of the verse sections.",
+        "extractable_concept": "no_single_climax_perpetual_baseline_at_peak"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "vocal_distortion_as_compositional_signature",
+        "description": "Reznor's verse vocals are distorted IN the chain (recording or live processing), not added in mix. This commits the timbre during performance — you cannot un-distort them. Part of the song's identity.",
+        "extractable_concept": "vocal_distortion_committed_during_recording"
+      },
+      {
+        "type": "drum_machine_articulating_irregular_meter",
+        "description": "The programmed drum machine does not just play a generic 4/4 underneath — it accents the 7+7+7+8 grouping so the listener can FEEL the meter. The machine is doing compositional work, not just providing a beat.",
+        "extractable_concept": "programmed_drums_articulating_irregular_meter_with_accents"
+      },
+      {
+        "type": "live_band_locked_to_programmed_grid",
+        "description": "The aggressive feel comes from real distorted guitars and bass played BY HUMANS but locked TIGHTLY to the programmed drum grid. The fusion of human aggression and machine precision is the album's industrial-rock signature.",
+        "extractable_concept": "human_aggression_locked_to_machine_grid"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The metric whiplash of the verse — the 7+7+7+8 cycle that prevents the listener from settling into a 4/4 groove. People remember March of the Pigs as 'the one with the weird time signature.'",
+    "secondary": "The chorus break — 'I want to know everything' delivered clean and melodically against the album's prevailing aggression. The contrast is shocking and memorable.",
+    "tertiary": "The abrupt ending — the song stops rather than resolving, leaving the listener inside the broken cycle"
+  },
+
+  "advisor_extract": [
+    "asymmetric_metric_cycle_29_beats",
+    "verse_chorus_inversion_loud_to_quiet",
+    "metric_shift_as_dynamic_release",
+    "machine_tight_band_locked_to_programming",
+    "vocal_persona_shift_distorted_to_clean",
+    "abrupt_ending_no_fade",
+    "metric_cliff_edge_loud_to_quiet_no_transition_device",
+    "inverted_drop_release_into_quiet_not_loud",
+    "no_single_climax_perpetual_baseline_at_peak"
+  ]
+}

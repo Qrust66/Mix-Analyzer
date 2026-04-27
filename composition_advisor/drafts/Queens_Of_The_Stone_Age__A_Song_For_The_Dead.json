@@ -1,0 +1,261 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_structure_and_drumming_signature_medium_for_exact_pitch_content_and_section_lengths",
+  "_high_confidence_fields": [
+    "structural_blueprint (fast-driving verse -> half-time-chorus inversion -> extended instrumental outro)",
+    "drum_feature_centrality (Grohl drumming as compositional voice)",
+    "tuning_documented (drop D)",
+    "mode (minor / Aeolian-Phrygian-tinged area)",
+    "track_runtime",
+    "stylistic_figures around the verse-to-half-time-chorus dynamic shift"
+  ],
+  "_to_verify_fields": [
+    "tempo_bpm exact (148-156 vs ~168 cited differently across sources — likely depends on whether the half-time chorus is counted at the verse BPM or the felt half-time)",
+    "exact key area F# minor vs alternate readings",
+    "exact bar count of intro, verses, choruses and outro",
+    "precise pitch identity of the verse riff"
+  ],
+
+  "_status": "C5_3c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Songs for the Deaf",
+  "year": 2002,
+  "tempo_bpm_documented_range": [148, 168],
+  "time_signature": "4/4 throughout. The chorus stays in 4/4 numerically but FEELS half-time — kick lands every other beat, snare every four beats, hi-hat opens to quarters. Same BPM, halved rhythmic surface.",
+  "key_area": "F# minor area (Homme baritone-friendly tonal center). Aeolian/Phrygian flavor in the riff motion — chromatic descending lines and pentatonic-influenced shapes around F# minor, with bVI / bVII power-chord motion typical of QOTSA's heavy-rock vocabulary.",
+  "tuning_documented": "Drop D (D-A-D-G-B-E low to high). Standard QOTSA Songs-for-the-Deaf-era tuning.",
+  "track_runtime": "~5:51",
+
+  "composition": {
+    "structural_blueprint": "aggressive_intro_riff_full_band (drums + bass + guitar at full force, riff statement establishes the engine and the key) -> verse_1_full_speed_drive (sustained intensity, 16th hi-hat, kick + snare backbeat, Homme baritone vocal enters declamatory over the driving riff) -> CHORUS_HALF_TIME (the song's signature inversion — same BPM but the rhythmic surface HALVES, kick on every 2 beats and snare every 4, hi-hat to quarters; the chorus FEELS heavier and slower than the verse, contradicting the typical chorus-as-lift) -> verse_2_full_speed_return -> chorus_2_half_time -> dynamic_break_or_drum_feature_section (guitars and bass thin or sustain, Grohl's drum feature spotlights with technical fills + power statements — the compositional payload of the track's middle) -> intensified_return_full_band -> final_chorus_half_time_or_full_band -> EXTENDED_INSTRUMENTAL_OUTRO (2+ minutes of locked-groove jam past the last vocal line — band dwells inside the song's identity, drums prominent throughout) -> end",
+    "section_count_and_lengths": {
+      "intro": "Approximately 8-16 bars at fast tempo establishing riff",
+      "verses": "Approximately 16 bars each at full-speed drive",
+      "choruses": "Approximately 8-16 bars at half-time feel",
+      "drum_feature_break": "Variable — sustained zone in the middle of the track allowing Grohl to feature; live versions extend it considerably",
+      "extended_outro": "2+ minutes of instrumental jam after last vocal line — among the longest QOTSA outros",
+      "_note": "Bar counts approximate. The track's compositional ambition is in the contrast between full-speed verses and half-time choruses, plus the dwelling outro that lets the groove become the closing statement."
+    },
+    "harmonic_motion": "Minor-modal with limited functional motion. The verse riff cycles a small chord set in F# minor with chromatic descending lines and bVI-bVII-i type power-chord shifts. Chorus harmony tends to broaden voicings but stays in the same modal area. Harmonic motion is SECONDARY to rhythmic-textural content.",
+    "modal_choice": "F# minor / Aeolian, with Phrygian-tinged b2 inflections in the riff line (Homme's signature). Defensible reading: minor pentatonic + occasional chromatic neighbor tones rather than strict mode.",
+    "melodic_contour": "Vocal contour in verses is declamatory and percussive — Homme's baritone phrases align with metric accents, mostly within a narrow interval set, leaning toward the modal third and root. Chorus melody opens out slightly, sustaining longer notes that match the half-time feel — vocal length matches the rhythmic broadening underneath. The riff itself is a falling chromatic figure that returns to the tonic each cycle.",
+    "characteristic_riff_construction": "Verse riff is fast 16th-driven palm-muted figure on drop-D with chromatic descending bass-line motion. Built to be hammered for several bars without development — hypnotic by repetition. The half-time chorus uses broader open-voiced power chords sustained across longer durations, contrasting the verse's tight palm-mute texture.",
+    "harmonic_pacing": "Slow at chord level (same modal center for entire track) but RAPID at rhythmic-event level in verses. Half-time chorus PERCEPTUALLY slows the harmonic pacing further by stretching chord durations, even though the underlying chord changes are not actually slower. The ear hears 'pacing slowdown' through rhythmic surface, not through harmonic decision.",
+    "phrase_symmetry": "Largely symmetric 4-bar / 8-bar phrasing in verses and choruses. The asymmetry is the half-time INVERSION — chorus comes when the listener expects a lift and instead crashes down. The 'asymmetry' is at the dynamic-rhythmic-template level, not at the bar-count level."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Electric guitar drop-D (Josh Homme, distorted tube amp — Marshall / Hiwatt / Mesa-Boogie palette)",
+      "Possible double-tracked rhythm guitar for stereo width",
+      "Electric bass drop-D (Nick Oliveri, pick attack, tight kick-lock)",
+      "Drum kit (Dave Grohl as guest drummer — kick, snare top/bottom, hi-hat, multiple toms, ride and crash, room-mic-prominent capture)",
+      "Lead vocal (Josh Homme, baritone)",
+      "Possible secondary vocal harmony in chorus"
+    ],
+    "section_instrumentation": {
+      "intro": "Full band riff statement — drums + guitar + bass at maximum density",
+      "verse_full_speed": "Full band continues, 16th hi-hat driving, palm-muted guitar riff, Homme vocal enters declamatory",
+      "chorus_half_time": "Same instrumentation but rhythmic surface halves — kick wider, snare on the 4, sustained guitar voicings, vocal opens out",
+      "drum_feature_break": "Guitars and bass DROP or sustain low density; drums foreground with technical fills + power statements; possible vocal absent",
+      "intensified_return": "Full band re-engages at maximum intensity after the spotlight",
+      "extended_outro": "Full band locked groove without vocal — drums often prominent, guitar riff cycling, listeners dwell inside the song's identity"
+    },
+    "vocal_layering_strategy": "Lead vocal foregrounded with possible chorus harmony. Verse delivery declamatory single-tracked; chorus may add a second harmony line for hook emphasis. Vocal pushed slightly back relative to drums and guitar — drums and guitar are the primary voices, vocal is the third equal partner, not the peak.",
+    "dynamic_arc_overall": "Saw-tooth + extended-coda. Verse-chorus alternation creates repeated full-speed-to-half-time cycles; drum feature break breathes; intensified return rebuilds; final outro dwells in groove for 2+ minutes. Unlike a straight build-to-climax, the track operates in repeated convulsive cycles plus a dwelling coda.",
+    "instrumental_role_assignment": {
+      "guitar_role": "Rhythmic engine of verses (16th palm-mute) and harmonic broadening of choruses (sustained voicings). Drops or sustains during drum feature break to spotlight drums.",
+      "bass_role": "Tight pick-attack lock with Grohl's kick. Same role-shift as guitar between verse-drive and chorus-broadness. Drops or sustains during drum feature.",
+      "drums_role": "PRIMARY COMPOSITIONAL VOICE alongside vocal — not just rhythmic foundation. Articulates the verse-chorus rhythmic-template inversion (16ths in verse, half-time in chorus) and is the foreground element of the drum feature break.",
+      "vocal_role": "Declamatory baritone narrator in verses, sustained melodic anchor in choruses, absent during drum feature, absent during extended outro."
+    },
+    "harmonic_density_per_section": {
+      "verse": "High — distorted palm-mute chord stacks + bass + drum harmonic content",
+      "chorus_half_time": "Medium-high — sustained voicings, broader feel, less rhythmic activity but same harmonic content",
+      "drum_feature_break": "Low — guitars and bass thin, drums dominant",
+      "extended_outro": "Medium — riff cycles without vocal, drums prominent"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No tempo change for the chorus (the half-time is felt, not tempo'd — same BPM throughout)",
+      "No fade-out (extended outro dwells in groove rather than fading; some live versions cold-stop)",
+      "No drum sample replacement (Grohl's kit IS the song)",
+      "No vocal pitch correction",
+      "No predictable chorus-as-lift template (the chorus crashes DOWN into half-time instead of lifting up)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Fast verse forward-motion at ~150 BPM equivalent felt at full 16th drive. The chorus stays at the same numerical BPM but FEELS like ~75 BPM because the rhythmic surface halves. The contrast between 'full 16th drive' and 'sustained half-time feel' is the song's core performance gesture — band must commit fully to both rhythmic templates without sliding between them.",
+    "drum_style": {
+      "performer": "Dave Grohl (guest drummer for Songs for the Deaf)",
+      "feel": "Technical power + groove + compositional integration. Documented as one of Grohl's most-celebrated drumming performances; cited in drum-clinic reference contexts.",
+      "techniques_documented": [
+        "Verse: kick + snare driving 4/4 with continuous 16th hi-hat at fast tempo, ghost notes for groove feel",
+        "Chorus: HALVES the rhythmic activity — kick on every 2 beats, snare on the 4, hi-hat opens to quarters or rides cymbal, fills broaden",
+        "Drum feature break: extended technical fills + power statements + tom rolls + cymbal accents — documented drum-clinic material",
+        "Transition fills between sections that articulate the verse-to-chorus rhythmic-template flip",
+        "Room-mic-prominent capture so the kit has size; cymbal accents articulate transitions"
+      ],
+      "groove_feel_alignment": "Verse drives forward; chorus crashes weight; feature section spotlights virtuosity. The drumming carries multiple personalities within one track — full-speed driver, half-time anchor, technical featured voice.",
+      "fills_and_transitions": "Major fills mark the verse-to-chorus transition (signaling the half-time crash) and the chorus-to-verse return (re-engaging full speed). Drum feature section has the longest technical fill statements. Live performances often extend these significantly."
+    },
+    "guitar_style": {
+      "performer": "Josh Homme",
+      "feel_per_section": {
+        "intro_riff": "Sharp, palm-muted, full-speed 16th drive, drop D",
+        "verse": "Continuous palm-mute drive, riff cycling, locked to drum 16ths",
+        "pre_chorus": "N/A — direct verse-to-chorus flip",
+        "chorus": "Sustained open-voiced power chords, half-time feel, less palm-mute, broader resonance",
+        "bridge_solo": "N/A as conventional solo — drum feature break occupies the equivalent compositional slot; guitar drops or sustains during it",
+        "extended_outro": "Riff cycles continuously without vocal, slight micro-variations in attack and accent"
+      },
+      "techniques_documented": [
+        "Drop D tuning",
+        "Aggressive distortion through tube amps",
+        "Palm-muted 16th-note pulse for verse drive",
+        "Sustained open chords for chorus weight",
+        "Possible double-tracked rhythm guitar for stereo width"
+      ],
+      "playing_style_versus_other_grunge": "QOTSA's robot-rock approach: Homme treats guitar as rhythmic engine first, harmonic voice second. Compared to grunge contemporaries the playing is more locked-to-grid and less expressive-melodic. The drum feature break also distinguishes QOTSA from grunge — grunge solos are guitar-led, here the spotlight goes to the drummer."
+    },
+    "vocal_delivery": {
+      "performer": "Josh Homme",
+      "verse_delivery": "Baritone declamatory — phrases align with metric accents, mid-register, slight grit on harder consonants. Less melismatic than chorus.",
+      "chorus_delivery": "Sustained baritone projection over the half-time foundation — longer vowel durations match the broadened rhythmic surface. Possible secondary harmony layer.",
+      "outro_delivery": "ABSENT — extended outro is instrumental, vocal does not return after final chorus",
+      "documented_vocal_quirks": [
+        "Less aggressive than NIN/Pumpkins-era heavy rock — Homme favors melodic baritone over scream",
+        "Multiple takes selected/comped per Eric Valentine's documented production approach",
+        "Vocal sits slightly back in mix relative to drums and guitar — equal partner not soloist"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No tempo change between verse and chorus (the half-time is a performance choice not a tempo decision)",
+      "No drum quantization (Grohl's natural feel critical)",
+      "No vocal pitch correction",
+      "No fading vocal into outro (vocal cuts cleanly, instrumental outro is the ending)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content.",
+    "transitions_between_sections": [
+      {
+        "where": "verse_full_speed -> chorus_half_time",
+        "type": "rhythmic_template_inversion_via_drum_fill",
+        "description": "The verse-to-chorus transition is marked by a Grohl drum fill that lands on a chorus downbeat where the kit suddenly halves its rhythmic surface. Kick and snare go from continuous 16th-supported backbeat to wide half-time. The fill ITSELF spans both templates — it starts in 16ths and lands in half-time. Listener feels the 'crash down' rather than 'lift up'.",
+        "extractable_concept": "transition_via_fill_that_inverts_rhythmic_template_full_speed_to_half_time"
+      },
+      {
+        "where": "chorus_half_time -> verse_full_speed_return",
+        "type": "snap_back_to_full_speed",
+        "description": "Mirror gesture — chorus ends, drums and guitars snap back to full-speed 16th drive. Usually a quick fill marks the return. The relief of the half-time chorus is broken by re-engagement with the full-speed engine.",
+        "extractable_concept": "snap_back_full_speed_after_half_time_chorus"
+      },
+      {
+        "where": "second_chorus -> drum_feature_break",
+        "type": "instrumentation_dropout_to_spotlight_drums",
+        "description": "Guitars and bass drop in volume or sustain at low density; drums move to foreground. The transition is a thinning rather than a fill — listeners notice the drums because everything else has receded.",
+        "extractable_concept": "spotlight_via_instrumentation_dropout_not_fill"
+      },
+      {
+        "where": "drum_feature_break -> intensified_return",
+        "type": "full_band_slam_back",
+        "description": "After the drum feature, the full band slams back in at maximum intensity, often on a downbeat after a final drum statement. Compositional payoff for the spotlight section.",
+        "extractable_concept": "full_band_slam_back_after_drum_spotlight"
+      },
+      {
+        "where": "final_chorus -> extended_instrumental_outro",
+        "type": "vocal_subtraction_groove_persists",
+        "description": "Vocal drops out cleanly; the band locks into the riff and continues for 2+ minutes without any vocal. The transition is achieved by removing the lead voice rather than by any fill or chord change.",
+        "extractable_concept": "transition_to_outro_by_vocal_subtraction"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "drum_feature_break -> intensified_return",
+        "type": "drum_centric_intensity_build",
+        "duration_bars": "approximately 4-8 bars before the slam-back",
+        "description": "Within the drum feature break, Grohl's fills accumulate density and dynamic level toward the slam-back. The 'riser' here is purely drum-driven — no synth sweep, no riser sample, just drum momentum.",
+        "extractable_concept": "drum_only_riser_into_full_band_return"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "verse -> chorus (instrumentation thinning that functions like a filter)",
+        "type": "implicit_high_frequency_pullback_at_chorus",
+        "description": "Going from full 16th hi-hat drive to wider quarters automatically reduces the perceived high-frequency density. Functions like a subtle high-frequency pullback even though no filter is applied — the rhythmic decision changes the spectral profile.",
+        "extractable_concept": "rhythmic_decision_as_implicit_filter_move"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "every verse-to-chorus boundary",
+        "type": "INVERTED_drop_to_weight",
+        "description": "Where dance music drops into beat, this track drops into HALF-TIME WEIGHT. The kick lands wider, the snare crashes harder, the chorus FEELS like a heavier landing rather than a lift. Compositionally the same gesture as a drop (massive shift on a downbeat) but inverted in direction — into weight rather than into bigger hit.",
+        "extractable_concept": "inverted_drop_into_half_time_weight_not_loudness"
+      },
+      {
+        "where": "drum_feature_break",
+        "type": "instrumentation_subtraction_breakdown",
+        "description": "The breakdown is achieved by subtracting guitar and bass density to spotlight drums, rather than by stopping all elements. Drums continue (they are the focus) while everything else thins.",
+        "extractable_concept": "breakdown_via_instrumentation_subtraction_drums_remain"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "drum_feature_break peak + slam_back",
+        "type": "drum_virtuosity_peak_followed_by_full_band_re_engagement",
+        "description": "The drum feature accumulates to a peak technical statement, then the full band slams back at maximum intensity. The double climax — virtuosity peak inside the spotlight, then ensemble peak on the return.",
+        "extractable_concept": "double_climax_virtuosity_peak_then_ensemble_slam_back"
+      },
+      {
+        "where": "extended_instrumental_outro",
+        "type": "groove_dwelling_climax_via_duration",
+        "description": "The 2+ minute outro creates a different kind of climax — not loudness but DURATION. Listener gets to dwell inside the groove identity for an extended period. Some hear it as the song's true emotional peak, others as a coda after the peak.",
+        "extractable_concept": "duration_as_climax_extended_outro_dwelling"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "half_time_chorus_against_full_speed_verse",
+        "description": "Same BPM, halved rhythmic surface in chorus. Compositional inversion of the chorus-as-lift cliché. The track's signature gesture.",
+        "extractable_concept": "half_time_chorus_inversion_signature"
+      },
+      {
+        "type": "drum_kit_as_compositional_voice_not_foundation",
+        "description": "The track is structurally designed to give Grohl drumming a featured spotlight rather than treating drums as constant rhythmic backing. Composition serves performer capacity.",
+        "extractable_concept": "drum_kit_as_compositional_voice_featured_section"
+      },
+      {
+        "type": "extended_instrumental_outro_2_plus_minutes",
+        "description": "Outro extends 2+ minutes past last vocal — band locked in groove. Listener dwells inside the song's identity rather than being told what to feel by a final vocal line.",
+        "extractable_concept": "extended_instrumental_outro_groove_dwelling"
+      },
+      {
+        "type": "room_mic_prominent_drum_capture",
+        "description": "Drum kit recorded with room mics emphasized — kit has size and ambience, supporting the drum-as-compositional-voice priority. Production gesture that committed during recording.",
+        "extractable_concept": "room_prominent_drum_capture_for_drum_centric_track"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The half-time chorus crash — same BPM but the rhythmic surface halves, chorus FEELS slower and heavier than the verse. Inverts the chorus-as-lift template.",
+    "secondary": "Grohl's drum feature break — extended technical fills + power statements, documented as drum-clinic reference material.",
+    "tertiary": "The extended instrumental outro — 2+ minutes of locked-groove dwelling after the last vocal, band committed to the riff identity"
+  },
+
+  "advisor_extract": [
+    "half_time_chorus_inversion_same_bpm",
+    "inverted_drop_into_weight_not_loudness",
+    "drum_kit_as_compositional_voice_featured_section",
+    "transition_via_fill_that_inverts_rhythmic_template",
+    "extended_instrumental_outro_groove_dwelling",
+    "duration_as_climax_not_loudness",
+    "minor_modal_with_chromatic_descending_riff_motion",
+    "drop_d_palm_muted_16th_engine_for_verse_drive",
+    "vocal_pushed_slightly_back_drums_and_guitar_equal_partners"
+  ]
+}

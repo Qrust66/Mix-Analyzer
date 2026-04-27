@@ -1,0 +1,242 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_arrangement_texture_and_groove_medium_for_exact_pitch_content_and_tempo",
+  "_high_confidence_fields": [
+    "track_runtime",
+    "instrumentation (clicky processed percussion, processed Yorke vocal, sub-bass, sparse melodic fragments)",
+    "structural_blueprint (percussion-loop intro -> vocal entry -> evolving textural verse cycles -> long fade)",
+    "groove_identity (claustrophobic mechanical loop, no traditional drum kit)",
+    "vocal processing as compositional signature (heavily processed, formant-shifted, telephone-filtered moments)",
+    "stylistic_figures around the glitched percussion design and vocal processing"
+  ],
+  "_to_verify_fields": [
+    "tempo_bpm exact citation (commonly cited around 90-95 bpm range)",
+    "exact key area (often heard as F# minor area, modal-static)",
+    "exact bar counts of intro and verse cycles",
+    "specific source instruments used for the processed percussion samples",
+    "whether the percussion loop is truly looped or programmed with subtle variation"
+  ],
+
+  "_status": "C8_1c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Amnesiac",
+  "year": 2001,
+  "tempo_bpm_documented_range": [90, 95],
+  "time_signature": "4/4 throughout, but the 4/4 grid is HEAVILY OBSCURED by the unconventional percussion design. The clicky/glitchy hits do not articulate a backbeat — they articulate a syncopated micro-rhythmic pattern that sits awkwardly inside 4/4. The listener can find the 4/4 if they search for it, but the surface feel is closer to a stuttering loop without obvious downbeat. Some listeners hear the meter as ambiguous or as 7- or 6-feel before locking in.",
+  "key_area": "F# minor area, modal-static. The track does not move through functional progressions — it sits on a small set of pitches anchored by sub-bass and reinforced by Yorke's vocal melody. Some readings place it in B minor or treat the tonal center as ambiguous because of the dominant percussion-and-texture focus over harmonic content.",
+  "tuning_documented": "N/A — no prominent guitar parts. Bass and any pitched material likely standard reference.",
+  "track_runtime": "~4:00",
+
+  "composition": {
+    "structural_blueprint": "percussion_loop_intro (the iconic clicky/glitched percussion pattern establishes alone, instantly defining the track's mechanical-claustrophobic identity) -> sub_bass_and_pitched_layer_enters (low-end texture and a sparse pitched motif emerge under the percussion) -> vocal_verse_entry (Yorke's heavily processed vocal enters, lyric fragments delivered over the established loop) -> verse_cycles_with_textural_evolution (multiple iterations of the vocal pattern; each cycle adds or shifts subtle textural elements rather than introducing new sections) -> middle_density_zone (additional vocal processing layers, possibly formant-shifted or telephone-filtered vocal doubles, layer in) -> outro_dissolution (vocal recedes, percussion loop continues briefly, fades)",
+    "section_count_and_lengths": {
+      "percussion_intro": "Approximately 8-16 bars of the clicky percussion loop alone before pitched elements enter (bar count to verify)",
+      "vocal_verses": "Yorke's vocal enters and continues across multiple loop cycles; the track does not segment into traditional verse/chorus — it is a single evolving textural verse",
+      "middle_density": "The mid-track section where additional vocal processing and ambient elements thicken the texture",
+      "outro": "Long-ish fade with the percussion loop persisting under thinning vocal/textural elements",
+      "_note": "The track has NO traditional verse/pre-chorus/chorus/bridge segmentation. It is a single continuous textural environment with subtle internal evolution. Bar counts approximate."
+    },
+    "harmonic_motion": "Static modal — effectively zero functional harmonic motion. The track sits on its tonal center for the duration. Any 'progression' is implied by sub-bass note choice and vocal melody contour rather than chord changes. Tension/release happens texturally, not harmonically.",
+    "modal_choice": "Minor modal (F# minor area), with possible Phrygian/Aeolian inflection. The melodic content is sparse enough that strict mode identification is debatable — the track operates more on TIMBRE and GROOVE than on modal language.",
+    "melodic_contour": "Yorke's vocal melody is narrow-range and largely DESCENDING, sitting in his middle register. Phrases are short, repeated, with subtle variation. The melody is secondary to the vocal TIMBRE (heavy processing) — the contour serves to deliver the lyric fragments without dramatic interval leaps. The sub-bass motif is also narrow-range and gravitational.",
+    "characteristic_riff_construction": "The track's 'riff' is the PERCUSSION LOOP itself — a tightly designed sequence of clicky, glitchy, processed hits that loops with minimal variation. The percussion pattern is the compositional center of the song; everything else (vocal, bass, texture) is layered onto the loop rather than the loop supporting them. Constructed from heavily processed sample fragments — likely tabla, processed kit hits, found-sound clicks, and granular fragments — sequenced for maximum syncopated awkwardness while still grooving.",
+    "harmonic_pacing": "Effectively zero. The compositional pacing is GROOVE-PACING and TEXTURAL-PACING, not harmonic. Movement is generated by the entry/exit of vocal phrases, processing changes on the vocal, and subtle textural additions — not by chord changes.",
+    "phrase_symmetry": "4-bar and 8-bar phrase boundaries are present in the percussion loop and vocal phrasing, but the surface percussion pattern is so syncopated that symmetry is not perceptually obvious. Internally the cycles are symmetric; perceptually the track feels like one continuous loop with shifting elements."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Programmed/processed percussion (the iconic clicky-glitchy loop — likely combinations of tabla, processed drum machine hits, granular fragments, and found-sound clicks)",
+      "Sub-bass synth (low-end gravitational anchor, sparse note choices)",
+      "Lead vocal (Thom Yorke, HEAVILY processed — formant shifting, telephone/lo-fi filtering, occasional pitch effects)",
+      "Possible secondary processed vocal layer or harmonized double in the denser mid-track zone",
+      "Sparse atmospheric synth/textural elements (pads, drones, or processed ambient fragments) layered into the texture",
+      "No traditional drum kit, no guitars, no piano — DELIBERATE sonic palette restriction"
+    ],
+    "section_instrumentation": {
+      "percussion_intro": "Clicky percussion loop alone — establishing the track's groove identity without melodic content",
+      "vocal_entry": "Percussion loop + sub-bass + processed lead vocal + sparse pitched motif",
+      "midsection": "Percussion loop + sub-bass + lead vocal + additional processed vocal layers + thicker textural ambient elements",
+      "outro": "Percussion loop persists; vocal recedes; texture thins; fade"
+    },
+    "vocal_layering_strategy": "Single-tracked lead vocal subjected to heavy processing chain — formant shifting, narrow-band filtering (telephone effect), possible pitch correction or warping. The processing is so aggressive that the vocal sounds partially synthetic in places. In the denser mid-track zone, a secondary processed vocal layer may appear (a harmony or doubled fragment) but the overall layering is RESTRAINED — the strategy is processing-as-density rather than overdub-as-density.",
+    "dynamic_arc_overall": "Mostly FLAT — the track does not build to a dynamic climax. Intensity is generated by textural accumulation in the mid-track zone, then dissipates in the outro. Compared to Everything In Its Right Place's monotonic accumulating swell, Packt is even FLATTER — it stays inside its claustrophobic envelope and refuses dynamic escalation. The closed-room mechanical mood is preserved throughout.",
+    "instrumental_role_assignment": {
+      "guitar_role": "N/A",
+      "bass_role": "Sub-bass anchor — sparse, gravitational, marks tonal center at phrase boundaries. Functions almost as another percussive element rather than as a melodic bass line.",
+      "drums_role": "PRIMARY ELEMENT — the percussion loop is the song's identity. But it does not function as a 'drum kit foundation' — it functions as a textural-rhythmic loop. Provides the groove without supporting traditional dance/rock body movement.",
+      "vocal_role": "Lyric carrier with HEAVY timbral processing as compositional signature. The vocal performance is restrained because the processing must do most of the expressive work. Yorke sings within a narrow dynamic and pitch range to give the processing chain a stable input."
+    },
+    "harmonic_density_per_section": {
+      "percussion_intro": "Very low — just rhythmic content, no pitched material",
+      "vocal_entry": "Low — percussion + sub-bass + monophonic vocal",
+      "midsection": "Medium — additional processed vocal layers and ambient textures add harmonic content via formants and pad colors",
+      "outro": "Tapering low"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No conventional drum kit (would normalize the track and destroy the claustrophobic mechanical mood)",
+      "No guitars (Radiohead deliberately moved away from rock-band instrumentation on Amnesiac)",
+      "No verse-chorus structure (the song is one continuous loop-based environment)",
+      "No instrumental solo (would contradict the unison-loop aesthetic)",
+      "No harmonic 'lift' anywhere — the track refuses traditional release"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Mid-slow tempo, mechanical-claustrophobic feel. The percussion loop is rigorously programmed (no human looseness) which gives the track its boxed-in, machine-room quality. Yorke's vocal has marginal human looseness against the rigid loop, but the heavy processing minimizes that contrast. The intended effect: the listener feels CONTAINED inside a small mechanical space — sardines in a crushed tin box, as the title suggests.",
+    "drum_style": {
+      "performer": "Programmed (likely Yorke/Godrich working with samplers, drum machines, and software — possibly using software like Reaktor or Akai hardware samplers, plus tabla and found-sound source material)",
+      "feel": "Glitchy, clicky, micro-syncopated. NON-quantized in surface feel even though programmed precisely — the syncopation is so heavy that the ear cannot find a backbeat. Sounds engineered rather than performed.",
+      "techniques_documented": [
+        "Heavy use of click-like, short-attack, percussive samples (sub-100ms hits) rather than full kit sounds",
+        "Possible tabla samples or tabla-like timbres processed and integrated into the loop",
+        "Granular and time-stretched sample fragments treated as percussion",
+        "No conventional kick-snare backbeat — accents fall on syncopated micro-positions",
+        "The loop appears to repeat with subtle variation rather than being identical every cycle (to be verified)"
+      ],
+      "groove_feel_alignment": "Anti-groove in dance terms but pro-groove in mechanical-loop terms. The percussion creates a relentless forward motion without inviting body movement — closer to a factory rhythm than a dance beat.",
+      "fills_and_transitions": "No drum fills. Transitions accomplished by entry/exit of vocal phrases, sub-bass note changes, and gradual textural layering — not by percussion gestures."
+    },
+    "guitar_style": {
+      "performer": "N/A",
+      "feel_per_section": {
+        "intro_riff": "N/A",
+        "verse": "N/A",
+        "pre_chorus": "N/A",
+        "chorus": "N/A",
+        "bridge_solo": "N/A"
+      },
+      "techniques_documented": [],
+      "playing_style_versus_other_grunge": "N/A"
+    },
+    "vocal_delivery": {
+      "performer": "Thom Yorke",
+      "verse_delivery": "Restrained, mid-register, narrow-range. Yorke sings inside the processing chain rather than over the top of it — his performance is calibrated to give the heavy processing a stable input. Lyrics ('I'm a reasonable man, get off my case') are delivered with deadpan resignation rather than projection. The processing — formant shifting, telephone-filter narrow-banding — is part of the vocal's character.",
+      "chorus_delivery": "N/A — no separate chorus section",
+      "outro_delivery": "Vocal phases out as the percussion loop continues. Processing may intensify or shift on the way out.",
+      "documented_vocal_quirks": [
+        "Heavy processing (formant shift, narrow-band/telephone filter, possible pitch warping) is a defining timbral signature",
+        "Lyrics are delivered as quasi-spoken fragmentary phrases rather than as sustained melodic lines",
+        "Yorke's signature wavering vibrato is suppressed/processed away — the vocal sounds partially synthetic at moments",
+        "The lyric reading 'reasonable man / get off my case' carries claustrophobic-paranoid affect that mirrors the mechanical mood"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No belted high notes (would break the contained claustrophobic envelope)",
+      "No vocal melisma (would contradict the deadpan-fragmentary delivery)",
+      "No human-feel drumming (would relieve the mechanical tension that is the point)",
+      "No dynamic crescendo (would betray the closed-room aesthetic)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. These are extraction targets for cross-song mining.",
+    "transitions_between_sections": [
+      {
+        "where": "percussion_intro -> vocal_entry",
+        "type": "vocal_drop_in_no_anticipation",
+        "description": "Yorke's processed vocal simply enters on top of the established percussion loop — no riser, no fill, no anticipation. The percussion continues unchanged underneath.",
+        "extractable_concept": "vocal_first_entry_with_zero_transition_device"
+      },
+      {
+        "where": "verse cycles -> mid-track density zone",
+        "type": "imperceptible_textural_thickening",
+        "description": "Additional vocal processing layers and ambient elements enter without announcement — there is no transitional sweep or fill. The listener may not notice the moment additional layers began; density just gradually increases.",
+        "extractable_concept": "imperceptible_layer_introduction_via_gradual_processing_buildup"
+      },
+      {
+        "where": "mid-track density zone -> outro",
+        "type": "lead_subtraction",
+        "description": "The lead vocal recedes while the percussion loop persists. Transition achieved by removing the focal element rather than adding a new one — same lead-subtraction inverse-of-lift gesture seen elsewhere on Kid A/Amnesiac.",
+        "extractable_concept": "transition_by_lead_subtraction"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "no traditional risers — but gradual mid-track textural thickening",
+        "type": "no_synth_riser_textural_layering_only",
+        "duration_bars": "approximately 8-16 bars across the mid-track density zone",
+        "description": "The track has NO synthesized noise sweeps or traditional risers. Any sense of 'build' comes from textural layering of additional processed vocal and ambient elements over the unchanging percussion loop. The build is purely additive-textural and stays within a narrow dynamic envelope.",
+        "extractable_concept": "build_via_additive_texture_no_synth_riser"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "throughout vocal — telephone/narrow-band filtering",
+        "type": "static_narrow_band_filter_on_vocal_as_timbral_signature",
+        "description": "The lead vocal is processed through what sounds like a narrow-band/telephone filter for portions of the track, giving it a compressed lo-fi character. This is a STATIC processing choice (timbral signature) rather than a dynamic filter sweep, but it functions like a permanent cutoff move on the vocal source.",
+        "extractable_concept": "static_narrow_band_filter_as_vocal_timbral_signature"
+      },
+      {
+        "where": "across percussion loop — possible subtle high-frequency motion",
+        "type": "subtle_static_filter_on_percussion",
+        "description": "The percussion loop has subtle high-frequency content motion that may come from filter automation or from variation between sample triggers. Not aggressive sweeps — subtle tonal pacing.",
+        "extractable_concept": "subtle_filter_motion_as_textural_pacing"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "no drops in dance sense",
+        "type": "no_drops_continuous_loop_environment",
+        "description": "The track has NO drops. The arrangement only ADDS or HOLDS until the outro thins. The percussion loop never stops, never breaks down, never explodes. This is a deliberate refusal of the dance/electronica drop convention.",
+        "extractable_concept": "no_drops_only_continuous_loop_environment"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "approximately mid-track density zone",
+        "type": "textural_density_peak_within_flat_envelope",
+        "description": "The 'climax' is the moment of maximum textural layering (additional processed vocal layers + ambient elements + the persistent loop), but it stays inside the same narrow dynamic envelope as the rest of the track. NOT a loud climax. NOT a thick climax in the orchestral sense. A CLAUSTROPHOBIC climax — more processing density inside the same small box.",
+        "extractable_concept": "climax_via_processing_density_inside_flat_dynamic_envelope"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "clicky_glitchy_percussion_design_as_track_identity",
+        "description": "The percussion loop is constructed from heavily processed click-like fragments — possibly tabla, granular synthesis, found-sound, processed kit samples — sequenced for maximum syncopated awkwardness. The percussion design IS the song's hook. Compositionally, the loop is the equivalent of a memorable riff in a rock song.",
+        "extractable_concept": "percussion_loop_as_compositional_hook_replacing_riff"
+      },
+      {
+        "type": "heavy_vocal_processing_chain_as_compositional_signature",
+        "description": "Yorke's vocal is processed through a chain that may include formant shifting, narrow-band filtering, possible pitch correction/warping, and bit-reduction or saturation. The processing is committed during recording/production rather than added in the mix as an afterthought — the vocal's processed character is a compositional element, not a mix decision.",
+        "extractable_concept": "heavily_processed_vocal_as_committed_compositional_timbre"
+      },
+      {
+        "type": "tabla_or_tabla_like_samples_inside_glitch_palette",
+        "description": "Tabla-like timbres are present in the percussion palette (this is a recurring Radiohead/Godrich move on Amnesiac and Kid A) — used not for world-music reference but as a percussive timbre that adds organic micro-detail to the otherwise mechanical loop.",
+        "extractable_concept": "tabla_timbre_inside_glitch_loop_for_organic_detail"
+      },
+      {
+        "type": "claustrophobic_sub_bass_anchor",
+        "description": "The sub-bass is sparse but functions as a gravitational floor that contains the track inside its small sonic space. Note choices are minimal — root and possibly one or two neighboring tones — and articulation is non-percussive. The sub-bass adds to the closed-room feel.",
+        "extractable_concept": "minimal_sub_bass_as_gravitational_anchor_for_closed_room_aesthetic"
+      },
+      {
+        "type": "title_as_typographic_gesture_matching_aesthetic",
+        "description": "The deliberately mangled title 'Packt Like Sardines In A Crushd Tin Box' is itself part of the compositional payload — the typographic crushing of words mirrors the sonic crushing/compression of the track. Production aesthetic and verbal aesthetic aligned.",
+        "extractable_concept": "title_typography_as_compositional_extension"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The clicky-glitchy percussion loop — the moment the track's mechanical-claustrophobic groove identity is established. People remember this song as 'the one that opens Amnesiac with the weird clicky beat.'",
+    "secondary": "The heavily processed vocal — Yorke's voice partially synthesized through formant shift and telephone filter, delivering 'I'm a reasonable man / get off my case' with deadpan resignation.",
+    "tertiary": "The relentless contained mood — the track stays inside its small sonic box for four minutes without escalation, creating a unique claustrophobic listening experience that justifies the title."
+  },
+
+  "advisor_extract": [
+    "static_modal_with_textural_loop_environment",
+    "percussion_loop_as_compositional_hook_replacing_riff",
+    "heavily_processed_vocal_as_committed_compositional_timbre",
+    "anti_drum_kit_anti_guitar_arrangement",
+    "harmonic_pacing_zero_groove_pacing_high",
+    "transition_by_lead_subtraction",
+    "build_via_additive_texture_no_synth_riser",
+    "climax_via_processing_density_inside_flat_dynamic_envelope",
+    "no_drops_only_continuous_loop_environment",
+    "static_narrow_band_filter_as_vocal_timbral_signature",
+    "claustrophobic_closed_room_aesthetic_as_compositional_goal"
+  ]
+}

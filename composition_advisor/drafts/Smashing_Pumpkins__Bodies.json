@@ -1,0 +1,264 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_tempo_structure_aggression_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "tempo_bpm_documented_range (148-156 — fast for Pumpkins)",
+    "time_signature (4/4)",
+    "tuning_documented (half-step-down — continued from Siamese Dream convention)",
+    "track_runtime",
+    "structural_blueprint (fast riff opening, sustained intensity at fast tempo, no clean intro)",
+    "instrumentation (Corgan layered guitars, Chamberlin drums at fast tempo, Wretzky bass)",
+    "performance signature (Chamberlin power + precision at fast tempo)",
+    "stylistic_figures (sustained intensity at punk-leaning tempo)"
+  ],
+  "_to_verify_fields": [
+    "exact key area (G# minor vs Eb minor reading given drop tuning)",
+    "exact tempo within 148-156 range",
+    "specific riff chromatic motion (descending vs ascending) — varies by source",
+    "exact bridge arrangement details",
+    "presence and role of additional electronic / synth textures (Flood/Moulder textural willingness)"
+  ],
+
+  "_status": "C3_3c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Mellon Collie and the Infinite Sadness",
+  "year": 1995,
+  "tempo_bpm_documented_range": [148, 156],
+  "time_signature": "4/4 throughout. The fast tempo (148-156 BPM) is the metric signature — at that pace, 4/4 reads as relentless rather than as comfortable rock pocket.",
+  "key_area": "G-sharp minor area / E-flat minor area with characteristic Corgan suspended voicings. The riff features chromatic motion that drives the song's aggressive forward feel — chromatic descending or ascending lines as the central melodic-harmonic gesture.",
+  "tuning_documented": "Half-step-down (E-flat standard) — Mellon Collie continues the Siamese Dream tuning convention. At fast tempo, the slack-string feel allows aggressive picking without string snap.",
+  "track_runtime": "~4:11",
+
+  "composition": {
+    "structural_blueprint": "fast_riff_opening_full_band_immediate (drums + guitars + bass enter together at full intensity at 148-156 BPM — no gradual build, riff statement immediate) -> verse1_riff_continues_under_vocal (riff continues as backing texture, Corgan vocal enters at fast-tempo phrasing) -> pre_chorus_density_build (additional guitar layer or octave-double, drum fill leads into chorus) -> chorus1_max_density_harmonic_expansion (peak guitar density, vocal lifts, cymbal articulation, fast-tempo aggression sustained) -> riff_return_brief -> verse2 -> pre_chorus -> chorus2 -> bridge_brief_dynamic_shift (slight reduction in some layers or reharmonization, but Bodies' bridge is shorter than typical Pumpkins — the song's intensity should not relax much at fast tempo) -> final_chorus_expansion -> outro_riff_statement",
+    "section_count_and_lengths": {
+      "intro": "Approximately 4-8 bars of riff before vocal enters",
+      "verses": "Approximately 8-16 bars each (fast tempo packs more bars per section than mid-tempo rock)",
+      "pre_chorus": "Approximately 4-8 bars",
+      "chorus": "Approximately 8-16 bars each",
+      "bridge": "Short — approximately 4-8 bars; deliberately briefer than Siamese Dream bridges given the fast-tempo intent",
+      "outro": "Final chorus expansion + riff statement to close",
+      "_note": "Bar counts approximate. Fast tempo means more bars per section than mid-tempo equivalents. Compositional 'movement' is dense per minute."
+    },
+    "harmonic_motion": "Minor-modal with CHROMATIC RIFF MOTION as central feature. Tonic G#/Eb minor area; verses cycle around i, bVII, bVI with chromatic passing tones in the riff line. Chorus expands to relative major or flat-VI lift. The chromatic motion is what distinguishes Bodies' harmonic identity from Quiet's diatonic-rock vocabulary — the chromaticism adds aggression and uncertainty to the modal-minor framework.",
+    "modal_choice": "G# minor (Aeolian) with chromatic riff inflections. The chromaticism is a punk/metal influence — short chromatic descents or chromatic neighbor tones that color the riff.",
+    "melodic_contour": "Vocal contour fast-paced: shorter phrases than mid-tempo Pumpkins tracks (the fast tempo demands shorter rhythmic units). Verses sit mid-register with rhythmically punctual delivery; choruses lift to upper register with held notes that contrast against the fast-tempo backing. The contrast between fast-tempo backing and slightly-longer chorus vocal phrasing creates the song's tension.",
+    "characteristic_riff_construction": "Fast-tempo chromatic riff — likely 4-8 bars in length, tightly packed rhythmically (eighth or sixteenth-note picking required). The riff is BOTH hook AND structural backbone — continues under verses. Constructed for fast-tempo executability: requires picking precision across multiple layered takes for the wall to read clearly. Chromaticism gives the riff its aggressive identity — distinguishes it from Quiet's diatonic riff.",
+    "harmonic_pacing": "Moderate at the chord level — chord changes every 2-4 bars within sections, but the FAST TEMPO compresses subjective pacing. Listeners experience more chord changes per minute than in mid-tempo Pumpkins tracks even though the ratio of chords-to-bars is similar.",
+    "phrase_symmetry": "Square symmetric — 4-bar and 8-bar phrasing throughout. The compositional payload is in TEMPO and CHROMATIC RIFF, not in phrase-asymmetry. Fast-tempo aggressive heavy rock benefits from symmetric phrasing — the asymmetry would compound disorientation."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Multiple layered electric guitars (continuing Corgan's Siamese Dream layering philosophy, but slightly fewer layers than Quiet — Flood+Moulder favor rhythmic clarity over maximum width)",
+      "Electric bass (D'arcy Wretzky with Corgan also tracking)",
+      "Full drum kit (Jimmy Chamberlin)",
+      "Lead vocal (Billy Corgan)",
+      "Selective vocal doubles on choruses",
+      "Possible synth / electronic textures (Flood textural willingness — exact role to verify)"
+    ],
+    "section_instrumentation": {
+      "intro": "Full band immediately at fast tempo — drums + guitars + bass on the riff downbeat",
+      "verse": "Riff continues + vocal enters + multiple guitar layers panned for stereo width and rhythmic clarity",
+      "pre_chorus": "Slight density addition — additional guitar layer or octave-double; drum fill leads into chorus",
+      "chorus": "MAXIMUM density + harmonic expansion + vocal lift",
+      "bridge": "Brief reduction — fewer layers or reharmonization, but never fully clean given the fast-tempo intent",
+      "outro": "Final chorus expansion + riff statement"
+    },
+    "vocal_layering_strategy": "Single-tracked vocal in verses; chorus vocal layering (doubles, octave-doubles) for emphasis. Vocal layering is DENSITY EMPHASIS not primary dynamic device — guitars carry the layering load.",
+    "dynamic_arc_overall": "SUSTAINED INTENSITY AT FAST TEMPO — no clean intro, no atmospheric breakdown. The song stays HEAVY + FAST throughout. Choruses EXPAND density beyond verses. Bridge offers brief textural relief. Dynamic envelope is essentially flat-at-peak with micro-modulation across sections — but at MUCH FASTER tempo than Quiet's equivalent dynamic profile.",
+    "instrumental_role_assignment": {
+      "guitar_role": "PRIMARY VOICE — multi-layered density at fast tempo. Slightly fewer layers than Quiet (Flood+Moulder mix favors rhythmic clarity over wall-of-sound width). Picking precision required for layer alignment at fast tempo.",
+      "bass_role": "FAST-TEMPO ROOT-NOTE DRIVING — bass locks tightly with Chamberlin's kick at 148-156 BPM. Pick attack for rhythmic clarity. Less melodic activity than mid-tempo Pumpkins bass — bass serves rhythmic foundation primarily.",
+      "drums_role": "Driving 4/4 at fast tempo. Chamberlin's technical fills adapted to fast-tempo execution — requires wrist precision for hi-hat 8ths/16ths. Cymbals articulate chorus moments and section transitions.",
+      "vocal_role": "Hook-melody carrier riding above the wall at fast tempo. Phrasing tighter than slower Pumpkins tracks — the tempo demands shorter rhythmic units."
+    },
+    "harmonic_density_per_section": {
+      "intro": "High — full layered density at fast tempo immediately",
+      "verse": "High — density continues, vocal carries melody",
+      "pre_chorus": "Slightly higher — additional layer enters",
+      "chorus": "Maximum — peak guitar layering + harmonic expansion + vocal layering",
+      "bridge": "Moderate — partial layer reduction for relief",
+      "outro": "Maximum returning to peak"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No tempo changes (sustained 148-156 BPM)",
+      "No clean intro or atmospheric breakdown (Bodies stays HEAVY + FAST throughout)",
+      "No drum sample replacement",
+      "No vocal pitch correction",
+      "No vocal layering as primary dynamic device — guitars are the layering engine",
+      "No extended bridge that would derail fast-tempo intent"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "FAST AGGRESSIVE FORWARD MOTION at 148-156 BPM. Sustained intensity at this tempo feels driving + relentless — far faster than Pumpkins' typical mid-tempo (90-130 BPM range) and approaching punk-rock territory while retaining alt-rock sonic ambition. The fast tempo creates sustained rhythmic pressure rare in the Pumpkins catalog.",
+    "drum_style": {
+      "performer": "Jimmy Chamberlin",
+      "feel": "Fast power + technical precision. Chamberlin demonstrates capacity to drive at faster-than-typical-Pumpkins tempo while maintaining technical complexity.",
+      "techniques_documented": [
+        "Kick + snare driving — kick patterns adapted to fast tempo (kick on 1+3 with eighth-note variations)",
+        "Hi-hat 8ths or 16ths driving forward at fast tempo — requires technical wrist precision",
+        "Snare placement strong on 2+4 with occasional ghost notes for groove",
+        "Fills technically dense — Chamberlin's jazz-informed vocabulary at fast tempo",
+        "Cymbal accents articulate chorus moments + fills",
+        "No quantization — natural human feel preserved at fast tempo"
+      ],
+      "groove_feel_alignment": "Drums lock tightly with bass at fast tempo. Together they form the rhythmic foundation that lets the layered guitars sit on top without rhythmic smear.",
+      "fills_and_transitions": "Fills mark pre-chorus to chorus transitions. At fast tempo, fills must be SHORTER than mid-tempo equivalents to avoid stepping on the next section."
+    },
+    "guitar_style": {
+      "performer": "Billy Corgan + James Iha (Corgan tracking majority of guitar parts)",
+      "feel_per_section": {
+        "intro_riff": "Aggressive, distorted, fast-tempo chromatic riff statement",
+        "verse": "Riff continues at fast-tempo density behind vocal — picking precision required",
+        "pre_chorus": "Density increase via additional layer or octave-double",
+        "chorus": "Maximum layering — peak wall, harmonic widening at fast tempo",
+        "bridge_solo": "Bridge typically brief — possibly short lead phrases but no extended solo"
+      },
+      "techniques_documented": [
+        "Half-step-down tuning (E-flat standard)",
+        "Big Muff fuzz + tube amps (Marshall, Hiwatt, Mesa Boogie — Mellon Collie palette expanded)",
+        "Picking precision required at fast tempo for multiple-layer rhythmic alignment",
+        "Layered tracking with EQ-staggered + panned distribution",
+        "Slightly fewer layers than Quiet — Flood+Moulder favor rhythmic clarity over maximum density",
+        "Each layer with different distortion character"
+      ],
+      "playing_style_versus_other_grunge": "Compared to Nirvana's Territorial Pissings (similar fast-tempo aggressive territory), Bodies retains MORE LAYERS and a denser harmonic field — Pumpkins' wall-of-sound aesthetic adapted to fast tempo. Compared to other Pumpkins tracks: Quiet sustains intensity at mid-tempo; Bodies sustains intensity at fast tempo. Same compositional engine, different tempo pole."
+    },
+    "vocal_delivery": {
+      "performer": "Billy Corgan",
+      "verse_delivery": "Aggressive nasal tenor at fast-tempo phrasing — Corgan's signature vocal but with shorter rhythmic units to fit the fast pace",
+      "chorus_delivery": "Slight upper-register lift, increased intensity, vocal layering on choruses",
+      "outro_delivery": "Maintains chorus-level projection through final hook statement",
+      "documented_vocal_quirks": [
+        "Vocal phrasing adapts to fast tempo — shorter phrases, more rhythmic placement consideration",
+        "Multiple takes selected/comped per Flood+Moulder approach",
+        "Chorus vocal layering (doubles, octave doubles) for emphasis",
+        "Corgan's nasal tone retains its identity even at faster tempo"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No quantization (preserves Chamberlin's natural fast-tempo feel)",
+      "No drum sample replacement",
+      "No vocal pitch correction",
+      "No tempo changes",
+      "No extended solo (would break fast-tempo aggressive economy)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target.",
+    "transitions_between_sections": [
+      {
+        "where": "intro_riff -> verse1_vocal_entry",
+        "type": "vocal_drop_in_at_fast_tempo",
+        "description": "Corgan's vocal enters on top of the continuing fast-tempo riff. No fill, no riser — the vocal lands above the established driving riff.",
+        "extractable_concept": "vocal_first_entry_with_zero_transition_device"
+      },
+      {
+        "where": "pre_chorus -> chorus",
+        "type": "drum_fill_compressed_for_fast_tempo",
+        "description": "Chamberlin signals the chorus with a fast-tempo-compressed fill (shorter than mid-tempo equivalents) while an additional guitar layer enters. The fill's brevity fits the fast-tempo intent.",
+        "extractable_concept": "compressed_drum_fill_for_fast_tempo_chorus_entry"
+      },
+      {
+        "where": "chorus -> verse2 (return)",
+        "type": "riff_punch_re_engagement_at_fast_tempo",
+        "description": "Chorus collapses back to the verse riff via a single beat punch — at fast tempo, the punch is even more abrupt-feeling than at mid-tempo.",
+        "extractable_concept": "riff_punch_section_re_engagement_at_fast_tempo"
+      },
+      {
+        "where": "bridge -> final_chorus",
+        "type": "density_re_thickening",
+        "description": "The brief bridge's partial layer reduction is reversed via re-entry of missing layers — wall thickens back to chorus density without an extended fill.",
+        "extractable_concept": "additive_layer_re_entry_for_chorus_return"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "N/A — no traditional risers in this track",
+        "type": "no_risers_used",
+        "description": "Bodies operates in sustained-intensity mode at fast tempo. There is no synth riser, no white-noise sweep, no extended pre-chorus tension build. Pre-chorus density addition is the closest thing to a build but it is layer-additive rather than riser-style. The compositional choice is FAST-AGGRESSIVE-SUSTAINED — risers would betray the immediate-aggressive intent.",
+        "extractable_concept": "compositional_choice_no_rising_builds"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "bridge",
+        "type": "selective_layer_subtraction_at_fast_tempo",
+        "description": "The bridge's relief comes from removing 1-2 guitar layers rather than from filter automation. At fast tempo, the layer subtraction is FELT QUICKLY because there is less time for the listener to settle into the relief — the bridge passes fast.",
+        "extractable_concept": "subtractive_relief_via_layer_drop_at_fast_tempo"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "N/A — no drops in this track",
+        "type": "no_drops_used",
+        "description": "Bodies does not employ drops or breakdowns. The song stays at high density throughout. This is the fast-tempo equivalent of Quiet's anti-drop choice — both songs refuse the dynamic-arc release cycle, just at different tempo poles.",
+        "extractable_concept": "compositional_choice_no_drops_only_sustained_density"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "final_chorus_expansion",
+        "type": "peak_density_at_fast_tempo_song_end",
+        "description": "The final chorus pushes guitar layers and vocal projection to peak at fast tempo. Climax is DENSITY-DRIVEN at fast pace.",
+        "extractable_concept": "climax_via_terminal_density_peak"
+      },
+      {
+        "where": "every chorus",
+        "type": "perpetual_high_baseline_at_fast_tempo",
+        "description": "Each chorus operates at near-peak intensity. No single climax — the song lives at the peak from the first riff through to the outro.",
+        "extractable_concept": "no_single_climax_perpetual_baseline_at_peak"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "fast_tempo_148_156_bpm_aggressive_heavy_rock",
+        "description": "Tempo pushed into 145-160 BPM territory — faster than mainstream alt-rock standard (90-130 BPM) but retaining wall-of-density sonics. Fast tempo + sustained intensity + chromatic riff motion = punk-influenced heavy rock economy. The TEMPO itself is part of the song's compositional identity.",
+        "extractable_concept": "fast_tempo_punk_influenced_heavy_rock_with_layering"
+      },
+      {
+        "type": "chromatic_riff_motion",
+        "description": "The signature riff features chromatic descending or ascending motion — adds aggression and uncertainty to the modal-minor framework. Distinguishes Bodies' harmonic identity from diatonic Pumpkins riffs (Quiet, Today).",
+        "extractable_concept": "chromatic_riff_motion_in_minor_mode"
+      },
+      {
+        "type": "fewer_layers_than_quiet_for_fast_tempo_clarity",
+        "description": "Slightly less wall-of-sound density than Quiet — Flood+Moulder mix favors rhythmic clarity over maximum stereo width at fast tempo. Demonstrates that layering count should scale INVERSELY to tempo for rhythmic readability.",
+        "extractable_concept": "reduced_layering_count_for_fast_tempo_rhythmic_clarity"
+      },
+      {
+        "type": "rhythmic_articulation_priority_over_stereo_width",
+        "description": "At fast tempo, rhythmic articulation matters more than stereo width. The mix tightens stereo image to preserve transient detail. EQ-staggered layers must align rhythmically — picking precision required across all takes.",
+        "extractable_concept": "fast_tempo_layered_guitar_density_management"
+      },
+      {
+        "type": "compressed_economy_4_11_runtime",
+        "description": "4:11 runtime is tight by Mellon Collie standards (album average ~5 min, includes much longer tracks). Fast tempo packs more bars per minute than mid-tempo equivalents — compositional 'movement' is dense + fast. Relentlessly efficient.",
+        "extractable_concept": "compressed_economy_via_fast_tempo_more_bars_per_minute"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The fast-tempo riff with immediate full-band entry — listeners hear aggressive intent at faster-than-typical-Pumpkins pace from first measure. The TEMPO itself is part of the song's identity.",
+    "secondary": "The chromatic riff motion — adds the song's distinct aggressive harmonic identity, distinguishing Bodies from Pumpkins' diatonic-rock catalog.",
+    "tertiary": "Chamberlin's fast-tempo drumming — technical precision at 150 BPM demonstrating his upper tempo range"
+  },
+
+  "advisor_extract": [
+    "fast_tempo_punk_influenced_heavy_rock_with_layering",
+    "chromatic_riff_motion_in_minor_mode",
+    "sustained_intensity_at_fast_tempo",
+    "compositional_choice_no_drops_only_sustained_density",
+    "compositional_choice_no_rising_builds",
+    "reduced_layering_count_for_fast_tempo_rhythmic_clarity",
+    "fast_tempo_layered_guitar_density_management",
+    "compressed_economy_via_fast_tempo_more_bars_per_minute",
+    "no_single_climax_perpetual_baseline_at_peak",
+    "compressed_drum_fill_for_fast_tempo_chorus_entry"
+  ]
+}

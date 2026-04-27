@@ -1,0 +1,254 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_structure_tempo_dynamics_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "tempo_bpm_documented_range (96-102)",
+    "time_signature (4/4)",
+    "tuning_documented (half-step-down — Siamese Dream-wide convention)",
+    "track_runtime",
+    "structural_blueprint (immediate full-band riff entry, sustained heavy intensity, no clean-loud arc)",
+    "instrumentation (Corgan multi-layered guitars + Chamberlin drums + Wretzky bass + Corgan vocal)",
+    "arrangement signature (wall-of-layered-guitars, frequency-spread layering)",
+    "performance approach (Chamberlin driving 4/4 with technical fills, Corgan nasal tenor)",
+    "stylistic_figures (sustained intensity rather than dynamic-arc, no clean intro)"
+  ],
+  "_to_verify_fields": [
+    "exact key area (E-flat minor reading vs. alternative analyses given the Drop-tuning offset)",
+    "exact bar count of intro / verse / chorus / bridge",
+    "specific Big Muff / Marshall / Hiwatt assignments per layer (documented as palette, exact per-layer routing not certain)",
+    "precise harmonic motion in chorus (i to bVI vs. i to relative major)"
+  ],
+
+  "_status": "C3_1c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Siamese Dream",
+  "year": 1993,
+  "tempo_bpm_documented_range": [96, 102],
+  "time_signature": "4/4 throughout. No metric modulation, no odd-bar inserts. The compositional payload sits in density and riff identity rather than in metric play.",
+  "key_area": "E-flat minor area, with characteristic Corgan power-chord-plus-suspended-tone voicings. Tonic Eb minor with movement to relative major and flat-VI for chorus expansion. Half-step-down tuning shifts perceived feel — the music feels DARKER and SLACKER than a standard-tuned E minor reading would.",
+  "tuning_documented": "Half-step-down (E-flat standard) — Siamese Dream-wide convention. Adds darkness + slack-string feel + slightly easier fast-tempo bend access. All guitars and bass tuned in coordination.",
+  "track_runtime": "~3:42",
+
+  "composition": {
+    "structural_blueprint": "intro_full_band_riff_immediate (no gradual build — drums, bass, multiple distorted guitars all enter on the riff downbeat) -> verse1_riff_continues_under_vocal (the opening riff doubles as backing during Corgan's vocal entry) -> pre_chorus_density_lift (additional guitar layer or octave double enters, drum fill leads into chorus) -> chorus1_max_density_harmonic_expansion (chorus widens harmonically, vocal lifts to upper register, more cymbal articulation) -> riff_return_brief -> verse2 -> pre_chorus -> chorus2 -> bridge_brief_dynamic_shift (slight reduction in some guitar layers or reharmonization, but never drops below 'heavy' — relief is partial not full) -> final_chorus_expansion -> outro_riff_statement",
+    "section_count_and_lengths": {
+      "intro": "Approximately 4 bars of riff before vocal enters",
+      "verses": "Approximately 8-12 bars each",
+      "pre_chorus": "Approximately 4 bars each",
+      "chorus": "Approximately 8-12 bars each",
+      "bridge": "Short — approximately 4-8 bars; deliberately briefer than typical Siamese Dream bridges (Quiet's intensity should not relax much)",
+      "outro": "Final chorus expansion + riff statement to close",
+      "_note": "Bar counts approximate. Tight 3:42 total runtime constrains section lengths — Quiet is Corgan's commercial-radio-rock-economy demonstration."
+    },
+    "harmonic_motion": "Minor-modal with Corgan's signature power-chord-plus-suspended-tone voicings. Tonic Eb minor area; verses cycle small chord set in i, bVII, bVI motions; chorus expands to relative major or flat-VI lift. Harmonic motion is FUNCTIONAL but UNFLASHY — voice-leading deliberate, not ornamental. The compositional emphasis is RIFF identity, not chord progression sophistication.",
+    "modal_choice": "Eb minor (Aeolian) with characteristic flat-VI chorus lift. Riff geometry exploits open-position drop-tuned voicings.",
+    "melodic_contour": "Verse vocal: medium register, sustained-note phrasing — Corgan's nasal tenor delivering hook-melody phrases that rise gradually toward the pre-chorus. Chorus: vocal LIFTS to upper register (often a fourth or fifth above verse register), held notes longer. The riff itself has an angular descending-then-recovering contour that is the song's instrumental hook.",
+    "characteristic_riff_construction": "The opening riff is BOTH the song's hook AND its structural backbone — continues through verses as backing texture, returns between sections as connective tissue. Constructed for HEAVY-RADIO-ROCK economy: 4 bars memorable, harmonically weighted, fits comfortably in 4/4. Uses drop-tuned chord shapes that can be palm-muted or sustained for textural variation. The riff is dense vertically (multiple layers) but the underlying note content is simple — listenability + impact prioritized.",
+    "harmonic_pacing": "Moderate at the chord level (changes every 2-4 bars within sections); FAST at the layer-density level (each section adds or subtracts guitar layers). Pacing engine is layer-density, not chord change.",
+    "phrase_symmetry": "Square symmetric — 4-bar phrases throughout, 8-bar verse and chorus blocks. The compositional payload is in TEXTURE and HOOK, not in phrase-asymmetry. Symmetric phrasing is a deliberate choice that makes the dense layering feel ordered rather than chaotic."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Multiple layered electric guitars (documented as 5-15+ tracks per section in Siamese Dream — Corgan tracking nearly all of them himself)",
+      "Electric bass (D'arcy Wretzky with Corgan also tracking some bass parts)",
+      "Full drum kit (Jimmy Chamberlin)",
+      "Lead vocal (Billy Corgan)",
+      "Selective vocal doubles / octave doubles on choruses for emphasis"
+    ],
+    "section_instrumentation": {
+      "intro": "Full band immediately — drums + bass + multiple distorted guitars all enter on the riff downbeat",
+      "verse": "Riff continues + vocal enters + multiple guitar layers panned L/R/center for stereo width and harmonic density",
+      "pre_chorus": "Slight density addition — additional guitar layer or octave-double enters; drum fill leads into chorus",
+      "chorus": "MAXIMUM guitar density + harmonic expansion + vocal lift + cymbal articulation",
+      "bridge": "Brief reduction — fewer guitar layers or reharmonized backing — but never fully clean",
+      "outro": "Final chorus expansion + riff statement to close"
+    },
+    "vocal_layering_strategy": "Lead vocal single-tracked through verses with selective vocal doubling and occasional octave doubles on choruses for emphasis. Vocal layering used SELECTIVELY rather than as primary dynamic device — the guitars are the layering engine.",
+    "dynamic_arc_overall": "SUSTAINED INTENSITY — no clean intro, no atmospheric breakdown, no quiet-loud arc. The song stays HEAVY throughout. Choruses EXPAND density beyond verses but do not REDUCE intensity. Bridge offers brief textural relief without dropping to 'quiet'. The dynamic envelope is essentially flat-at-peak, with micro-modulation across sections.",
+    "instrumental_role_assignment": {
+      "guitar_role": "PRIMARY VOICE — multi-layered wall-of-sound carrying riff identity, harmonic density, and textural weight. Each layer EQ-staggered to occupy different frequency slots (low-mid / mid / upper-mid / high) so the wall reads as ONE BIG GUITAR rather than as multiple cluttered guitars.",
+      "bass_role": "Root-note driving support locked tightly to Chamberlin's kick pattern. Selective melodic phrases between sections. Half-step-down-tuned bass for sonic coherence with the guitar tuning.",
+      "drums_role": "Driving 4/4 foundation with technical fills. Chamberlin's jazz-informed vocabulary deployed within rock-power context. Cymbals articulate chorus moments and section transitions.",
+      "vocal_role": "Hook-melody carrier riding above the wall. Must read clearly above the guitar density — so the vocal sits forward in the arrangement rather than blending in."
+    },
+    "harmonic_density_per_section": {
+      "intro": "High — full layered density immediately",
+      "verse": "High — density continues, vocal carries melody above",
+      "pre_chorus": "Slightly higher — additional layer enters",
+      "chorus": "Maximum — peak guitar layering + harmonic expansion + vocal layering",
+      "bridge": "Moderate — partial layer reduction for relief",
+      "outro": "Maximum returning to peak"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No clean intro (would betray the immediate-aggression intent)",
+      "No clean-to-distorted dynamic shift (Quiet's identity is sustained density)",
+      "No tempo changes",
+      "No vocal layering as primary dynamic device — guitars are the layering engine",
+      "No drum sample replacement (Chamberlin's drumming IS the rhythmic identity)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "AGGRESSIVE FORWARD MOTION at 96-102 BPM. The tempo is mid-pace by rock standards but the sustained density makes it feel DRIVING rather than groove-pocket. There is no 'pocket' to relax into — the song pushes ahead continuously.",
+    "drum_style": {
+      "performer": "Jimmy Chamberlin",
+      "feel": "Driving rock precision with jazz-informed technical fills. Chamberlin documented as one of rock's most technically gifted drummers — big-band/jazz background informs his fluid linear vocabulary applied to heavy rock.",
+      "techniques_documented": [
+        "Kick + snare backbone — kick on 1+3 with eighth-note variations, snare on 2+4",
+        "Hi-hat 8ths or 16ths driving forward motion",
+        "Technically dense fills (32nd-note linear figures, cross-stick patterns) but musically purposeful — never gratuitous chops display",
+        "Cymbal accents articulate chorus moments — ride bell + crash combinations",
+        "Tom fills clearly articulated for technical precision"
+      ],
+      "groove_feel_alignment": "Drums lock tightly with bass; together they form the rhythmic foundation that lets the guitar wall sit on top without collapsing into mud.",
+      "fills_and_transitions": "Chamberlin's fills mark pre-chorus to chorus transitions and section boundaries. Fills are signature Chamberlin — fast, technically dense, but tonally precise."
+    },
+    "guitar_style": {
+      "performer": "Billy Corgan (with James Iha — Corgan tracked the vast majority of guitar parts on Siamese Dream)",
+      "feel_per_section": {
+        "intro_riff": "Aggressive, distorted, multiple takes layered, locked rhythmically",
+        "verse": "Riff continues at full density behind vocal — picking precision required for layer alignment",
+        "pre_chorus": "Density increase via additional layer or octave-double",
+        "chorus": "Maximum layering — peak wall, harmonic widening",
+        "bridge_solo": "N/A — Quiet does not feature an extended solo. Brief lead phrases may appear but melodic phrasing not technical flash."
+      },
+      "techniques_documented": [
+        "Half-step-down tuning (E-flat standard)",
+        "Big Muff fuzz + tube amps (Marshall, Hiwatt) — the Siamese Dream tone signature",
+        "Multiple takes layered, each with different mic/amp/pedal combination for textural variety",
+        "Each layer EQ-staggered at tracking to occupy a specific frequency slot (frequency-spread layering)",
+        "Picking precision required across layers — multiple takes must align rhythmically for the wall to read clearly",
+        "Power chords with suspended tones (sus2, sus4) for harmonic widening in choruses"
+      ],
+      "playing_style_versus_other_grunge": "Compared to Nirvana's 1-2 guitar layers per side or Soundgarden's odd-meter dual-guitar interplay, Quiet uses FAR MORE layers (5-15+) with deliberate frequency-spread EQ to create wall-of-sound density. Corgan's playing approach prioritizes LAYER ALIGNMENT and PICKING PRECISION over aggressive attack-grit; Cobain's Nirvana approach prioritizes raw energy in fewer layers."
+    },
+    "vocal_delivery": {
+      "performer": "Billy Corgan",
+      "verse_delivery": "Aggressive nasal tenor — Corgan's signature vocal quality on full display. Sustained phrasing with bite, melodically precise without ornament. Mid-register, projected forward.",
+      "chorus_delivery": "Slight upper-register lift, increased intensity. Held notes longer. Selective doubles or octave-doubles for emphasis without over-crowding.",
+      "outro_delivery": "Maintains chorus-level projection through final hook statement",
+      "documented_vocal_quirks": [
+        "Corgan's nasal tone is DISTINCT — polarizing but instantly recognizable; part of the band's identity",
+        "Multiple vocal takes selected/comped per Vig's documented Siamese Dream approach",
+        "Vocal layering used selectively (chorus doubles) rather than as primary dynamic device"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No quantization (preserves Chamberlin's natural human feel)",
+      "No drum sample replacement",
+      "No vocal pitch correction (Corgan is naturally precise)",
+      "No tempo changes (sustained throughout)",
+      "No extended guitar solo (would derail the riff-driven sustained-intensity intent)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target.",
+    "transitions_between_sections": [
+      {
+        "where": "intro_riff -> verse1_vocal_entry",
+        "type": "vocal_drop_in_no_anticipation",
+        "description": "Corgan's vocal simply enters on top of the continuing riff. No fill, no riser, no breakdown — the riff stays at full density and the vocal lands above it.",
+        "extractable_concept": "vocal_first_entry_with_zero_transition_device"
+      },
+      {
+        "where": "pre_chorus -> chorus",
+        "type": "drum_fill_into_density_expansion",
+        "description": "Chamberlin signals the chorus with a fast linear fill while an additional guitar layer enters and the harmonic content widens. Classic rock pre-chorus-to-chorus mechanics, executed with technical drum precision.",
+        "extractable_concept": "drum_fill_plus_layer_addition_at_chorus_entry"
+      },
+      {
+        "where": "chorus -> verse2 (return)",
+        "type": "riff_punch_re_engagement",
+        "description": "Chorus collapses back to the verse riff via a single beat punch — the riff statement re-anchors the song after the chorus expansion.",
+        "extractable_concept": "riff_punch_section_re_engagement"
+      },
+      {
+        "where": "bridge -> final_chorus",
+        "type": "density_re_thickening",
+        "description": "The bridge's partial layer reduction is reversed via re-entry of the missing layers — the wall thickens back to chorus density without a fill.",
+        "extractable_concept": "additive_layer_re_entry_for_chorus_return"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "N/A — no traditional risers in this track",
+        "type": "no_risers_used",
+        "description": "Quiet operates in sustained-intensity mode. There is no synth riser, no white-noise sweep, no pre-chorus tension build via filter-up gestures. Pre-chorus density addition is the closest thing to a 'build' but it is layer-additive rather than riser-style.",
+        "extractable_concept": "compositional_choice_no_rising_builds"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "bridge",
+        "type": "selective_layer_subtraction",
+        "description": "The bridge's relief comes from removing 1-2 guitar layers rather than from filter automation. Functions like a HPF cutoff on the upper-frequency layers but accomplished by mixing-out specific takes.",
+        "extractable_concept": "subtractive_relief_via_layer_drop_not_filter_sweep"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "N/A — no drops in this track",
+        "type": "no_drops_used",
+        "description": "Quiet does not employ drops or breakdowns. The song stays at high density throughout. The bridge is the closest analog but it is a SLIGHT reduction, not a drop. This is the song's defining anti-pattern: a heavy rock track that REFUSES the dynamic-arc release cycle.",
+        "extractable_concept": "compositional_choice_no_drops_only_sustained_density"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "final_chorus_expansion",
+        "type": "peak_density_at_song_end",
+        "description": "The final chorus pushes guitar layers and vocal projection to peak, with the riff statement closing the song. The climax is DENSITY-DRIVEN rather than dynamic-arc-driven — listeners hear the wall at its thickest and most harmonically wide just before the song ends.",
+        "extractable_concept": "climax_via_terminal_density_peak"
+      },
+      {
+        "where": "every chorus",
+        "type": "perpetual_high_baseline",
+        "description": "Each chorus operates at near-peak intensity. There is no single 'climax' — the song lives at the peak and breathes briefly into the bridge. The climax is the BASELINE of the chorus sections.",
+        "extractable_concept": "no_single_climax_perpetual_baseline_at_peak"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "frequency_spread_layered_guitars",
+        "description": "Multiple guitar tracks (5-15+) panned across stereo field and EQ-staggered to occupy DIFFERENT FREQUENCY SLOTS (low-mid, mid, upper-mid, high). Each layer can use different distortion character (different amps/pedals) for textural variation. Result: the wall reads as ONE BIG GUITAR rather than as cluttered multiple guitars. Corgan's documented Siamese Dream signature.",
+        "extractable_concept": "frequency_spread_layered_guitars_wall_of_sound"
+      },
+      {
+        "type": "riff_as_hook_and_structural_backbone",
+        "description": "The opening riff carries DUAL function: it is the song's instrumental hook AND its structural connective tissue. The riff continues under verses and returns between sections — it is never just an intro statement.",
+        "extractable_concept": "riff_as_both_hook_and_structural_backbone"
+      },
+      {
+        "type": "selective_vocal_doubling",
+        "description": "Chorus vocal layered with subtle doubles and octave-doubles for emphasis without over-crowding. Verses remain single-tracked. Vocal layering as a CHORUS-ONLY emphasis device.",
+        "extractable_concept": "chorus_only_vocal_doubling_for_emphasis"
+      },
+      {
+        "type": "stereo_width_maximization_via_panning",
+        "description": "Hard L / hard R / center-L / center-R / center pan distribution across guitar layers maximizes stereo width — the wall fills the stereo field completely without becoming mono-summed mud.",
+        "extractable_concept": "wide_stereo_pan_distribution_across_guitar_layers"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The opening riff with immediate full-band entry — listeners hear aggressive intent declared in the first 2 measures. No build, no warning, just the riff hitting hard.",
+    "secondary": "The wall-of-layered-guitars density during choruses — the moment when the layering reads as ONE GIANT GUITAR rather than as multiple guitars.",
+    "tertiary": "Chamberlin's fills marking section transitions — the technical drum vocabulary deployed within heavy-rock context"
+  },
+
+  "advisor_extract": [
+    "wall_of_layered_guitars_wall_of_sound",
+    "frequency_spread_layered_guitars_eq_staggered",
+    "riff_as_both_hook_and_structural_backbone",
+    "sustained_intensity_no_dynamic_arc",
+    "compositional_choice_no_drops_only_sustained_density",
+    "no_single_climax_perpetual_baseline_at_peak",
+    "subtractive_relief_via_layer_drop_not_filter_sweep",
+    "wide_stereo_pan_distribution_across_guitar_layers",
+    "chorus_only_vocal_doubling_for_emphasis"
+  ]
+}

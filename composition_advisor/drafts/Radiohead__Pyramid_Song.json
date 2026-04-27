@@ -1,0 +1,225 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_meter_and_harmonic_motion_medium_for_exact_chord_voicings",
+  "_high_confidence_fields": [
+    "time_signature (asymmetric 16/8 grouping)",
+    "track_runtime",
+    "modal_choice (F# minor area)",
+    "structural_blueprint (piano+voice opening then drums and strings layer in)",
+    "instrumentation (piano, vocal, ondes Martenot, drums, strings)",
+    "stylistic_figures around the asymmetric piano figure and the late drum entry",
+    "compositional ambiguity between rubato feel and strict meter"
+  ],
+  "_to_verify_fields": [
+    "tempo_bpm exact citation (75-78 range commonly cited)",
+    "exact chord voicings of the piano cycle (notation varies by transcriber)",
+    "specific drum pattern reading (whether the kit performance lines up with the 3+3+4+3+3 grouping or floats independently)",
+    "key area F# minor vs alternate readings"
+  ],
+
+  "_status": "C7_4c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Amnesiac",
+  "year": 2001,
+  "tempo_bpm_documented_range": [75, 78],
+  "time_signature": "16/8 most commonly analyzed, with internal grouping 3+3+4+3+3 (sums to 16 eighth-notes per measure). Frequently described as 'feels like rubato but is strictly metered'. The asymmetric internal grouping is the signature compositional gesture — the listener never gets a square downbeat pulse despite the music being fully notated and reproducible.",
+  "key_area": "F# minor area, with significant chromatic motion across the piano cycle. The chord progression descends through several voicings that include extensions and chromatic neighbor tones — some transcribers read it as a straight i–V–IV–i pattern, others as a more chromatic descent through F#m, A, G#7, Em, etc. The harmonic motion sounds melancholy-modal but is harder to functionally analyze than typical rock progressions.",
+  "tuning_documented": "N/A — keyboard-led composition. The piano is the principal harmonic instrument; no guitar.",
+  "track_runtime": "~4:50",
+
+  "composition": {
+    "structural_blueprint": "piano_alone_intro (the descending piano figure cycles 2-3 times unaccompanied, establishing the asymmetric meter and the harmonic loop) -> vocal_entry_over_piano (Yorke's vocal joins, floating over the piano cycle without locking strictly to its accents) -> ondes_martenot_layer_emerges (the eerie sustained electronic-strings tone layers in, adding harmonic atmosphere) -> drums_enter_late (the kit enters approximately halfway through the track in an unusual half-time-feel that does not square the meter — drums float against the piano grouping rather than locking it) -> string_arrangement_thickens (strings/orchestral textures fill out the harmonic field at the climax) -> fade_outro (instrumentation thins, piano cycle persists into fade)",
+    "section_count_and_lengths": {
+      "piano_intro": "Approximately 2-3 cycles of the 16/8 figure unaccompanied",
+      "vocal_section": "Multiple iterations of the cycle with vocal phrases of varying length floating over",
+      "drum_entry_point": "Approximately halfway into the track — a structural pivot that adds rhythmic ambiguity rather than clarity",
+      "climax_with_strings": "The section where strings, ondes Martenot, drums, vocal, and piano are all simultaneously active — densest moment",
+      "outro_fade": "Long fade with piano cycle persisting, layers dropping out",
+      "_note": "The track does not segment into traditional verse/chorus. It is a single evolving meditation over a repeating asymmetric harmonic loop, with structural events being the entries of new instrumental layers."
+    },
+    "harmonic_motion": "Repeating chromatic descent in the piano figure. The progression cycles every 16/8 measure with distinct voicings rather than identical repetitions — each cycle has subtle micro-variation in the upper voice. The motion is predominantly stepwise downward in the bass, suggesting a Phrygian-tinged minor-key descent. Not a classical functional progression — more of a harmonic loop that creates color through voice-leading rather than through cadential resolution.",
+    "modal_choice": "F# Aeolian/Phrygian area. The chromatic descent and the absence of strong dominant-tonic resolution put it in modal territory rather than functional minor. The mood is melancholy-modal, supported by the slow tempo and the asymmetric meter.",
+    "melodic_contour": "Yorke's vocal is predominantly stepwise and falling, with occasional rising leaps for emphasis. The phrasing is rubato-feeling — Yorke does not strictly align his vocal phrases to the piano's metric grouping, which creates the floating, drifting quality. Phrases hang above the piano accompaniment rather than landing on it.",
+    "characteristic_riff_construction": "The piano cycle is the song's identity — a descending chordal figure in 16/8 played close-voiced in the middle register of the piano. The figure exploits the asymmetric grouping (3+3+4+3+3 eighth-notes) to create a sense of constantly displaced downbeat. The bass note descent provides forward motion; the upper voicing creates harmonic color. This is one of the most distinctive piano figures in 21st-century rock — instantly recognizable from the first few measures.",
+    "harmonic_pacing": "Slow at the chord-change level (one full cycle per measure of 16/8 = approximately one harmonic 'event' every 12-15 seconds at the song's tempo). Pacing is internal to each measure (chord changes within the cycle) rather than between measures.",
+    "phrase_symmetry": "Asymmetric BY DESIGN at the meter level (16/8 with 3+3+4+3+3 internal grouping is not square), but symmetric at the cycle level (every measure is the same 16-beat unit). The asymmetry is internal-rhythmic rather than between-phrases. Yorke's vocal phrases are themselves variable in length, often spanning multiple cycles asymmetrically — the vocal floats above the regular metric grid."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Piano (acoustic, principal harmonic and rhythmic instrument)",
+      "Lead vocal (Thom Yorke, slightly processed/atmospheric)",
+      "Ondes Martenot (the eerie sustained electronic-string tone — Jonny Greenwood's signature instrument, used as atmospheric layer)",
+      "Drum kit (entering approximately halfway through, played in an unusual feel that floats against the piano meter)",
+      "String arrangement / orchestral texture (filling the climax section)",
+      "Bass (sparse, possibly upright bass or subtle synth bass)"
+    ],
+    "section_instrumentation": {
+      "piano_intro": "Piano alone, possibly with very faint sub-bass underpinning",
+      "vocal_entry": "Piano + lead vocal",
+      "ondes_layer_emergence": "Piano + lead vocal + ondes Martenot atmospheric pad",
+      "drum_entry": "All previous layers + drum kit entering in floating feel",
+      "climax_with_strings": "Piano + vocal + ondes + drums + strings — densest texture",
+      "outro": "Layers drop progressively, piano cycle persists into fade"
+    },
+    "vocal_layering_strategy": "Single-tracked lead vocal, slightly atmospheric reverb but not heavily processed in the manner of Everything In Its Right Place. The vocal is foregrounded as a distinct narrative element floating over the instrumental texture. No vocal looping or sample-manipulation — this is a more traditional vocal arrangement than Kid A's experimental approach.",
+    "dynamic_arc_overall": "Slow, monotonically-rising swell. Spare opening (piano alone) -> add vocal -> add ondes -> add drums -> add strings -> peak at full ensemble texture -> fade. The dynamic range is moderate; perceived intensity rises with textural accumulation more than with loudness. Drumless first half versus drum-bearing second half is the principal dynamic event.",
+    "instrumental_role_assignment": {
+      "guitar_role": "N/A — no guitar in this track",
+      "bass_role": "Sparse foundational anchor — present at phrase boundaries marking the F# tonic, but not driving",
+      "drums_role": "Late-entering rhythmic-textural layer. Plays in a feel that does NOT lock the piano meter — floats against it, creating polyrhythmic ambiguity. Phil Selway's drumming here is a study in restraint and feel-against-feel.",
+      "vocal_role": "Lead narrative carrier. The vocal performance is rubato-feeling and floats above the strict piano meter — Yorke's phrasing is the song's principal rhythmic ambiguity."
+    },
+    "harmonic_density_per_section": {
+      "piano_intro": "Low — single piano cycle, no upper-voice elaboration",
+      "vocal_entry": "Low — vocal adds melody line, no chord stack",
+      "ondes_layer": "Medium — sustained ondes adds harmonic atmosphere underneath the piano",
+      "drum_entry": "Medium — rhythmic activity adds without thickening harmony",
+      "climax_strings": "High — full orchestral texture stacks pseudo-chord harmonics",
+      "outro": "Tapering low"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No traditional verse-chorus structure (the song is one continuous textural evolution)",
+      "No drum kit from the start (the late drum entry is itself a structural event)",
+      "No square 4/4 alternative reading — the band commits fully to the asymmetric meter",
+      "No obvious instrumental solo (the climax is textural orchestral fullness, not a featured solo)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Slow, rubato-feeling but actually strictly metered. The piano performance is precisely on the grid yet feels free because the asymmetric grouping displaces expected downbeats. Yorke's vocal is the ONLY truly rubato-feeling element — he phrases his lines without strictly aligning to the piano's metric accents, which creates the song's signature floating quality. The drums, when they enter, do NOT square the meter into 4/4 — they float as well, creating a polyrhythmic floating-feel against the piano.",
+    "drum_style": {
+      "performer": "Phil Selway (live drummer)",
+      "feel": "Restrained, sparse, feel-floating-against-piano. Selway is widely credited as one of the great restraint drummers in alternative rock, and Pyramid Song is a canonical example. He plays in a feel that does not lock the asymmetric piano meter — instead his kit floats freely, creating polyrhythmic interest against the piano grid.",
+      "techniques_documented": [
+        "Late entry (approximately halfway through the track) — drums are themselves a structural event",
+        "Restrained dynamics — Selway plays softly, with brushes or low-volume sticks, supporting the texture rather than driving it",
+        "Feel-against-feel: the kit groove implies a different metric reading than the piano's strict 16/8 grouping, creating a sense of two simultaneous time feels"
+      ],
+      "groove_feel_alignment": "Deliberately misaligned with the piano's strict grid — the polyrhythmic floating between drum feel and piano meter is part of the song's ambiguous time-perception",
+      "fills_and_transitions": "Minimal fills. Drum entries and exits are the structural transitions; within sections the drums sustain a steady understated pattern."
+    },
+    "guitar_style": {
+      "performer": "N/A — no guitar in this track",
+      "feel_per_section": {
+        "intro_riff": "N/A",
+        "verse": "N/A",
+        "pre_chorus": "N/A",
+        "chorus": "N/A",
+        "bridge_solo": "N/A"
+      },
+      "techniques_documented": [],
+      "playing_style_versus_other_grunge": "N/A"
+    },
+    "vocal_delivery": {
+      "performer": "Thom Yorke",
+      "verse_delivery": "Hushed, intimate, slightly held-back. Mid-register, minimal vibrato. Phrasing rubato-feeling — Yorke does not strictly align his lines to the piano's metric accents, which gives the song its floating quality. The delivery is restrained and meditative rather than projected.",
+      "chorus_delivery": "N/A — no separate chorus section",
+      "outro_delivery": "Vocal trails off as instrumentation thins; no climactic vocal moment — the climax is textural-orchestral, not vocal",
+      "documented_vocal_quirks": [
+        "Rubato-feeling phrasing over a strict-metered piano accompaniment — the principal performance ambiguity of the track",
+        "Restrained dynamic — Yorke does not project, sustaining the meditative atmosphere",
+        "Yorke's vocal is foregrounded but not centered as a 'soaring' lead — it is a floating narrative over the instrumental texture"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No squaring the meter into 4/4 (would lose the floating quality)",
+      "No vocal melisma or held high notes (would draw attention to performance technique rather than texture)",
+      "No drum fills marking transitions (drums float rather than drive)",
+      "No metric clarification by the band (the ambiguity is the point)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target.",
+    "transitions_between_sections": [
+      {
+        "where": "piano_intro -> vocal_entry",
+        "type": "vocal_drop_in_no_anticipation",
+        "description": "Yorke's voice simply enters on a downbeat of the piano cycle — no fill, no riser, no preparation. The piano continues unchanged.",
+        "extractable_concept": "vocal_first_entry_with_zero_transition_device"
+      },
+      {
+        "where": "drumless_first_half -> drum_entry_midpoint",
+        "type": "late_drum_entry_as_structural_pivot",
+        "description": "The drums enter approximately halfway through the track. There is no riser, no fill, no anticipation — Selway simply begins playing, and his floating feel against the piano meter immediately establishes a polyrhythmic ambiguity. This is one of the most studied late-drum-entries in alternative rock.",
+        "extractable_concept": "late_drum_entry_as_structural_pivot_no_anticipation"
+      },
+      {
+        "where": "climax -> outro_fade",
+        "type": "layer_subtraction_into_fade",
+        "description": "The orchestral textures and drums drop out one by one over the outro, leaving the piano cycle alone to fade. Inverse of the cumulative build of the first half.",
+        "extractable_concept": "outro_by_reverse_layer_subtraction"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "throughout the track, gradually",
+        "type": "monotonic_textural_accumulation",
+        "duration_bars": "the entire track functions as one slow build",
+        "description": "The build here is not a riser in the synth sense — it is the slow accumulation of acoustic and orchestral layers (piano alone -> +vocal -> +ondes Martenot -> +drums -> +strings) over approximately 4 minutes. The energy rises through orchestration density rather than through synthesized sweeps.",
+        "extractable_concept": "build_via_acoustic_orchestral_layer_accumulation"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "N/A — no filter automation",
+        "type": "no_filter_moves_used",
+        "description": "Pyramid Song is an acoustic-orchestral arrangement and does not use synthesizer filter automation. The 'tonal evolution' is achieved through orchestration changes (which instruments are active), not through filter sweeps.",
+        "extractable_concept": "compositional_choice_no_filter_modulation_acoustic_arrangement"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "N/A — no drops",
+        "type": "no_drops_used",
+        "description": "The track has no drops in the dance sense. The arrangement only ADDS layers across the track, then SUBTRACTS them in the outro — there is no mid-track drop that resets and rebuilds. The structure is monotonically cumulative then a single descent.",
+        "extractable_concept": "no_drops_only_accumulation_then_descent"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "approximately the last third of the track",
+        "type": "orchestral_density_peak",
+        "description": "Maximum overlap of piano + vocal + ondes Martenot + drums + strings. The harmonic and timbral content is at its richest. Not a loud climax — moderate dynamic — but maximally ORCHESTRAL.",
+        "extractable_concept": "climax_via_orchestral_density_not_loudness"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "ondes_martenot_as_atmospheric_layer",
+        "description": "Jonny Greenwood plays the ondes Martenot, an early electronic instrument with a unique sustained-string-like timbre. Its eerie quality adds an otherworldly atmosphere that distinguishes the track from a purely acoustic arrangement. The ondes is used as a slow-moving harmonic pad rather than as a melodic lead.",
+        "extractable_concept": "ondes_martenot_as_atmospheric_pad_layer"
+      },
+      {
+        "type": "rubato_vocal_over_strict_meter",
+        "description": "Yorke's vocal phrasing is rubato-feeling (floating, not metrically aligned), while the piano accompaniment is strictly on the 3+3+4+3+3 grid. The tension between the two creates the song's signature floating quality.",
+        "extractable_concept": "rubato_vocal_floating_above_strict_metric_grid"
+      },
+      {
+        "type": "polyrhythmic_drum_against_piano_meter",
+        "description": "When Selway's drums enter, they imply a different metric reading than the piano's strict 16/8 grouping. The two grids float against each other rather than locking — a polyrhythmic strategy that maintains the song's metric ambiguity even after drums arrive.",
+        "extractable_concept": "polyrhythmic_drums_against_strict_piano_meter"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The opening piano cycle in 16/8 — instantly recognizable from the first measures, simultaneously feeling rubato and being strictly metered. One of the most distinctive piano figures in 21st-century rock.",
+    "secondary": "The late drum entry approximately halfway through — Selway's floating feel against the piano grid is a canonical example of restraint drumming and metric ambiguity",
+    "tertiary": "The orchestral climax with strings and ondes Martenot fully engaged — the moment when the texture reaches its richest density"
+  },
+
+  "advisor_extract": [
+    "asymmetric_meter_16_8_internal_grouping_3_3_4_3_3",
+    "rubato_vocal_floating_above_strict_metric_grid",
+    "late_drum_entry_as_structural_pivot",
+    "polyrhythmic_drums_against_strict_piano_meter",
+    "build_via_acoustic_orchestral_layer_accumulation",
+    "ondes_martenot_as_atmospheric_pad_layer",
+    "climax_via_orchestral_density_not_loudness",
+    "no_drops_only_accumulation_then_descent",
+    "outro_by_reverse_layer_subtraction"
+  ]
+}

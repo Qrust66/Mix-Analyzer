@@ -1,0 +1,286 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_groove_philosophy_and_grohl_drumming_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "time_signature (4/4 throughout)",
+    "track_runtime",
+    "tempo (126-132 BPM mid-tempo)",
+    "tuning_documented (Drop D — documented Homme/QOTSA convention)",
+    "Dave Grohl on drums (documented Songs for the Deaf album drummer)",
+    "Mark Lanegan harmony vocal contribution (documented across multiple Songs for the Deaf tracks)",
+    "Homme's documented robot-rock compositional philosophy (repetitive hypnotic riff with micro-variations)",
+    "power-trio-plus-guest arrangement aesthetic"
+  ],
+  "_to_verify_fields": [
+    "exact key area F-sharp minor vs G-sharp minor reading",
+    "exact bar counts of pre-chorus / bridge",
+    "specific guitar amp choices for this track within Homme's documented palette",
+    "exact role of Lanegan harmony per section"
+  ],
+
+  "_status": "C5_1c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Songs for the Deaf",
+  "year": 2002,
+  "tempo_bpm_documented_range": [126, 132],
+  "time_signature": "4/4 throughout — danceable mid-tempo rock pulse. No metric tricks; the energy comes from Homme's robot-rock groove philosophy applied within standard 4/4.",
+  "key_area": "F-sharp minor or G-sharp minor area (Homme's documented baritone-friendly tonal area on Songs for the Deaf). Tonic minor with riff motion toward relative major area in chorus. Voice-leading desert-rock-craft with Black Sabbath / Kyuss lineage influence.",
+  "tuning_documented": "Drop D tuning (documented Homme/QOTSA convention) — adds chromatic riff capability via low D string + low-end weight. Bass also Drop D for matching tuning convention.",
+  "track_runtime": "~3:19",
+
+  "composition": {
+    "structural_blueprint": "riff_intro_immediate (Homme guitar + Grohl drums + Oliveri bass enter together in tight power-trio statement, no gradual build) -> verse1_with_homme_baritone_vocal (riff continues, Homme's baritone melodic vocal enters, micro-variations on the riff create breathing groove) -> pre_chorus_density_build (slight density build + harmonic shift, Grohl fill leading into chorus) -> chorus1_with_lanegan_harmony (hook expansion, Mark Lanegan whiskey-baritone harmony enters above/below Homme, density expands but stays power-trio clean) -> verse2 (returns to verse density) -> pre_chorus2 -> chorus2 (slight intensification, Lanegan harmony continues) -> bridge_brief_textural_shift (possibly clean-guitar break or harmonic suspension before final chorus) -> final_chorus_with_riff_outro (final chorus + riff statement to close)",
+    "section_count_and_lengths": {
+      "intro": "Brief — 4-8 bars of riff before vocal entry",
+      "verses": "Approximately 8-16 bars each",
+      "pre_choruses": "Approximately 4-8 bars each",
+      "choruses": "Approximately 8-16 bars each",
+      "bridge": "Approximately 4-8 bars (commercial single economy)",
+      "final_chorus_and_outro": "Final chorus + riff statement",
+      "_note": "Bar counts approximate. Total runtime 3:19 = tight commercial-single economy by QOTSA standards but with Homme's signature hypnotic groove foundation. Compositional movement compact yet richly textured."
+    },
+    "harmonic_motion": "Minor-modal with characteristic Homme pentatonic-influenced riff motion. Tonic F#/G# minor with chord shifts to relative major area in chorus. Voice-leading desert-rock-craft (documented Black Sabbath, Kyuss, Queens-era Sabbath stoner-rock lineage influence). Verse riff cycles a small chord set; chorus opens harmonic palette slightly.",
+    "modal_choice": "Minor (Aeolian) with pentatonic-based riff vocabulary characteristic of stoner-rock / desert-rock lineage. Less Phrygian-tinged than NIN material; more straightforward minor pentatonic with chromatic ornamentation.",
+    "melodic_contour": "Homme's vocal contour is BARITONE-MELODIC SUSTAINED — phrases trace melodic shapes within his baritone-friendly range, sustained note durations rather than rapid declamation. Less aggressive than typical rock-vocal contour. Chorus contour opens with melodic lift; Lanegan's whiskey-baritone harmony adds counter-contour above or below Homme's primary line.",
+    "characteristic_riff_construction": "REPETITIVE HYPNOTIC RIFF with MICRO-VARIATIONS — Homme's signature 'robot rock' construction. Riff repeats near-identically across measures but never EXACTLY identically: slight timing shifts, occasional different pickup notes, subtle phrasing variations create hypnotic groove that breathes. Built on Drop D tuning for low chromatic riff capability. Riff is playable + memorable but not technically demanding — groove over complexity.",
+    "harmonic_pacing": "Slow at the chord level (modal-static verses with limited chord motion) but HYPNOTIC at the riff level (riff micro-variations create perceived motion within chord stability). Chorus harmonic pacing opens slightly with relative-major movement; bridge may introduce brief harmonic suspension.",
+    "phrase_symmetry": "Symmetric 4-bar and 8-bar phrasing throughout. Standard verse-pre-chorus-chorus structure. Symmetry serves accessibility; Homme uses asymmetry sparingly. The hypnotic feel comes from riff micro-variation within symmetric phrase structure, not from asymmetric meter."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Lead electric guitar (Josh Homme — Drop D tuned, tube amps from Marshall/Hiwatt/Mesa-Boogie palette)",
+      "Possible double-tracked rhythm guitar (Homme documented as often layering rhythm guitars for stereo width)",
+      "Slight modulation effects on guitars (chorus, occasional flange) for desert-rock textural color",
+      "Electric bass (Nick Oliveri — Drop D tuned, pick attack, hardcore-punk-influenced approach)",
+      "Drums (Dave Grohl — guest drummer on Songs for the Deaf entire album, full kit)",
+      "Lead vocal (Josh Homme — baritone melodic delivery)",
+      "Harmony vocal (Mark Lanegan — whiskey-baritone harmony, documented contributor across multiple Songs for the Deaf tracks)"
+    ],
+    "section_instrumentation": {
+      "intro": "Power-trio immediate entry — Homme guitar + Grohl drums + Oliveri bass in tight unison. No gradual build, no atmospheric pad.",
+      "verse": "Riff continues, Homme baritone vocal enters, Oliveri bass tight with Grohl kick, possible additional guitar overdub layer subtly behind",
+      "pre_chorus": "Slight density build + harmonic shift, Grohl fill leading into chorus",
+      "chorus": "Hook expansion, Mark Lanegan harmony enters above/below Homme, chorus density expands but stays POWER-TRIO clean — no wall-of-sound layering",
+      "verse2": "Returns to verse density",
+      "second_chorus": "Slightly intensified, Lanegan harmony continues",
+      "bridge": "Brief textural/dynamic shift — possibly clean-guitar break or harmonic suspension",
+      "outro": "Final chorus + riff statement to close — abrupt punk-style ending or short fade"
+    },
+    "vocal_layering_strategy": "Power-trio-plus-guest aesthetic. Homme primary lead vocal; Lanegan adds whiskey-baritone harmony as DIMENSIONAL COLOR, not as wall-of-sound stacking. Lanegan placed slightly behind Homme + slightly wider for dimensional placement. Different vocal identity = different emotional color (Lanegan's documented Screaming Trees + solo material vocal lineage informs his contribution). Less vocal layering than wall-of-sound bands — every layer has distinct identity and reason.",
+    "dynamic_arc_overall": "Sustained mid-tempo groove with moderate dynamic arc — verse-chorus density expansion, pre-chorus build, brief bridge dip, final chorus payoff. Less sawtooth than NIN industrial tracks; more hypnotic-cumulative than rock-anthem-explosive. The track feels DRIVING throughout rather than dynamic-shifting.",
+    "instrumental_role_assignment": {
+      "guitar_role": "REPETITIVE HYPNOTIC RIFF as groove foundation + desert-rock textural color. Homme's documented robot-rock guitar approach: groove-foundation-oriented, riff + groove priority over melodic-flash or texture-aggression.",
+      "bass_role": "Tight groove-lock with Grohl's kick + aggressive pick attack. Oliveri's documented punk-influenced approach within QOTSA's stoner-rock framework. Slight melodic activity between riff sections, but groove-foundation primary.",
+      "drums_role": "Groove-conscious power-trio drumming. Grohl as guest brings technical-precision + rock-power but ADAPTS to Homme's groove-priority philosophy. More technical precision than Nirvana drumming — guest-drummer mode for Songs for the Deaf. Plays FOR the song, not for the spotlight.",
+      "vocal_role": "Homme baritone melodic lead carries the song; Lanegan harmony adds dimensional color in chorus. Two vocal identities, both intact, complementary rather than redundant."
+    },
+    "harmonic_density_per_section": {
+      "intro": "Medium — power-trio entry establishes density immediately, no gradual build",
+      "verse": "Medium — power-trio + vocal, possibly slight overdub layer",
+      "pre_chorus": "Medium-high — density builds via instrumentation lift",
+      "chorus": "High — power-trio + Homme vocal + Lanegan harmony, but still tighter than wall-of-sound (every layer earns its place)",
+      "bridge": "Low-medium — brief textural shift",
+      "final_chorus": "High — full chorus density + possible additional emphasis"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No tempo changes (sustained 126-132 BPM)",
+      "No drum sample replacement (Grohl's drums are essential)",
+      "No vocal pitch correction",
+      "No wall-of-sound layering (power-trio-plus-guest priority)",
+      "No extended sections (commercial-single economy)",
+      "No atmospheric synth pads (power-trio aesthetic priority)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Mid-tempo hypnotic groove at sustained ~129 BPM. Feels both DRIVING (sustained rock motion) and POCKET (deep groove pocket from Grohl/Oliveri lock). Tempo enables danceable mid-tempo rock without rushing. The feel is loose-but-tight: micro-variations in riff phrasing create breathing while drum/bass lock keeps it rock-solid.",
+    "drum_style": {
+      "performer": "Dave Grohl (guest drummer on Songs for the Deaf — documented as drumming on entire album)",
+      "feel": "Groove-conscious power-trio drumming. Grohl restrains his Nirvana-era aggression and brings groove-conscious playing for Homme's robot-rock context. More technical precision than Nirvana drumming (guest-drummer mode).",
+      "techniques_documented": [
+        "Kick + snare backbone driving 4/4 at ~129 BPM with Grohl's documented power",
+        "Hi-hat 8ths driving forward with tight groove pocket",
+        "Snare placement strong on 2+4 with possible occasional ghost notes for groove feel",
+        "Fills technically dense but groove-conscious — Grohl adapts vocabulary to QOTSA's groove-priority context",
+        "Cymbal accents articulate chorus moments + transitions",
+        "Pre-chorus fill is the signature drum gesture — tight, groove-preserving, lifting into the chorus"
+      ],
+      "groove_feel_alignment": "Tight groove-lock with Oliveri's bass for power-trio pocket. Listeners feel the kick-bass coordination as a single rhythmic event. Grohl's drumming personality preserved within Homme's compositional context.",
+      "fills_and_transitions": "Pre-chorus fills mark the verse-to-chorus transitions as the primary fill moment. Less fills overall than rock-band-spotlight drumming — Grohl plays FOR the song. Bridge transition fills are briefer than chorus-entry fills."
+    },
+    "guitar_style": {
+      "performer": "Josh Homme (primary)",
+      "feel_per_section": {
+        "intro_riff": "Riff established immediately with full power-trio entry; Drop D tuning provides low-end weight",
+        "verse": "Repetitive hypnotic riff with micro-variations — riff repeats near-identically with slight timing shifts and occasional phrasing variations creating hypnotic groove",
+        "pre_chorus": "Density build via slight texture addition",
+        "chorus": "Chord-emphasized chorus guitars opening harmonic palette to relative major area",
+        "bridge_solo": "No traditional guitar solo (groove-priority context). Bridge may feature clean-guitar break or sustained chord rather than virtuosic display."
+      },
+      "techniques_documented": [
+        "Drop D tuning (documented Homme/QOTSA convention) for low-end weight + chromatic riff capability",
+        "Possible double-tracked rhythm guitars (Homme's documented layering preference)",
+        "Tube amps (Marshall, Hiwatt, Mesa-Boogie palette per documented Homme rig)",
+        "Distortion + slight modulation (chorus, occasional flange) for desert-rock textural color",
+        "Picking precision required for hypnotic-repetition micro-variation feel",
+        "Stereo placement: rhythm guitars panned hard L/R for power-trio stereo width"
+      ],
+      "playing_style_versus_other_grunge": "Homme guitars are GROOVE-FOUNDATION-ORIENTED — riff + groove priority over melodic-flash or texture-aggression. Where Cobain plays minimal-melodic, Cornell plays melodic-intensity, Corgan plays layered-density, Reznor plays texture-aggression, Homme plays GROOVE-FOUNDATION. Distinct from grunge guitar paradigms in deployment intent."
+    },
+    "vocal_delivery": {
+      "performer": "Josh Homme (lead vocal) + Mark Lanegan (harmony/secondary vocal — documented contributor across multiple Songs for the Deaf tracks)",
+      "verse_delivery": "Homme baritone melodic — sustained melodic phrasing in his documented baritone-friendly tonal area, less aggressive than typical rock-vocal, restrained but engaged",
+      "chorus_delivery": "Homme melodic lift + Lanegan whiskey-baritone harmony — Lanegan adds dimensional vocal color above/below Homme's primary line",
+      "outro_delivery": "Possibly final hook delivery + riff outro, possibly Lanegan harmony continuing or fading",
+      "documented_vocal_quirks": [
+        "Homme's documented baritone-friendly compositional choices — his tonal area shapes the songs",
+        "Lanegan harmony contribution documented as bringing whiskey-baritone color via his Screaming Trees + solo material vocal lineage",
+        "Multiple complete vocal takes selected/comped per Eric Valentine production approach",
+        "Less vocal layering than wall-of-sound bands — power-trio-plus-guest aesthetic",
+        "Vocal-lead democracy demonstrated within Songs for the Deaf — different tracks lead by Homme, Oliveri, or with Lanegan emphasis"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No quantization (preserves Grohl's natural groove + hypnotic-repetition micro-variations)",
+      "No drum sample replacement",
+      "No vocal pitch correction",
+      "No tempo changes",
+      "No 'show-off' technical drumming inappropriate to groove-priority context (Grohl restrained for QOTSA)",
+      "No wall-of-sound vocal stacking"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target.",
+    "transitions_between_sections": [
+      {
+        "where": "intro -> verse1",
+        "type": "vocal_drop_in_over_continuing_riff",
+        "description": "After the immediate power-trio intro establishes the riff, Homme's vocal simply enters on top — no fill, no riser, no anticipation. The riff continues unchanged underneath the vocal.",
+        "extractable_concept": "vocal_drop_in_over_continuing_riff_no_anticipation"
+      },
+      {
+        "where": "verse -> pre_chorus -> chorus",
+        "type": "two_step_lift_via_pre_chorus_density_then_drum_fill",
+        "description": "Pre-chorus builds slight density and harmonic motion, then Grohl drum fill lifts into chorus where Lanegan harmony enters. Two-step transition: density build then fill-lift.",
+        "extractable_concept": "two_step_pre_chorus_lift_with_drum_fill"
+      },
+      {
+        "where": "chorus -> verse2",
+        "type": "harmony_subtraction_back_to_riff",
+        "description": "Chorus-to-verse return marked by Lanegan harmony dropping out and returning to verse density. The subtraction of Lanegan IS the transition cue.",
+        "extractable_concept": "guest_harmony_subtraction_as_transition_back_to_verse"
+      },
+      {
+        "where": "chorus2 -> bridge",
+        "type": "brief_textural_dynamic_shift",
+        "description": "Bridge entry marked by brief textural/dynamic shift — possibly clean-guitar break or harmonic suspension. Shorter than typical rock-band bridges (commercial-single economy).",
+        "extractable_concept": "compact_bridge_textural_shift"
+      },
+      {
+        "where": "bridge -> final_chorus",
+        "type": "riff_re_engagement_with_lanegan_harmony_return",
+        "description": "Final chorus arrives via riff re-engagement and Lanegan harmony returning. Compositional bookending — chorus elements recall their earlier character.",
+        "extractable_concept": "riff_recall_plus_harmony_return_as_final_chorus_entry"
+      },
+      {
+        "where": "final_chorus -> outro",
+        "type": "compact_riff_statement_close",
+        "description": "Outro accomplished via final riff statement and ending — abrupt punk-style ending or very short fade. No extended outro jam.",
+        "extractable_concept": "compact_riff_outro_no_jam"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "pre_chorus to chorus",
+        "type": "density_build_plus_drum_fill_lift",
+        "duration_bars": "approximately 2-4 bars",
+        "description": "Pre-chorus builds slight density via texture addition, then Grohl drum fill lifts into chorus where Lanegan harmony enters. Power-trio riser vocabulary (no synth sweeps, no electronic risers).",
+        "extractable_concept": "power_trio_riser_via_density_build_and_drum_fill"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "chorus exit",
+        "type": "harmony_subtraction_as_cutoff",
+        "description": "Lanegan harmony dropping at chorus exit functions as a 'cutoff' of dimensional color. Performance-based subtraction rather than filter automation.",
+        "extractable_concept": "harmony_subtraction_as_cutoff_device"
+      },
+      {
+        "where": "bridge",
+        "type": "guitar_textural_shift_via_clean_break",
+        "description": "Bridge may feature clean-guitar break — distorted rhythm guitars step back for brief clean texture. Performance-based texture shift, not pedal automation.",
+        "extractable_concept": "clean_guitar_break_in_bridge"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "bridge",
+        "type": "brief_dynamic_dip_for_tension_release",
+        "description": "Bridge functions as a brief breakdown — slight density reduction before final chorus payoff. Compact compared to extended-form rock bridges; commercial-single economy.",
+        "extractable_concept": "compact_bridge_dip_for_final_chorus_payoff"
+      },
+      {
+        "where": "no inverted drops",
+        "type": "no_inverted_drops_conventional_rock_arc",
+        "description": "Unlike March of the Pigs' inverted-drop structure, First It Giveth follows conventional rock-arc dynamics — chorus is the loud-payoff section, not the quiet-relief section.",
+        "extractable_concept": "conventional_rock_arc_loud_chorus_payoff"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "final_chorus with Lanegan harmony at full deployment",
+        "type": "groove_and_harmony_climax",
+        "description": "The track's climax is the final chorus, where Homme's lead + Lanegan harmony + power-trio at full density create the song's emotional peak. Climax is via FULL DEPLOYMENT of all available elements rather than via volume escalation.",
+        "extractable_concept": "climax_via_full_element_deployment_in_final_chorus"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "homme_robot_rock_repetitive_riff_with_micro_variations",
+        "description": "The track's compositional engine is Homme's 'robot rock' philosophy: riff repeats near-identically across measures but never EXACTLY identically. Micro-variations (slight timing shifts, occasional different pickup notes, subtle phrasing variations) create hypnotic groove that breathes.",
+        "extractable_concept": "robot_rock_riff_with_micro_variations"
+      },
+      {
+        "type": "guest_vocalist_whiskey_baritone_harmony_dimensional_color",
+        "description": "Mark Lanegan's whiskey-baritone harmony placed strategically in chorus only. His distinct vocal identity (Screaming Trees + solo material lineage) brings dimensional color rather than redundant doubling. Different vocal identity = different emotional color.",
+        "extractable_concept": "guest_vocalist_with_distinct_identity_for_chorus_only_dimensional_color"
+      },
+      {
+        "type": "drop_d_tuning_for_chromatic_riff_capability_plus_low_end_weight",
+        "description": "Guitars and bass tuned to Drop D for chromatic riff capability (heavy power chords on low D string) plus low-end weight. Documented Homme/QOTSA convention; particularly suited for stoner-rock / desert-rock contexts.",
+        "extractable_concept": "drop_d_tuning_for_chromatic_riff_and_low_end_weight"
+      },
+      {
+        "type": "guest_drummer_adapting_to_band_philosophy",
+        "description": "Grohl as guest drummer adapts his Nirvana-mode aggression to QOTSA's groove-conscious robot-rock context. Same drummer different mode — guest drumming as INTERPRETATION not transcription.",
+        "extractable_concept": "guest_drummer_adapting_to_band_philosophy"
+      },
+      {
+        "type": "tube_amp_palette_with_subtle_modulation",
+        "description": "Marshall / Hiwatt / Mesa-Boogie tube amp palette + subtle modulation effects (chorus, occasional flange) provide desert-rock textural color without obscuring the riff. Tone serves the riff; effects are seasoning not foundation.",
+        "extractable_concept": "tube_amp_palette_with_subtle_modulation_for_desert_rock_texture"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The hypnotic mid-tempo riff in Drop D — Homme's robot-rock signature in compact commercial-single form. The riff's repetitive-with-micro-variations character is the track's identity.",
+    "secondary": "Mark Lanegan's whiskey-baritone harmony entering in the chorus — the dimensional vocal color that distinguishes this track from a power-trio-only arrangement.",
+    "tertiary": "Grohl's groove-conscious drumming — listeners who know Grohl's other work feel the ADAPTED mode (less aggressive than Nirvana, more groove-conscious than NIN With Teeth)"
+  },
+
+  "advisor_extract": [
+    "robot_rock_hypnotic_repetitive_riff_with_micro_variations",
+    "power_trio_plus_guest_harmony_arrangement",
+    "groove_over_complexity_compositional_priority",
+    "guest_drummer_adapting_to_band_philosophy",
+    "guest_vocalist_with_distinct_identity_for_chorus_dimensional_color",
+    "drop_d_tuning_for_chromatic_riff_and_low_end_weight",
+    "two_step_pre_chorus_lift_with_drum_fill",
+    "harmony_subtraction_as_cutoff_device",
+    "tube_amp_palette_with_subtle_modulation_for_desert_rock_texture"
+  ]
+}

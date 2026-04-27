@@ -1,0 +1,249 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_structure_meter_and_arrangement_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "tempo_bpm (~120-122 — one of the more conventional tempos on Kid A)",
+    "track_runtime",
+    "structural_blueprint (verse-chorus with ambient coda half-time outro)",
+    "instrumentation (twin clean-tremolo guitars, bass, kit drums, vocal — most band-like track on Kid A)",
+    "lyrical hook 'try the best you can / the best you can is good enough'",
+    "outro half-time groove shift (the song's signature compositional event)",
+    "stylistic figures around the polyrhythmic guitar interplay and the abrupt outro tempo change"
+  ],
+  "_to_verify_fields": [
+    "exact key area (D minor / D Dorian vs A minor reading)",
+    "exact tuning (likely standard, to verify)",
+    "exact bar counts of intro / verses / outro",
+    "time_signature reading — 4/4 standard but with some shifting accents in guitar parts"
+  ],
+
+  "_status": "C7_2_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Kid A",
+  "year": 2000,
+  "tempo_bpm_documented_range": [120, 122],
+  "time_signature": "4/4 throughout the main song body. The two tremolo guitar parts create CROSS-RHYTHMIC tension via slightly displaced accent patterns — ear can read groupings of 3 against the 4/4 grid in places. The outro section shifts to a HALF-TIME feel (still 4/4 notation but the perceived pulse halves), which is the song's principal metric event. No outright meter changes, but accent-level polyrhythm against a strict 4/4 base.",
+  "key_area": "D minor area, with a strong Dorian inflection (raised 6th — B natural appearing in the upper voice gives the modal-Dorian color rather than pure natural minor). Some readings place it in A minor; the gravitational center sits on D in the riff and bass. The verse-chorus distinction is achieved more by texture and dynamic than by harmonic modulation.",
+  "tuning_documented": "Likely standard tuning — Jonny Greenwood and Ed O'Brien playing clean-toned electrics with tremolo, no obvious detuning artifacts. To verify against documentation.",
+  "track_runtime": "~5:15",
+
+  "composition": {
+    "structural_blueprint": "intro_tremolo_guitar_riff (the iconic dotted/cross-rhythm clean tremolo guitar figure establishes the harmonic loop and the Dorian color before the band enters) -> verse1_band_locks_in (drums + bass + second guitar layer + Yorke vocal enter; verse delivered with restrained dynamic) -> chorus1 ('you can try the best you can') — slightly lifted dynamic, vocal opens up, harmony shifts subtly -> verse2 -> chorus2 -> instrumental_break_short (guitars trade fragmented motifs, building a sense of unease) -> verse3_or_pre_outro -> final_chorus_or_lyric_climax -> OUTRO_HALF_TIME_GROOVE_SHIFT (the song's principal compositional event — the band collapses into a half-time, dub-influenced ambient groove with sparse vocal fragments and atmospheric guitar washes) -> long_fade_or_dissolution",
+    "section_count_and_lengths": {
+      "intro": "Approximately 4-8 bars of tremolo guitar before band entry",
+      "verses": "Approximately 8 bars each, multiple iterations",
+      "choruses": "Approximately 8 bars each, with the lyrical hook 'the best you can is good enough'",
+      "instrumental_break": "Short — perhaps 4-8 bars of guitar interplay between verse iterations",
+      "outro_half_time": "Substantial — approximately 60-90 seconds of half-time ambient groove forming roughly a third of the track",
+      "_note": "Song has the most conventional verse-chorus shape on Kid A but the long ambient half-time outro pulls it into Kid A's textural-experimental territory. Bar counts approximate."
+    },
+    "harmonic_motion": "Modal-static at the macro level (D Dorian center holds throughout) but with active CHORD-LEVEL motion at the riff scale — the tremolo guitar figure cycles through a small set of voicings (typically Dm, F, C, or Dm, Am, G voicings depending on transcription) that imply Dorian motion. No functional V-i resolution; cadences are modal. The chorus broadens harmonic palette slightly with chord voicings that imply an opening-up (possibly to F major or C major as relative-major brightening) before returning to D minor for the next verse.",
+    "modal_choice": "D Dorian — the raised 6th (B natural) is the defining modal color, giving the song its bittersweet brightness against the minor tonic. Dorian is harder-edged than Aeolian (natural minor) and gives Optimistic its characteristic 'hopeful but troubled' affect. The modal ambiguity supports the lyric's ironic title.",
+    "melodic_contour": "Yorke's vocal contour in verses moves in small intervals around a mid-register tonal area — phrases tend to ascend slightly then settle. The chorus melody opens up with wider leaps and reaches higher in the register on the words 'good enough' — the highest pitches in the song land on the lyrical hook. The outro vocal fragments are descending, sparse, more like exhaled phrases than melodic statements.",
+    "characteristic_riff_construction": "The opening tremolo guitar figure is the song's signature — fast tremolo-picked single-note or two-note pattern played clean (no distortion) on electric guitar. The figure outlines the modal harmony through arpeggiation rather than chord-strumming. A SECOND guitar layer eventually enters playing a complementary tremolo figure with offset accents — the two parts create cross-rhythmic interlock that gives the song its propulsive-yet-unsettled feel. The riff is constructed for HYPNOTIC textural drive, supporting vocal narrative rather than competing with it.",
+    "harmonic_pacing": "Moderate — chord changes occur within each measure (typically one or two chords per bar) but the overall tonal area remains static (D Dorian throughout). Pacing is generated more by texture and accent shifts than by harmonic events. The chorus introduces a slight pacing change with broader chord-voicing motion. The outro section virtually halts harmonic pacing — sustained chords or simple two-chord oscillation underneath the half-time groove.",
+    "phrase_symmetry": "Phrasing is largely symmetric (4 and 8 bar phrases) — Optimistic is more conventional in this regard than other Kid A tracks. The asymmetry is at the ACCENT level (cross-rhythmic guitar parts against 4/4), not at the phrase level. The outro disrupts symmetry by extending into open-ended ambient territory."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Two clean electric guitars with tremolo picking (Jonny Greenwood and Ed O'Brien — twin guitar interlock is the song's textural signature)",
+      "Electric bass guitar (Colin Greenwood, played with rhythmic emphasis, supporting modal root motion)",
+      "Drum kit (Phil Selway, real acoustic drums — most band-like drum performance on the album)",
+      "Lead vocal (Thom Yorke)",
+      "Possible backing vocal harmonies in chorus (subtle layering of Yorke against himself)",
+      "Atmospheric synth pad / ambient texture in outro (subtle, providing the half-time bed)",
+      "Possible processed guitar wash in outro (delays, reverb tails)"
+    ],
+    "section_instrumentation": {
+      "intro": "Tremolo guitar 1 alone, possibly with subtle ambient pad underneath",
+      "verse": "Two tremolo guitars (interlocking) + bass + drum kit + lead vocal",
+      "chorus": "Same instrumentation as verse but with slightly lifted dynamic, possible harmony vocal, and broader guitar voicings",
+      "instrumental_break": "Two guitars trading motifs over rhythm section",
+      "outro_half_time": "Drums shift to half-time pattern; bass drops to sustained tones; guitars become atmospheric (washes, sustained chords, or stop entirely); subtle synth pad foregrounded; sparse vocal fragments",
+      "_note": "Optimistic is the MOST band-like arrangement on Kid A — for a record dominated by programming, samples, and electronic textures, this track foregrounds traditional rock-band instrumentation."
+    },
+    "vocal_layering_strategy": "Lead vocal performed straight, single-tracked or lightly doubled. Possible harmony vocal layered in choruses (subtle thirds or unison reinforcement). The outro reduces vocal to fragmentary phrases — Yorke speaks/sings short lines as the texture dissolves. No sample-loop manipulation as on 'Everything In Its Right Place'.",
+    "dynamic_arc_overall": "Modest crescendo through verses and choruses (the band gradually intensifies across iterations) followed by a STRUCTURAL DYNAMIC CLIFF when the outro half-time groove begins — the energy doesn't build to a climax, it COLLAPSES into a different temporal frame. The outro feels lower-energy than the song proper despite continuing the same harmonic material. Dynamic shape is build-then-relax rather than build-then-peak.",
+    "instrumental_role_assignment": {
+      "guitar_role": "TWIN-GUITAR INTERLOCK is the song's textural engine. Guitar 1 plays the lead tremolo figure; Guitar 2 plays a complementary figure with displaced accents. Together they create a hypnotic cross-rhythmic weave that drives the verse-chorus body. In the outro, guitars dissolve into ambient washes.",
+      "bass_role": "Anchors D modal center, plays melodic figures that reinforce the Dorian color, occasionally syncopates against the drum kick to add propulsion. Drops to long tones in the outro.",
+      "drums_role": "Provides 4/4 rock-band foundation in verse-chorus (kit drumming with snare backbeat — unusually conventional for Kid A). Shifts to HALF-TIME GROOVE in outro — the principal arrangement event of the song. The half-time feel is dub-influenced, with extended kick-snare spacing and more cymbal/hi-hat texture.",
+      "vocal_role": "Narrative lead — Yorke delivers the lyrics 'try the best you can / the best you can is good enough' as the song's emotional center. Vocal is the only element that does not fundamentally change role between verse and chorus and outro — it just becomes more sparse in the outro."
+    },
+    "harmonic_density_per_section": {
+      "intro": "Low-medium — single tremolo guitar implies harmony through arpeggiation",
+      "verse": "Medium — two guitars + bass + vocal create moderate harmonic density without saturation",
+      "chorus": "Medium-high — added harmony vocal and broader guitar voicings increase density",
+      "outro_half_time": "Low — sustained chords, sparse texture, vocal fragments only",
+      "_note": "Density profile traces a typical rise-fall arc but the outro fall is more dramatic than typical because of the half-time shift."
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No guitar solo (the twin-guitar interlock IS the lead voice — no need for monophonic solo)",
+      "No sudden loud cathartic chorus (chorus lifts subtly, not explosively — preserves the song's restrained affect)",
+      "No conventional rock-song fadeout — the outro is a STRUCTURAL section, not just a fadeout",
+      "No electronic/programmed elements dominating (Optimistic is intentionally the band-rock track on Kid A — leaves the electronic vocabulary to other tracks)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Mid-tempo, propulsive but not aggressive. The cross-rhythmic guitar interplay creates a sense of forward motion that exceeds the actual tempo — the song feels faster than 120 BPM because of the busy tremolo figures. The feel is HUMAN-tight (not machine-tight): the band locks together but with breathing micro-timing variations characteristic of live ensemble playing. The outro shifts to a relaxed, dub-inflected half-time feel that is markedly more spacious.",
+    "drum_style": {
+      "performer": "Phil Selway — acoustic drum kit, real performance (not programmed)",
+      "feel": "Tight rock-band kit drumming with subtle human swing. Selway plays the verse-chorus body with conventional kick-snare backbeat patterns adapted to the song's modal character — restrained, supportive, never showy. The outro half-time pattern is the performance's most distinctive moment.",
+      "techniques_documented": [
+        "4/4 backbeat in verse-chorus body with hi-hat 8th-note pulse",
+        "Subtle ghost notes on snare to add rhythmic detail without disrupting the groove",
+        "HALF-TIME OUTRO PATTERN — kick on 1, snare on 3 of a doubled bar, with cymbal/hi-hat coloring; dub-influenced spaciousness",
+        "Cymbal work tends toward washes and rides rather than crash punctuation"
+      ],
+      "groove_feel_alignment": "Human-loose rock-band groove — supports the songform without imposing rhythmic personality. The half-time outro is the only moment where the drums claim foreground attention.",
+      "fills_and_transitions": "Minimal fills in the song body. The transition into the outro half-time is marked by a drum gesture (likely a tom roll or accented break) but otherwise transitions are accomplished by ensemble dynamic rather than drum fills."
+    },
+    "guitar_style": {
+      "performer": "Jonny Greenwood and Ed O'Brien (twin clean electric guitars)",
+      "feel_per_section": {
+        "intro_riff": "Lead tremolo guitar establishes the modal figure with crisp clean tone — picking is fast and even, slightly mechanical in feel but recognizably hand-played",
+        "verse": "Twin-guitar interlock — Guitar 1 continues lead figure, Guitar 2 plays complementary tremolo with offset accents. The interlock generates the song's textural drive.",
+        "pre_chorus": "N/A — no separate pre-chorus",
+        "chorus": "Guitars open up with broader voicings while maintaining tremolo character; possibly slightly louder/more present in the mix without changing tone fundamentally",
+        "bridge_solo": "N/A — the instrumental break is twin-guitar dialogue, not a featured solo"
+      },
+      "techniques_documented": [
+        "Clean-tone electric guitar with fast tremolo picking — the song's signature texture",
+        "Twin-guitar interlock with displaced/cross-rhythmic accent patterns",
+        "Possible volume swells or fades into the outro",
+        "Ambient guitar treatment in the outro — sustained tones, possible reverse delays or long reverb tails"
+      ],
+      "playing_style_versus_other_grunge": "Not grunge-adjacent. Greenwood and O'Brien's approach here is closer to post-punk twin-guitar interlock (Television, late Talk Talk) than to alt-rock chord-strumming. The lack of distortion and the emphasis on clean polyphonic interplay aligns with the Kid A aesthetic of avoiding conventional rock guitar moves."
+    },
+    "vocal_delivery": {
+      "performer": "Thom Yorke",
+      "verse_delivery": "Restrained mid-register, slight bittersweet quality, controlled vibrato. Yorke delivers the verse lyrics ('flies are buzzing round my head', 'vultures circling the dead') with a quiet, observational tone — not screaming, not whispering, just narrating.",
+      "chorus_delivery": "Slightly more open, with vocal opening up on 'good enough' to reach higher pitches. The lyrical hook is delivered with characteristic Yorke ironic-sincere ambiguity — the words read as encouraging but the delivery suggests resignation.",
+      "outro_delivery": "Sparse, fragmentary. Vocal phrases trail off into the half-time groove. Yorke uses the outro to dissolve the lyric's narrative voice rather than restate it.",
+      "documented_vocal_quirks": [
+        "Yorke's signature wavering vibrato is present but moderate — not as pronounced as on 'How To Disappear Completely' but more present than on 'Everything In Its Right Place'",
+        "The line 'the best you can is good enough' is delivered with an audible double meaning — encouraging surface, defeated undertone",
+        "Outro vocal fragments treated almost as ambient textural elements rather than narrative phrases"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No vocal scream or aggressive register push (would contradict the restrained ironic tone)",
+      "No flashy guitar solos (twin-guitar interlock is the showcase, not individual virtuosity)",
+      "No drum fills marking section transitions (preserves the band's restraint)",
+      "No bass slap or virtuoso bass figures (bass remains a modal anchor)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target.",
+    "transitions_between_sections": [
+      {
+        "where": "intro_tremolo_guitar -> verse1_band_entry",
+        "type": "band_drop_in_on_downbeat",
+        "description": "The full band enters on a downbeat with bass and drums locking into the tremolo figure. Entry is decisive but not jarring — drums likely come in with a small fill or an accented kick to mark the transition.",
+        "extractable_concept": "band_entry_via_downbeat_lock_no_riser"
+      },
+      {
+        "where": "verse -> chorus",
+        "type": "subtle_dynamic_lift_via_arrangement_density",
+        "description": "Chorus enters with slightly broader guitar voicings, possibly added harmony vocal, and a small bump in overall dynamic. There is no riser, no drum fill marking the chorus — just a textural opening-up that the listener feels rather than hears as an event.",
+        "extractable_concept": "chorus_lift_via_textural_density_not_dynamic_event"
+      },
+      {
+        "where": "chorus -> verse2 (return)",
+        "type": "ensemble_re_setting_to_baseline",
+        "description": "Chorus collapses back into the verse texture without a drum fill or harmonic cadence — the band simply re-states the verse modal cycle. The transition is matter-of-fact.",
+        "extractable_concept": "chorus_to_verse_via_quiet_reset_no_fill"
+      },
+      {
+        "where": "song_body -> outro_half_time (the song's signature transition)",
+        "type": "TEMPO_FEEL_HALVING_GROOVE_SHIFT",
+        "description": "The principal compositional event of Optimistic. The drum kit shifts to half-time, the bass drops to sustained low tones, and the guitars dissolve into ambient washes. The actual tempo (BPM) does not change — the FELT pulse halves. The transition is not announced by a riser or fill; it is announced by the drum pattern abruptly altering. The band suddenly inhabits a different temporal world while the modal harmony continues.",
+        "extractable_concept": "half_time_groove_shift_at_outro_with_bpm_constant"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "across verse-chorus iterations",
+        "type": "cumulative_band_intensity_no_synth_riser",
+        "duration_bars": "approximately 16-32 bars across multiple verse-chorus pairs",
+        "description": "Each verse-chorus iteration sits slightly higher in intensity than the previous — Yorke's vocal becomes more committed, the drums dig in slightly more, the guitars play with more conviction. There is NO synth riser, no electronic build-up — the build is purely human-ensemble cumulative.",
+        "extractable_concept": "cumulative_human_ensemble_build_no_electronic_riser"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "transition into outro half-time section",
+        "type": "rhythmic_subtraction_as_cutoff",
+        "description": "The 'cutoff' is not a filter sweep but the SUBTRACTION of the verse-chorus rhythmic engine. Tremolo guitars cut to washes; bass drops to sustained tones; drums halve. Functions like a low-pass cutoff to the song's energy — accomplished through rhythmic and textural subtraction rather than filter automation.",
+        "extractable_concept": "rhythmic_subtraction_cutoff_into_ambient_outro"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "song body -> outro half-time",
+        "type": "INVERTED_drop_to_ambient_half_time",
+        "description": "The song's equivalent of a 'drop' is an INVERSION — instead of dropping into a heavier beat, the song drops into a SLOWER, AMBIENT half-time groove. The band collapses from propulsive verse-chorus into spacious dub-inflected stillness. Compositionally similar to a March of the Pigs-style 'inverted drop' but executed via tempo feel rather than dynamic.",
+        "extractable_concept": "inverted_drop_into_half_time_ambient"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "the lyrical hook 'the best you can is good enough' delivered in choruses",
+        "type": "lyric_hook_as_emotional_climax",
+        "description": "The song's emotional climax is not a textural peak but the recurring lyric hook. Yorke's delivery of 'good enough' on the highest pitches of the song carries more weight than any instrumental gesture. The climax is REPEATED across choruses rather than reserved for a single moment — the lyric is the sustained emotional core.",
+        "extractable_concept": "climax_as_repeated_lyric_hook_not_single_event"
+      },
+      {
+        "where": "transition from final chorus into outro half-time",
+        "type": "structural_climax_via_temporal_shift",
+        "description": "The compositional climax of the track is the moment the band collapses into the half-time outro — it is the song's structural payoff. Not a loudness climax, but a narrative-architectural one. The listener feels the song has arrived somewhere new.",
+        "extractable_concept": "structural_climax_via_groove_transformation"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "twin_tremolo_guitar_cross_rhythmic_interlock",
+        "description": "Two clean electric guitars playing tremolo-picked figures with displaced accent patterns, creating cross-rhythmic interlock. The technique is post-punk in lineage (Television, Tom Verlaine / Richard Lloyd) but adapted to Radiohead's modal-Dorian harmonic palette. This is the song's defining textural signature.",
+        "extractable_concept": "twin_clean_tremolo_guitar_cross_rhythmic_interlock"
+      },
+      {
+        "type": "dub_influenced_half_time_outro",
+        "description": "The outro half-time groove draws on dub reggae production aesthetics — sustained bass, spacious drum pattern, ambient guitar washes, vocal fragments echoing into reverb. Translates dub language into Radiohead's modal-experimental rock vocabulary.",
+        "extractable_concept": "dub_influenced_ambient_half_time_outro"
+      },
+      {
+        "type": "vocal_fragment_dissolution_in_outro",
+        "description": "Yorke's vocal in the outro is reduced to fragmentary phrases — half-formed lyrics that trail off into the texture. Rather than singing a final chorus or held note, the vocal narrative DISSOLVES, leaving the listener inside the ambient bed.",
+        "extractable_concept": "vocal_dissolution_into_ambient_outro_fragments"
+      },
+      {
+        "type": "modal_dorian_color_via_raised_sixth",
+        "description": "The Dorian B-natural against the D-minor tonal center creates the song's bittersweet color — neither pure minor's darkness nor major's brightness, but the modal third position. Used consistently across all sections to maintain harmonic identity.",
+        "extractable_concept": "dorian_modal_color_as_emotional_signature"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The lyric hook 'you can try the best you can / the best you can is good enough' — Yorke's ironic-sincere mantra. One of the most quoted lines in the Radiohead catalog because of its double-edged emotional content.",
+    "secondary": "The half-time outro groove shift — the moment the band collapses into the dub-ambient coda. This is the structural moment that Optimistic-listeners recognize as 'the part where it goes weird'.",
+    "tertiary": "The opening clean tremolo guitar figure — the song's textural signature, immediately identifiable within the first few seconds."
+  },
+
+  "advisor_extract": [
+    "twin_clean_tremolo_guitar_cross_rhythmic_interlock",
+    "dorian_modal_color_as_emotional_signature",
+    "half_time_groove_shift_at_outro_with_bpm_constant",
+    "inverted_drop_into_half_time_ambient",
+    "dub_influenced_ambient_half_time_outro",
+    "climax_as_repeated_lyric_hook_not_single_event",
+    "cumulative_human_ensemble_build_no_electronic_riser",
+    "vocal_dissolution_into_ambient_outro_fragments",
+    "structural_climax_via_groove_transformation",
+    "chorus_lift_via_textural_density_not_dynamic_event"
+  ]
+}

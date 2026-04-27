@@ -1,0 +1,237 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_classical_harmonic_character_descending_bass_line_synth_pad_layering_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "time_signature (4/4 throughout, slow harmonic feel)",
+    "track_runtime",
+    "tempo_bpm_documented_range (114-118 — slow for Daft Punk)",
+    "classical-influenced harmonic progression with descending bass-line (Pachelbel-adjacent reading widely cited)",
+    "structural_blueprint (slow build via additive synth pad layering, no chorus drop)",
+    "instrumentation (electronic — synth pads, programmed drums, vocoded touches)",
+    "stylistic_figures around additive synth-pad accumulation and voice-leading craft"
+  ],
+  "_to_verify_fields": [
+    "exact key area — F# minor / G# minor / Am readings all in circulation depending on tuning + tonic interpretation",
+    "exact bar count of each section",
+    "specific synth/keyboard models used",
+    "whether vocoded vocal is present at all — Discovery's vocoder usage varies by track and Veridis Quo is unusually instrumental"
+  ],
+
+  "_status": "C6_3c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Discovery",
+  "year": 2001,
+  "tempo_bpm_documented_range": [114, 118],
+  "time_signature": "4/4 throughout. The track is metrically square, but the SLOW tempo and lack of foregrounded drums make the meter feel more 'orchestral pulse' than 'dance-floor 4/4'. There is no metric play — the compositional movement happens via harmony + voice-leading + additive layering.",
+  "key_area": "Minor-modal area with classical-influenced harmonic motion. Most analyses cite F# minor or G# minor; some hear A minor. The track features a DESCENDING BASS-LINE widely compared to Pachelbel's Canon (descending stepwise motion through the diatonic scale degrees of a minor mode). The chord progression is a baroque-adjacent cycle (i - V/v - vi - iii - IV - I - IV - V or close variants) rather than Daft Punk's typical filter-house chord set.",
+  "tuning_documented": "N/A — synthesizer-based composition, no guitars",
+  "track_runtime": "~5:44",
+
+  "composition": {
+    "structural_blueprint": "slow_intro_bass_and_pad (descending bass-line establishes the harmonic cycle alone, with sparse pad accompaniment) -> additive_synth_layer_entry (a second synth pad enters with the chord voicings; voice-leading craft becomes audible) -> drum_entry_subtle (programmed kit enters at lowered presence — supporting role rather than foreground) -> harmonic_development_zone (additional pad/lead lines layer in; chord progression cycles with reharmonization touches) -> peak_density_section (all layers active simultaneously — synth pads + lead synth lines + bass + drums + vocoded touches if present) -> outro_progressive_layer_reduction (layers strip away one by one, harmonic cycle continues to fade)",
+    "section_count_and_lengths": {
+      "slow_intro": "Approximately 8-16 bars of bass-line + sparse pad alone",
+      "additive_buildup": "Multiple cycles of the chord progression with one new layer entering per cycle (~16-24 bars)",
+      "drum_entry": "Drums enter around the third or fourth chord cycle and stay through the rest of the track",
+      "peak_density": "Sustained zone in the middle/late portion with all layers active",
+      "outro_reduction": "Layers thin progressively over the last 8-16 bars before fade",
+      "_note": "Bar counts approximate. The track does NOT segment into verse/chorus/bridge — it is a single evolving harmonic cycle with progressive instrumentation, more like a baroque chaconne or a film-score cue than a pop song."
+    },
+    "harmonic_motion": "Classical-influenced chord progression with DESCENDING DIATONIC BASS-LINE — the defining harmonic feature. Pachelbel-adjacent: bass moves stepwise downward through the mode (e.g., i - bVII - vi - bVI - iv - III - bII - I in some readings, or simpler i - V - vi - iii - IV - I - IV - V). Voice-leading is traditional Western — chords share common tones, voices move by step, suspensions resolve. UNLIKE typical filter-house chord pads, Veridis Quo's chord motion is FUNCTIONAL in classical sense.",
+    "modal_choice": "Minor mode with descending diatonic bass-line. The Pachelbel-Canon comparison is explicit in many analyses — the descending bass is the harmonic engine and the upper voices weave classical voice-leading above it.",
+    "melodic_contour": "There is no foregrounded vocal melody. The 'lead' is carried by upper synth pad voices that trace the chord-tone outlines — sustained tones with classical voice-leading rather than rhythmic riffs. Some sections may feature vocoded melodic touches (debated). The closest thing to a melodic hook is the upper-voice line that emerges in the peak section, which traces a slow descending or arching contour over the chord cycle.",
+    "characteristic_riff_construction": "There is no riff in the rock or filter-house sense. The compositional 'cell' is the CHORD PROGRESSION ITSELF — the looped baroque-adjacent cycle. The voice-leading between chord pads (each pad voicing differing slightly from cycle to cycle) is the construction — closer to a baroque chaconne than to a riff.",
+    "harmonic_pacing": "Moderate at the chord level (chords change every bar or every two beats — relatively faster than Around the World's two-chord oscillation) and very slow at the section level (no traditional sections — one continuous harmonic cycle for 5+ minutes). Pacing is generated by additive instrumentation, not by chord motion itself, even though the chord motion is more sophisticated than typical Daft Punk.",
+    "phrase_symmetry": "Highly symmetric — the chord cycle is 4 or 8 bars and repeats consistently. Symmetry is essential to the chaconne-like form: the listener becomes aware of the harmonic cycle through repetition, then notices voice-leading variations from cycle to cycle. NO asymmetric meter, NO odd phrase lengths."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Synth bass (carrying the descending diatonic bass-line — the harmonic foundation)",
+      "Multiple synth pad layers (sustained chord voicings — the principal harmonic content)",
+      "Lead synth line (traces upper-voice melodic content in peak sections)",
+      "Programmed drums (subtle presence — kick + light percussion, NOT foregrounded as in dance tracks)",
+      "Possible vocoded vocal touches (debated — if present, more textural than melodic)",
+      "Possible additional analog synth textures for color (string-like pads, brass-like leads)"
+    ],
+    "section_instrumentation": {
+      "slow_intro": "Synth bass + 1 sparse pad — minimum-element exposure of the descending bass-line",
+      "additive_buildup": "Each cycle adds one more pad/lead layer; chord voicings become richer",
+      "drum_entry_subtle": "Drums enter at lowered presence — supporting the classical harmony rather than dominating",
+      "peak_density": "All synth layers simultaneously, drums steady, lead synth tracing upper voice — full chaconne texture",
+      "outro_reduction": "Layers thin in reverse order — lead drops, then drums, then secondary pads, leaving bass-line + minimal pad to fade"
+    },
+    "vocal_layering_strategy": "Largely instrumental track. If vocoded vocal touches are present, they are textural/melodic accents rather than the song's lead. UNLIKE HBFS where vocoder is the lead, Veridis Quo gives the lead role to the synth pad chord voicings and upper-voice synth lines.",
+    "dynamic_arc_overall": "MONOTONIC ADDITIVE BUILD — the track only ADDS layers across most of its runtime, then unwinds in the outro. There is no chorus drop, no breakdown, no climax-via-loud — the dynamic peak is reached purely by ACCUMULATION of synth pads and is sustained rather than released. Most un-dance-music dynamic shape in Daft Punk's catalog.",
+    "instrumental_role_assignment": {
+      "guitar_role": "N/A",
+      "bass_role": "PRINCIPAL HARMONIC ANCHOR — the descending diatonic bass-line is the song's compositional engine. Every other layer is harmonized AGAINST the bass-line.",
+      "drums_role": "Subtle foundation — present but not foregrounded. Provides pulse without dominating the harmonic content.",
+      "vocal_role": "Minimal — possibly absent. Upper synth pad voices and lead synth take the role typically given to vocal in Daft Punk's other tracks."
+    },
+    "harmonic_density_per_section": {
+      "slow_intro": "Very low — bass-line + one pad",
+      "additive_buildup": "Increasing — each cycle adds harmonic content",
+      "drum_entry": "Medium — chord pads + bass + drums",
+      "peak_density": "High — full chord-pad stack + lead + bass + drums = classical-electronic richness",
+      "outro_reduction": "Tapering down to bass + minimal pad"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No 4-on-the-floor dance kick foregrounded (anomalous within Discovery — drums are background here)",
+      "No filter-modulation engine (classical harmony provides motion instead)",
+      "No vocoded vocal as lead (anomalous within Discovery — instrumental priority)",
+      "No verse-chorus structure (continuous chaconne form)",
+      "No drop or breakdown (monotonic additive shape)",
+      "No tempo change"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Slow, meditative, harmonically-focused. The 114-118 BPM is fast enough to maintain pulse but slow enough to let chord changes and voice-leading breathe. Feel is more orchestral-prelude than dance-floor — the listener is invited to LISTEN to the harmony rather than dance to the beat. Anomalous within Discovery's otherwise dance-leaning tracklist.",
+    "drum_style": {
+      "performer": "Programmed (Bangalter + de Homem-Christo)",
+      "feel": "Subtle, supporting, low-presence — drums maintain pulse without dominating. NOT the foreground element.",
+      "techniques_documented": [
+        "Programmed kick maintaining 4/4 pulse at lower mix presence than Daft Punk dance tracks",
+        "Light percussion/hi-hat for subdivision",
+        "Possibly side-chained or otherwise tucked behind the synth pads",
+        "Programmed pattern stays consistent — minimal variation between cycles"
+      ],
+      "groove_feel_alignment": "Drums serve the harmonic content, not the other way around. Their function is pulse-keeping for the chaconne form.",
+      "fills_and_transitions": "No drum fills. Transitions are accomplished by adding/removing synth layers, not by drum gestures."
+    },
+    "guitar_style": {
+      "performer": "N/A",
+      "feel_per_section": {
+        "intro_riff": "N/A",
+        "verse": "N/A",
+        "pre_chorus": "N/A",
+        "chorus": "N/A",
+        "bridge_solo": "N/A"
+      },
+      "techniques_documented": [],
+      "playing_style_versus_other_grunge": "N/A"
+    },
+    "vocal_delivery": {
+      "performer": "Minimal/possibly absent — possible vocoded touches",
+      "verse_delivery": "N/A — no verses in conventional sense",
+      "chorus_delivery": "N/A",
+      "outro_delivery": "N/A — track is largely instrumental",
+      "documented_vocal_quirks": [
+        "Track is essentially INSTRUMENTAL — anomalous within Discovery, which otherwise foregrounds vocoder lead vocal",
+        "Any vocal content is textural rather than melodic-narrative",
+        "The 'voice' of the track is carried by synth pads, not by human or vocoded vocal"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No vocal lead (anomalous within Discovery, intentional)",
+      "No virtuoso synth lead solo (chaconne discipline — voice-leading craft over flash)",
+      "No tempo rubato (the chaconne is metrically strict)",
+      "No drum feature (drums are background)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target. Veridis Quo's gold extractions are around classical voice-leading in electronic context, additive pad accumulation, and the descending diatonic bass-line.",
+    "transitions_between_sections": [
+      {
+        "where": "intro_bass_alone -> first_pad_layer_addition",
+        "type": "imperceptible_layer_introduction",
+        "description": "The first additional pad layer enters quietly on a chord-cycle downbeat — no riser, no fill, no anticipation. The bass-line continues its descending cycle unchanged. Listener may not notice the moment the second voice 'began'.",
+        "extractable_concept": "imperceptible_layer_addition_on_chord_cycle_downbeat"
+      },
+      {
+        "where": "additive_buildup -> drum_entry",
+        "type": "drum_drop_in_at_lowered_presence",
+        "description": "Drums enter without fanfare — no fill, no rising tom roll, no riser. They simply begin keeping pulse at a presence level lower than typical dance tracks. The transition is gentle rather than dramatic.",
+        "extractable_concept": "drum_first_entry_at_lowered_presence_no_fanfare"
+      },
+      {
+        "where": "peak_density -> outro_reduction",
+        "type": "progressive_lead_subtraction",
+        "description": "Layers thin one by one in the outro — first the lead synth drops, then drums, then secondary pads. Mirror of the additive build. No dramatic event, just unwinding the chaconne.",
+        "extractable_concept": "progressive_layer_subtraction_as_outro_form"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "across the first half — additive synth pad accumulation",
+        "type": "additive_pad_build_via_voice_leading",
+        "duration_bars": "approximately 16-32 bars across multiple chord cycles",
+        "description": "The 'riser' is not a noise sweep but the gradual accumulation of synth pad voices, each adding a different chord-tone to the voicing stack. By the peak section the chord pads are voiced in 5-6 voices instead of the intro's 2-3. Voice-leading craft is the build technique.",
+        "extractable_concept": "build_via_chord_voice_addition_classical_voice_leading"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "throughout — particularly on synth pads",
+        "type": "subtle_filter_motion_on_pads_for_voice_leading_clarity",
+        "description": "Subtle low-pass filtering may be applied to individual pad layers to keep voice-leading audible (cutoff opens slightly when a pad's voice has the active line, closes when it sustains a common-tone). This is mix-craft serving the composition's voice-leading rather than dance-music filter-house gesture.",
+        "extractable_concept": "subtle_filter_motion_for_voice_leading_clarity_not_dance_floor_effect"
+      },
+      {
+        "where": "N/A for major filter sweeps",
+        "type": "no_aggressive_filter_automation",
+        "description": "Veridis Quo deliberately avoids the aggressive filter-house automation that defines Around the World. The harmonic content is the engine — filter sweeps would distract from voice-leading.",
+        "extractable_concept": "compositional_choice_avoid_filter_automation_in_classical_context"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "N/A — no drops in this track",
+        "type": "no_drops_chaconne_form",
+        "description": "Veridis Quo deliberately avoids drops and breakdowns. The form is a chaconne — additive build, sustained peak, progressive reduction. Tension/release happens via voice-leading micro-events within the chord cycle, NOT via section-level drops.",
+        "extractable_concept": "chaconne_form_no_drops_only_voice_leading_microevents"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "approximately 3:00-4:00 — peak density section",
+        "type": "harmonic_richness_peak",
+        "description": "Maximum simultaneous activity of synth pad layers + lead synth + bass-line + drums. The peak is HARMONIC THICKNESS, not loudness. The chord voicings are at their richest, voice-leading is most audible, and the chaconne cycle reaches its compositional fullness.",
+        "extractable_concept": "climax_via_harmonic_richness_and_voice_density_not_loudness"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "descending_diatonic_bass_line_as_harmonic_engine",
+        "description": "The Pachelbel-adjacent descending bass-line is the song's defining feature. Bass moves stepwise downward through the diatonic scale degrees of the minor mode, and every other layer is harmonized against this line. Classical baroque ground bass technique applied to electronic instrumentation.",
+        "extractable_concept": "descending_diatonic_ground_bass_in_electronic_context"
+      },
+      {
+        "type": "classical_voice_leading_in_synth_pads",
+        "description": "Synth pad voicings are arranged so that voices move by step or common-tone between chord changes — proper four-part voice-leading inherited from classical harmony textbooks. UNUSUAL in dance music; signature of Daft Punk's classical-electronic ambition on this track.",
+        "extractable_concept": "classical_voice_leading_in_synth_pad_arrangement"
+      },
+      {
+        "type": "chaconne_form_in_electronic_track",
+        "description": "Continuous repetition of a fixed harmonic cycle with progressive instrumentation/textural variation — exactly the baroque chaconne form. Electronic music rarely uses this form; Daft Punk's deployment of it on Veridis Quo is part of why the track stands out within Discovery.",
+        "extractable_concept": "chaconne_form_repeated_chord_cycle_with_textural_variation"
+      },
+      {
+        "type": "anomalous_track_within_album",
+        "description": "Veridis Quo is the album's sore-thumb track — slow, harmonically rich, instrumental, classical-influenced — surrounded by fast, sample-based, vocoded pop-electronic tracks. The album-context contrast is itself a compositional gesture: Discovery is a more diverse album because of this track.",
+        "extractable_concept": "deliberate_anomaly_track_for_album_diversity"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The descending diatonic bass-line cycling through the minor mode — the Pachelbel-adjacent harmonic engine that anchors the entire track.",
+    "secondary": "The sustained peak section where all synth pad voices are layered into rich classical-electronic harmonic density.",
+    "tertiary": "The track's overall slow, contemplative, harmonically-focused character — anomalous within Discovery and unforgettable for that reason."
+  },
+
+  "advisor_extract": [
+    "descending_diatonic_ground_bass_in_electronic_context",
+    "classical_voice_leading_in_synth_pad_arrangement",
+    "chaconne_form_repeated_chord_cycle_with_textural_variation",
+    "build_via_chord_voice_addition_classical_voice_leading",
+    "climax_via_harmonic_richness_and_voice_density_not_loudness",
+    "no_drops_only_accumulation",
+    "drum_first_entry_at_lowered_presence_no_fanfare",
+    "compositional_choice_avoid_filter_automation_in_classical_context",
+    "deliberate_anomaly_track_for_album_diversity"
+  ]
+}

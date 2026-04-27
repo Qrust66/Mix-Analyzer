@@ -1,0 +1,293 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_genre_clash_locked_bass_groove_free_jazz_brass_ondes_martenot_role_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "time_signature (4/4 throughout)",
+    "track_runtime",
+    "tempo_bpm_documented_range (~128-134)",
+    "compositional engine: locked rock-bass groove + free-jazz brass cacophony (documented Mingus influence)",
+    "Colin Greenwood's repetitive bass-line as harmonic + groove foundation",
+    "Jonny Greenwood's Ondes Martenot as spectral color element",
+    "brass section recorded LIVE TOGETHER for free-jazz interaction",
+    "stylistic_figures around the cacophony peak and the genre-clash arrangement"
+  ],
+  "_to_verify_fields": [
+    "exact key area — D minor most cited but some hear it as a static D-Dorian or D-Phrygian inflection",
+    "exact bar counts of each section",
+    "specific brass section personnel",
+    "exact moment(s) of Ondes Martenot entry/exit",
+    "whether bass-line is exactly one bar, two bars, or four bars in length"
+  ],
+
+  "_status": "C7_3c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Kid A",
+  "year": 2000,
+  "tempo_bpm_documented_range": [128, 134],
+  "time_signature": "4/4 throughout. The metric grid is conventional — what is unconventional is what plays ABOVE the grid (free-jazz brass that ignores bar lines while the rhythm section locks them). The 4/4 frame is essential: the brass section's freedom only registers as 'free' because the rhythm section is rigidly locked.",
+  "key_area": "D minor area. The repetitive bass-line outlines D as tonic. Some readings hear it as D Dorian, others as D minor with chromatic Phrygian inflections. The key area is STATIC — the bass-line does not modulate. Brass section plays freely chromatic lines across this fixed harmonic anchor — much of what sounds dissonant is brass chromatic overlay onto a static D-minor foundation, not chord-functional modulation.",
+  "tuning_documented": "Standard tuning for bass and live instruments. Brass instruments standard. Yorke vocal natural. Jonny Greenwood's Ondes Martenot adds pure sine-wave-like spectral color. Track is acoustic-electric hybrid, not detuned.",
+  "track_runtime": "~5:51",
+
+  "composition": {
+    "structural_blueprint": "intro_bass_line_alone (Colin Greenwood's locked bass-line establishes the D-minor groove and the harmonic anchor without other elements) -> drums_lock_in (Phil Selway enters with rock-tight rhythm-section drumming, completing the locked-groove foundation) -> vocal_entry_yorke (Yorke vocal enters with melodic content above the groove) -> brass_section_enters_free_jazz (the documented brass section enters playing chromatic free-jazz expressionist lines — the genre-clash compositional event) -> arrangement_intensification (brass density increases; Ondes Martenot adds spectral color; electronic textures may layer in) -> CACOPHONY_CLIMAX (free-jazz brass at maximum density + chromaticism — controlled-chaos peak) -> resolution (brass thins, groove persists, vocal returns to foreground briefly) -> outro_groove_continues_to_fade (bass-line and drums persist as the brass and vocal recede; long fade)",
+    "section_count_and_lengths": {
+      "intro_bass_alone": "Approximately 4-8 bars of bass-line + minimal accompaniment",
+      "drums_and_rhythm_section_lock": "Drums enter and the locked groove is established for several bars before vocal",
+      "vocal_section": "Yorke vocal occupies multiple bass-line cycles — possibly 16-32 bars",
+      "brass_section_emergence": "Brass enters around the midpoint and gradually increases in density",
+      "cacophony_peak": "Sustained zone in the latter third — brass at maximum free-jazz expression",
+      "outro": "Long fade with bass-line + drums persisting as brass thins",
+      "_note": "Bar counts approximate. The track does NOT have traditional verse/chorus segmentation. Like Everything In Its Right Place, it is a single evolving arrangement over a static harmonic anchor — but the principal structural event here is the BRASS SECTION EMERGENCE rather than vocal-sample looping."
+    },
+    "harmonic_motion": "Static modal — the bass-line cycles a fixed pattern in D minor for the entire track without chord progression. The 'harmonic motion' that the listener perceives comes from the brass section's chromatic free-jazz overlay against the static foundation. Brass plays passing tones, dissonances, expressionist clusters — but underneath, the harmonic anchor never changes. Mingus-influenced compositional approach: locked rhythm section underneath, free chromatic expression above.",
+    "modal_choice": "D minor / D Dorian static. The fixed bass-line is the modal anchor. Brass chromatic overlay creates chromatic expressionism but does not destabilize the modal center.",
+    "melodic_contour": "Yorke's vocal is mid-register, melodic but restrained — phrases trace contained arching shapes against the bass-line. NOT his typical falsetto register; more 'spoken-melody' than soaring. The brass section's contour is the OPPOSITE — wild, free, expressionist, ranging across registers and dynamics. The compositional contrast between Yorke's restrained vocal contour and the brass's wild contour is intentional.",
+    "characteristic_riff_construction": "The compositional cell is COLIN GREENWOOD'S BASS-LINE. It is a tight, locked, repetitive figure (likely 1 or 2 bars in length, then cycles) outlining D minor with rhythmic propulsion. Pick attack, tight rhythmic locking with kick drum, no melodic ornamentation — the bass-line is a RHYTHMIC + HARMONIC FOUNDATION, not a melody. Construction principle: maximum rigidity of the foundation creates MAXIMUM PERMISSION for the brass to be free above it. The two layers depend on each other.",
+    "harmonic_pacing": "Zero at the chord level (one mode for the entire track). Generated entirely by BRASS DENSITY — brass entries, brass solo emergence, brass cacophony peak, brass thinning. Jonny Greenwood's Ondes Martenot also contributes spectral color pacing. This is a 'static-harmony, dynamic-texture' philosophy — same family as Everything In Its Right Place but with FREE-JAZZ BRASS as the textural engine instead of LIVE-SAMPLED VOCAL.",
+    "phrase_symmetry": "Highly symmetric at the bass-line level — the bass figure is 1 or 2 bars and repeats consistently. Yorke's vocal phrases are 4-bar or 8-bar groups. Drums are square 4/4. The ASYMMETRY is in the brass section — phrases of irregular length, free entries, expressive timing that crosses bar lines. Symmetric foundation + asymmetric overlay = the compositional engine."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Electric bass (Colin Greenwood — pick attack, locked groove)",
+      "Live drum kit (Phil Selway — rock-tight rhythm-section discipline)",
+      "Lead vocal (Thom Yorke — mid-register, restrained delivery)",
+      "Brass section (multiple session brass musicians playing free-jazz expressionism — trumpets, saxophones, possibly trombones)",
+      "Ondes Martenot (Jonny Greenwood — pure-tone spectral color)",
+      "Possible additional electronic textures, programmed elements, and synth touches",
+      "Possible additional percussion or programmed drum elements layered with Selway's kit"
+    ],
+    "section_instrumentation": {
+      "intro_bass_alone": "Bass-line + minimal accompaniment (possibly subtle electronic texture)",
+      "drums_and_rhythm_section_lock": "Bass + drums locked together as foundation",
+      "vocal_entry": "Bass + drums + Yorke vocal foreground",
+      "brass_emergence": "Bass + drums + vocal + brass section gradually entering",
+      "cacophony_peak": "Bass + drums (locked, unchanged) + vocal possibly receded + BRASS AT MAXIMUM DENSITY + Ondes Martenot + electronic textures — controlled chaos above the locked rhythm section",
+      "resolution": "Brass thins; vocal returns briefly; rhythm section unchanged",
+      "outro_fade": "Brass and vocal recede; bass-line and drums persist; long fade"
+    },
+    "vocal_layering_strategy": "Single-tracked lead vocal in mid-register — NOT Yorke's typical falsetto. Possibly with subtle backing/doubled vocals for density but not the heavy-layered approach of other Radiohead tracks. Vocal is treated as ONE foreground element among several — it does not dominate the arrangement the way it would on a conventional rock track. In the cacophony peak, the brass largely overtakes the vocal — vocal becomes one of many elements rather than the lead.",
+    "dynamic_arc_overall": "Slow build to a single climactic CACOPHONY PEAK in the latter third of the track. The bass + drums maintain consistent dynamic throughout (foundation does not vary); the build comes entirely from BRASS DENSITY + chromatic expression intensifying. After the cacophony peak, the brass thins and the track winds down via long fade. Unlike a conventional rock arc (verse soft / chorus loud), the dynamic shape is FOUNDATION-CONSTANT + OVERLAY-INTENSIFYING.",
+    "instrumental_role_assignment": {
+      "guitar_role": "Largely absent or minimal — the track avoids typical Radiohead guitar texture. This is part of what makes The National Anthem genre-distinct on Kid A.",
+      "bass_role": "PRINCIPAL COMPOSITIONAL ENGINE — Colin Greenwood's bass-line is the locked harmonic + rhythmic foundation. Without this rigidly locked anchor, the brass cacophony would have nothing to play 'against'. Bass is the most important instrument on the track.",
+      "drums_role": "Rock-tight rhythm-section discipline locked to the bass-line. Selway's job is to be the IMMOVABLE FLOOR — disciplined, unsexy, foundational. Drumming philosophy is OPPOSITE of free-jazz; that contrast is the point.",
+      "vocal_role": "Yorke as ONE foreground element rather than dominant lead. Mid-register, restrained, melodic but not soaring. Vocal cedes attention to the brass section in the climactic zone."
+    },
+    "harmonic_density_per_section": {
+      "intro_bass_alone": "Very low — bass-line + possibly subtle texture",
+      "rhythm_section_lock": "Low — bass + drums",
+      "vocal_section": "Medium — bass + drums + vocal",
+      "brass_emergence": "Medium-high — adding brass density",
+      "cacophony_peak": "MAXIMUM — brass at full free-jazz expression + Ondes Martenot + electronic textures + locked rhythm section + (possibly receded) vocal. Densest moment in Radiohead's catalog up to that point.",
+      "resolution_and_fade": "Tapering down to bass + drums + fade"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No quantization of brass (preserves free-jazz expression)",
+      "No imposed harmonic structure on brass (expressionism priority)",
+      "No traditional rock-guitar foreground (genre-clash committment)",
+      "No tempo change",
+      "No verse-chorus segmentation",
+      "No drum fills marking section boundaries (rhythm-section discipline preserved throughout)",
+      "No vocal pitch correction",
+      "No fade-up brass entries — brass enters as PERFORMANCES, not as mix-automation events"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Driving rock groove at 128-134 BPM — the rhythm section feel is locked, mechanical-tight, almost relentless. The brass section, by contrast, plays at HUMAN PERFORMANCE TIMING that ignores bar lines and the rhythm-section pulse. Two perceptual time-feels coexist: the bass + drums in metronome time, the brass in expressive time. This double-time-feel is the track's central performance gesture.",
+    "drum_style": {
+      "performer": "Phil Selway",
+      "feel": "Rock-tight rhythm-section discipline. Selway plays the part of the immovable floor — locked to Colin Greenwood's bass, providing rhythmic foundation for the brass section's freedom above. Drumming philosophy is RHYTHM-SECTION DISCIPLINE, not expressionist drumming.",
+      "techniques_documented": [
+        "Tight kick + snare backbone driving 4/4",
+        "Hi-hat 8ths or 16ths providing subdivision",
+        "Snare strong on 2 and 4",
+        "Pattern stays consistent across the track — the goal is NOT to vary",
+        "No drum fills marking section boundaries — brass section provides arrangement events instead"
+      ],
+      "groove_feel_alignment": "Selway locks tightly to Colin Greenwood's bass-line — they function as a single locked unit. This rhythm-section unity is essential to the genre-clash effect.",
+      "fills_and_transitions": "Minimal fills. Transitions accomplished by brass section entries/exits and arrangement events, not by drum gestures."
+    },
+    "guitar_style": {
+      "performer": "Largely absent on this track",
+      "feel_per_section": {
+        "intro_riff": "N/A",
+        "verse": "N/A or minimal",
+        "pre_chorus": "N/A",
+        "chorus": "N/A",
+        "bridge_solo": "N/A"
+      },
+      "techniques_documented": [],
+      "playing_style_versus_other_grunge": "N/A — guitar is essentially absent, which is itself a Radiohead Kid A-era arrangement choice. Guitar's role is taken by Ondes Martenot + brass + Yorke vocal."
+    },
+    "vocal_delivery": {
+      "performer": "Thom Yorke",
+      "verse_delivery": "Mid-register, restrained, melodic but not soaring. NOT Yorke's typical falsetto. Phrases trace contained arching shapes. Documented as deliberate choice — different track requires different vocal approach (compare: Pyramid Song's prominent falsetto).",
+      "chorus_delivery": "N/A — no separate chorus section; vocal continues across the bass-line cycles",
+      "outro_delivery": "Vocal recedes as brass and Ondes Martenot dominate the cacophony peak. Vocal may not return to the foreground at all.",
+      "documented_vocal_quirks": [
+        "Mid-register vocal is anomalous within Radiohead's Kid A/Amnesiac vocal vocabulary (often falsetto)",
+        "Restraint is part of the arrangement — vocal cannot compete with the brass cacophony, so it surrenders the foreground",
+        "Lyrical content is anti-narrative fragmentary — fits the album's broader Kid A aesthetic"
+      ]
+    },
+    "brass_section_style": {
+      "performer": "Documented session brass section — multiple horn players (trumpets, saxophones, possibly trombones)",
+      "approach": "FREE-JAZZ EXPRESSIONISM — players given liberation within Jonny Greenwood-arranged framework. Each player plays expressionist chromatic lines that interact with the others. Brass section recorded LIVE TOGETHER in same room for free-jazz interaction tradition (not overdubbed individually).",
+      "techniques_documented": [
+        "Multiple horn players recorded simultaneously for free-jazz interaction",
+        "Multi-mic setup capturing each player + room ambience",
+        "Greenwood arranged framework but allowed free-jazz interpretation within sections",
+        "Brass section reaches CACOPHONY peak — controlled chaos with all players at maximum density",
+        "Documented influence: Charles Mingus's locked-rhythm + free-horn compositional approach (Mingus's signature gesture transposed to rock context)"
+      ],
+      "groove_feel_alignment": "Brass deliberately DOES NOT lock to the rhythm section — the misalignment between locked rhythm and free brass is the point. Brass plays expressive time that crosses bar lines.",
+      "performance_anti_patterns_avoided": [
+        "No quantization (preserves free-jazz expression)",
+        "No overdubbed individual brass tracks (live-together priority)",
+        "No imposed harmonic structure (expressionism priority)"
+      ]
+    },
+    "ondes_martenot_role": {
+      "performer": "Jonny Greenwood",
+      "approach": "Pure-tone spectral color — Ondes Martenot's sine-wave-like character cuts through the brass density with a different timbral quality. Functions as a unique spectral voice within the cacophony rather than as a featured solo instrument.",
+      "techniques_documented": [
+        "Greenwood's documented Ondes Martenot use across Kid A/Amnesiac",
+        "Ribbon-controller pitch glides characteristic of the instrument",
+        "Pure-tone character distinct from brass (which is rich and harmonic-complex) and from Yorke's vocal (which is mid-register human)",
+        "Functions as a spectral 'highlighter' picking out moments within the brass cacophony"
+      ]
+    },
+    "vocal_delivery_philosophy_versus_pyramid_song": "Pyramid Song features Yorke's falsetto across asymmetric meter; The National Anthem features Yorke's mid-register restrained vocal across locked 4/4. Different tracks require different vocal approaches within the same Kid A/Amnesiac session period.",
+    "performance_anti_patterns_avoided": [
+      "No quantization of brass (free-jazz preservation)",
+      "No vocal pitch correction",
+      "No tempo changes (locked groove priority)",
+      "No imposed structure on brass (expressionism priority)",
+      "No drum fills (rhythm-section discipline)",
+      "No virtuosic guitar (track's genre-clash commitment excludes guitar foreground)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target. The National Anthem's gold extractions are around the locked-rhythm + free-horn genre-clash, the cacophony peak, and the Mingus-influenced compositional architecture.",
+    "transitions_between_sections": [
+      {
+        "where": "intro_bass_alone -> drums_lock_in",
+        "type": "drum_drop_in_no_riser",
+        "description": "Drums simply enter on a downbeat over the looping bass-line. No fill, no riser, no anticipation. The bass-line continues unchanged. Selway and Colin Greenwood lock into their two-piece foundation immediately.",
+        "extractable_concept": "rhythm_section_drop_in_with_zero_transition_device"
+      },
+      {
+        "where": "vocal_section -> brass_section_emergence",
+        "type": "live_brass_entry_with_free_jazz_attack",
+        "description": "Brass section enters as a PERFORMANCE EVENT — multiple horn players begin playing simultaneously, with attacks that don't respect bar lines or downbeats. Not a fade-in, not a gradual layering — the brass simply START. Free-jazz tradition: players begin when they choose within an arranged section.",
+        "extractable_concept": "live_brass_entry_at_player_discretion_not_engineering_event"
+      },
+      {
+        "where": "cacophony_peak -> resolution",
+        "type": "brass_thinning_via_player_decisions",
+        "description": "After the peak, brass density reduces — but again as PERFORMANCE EVENTS (players stop playing) rather than as mix automation. Resolution is achieved by the brass section deciding to play less. Rhythm section unchanged.",
+        "extractable_concept": "resolution_via_brass_player_subtraction_not_mix_fade"
+      },
+      {
+        "where": "track -> long fade outro",
+        "type": "fade_with_rhythm_section_persisting",
+        "description": "Long fade with bass-line + drums continuing unchanged as the brass and vocal recede. The locked groove is the LAST thing to disappear — the foundation outlasts the cacophony.",
+        "extractable_concept": "fade_with_foundation_persisting_after_overlay_recedes"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "across the track — brass density build",
+        "type": "brass_density_build_via_added_players",
+        "duration_bars": "approximately 16-32 bars from first brass entry to cacophony peak",
+        "description": "The 'riser' is the gradual increase in brass section density — more players playing simultaneously, each player playing more chromatic expression, eventually all players at full intensity. Build is achieved by HUMAN PERFORMANCE INTENSIFICATION, not by synthesized sweeps or mix automation.",
+        "extractable_concept": "build_via_brass_section_human_performance_intensification"
+      },
+      {
+        "where": "Jonny Greenwood's Ondes Martenot entry within the brass build",
+        "type": "spectral_color_addition_within_build",
+        "description": "Ondes Martenot enters during the brass build, adding pure-tone spectral color that highlights moments within the cacophony. Adds harmonic dimension to the build.",
+        "extractable_concept": "spectral_color_layer_addition_within_brass_build"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "no significant filter automation in the track",
+        "type": "no_filter_modulation_engine",
+        "description": "Unlike electronic/dance tracks of the same era, The National Anthem deliberately avoids filter automation as a compositional engine. The compositional motion comes from BRASS DENSITY and HUMAN PERFORMANCE, not from synth filtering. Production aesthetic priority.",
+        "extractable_concept": "compositional_choice_no_filter_automation_in_genre_clash_context"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "no drops in dance sense",
+        "type": "no_drops_only_brass_overlay_intensification",
+        "description": "The track does NOT include drops. The arrangement only adds (mostly via brass) until the cacophony peak, then thins through performance subtraction. The dance-music tension/release shape is irrelevant to this track's compositional logic.",
+        "extractable_concept": "no_drops_only_brass_overlay_intensification_then_thinning"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "approximately 3:30-4:30 — cacophony peak",
+        "type": "free_jazz_brass_cacophony_climax",
+        "description": "Maximum density of free-jazz brass + Ondes Martenot + electronic textures all simultaneously above the unchanged locked rhythm section. CONTROLLED CHAOS — the brass is not random noise, it is multiple players playing expressionist chromatic lines that interact with each other in real time. The peak is loud, dense, harmonically wild — but the rhythm section underneath is unchanged. The contrast IS the climax.",
+        "extractable_concept": "climax_via_free_jazz_brass_cacophony_above_unchanged_locked_groove"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "locked_rhythm_section_plus_free_jazz_horns_mingus_compositional_signature",
+        "description": "The track's defining compositional architecture: rhythmically rigid bass + drums foundation + chromatically free brass section above. Documented as influenced by Charles Mingus's compositional approach, where Mingus's locked-rhythm + free-horn signature is transposed from jazz context to rock context.",
+        "extractable_concept": "locked_rhythm_section_plus_free_horns_mingus_signature_in_rock_context"
+      },
+      {
+        "type": "live_brass_section_in_same_room_free_jazz_tradition",
+        "description": "Brass section recorded LIVE TOGETHER (not overdubbed individually) so players can REACT to each other in real time — free-jazz interaction tradition. Documented as deliberate Godrich + Radiohead recording choice.",
+        "extractable_concept": "live_brass_section_recording_for_free_jazz_player_interaction"
+      },
+      {
+        "type": "ondes_martenot_as_spectral_highlighter",
+        "description": "Jonny Greenwood's Ondes Martenot adds a UNIQUE TIMBRE — pure-tone, sine-wave-like — that cuts through the brass density without adding more brass-like or vocal-like content. Functions as a spectral voice that the listener cannot mistake for any other element.",
+        "extractable_concept": "ondes_martenot_or_pure_tone_synth_as_spectral_highlighter"
+      },
+      {
+        "type": "static_harmonic_anchor_with_chromatic_overlay",
+        "description": "Bass-line cycles a fixed pattern in D minor for the entire track; brass section plays freely chromatic lines above. Static-harmony + chromatic-overlay compositional philosophy — a different solution to the 'static-harmony, dynamic-texture' problem from Everything In Its Right Place's live-sample-loop solution.",
+        "extractable_concept": "static_harmonic_anchor_with_chromatic_human_overlay"
+      },
+      {
+        "type": "vocal_cedes_foreground_to_brass_in_climax",
+        "description": "Yorke's vocal does NOT push through the cacophony peak — it surrenders the foreground to the brass section. Compositionally significant: the vocal is willing to NOT BE THE LEAD when arrangement priorities demand it. Anti-rock-egotism gesture.",
+        "extractable_concept": "vocal_cedes_foreground_to_brass_in_climax"
+      },
+      {
+        "type": "human_performance_as_compositional_engine_versus_machine_engine",
+        "description": "Where Daft Punk uses filter automation and machine arpeggios as compositional engines, Radiohead here uses HUMAN PERFORMANCE INTENSITY as the engine. The brass section's free-jazz performance is the song's source of motion. Cross-band production-philosophy contrast.",
+        "extractable_concept": "human_performance_intensity_as_compositional_engine"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The cacophony peak — free-jazz brass at maximum density + Ondes Martenot + electronic textures all simultaneously above Colin Greenwood's locked bass-line. One of the most singular moments in Radiohead's catalog.",
+    "secondary": "Colin Greenwood's bass-line itself — the locked, repetitive, unchanging foundation that anchors the entire track. The bass-line is the song's compositional engine.",
+    "tertiary": "The genre-clash architecture — the moment listeners realize they are hearing a rock band locked to a tight groove with a free-jazz brass section playing above. Cross-genre revelation."
+  },
+
+  "advisor_extract": [
+    "locked_rhythm_section_plus_free_horns_mingus_signature_in_rock_context",
+    "live_brass_section_recording_for_free_jazz_player_interaction",
+    "ondes_martenot_or_pure_tone_synth_as_spectral_highlighter",
+    "static_harmonic_anchor_with_chromatic_human_overlay",
+    "build_via_brass_section_human_performance_intensification",
+    "climax_via_free_jazz_brass_cacophony_above_unchanged_locked_groove",
+    "vocal_cedes_foreground_to_brass_in_climax",
+    "human_performance_intensity_as_compositional_engine",
+    "fade_with_foundation_persisting_after_overlay_recedes"
+  ]
+}

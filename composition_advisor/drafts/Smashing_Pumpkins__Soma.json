@@ -1,0 +1,271 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_dynamic_arc_structure_and_long_form_intent_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "tempo_bpm_documented_range (82-88)",
+    "time_signature (4/4)",
+    "tuning_documented (half-step-down)",
+    "track_runtime (~6:39)",
+    "structural_blueprint (extended dynamic arc, sparse clean intro to massive distorted explosion to clean resolution)",
+    "instrumentation arc (clean guitar arpeggios in intro, peak guitar wall in explosion)",
+    "performance arc (Chamberlin restrained-to-explosive, Corgan reflective-to-projected vocal)",
+    "stylistic_figures (extended patient build, selective distortion deployment, explosion as catharsis)"
+  ],
+  "_to_verify_fields": [
+    "exact key area (F# minor area reading vs alternatives given drop tuning)",
+    "exact bar count of clean intro (the intro is long but precise count varies by source)",
+    "presence of guest lead guitar — Mike Mills of REM contributed piano per documented Siamese Dream credits, exact role on Soma to verify",
+    "specific layer count at explosion peak"
+  ],
+
+  "_status": "C3_2c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "Siamese Dream",
+  "year": 1993,
+  "tempo_bpm_documented_range": [82, 88],
+  "time_signature": "4/4 throughout. No metric modulation, no tempo changes. The dynamic arc operates within constant tempo — intro feels SLOW because of sparse arrangement, explosion feels FAST because of density saturation, but the metronome holds steady.",
+  "key_area": "F-sharp minor area with characteristic Corgan suspended-chord voicings. Tonic F# minor; verses and choruses cycle around i, bVII, bVI, with movement toward relative major or flat-VI for chorus expansion. Half-step-down tuning shifts perceived feel — slack-string atmospheric quality particularly evident in clean intro arpeggios.",
+  "tuning_documented": "Half-step-down (E-flat standard) — Siamese Dream-wide convention. Important for Soma because the slack-string feel ENHANCES the atmospheric clean-guitar arpeggios in the intro.",
+  "track_runtime": "~6:39",
+
+  "composition": {
+    "structural_blueprint": "long_clean_intro_arpeggiated (multiple measures of clean arpeggiated guitar, possibly drumless at first, atmospheric sustain — establishes patient listening mode) -> verse1_restrained_build (clean guitar continues, drums enter with restrained pattern, bass enters root-note support, vocal enters quiet/reflective) -> pre_chorus_density_addition (slight density tightening, vocal lifts slightly, tension begins to mount) -> first_chorus_partial_distortion_lift (PREVIEW of the explosion — distorted guitars enter at moderate density, vocal sustains without full projection) -> verse2_distortion_residue (returns to mostly-clean with hint of distortion residue, vocal slightly more invested) -> second_chorus_full_distortion (full distortion engaged, drums full power, vocal projects) -> EXTENDED_BRIDGE_BUILDUP (sustained tension, additional guitar layers entering progressively, harmonic tension mounting, listener feels the explosion coming) -> EXPLOSION_CHORUS_PEAK (maximum density wall of guitars, drums at full power, vocal at full intensity — the catharsis the entire song has been building toward) -> outro_resolution_to_clean (distorted layers fade, drums reduce, returning to the patient atmosphere of the intro — emotional cycle closes)",
+    "section_count_and_lengths": {
+      "clean_intro": "Approximately 60-90 seconds — long enough to establish patience as the listening mode",
+      "verse_1": "Approximately 12-16 bars at restrained dynamic",
+      "pre_chorus": "Approximately 4-8 bars",
+      "first_chorus": "Approximately 8-12 bars at partial distortion lift",
+      "verse_2": "Approximately 12-16 bars",
+      "second_chorus": "Approximately 8-12 bars at full distortion",
+      "bridge_buildup": "Extended — approximately 60-90 seconds of sustained instrumental tension building",
+      "explosion_chorus": "Approximately 12-16 bars at peak density",
+      "outro": "Approximately 30-60 seconds of resolution back to clean texture",
+      "_note": "Bar counts approximate. The 6:39 runtime distributes patience across all sections — every section is given room to breathe, no compressed economy."
+    },
+    "harmonic_motion": "Minor-modal with suspended-chord voicings. Tonic F# minor; cycles around i, bVII, bVI with chorus expansion to relative major or flat-VI. Voice-leading patient and deliberate — clean intro establishes the harmonic vocabulary that distorted sections then RE-INHABIT at higher intensity. The same chords carry through the dynamic arc, but their meaning changes via texture.",
+    "modal_choice": "F# minor (Aeolian) with characteristic Corgan suspended additions. The clean intro voices chords with sus2 / add9 colorings that give the atmospheric texture its hovering quality.",
+    "melodic_contour": "Vocal contour expands through the arc. Verse melody: low/mid register, sustained-note phrasing, reflective. Chorus melody: gradually rises through choruses — first chorus moderate, second chorus fuller, EXPLOSION CHORUS at peak projection with held high notes. Vocal melodic content does NOT change from chorus to chorus — only INTENSITY and PROJECTION change. This is a deliberate compositional move: the same melody at increasing intensities tracks the arc.",
+    "characteristic_riff_construction": "Soma is NOT primarily riff-driven — it is ARC-driven. The clean arpeggio figure in the intro is the song's signature instrumental gesture, and it returns at the outro. The distorted guitar work in the explosion chorus is wall-density not riff-shape. The compositional payload sits in DEPLOYMENT (when each layer enters) rather than in riff identity.",
+    "harmonic_pacing": "Slow at the chord level — 2-4 bars per chord, no surprise modulations. Pacing engine is DENSITY ARC and DYNAMIC ARC, not chord change. The patience of the song is felt as harmonic stasis under increasing textural intensity.",
+    "phrase_symmetry": "Square symmetric — 4-bar and 8-bar phrasing throughout. The asymmetry is at the SCALE level (very long sections of patience followed by an extended explosion) not at the bar level. Symmetric phrasing makes the long form feel ordered rather than meandering."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Clean electric guitar (arpeggiated, atmospheric — primary intro and outro voice)",
+      "Multiple layered distorted electric guitars (deployed selectively across the arc — Corgan's wall-of-sound philosophy DELAYED until explosion)",
+      "Electric bass (D'arcy Wretzky, with Corgan tracking some bass)",
+      "Full drum kit (Jimmy Chamberlin)",
+      "Lead vocal (Billy Corgan)",
+      "Vocal doubles / octave doubles on explosion chorus for emphasis",
+      "Possible piano / additional clean overdubs for atmospheric texture"
+    ],
+    "section_instrumentation": {
+      "clean_intro": "Clean arpeggiated guitar alone, possibly with sparse drum entry after measures, atmospheric sustain. Drumless opening possible.",
+      "verse_1": "Clean guitar continues + drums enter restrained (kick + ride/hi-hat, no aggressive snare or restrained snare on 4 only) + bass enters root-note support + vocal enters quiet/reflective",
+      "pre_chorus": "Slight density addition — additional clean guitar layer or drum pattern slightly more active",
+      "first_chorus": "PARTIAL DISTORTION LIFT — distorted guitars enter at moderate density, vocal sustains without explosion. Preview of what's coming.",
+      "verse_2": "Mostly-clean with hint of distortion residue (some distorted layers may continue at low level)",
+      "second_chorus": "Full distortion engaged across guitar layers, drums full power",
+      "bridge_buildup": "EXTENDED INSTRUMENTAL — additional guitar layers entering progressively, drums building density, harmonic tension mounting",
+      "explosion_chorus": "PEAK DENSITY — wall of guitars at maximum layering (Quiet-level density), drums at full power, vocal at full intensity, vocal layering",
+      "outro": "Resolution back to clean — distorted layers fade, drums reduce, clean arpeggio returns"
+    },
+    "vocal_layering_strategy": "Single-tracked vocal in verses and early choruses. Vocal layering DEPLOYED at explosion chorus (doubles, octave doubles) for emphasis. Vocal layering tracks the dynamic arc — restrained sections have a single voice, the explosion has multiple.",
+    "dynamic_arc_overall": "EXTENDED DYNAMIC ARC — sparse to peak to resolution, the song's identity. Where Quiet stays heavy throughout, Soma uses DYNAMIC ARC AS COMPOSITIONAL ENGINE. The 6:39 runtime is justified by the patient build necessary for the explosion to land emotionally. Every section adds elements rather than reshuffling them — purely additive arrangement.",
+    "instrumental_role_assignment": {
+      "guitar_role": "DUAL — clean arpeggio voice (intro, outro) AND wall-of-distortion (explosion). Same guitarist (Corgan), same gear, but COMPLETELY DIFFERENT DEPLOYMENT across the arc. Clean guitar is primary structural voice for first half; distorted wall is primary voice for explosion.",
+      "bass_role": "Dynamic-arc support — restrained root-note pulse early, full energy driving the climax with kick. Half-step-down-tuned bass for sonic coherence.",
+      "drums_role": "Dynamic range across 6:39. Restrained in early sections (hi-hat or ride only, kick sparse, no snare or restrained snare on 4 only), progressive build through bridge, full kit at explosion, gradual reduction in outro.",
+      "vocal_role": "Reflective restraint to full projection across the arc. Vocal arc matches arrangement arc — they explode TOGETHER, never one ahead of the other."
+    },
+    "harmonic_density_per_section": {
+      "clean_intro": "Very low — single clean guitar arpeggio, possibly drumless",
+      "verse_1": "Low — clean guitar + restrained drums + bass + reflective vocal",
+      "first_chorus": "Medium — partial distortion adds harmonic richness without full wall",
+      "second_chorus": "Medium-high — full distortion engaged",
+      "bridge_buildup": "Building from medium-high toward peak — progressive layer entries",
+      "explosion_chorus": "MAXIMUM — peak guitar layering + full drums + vocal layering + cymbal saturation",
+      "outro": "Tapering from maximum back down to low"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No tempo changes (sustained 82-88 BPM — the dynamic arc operates within constant tempo)",
+      "No premature explosion (the build is the song; explosion only after 4+ minutes)",
+      "No drum sample replacement",
+      "No vocal pitch correction",
+      "No sectional tempo shifts (constant tempo holds the arc together)",
+      "No fadeout that obscures the explosion (the explosion is foregrounded; the resolution to clean is itself a deliberate structural event)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "PATIENT ATMOSPHERIC — 82-88 BPM at restrained intensity for first half feels meditative; final explosion at the same tempo feels cathartic. The PERCEPTUAL TEMPO shifts via density rather than via metronome change. This is a key compositional insight — perceived speed is a function of texture, not BPM.",
+    "drum_style": {
+      "performer": "Jimmy Chamberlin",
+      "feel": "Patient build to explosive release. Chamberlin demonstrates DYNAMIC RANGE rather than sustained technical density. Restraint in early sections, full power in explosion.",
+      "techniques_documented": [
+        "Intro/early verses: hi-hat or ride only, kick sparse, no snare or restrained snare on 4 only",
+        "Mid-song: kick + snare engage, hi-hat 8ths drive forward",
+        "Bridge buildup: density increases progressively, fills become more frequent",
+        "Explosion chorus: full kit at maximum power, crash cymbals on every section change",
+        "Outro: gradual reduction, return to ride/hi-hat patience"
+      ],
+      "groove_feel_alignment": "Drums track the arc — they are not just rhythmic foundation but ARRANGEMENT VOICE. Their presence/absence shapes the section identity.",
+      "fills_and_transitions": "Fills are SPARSE in early sections, INCREASING through bridge, MAXIMUM at explosion entry. The fill density is itself a compositional gesture."
+    },
+    "guitar_style": {
+      "performer": "Billy Corgan + James Iha",
+      "feel_per_section": {
+        "intro_riff": "Clean arpeggiated single-note or two-note picking — patient atmospheric texture, melodic but restrained",
+        "verse": "Clean continues, possibly slight delay/reverb effects for atmosphere",
+        "pre_chorus": "Density addition via additional clean layer",
+        "chorus": "First chorus partial distortion entry; second chorus full distortion; explosion chorus maximum wall",
+        "bridge_solo": "Bridge buildup includes extended distorted guitar work — possible lead phrases over the sustained tension"
+      },
+      "techniques_documented": [
+        "Half-step-down tuning",
+        "Clean guitar tone: clean amp + minimal effects, picked precisely",
+        "Distorted tone: Big Muff + tube amps (Marshall, Hiwatt) — Siamese Dream signature",
+        "Distortion DEPLOYED selectively across the dynamic arc — not present in intro, partial in first chorus, FULL in explosion",
+        "Multiple guitar layers at peak density (similar to Quiet but DELAYED until explosion)",
+        "Picking precision required for clean intro arpeggios — exposed timing"
+      ],
+      "playing_style_versus_other_grunge": "Compared to Nirvana's binary clean/distorted shift (single dynamic flip per song), Soma deploys DISTORTION ACROSS A GRADIENT — clean intro, partial distortion at first chorus, full at second chorus, peak at explosion. The arc has multiple stages, not just two. Compared to Pearl Jam's mid-tempo dynamic-arc tracks (Black, etc.), Soma's arc is LONGER and the explosion is DENSER — Pumpkins' wall-of-sound deployed selectively gives a peak that Pearl Jam's smaller arrangement cannot reach."
+    },
+    "vocal_delivery": {
+      "performer": "Billy Corgan",
+      "verse_delivery": "REFLECTIVE + SUSTAINED — Corgan's nasal tenor in restrained mode, melodic precision without aggression. Long phrases breathing with the patient arrangement. Mid-low register.",
+      "chorus_delivery": "Lifts to upper-mid register; first chorus moderate, second chorus fuller, EXPLOSION CHORUS at full power with held high notes",
+      "outro_delivery": "Returns to reflective restraint as arrangement resolves to clean",
+      "documented_vocal_quirks": [
+        "Vocal arc matches arrangement arc — restrained in intro/verses, full in explosion",
+        "Vocal layering on explosion chorus (doubles, octave doubles) for emphasis",
+        "Multiple complete takes selected/comped per Vig's documented approach",
+        "Long phrases require sustained breath control — patient delivery is performed, not edited"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No quantization or pitch correction",
+      "No drum sample replacement",
+      "No tempo changes (the dynamic arc operates within constant tempo)",
+      "No vocal explosion before instrumental explosion (vocal + arrangement explode TOGETHER)",
+      "No premature distortion (clean intro must remain clean — distortion deployment is a compositional choice)"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target.",
+    "transitions_between_sections": [
+      {
+        "where": "clean_intro -> verse1",
+        "type": "drum_entry_into_restrained_full_band",
+        "description": "After the long clean intro, drums enter at restrained level (hi-hat or ride only) and bass joins. Vocal enters quietly. The transition is GENTLE — no riser, no fill, just a gradual filling-in of the texture.",
+        "extractable_concept": "additive_band_entry_after_extended_solo_intro"
+      },
+      {
+        "where": "first_chorus -> verse2",
+        "type": "distortion_residue_carryover",
+        "description": "First chorus's partial distortion does not fully retract for verse 2 — some distorted layers continue at low level, leaving a 'residue' of intensity that hints the song will not return fully to the clean intro state.",
+        "extractable_concept": "distortion_residue_carryover_no_full_retreat"
+      },
+      {
+        "where": "bridge_buildup -> explosion_chorus",
+        "type": "earned_explosion_after_extended_tension",
+        "description": "After 60-90 seconds of bridge buildup, the explosion chorus arrives with maximum density. The transition is anticipated by the listener (the build telegraphs it) but not pre-empted — the moment of explosion is still emotionally striking. Drums often crash on the downbeat of the explosion entry.",
+        "extractable_concept": "earned_climax_after_extended_buildup_telegraphed_but_still_striking"
+      },
+      {
+        "where": "explosion_chorus -> outro",
+        "type": "gradual_textural_dissolution",
+        "description": "The explosion does not cut off abruptly — distorted layers fade out one by one, drums reduce, the arrangement decays back toward the clean intro state. This dissolution is itself a compositional event — the arc closes gracefully rather than ending mid-peak.",
+        "extractable_concept": "graceful_textural_decay_from_climax_to_resolution"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "bridge_buildup section (approximately 60-90 seconds before explosion chorus)",
+        "type": "extended_organic_density_build",
+        "duration_bars": "approximately 30-60 bars at 82-88 BPM",
+        "description": "The bridge buildup is the song's central rising gesture. Additional guitar layers enter progressively, drum density increases, harmonic tension mounts, vocal absent or sparse during the buildup. The riser is ORGANIC — accomplished via instrument layering rather than synthesizer riser or noise sweep. Listener feels the explosion approaching across an extended span.",
+        "extractable_concept": "extended_organic_buildup_via_instrument_layering"
+      },
+      {
+        "where": "across the entire song",
+        "type": "macro_density_arc_as_riser",
+        "description": "The whole song is one long riser — from sparse clean intro to peak explosion. The arc operates at the SCALE OF THE TRACK, not at the scale of a section. Listeners experience 4+ minutes of mounting tension before release.",
+        "extractable_concept": "macro_arc_song_as_riser"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "outro resolution",
+        "type": "additive_decay_layer_dropouts",
+        "description": "The decay from explosion to clean outro happens via individual layer dropouts — distorted guitars fade one by one rather than all at once. Functions like staggered low-pass filters but accomplished via mix automation on layer levels.",
+        "extractable_concept": "staggered_layer_dropout_for_textural_decay"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "no traditional drops in this track",
+        "type": "no_drops_used",
+        "description": "Soma does not employ dance-music drops or rock breakdowns where the arrangement strips back to a single element. The song's structure is purely additive (more layers over time) until the outro decay. The 'drop' equivalent is the OPPOSITE direction: the song drops INTO peak density at the explosion chorus, not into emptiness.",
+        "extractable_concept": "compositional_choice_no_drops_only_arc_to_peak"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "explosion_chorus (approximately at 4:30-5:30 in the track)",
+        "type": "extended_cathartic_explosion_after_long_build",
+        "description": "After 4+ minutes of patient build, the song detonates into peak guitar wall density + drum power + vocal projection. The catharsis the entire song has been building toward. Maximum density (guitar wall + full drums + vocal projection) deployed only here. The explosion lasts 12-16 bars — long enough to feel earned, not so long as to lose impact.",
+        "extractable_concept": "explosion_chorus_as_cathartic_release_not_just_loud_section"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "selective_distortion_deployment_across_arc",
+        "description": "Distortion is treated as a COMPOSITIONAL CHOICE deployed across the song's arc, not as constant texture. Clean in intro, partial in first chorus (preview), full in second chorus, MAXIMUM in explosion, gone in outro. The deployment IS the arrangement.",
+        "extractable_concept": "selective_distortion_deployment_across_dynamic_arc"
+      },
+      {
+        "type": "extended_clean_intro_as_patience_demand",
+        "description": "The 60-90 second clean intro asks the listener for patience upfront. Listeners who stay are rewarded with the explosion; listeners who skip ahead lose the catharsis. The intro is itself a compositional contract.",
+        "extractable_concept": "extended_intro_as_patience_demand"
+      },
+      {
+        "type": "density_arc_as_arrangement_engine",
+        "description": "The arrangement starts SPARSE (clean guitar + sparse drums) and gradually adds layers/intensity until peak density at explosion chorus, then resolves. Each section ADDS rather than reshuffles. This is the alternative to the layered-from-start approach (Quiet's Wall).",
+        "extractable_concept": "density_arc_arrangement_sparse_to_wall"
+      },
+      {
+        "type": "vocal_arc_matching_arrangement_arc",
+        "description": "Vocal projection and intensity track the arrangement arc. They never get ahead or behind — restrained vocal during restrained arrangement, full vocal during full explosion. This synchrony is felt by listeners as emotional unity.",
+        "extractable_concept": "vocal_arc_matching_arrangement_arc"
+      },
+      {
+        "type": "constant_tempo_under_dynamic_arc",
+        "description": "The dynamic arc operates within CONSTANT TEMPO — no accelerando, no rubato. The perceptual sense of acceleration in the explosion is created by texture density, not by metronome change. Compositional precision: hold the tempo, let the texture do the work.",
+        "extractable_concept": "constant_tempo_perceived_acceleration_via_density"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The explosion chorus — after multiple minutes of patient build, the song detonates into peak guitar wall density + drum power + vocal projection. The catharsis the entire song has been building toward.",
+    "secondary": "The clean arpeggio intro — patient, atmospheric, demanding listener investment for the explosion to land. One of the most patient intros in 1990s mainstream alt-rock.",
+    "tertiary": "The dissolution to clean outro — the arc CLOSES rather than fades. The listener returns to the song's opening state, transformed by the explosion in between."
+  },
+
+  "advisor_extract": [
+    "extended_dynamic_arc_six_plus_minutes_patient_build",
+    "density_arc_arrangement_sparse_to_wall",
+    "selective_distortion_deployment_across_dynamic_arc",
+    "explosion_chorus_as_cathartic_release_not_just_loud_section",
+    "extended_organic_buildup_via_instrument_layering",
+    "macro_arc_song_as_riser",
+    "constant_tempo_perceived_acceleration_via_density",
+    "vocal_arc_matching_arrangement_arc",
+    "extended_intro_as_patience_demand",
+    "graceful_textural_decay_from_climax_to_resolution"
+  ]
+}

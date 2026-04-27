@@ -1,0 +1,259 @@
+{
+  "_provenance": "claude_extracted_v2",
+  "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
+  "_review_status": "draft_pending_user_review",
+  "_overall_confidence": "high_for_structure_tempo_and_live_drums_documentation_medium_for_exact_pitch_content",
+  "_high_confidence_fields": [
+    "time_signature (4/4 throughout)",
+    "track_runtime",
+    "tempo (122-128 BPM)",
+    "structural_blueprint (verse-chorus-verse-chorus-bridge-final chorus, commercial single economy)",
+    "live drums by Dave Grohl (documented as With Teeth drummer)",
+    "industrial-rock single repositioning after Fragile's extended-form era"
+  ],
+  "_to_verify_fields": [
+    "exact key area B minor vs A minor reading of the riff",
+    "tuning_documented (standard vs detuned variant)",
+    "exact bar counts of bridge",
+    "whether Grohl plays this specific track (he's documented across multiple With Teeth tracks; THTF likely but verify)"
+  ],
+
+  "_status": "C4_5c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
+  "album": "With Teeth",
+  "year": 2005,
+  "tempo_bpm_documented_range": [122, 128],
+  "time_signature": "4/4 throughout — driving rock-single backbone. No metric tricks; the energy comes from sustained 4/4 propulsion at ~125 BPM, the inverse of March of the Pigs' metric disruption strategy.",
+  "key_area": "B minor area with chromatic riff motion and characteristic Reznor suspended/chromatic voicings. Verse riff cycles around the b-minor tonic with chromatic descending tail; chorus opens slightly toward relative major area before returning. Functional minor-key motion executed at rock-single economy.",
+  "tuning_documented": "Standard tuning on guitars (likely) plus extensive synthesizer/sample/programmed content. Drop tunings possible — to verify against published transcription.",
+  "track_runtime": "~3:31",
+
+  "composition": {
+    "structural_blueprint": "short_programmed_intro (a few bars of synth/drum-machine pulse establishing the riff and tempo) -> verse1_full_band (Grohl live drums, distorted bass synth, processed rhythm guitars, Reznor moderate-aggression vocal entering on the riff cycle) -> chorus1 (hook expansion, vocal projects to full power, drums lift to anthem energy) -> verse2 (returns to verse density, possibly with slight textural addition) -> chorus2 (slight intensification) -> bridge (brief tension build — typically vocal + reduced rhythm section + Grohl fill leading back) -> final_chorus (full intensity with possible additional vocal layers / extra programmed percussion) -> outro_compact (short ending, abrupt or minimal fade)",
+    "section_count_and_lengths": {
+      "intro": "Brief — approximately 4-8 bars of programmed pulse before vocal/full-band entry",
+      "verses": "Approximately 16 bars each (8-bar phrase x 2)",
+      "choruses": "Approximately 8-16 bars each, hook delivered repeatedly",
+      "bridge": "Approximately 8 bars — brief by industrial-rock standards (commercial single economy)",
+      "final_chorus_and_outro": "Final chorus extended slightly with outro tail",
+      "_note": "Bar counts approximate. Total runtime 3:31 = tight commercial-single economy. Compositional 'movement' compact compared to Fragile's extended-form tracks (We're In This Together's 7:16 etc.)."
+    },
+    "harmonic_motion": "Minor-modal with chromatic riff motion. Verse riff established on b-minor tonic with chromatic descending tail (typical Reznor chromatic move). Chorus shifts slightly to relative major area before resolving back to minor. Functional but compact — voice-leading rock-single craft, no extended modal exploration.",
+    "modal_choice": "B minor (Aeolian) with characteristic chromatic ornamentation in the riff. Less Phrygian-tinged than March of the Pigs; more straightforward minor-key rock with industrial overlay.",
+    "melodic_contour": "Verse vocal contour is RIFF-DRIVEN — Reznor's phrasing locks to the chromatic riff line, melodic shape mirroring the descending chromatic motion. Chorus contour opens — sustained higher notes on the hook ('the hand that feeds'), wider intervallic leaps for anthemic effect. Bridge contour drops back to verse-area before final lift.",
+    "characteristic_riff_construction": "Single-riff song — built around a syncopated, chromatic, mid-register guitar/synth riff that locks to the kick-snare grid. Riff is rhythmically aggressive (16th-note attacks, palm-muted feel even in distorted form) and harmonically chromatic (b-minor tonic with descending chromatic tail). Riff repeats throughout verses with minimal variation — its tightness IS the song's identity.",
+    "harmonic_pacing": "Slow at the chord level (single tonal area) but RAPID at the riff/event level (chromatic descents create perceived chord motion within each measure). Chorus harmonic pacing slightly opens — more chord-color motion, but still compact.",
+    "phrase_symmetry": "Symmetric 4-bar and 8-bar phrasing throughout. Pop-rock standard symmetry — 16-bar verses, 16-bar choruses, 8-bar bridge. Symmetry serves commercial accessibility; this is the antithesis of March of the Pigs' 7+7+7+8 asymmetry. Within the same artist, two opposite phrase-symmetry strategies."
+  },
+
+  "arrangement": {
+    "instrumentation_complete": [
+      "Live drums (Dave Grohl, documented across multiple With Teeth tracks)",
+      "Programmed sample triggers + industrial percussion samples (layered onto Grohl's live drums)",
+      "Distorted bass synth (Reznor, possibly with some live bass layering)",
+      "Distorted/processed rhythm guitars (Reznor — multiple layers tracked separately for stereo width)",
+      "Synthesizer pads and lead synth lines (Reznor's With Teeth-era expanded synth palette)",
+      "Lead vocal (Trent Reznor, moderate-aggression rock-single delivery)",
+      "Possible vocal harmony layers in chorus (less than Fragile-era stacking)"
+    ],
+    "section_instrumentation": {
+      "intro": "Programmed pulse + minimal harmonic content — establishes tempo and tonal area before full band enters",
+      "verse": "Grohl live drums + distorted bass synth + processed rhythm guitars + Reznor moderate-aggression vocal + selectively layered programmed sample triggers",
+      "chorus": "Full-band lift — Grohl drums to anthem-power, guitars project hook, vocal projects, possible additional vocal layering, possible chorus-specific synth lead",
+      "bridge": "Reduced texture — possibly vocal foregrounded with thinner rhythm section, Grohl fill builds back to final chorus",
+      "final_chorus": "Maximum density — all chorus elements + possible additional layering",
+      "outro": "Compact ending; abrupt or short fade"
+    },
+    "vocal_layering_strategy": "Less layered than Fragile-era tracks (We're In This Together's anthemic stacking). Lead vocal forward, with selective backing/doubling on chorus hook. Commercial-single tighter aesthetic — vocal must be intelligible for radio. No screamed/distorted verse vocal pole here; Reznor chooses moderate-aggression position between his scream and clean poles.",
+    "dynamic_arc_overall": "Standard rock-single dynamic arc — verse moderate, chorus lift, bridge dip, final chorus full. Less sawtooth than March of the Pigs' verse-chorus inversion; this is the conventional loud-chorus paradigm Reznor inverted on Spiral but embraces here for commercial accessibility. Sustained intensity throughout — no extended quiet sections.",
+    "instrumental_role_assignment": {
+      "guitar_role": "Rhythm-harmonic primary — drives the riff in stereo (hard L/R panned distorted guitars). More rock-traditional than earlier NIN guitar deployments which were textural-aggression or atmospheric. Here guitar plays rock-single rhythmic-harmonic role.",
+      "bass_role": "Distorted bass synth providing rock-single low-frequency foundation. Bass-kick coordination tight with Grohl's live kick — power-trio-style bass-kick lock embedded within industrial production.",
+      "drums_role": "GROHL LIVE DRUMS as rhythmic foundation — first major NIN album with substantial live drumming as foundation rather than as occasional overlay. Programmed sample triggers and industrial percussion layered ON TOP of live drums. Hybrid: live foundation + programmed overlay (opposite of Spiral's programmed-foundation paradigm).",
+      "vocal_role": "Rock-single lead — between Reznor's scream and clean poles, projected for commercial intelligibility. Hook-emphasized chorus delivery. Vocal carries the political-protest content ('the hand that feeds' = lyrics targeting authority and complicity)."
+    },
+    "harmonic_density_per_section": {
+      "intro": "Low — programmed pulse, minimal harmonic stacking",
+      "verse": "Medium — distorted guitars + bass synth + drums + vocal, but each element disciplined for rock-single clarity",
+      "chorus": "Medium-high — additional vocal layering + possible synth lead + maximum drum power",
+      "bridge": "Low-medium — reduced texture for tension contrast",
+      "final_chorus": "High — all elements active, possible additional layering"
+    },
+    "arrangement_anti_patterns_avoided": [
+      "No tempo changes (sustained 122-128 BPM rock-single drive)",
+      "No vocal pitch correction (Reznor signature)",
+      "No extended bridge sections (commercial single economy priority)",
+      "No genre-experimentation outside industrial-rock single template",
+      "No drum sample replacement of Grohl's live performance (live foundation preserved)"
+    ]
+  },
+
+  "performance": {
+    "tempo_feel_description": "Driving rock-single forward motion at sustained ~125 BPM. Feels rock-physical because of Grohl's live drums (kit physicality unmissable) but also industrial-textured because of programmed sample triggers blended on top. The tempo enables commercial-single accessibility without sacrificing aggression.",
+    "drum_style": {
+      "performer": "Dave Grohl (live drums) + Trent Reznor (programmed sample triggers + industrial percussion overlay)",
+      "feel": "Live rock-physical drumming adapted to industrial context. Grohl's documented power approach preserved; sample triggers blend with live drums rather than replacing them.",
+      "techniques_documented": [
+        "Live kick + snare backbone driving 4/4 at ~125 BPM with Grohl's documented power",
+        "Hi-hat 8ths or 16ths driving forward through verses",
+        "Snare strong on beats 2 and 4 (rock-single backbone)",
+        "Drum fills more rock-physical than typical NIN — Grohl's drumming personality preserved within Reznor's framework",
+        "Sample triggers + industrial percussion samples blended subtly with live drums",
+        "Cymbal accents articulating chorus lifts and section transitions"
+      ],
+      "groove_feel_alignment": "Rock-physical groove with industrial-tight overlay. Listener feels Grohl's kit physicality but also senses programmed precision underneath. Hybrid feel impossible in pre-With-Teeth NIN catalog.",
+      "fills_and_transitions": "Grohl-character drum fills mark verse-to-chorus and chorus-to-verse transitions. Bridge-to-final-chorus often features extended Grohl fill as the song's drumming climax."
+    },
+    "guitar_style": {
+      "performer": "Trent Reznor (primary, with possible studio-track collaborator overdubs)",
+      "feel_per_section": {
+        "intro_riff": "Riff established after programmed intro; entry sharp, distorted, locked to the live-drum grid",
+        "verse": "Aggressive distorted rhythm guitar driving the chromatic riff, palm-muted feel even in distorted form",
+        "pre_chorus": "N/A — bridge functions as pre-final-chorus instead",
+        "chorus": "Chord-emphasized chorus guitars, wider voicings, possible additional layered guitar for hook emphasis",
+        "bridge_solo": "No traditional guitar solo (would be tonal indulgence inappropriate to industrial-rock-single vocabulary). Bridge typically thins guitars for vocal focus."
+      },
+      "techniques_documented": [
+        "Distorted guitar amps + heavy pedal chains (continued Reznor palette from Spiral/Fragile)",
+        "Multiple guitar layers tracked separately for stereo width — each layer with different mic/amp/pedal for textural variety",
+        "Riff-driven verse guitar establishing harmonic motion; chord-emphasized chorus guitars",
+        "Hard L/R stereo placement of distorted rhythm guitars for commercial-single impact"
+      ],
+      "playing_style_versus_other_grunge": "More rock-traditional than earlier NIN guitar deployments. Where March of the Pigs guitar functioned as TEXTURAL AGGRESSION serving the drum-machine grid, The Hand That Feeds guitar plays a more conventional rock-band rhythmic-harmonic role. Closer to commercial industrial-rock crossover (Linkin Park, A Perfect Circle) than to Spiral's industrial extremity."
+    },
+    "vocal_delivery": {
+      "performer": "Trent Reznor",
+      "verse_delivery": "Moderate-aggression rock-single vocal — sits between Reznor's scream pole (Spiral) and his clean atmospheric pole (parts of Fragile). Projected for commercial-single accessibility while retaining Reznor identity. Phrasing locks to the riff's chromatic descents.",
+      "chorus_delivery": "Full emotional projection with hook emphasis — chorus vocal designed to hook the listener on the line 'won't you bite the hand that feeds you.' Wider intervallic leaps; sustained higher notes for anthem effect.",
+      "outro_delivery": "Compact — possibly extended hook delivery into final repetitions before abrupt or short-fade ending",
+      "documented_vocal_quirks": [
+        "Reznor demonstrates rock-single vocal capacity between his industrial-extremity and atmospheric-vulnerability poles",
+        "Multiple vocal takes selected/comped (continued Reznor approach)",
+        "Chorus vocal hooks designed for radio impact",
+        "Less vocal layering than We're In This Together's anthemic approach (commercial-single tighter aesthetic)",
+        "Lyrics deliver political-protest content: critique of authority and complicity"
+      ]
+    },
+    "performance_anti_patterns_avoided": [
+      "No quantization-corrected programming (Grohl's live human feel preserved)",
+      "No vocal pitch correction",
+      "No tempo changes",
+      "No extended sections (commercial-single economy)",
+      "No drum sample replacement of Grohl's live performance"
+    ]
+  },
+
+  "stylistic_figures": {
+    "_note": "Production gestures and figures of style — the rises, drops, transitions, climaxes, special effects that define the track's compositional identity beyond pure pitch/rhythm content. Cross-mining target.",
+    "transitions_between_sections": [
+      {
+        "where": "intro_programmed -> verse1_full_band",
+        "type": "live_drum_kit_smash_entry_after_programmed_intro",
+        "description": "After a few bars of programmed pulse, Grohl's live kit slams in on the downbeat — the live drum entry IS the transition. Programmed-to-live transition is the first signature gesture.",
+        "extractable_concept": "live_drums_smash_in_after_programmed_intro_as_transition_device"
+      },
+      {
+        "where": "verse -> chorus",
+        "type": "drum_fill_lift_into_anthem_chorus",
+        "description": "Standard rock-single drum fill from Grohl marks the verse-to-chorus transition. Fill rises in intensity; chorus lands with full-band lift. Conventional but executed at high quality.",
+        "extractable_concept": "grohl_style_drum_fill_lift_into_chorus"
+      },
+      {
+        "where": "chorus -> verse2 / bridge",
+        "type": "drum_punctuation_back_to_verse_density",
+        "description": "Brief drum punctuation marks the chorus-out, returning to verse density without extended fade. Compact transition appropriate to commercial-single economy.",
+        "extractable_concept": "compact_drum_punctuation_chorus_to_verse"
+      },
+      {
+        "where": "bridge -> final_chorus",
+        "type": "extended_grohl_fill_as_lift",
+        "description": "Bridge thins to vocal + reduced rhythm section. Grohl delivers an extended drum fill that builds back to the final chorus — the song's drumming climax moment. Live drum capacity exploited compositionally.",
+        "extractable_concept": "extended_drum_fill_bridge_to_final_chorus"
+      },
+      {
+        "where": "final_chorus -> outro",
+        "type": "compact_ending",
+        "description": "Final chorus extended slightly then ends compactly — abrupt cut or very short fade. No extended outro jam (commercial-single economy).",
+        "extractable_concept": "compact_ending_no_extended_outro"
+      }
+    ],
+    "risers_and_builds": [
+      {
+        "where": "bridge to final_chorus",
+        "type": "drum_fill_riser_via_live_kit",
+        "duration_bars": "approximately 2-4 bars",
+        "description": "The track's only true riser is the bridge-to-final-chorus drum fill. No synthesized noise sweep needed — Grohl's live fill IS the riser. Live-drum capacity replaces electronic riser device.",
+        "extractable_concept": "live_drum_fill_replaces_synth_riser"
+      }
+    ],
+    "cutoffs_and_filter_moves": [
+      {
+        "where": "verse-to-chorus transitions",
+        "type": "subtle_filter_open_on_synth_layer",
+        "description": "Subtle low-pass filter opening on the bass synth or pad layer at chorus entry contributes to the lift feeling. Not aggressive sweeps; subtle production gesture supporting the drum/vocal lift.",
+        "extractable_concept": "subtle_filter_open_supporting_chorus_lift"
+      },
+      {
+        "where": "bridge",
+        "type": "instrumentation_thinning_as_cutoff",
+        "description": "Bridge accomplishes its dynamic dip via instrumentation subtraction (thinned guitars, reduced drum activity) rather than via filter automation. Performance-based cutoff rather than processing-based.",
+        "extractable_concept": "subtractive_cutoff_via_thinned_instrumentation"
+      }
+    ],
+    "drops_and_breakdowns": [
+      {
+        "where": "bridge",
+        "type": "brief_dynamic_dip_for_tension_release",
+        "description": "Bridge functions as a brief breakdown — drums reduce, guitars thin, vocal foregrounds. Not an inverted-drop in the March of the Pigs sense; this is a conventional rock-bridge dip that releases into the final chorus payoff.",
+        "extractable_concept": "conventional_rock_bridge_dip_for_final_chorus_payoff"
+      }
+    ],
+    "climax_moments": [
+      {
+        "where": "final_chorus with extended Grohl fill leading in",
+        "type": "anthem_chorus_with_drum_climax",
+        "description": "The song's climax is the final chorus, lifted in by Grohl's extended bridge-out fill. Maximum density: full live drums at peak power, all guitar layers active, vocal at full projection, possible additional vocal layering. Conventional rock-single climax executed at high quality.",
+        "extractable_concept": "anthem_chorus_climax_with_drum_fill_lead_in"
+      }
+    ],
+    "special_effects_and_textural_devices": [
+      {
+        "type": "live_drums_with_programmed_overlay_hybrid",
+        "description": "Grohl live drums as foundation + programmed sample triggers + industrial percussion samples blended on top. Hybrid distinct from pure-programmed (Spiral) or pure-live (rock band) paradigms. Listener may not consciously distinguish elements but FEELS the difference — rock-physical energy + industrial texture.",
+        "extractable_concept": "live_drums_with_programmed_overlay_hybrid"
+      },
+      {
+        "type": "distorted_guitars_hard_panned_for_commercial_single_impact",
+        "description": "Multiple distorted rhythm guitar layers tracked separately and panned hard L/R. Stereo width is aggressive for radio-rock commercial impact while preserving industrial-production identity in the central image (synths, programmed elements).",
+        "extractable_concept": "hard_panned_distorted_guitars_industrial_center"
+      },
+      {
+        "type": "vocal_processing_committed_during_recording",
+        "description": "Reznor's verse vocal carries committed processing (compression, slight saturation, possible parallel chains) baked into the track during recording rather than added in mix. Continuation of his aesthetic — vocal timbre is part of the performance, not a mix decision.",
+        "extractable_concept": "vocal_processing_committed_during_recording"
+      },
+      {
+        "type": "programmed_sample_triggers_punctuating_live_drums",
+        "description": "Industrial percussion samples (metal hits, processed claps, glitch fragments) trigger at specific points to punctuate the live drum performance. Not a constant blanket — spotted strategically for industrial flavor.",
+        "extractable_concept": "spot_industrial_samples_punctuating_live_drums"
+      }
+    ]
+  },
+
+  "the_moment_people_remember": {
+    "primary": "The chorus hook 'will you bite the hand that feeds you' — anthemic projected vocal over full-band lift. The political-protest payload combined with the catchy hook is the core memory.",
+    "secondary": "Grohl's live drumming foundation — listeners who know NIN feel the difference from earlier programmed-only NIN. The rock-physical kick-snare backbone is unmistakable.",
+    "tertiary": "The chromatic verse riff — short, syncopated, immediately identifiable, locking guitars/synths to the kick-snare grid"
+  },
+
+  "advisor_extract": [
+    "live_drums_with_programmed_overlay_hybrid",
+    "industrial_rock_single_economy_three_minutes_thirty",
+    "rock_drummer_in_industrial_production_context",
+    "moderate_aggression_vocal_between_scream_and_clean_poles",
+    "hard_panned_distorted_guitars_with_industrial_center",
+    "extended_drum_fill_as_bridge_to_final_chorus_riser",
+    "anthem_chorus_climax_in_commercial_single_economy",
+    "no_tempo_changes_sustained_4_4_drive",
+    "compact_ending_no_extended_outro"
+  ]
+}
