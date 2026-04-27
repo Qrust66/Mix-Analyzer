@@ -43,7 +43,7 @@
           ]
         },
         "Heart_Shaped_Box": {
-          "_status": "C1_1c_complete_exhaustive_gold_standard",
+          "_status": "C1_1c_complete_exhaustive_gold_standard_REVIEWED_V1",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [
@@ -300,10 +300,78 @@
               ],
               "wow_factor": 0.75
             }
-          ]
+          ],
+          "stylistic_figures": {
+            "_note": "Stylistic figures for Heart-Shaped Box — quiet/loud dynamics, bent-string riff, talkbox-like tone in the solo.",
+            "transitions_between_sections": [
+              {
+                "where": "verse -> chorus",
+                "type": "distortion_engagement_on_downbeat",
+                "description": "Verse sits on clean/lightly-driven guitar; chorus arrives with the full distorted band slamming in on the downbeat. The transition is achieved by stomp-on-distortion + drum pattern shift, no riser or fill underneath.",
+                "extractable_concept": "clean_to_distorted_engagement_on_downbeat"
+              },
+              {
+                "where": "chorus -> verse",
+                "type": "instant_dynamic_drop_back_to_clean",
+                "description": "End of chorus snaps back to the bent-string clean riff with no transition bar — the band simply pulls amplitude on the next downbeat.",
+                "extractable_concept": "instant_drop_back_to_quiet_no_transition"
+              },
+              {
+                "where": "second chorus -> guitar solo",
+                "type": "lead_line_replaces_vocal_same_chord_bed",
+                "description": "Solo enters on the same chord progression as the chorus, replacing the vocal line. No structural cue — the listener notices because Cobain's voice has dropped out.",
+                "extractable_concept": "lead_substitution_over_existing_chord_bed"
+              }
+            ],
+            "risers_and_builds": [
+              {
+                "where": "pre-chorus / final chorus approach",
+                "type": "vocal_intensity_build_no_synth_riser",
+                "duration_bars": "2-4 bars",
+                "description": "Cobain's vocal goes from murmured low register in the verse to full strain at the chorus. The 'build' is performance-driven (vocal commitment increasing) rather than via filter/noise sweeps.",
+                "extractable_concept": "build_via_vocal_strain_curve_only"
+              }
+            ],
+            "cutoffs_and_filter_moves": [
+              {
+                "where": "guitar solo",
+                "type": "wah_envelope_movement",
+                "description": "The solo uses a wah-pedal in fixed/half-cocked positions producing a vocal-formant resonance that mimics a band-pass filter sweep. Not modulated heavily, used as fixed tonal stamp.",
+                "extractable_concept": "fixed_wah_position_as_band_pass_color"
+              }
+            ],
+            "drops_and_breakdowns": [
+              {
+                "where": "chorus_end -> verse_return",
+                "type": "inverted_drop_back_to_quiet",
+                "description": "After each chorus the band collapses back to the spare verse texture. This is the rock-equivalent of an EDM drop in reverse — release happens by going quiet.",
+                "extractable_concept": "inverted_drop_release_into_quiet"
+              }
+            ],
+            "climax_moments": [
+              {
+                "where": "final chorus repeats / outro",
+                "type": "vocal_scream_on_repeated_hook",
+                "description": "Cobain pushes the final 'hey, wait!' hook to full distorted scream over the loudest band texture. Climax is performance-led, not arrangement-additive.",
+                "extractable_concept": "climax_via_vocal_distortion_threshold"
+              }
+            ],
+            "special_effects_and_textural_devices": [
+              {
+                "type": "bent_string_clean_riff_signature",
+                "description": "Verse riff features a slow whole-step bend on a clean tone with chorus/flanger color — instantly identifiable timbral fingerprint.",
+                "extractable_concept": "clean_chorus_pedal_with_pitch_bend_as_hook"
+              },
+              {
+                "type": "cello_arrangement_buried_in_choruses",
+                "description": "Kera Schaley's cello sits low in the chorus mix, thickening the harmonic floor without taking foreground. A textural-only addition that you feel before you hear.",
+                "extractable_concept": "subliminal_string_layer_under_distortion"
+              }
+            ]
+          }
         },
         "Dumb": {
-          "_status": "C1_2c_complete_exhaustive",
+          "_status": "C1_2c_complete_exhaustive_REVIEWED_V1",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [
@@ -582,10 +650,71 @@
               "wow_factor": 0.65,
               "implementation_for_modern_compositions": "In MIDI vocal-synth context: avoid velocity peaks above 95, keep pitch wobble minimal (no extreme vibrato), use breath-noise sample triggers between phrases for intimacy"
             }
-          ]
+          ],
+          "stylistic_figures": {
+            "_note": "Stylistic figures for Dumb — minimal acoustic-leaning ballad with cello, almost no production gestures.",
+            "transitions_between_sections": [
+              {
+                "where": "verse -> chorus",
+                "type": "cello_entry_marks_section",
+                "description": "The cello layer enters / thickens on the chorus, marking the section change with timbre rather than dynamics. Drums and guitar pattern continue largely unchanged.",
+                "extractable_concept": "section_change_via_string_layer_entry"
+              },
+              {
+                "where": "chorus -> verse_return",
+                "type": "cello_subtraction",
+                "description": "Cello drops back out for the next verse — section boundary defined by removing the layer rather than by a fill.",
+                "extractable_concept": "section_change_via_layer_subtraction"
+              }
+            ],
+            "risers_and_builds": [
+              {
+                "where": "N/A — ballad track",
+                "type": "no_risers_used",
+                "description": "Dumb has no rising-build gestures. The track is intentionally flat-dynamic, riding a single quiet plateau with mild variation.",
+                "extractable_concept": "compositional_choice_no_builds_for_subdued_ballad"
+              }
+            ],
+            "cutoffs_and_filter_moves": [
+              {
+                "where": "N/A",
+                "type": "no_filter_moves_used",
+                "description": "No filter automation or cutoffs — clean acoustic-leaning electric tone throughout, no production-side modulation.",
+                "extractable_concept": "compositional_choice_no_filter_moves_for_acoustic_arrangement"
+              }
+            ],
+            "drops_and_breakdowns": [
+              {
+                "where": "N/A",
+                "type": "no_drops_used",
+                "description": "Track has no breakdowns or drops. It hovers near one dynamic level start to finish.",
+                "extractable_concept": "compositional_choice_flat_dynamic_arc"
+              }
+            ],
+            "climax_moments": [
+              {
+                "where": "final chorus refrain",
+                "type": "soft_climax_via_cello_swell",
+                "description": "The closest thing to a climax is the cello becoming slightly more present in the final chorus while Cobain's vocal lifts a notch in commitment. Stays well below rock-loud level.",
+                "extractable_concept": "soft_climax_via_string_swell_only"
+              }
+            ],
+            "special_effects_and_textural_devices": [
+              {
+                "type": "cello_doubling_vocal_contour",
+                "description": "Cello traces a slow line that mirrors Cobain's melodic descent, creating a subliminal harmony layer rather than a counter-melody.",
+                "extractable_concept": "string_doubles_vocal_descent_contour"
+              },
+              {
+                "type": "raw_undressed_production_aesthetic",
+                "description": "No reverb tail, no chorus pedal, no special effects — Albini's documentary sound aesthetic. The 'effect' is the absence of effects.",
+                "extractable_concept": "documentary_dryness_as_aesthetic"
+              }
+            ]
+          }
         },
         "Territorial_Pissings": {
-          "_status": "C1_3c_complete_exhaustive",
+          "_status": "C1_3c_complete_exhaustive_REVIEWED_V1",
           "album": "Nevermind",
           "year": 1991,
           "tempo_bpm_documented_range": [
@@ -858,10 +987,71 @@
               "wow_factor": 0.65,
               "implementation_for_modern_compositions": "In MIDI vocal-synth context: use velocity randomization to simulate screaming variation, but DO NOT layer multiple synth voices. One voice. Allow pitch wobble (not pitch correction) for authenticity."
             }
-          ]
+          ],
+          "stylistic_figures": {
+            "_note": "Stylistic figures for Territorial Pissings — short, blistering hardcore-inflected punk track.",
+            "transitions_between_sections": [
+              {
+                "where": "intro_a_capella_quote -> full_band",
+                "type": "abrupt_full_band_slam_after_vocal_quote",
+                "description": "Krist Novoselic's spoken/sung 'Come on people now, smile on your brother' (Youngbloods quote) cuts off mid-line and the full band slams in at maximum aggression on the next downbeat. Maximum contrast intro device.",
+                "extractable_concept": "ironic_acapella_quote_into_max_aggression_slam"
+              },
+              {
+                "where": "verse -> chorus",
+                "type": "tempo_static_dynamic_static_lyric_shift_only",
+                "description": "Verse and chorus are both at maximum intensity — section change is signaled by the lyric/melodic phrase change, not by any dynamic gesture. Band stays fully engaged.",
+                "extractable_concept": "section_change_via_lyric_only_no_dynamic_marker"
+              }
+            ],
+            "risers_and_builds": [
+              {
+                "where": "N/A",
+                "type": "no_risers_used",
+                "description": "Track operates at maximum aggression from the first downbeat. No rising builds — energy is established not earned.",
+                "extractable_concept": "compositional_choice_max_intensity_from_bar_one"
+              }
+            ],
+            "cutoffs_and_filter_moves": [
+              {
+                "where": "N/A",
+                "type": "no_filter_moves_used",
+                "description": "Punk-aesthetic forbids filter motion. Distortion is on at full and stays on.",
+                "extractable_concept": "compositional_choice_no_filter_motion_for_hardcore_aesthetic"
+              }
+            ],
+            "drops_and_breakdowns": [
+              {
+                "where": "outro chaos",
+                "type": "feedback_collapse_breakdown",
+                "description": "Track ends with the band degenerating into feedback and noise — Cobain reportedly destroying his guitar at the end. A 'breakdown' through entropy rather than arrangement subtraction.",
+                "extractable_concept": "outro_collapse_via_feedback_and_noise"
+              }
+            ],
+            "climax_moments": [
+              {
+                "where": "throughout — perpetual peak",
+                "type": "no_single_climax_perpetual_peak",
+                "description": "Like NIN's March of the Pigs, the track has no single climax — it lives at the peak. The closest local climax is the chaotic feedback outro.",
+                "extractable_concept": "no_single_climax_perpetual_baseline_at_peak"
+              }
+            ],
+            "special_effects_and_textural_devices": [
+              {
+                "type": "ironic_vocal_quote_intro",
+                "description": "Opening with the Youngbloods 'Get Together' quote is a stylistic gesture — irony achieved by juxtaposing peace-and-love folk material with hardcore aggression that follows.",
+                "extractable_concept": "intertextual_quote_as_ironic_setup"
+              },
+              {
+                "type": "feedback_as_outro_signature",
+                "description": "Sustained guitar feedback overtakes the song at the end — pre-mixed, performed live in the studio.",
+                "extractable_concept": "feedback_as_compositional_outro_element"
+              }
+            ]
+          }
         },
         "Very_Ape": {
-          "_status": "C1_4c_complete_exhaustive",
+          "_status": "C1_4c_complete_exhaustive_REVIEWED_V1",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [
@@ -1120,10 +1310,71 @@
               "wow_factor": 0.65,
               "philosophical_note": "Both philosophies are valid — neither is inherently 'better'. The choice depends on: room quality (good rooms favor Albini), commercial target (radio favors Wallace), composition intent (slow burn favors Albini, max-density punk favors Wallace). The advisor must select based on context."
             }
-          ]
+          ],
+          "stylistic_figures": {
+            "_note": "Stylistic figures for Very Ape — short two-minute punk-pop track with distinctive bass-led intro.",
+            "transitions_between_sections": [
+              {
+                "where": "intro_bass_alone -> full_band_entry",
+                "type": "bass_riff_alone_then_band_slam",
+                "description": "Track opens with the bass riff exposed for a couple of bars before the full band joins on a downbeat. Establishes the riff melody first, then slams the rhythm section in.",
+                "extractable_concept": "bass_first_exposure_then_band_slam_in"
+              },
+              {
+                "where": "verse -> chorus",
+                "type": "distortion_engagement_increase",
+                "description": "Verse uses a slightly thinner guitar tone; chorus engages full distortion and chord stabs. Subtle but present timbral lift.",
+                "extractable_concept": "subtle_distortion_step_up_at_chorus"
+              }
+            ],
+            "risers_and_builds": [
+              {
+                "where": "N/A — too short for builds",
+                "type": "no_risers_used",
+                "description": "At ~1:55 the track has no time for rising builds. Each section is roughly the same intensity, just timbrally distinguished.",
+                "extractable_concept": "compositional_choice_no_builds_short_form_punk"
+              }
+            ],
+            "cutoffs_and_filter_moves": [
+              {
+                "where": "N/A",
+                "type": "no_filter_moves_used",
+                "description": "Punk-rock vocabulary, no filter automation.",
+                "extractable_concept": "compositional_choice_no_filter_for_punk_aesthetic"
+              }
+            ],
+            "drops_and_breakdowns": [
+              {
+                "where": "N/A",
+                "type": "no_drops_used",
+                "description": "Track stays consistently engaged — no breakdown sections.",
+                "extractable_concept": "compositional_choice_no_breakdowns_short_form"
+              }
+            ],
+            "climax_moments": [
+              {
+                "where": "outro chorus repeats",
+                "type": "vocal_repetition_intensifying",
+                "description": "Cobain repeats the 'I'm buried up to my neck in...' hook with increasing strain over the final chorus repeats. Climax is vocal commitment over a static arrangement.",
+                "extractable_concept": "climax_via_vocal_repetition_intensification"
+              }
+            ],
+            "special_effects_and_textural_devices": [
+              {
+                "type": "bass_carries_main_melodic_hook",
+                "description": "Unusually for Nirvana, the principal hook lives in the bass guitar — Krist Novoselic's riff is the recognizable element more than the vocal line.",
+                "extractable_concept": "bass_as_lead_melodic_voice"
+              },
+              {
+                "type": "raw_albini_room_sound",
+                "description": "Drums sit in a real room with audible early reflections; minimal post-processing. The 'effect' is committed room ambience.",
+                "extractable_concept": "live_room_drums_as_textural_signature"
+              }
+            ]
+          }
         },
         "All_Apologies": {
-          "_status": "C1_5c_complete_exhaustive",
+          "_status": "C1_5c_complete_exhaustive_REVIEWED_V1",
           "album": "In Utero",
           "year": 1993,
           "tempo_bpm_documented_range": [
@@ -1409,7 +1660,75 @@
               "wow_factor": 0.65,
               "philosophical_note": "Litt's mixing approach is documented as more flexible than Wallace's — Litt adapts processing to the song's needs. The advisor should recognize that 'commercial mixing' is not monolithic — the right level of intervention depends on the source material's character."
             }
-          ]
+          ],
+          "stylistic_figures": {
+            "_note": "Stylistic figures for All Apologies — restrained ballad with cello, descending vocal motif, MTV-Unplugged-anthem identity.",
+            "transitions_between_sections": [
+              {
+                "where": "intro_riff -> verse_vocal_entry",
+                "type": "vocal_drop_in_no_anticipation",
+                "description": "The clean guitar riff loops for an intro bar set, vocal simply drops in on top with no fill or count-in. Same loop continues underneath.",
+                "extractable_concept": "vocal_drop_in_over_static_loop"
+              },
+              {
+                "where": "verse -> chorus",
+                "type": "cello_thickens_drums_stay",
+                "description": "Cello presence increases at the chorus, full kit pattern stays consistent. Section change marked by timbre layering rather than dynamic jump.",
+                "extractable_concept": "section_change_via_cello_density_step"
+              },
+              {
+                "where": "final_chorus -> outro_mantra",
+                "type": "lyric_loop_takeover",
+                "description": "Track ends in the repeated 'all in all is all we are' mantra, fading out — outro is a recursive lyric loop rather than a structural finale.",
+                "extractable_concept": "outro_as_repeated_mantra_fade"
+              }
+            ],
+            "risers_and_builds": [
+              {
+                "where": "verse -> final chorus",
+                "type": "subtle_layer_accumulation",
+                "duration_bars": "across the song length",
+                "description": "Cello, vocal harmonies, and slight guitar dynamic creep build across the track without ever crossing into rock-loud territory. Build is gradual textural thickening.",
+                "extractable_concept": "build_via_string_and_harmony_accumulation_only"
+              }
+            ],
+            "cutoffs_and_filter_moves": [
+              {
+                "where": "N/A",
+                "type": "no_filter_moves_used",
+                "description": "Ballad arrangement — no filter automation or sweeps.",
+                "extractable_concept": "compositional_choice_no_filter_for_ballad_arrangement"
+              }
+            ],
+            "drops_and_breakdowns": [
+              {
+                "where": "N/A",
+                "type": "no_drops_used",
+                "description": "Track has no drops or breakdowns; stays in a single mid-low dynamic plateau.",
+                "extractable_concept": "compositional_choice_no_drops_in_subdued_arrangement"
+              }
+            ],
+            "climax_moments": [
+              {
+                "where": "outro mantra section",
+                "type": "soft_climax_via_repetition_and_string_swell",
+                "description": "Climax is the repeated 'all in all is all we are' over swelling cello and harmonies — emotional rather than dynamic peak.",
+                "extractable_concept": "soft_climax_via_repeated_mantra_and_strings"
+              }
+            ],
+            "special_effects_and_textural_devices": [
+              {
+                "type": "cello_as_harmonic_thickener",
+                "description": "Kera Schaley's cello provides the principal harmonic layer beyond the guitar, lower than the vocal — feel-it-don't-hear-it role.",
+                "extractable_concept": "cello_subliminal_harmonic_floor"
+              },
+              {
+                "type": "fade_out_on_mantra_loop",
+                "description": "Track fades on a repeated lyric loop rather than ending on a hit — gives the song an open, unresolved exit.",
+                "extractable_concept": "open_ended_fade_on_lyric_loop"
+              }
+            ]
+          }
         }
       },
       "Soundgarden": {
@@ -1434,7 +1753,7 @@
           ]
         },
         "Jesus_Christ_Pose": {
-          "_status": "C2_1c_complete_exhaustive",
+          "_status": "C2_1c_complete_exhaustive_REVIEWED_V1",
           "album": "Badmotorfinger",
           "year": 1991,
           "tempo_bpm_documented_range": [
@@ -1723,10 +2042,77 @@
               "wow_factor": 0.65,
               "philosophical_note": "Mix philosophy must match the song's DURATION as much as its content. Compact aggressive = Albini or raw works. Extended aggressive = Date-style selective compression required. The advisor should select mix approach based on duration + intensity, not just intensity alone."
             }
-          ]
+          ],
+          "stylistic_figures": {
+            "_note": "Stylistic figures for Jesus Christ Pose — high-tempo aggressive Soundgarden track with prominent meter games.",
+            "transitions_between_sections": [
+              {
+                "where": "intro_drums_alone -> riff_entry",
+                "type": "drum_count_in_then_riff_slam",
+                "description": "Cameron's drum intro alone establishes the breakneck tempo before the guitars slam in on a downbeat. No riser or noise device.",
+                "extractable_concept": "drum_only_intro_then_full_band_slam"
+              },
+              {
+                "where": "verse -> chorus",
+                "type": "riff_pattern_shift_no_dynamic_drop",
+                "description": "Both verse and chorus are at maximum aggression — the section change is signaled by Thayil's riff flipping to a different chord pattern. No quiet bar between them.",
+                "extractable_concept": "section_change_via_riff_pattern_only_no_dynamic_event"
+              },
+              {
+                "where": "chorus -> instrumental_section",
+                "type": "abrupt_riff_pivot_to_solo",
+                "description": "Track pivots into Thayil's solo over a modified riff bed — band stays full-on, lead voice changes from vocal to guitar.",
+                "extractable_concept": "lead_substitution_over_modified_riff_bed"
+              }
+            ],
+            "risers_and_builds": [
+              {
+                "where": "N/A",
+                "type": "no_risers_used",
+                "description": "Track operates near maximum aggression from the start. No noise risers or build sections.",
+                "extractable_concept": "compositional_choice_no_builds_immediate_intensity"
+              }
+            ],
+            "cutoffs_and_filter_moves": [
+              {
+                "where": "throughout — flange/phase character on guitars",
+                "type": "subtle_modulation_color",
+                "description": "Thayil's guitar tone has subtle phaser/flanger color in spots, providing band-pass-like timbral motion without explicit filter sweeps.",
+                "extractable_concept": "phase_modulation_as_subtle_filter_substitute"
+              }
+            ],
+            "drops_and_breakdowns": [
+              {
+                "where": "mid-song breakdown",
+                "type": "rhythm_sparsen_for_a_few_bars",
+                "description": "Briefly the rhythm pattern thins (drums and bass continue, guitar drops out or simplifies) before slamming back in. Functions as a micro-breakdown without going quiet.",
+                "extractable_concept": "guitar_dropout_micro_breakdown_no_dynamic_collapse"
+              }
+            ],
+            "climax_moments": [
+              {
+                "where": "Cornell scream sections",
+                "type": "vocal_high_register_scream_climax",
+                "description": "Cornell's high-register screams form the song's repeating climaxes — top of his range, sustained, with drum/guitar at full lock underneath.",
+                "extractable_concept": "vocal_high_scream_as_recurring_climax"
+              }
+            ],
+            "special_effects_and_textural_devices": [
+              {
+                "type": "odd_meter_inside_aggressive_groove",
+                "description": "The riffs sit in 7/4 (or shifting groupings) while feeling like 4/4 aggression — meter complexity hidden under raw energy.",
+                "extractable_concept": "odd_meter_disguised_as_4_4_aggression"
+              },
+              {
+                "type": "guitar_drone_layer_under_riff",
+                "description": "Sustained drone notes from a second guitar track provide pedal-tone harmonic floor under the riff — adds weight without distinct figure.",
+                "extractable_concept": "drone_pedal_tone_under_active_riff"
+              }
+            ]
+          }
         },
         "Fell_On_Black_Days": {
-          "_status": "C2_2c_complete_exhaustive",
+          "_status": "C2_2c_complete_exhaustive_REVIEWED_V1",
           "album": "Superunknown",
           "year": 1994,
           "tempo_bpm_documented_range": [
@@ -2004,10 +2390,78 @@
               "wow_factor": 0.65,
               "philosophical_note": "Cornell could sing JCP's high-range exploitation OR FOBD's selective range deployment. Same vocalist, two compositional approaches. The advisor should select range usage based on song's emotional intent, not just vocalist's capability."
             }
-          ]
+          ],
+          "stylistic_figures": {
+            "_note": "Stylistic figures for Fell On Black Days — mid-tempo, brooding, downtuned Superunknown track.",
+            "transitions_between_sections": [
+              {
+                "where": "intro_riff -> verse_vocal_entry",
+                "type": "vocal_drop_in_over_static_riff",
+                "description": "Riff loops without change as vocal enters — no fill, no anticipation. Same texture continues.",
+                "extractable_concept": "vocal_drop_in_over_static_loop"
+              },
+              {
+                "where": "verse -> chorus",
+                "type": "harmonic_modulation_marks_chorus",
+                "description": "Chorus introduces a different chord movement (release upward) while drums shift to fuller pattern — section change is harmonic + drum-density rather than dynamic jump.",
+                "extractable_concept": "chorus_marked_by_harmonic_lift_and_drum_density"
+              },
+              {
+                "where": "chorus -> verse_return",
+                "type": "return_to_riff_loop",
+                "description": "Drum pattern relaxes, chord motion stops, riff loop resumes. Subtractive transition.",
+                "extractable_concept": "subtractive_return_to_riff_anchor"
+              }
+            ],
+            "risers_and_builds": [
+              {
+                "where": "approach to final chorus",
+                "type": "vocal_intensity_climb",
+                "duration_bars": "2-4 bars",
+                "description": "Cornell pushes harder approaching the final chorus — performance-led build rather than synth/noise riser.",
+                "extractable_concept": "build_via_vocal_strain_curve"
+              }
+            ],
+            "cutoffs_and_filter_moves": [
+              {
+                "where": "N/A",
+                "type": "no_filter_moves_used",
+                "description": "No filter automation. Tone is set with amp + pedals committed, no sweeps.",
+                "extractable_concept": "compositional_choice_no_filter_motion_committed_amp_tone"
+              }
+            ],
+            "drops_and_breakdowns": [
+              {
+                "where": "bridge / pre-final-chorus area",
+                "type": "subtractive_breakdown",
+                "description": "A short bridge thins instrumentation before reigniting for the final chorus — band drops to riff/bass/drum without lead distortion.",
+                "extractable_concept": "subtractive_bridge_before_final_chorus"
+              }
+            ],
+            "climax_moments": [
+              {
+                "where": "final chorus repeats",
+                "type": "vocal_belt_over_full_band",
+                "description": "Cornell belts the title hook 'fell on black days' at full power — climax is the highest-commitment vocal moments over the loudest band texture.",
+                "extractable_concept": "climax_via_full_band_under_vocal_belt"
+              }
+            ],
+            "special_effects_and_textural_devices": [
+              {
+                "type": "downtuned_riff_in_irregular_meter",
+                "description": "Riff is in 6/4 feel (or shifting) on detuned guitars — gives the brooding gravity that defines the track.",
+                "extractable_concept": "downtuned_irregular_meter_riff_for_brooding_tone"
+              },
+              {
+                "type": "harmony_vocal_doubling_chorus",
+                "description": "Chorus features harmony vocal layering thickening Cornell's lead — gives lift without sweetening sample-style.",
+                "extractable_concept": "harmony_doubling_for_chorus_lift"
+              }
+            ]
+          }
         },
         "My_Wave": {
-          "_status": "C2_3c_complete_exhaustive",
+          "_status": "C2_3c_complete_exhaustive_REVIEWED_V1",
           "album": "Superunknown",
           "year": 1994,
           "tempo_bpm_documented_range": [
@@ -2271,10 +2725,77 @@
               "wow_factor": 0.6,
               "philosophical_note": "Tracking priority is not just about producer's general approach but about per-song compositional needs. The advisor should help select what to capture cleanly vs what to leave atmospheric per song."
             }
-          ]
+          ],
+          "stylistic_figures": {
+            "_note": "Stylistic figures for My Wave — Superunknown opener-feel rocker in 5/4 disguised as 4/4.",
+            "transitions_between_sections": [
+              {
+                "where": "intro_riff -> verse",
+                "type": "drum_pattern_shift_marks_verse",
+                "description": "Intro riff loops; verse arrives by Cameron shifting from a sparse pattern to the full backbeat. No riser.",
+                "extractable_concept": "section_change_via_drum_pattern_shift_only"
+              },
+              {
+                "where": "verse -> chorus",
+                "type": "harmonic_lift_with_chord_change",
+                "description": "Chorus moves to a different chord set with lifted harmonic motion; drums and guitar density bump up moderately.",
+                "extractable_concept": "chorus_marked_by_harmonic_lift_modest_density_bump"
+              },
+              {
+                "where": "chorus -> bridge_solo",
+                "type": "riff_re_engagement_for_solo_bed",
+                "description": "Solo section re-engages the verse riff under Thayil's lead — vocal drops out, riff continues, lead voice substitutes.",
+                "extractable_concept": "solo_over_re_engaged_verse_riff"
+              }
+            ],
+            "risers_and_builds": [
+              {
+                "where": "N/A — track is steady-state rocker",
+                "type": "no_risers_used",
+                "description": "My Wave does not use rising builds. Sections sit at consistent intensity with mild variation.",
+                "extractable_concept": "compositional_choice_no_builds_steady_state_rocker"
+              }
+            ],
+            "cutoffs_and_filter_moves": [
+              {
+                "where": "N/A",
+                "type": "no_filter_moves_used",
+                "description": "Distortion-locked guitars, no filter sweeps.",
+                "extractable_concept": "compositional_choice_no_filter_for_committed_distortion_tone"
+              }
+            ],
+            "drops_and_breakdowns": [
+              {
+                "where": "bridge before final chorus",
+                "type": "rhythmic_thinning_breakdown",
+                "description": "Brief drop in arrangement density before the final chorus — guitars thin or pause briefly while drum/bass ride.",
+                "extractable_concept": "brief_density_drop_before_final_chorus"
+              }
+            ],
+            "climax_moments": [
+              {
+                "where": "final chorus repeats",
+                "type": "full_band_full_chorus_repeat",
+                "description": "Climax is the final chorus repeats with all members at full performance commitment — no novel arrangement element added.",
+                "extractable_concept": "climax_via_repetition_at_full_commitment"
+              }
+            ],
+            "special_effects_and_textural_devices": [
+              {
+                "type": "5_4_meter_disguised_as_4_4",
+                "description": "Riff sits in 5/4 but feels like 4/4 with extension because of the way accents land — Soundgarden signature meter trick.",
+                "extractable_concept": "odd_meter_camouflaged_with_natural_accents"
+              },
+              {
+                "type": "open_string_drone_under_chorus",
+                "description": "Open-string ringing under the chorus chords gives a guitar-drone harmonic floor — cuts through but doesn't draw attention.",
+                "extractable_concept": "open_string_drone_under_chorus_chords"
+              }
+            ]
+          }
         },
         "Overfloater": {
-          "_status": "C2_4c_complete_exhaustive",
+          "_status": "C2_4c_complete_exhaustive_REVIEWED_V1",
           "album": "Down on the Upside",
           "year": 1996,
           "tempo_bpm_documented_range": [
@@ -2578,6 +3099,81 @@
               "documented_lineage": "Adam Kasper at Studio Litho — Soundgarden Down on the Upside, Pearl Jam Yield-era work. Distinct from Beinhorn+O'Brien producer-mixer split + from Date's tracker-mixer dual role within external-producer paradigm."
             },
             "structural_choice_summary": "Extended atmospheric form, jam bridge as centerpiece, vocal-absent extended section, atmospheric continuity over dynamic contrast — Overfloater demonstrates Soundgarden's MATURE psychedelic + jam-influenced side, a structurally bold late-period choice within their catalog."
+          },
+          "stylistic_figures": {
+            "_note": "Stylistic figures for Overfloater — atmospheric Down On The Upside ballad-leaning track with slow build.",
+            "transitions_between_sections": [
+              {
+                "where": "intro_arpeggio -> verse",
+                "type": "vocal_drop_in_over_arpeggio",
+                "description": "Clean arpeggiated guitar loops; vocal enters without fill or anticipation. Texture continues.",
+                "extractable_concept": "vocal_drop_in_over_arpeggio_loop"
+              },
+              {
+                "where": "verse -> chorus",
+                "type": "distortion_engagement_with_dynamic_lift",
+                "description": "Chorus engages distortion and full kit, lifting from the spare verse texture. Bigger contrast than typical Soundgarden chorus — almost a soft/loud quiet/loud trick.",
+                "extractable_concept": "quiet_to_loud_chorus_via_distortion_engagement"
+              },
+              {
+                "where": "chorus -> verse_return",
+                "type": "drop_back_to_clean_arpeggio",
+                "description": "Distortion disengages, drums thin to a sparse pattern, verse arpeggio resumes. Inverse of the chorus engagement gesture.",
+                "extractable_concept": "drop_back_to_clean_via_distortion_disengage"
+              }
+            ],
+            "risers_and_builds": [
+              {
+                "where": "verse -> chorus arrival",
+                "type": "subtle_drum_fill_as_riser",
+                "duration_bars": "1-2 bars",
+                "description": "A brief Cameron drum fill marks the transition into the chorus — the track's only real 'riser' device, performance-led.",
+                "extractable_concept": "drum_fill_as_only_riser_device"
+              },
+              {
+                "where": "across full track",
+                "type": "global_dynamic_arc_build",
+                "duration_bars": "across song length",
+                "description": "Track gradually builds in intensity from spare opening to fuller late choruses — slow global crescendo via instrumentation density.",
+                "extractable_concept": "global_crescendo_via_instrumentation_thickening"
+              }
+            ],
+            "cutoffs_and_filter_moves": [
+              {
+                "where": "guitar tone shift verse-to-chorus",
+                "type": "tone_pedal_as_pseudo_filter",
+                "description": "Guitar tone shifts from clean/chorused to distorted via stomp; functions as a coarse band-pass/distortion filter swap rather than a smooth filter sweep.",
+                "extractable_concept": "stomp_pedal_as_coarse_filter_swap"
+              }
+            ],
+            "drops_and_breakdowns": [
+              {
+                "where": "post-bridge return to verse",
+                "type": "subtractive_drop_to_arpeggio",
+                "description": "After the bridge, arrangement drops back to verse arpeggio texture — quiet relief after fuller mid-section.",
+                "extractable_concept": "post_bridge_subtractive_drop"
+              }
+            ],
+            "climax_moments": [
+              {
+                "where": "final chorus + outro",
+                "type": "extended_chorus_loop_climax",
+                "description": "Track ends on extended chorus repetitions with full band — climax is sustained density rather than a single peak moment.",
+                "extractable_concept": "climax_via_sustained_extended_outro_chorus"
+              }
+            ],
+            "special_effects_and_textural_devices": [
+              {
+                "type": "clean_chorused_arpeggio_signature",
+                "description": "Verse arpeggio uses clean tone with chorus pedal — sets the atmospheric, floating quality that gives the track its 'overfloater' identity.",
+                "extractable_concept": "clean_chorused_arpeggio_for_floating_atmosphere"
+              },
+              {
+                "type": "vocal_doubling_in_chorus",
+                "description": "Cornell's vocal is doubled (and possibly harmonized) in the chorus, thickening the lead without extra layers.",
+                "extractable_concept": "vocal_double_track_for_chorus_thickness"
+              }
+            ]
           }
         },
         "Head_Down": {
