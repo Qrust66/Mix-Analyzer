@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album/year (Superunknown, 1994) and runtime ~6:08 plausible against documented track listing. Tempo 86-92 BPM matches the slow stately tempo. 7/4 meter throughout is the documented compositional identity. B minor area + drone-modal harmony plausible. Ben Shepherd as co-writer (bassist-driven composition) is documented for Head Down on Superunknown. Matt Cameron's odd-meter mastery is well-established. Kim Thayil + Cornell twin-guitar atmospheric texture, Drop D + flat tunings exploration, drone-foundation-as-compositional-anchor framing all match Soundgarden's documented Superunknown approach. Comparison to My Wave's 5/4 lilt is accurate (My Wave is documented in 5/4). No factual corrections needed.",
   "_overall_confidence": "high_for_meter_drone_structure_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "time_signature (7/4 throughout — Cameron's odd-meter mastery)",

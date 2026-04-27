@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album/year (Amnesiac, 2001) and runtime ~4:50 confirmed. Tempo 75-78 BPM plausible for the slow tempo. The 16/8 with 3+3+4+3+3 internal grouping is the standard documented analytical reading and one of the most-studied asymmetric meters in 21st-century rock; the 'feels rubato but is strictly metered' framing is widely cited. F# minor area + chromatic descent piano cycle plausible. Late drum entry (~halfway through) with Selway's floating feel against the piano grid is a canonical example of restraint drumming. Jonny Greenwood's Ondes Martenot atmospheric layer documented. No factual corrections needed.",
   "_overall_confidence": "high_for_meter_and_harmonic_motion_medium_for_exact_chord_voicings",
   "_high_confidence_fields": [
     "time_signature (asymmetric 16/8 grouping)",
