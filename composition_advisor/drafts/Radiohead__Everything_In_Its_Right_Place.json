@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album/year (Kid A, 2000) and runtime ~4:11 confirmed. Tempo 108-113 BPM plausible (~110 commonly cited). The 10/4 iconic meter is the standard documented reading and one of the most famous unconventional meters in 21st-century rock. F-area modal-static reading with Lydian/Phrygian inflection appropriately hedged. The Godrich live-sampling technique on the lead vocal is well-documented as the track's central production gesture. No factual corrections needed.",
   "_overall_confidence": "high_for_composition_and_meter_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "time_signature (10/4 iconic)",

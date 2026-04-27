@@ -1,7 +1,11 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [
+    {"field": "drummer_name (multiple occurrences)", "before": "Joey Castillo", "after": "Joey Castillo", "reason": "Drummer's correct name is Joey Castillo (post-Grohl-tour-era QOTSA drummer). 'Castillo' is a misspelling."}
+  ],
+  "_reviewer_notes": "Album/year (Lullabies to Paralyze, 2005) and runtime ~2:54 confirmed for the commercial single. Tempo 114-120 BPM and Drop D tuning plausible. The cowbell-as-compositional-centerpiece characterization is well-documented and matches the song's iconic identity. Joe Barresi co-production and Alain Johannes contributions correctly noted. Drummer name corrected from 'Castillo' to 'Castillo' throughout the file.",
   "_overall_confidence": "high_for_cowbell_centerpiece_signature_and_commercial_single_economy_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "cowbell_as_compositional_centerpiece (the song's defining percussion identity)",
@@ -52,7 +56,7 @@
       "Electric guitar drop-D (Josh Homme, tube amp with moderate distortion + heavy pedal chains per Joe Barresi production)",
       "Possible double-tracked rhythm guitar for stereo width",
       "Electric bass drop-D (Alain Johannes documented as contributing post-Oliveri bassist)",
-      "Drum kit (Joey Castellano — adapted to support cowbell pattern)",
+      "Drum kit (Joey Castillo — adapted to support cowbell pattern)",
       "COWBELL (compositional centerpiece — likely overdubbed for precision, possibly Homme performing percussion overdub)",
       "Possible additional hand percussion for textural reinforcement",
       "Lead vocal (Josh Homme, baritone)",
@@ -97,7 +101,7 @@
   "performance": {
     "tempo_feel_description": "Mid-tempo cowbell-propelled groove at ~117 BPM. Feel is propelled by the cowbell pattern's steady 8th-note pulse — danceable mid-tempo without rushing. Performance lock to the cowbell is tight; band must commit to the cowbell-anchored rhythm rather than to drum-kit-anchored rhythm.",
     "drum_style": {
-      "performer": "Joey Castellano (drums) + possible Homme cowbell overdub (Homme documented as often performing percussion overdubs himself)",
+      "performer": "Joey Castillo (drums) + possible Homme cowbell overdub (Homme documented as often performing percussion overdubs himself)",
       "feel": "Groove foundation adapted to cowbell pattern — drum kit supports cowbell rather than competing for rhythmic identity.",
       "techniques_documented": [
         "Kick + snare backbone supporting cowbell pattern",
@@ -112,7 +116,7 @@
         "Cowbell may shift slightly between sections for variation (e.g., open hits vs. choked accents) but pattern presence remains constant",
         "Dedicated mic for clean cowbell capture per Barresi production approach"
       ],
-      "groove_feel_alignment": "Groove serves the cowbell. Drumming is restrained relative to Castellano's potential — the song's identity belongs to the cowbell, not to the drum kit.",
+      "groove_feel_alignment": "Groove serves the cowbell. Drumming is restrained relative to Castillo's potential — the song's identity belongs to the cowbell, not to the drum kit.",
       "fills_and_transitions": "Minor fills mark verse-to-chorus transitions. No extended drum spotlight — cowbell pattern is the percussion foreground."
     },
     "guitar_style": {

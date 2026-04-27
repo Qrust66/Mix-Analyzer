@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album version runtime 4:33 confirmed; the alternate extended 'Quiet' version exists as documented. Album/year (The Fragile, 1999) correct. Tempo range 80-86 BPM is plausible for the slow ballad pacing (~84 commonly cited). Atmospheric pad-driven arrangement and Reznor's vulnerable-vocal characterization match documented Fragile-era reception. Guitar role hedged appropriately — TDTWWA does feature processed guitar texture but not as primary harmonic instrument. No factual corrections needed.",
   "_overall_confidence": "high_for_structural_arc_and_atmosphere_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "tempo_bpm_documented_range (slow ballad 80-86)",

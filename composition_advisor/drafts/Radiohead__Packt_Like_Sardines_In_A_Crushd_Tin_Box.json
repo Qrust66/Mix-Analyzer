@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album/year (Amnesiac, 2001 — opening track of the album) and runtime ~4:00 confirmed. Tempo 90-95 BPM plausible. Lyric 'I'm a reasonable man, get off my case' is correctly cited. Heavy vocal processing chain (formant shifting, narrow-band/telephone filter) and tabla-or-tabla-like samples within the glitch percussion palette are documented Godrich/Radiohead Amnesiac/Kid A signature techniques. The deliberately mangled title's typographic gesture matching the sonic claustrophobia is a documented framing. Anti-drum-kit / anti-guitar arrangement matches Amnesiac's electronic-experimental aesthetic. No factual corrections needed.",
   "_overall_confidence": "high_for_arrangement_texture_and_groove_medium_for_exact_pitch_content_and_tempo",
   "_high_confidence_fields": [
     "track_runtime",

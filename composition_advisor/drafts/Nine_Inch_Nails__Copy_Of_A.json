@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Album/year (Hesitation Marks, 2013) and runtime ~5:23 confirmed. Tempo 114-120 BPM captures ~117 commonly cited. Reznor + Ross full co-production for Hesitation Marks documented. Adrian Belew is confirmed as a contributor to the album (King Crimson + Bowie / Talking Heads guitarist); track-specific Belew presence on Copy Of A appropriately hedged in _to_verify_fields. Modular-electronic + arpeggiator-as-compositional-engine characterization matches documented production approach for the album. Reznor sober period (~2002 onward) and film-scoring discipline (Social Network 2010, Dragon Tattoo 2011) accurately referenced. No factual corrections needed.",
   "_overall_confidence": "high_for_modular_electronic_palette_and_pattern_evolution_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "time_signature (4/4 throughout)",

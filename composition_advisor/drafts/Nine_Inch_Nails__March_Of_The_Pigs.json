@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Runtime ~2:58 matches Downward Spiral track listing. The 7+7+7+8 = 29 eighth-note cycle is the standard analytical reading. Album/year and inverted-drop quiet-chorus framing all consistent with documented NIN canon. Tempo 134-145 BPM plausible (~140 commonly cited). Key/tuning specifics remain in _to_verify_fields. No factual corrections needed.",
   "_overall_confidence": "high_for_meter_structure_dynamics_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "time_signature (29-beat compound cycle)",

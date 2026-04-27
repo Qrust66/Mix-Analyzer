@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Structural claims (4/4, half-step-down tuning, runtime ~3:42) match Siamese Dream conventions. Tempo range 96-102 BPM and key Eb minor area are within commonly-cited bounds. Without web search, exact tempo and chorus harmonic motion (i to bVI vs relative major) could not be independently verified — drafts already flag these in _to_verify_fields. No factual corrections made.",
   "_overall_confidence": "high_for_structure_tempo_dynamics_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "tempo_bpm_documented_range (96-102)",

@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Runtime ~2:40 and tempo range 126-134 BPM (~130 BPM commonly cited) match. 4/4 and half-step-down tuning correct. Industrial-leaning aesthetic and Flood/Moulder production attribution documented. Key reading hedged in draft — kept as-is. No factual corrections needed.",
   "_overall_confidence": "high_for_compressed_economy_industrial_leaning_aesthetic_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "tempo_bpm_documented_range (126-134)",

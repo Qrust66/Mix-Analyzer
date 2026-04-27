@@ -1,7 +1,9 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [],
+  "_reviewer_notes": "Runtime ~4:11 and tempo range 148-156 BPM (Bodies is notoriously fast at ~152-156 BPM) match common citations. 4/4 confirmed. Half-step-down tuning is the Mellon Collie convention. Key reading hedged between G# minor / Eb minor in draft — kept as-is, could not pin precisely without source. No factual corrections needed.",
   "_overall_confidence": "high_for_tempo_structure_aggression_medium_for_exact_pitch_content",
   "_high_confidence_fields": [
     "tempo_bpm_documented_range (148-156 — fast for Pumpkins)",

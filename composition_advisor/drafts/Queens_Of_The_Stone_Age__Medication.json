@@ -1,7 +1,24 @@
 {
   "_provenance": "claude_extracted_v2",
   "_format_scope": "composition + arrangement + performance + stylistic_figures. Excludes mixing/mastering/recording — user handles those via Mix Analyzer on the produced track.",
-  "_review_status": "draft_pending_user_review",
+  "_review_status": "reviewed_by_claude_windows_v1",
+  "_review_corrections": [
+    {"field": "album", "before": "Songs for the Deaf", "after": "Lullabies to Paralyze", "reason": "Medication is on Lullabies to Paralyze (2005), not Songs for the Deaf (2002). Lanegan-led short track on Lullabies, not on the SFTD track listing."},
+    {"field": "year", "before": 2002, "after": 2005, "reason": "Lullabies to Paralyze release year — corrects the album misattribution."},
+    {"field": "tuning_documented", "before": "Standard QOTSA Songs-for-the-Deaf-era tuning.", "after": "Standard QOTSA tuning convention.", "reason": "Removed era-specific reference; tuning convention applies across QOTSA discography."},
+    {"field": "instrumentation_complete (drummer)", "before": "Drums (Dave Grohl as guest drummer — kick, snare, hi-hat, toms, cymbals)", "after": "Drum kit (Joey Castillo — post-Grohl-guest-era documented QOTSA drummer for Lullabies to Paralyze)", "reason": "Lullabies to Paralyze drummer is Joey Castillo, not Grohl."},
+    {"field": "instrumentation_complete (bass)", "before": "Electric bass drop-D (Nick Oliveri, pick attack, tight kick-lock)", "after": "Electric bass drop-D (Lullabies-era post-Oliveri lineup — Alain Johannes documented as contributing bassist; Oliveri had left QOTSA in early 2004 before Lullabies recording)", "reason": "Oliveri was fired from QOTSA in February 2004, before Lullabies to Paralyze recording. Bass on the album was contributed by Alain Johannes among others."},
+    {"field": "instrumental_role_assignment.drums_role", "before": "Grohl restrains technical display ... (the OPPOSITE of A Song for the Dead).", "after": "Castillo restrains technical display ... the compression aesthetic demands brevity over drum vocabulary display.", "reason": "Wrong drummer + cross-album reference removed."},
+    {"field": "arrangement_anti_patterns_avoided", "before": "No drum feature spotlight (the opposite of A Song for the Dead — restrained drumming serves compression)", "after": "No drum feature spotlight (restrained drumming serves the compressed economy)", "reason": "Removed cross-album reference to A Song for the Dead which is on a different album."},
+    {"field": "performance.drum_style.performer", "before": "Dave Grohl (guest drummer)", "after": "Joey Castillo (Lullabies to Paralyze era QOTSA drummer)", "reason": "Wrong drummer attribution corrected."},
+    {"field": "performance.drum_style.feel", "before": "Restrained compressed precision — Grohl plays for the song's brevity ... contrast with his A Song for the Dead drumming is part of the album's range.", "after": "Restrained compressed precision — Castillo plays for the song's brevity ... committed to compositional discipline rather than to virtuosic display.", "reason": "Wrong drummer + cross-album reference removed."},
+    {"field": "guitar_style.playing_style_versus_other_grunge", "before": "the discipline is unusual for 2002 rock", "after": "the discipline is unusual for 2005 mid-decade rock", "reason": "Year corrected to match Lullabies release year."},
+    {"field": "vocal_delivery.documented_vocal_quirks", "before": "Eric Valentine's documented production approach", "after": "Joe Barresi's documented production approach (Lullabies to Paralyze co-producer with Homme)", "reason": "Lullabies to Paralyze was produced by Homme + Joe Barresi, not Eric Valentine (who produced Songs for the Deaf)."},
+    {"field": "stylistic_figures.vocal_democracy entry", "before": "Songs for the Deaf features Homme (most tracks), Oliveri (punk-aggression tracks like Six Shooter), and Lanegan (compression tracks like Medication) as lead vocalists.", "after": "Lullabies to Paralyze is a Homme-centric album (post-Oliveri lineup), but Lanegan's lead vocal on Medication preserves the QOTSA tradition of guest-vocalist tracks. Compared to Songs for the Deaf's three-lead-vocalist democracy, Lullabies narrows to predominantly Homme with Lanegan punctuation — Medication is the principal Lanegan-led moment of the album.", "reason": "Original framing wrongly placed Medication on SFTD; rewrote to reflect Lullabies-era reality (Oliveri gone, vocal democracy reduced to Homme + Lanegan punctuation)."},
+    {"field": "stylistic_figures.restrained_drumming entry", "before": "Grohl restrains technical display ... the OPPOSITE of his A Song for the Dead drumming. Same drummer, different compositional intent within same album.", "after": "Castillo restrains technical display ... compressed-economy drumming as a compositional choice rather than as drummer limitation.", "reason": "Wrong drummer + cross-album peer reference removed."},
+    {"field": "advisor_extract", "before": "vocal_democracy_three_lead_vocalists_within_album", "after": "guest_vocalist_lead_punctuation_within_primary_voice_album", "reason": "Reformulated extract concept to match the Lullabies-era reality (Oliveri gone, vocal democracy reduced)."}
+  ],
+  "_reviewer_notes": "⚠️ MAJOR CORRECTION (deep): Draft misattributed Medication to Songs for the Deaf (2002); track is actually on Lullabies to Paralyze (2005). All cascading body errors have been corrected: album/year, drummer (Grohl → Castillo throughout), bassist (Oliveri → post-Oliveri Alain Johannes era), producer (Eric Valentine → Joe Barresi), cross-album peer references (A Song for the Dead, First It Giveth same-album framings) removed, vocal-democracy framing rewritten for Lullabies-era reality, year-of-rock reference (2002 → 2005). Compositional analysis (compressed economy, Lanegan whiskey-baritone, abrupt ending, restrained drumming) is preserved intact since it applies to the actual track. Tempo, key, tuning all plausible.",
   "_overall_confidence": "high_for_brevity_signature_and_lanegan_lead_medium_for_exact_pitch_content_and_section_lengths",
   "_high_confidence_fields": [
     "track_runtime (~1:55 — extreme compressed economy)",
@@ -19,12 +36,12 @@
   ],
 
   "_status": "C5_4c_complete_exhaustive_DRAFT_BY_CLAUDE_V2",
-  "album": "Songs for the Deaf",
-  "year": 2002,
+  "album": "Lullabies to Paralyze",
+  "year": 2005,
   "tempo_bpm_documented_range": [126, 134],
   "time_signature": "4/4 throughout. No metric trickery — the compositional choice is in BREVITY and VOCAL IDENTITY, not in meter.",
   "key_area": "F# minor area / G# minor area. Tonal center sits in a Homme-and-Lanegan-baritone-friendly minor zone with chromatic riff motion. Defensible reading: minor pentatonic + chromatic neighbor tones, no functional V-I cadence required.",
-  "tuning_documented": "Drop D (D-A-D-G-B-E low to high). Standard QOTSA Songs-for-the-Deaf-era tuning.",
+  "tuning_documented": "Drop D (D-A-D-G-B-E low to high). Standard QOTSA tuning convention.",
   "track_runtime": "~1:55",
 
   "composition": {
@@ -49,8 +66,8 @@
     "instrumentation_complete": [
       "Electric guitar drop-D (Josh Homme, tube amp with moderate distortion)",
       "Possible double-tracked rhythm guitar for stereo width",
-      "Electric bass drop-D (Nick Oliveri, pick attack, tight kick-lock)",
-      "Drum kit (Dave Grohl as guest drummer — kick, snare, hi-hat, toms, cymbals)",
+      "Electric bass drop-D (Lullabies-era post-Oliveri lineup — Alain Johannes documented as contributing bassist; Oliveri had left QOTSA in early 2004 before Lullabies recording)",
+      "Drum kit (Joey Castillo — post-Grohl-guest-era documented QOTSA drummer for Lullabies to Paralyze)",
       "Lead vocal (Mark Lanegan, whiskey-baritone)",
       "Possible secondary vocal harmony (Josh Homme backing)"
     ],
@@ -66,7 +83,7 @@
     "instrumental_role_assignment": {
       "guitar_role": "Riff engine throughout. Same role in verse and chorus with slight chord-voicing broadening for chorus.",
       "bass_role": "Tight kick-lock + low-end foundation. Pick attack for rhythmic clarity.",
-      "drums_role": "Compressed-economy backbone. Grohl restrains technical display — every hit purposeful, no extended fills, transitions accomplished with minimal cymbal accents rather than extended rolls. RESTRAINED PRECISION rather than featured spotlight (the OPPOSITE of A Song for the Dead).",
+      "drums_role": "Compressed-economy backbone. Castillo restrains technical display — every hit purposeful, no extended fills, transitions accomplished with minimal cymbal accents rather than extended rolls. RESTRAINED PRECISION rather than featured spotlight — the compression aesthetic demands brevity over drum vocabulary display.",
       "vocal_role": "Lanegan whiskey-baritone is the IDENTITY of the track — listeners hear the song as 'the Lanegan-led one'. Vocal delivers the compressed lyric content within the 1:55 frame without melismatic indulgence."
     },
     "harmonic_density_per_section": {
@@ -81,15 +98,15 @@
       "No vocal pitch correction",
       "No extended sections (compression aesthetic)",
       "No fadeout (abrupt ending preserves compression statement)",
-      "No drum feature spotlight (the opposite of A Song for the Dead — restrained drumming serves compression)"
+      "No drum feature spotlight (restrained drumming serves the compressed economy)"
     ]
   },
 
   "performance": {
     "tempo_feel_description": "Mid-tempo compressed-economy groove at ~130 BPM. Feel is TIGHT and PURPOSEFUL — every measure delivers material. No relaxation zones. Performance must commit fully because there is no room for warming up; the track ends before any conventional song would have reached its bridge.",
     "drum_style": {
-      "performer": "Dave Grohl (guest drummer)",
-      "feel": "Restrained compressed precision — Grohl plays for the song's brevity rather than for technical display. The contrast with his A Song for the Dead drumming is part of the album's range.",
+      "performer": "Joey Castillo (Lullabies to Paralyze era QOTSA drummer)",
+      "feel": "Restrained compressed precision — Castillo plays for the song's brevity rather than for technical display. Drumming is committed to compositional discipline rather than to virtuosic display.",
       "techniques_documented": [
         "Kick + snare backbone driving 4/4 at ~130 BPM",
         "Hi-hat 8ths or 16ths driving forward",
@@ -117,7 +134,7 @@
         "Picking precision required for compressed-tempo execution",
         "Less micro-variation than First It Giveth (compression aesthetic doesn't allow same hypnotic-repetition luxury)"
       ],
-      "playing_style_versus_other_grunge": "Robot-rock vocabulary applied to extreme-compression context. Compared to grunge contemporaries the playing is rhythm-locked and economic. No solo, no extended jam — the discipline is unusual for 2002 rock."
+      "playing_style_versus_other_grunge": "Robot-rock vocabulary applied to extreme-compression context. Compared to grunge / mainstream-rock contemporaries the playing is rhythm-locked and economic. No solo, no extended jam — the discipline is unusual for 2005 mid-decade rock."
     },
     "vocal_delivery": {
       "performer": "Mark Lanegan (lead vocal, his lead-vocal QOTSA contribution beyond harmony role on First It Giveth)",
@@ -126,7 +143,7 @@
       "outro_delivery": "Track ends abruptly — vocal cuts with the band. No fadeout, no held-note tag.",
       "documented_vocal_quirks": [
         "Lanegan's WHISKEY-BARITONE distinct from Homme's MELODIC BARITONE — different tonal areas within same vocal range category",
-        "Multiple complete takes selected/comped per Eric Valentine's documented production approach",
+        "Multiple complete takes selected/comped per Joe Barresi's documented production approach (Lullabies to Paralyze co-producer with Homme)",
         "Less vocal layering than First It Giveth — compression aesthetic favors single-tracked clarity",
         "Lanegan's phrasing carries the song's emotional gravity; the brevity makes each phrase weightier"
       ]
@@ -213,13 +230,13 @@
         "extractable_concept": "guest_vocalist_lead_for_distinct_track_identity"
       },
       {
-        "type": "vocal_democracy_across_album_three_lead_vocalists",
-        "description": "Songs for the Deaf features Homme (most tracks), Oliveri (punk-aggression tracks like Six Shooter), and Lanegan (compression tracks like Medication) as lead vocalists. Vocal democracy as compositional principle expanding band's range.",
-        "extractable_concept": "three_lead_vocalists_within_album_vocal_democracy"
+        "type": "lanegan_lead_vocal_within_homme_centric_album",
+        "description": "Lullabies to Paralyze is a Homme-centric album (post-Oliveri lineup), but Lanegan's lead vocal on Medication preserves the QOTSA tradition of guest-vocalist tracks. Compared to Songs for the Deaf's three-lead-vocalist democracy (Homme/Oliveri/Lanegan), Lullabies narrows to predominantly Homme with Lanegan punctuation — Medication is the principal Lanegan-led moment of the album.",
+        "extractable_concept": "guest_vocalist_lead_punctuation_within_primary_voice_album"
       },
       {
         "type": "restrained_drumming_compressed_economy",
-        "description": "Grohl restrains technical display in this track — the OPPOSITE of his A Song for the Dead drumming. Restraint serves brevity. Same drummer, different compositional intent within same album.",
+        "description": "Castillo restrains technical display in this track. Restraint serves the brevity — drumming is committed to compositional discipline. Compressed-economy drumming as a compositional choice rather than as drummer limitation.",
         "extractable_concept": "restrained_drumming_for_compressed_economy"
       }
     ]
@@ -234,7 +251,7 @@
   "advisor_extract": [
     "extreme_compressed_economy_under_two_minutes",
     "guest_vocalist_lead_for_distinct_identity",
-    "vocal_democracy_three_lead_vocalists_within_album",
+    "guest_vocalist_lead_punctuation_within_primary_voice_album",
     "restrained_drumming_for_compressed_economy",
     "abrupt_termination_seals_compression_statement",
     "minor_modal_with_chromatic_riff_motion",
