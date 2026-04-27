@@ -99,6 +99,16 @@ n'avertit pas — penser à le refaire après un fresh clone.
 | `post-commit` | Hook graphify : rebuild AST-only de `graphify-out/graph.json` après chaque commit. Sans LLM, gratuit. |
 | `post-checkout` | Idem au changement de branche. |
 
+### Hook Claude Code (`.claude/hooks/`)
+
+`UserPromptSubmit` (configuré dans `.claude/settings.json`) lance
+`.claude/hooks/graphify_reminder.py` à chaque prompt. Si le prompt matche
+des patterns d'architecture / dépendance / cross-module (regex sur
+`how does X work`, `qui utilise`, `pipeline`, `relation entre`, etc.),
+le hook **injecte un rappel** dans le contexte de Claude pour qu'il
+consulte `graphify-out/graph.json` avant tout grep/Read. Coût : ~50
+tokens par prompt qui matche, 0 sinon.
+
 Les hooks sont des **filets de sécurité déterministes** (pas de LLM, pas
 de magie) qui complètent les agents Claude Code. Si un check est purement
 mécanique (grep + comparaison), il vaut mieux l'avoir comme hook que comme
@@ -148,6 +158,26 @@ tableau PASS/FAIL et refuse de patcher (read-only).
 Si verdict = OUT-OF-SYNC, **ne pas push** sans aligner manuellement les
 fichiers en drift. La règle projet est explicite : *"Ne jamais laisser des
 versions désynchronisées entre fichiers."*
+
+### graph-first-explorer (`.claude/agents/graph-first-explorer.md`)
+
+**Invoquer automatiquement** quand l'utilisateur pose une question :
+
+1. **D'architecture / cross-module** : "comment fonctionne la pipeline X",
+   "qui dépend de Y", "lien entre A et B", "trace le flux de … à …".
+2. **Multi-query** : la réponse nécessite de croiser plusieurs concepts ou
+   modules (>2 fichiers à explorer).
+3. **De premier contact avec un module inconnu** : avant de plonger dans
+   un dossier que je n'ai pas encore visité dans la session.
+
+L'agent consulte `graphify-out/graph.json` **avant** tout grep/Read et
+revient avec une synthèse citée. Ne pas l'invoquer pour les questions
+triviales (1 Read suffit) ou pour les détails algorithmiques d'une
+fonction (graph donne la structure, pas le détail).
+
+Le hook `UserPromptSubmit` (cf. section Hooks plus haut) injecte
+automatiquement un rappel dans mon contexte quand le prompt matche les
+patterns d'architecture — filet de sécurité pour ne pas oublier l'agent.
 
 ## Fichiers de production (8 fichiers, même dossier)
 
