@@ -151,7 +151,19 @@ Schema (version 1.0) :
 {"schema_version":"1.0","rhythm":{"tempo_bpm":76,"time_signature":"16/8 with 3+3+4+3+3 internal grouping","drum_pattern":"sparse kit entering halfway through the section, brushes/low-volume sticks, kit floats freely against the meter rather than locking it (polyrhythmic feel-against-feel)","subdivisions":16,"swing":0.0,"polyrhythms":["drum kit floating in implied 4/4 against piano's 16/8 grid"]},"rationale":"76 BPM lent inspiré de Pyramid_Song. Le 16/8 asymétrique 3+3+4+3+3 EST la signature compositionnelle de la ref. Le drum_pattern sparse + polyrythmie kit-vs-piano reproduit la tension de Selway's restraint drumming.","inspired_by":[{"song":"Radiohead/Pyramid_Song","path":"time_signature","excerpt":"16/8 with internal grouping 3+3+4+3+3"},{"song":"Radiohead/Pyramid_Song","path":"stylistic_figures.special_effects_and_textural_devices","excerpt":"polyrhythmic_drums_against_strict_piano_meter"}],"confidence":0.82}
 ```
 
-### Exemple 3 — refus
+### Exemple 3 — fusion 2 refs (genres distincts)
+
+**Input** :
+- brief : "groove électronique 110 BPM avec drive industriel"
+- refs : ["Daft_Punk/Veridis_Quo", "Nine_Inch_Nails/March_Of_The_Pigs"]
+
+**Output** :
+
+```
+{"schema_version":"1.0","rhythm":{"tempo_bpm":110,"time_signature":"4/4","drum_pattern":"TR-909-style four-on-the-floor kick from Veridis_Quo, but with March_Of_The_Pigs-style aggressive ghost-snare accents on every off-beat 8th. Hi-hat 16ths with closed-open alternation. Programmed-tight, no swing — the contrast comes from the snare dynamics, not the groove looseness.","subdivisions":16,"swing":0.0,"polyrhythms":[]},"rationale":"Fusion : grille four-on-the-floor électronique de Veridis_Quo (122 BPM ramené à 110 pour matcher le brief) + agressivité industrial des ghost-snares de March_Of_The_Pigs (sans son meter 7+7+7+8 — trop disruptif pour 'groove'). Le programmed-tight des 2 refs converge.","inspired_by":[{"song":"Daft_Punk/Veridis_Quo","path":"performance.drum_style","excerpt":"TR-909 strict quantized, four-on-floor"},{"song":"Nine_Inch_Nails/March_Of_The_Pigs","path":"performance.drum_style","excerpt":"Programmed accent pattern, machine-precise but with samples that imitate aggressive live drumming"}],"confidence":0.78}
+```
+
+### Exemple 4 — refus
 
 **Input** :
 - brief : "fais un groove"

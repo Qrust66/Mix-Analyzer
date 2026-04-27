@@ -1,5 +1,45 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.4.1] - 2026-04-27
+
+Closes 4 critiques from the Phase 2.4 self-audit:
+
+### Changed
+- **`agent_parsers.py`** — renamed `_VALID_SUBDIVISIONS`, `_TEMPO_MIN_BPM`,
+  `_TEMPO_MAX_BPM` to public `VALID_SUBDIVISIONS`, `TEMPO_MIN_BPM`,
+  `TEMPO_MAX_BPM` and added them to `__all__`. Single source of truth —
+  the test parametrize now imports them instead of re-hardcoding the
+  values. Same fix as Phase 2.3.1 did for `KEY_ROOTS`. Audit critique #1.
+
+- **`tests/test_blueprint_agent_parsers.py`** — `test_rhythm_valid_subdivisions_accepted`
+  now parametrizes over `sorted(VALID_SUBDIVISIONS)`. Boundary tests
+  expanded: tempo invalid set now covers negatives + `TEMPO_MIN_BPM-1`
+  + `TEMPO_MAX_BPM+1` + absurd; tempo valid set anchors to the actual
+  bounds. Subdivisions invalid set covers negatives + below-floor +
+  non-power-of-2 + above-ceiling.
+
+### Fixed
+- **`compose_from_blueprint` warning** when rhythm-sphere fields are
+  set to non-default values (time_signature ≠ "4/4", non-empty
+  drum_pattern, subdivisions ≠ 16, swing ≠ 0.0, non-empty polyrhythms).
+  The composer pipeline currently hardcodes 4/4 + 16th grid + zero
+  swing in track_layerer + motif renderers, so these blueprint fields
+  are descriptive only at Phase 2.4. The warning surfaces this so users
+  don't silently get a 4/4 .mid from a 10/4 blueprint. Audit critique #2.
+
+- **`.claude/agents/rhythm-decider.md`** — added a 4th in-context
+  example demonstrating multi-ref fusion (Daft_Punk/Veridis_Quo +
+  Nine_Inch_Nails/March_Of_The_Pigs combined into a 110 BPM electronic
+  groove with industrial accent dynamics). Pedagogical parity with
+  structure-decider and harmony-decider, both of which had a fusion
+  example. Audit critique #4.
+
+- **CHANGELOG count** — Phase 2.4 entry said "23 new tests". Actual
+  count is **17 test functions** which generate **47 cases** when the
+  parametrize expansions are counted. Phase 2.4.1 adds 0 net functions
+  but expands several parametrize sets (boundary tests). Audit
+  critique #3.
+
 ## [Unreleased — composition_engine Phase 2.4] - 2026-04-27
 
 ### Added

@@ -6,6 +6,9 @@ import pytest
 
 from composition_engine.blueprint.agent_parsers import (
     AgentOutputError,
+    TEMPO_MAX_BPM,
+    TEMPO_MIN_BPM,
+    VALID_SUBDIVISIONS,
     extract_json_payload,
     parse_harmony_decision,
     parse_harmony_decision_from_response,
@@ -561,7 +564,12 @@ def test_rhythm_asymmetric_time_signature_accepted():
     assert "3+3+4+3+3" in decision.value.time_signature
 
 
-@pytest.mark.parametrize("invalid_tempo", [0, -1, 30, 350, 9999])
+@pytest.mark.parametrize("invalid_tempo", [
+    0, -1, -100,                           # zero / negative
+    TEMPO_MIN_BPM - 1, TEMPO_MIN_BPM - 10,  # just below floor
+    TEMPO_MAX_BPM + 1, TEMPO_MAX_BPM + 100, # just above ceiling
+    9999,                                   # absurd
+])
 def test_rhythm_tempo_out_of_range_raises(invalid_tempo):
     payload = _valid_rhythm_payload()
     payload["rhythm"]["tempo_bpm"] = invalid_tempo
@@ -569,7 +577,11 @@ def test_rhythm_tempo_out_of_range_raises(invalid_tempo):
         parse_rhythm_decision(payload)
 
 
-@pytest.mark.parametrize("valid_tempo", [40, 60, 100, 120, 150, 200, 300])
+@pytest.mark.parametrize("valid_tempo", [
+    TEMPO_MIN_BPM,           # boundary low
+    60, 100, 120, 150, 200,  # mid-range
+    TEMPO_MAX_BPM,           # boundary high
+])
 def test_rhythm_valid_tempos_accepted(valid_tempo):
     payload = _valid_rhythm_payload()
     payload["rhythm"]["tempo_bpm"] = valid_tempo
@@ -584,7 +596,12 @@ def test_rhythm_string_tempo_coerced_to_int():
     assert decision.value.tempo_bpm == 120
 
 
-@pytest.mark.parametrize("invalid_sub", [0, 1, 2, 3, 6, 12, 24, 48, 100])
+@pytest.mark.parametrize("invalid_sub", [
+    -1, -16,           # negative
+    0, 1, 2, 3,        # below smallest valid (4)
+    6, 12, 24, 48,     # not a power of 2
+    100, 128,          # above largest valid (64) or non-power
+])
 def test_rhythm_invalid_subdivisions_raises(invalid_sub):
     payload = _valid_rhythm_payload()
     payload["rhythm"]["subdivisions"] = invalid_sub
@@ -592,8 +609,10 @@ def test_rhythm_invalid_subdivisions_raises(invalid_sub):
         parse_rhythm_decision(payload)
 
 
-@pytest.mark.parametrize("valid_sub", [4, 8, 16, 32, 64])
+@pytest.mark.parametrize("valid_sub", sorted(VALID_SUBDIVISIONS))
 def test_rhythm_valid_subdivisions_accepted(valid_sub):
+    """Parametrized over the actual VALID_SUBDIVISIONS frozenset — single
+    source of truth shared with the parser."""
     payload = _valid_rhythm_payload()
     payload["rhythm"]["subdivisions"] = valid_sub
     decision = parse_rhythm_decision(payload)

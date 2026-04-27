@@ -167,6 +167,31 @@ def blueprint_to_composition(bp: SectionBlueprint) -> Composition:
             not_yet_wired,
         )
 
+    # Phase 2.4 added rich rhythm fields (time_signature, drum_pattern,
+    # subdivisions, swing, polyrhythms) but the composer pipeline currently
+    # only consumes tempo_bpm. Warn when the rhythm sphere carries
+    # information that won't reach the rendered .mid.
+    rhythm_value = rhythm
+    rhythm_ignored = []
+    if rhythm_value.time_signature and rhythm_value.time_signature != "4/4":
+        rhythm_ignored.append(f"time_signature={rhythm_value.time_signature!r}")
+    if rhythm_value.drum_pattern:
+        rhythm_ignored.append("drum_pattern (prose)")
+    if rhythm_value.subdivisions != 16:
+        rhythm_ignored.append(f"subdivisions={rhythm_value.subdivisions}")
+    if rhythm_value.swing != 0.0:
+        rhythm_ignored.append(f"swing={rhythm_value.swing}")
+    if rhythm_value.polyrhythms:
+        rhythm_ignored.append(f"polyrhythms={list(rhythm_value.polyrhythms)}")
+    if rhythm_ignored:
+        _LOG.warning(
+            "[composer_adapter] Phase 2.4 rhythm fields not yet applied to MIDI "
+            "rendering: %s. tempo_bpm IS used. The composer currently hardcodes "
+            "4/4 grid + 16th subdivisions + zero swing in track_layerer + motif "
+            "renderers. Phase 2.X+ will wire these fields.",
+            ", ".join(rhythm_ignored),
+        )
+
     tonic_pitch = key_root_to_midi(harmony.key_root, octave=3)
 
     # Group blueprint layers by their role string into "tracks" the composer

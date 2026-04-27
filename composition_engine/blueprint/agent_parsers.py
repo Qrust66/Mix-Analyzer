@@ -52,12 +52,13 @@ SUPPORTED_RHYTHM_SCHEMA_VERSIONS = frozenset({"1.0"})
 
 # Subdivision values accepted: powers of 2 from 4 to 64.
 # 4 = quarter-note grid (rare). 8 = eighth-note. 16 = standard. 32/64 = detailed.
-_VALID_SUBDIVISIONS = frozenset({4, 8, 16, 32, 64})
+# Public so test parametrize can import (single source of truth).
+VALID_SUBDIVISIONS = frozenset({4, 8, 16, 32, 64})
 
 # Hard cap on tempo_bpm. 40 is below most musical music; 300 is faster than
 # drum'n'bass / hardcore. Out-of-band values are almost certainly LLM bugs.
-_TEMPO_MIN_BPM = 40
-_TEMPO_MAX_BPM = 300
+TEMPO_MIN_BPM = 40
+TEMPO_MAX_BPM = 300
 
 # Key root validation imported from the central music_theory module —
 # single source of truth shared with composer_adapter, the music_theory
@@ -519,9 +520,9 @@ def parse_rhythm_decision(payload: Mapping[str, Any]) -> Decision[RhythmDecision
         _require(rhythm_dict, "tempo_bpm", where="rhythm"),
         where="rhythm.tempo_bpm",
     )
-    if not (_TEMPO_MIN_BPM <= tempo_bpm <= _TEMPO_MAX_BPM):
+    if not (TEMPO_MIN_BPM <= tempo_bpm <= TEMPO_MAX_BPM):
         raise AgentOutputError(
-            f"rhythm.tempo_bpm must be in [{_TEMPO_MIN_BPM}, {_TEMPO_MAX_BPM}], "
+            f"rhythm.tempo_bpm must be in [{TEMPO_MIN_BPM}, {TEMPO_MAX_BPM}], "
             f"got {tempo_bpm}"
         )
 
@@ -535,9 +536,9 @@ def parse_rhythm_decision(payload: Mapping[str, Any]) -> Decision[RhythmDecision
         rhythm_dict.get("subdivisions", 16),
         where="rhythm.subdivisions",
     )
-    if subdivisions not in _VALID_SUBDIVISIONS:
+    if subdivisions not in VALID_SUBDIVISIONS:
         raise AgentOutputError(
-            f"rhythm.subdivisions must be one of {sorted(_VALID_SUBDIVISIONS)}, "
+            f"rhythm.subdivisions must be one of {sorted(VALID_SUBDIVISIONS)}, "
             f"got {subdivisions}"
         )
 
@@ -572,6 +573,9 @@ __all__ = [
     "SUPPORTED_STRUCTURE_SCHEMA_VERSIONS",
     "SUPPORTED_HARMONY_SCHEMA_VERSIONS",
     "SUPPORTED_RHYTHM_SCHEMA_VERSIONS",
+    "TEMPO_MIN_BPM",
+    "TEMPO_MAX_BPM",
+    "VALID_SUBDIVISIONS",
     "extract_json_payload",
     "parse_structure_decision",
     "parse_structure_decision_from_response",
