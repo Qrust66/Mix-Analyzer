@@ -1,0 +1,22 @@
+#!/bin/sh
+# Mix Analyzer pre-commit hook.
+# Currently runs version-sync check; future deterministic checks go here too.
+
+# Detect a working Python interpreter. `command -v` alone is insufficient on
+# Windows because the Microsoft Store shim "python" exists in PATH but only
+# prints an install prompt — we must execute a no-op to confirm it works.
+PY=""
+for candidate in py python3 python; do
+    if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c "" >/dev/null 2>&1; then
+        PY="$candidate"
+        break
+    fi
+done
+
+if [ -z "$PY" ]; then
+    echo "[pre-commit] No working Python found, skipping version-sync check" >&2
+    exit 0
+fi
+
+"$PY" .githooks/check_version_sync.py
+exit $?
