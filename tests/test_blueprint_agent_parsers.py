@@ -402,11 +402,10 @@ def test_harmony_invalid_key_root_raises(invalid_root):
         parse_harmony_decision(payload)
 
 
-@pytest.mark.parametrize("valid_root", [
-    "C", "C#", "Db", "D", "D#", "Eb", "E",
-    "F", "F#", "Gb", "G", "G#", "Ab", "A",
-    "A#", "Bb", "B",
-])
+from composition_engine.music_theory import KEY_ROOTS as _KEY_ROOTS
+
+
+@pytest.mark.parametrize("valid_root", sorted(_KEY_ROOTS))
 def test_harmony_all_valid_roots_accepted(valid_root):
     payload = _valid_harmony_payload()
     payload["harmony"]["key_root"] = valid_root

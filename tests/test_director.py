@@ -124,105 +124,14 @@ def test_ghost_mode_partial_blueprint_is_not_ok_but_passes_cohesion():
 
 # ============================================================================
 # Phase 1 end-to-end — full pipeline on a complete blueprint
+# (Uses the `complete_blueprint` fixture from tests/conftest.py.)
 # ============================================================================
 
 
-def _complete_blueprint() -> SectionBlueprint:
-    """Build a complete 7-sphere ghost blueprint with provenance citations."""
-    cit = Citation(
-        song="Nirvana/Heart_Shaped_Box",
-        path="composition.section_count_and_lengths",
-        excerpt="Intro 8 bars sparse, building...",
-    )
-    bp = SectionBlueprint(name="intro", references=("Nirvana/Heart_Shaped_Box",))
-    bp = bp.with_decision(
-        "structure",
-        Decision(
-            value=StructureDecision(
-                total_bars=16,
-                sub_sections=(
-                    SubSection(name="hush", start_bar=0, end_bar=8, role="breath"),
-                    SubSection(name="build", start_bar=8, end_bar=16, role="build"),
-                ),
-                breath_points=(7, 15),
-            ),
-            sphere="structure",
-            inspired_by=(cit,),
-            rationale="16 bars split 8+8: hush then build, mirrors verse pacing of refs.",
-        ),
-    )
-    bp = bp.with_decision(
-        "harmony",
-        Decision(
-            value=HarmonyDecision(
-                mode="Aeolian",
-                key_root="A",
-                progression=("i", "bVI", "bVII", "i"),
-                harmonic_rhythm=0.5,
-            ),
-            sphere="harmony",
-        ),
-    )
-    bp = bp.with_decision(
-        "rhythm",
-        Decision(
-            value=RhythmDecision(tempo_bpm=100, time_signature="4/4"),
-            sphere="rhythm",
-        ),
-    )
-    bp = bp.with_decision(
-        "arrangement",
-        Decision(
-            value=ArrangementDecision(
-                layers=(
-                    LayerSpec(
-                        role="pad",
-                        instrument="warm pad",
-                        enters_at_bar=0,
-                        exits_at_bar=16,
-                    ),
-                ),
-                density_curve="sparse",
-            ),
-            sphere="arrangement",
-        ),
-    )
-    bp = bp.with_decision(
-        "dynamics",
-        Decision(
-            value=DynamicsDecision(
-                arc_shape="rising",
-                start_db=-18.0,
-                end_db=-6.0,
-                peak_bar=15,
-            ),
-            sphere="dynamics",
-        ),
-    )
-    bp = bp.with_decision(
-        "performance",
-        Decision(
-            value=PerformanceDecision(feel="laid-back", humanization_jitter_ms=8.0),
-            sphere="performance",
-        ),
-    )
-    bp = bp.with_decision(
-        "fx",
-        Decision(
-            value=FxDecision(
-                reverb="large hall, 4s",
-                stereo_strategy="wide",
-            ),
-            sphere="fx",
-        ),
-    )
-    return bp
-
-
-def test_full_pipeline_complete_blueprint_through_director_is_ok():
+def test_full_pipeline_complete_blueprint_through_director_is_ok(complete_blueprint):
     """End-to-end: build a complete blueprint, run through Director ghost mode,
     verify the result is complete and cohesion-clean."""
-    bp = _complete_blueprint()
+    bp = complete_blueprint
     assert bp.is_complete()
 
     director = Director(mode=DirectorMode.GHOST)
@@ -238,9 +147,9 @@ def test_full_pipeline_complete_blueprint_through_director_is_ok():
     assert result.ok
 
 
-def test_full_pipeline_provenance_is_preserved():
+def test_full_pipeline_provenance_is_preserved(complete_blueprint):
     """The Director must not strip provenance citations off Decisions."""
-    bp = _complete_blueprint()
+    bp = complete_blueprint
     director = Director(mode=DirectorMode.GHOST)
     result = director.compose_section(name="intro", brief="x", ghost_blueprint=bp)
     structure_dec = result.blueprint.structure

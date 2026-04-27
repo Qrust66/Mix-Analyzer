@@ -32,6 +32,7 @@ from composition_engine.blueprint.schema import (
 )
 from composition_engine.composer.composer import Composition, compose
 from composition_engine.composer.track_layerer import LayerSpec as ComposerLayer
+from composition_engine.music_theory import key_root_to_midi as _key_root_to_midi
 
 _LOG = logging.getLogger(__name__)
 
@@ -39,31 +40,12 @@ _LOG = logging.getLogger(__name__)
 # ============================================================================
 # Note-name → MIDI pitch class
 # ============================================================================
+#
+# As of Phase 2.3.1 the table lives in composition_engine.music_theory
+# (single source of truth). The local re-export below preserves backward
+# compatibility for code that imports key_root_to_midi from this module.
 
-_NOTE_TO_PITCH_CLASS: Dict[str, int] = {
-    "C": 0, "C#": 1, "Db": 1,
-    "D": 2, "D#": 3, "Eb": 3,
-    "E": 4,
-    "F": 5, "F#": 6, "Gb": 6,
-    "G": 7, "G#": 8, "Ab": 8,
-    "A": 9, "A#": 10, "Bb": 10,
-    "B": 11,
-}
-
-
-def key_root_to_midi(key_root: str, octave: int = 3) -> int:
-    """Convert a key-root letter to a MIDI pitch.
-
-    'A' at default octave 3 → 57 (A3). 'C' → 48 (C3). 'F#' → 54.
-
-    Falls back to C tonic if the key_root is unrecognized — defensive,
-    not strict, because key_root may come from prose data with formatting
-    quirks ('F#m', 'A minor', etc.). Strip flatness/minor markers first
-    via key_root.replace('m', '').strip().split()[0] if needed.
-    """
-    pitch_class = _NOTE_TO_PITCH_CLASS.get(key_root, 0)
-    # MIDI: C-1 = 0, so C{octave} = 12 * (octave + 1) + 0
-    return 12 * (octave + 1) + pitch_class
+key_root_to_midi = _key_root_to_midi
 
 
 # ============================================================================

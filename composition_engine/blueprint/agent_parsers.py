@@ -38,6 +38,7 @@ from composition_engine.blueprint.schema import (
     StructureDecision,
     SubSection,
 )
+from composition_engine.music_theory import KEY_ROOTS
 
 _LOG = logging.getLogger(__name__)
 
@@ -47,14 +48,10 @@ _LOG = logging.getLogger(__name__)
 SUPPORTED_STRUCTURE_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_HARMONY_SCHEMA_VERSIONS = frozenset({"1.0"})
 
-# Note-letter alphabet for key_root validation. Defensive — the composer
-# adapter falls back to C if key_root is unrecognized, but catching it
-# at parse time gives a better error message.
-_VALID_KEY_ROOTS = frozenset({
-    "C", "C#", "Db", "D", "D#", "Eb", "E",
-    "F", "F#", "Gb", "G", "G#", "Ab", "A",
-    "A#", "Bb", "B",
-})
+# Key root validation imported from the central music_theory module —
+# single source of truth shared with composer_adapter, the music_theory
+# tests, and any future sphere parser that needs to validate notes.
+# (See composition_engine.music_theory.KEY_ROOTS.)
 
 
 class AgentOutputError(ValueError):
@@ -433,10 +430,10 @@ def parse_harmony_decision(payload: Mapping[str, Any]) -> Decision[HarmonyDecisi
         raise AgentOutputError("harmony.mode must be non-empty")
 
     key_root = _coerce_str(_require(harmony_dict, "key_root", where="harmony")).strip()
-    if key_root not in _VALID_KEY_ROOTS:
+    if key_root not in KEY_ROOTS:
         raise AgentOutputError(
             f"harmony.key_root {key_root!r} is not a recognized note name. "
-            f"Expected one of: {sorted(_VALID_KEY_ROOTS)}"
+            f"Expected one of: {sorted(KEY_ROOTS)}"
         )
 
     raw_progression = _coerce_list(harmony_dict.get("progression", []), where="harmony.progression")

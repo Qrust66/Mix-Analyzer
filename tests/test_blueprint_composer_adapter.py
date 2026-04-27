@@ -51,53 +51,11 @@ def _wrap(value, sphere):
     return Decision(value=value, sphere=sphere)
 
 
-def _minimal_blueprint() -> SectionBlueprint:
-    """A 16-bar section in A minor at 100 BPM with two layers."""
-    bp = SectionBlueprint(name="test_intro")
-    bp = bp.with_decision(
-        "structure", _wrap(StructureDecision(total_bars=16), "structure"),
-    )
-    bp = bp.with_decision(
-        "harmony",
-        _wrap(
-            HarmonyDecision(
-                mode="Aeolian",
-                key_root="A",
-                progression=("i", "bVI", "bVII", "i"),
-                harmonic_rhythm=1.0,
-            ),
-            "harmony",
-        ),
-    )
-    bp = bp.with_decision(
-        "rhythm", _wrap(RhythmDecision(tempo_bpm=100), "rhythm"),
-    )
-    bp = bp.with_decision(
-        "arrangement",
-        _wrap(
-            ArrangementDecision(
-                layers=(
-                    LayerSpec(
-                        role="drum_kit",
-                        instrument="909",
-                        enters_at_bar=0,
-                        exits_at_bar=16,
-                        base_velocity=100,
-                    ),
-                    LayerSpec(
-                        role="bass",
-                        instrument="sub",
-                        enters_at_bar=4,
-                        exits_at_bar=16,
-                        base_velocity=90,
-                    ),
-                ),
-                density_curve="medium",
-            ),
-            "arrangement",
-        ),
-    )
-    return bp
+# Note: the 4-sphere _minimal_blueprint() helper formerly here has been
+# moved to tests/conftest.py as the `minimal_blueprint` pytest fixture
+# (Phase 2.3.1 deduplication). Tests that need a custom variant build
+# from scratch using `_wrap` and the schema dataclasses, or transform the
+# fixture via with_decision() in the test body.
 
 
 # ============================================================================
@@ -105,8 +63,8 @@ def _minimal_blueprint() -> SectionBlueprint:
 # ============================================================================
 
 
-def test_blueprint_to_composition_basic():
-    bp = _minimal_blueprint()
+def test_blueprint_to_composition_basic(minimal_blueprint):
+    bp = minimal_blueprint
     composition = blueprint_to_composition(bp)
     assert composition.total_bars == 16
     assert composition.tempo_bpm == 100.0
@@ -115,10 +73,9 @@ def test_blueprint_to_composition_basic():
     assert "BASS" in composition.layers_per_track
 
 
-def test_blueprint_to_composition_groups_layers_per_track():
+def test_blueprint_to_composition_groups_layers_per_track(minimal_blueprint):
     """Multiple LayerSpecs with the same role end up in the same track."""
-    bp = _minimal_blueprint()
-    bp = bp.with_decision(
+    bp = minimal_blueprint.with_decision(
         "arrangement",
         _wrap(
             ArrangementDecision(
@@ -137,10 +94,9 @@ def test_blueprint_to_composition_groups_layers_per_track():
     assert len(composition.layers_per_track["BASS"]) == 2
 
 
-def test_blueprint_to_composition_shifts_bars_to_one_indexed():
+def test_blueprint_to_composition_shifts_bars_to_one_indexed(minimal_blueprint):
     """Blueprint uses 0-indexed bars; composer's LayerSpec uses 1-indexed."""
-    bp = _minimal_blueprint()
-    composition = blueprint_to_composition(bp)
+    composition = blueprint_to_composition(minimal_blueprint)
     # First drum_kit layer: blueprint enters_at_bar=0 → composer entry_at_bar=1
     drum_layer = composition.layers_per_track["DRUM_KIT"][0]
     assert drum_layer.entry_at_bar == 1
@@ -148,8 +104,8 @@ def test_blueprint_to_composition_shifts_bars_to_one_indexed():
 
 
 @pytest.mark.parametrize("missing_sphere", ["structure", "harmony", "rhythm", "arrangement"])
-def test_blueprint_to_composition_requires_essential_spheres(missing_sphere):
-    bp = _minimal_blueprint()
+def test_blueprint_to_composition_requires_essential_spheres(minimal_blueprint, missing_sphere):
+    bp = minimal_blueprint
     # Drop one essential sphere and check error
     kwargs = {s: getattr(bp, s) for s in ["structure", "harmony", "rhythm", "arrangement"]}
     kwargs[missing_sphere] = None
@@ -163,9 +119,8 @@ def test_blueprint_to_composition_requires_essential_spheres(missing_sphere):
 # ============================================================================
 
 
-def test_compose_from_blueprint_returns_composer_dict():
-    bp = _minimal_blueprint()
-    result = compose_from_blueprint(bp)
+def test_compose_from_blueprint_returns_composer_dict(minimal_blueprint):
+    result = compose_from_blueprint(minimal_blueprint)
     assert "tracks" in result
     assert "tempo_bpm" in result
     assert "total_bars" in result
@@ -174,10 +129,9 @@ def test_compose_from_blueprint_returns_composer_dict():
     assert result["tempo_bpm"] == 100.0
 
 
-def test_compose_from_blueprint_renders_notes_per_track():
+def test_compose_from_blueprint_renders_notes_per_track(minimal_blueprint):
     """The pipeline should produce non-empty note-lists for each track."""
-    bp = _minimal_blueprint()
-    result = compose_from_blueprint(bp)
+    result = compose_from_blueprint(minimal_blueprint)
     assert len(result["tracks"]) == 2  # DRUM_KIT and BASS
     for track_name, notes in result["tracks"].items():
         assert len(notes) > 0, f"Track {track_name} produced no notes"
@@ -189,19 +143,17 @@ def test_compose_from_blueprint_renders_notes_per_track():
             assert "pitch" in n
 
 
-def test_compose_from_blueprint_drum_pitch_is_36():
+def test_compose_from_blueprint_drum_pitch_is_36(minimal_blueprint):
     """drum_kit role generates kick on MIDI pitch 36."""
-    bp = _minimal_blueprint()
-    result = compose_from_blueprint(bp)
+    result = compose_from_blueprint(minimal_blueprint)
     drum_notes = result["tracks"]["DRUM_KIT"]
     assert all(n["pitch"] == 36 for n in drum_notes), \
         "drum_kit motif should produce only kick (pitch 36)"
 
 
-def test_compose_from_blueprint_bass_below_tonic():
+def test_compose_from_blueprint_bass_below_tonic(minimal_blueprint):
     """bass role plays one octave below the tonic. A3=57 → bass=A2=45."""
-    bp = _minimal_blueprint()
-    result = compose_from_blueprint(bp)
+    result = compose_from_blueprint(minimal_blueprint)
     bass_notes = result["tracks"]["BASS"]
     assert all(n["pitch"] == 45 for n in bass_notes), \
         "bass motif should produce A2 (pitch 45) given tonic A3=57"
