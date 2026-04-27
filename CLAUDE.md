@@ -79,6 +79,68 @@ propage à >130 voisins — toujours vérifier via `/graphify explain` avant.
 - **Ne jamais commit `graphify-out/`** : c'est un artefact local, déjà
   ignoré dans `.gitignore`.
 
+## Économiser des tokens
+
+Règles comportementales que je dois respecter sans rappel. L'utilisateur
+paye chaque token de mes réponses et de mes lectures de fichiers — chaque
+règle ici a été motivée par une perte observée dans une session passée.
+
+1. **Réponses courtes par défaut.** Pas de tableau si une phrase suffit.
+   Pas de section "Niveau 1 / 2 / 3" si une recommandation directe
+   convient. Si l'utilisateur veut un long raisonnement, il le demandera.
+
+2. **Pas de "tu valides ?" répétitifs.** Si l'intention est claire dans
+   la requête, exécuter. Demander confirmation seulement pour les actions
+   destructrices ou irréversibles (force-push, suppression de fichiers
+   trackés, modification du master JSON `composition_advisor.json`, etc.).
+
+3. **Mini-pilote avant de scaler.** Pour tout format produit à grande
+   échelle (N agents, N drafts, N fichiers similaires), produire d'abord
+   1-2 exemples courts, attendre validation explicite, puis scaler. Ne
+   jamais produire 25 fichiers au mauvais format.
+
+4. **Cadrer le scope avant le pilote.** Avant de lancer un travail de
+   production, lister explicitement avec l'utilisateur ce qui est IN et
+   ce qui est OUT. Une mini-vérification de 30 secondes économise des
+   heures de re-travail.
+
+5. **Déléguer au subagent `graph-first-explorer`** pour les questions
+   d'architecture / cross-module / "comment marche X" / "qui utilise Y"
+   plutôt que charger plusieurs fichiers dans mon contexte principal.
+   ~10× moins cher pour mon contexte. Le hook UserPromptSubmit me le
+   rappelle automatiquement, mais je dois le faire même sans rappel.
+
+6. **Laisser les hooks git faire les checks mécaniques** (version sync,
+   pre-push regression, ALS pitfalls). Ne pas les ré-implémenter à chaque
+   tour.
+
+7. **Subagents parallèles : fournir UNE référence canonique** (un fichier
+   pilote déjà produit, lu par chaque subagent) plutôt que répéter le
+   format dans le prompt de chaque subagent. Économise la duplication.
+
+8. **Ne pas suggérer de switch de modèle proactivement.** L'utilisateur
+   sait qu'Opus est cher. Il switche vers Sonnet via `/model sonnet`
+   quand il veut. Sonnet suffit pour : code Python propre, drafts de
+   doc, review de fichiers, tâches mécaniques. Opus pour : archi,
+   raisonnement multi-étapes, design.
+
+9. **Suggérer `/clear` ou `/compact`** quand l'utilisateur démarre un
+   sujet vraiment nouveau (changement de projet, fin d'une grosse phase
+   de travail). Pas la peine de trimballer 50K tokens de contexte
+   précédent qui ne sert plus.
+
+10. **Ne pas re-lire les mêmes fichiers à chaque tour.** Si j'ai déjà
+    chargé `CLAUDE.md` ou un fichier de référence dans la session, m'y
+    référer en mémoire — ne pas le ré-ouvrir.
+
+## Économiser des tokens
+
+Règles comportementales canoniques : voir **`.claude/COST_DISCIPLINE.md`**
+(10 règles courtes). Le hook Claude Code `cost_discipline_reminder.py`
+injecte un rappel ciblé quand le prompt utilisateur matche un pattern à
+risque (scale-without-pilot, brief ouvert). Détails et incidents motivants
+en mémoire user-level (`memory/cost_discipline.md`).
+
 ## Hooks git automatiques (filet de sécurité)
 
 Le projet versionne ses hooks git dans `.githooks/`. Configurer une fois

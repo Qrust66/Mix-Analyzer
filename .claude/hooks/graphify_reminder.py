@@ -52,7 +52,10 @@ For multi-query synthesis, delegate to the graph-first-explorer subagent (saves 
 
 def main():
     try:
-        data = json.load(sys.stdin)
+        # Force UTF-8 stdin reading — on Windows the default console
+        # encoding (cp1252) mangles French characters
+        raw = sys.stdin.buffer.read().decode("utf-8", errors="replace")
+        data = json.loads(raw)
     except Exception:
         return 0
 
