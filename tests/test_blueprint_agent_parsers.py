@@ -1,10 +1,14 @@
 """Tests for composition_engine.blueprint.agent_parsers — schema validation
-of sphere-agent JSON payloads."""
+of sphere-agent JSON payloads, including LLM-output tolerance (Phase 2.2.1)."""
+import json
+
 import pytest
 
 from composition_engine.blueprint.agent_parsers import (
     AgentOutputError,
+    extract_json_payload,
     parse_structure_decision,
+    parse_structure_decision_from_response,
 )
 from composition_engine.blueprint.schema import (
     Citation,
@@ -22,6 +26,7 @@ from composition_engine.blueprint.schema import (
 def _valid_payload(**overrides):
     """Return a minimum-valid structure-decider payload, merging overrides."""
     base = {
+        "schema_version": "1.0",
         "structure": {
             "total_bars": 16,
             "sub_sections": [
@@ -160,6 +165,161 @@ def test_raises_on_non_numeric_confidence():
     payload = _valid_payload(confidence="high")
     with pytest.raises(AgentOutputError, match="confidence"):
         parse_structure_decision(payload)
+
+
+# ============================================================================
+# Phase 2.2.1 — LLM-output tolerance
+# ============================================================================
+
+
+# extract_json_payload (raw text → dict)
+
+
+def test_extract_json_from_pure_json_string():
+    payload = json.dumps(_valid_payload())
+    result = extract_json_payload(payload)
+    assert result["schema_version"] == "1.0"
+
+
+def test_extract_json_from_fenced_block():
+    payload_str = json.dumps(_valid_payload())
+    fenced = f"```json\n{payload_str}\n```"
+    result = extract_json_payload(fenced)
+    assert result["structure"]["total_bars"] == 16
+
+
+def test_extract_json_from_unlabeled_fence():
+    """LLMs sometimes use ``` without `json` language tag."""
+    payload_str = json.dumps(_valid_payload())
+    fenced = f"```\n{payload_str}\n```"
+    result = extract_json_payload(fenced)
+    assert "structure" in result
+
+
+def test_extract_json_from_prose_with_object():
+    """LLM prepends prose. Parser should still find the JSON object."""
+    payload_str = json.dumps(_valid_payload())
+    text = f"Voici la structure de la section :\n{payload_str}\nFin de la sortie."
+    result = extract_json_payload(text)
+    assert result["structure"]["total_bars"] == 16
+
+
+def test_extract_json_raises_on_empty_input():
+    with pytest.raises(AgentOutputError, match="empty"):
+        extract_json_payload("")
+
+
+def test_extract_json_raises_on_no_object():
+    with pytest.raises(AgentOutputError, match="JSON"):
+        extract_json_payload("no json here at all")
+
+
+def test_extract_json_raises_on_non_string_input():
+    with pytest.raises(AgentOutputError, match="string"):
+        extract_json_payload({"already": "dict"})  # type: ignore[arg-type]
+
+
+# Coercion: lenient input handling
+
+
+def test_null_sub_sections_coerced_to_empty_list():
+    payload = _valid_payload()
+    payload["structure"]["sub_sections"] = None
+    decision = parse_structure_decision(payload)
+    assert decision.value.sub_sections == ()
+
+
+def test_null_breath_points_coerced_to_empty_tuple():
+    payload = _valid_payload()
+    payload["structure"]["breath_points"] = None
+    decision = parse_structure_decision(payload)
+    assert decision.value.breath_points == ()
+
+
+def test_integral_floats_coerced_to_int_for_total_bars():
+    """LLM returns 16.0 instead of 16 — should still work."""
+    payload = _valid_payload()
+    payload["structure"]["total_bars"] = 16.0
+    decision = parse_structure_decision(payload)
+    assert decision.value.total_bars == 16
+
+
+def test_integer_string_coerced_to_int_for_total_bars():
+    payload = _valid_payload()
+    payload["structure"]["total_bars"] = "16"
+    decision = parse_structure_decision(payload)
+    assert decision.value.total_bars == 16
+
+
+def test_float_breath_points_coerced_to_int():
+    """[7.0, 15.0] should be accepted as [7, 15]."""
+    payload = _valid_payload()
+    payload["structure"]["breath_points"] = [7.0, 15.0]
+    decision = parse_structure_decision(payload)
+    assert decision.value.breath_points == (7, 15)
+
+
+def test_string_confidence_coerced_to_float():
+    payload = _valid_payload()
+    payload["confidence"] = "0.85"
+    decision = parse_structure_decision(payload)
+    assert decision.confidence == 0.85
+
+
+def test_non_integral_float_for_total_bars_raises():
+    """16.5 is not a valid bar count — should still error."""
+    payload = _valid_payload()
+    payload["structure"]["total_bars"] = 16.5
+    with pytest.raises(AgentOutputError, match="non-integer"):
+        parse_structure_decision(payload)
+
+
+def test_bool_rejected_as_int():
+    """isinstance(True, int) is True in Python — guard explicitly."""
+    payload = _valid_payload()
+    payload["structure"]["total_bars"] = True
+    with pytest.raises(AgentOutputError, match="bool"):
+        parse_structure_decision(payload)
+
+
+# Schema version
+
+
+def test_missing_schema_version_logs_warning_but_parses(caplog):
+    payload = _valid_payload()
+    del payload["schema_version"]
+    import logging
+    with caplog.at_level(logging.WARNING):
+        decision = parse_structure_decision(payload)
+    assert decision.value.total_bars == 16
+    assert any("schema_version" in r.message for r in caplog.records)
+
+
+def test_unknown_schema_version_logs_warning_but_parses(caplog):
+    payload = _valid_payload()
+    payload["schema_version"] = "99.99"
+    import logging
+    with caplog.at_level(logging.WARNING):
+        decision = parse_structure_decision(payload)
+    assert decision.value.total_bars == 16
+    assert any("99.99" in r.message for r in caplog.records)
+
+
+# End-to-end: raw text → Decision
+
+
+def test_parse_from_response_handles_fenced_payload():
+    payload_str = json.dumps(_valid_payload())
+    fenced = f"```json\n{payload_str}\n```"
+    decision = parse_structure_decision_from_response(fenced)
+    assert decision.value.total_bars == 16
+
+
+def test_parse_from_response_handles_prose_wrap():
+    payload_str = json.dumps(_valid_payload())
+    response = f"Sure, here's the structure:\n{payload_str}"
+    decision = parse_structure_decision_from_response(response)
+    assert decision.sphere == "structure"
 
 
 # ============================================================================

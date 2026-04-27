@@ -1,5 +1,39 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.2.1] - 2026-04-27
+
+### Added
+- **`extract_json_payload(text)`** in `agent_parsers.py` — strips
+  markdown fences, extracts JSON object from prose-wrapped LLM output.
+  Real-world LLM agents occasionally produce ```json fences or prose
+  preludes despite explicit instructions; the orchestrator-side parser
+  now handles those cases gracefully.
+- **`parse_structure_decision_from_response(text)`** — convenience
+  one-shot for raw LLM text → `Decision[StructureDecision]`.
+- **Schema versioning** — agent payloads now SHOULD include
+  `"schema_version": "1.0"`. Parser warns (does not error) on missing
+  or unknown versions to ease transition.
+- **3 in-context examples** in `.claude/agents/structure-decider.md`
+  (simple brief, multi-ref fusion, refusal) and a "Common pitfalls"
+  section. Concrete examples are crucial for LLM agent reliability.
+
+### Changed
+- **Parser is now lenient on input, strict on output**:
+    * `null` for `sub_sections` / `breath_points` → empty tuple
+    * Integral floats (`16.0`) coerced to int for bar counts
+    * Float `breath_points` (`[7.0, 15.0]`) coerced to ints
+    * String numerics (`"0.85"`) coerced to float for confidence
+    * `bool` explicitly rejected as int (Python's `isinstance(True, int)`
+      is True, but musically a boolean is not a bar count)
+- **Low confidence warning** — parser logs a WARNING when the agent
+  returns `confidence < 0.5`, to surface fragile decisions early.
+
+### Tests
+- `tests/test_blueprint_agent_parsers.py` — 14 new tests covering
+  fence-stripping, prose extraction, null coercion, float-to-int for
+  bar counts, string-to-float for confidence, schema-version warning
+  paths, end-to-end raw-text → Decision pipeline.
+
 ## [Unreleased — composition_engine Phase 2.2] - 2026-04-27
 
 ### Added
