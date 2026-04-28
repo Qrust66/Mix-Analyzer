@@ -1,5 +1,97 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.7] - 2026-04-28
+
+**THE phase that closes the 70/30 gap.** First sphere agent that descends
+to the note level. Earlier spheres (structure, harmony, rhythm,
+arrangement, dynamics) decide the skeleton ; motif-decider decides the
+actual MIDI notes per layer (pitch, beat, duration, velocity), citing
+the user's banque MIDI Qrust + corpus references.
+
+Before Phase 2.7 : composer applied placeholder stubs (`_default_motif`,
+`_bass_motif` = single tonic note). Result : flat output regardless of
+how brilliant the upstream agents were.
+
+After Phase 2.7 : when `bp.motifs` is filled, the composer uses the
+agent's note sequences directly. End-to-end smoke test shows 32/32
+notes from a 4-bar 2-layer Acid Drops blueprint render correctly.
+
+### Added — `MotifsDecision` schema in `composition_engine/blueprint/schema.py`
+
+- `Note(bar, beat, pitch, duration_beats, velocity)` — frozen dataclass
+- `LayerMotif(layer_role, layer_instrument, notes, rationale, inspired_by)`
+- `MotifsDecision(by_layer)` — collection of LayerMotif per arrangement layer
+- `MOTIF_PITCH_MIN/MAX = 0/127`, `MOTIF_VELOCITY_MIN/MAX = 1/127` —
+  public constants (single source of truth)
+- `SectionBlueprint.motifs: Optional[Decision[MotifsDecision]]` field
+- `SPHERES` extended : `('structure', 'harmony', 'rhythm',
+  'arrangement', 'dynamics', 'motifs', 'performance', 'fx')`
+- `SPHERE_DEPENDENCIES['motifs']` = full skeleton (structure, harmony,
+  rhythm, arrangement, dynamics) — motifs runs last because it consumes
+  every prior decision
+
+### Added — `parse_motifs_decision()` in `agent_parsers.py`
+
+Strict validation:
+- pitch ∈ [0, 127], velocity ∈ [1, 127], bar ≥ 0, beat ≥ 0,
+  duration_beats > 0
+- `motifs.by_layer` non-empty ; each layer's `notes` non-empty
+- `layer_role` non-empty
+- pitch-vs-scale checking deliberately NOT done at parse time (passing
+  tones valid ; future cohesion rule can warn)
+- Lenient input (fences, prose around, string-of-int coerced) per
+  composition-side policy
+
+### Added — `.claude/agents/motif-decider.md`
+
+The agent that closes the gap. Contracts :
+- Reads `SectionBlueprint` skeleton + brief + corpus refs
+- Produces note sequences citing **banque MIDI** (`get_qrust_profile`,
+  `get_rhythm_pattern`, `parse_pattern_16`, `list_basslines`,
+  `get_velocity_range`) + **corpus** (`composition_advisor.json`)
+- **Triple-rationale obligatoire** per layer : causal +
+  interactionnel + idiomatique
+- 3 in-context examples : Acid Drops kick+hat, NIN-style bassline,
+  refus
+
+### Added — composer wiring in `composer_adapter.py`
+
+When `bp.motifs is not None`, `_motif_render_from_decision()` replaces
+the per-role stubs. Match by `(role, instrument)` ; non-matched layers
+fall back to stubs + log explicit WARNING. The note's bar/beat are
+honored exactly ; the composer's track_layerer applies humanization
+jitter (timing 6ms, velocity 6) on top.
+
+### Fixed — track_layerer fade bug (pre-existing)
+
+`_bars_to_cycles(0)` returned 1 (because of `max(1, ...)`), causing
+even layers with `entry_fade_bars=0` to apply a 1-cycle fade-in/out
+that filtered cycles 0 and N-1. Special-cased zero-fade input — the
+fix unblocked motif-decider rendering (32/32 notes match instead of
+16/32 partial).
+
+### Updated fixtures
+
+`tests/conftest.py::complete_blueprint` and
+`tests/test_blueprint_schema.py::test_complete_blueprint_recognized_as_complete`
+now include the motifs sphere (8 spheres total instead of 7).
+
+### Tests
+
+- 35 new in `tests/test_motifs_parser.py` (parametrized over pitch/
+  velocity ranges, bar/beat negative, duration zero/negative, empty
+  layers, schema version handling, fences, blueprint integration)
+- All existing tests still pass (897/897).
+- End-to-end smoke test (not committed as test, manual) : 4-bar
+  Acid Drops blueprint with 2 layers → .mid with exactly 32 NoteOn
+  events at the right times.
+
+### Roadmap status
+
+Bloc 2 main path done : schema + parser + agent.md + composer wiring +
+end-to-end working. Cohesion rules + audit deferred to Phase 2.7.1
+following the audit-driven cleanup discipline.
+
 ## [Unreleased — banque_bridge Bloc 0] - 2026-04-27
 
 First step of the AGENT_DEPTH_ROADMAP. Adds a deterministic Python

@@ -199,6 +199,69 @@ class FxDecision:
 
 
 # ============================================================================
+# Motifs sphere — Phase 2.7
+# ============================================================================
+#
+# This is THE sphere that closes the 70/30 gap diagnosed in
+# docs/AGENT_DEPTH_ROADMAP.md. Earlier spheres (structure, harmony,
+# rhythm, arrangement, dynamics) decide the SKELETON — bars, key,
+# tempo, layers, dB arc. None of them decide the actual notes.
+# composer_adapter applies stubs (`_default_motif`, `_bass_motif`, …)
+# which is why the rendered .mid sounds flat.
+#
+# motif-decider fills this gap by producing concrete note sequences
+# per layer, citing the user's banque MIDI + corpus references.
+
+
+# MIDI value ranges for motifs. Public per the Phase 2.4.1 single-
+# source-of-truth pattern (no magic numbers in tests / consumers).
+MOTIF_PITCH_MIN: int = 0
+MOTIF_PITCH_MAX: int = 127
+MOTIF_VELOCITY_MIN: int = 1  # 0 = silent, useless as a notated event
+MOTIF_VELOCITY_MAX: int = 127
+
+
+@dataclass(frozen=True)
+class Note:
+    """One MIDI note, bar-relative within the section.
+
+    `beat` is in beats-from-bar-start, fractional allowed (0.5 = "and"
+    of beat 1, 0.05 = micro-pushed). The composer adapter combines
+    `bar` + `beat` into the absolute time using the section's
+    rhythm.time_signature.
+    """
+
+    bar: int  # 0-indexed bar within the section
+    beat: float  # beats from start of bar, ≥ 0
+    pitch: int  # MIDI note number
+    duration_beats: float  # > 0
+    velocity: int  # MIDI velocity
+
+
+@dataclass(frozen=True)
+class LayerMotif:
+    """The note sequence for one arrangement layer.
+
+    `layer_role` and `layer_instrument` MUST match an entry in
+    `arrangement.layers[*]` so the composer adapter can route this
+    motif to the right rendered track.
+    """
+
+    layer_role: str
+    layer_instrument: str
+    notes: tuple[Note, ...]
+    rationale: str = ""
+    inspired_by: tuple[Citation, ...] = ()
+
+
+@dataclass(frozen=True)
+class MotifsDecision:
+    """The set of layer motifs for one section."""
+
+    by_layer: tuple[LayerMotif, ...] = ()
+
+
+# ============================================================================
 # The blueprint itself
 # ============================================================================
 
@@ -209,6 +272,7 @@ SPHERES: tuple[str, ...] = (
     "rhythm",
     "arrangement",
     "dynamics",
+    "motifs",
     "performance",
     "fx",
 )
@@ -233,6 +297,7 @@ class SectionBlueprint:
     rhythm: Optional[Decision[RhythmDecision]] = None
     arrangement: Optional[Decision[ArrangementDecision]] = None
     dynamics: Optional[Decision[DynamicsDecision]] = None
+    motifs: Optional[Decision[MotifsDecision]] = None
     performance: Optional[Decision[PerformanceDecision]] = None
     fx: Optional[Decision[FxDecision]] = None
 

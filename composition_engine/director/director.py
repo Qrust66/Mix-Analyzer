@@ -42,6 +42,10 @@ SPHERE_DEPENDENCIES: dict[str, frozenset[str]] = {
     "rhythm": frozenset(),
     "arrangement": frozenset({"structure", "harmony", "rhythm"}),
     "dynamics": frozenset({"structure", "arrangement"}),
+    # motifs decides the actual notes per layer; needs the full skeleton
+    # plus dynamics so it can shape velocities relative to the dB arc.
+    "motifs": frozenset({"structure", "harmony", "rhythm",
+                          "arrangement", "dynamics"}),
     "performance": frozenset({"rhythm", "arrangement"}),
     "fx": frozenset({"arrangement", "dynamics"}),
 }

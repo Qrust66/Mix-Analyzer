@@ -38,11 +38,25 @@ except ImportError as exc:  # pragma: no cover
     ) from exc
 
 
-_BANQUE_XLSX = (
-    Path(__file__).resolve().parents[2]
-    / "ableton"
-    / "banque_midi_qrust.xlsx"
-)
+# Resolve the latest banque file. The user names the workbook with a
+# version suffix (`_v2`, `_v3`, …); we pick the highest-numbered one
+# present, falling back to the unsuffixed file. This way a new banque
+# version drops in without code changes.
+def _resolve_banque_path() -> Path:
+    ableton_dir = Path(__file__).resolve().parents[2] / "ableton"
+    candidates = sorted(
+        ableton_dir.glob("banque_midi_qrust*.xlsx"),
+        key=lambda p: p.stem,
+        reverse=True,
+    )
+    if not candidates:
+        # Return the canonical name so the FileNotFoundError message
+        # below points to where the user is expected to drop the file.
+        return ableton_dir / "banque_midi_qrust.xlsx"
+    return candidates[0]
+
+
+_BANQUE_XLSX = _resolve_banque_path()
 
 
 # Each sheet's data starts at row 4 (1-indexed) — rows 0-1 are titles,
@@ -136,6 +150,9 @@ def get_drum_mapping() -> list[dict]:
     """Return the full drum mapping table (MIDI # → role labels).
 
     Each entry: {midi: int, note: str, gm: str, ableton: str, qrust: str, notes: str}
+
+    Robust to the user's column-name variations across banque versions
+    ("Drum Rack Ableton (808)" in v1 → "Drum Rack Ableton" in v2).
     """
     banque = load_banque()
     out: list[dict] = []
@@ -143,11 +160,17 @@ def get_drum_mapping() -> list[dict]:
         midi = r.get("MIDI #")
         if midi is None:
             continue
+        # Try both v1 and v2 column names for the Ableton column
+        ableton = (
+            r.get("Drum Rack Ableton (808)")
+            or r.get("Drum Rack Ableton")
+            or ""
+        )
         out.append({
             "midi": int(midi),
             "note": r.get("Note (Ableton)") or "",
             "gm": r.get("GM Standard") or "",
-            "ableton": r.get("Drum Rack Ableton (808)") or "",
+            "ableton": ableton,
             "qrust": r.get("Industrial / Qrust") or "",
             "notes": r.get("Notes") or "",
         })

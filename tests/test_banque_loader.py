@@ -34,23 +34,30 @@ from composition_engine.banque_bridge.banque_loader import (
 # ============================================================================
 
 
-EXPECTED_SHEETS = {
-    "00_Index", "01_Drum_Mapping", "02_Rhythm_Patterns",
+# Core sheets the loader's accessor functions depend on. Other sheets
+# may be present (the user enriches the banque over time — v2 added
+# 14 reference / theory sheets) — only the 8 below are load-bearing
+# for the existing accessors.
+REQUIRED_SHEETS = {
+    "01_Drum_Mapping", "02_Rhythm_Patterns",
     "03_Scales_Modes", "04_Chord_Progressions", "05_Qrust_Profiles",
     "06_Velocity_Dynamics", "07_Tempo_Reference",
-    "08_Bassline_Patterns", "09_Notes_Usage",
+    "08_Bassline_Patterns",
 }
 
 
-def test_load_banque_returns_all_sheets():
+def test_load_banque_includes_required_sheets():
     banque = load_banque()
-    assert set(banque.keys()) == EXPECTED_SHEETS
+    missing = REQUIRED_SHEETS - set(banque.keys())
+    assert not missing, f"required sheets missing from banque: {missing}"
 
 
 def test_meta_lists_all_sheets():
     meta = get_meta()
-    assert meta["sheet_count"] == len(EXPECTED_SHEETS)
-    assert set(meta["sheets"]) == EXPECTED_SHEETS
+    # User's banque grows; only verify the loader sees ≥ 8 sheets and
+    # that each required sheet is in the meta list.
+    assert meta["sheet_count"] >= len(REQUIRED_SHEETS)
+    assert REQUIRED_SHEETS <= set(meta["sheets"])
 
 
 # ============================================================================

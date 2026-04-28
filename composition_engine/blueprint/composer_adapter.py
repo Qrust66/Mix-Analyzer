@@ -135,6 +135,60 @@ def _motif_for_role(role: str, tonic_pitch: int) -> Callable[[int], List[Dict[st
     return _default_motif(tonic_pitch)
 
 
+def _motif_render_from_decision(
+    layer_motif: Any,  # composition_engine.blueprint.schema.LayerMotif
+) -> Callable[[int], List[Dict[str, Any]]]:
+    """Build a render function from a motif-decider's LayerMotif decision.
+
+    The composer's track_layerer calls this with `cycle_idx` = bar index
+    (0-based) and expects a list of {time, duration, velocity, pitch}
+    dicts with `time` in beats from the start of that bar.
+
+    Phase 2.7 wiring: when bp.motifs is filled, this replaces
+    `_motif_for_role`'s placeholder per-role stubs.
+    """
+    # Group notes by bar for O(1) lookup per cycle
+    notes_by_bar: Dict[int, List[Dict[str, Any]]] = {}
+    for note in layer_motif.notes:
+        notes_by_bar.setdefault(note.bar, []).append({
+            "time": float(note.beat),
+            "duration": float(note.duration_beats),
+            "velocity": int(note.velocity),
+            "pitch": int(note.pitch),
+        })
+
+    def render(cycle_idx: int) -> List[Dict[str, Any]]:
+        return list(notes_by_bar.get(cycle_idx, []))
+    return render
+
+
+def _find_layer_motif(
+    motifs_decision: Any,  # composition_engine.blueprint.schema.MotifsDecision
+    role: str,
+    instrument: str,
+) -> Any:  # Optional[LayerMotif]
+    """Find the LayerMotif matching a (role, instrument) pair.
+
+    Match on role first; if multiple candidates remain, prefer one with
+    the same instrument. Returns None if no role match.
+    """
+    role_norm = (role or "").lower().strip()
+    inst_norm = (instrument or "").lower().strip()
+
+    same_role = [
+        lm for lm in motifs_decision.by_layer
+        if lm.layer_role.lower().strip() == role_norm
+    ]
+    if not same_role:
+        return None
+    # Prefer exact instrument match if any
+    same_inst = [
+        lm for lm in same_role
+        if lm.layer_instrument.lower().strip() == inst_norm
+    ]
+    return same_inst[0] if same_inst else same_role[0]
+
+
 # ============================================================================
 # Blueprint → Composition
 # ============================================================================
@@ -273,13 +327,36 @@ def blueprint_to_composition(bp: SectionBlueprint) -> Composition:
             unknown_roles, sorted(KNOWN_LAYER_ROLES),
         )
 
+    # Phase 2.7 wiring : if bp.motifs is filled, the agent-decided notes
+    # take precedence over the per-role placeholder stubs. Each layer
+    # tries to match a LayerMotif by (role, instrument). Non-matched
+    # layers fall back to the placeholder + log a WARNING — that way an
+    # incomplete motif decision doesn't silently swallow layers.
+    motifs_decision = bp.motifs.value if bp.motifs is not None else None
+    motif_fallbacks: List[str] = []
+
     # Group blueprint layers by their role string into "tracks" the composer
     # expects. Multiple layers with the same role share a track.
     layers_per_track: Dict[str, List[ComposerLayer]] = {}
     for bp_layer in arrangement.layers:
         track_name = (bp_layer.role or "default").upper().replace(" ", "_")
+
+        # Decide motif source : agent decision if available, else stub
+        layer_motif = (
+            _find_layer_motif(motifs_decision, bp_layer.role, bp_layer.instrument)
+            if motifs_decision is not None else None
+        )
+        if layer_motif is not None:
+            motif_render_func = _motif_render_from_decision(layer_motif)
+        else:
+            motif_render_func = _motif_for_role(bp_layer.role, tonic_pitch)
+            if motifs_decision is not None:
+                motif_fallbacks.append(
+                    f"{bp_layer.role}/{bp_layer.instrument}"
+                )
+
         composer_layer = ComposerLayer(
-            motif_render_func=_motif_for_role(bp_layer.role, tonic_pitch),
+            motif_render_func=motif_render_func,
             motif_id=f"{bp_layer.role}_{bp_layer.instrument}".replace(" ", "_"),
             # The composer's track_layerer uses 1-indexed bar positions; the
             # blueprint uses 0-indexed. Shift by +1.
@@ -290,6 +367,15 @@ def blueprint_to_composition(bp: SectionBlueprint) -> Composition:
             target_track=track_name,
         )
         layers_per_track.setdefault(track_name, []).append(composer_layer)
+
+    if motif_fallbacks:
+        _LOG.warning(
+            "[composer_adapter] Phase 2.7: motif-decider provided motifs but "
+            "%d layer(s) had no matching by_layer entry — falling back to "
+            "placeholder stubs for: %s. The .mid will sound partly flat. Fix "
+            "the motif decision to include these layer (role, instrument) pairs.",
+            len(motif_fallbacks), motif_fallbacks,
+        )
 
     return Composition(
         recipe_ids=[],  # blueprint-driven; no advisor recipes consulted

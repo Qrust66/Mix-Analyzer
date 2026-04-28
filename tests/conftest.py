@@ -13,7 +13,10 @@ from composition_engine.blueprint import (
     DynamicsDecision,
     FxDecision,
     HarmonyDecision,
+    LayerMotif,
     LayerSpec,
+    MotifsDecision,
+    Note,
     PerformanceDecision,
     RhythmDecision,
     SectionBlueprint,
@@ -135,6 +138,24 @@ def complete_blueprint() -> SectionBlueprint:
                 arc_shape="rising", start_db=-18.0, end_db=-6.0, peak_bar=15,
             ),
             "dynamics",
+        ),
+    )
+    bp = bp.with_decision(
+        "motifs",
+        _wrap(
+            MotifsDecision(
+                by_layer=(
+                    LayerMotif(
+                        layer_role="pad",
+                        layer_instrument="warm pad",
+                        notes=(
+                            Note(bar=0, beat=0.0, pitch=69, duration_beats=4.0,
+                                 velocity=70),
+                        ),
+                    ),
+                ),
+            ),
+            "motifs",
         ),
     )
     bp = bp.with_decision(

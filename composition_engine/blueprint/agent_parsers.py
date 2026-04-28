@@ -33,13 +33,20 @@ from typing import Any, Mapping
 
 from composition_engine.blueprint.schema import (
     DYNAMICS_BASELINE_DB,
+    MOTIF_PITCH_MAX,
+    MOTIF_PITCH_MIN,
+    MOTIF_VELOCITY_MAX,
+    MOTIF_VELOCITY_MIN,
     ArrangementDecision,
     Citation,
     Decision,
     DynamicsDecision,
     HarmonyDecision,
     InstChange,
+    LayerMotif,
     LayerSpec,
+    MotifsDecision,
+    Note,
     RhythmDecision,
     StructureDecision,
     SubSection,
@@ -56,6 +63,7 @@ SUPPORTED_HARMONY_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_RHYTHM_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_ARRANGEMENT_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_DYNAMICS_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_MOTIFS_SCHEMA_VERSIONS = frozenset({"1.0"})
 
 # Canonical arc shapes for dynamics. Public per the Phase 2.4.1 pattern.
 VALID_ARC_SHAPES = frozenset({
@@ -931,6 +939,164 @@ def parse_dynamics_decision_from_response(text: str) -> Decision[DynamicsDecisio
     return parse_dynamics_decision(extract_json_payload(text))
 
 
+# ============================================================================
+# Public parser — motifs (Phase 2.7)
+# ============================================================================
+#
+# Closes the 70/30 gap : earlier spheres decide the skeleton, this one
+# decides actual notes. Validates ranges (pitch, velocity, beat ≥ 0,
+# duration > 0) but does NOT check pitch against the harmony scale —
+# passing tones are valid musical material, and a future cohesion rule
+# can warn when too many notes are out-of-scale (rule-with-consumer).
+
+
+def _parse_note(item: Any, *, where: str) -> Note:
+    """Parse one note dict into a Note dataclass."""
+    if not isinstance(item, Mapping):
+        raise AgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+    bar = _coerce_int(_require(item, "bar", where=where), where=f"{where}.bar")
+    if bar < 0:
+        raise AgentOutputError(f"{where}.bar must be >= 0, got {bar}")
+    beat = _coerce_float(_require(item, "beat", where=where), where=f"{where}.beat")
+    if beat < 0:
+        raise AgentOutputError(f"{where}.beat must be >= 0, got {beat}")
+    pitch = _coerce_int(_require(item, "pitch", where=where), where=f"{where}.pitch")
+    if not (MOTIF_PITCH_MIN <= pitch <= MOTIF_PITCH_MAX):
+        raise AgentOutputError(
+            f"{where}.pitch must be in [{MOTIF_PITCH_MIN}, {MOTIF_PITCH_MAX}], got {pitch}"
+        )
+    duration_beats = _coerce_float(
+        _require(item, "duration_beats", where=where),
+        where=f"{where}.duration_beats",
+    )
+    if duration_beats <= 0:
+        raise AgentOutputError(
+            f"{where}.duration_beats must be > 0, got {duration_beats}"
+        )
+    velocity = _coerce_int(
+        _require(item, "velocity", where=where), where=f"{where}.velocity"
+    )
+    if not (MOTIF_VELOCITY_MIN <= velocity <= MOTIF_VELOCITY_MAX):
+        raise AgentOutputError(
+            f"{where}.velocity must be in [{MOTIF_VELOCITY_MIN}, "
+            f"{MOTIF_VELOCITY_MAX}], got {velocity}"
+        )
+    return Note(
+        bar=bar, beat=beat, pitch=pitch,
+        duration_beats=duration_beats, velocity=velocity,
+    )
+
+
+def _parse_layer_motif(item: Any, *, where: str) -> LayerMotif:
+    """Parse one layer-motif entry."""
+    if not isinstance(item, Mapping):
+        raise AgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+    layer_role = _coerce_str(
+        _require(item, "layer_role", where=where)
+    ).strip()
+    if not layer_role:
+        raise AgentOutputError(f"{where}.layer_role must be non-empty")
+    layer_instrument = _coerce_str(item.get("layer_instrument", ""))
+    raw_notes = _coerce_list(
+        _require(item, "notes", where=where), where=f"{where}.notes"
+    )
+    if not raw_notes:
+        raise AgentOutputError(
+            f"{where}.notes must be non-empty for layer_role={layer_role!r}. "
+            f"A layer with zero notes cannot render — omit the layer entirely "
+            f"or supply notes."
+        )
+    notes = tuple(
+        _parse_note(n, where=f"{where}.notes[{i}]")
+        for i, n in enumerate(raw_notes)
+    )
+    rationale = _coerce_str(item.get("rationale", ""))
+    inspired_by_raw = _coerce_list(
+        item.get("inspired_by", []), where=f"{where}.inspired_by"
+    )
+    inspired_by = tuple(
+        _parse_citation(c, where=f"{where}.inspired_by[{i}]")
+        for i, c in enumerate(inspired_by_raw)
+    )
+    return LayerMotif(
+        layer_role=layer_role,
+        layer_instrument=layer_instrument,
+        notes=notes,
+        rationale=rationale,
+        inspired_by=inspired_by,
+    )
+
+
+def parse_motifs_decision(payload: Mapping[str, Any]) -> Decision[MotifsDecision]:
+    """Parse a motif-decider agent payload into a Decision.
+
+    Expected shape (schema 1.0):
+        {
+          "schema_version": "1.0",
+          "motifs": {
+            "by_layer": [
+              {
+                "layer_role": str (non-empty),
+                "layer_instrument": str,
+                "notes": [{"bar": int≥0, "beat": float≥0, "pitch": int 0-127,
+                           "duration_beats": float>0, "velocity": int 1-127}, ...],
+                "rationale": str,
+                "inspired_by": [{"song", "path", "excerpt"}, ...]
+              },
+              ...
+            ]
+          },
+          "rationale": str,
+          "inspired_by": [...],
+          "confidence": float (0..1)
+        }
+
+    Or a refusal: {"error": "...", "details": "..."}
+
+    Strict output: pitch in [0, 127], velocity in [1, 127], bar ≥ 0,
+    beat ≥ 0, duration_beats > 0. Each layer must have at least one note.
+    Pitch-vs-scale checking is deliberately NOT done at parse time
+    (passing tones are valid); a future cohesion rule can warn at the
+    blueprint level if too many notes are out-of-scale.
+    """
+    envelope = _parse_envelope(
+        payload, supported_versions=SUPPORTED_MOTIFS_SCHEMA_VERSIONS
+    )
+
+    motifs_dict = _require(payload, "motifs", where="root")
+    if not isinstance(motifs_dict, Mapping):
+        raise AgentOutputError(
+            f"motifs: expected object, got {type(motifs_dict).__name__}"
+        )
+
+    raw_by_layer = _coerce_list(
+        _require(motifs_dict, "by_layer", where="motifs"),
+        where="motifs.by_layer",
+    )
+    if not raw_by_layer:
+        raise AgentOutputError(
+            "motifs.by_layer must be non-empty. A section with no layer "
+            "motifs has no notes to render — supply at least one layer "
+            "or refuse with an error payload."
+        )
+    by_layer = tuple(
+        _parse_layer_motif(item, where=f"motifs.by_layer[{i}]")
+        for i, item in enumerate(raw_by_layer)
+    )
+
+    motifs_value = MotifsDecision(by_layer=by_layer)
+    return Decision(value=motifs_value, sphere="motifs", **envelope)
+
+
+def parse_motifs_decision_from_response(text: str) -> Decision[MotifsDecision]:
+    """End-to-end: raw LLM response text → Decision[MotifsDecision]."""
+    return parse_motifs_decision(extract_json_payload(text))
+
+
 __all__ = [
     "AgentOutputError",
     "SUPPORTED_STRUCTURE_SCHEMA_VERSIONS",
@@ -958,4 +1124,11 @@ __all__ = [
     "parse_arrangement_decision_from_response",
     "parse_dynamics_decision",
     "parse_dynamics_decision_from_response",
+    "SUPPORTED_MOTIFS_SCHEMA_VERSIONS",
+    "MOTIF_PITCH_MIN",
+    "MOTIF_PITCH_MAX",
+    "MOTIF_VELOCITY_MIN",
+    "MOTIF_VELOCITY_MAX",
+    "parse_motifs_decision",
+    "parse_motifs_decision_from_response",
 ]

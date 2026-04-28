@@ -13,6 +13,10 @@ Public API:
 """
 from composition_engine.blueprint.schema import (
     DYNAMICS_BASELINE_DB,
+    MOTIF_PITCH_MAX,
+    MOTIF_PITCH_MIN,
+    MOTIF_VELOCITY_MAX,
+    MOTIF_VELOCITY_MIN,
     SPHERES,
     ArrangementDecision,
     Citation,
@@ -21,7 +25,10 @@ from composition_engine.blueprint.schema import (
     FxDecision,
     HarmonyDecision,
     InstChange,
+    LayerMotif,
     LayerSpec,
+    MotifsDecision,
+    Note,
     PerformanceDecision,
     RhythmDecision,
     SectionBlueprint,
@@ -37,6 +44,10 @@ from composition_engine.blueprint.cohesion import (
 
 __all__ = [
     "DYNAMICS_BASELINE_DB",
+    "MOTIF_PITCH_MAX",
+    "MOTIF_PITCH_MIN",
+    "MOTIF_VELOCITY_MAX",
+    "MOTIF_VELOCITY_MIN",
     "SPHERES",
     "ArrangementDecision",
     "Citation",
@@ -45,7 +56,10 @@ __all__ = [
     "FxDecision",
     "HarmonyDecision",
     "InstChange",
+    "LayerMotif",
     "LayerSpec",
+    "MotifsDecision",
+    "Note",
     "PerformanceDecision",
     "RhythmDecision",
     "SectionBlueprint",

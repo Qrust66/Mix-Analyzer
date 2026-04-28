@@ -73,15 +73,25 @@ def test_decision_carries_provenance():
 
 
 def test_complete_blueprint_recognized_as_complete():
-    """A blueprint with all 7 spheres filled reports complete."""
+    """A blueprint with all 8 spheres filled reports complete."""
     from composition_engine.blueprint import (
         ArrangementDecision,
         DynamicsDecision,
         FxDecision,
+        LayerMotif,
+        MotifsDecision,
+        Note,
         PerformanceDecision,
         RhythmDecision,
     )
     bp = SectionBlueprint(name="intro")
+    minimal_motifs = MotifsDecision(by_layer=(
+        LayerMotif(
+            layer_role="pad", layer_instrument="warm",
+            notes=(Note(bar=0, beat=0.0, pitch=69,
+                        duration_beats=1.0, velocity=80),),
+        ),
+    ))
     # Fill each sphere with a minimal Decision
     for sphere, value in [
         ("structure", StructureDecision(total_bars=16)),
@@ -89,6 +99,7 @@ def test_complete_blueprint_recognized_as_complete():
         ("rhythm", RhythmDecision(tempo_bpm=100)),
         ("arrangement", ArrangementDecision()),
         ("dynamics", DynamicsDecision()),
+        ("motifs", minimal_motifs),
         ("performance", PerformanceDecision()),
         ("fx", FxDecision()),
     ]:

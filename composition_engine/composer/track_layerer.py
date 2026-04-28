@@ -62,9 +62,21 @@ def render_layer(spec: LayerSpec, tempo_bpm: float = 108.0) -> List[Dict[str, An
         return []
     num_cycles = _bars_to_cycles(active_bars, spec.cycle_duration_beats)
 
-    # Compute envelope based on entry/exit fades
-    fade_in_cycles = max(0, _bars_to_cycles(spec.entry_fade_bars, spec.cycle_duration_beats))
-    fade_out_cycles = max(0, _bars_to_cycles(spec.exit_fade_bars, spec.cycle_duration_beats))
+    # Compute envelope based on entry/exit fades.
+    # IMPORTANT: _bars_to_cycles has `max(1, ...)` baked in, which is correct
+    # when computing num_cycles (a layer active for less than one full cycle
+    # still produces one cycle), but WRONG when computing fade_*_cycles
+    # (entry_fade_bars=0 must produce fade_in_cycles=0, otherwise the
+    # default trapezoidal envelope filters out the first/last cycle even
+    # for layers that asked for no fade). Special-case 0 here.
+    fade_in_cycles = (
+        0 if spec.entry_fade_bars <= 0
+        else _bars_to_cycles(spec.entry_fade_bars, spec.cycle_duration_beats)
+    )
+    fade_out_cycles = (
+        0 if spec.exit_fade_bars <= 0
+        else _bars_to_cycles(spec.exit_fade_bars, spec.cycle_duration_beats)
+    )
 
     if num_cycles == 0:
         return []
