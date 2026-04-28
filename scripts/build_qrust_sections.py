@@ -1,4 +1,4 @@
-"""Build Qrust_3Sections.als — 3 driving sections at 128 BPM in C, composed
+"""Build Qrust_5Sections.als — 5 driving sections at 128 BPM in C, composed
 via the multi-agent sphere agents PLUS the banque MIDI Qrust v2 patterns.
 
 The bank (`ableton/banque_midi_qrust_v2.xlsx`) provides:
@@ -10,34 +10,48 @@ The bank (`ableton/banque_midi_qrust_v2.xlsx`) provides:
 
 Sections (all 16 bars @ 128 BPM, root = C):
 
-  1. PEDAL  — Acid Drops cible profile
+  1. PEDAL  — Acid Drops cible profile (sheet 05 R5)
        Mode: C Phrygian  |  Progression: i-i-i-bII × 4 (pédale + bII tease)
-       Kick: X...X...X...X...  |  Bass: 1, 1, b2, 1 (C C Db C)
-       Hats: off-beat (..X...X...X...X.)
+       Kick: X...X...X...X...  |  Bass: 1, 1, b2, 1 (C C C Db)
        Vibe: dark industrial groovy, signature Qrust target sound.
 
-  2. LOCK   — Industrial classic profile
+  2. LOCK   — Industrial classic profile (sheet 02 R21-R24)
        Mode: C Aeolian  |  Progression: i-bVI-bVII-i × 4
        Kick: X...X...X.X.X... (variation step 11)
        Bass: 1, 1, b6, b7 (C C Ab Bb — NIN-style heavy)
        1-bar dropout at bar 12 -> slam back at 13.
-       Vibe: layered industrial with micro-breakdown.
 
-  3. DRIVE  — EBM driving profile
+  3. DRIVE  — EBM driving profile (sheet 02 R25-R27)
        Mode: C Phrygian  |  Progression: i-bII-bVII-i × 4
        Kick: X.X.X.X.X.X.X.X. (8ths driving)
-       Bass: 1, 1, b2, 1, 5, 1, b3, 1 (EBM mélodique driving 8ths)
-       Vibe: relentless EBM forward propulsion, no breaks.
+       Bass: 1, 1, b2, 1, 5, 1, b3, 1 (EBM mélodique 8ths)
 
-Timeline: Pedal beats 0-64, Lock 64-128, Drive 128-192. 192 beats total.
+  4. TEASE  — Phrygian dom dark profile (sheet 05 R14)
+       Mode: C Phrygian DOMINANT (maj 3 = E natural — venom)
+       Progression: I-I-bII-I-I-I-bII-I-I-bII-I-I-bII-I-bII-I (densifying bII)
+       Kick: X...X...X...X... 4x4  |  Hat: ..X...X.a.X...X. (accent step 9)
+       Bass: 1, b2, 3, 1 (C Db E C — the major 3rd snake-charmer)
+       Voicing: I_dominant7_no5 (C-E-Bb venom voicing)
+       Vibe: exotic peak — modal contrast on same root.
+
+  5. BRIDGE — Industrial breakbeat profile (sheet 05 R15)
+       Mode: C Phrygian (return home)  |  Progression: i-bII-i-bvii° × 4
+       Kick: X.........X..... (broken — 1 and "and of 3")
+       Snare: ....X.........X. (displaced — 1 and 3.5 off)
+       Hat: X.X.X.XgX.X.X.X. (Amen-style ghost-dense breakbeat)
+       Vibe: broken closer — propulsion via syncope, not grid.
+       1-bar stop_time at bar 12 -> final_push 13-16 -> abrupt cut.
+
+Timeline: Pedal 0-64, Lock 64-128, Drive 128-192, Tease 192-256,
+Bridge 256-320. 320 beats total = 80 bars at 4/4 = ~2:30 @ 128 BPM.
 
 Sphere agents invoked: structure-decider + harmony-decider per section
-(6 agent calls total). Rhythm/arrangement/dynamics come from the bank
+(10 agent calls total). Rhythm/arrangement/dynamics come from the bank
 profile mapping — the agents at Phase 2.6 are descriptive at those
 spheres anyway, so the bank does the substantive work.
 
 Note generators read the bank's 16-step grids and bassline degree
-sequences directly — no improvising from scratch like build_pivot_demo.
+sequences directly — no improvising from scratch.
 """
 from __future__ import annotations
 
@@ -65,13 +79,14 @@ from scripts.build_multi_agent_demo import (
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "ableton" / "projects" / "Template" / "Template Project" / "Template.als"
-DST = ROOT / "ableton" / "projects" / "Template" / "Template Project" / "Qrust_3Sections.als"
+DST = ROOT / "ableton" / "projects" / "Template" / "Template Project" / "Qrust_5Sections.als"
 
 PROJECT_TEMPO = 128
 BARS_PER_SECTION = 16
 BEATS_PER_BAR = 4
 SECTION_BEATS = BARS_PER_SECTION * BEATS_PER_BAR  # 64
-TOTAL_BEATS = 3 * SECTION_BEATS  # 192
+N_SECTIONS = 5
+TOTAL_BEATS = N_SECTIONS * SECTION_BEATS  # 320
 
 
 # ============================================================================
@@ -102,13 +117,29 @@ DRIVE_HARMONY = """
 {"schema_version":"1.0","harmony":{"mode":"Phrygian","key_root":"C","progression":["i","bII","bVII","i","i","bII","bVII","i","i","bII","bVII","i","i","bII","bVII","i"],"harmonic_rhythm":1.0,"voicing_strategy":"i (Cm) power chord distorted; bII (Db) chromatic_neighbor_pad (b3 held in upper voice for permanent b2 dissonance); bVII (Bb) open_fifth_dyad spread wide in low register (no third) before return to i.","cadence_at_end":"open"},"rationale":"C Phrygien from the bank brief. i-bII-bVII-i × 4 cycles = 16 events at hr=1.0. Open cadence on i return — section relaunches without resolution.","inspired_by":[{"song":"Nine_Inch_Nails/Copy_Of_A","path":"composition.modal_choice","excerpt":"C minor with chromatic ornamentation. Modal stability over filter-modulated patterns"},{"song":"Daft_Punk/Harder_Better_Faster_Stronger","path":"composition.harmonic_motion","excerpt":"loop a small chord set i-bVII-bVI-v. Non-functional in dance-music sense"}],"confidence":0.92}
 """
 
+TEASE_STRUCTURE = """
+{"schema_version":"1.0","structure":{"total_bars":16,"sub_sections":[{"name":"drive_carry","start_bar":0,"end_bar":12,"role":"loop"},{"name":"venom","start_bar":12,"end_bar":16,"role":"build"}],"breath_points":[15],"transition_in":"full_band_slam_at_downbeat_zero","transition_out":"riff_punch_re_engagement"},"rationale":"16 bars in 12+4 — drive carry from Drive's intensity, then venom (max-3 lands hardest in last 4 bars). Single breath at bar 15 to not break EP momentum.","inspired_by":[{"song":"Nine_Inch_Nails/Were_In_This_Together","path":"composition.section_count_and_lengths","excerpt":"Each chorus approximately 16 bars; multiple iterations across runtime"},{"song":"Soundgarden/Jesus_Christ_Pose","path":"stylistic_figures.transitions_between_sections","excerpt":"section_change_via_riff_pattern_only_no_dynamic_event"},{"song":"Smashing_Pumpkins/Bodies","path":"composition.structural_blueprint","excerpt":"fast_riff_opening_full_band_immediate"}],"confidence":0.88}
+"""
+
+TEASE_HARMONY = """
+{"schema_version":"1.0","harmony":{"mode":"Phrygian dominant","key_root":"C","progression":["I","I","bII","I","I","I","bII","I","I","bII","I","I","bII","I","bII","I"],"harmonic_rhythm":1.0,"voicing_strategy":"I_dominant7_no5 (root C + maj3 E + b7 Bb — venom voicing, no 5th, lets the maj3-vs-b7 tritone snap) on every I bar; bII (Db) as power chord root+5th in mid register, no 3rd; bII appearances densify toward end of section (bars 3, 7, 10, 13, 15) for tension acceleration without losing tonic gravity.","cadence_at_end":"open"},"rationale":"C Phrygien Dominant — same root C as Pedal/Lock/Drive but with raised maj-3 (E natural) creating snake-charmer venom. Familiar I-bII shape but with tierce relevée — listener hears 'lumière inattendue dans un geste connu'. bII densifies toward end (5 occurrences in 16 bars, accelerating) for tension build into the venom sub-section. Cadence ouverte sur I dominant — tritone E/Bb left in suspension, not resolved.","inspired_by":[{"song":"Nine_Inch_Nails/Were_In_This_Together","path":"composition.harmonic_motion","excerpt":"dark chromatic chord shifts (small chromatic neighbor moves rather than functional V-I cadences)"},{"song":"Soundgarden/Jesus_Christ_Pose","path":"composition.harmonic_motion","excerpt":"The chord cycle stays minimal — drop D power chord movements emphasizing low D root with occasional movements to bVII. Harmonic content subordinate to RHYTHMIC identity"}],"confidence":0.91}
+"""
+
+BRIDGE_STRUCTURE = """
+{"schema_version":"1.0","structure":{"total_bars":16,"sub_sections":[{"name":"broken_groove","start_bar":0,"end_bar":12,"role":"loop"},{"name":"stop_time","start_bar":12,"end_bar":13,"role":"drop"},{"name":"final_push","start_bar":13,"end_bar":16,"role":"build"}],"breath_points":[12],"transition_in":"abrupt_full_band_entry_no_riser","transition_out":"abrupt_termination_mid_cycle"},"rationale":"16 bars in 3 phases — broken groove (kick 0+2.5 + snare 1+3.5 displaced + Amen-style ghosted hats) for 12 bars, 1-bar stop_time freeze at 12, 3-bar final_push, then abrupt cut (March_Of_The_Pigs ending model). EP closer.","inspired_by":[{"song":"Nine_Inch_Nails/March_Of_The_Pigs","path":"stylistic_figures.transitions_between_sections","excerpt":"abrupt_termination_mid_cycle — the song ENDS rather than concludes. No fade, no held note, no resolution"},{"song":"Nine_Inch_Nails/Copy_Of_A","path":"stylistic_figures.drops_and_breakdowns","excerpt":"no_drops_pattern_evolution_only — compositional motion is via pattern evolution + filter modulation throughout"},{"song":"Radiohead/The_National_Anthem","path":"composition.phrase_symmetry","excerpt":"Symmetric foundation + asymmetric overlay = the compositional engine"}],"confidence":0.88}
+"""
+
+BRIDGE_HARMONY = """
+{"schema_version":"1.0","harmony":{"mode":"Phrygian","key_root":"C","progression":["i","bII","i","bvii°","i","bII","i","bvii°","i","bII","i","bvii°","i","bII","i","bvii°"],"harmonic_rhythm":1.0,"voicing_strategy":"power chord (root + 5th, no 3rd) on i — defeat Tease's bright maj-3rd by reasserting cold minor tonic; chromatic_neighbor_pad on bII (Db major Db-F-Ab held against C5 for max Phrygian rub); diminished triad on bvii° (Bb-Db-E enharmonic) — the section ends each cycle on bvii° as a COLLAPSE (no resolution). Bar 12 stop_time bar replaces bII with sus4 voicing (Db-Gb-Ab) — suspended breathing moment before final cycle.","cadence_at_end":"modal"},"rationale":"C Phrygien — return home after Tease's Phrygian Dominant. The i power chord (no 3rd) on opening defeats Tease's bright maj-3rd. bvii° (Bb diminished) as the closing chord of each cycle does not resolve — it COLLAPSES, functioning as punctuation. EP closer logic: bridge ends on bvii° rather than i to feel like an expiration, not a relaunch (March_Of_The_Pigs abrupt-termination model).","inspired_by":[{"song":"Nine_Inch_Nails/March_Of_The_Pigs","path":"composition.modal_choice","excerpt":"C# minor (Aeolian) with Phrygian-tinged inflections"},{"song":"Nine_Inch_Nails/Copy_Of_A","path":"composition.harmonic_motion","excerpt":"Chord shifts often expressed via filter-cutoff modulation — modal-static with texture as motion engine"},{"song":"Radiohead/The_National_Anthem","path":"composition.harmonic_pacing","excerpt":"Zero at the chord level (one mode for the entire track). Generated entirely by BRASS DENSITY"}],"confidence":0.91}
+"""
+
 
 # ============================================================================
 # Section blueprints (built from the agent JSONs)
 # ============================================================================
 
 
-def assemble_blueprints() -> Tuple[SectionBlueprint, SectionBlueprint, SectionBlueprint]:
+def assemble_blueprints() -> Tuple[SectionBlueprint, ...]:
     bp_pedal = (
         SectionBlueprint(
             name="Pedal",
@@ -140,7 +171,29 @@ def assemble_blueprints() -> Tuple[SectionBlueprint, SectionBlueprint, SectionBl
         .with_decision("structure", parse_structure_decision_from_response(DRIVE_STRUCTURE))
         .with_decision("harmony", parse_harmony_decision_from_response(DRIVE_HARMONY))
     )
-    return bp_pedal, bp_lock, bp_drive
+    bp_tease = (
+        SectionBlueprint(
+            name="Tease",
+            references=("Nine_Inch_Nails/Were_In_This_Together",
+                        "Soundgarden/Jesus_Christ_Pose",
+                        "Smashing_Pumpkins/Bodies"),
+            brief="Phrygian dom dark — 16 bars, C Phrygian Dominant, venom voicing with maj-3 surprise",
+        )
+        .with_decision("structure", parse_structure_decision_from_response(TEASE_STRUCTURE))
+        .with_decision("harmony", parse_harmony_decision_from_response(TEASE_HARMONY))
+    )
+    bp_bridge = (
+        SectionBlueprint(
+            name="Bridge",
+            references=("Nine_Inch_Nails/March_Of_The_Pigs",
+                        "Nine_Inch_Nails/Copy_Of_A",
+                        "Radiohead/The_National_Anthem"),
+            brief="Industrial breakbeat — 16 bars, C Phrygian, broken kick + displaced snare + ghost hats, EP closer",
+        )
+        .with_decision("structure", parse_structure_decision_from_response(BRIDGE_STRUCTURE))
+        .with_decision("harmony", parse_harmony_decision_from_response(BRIDGE_HARMONY))
+    )
+    return bp_pedal, bp_lock, bp_drive, bp_tease, bp_bridge
 
 
 # ============================================================================
@@ -179,6 +232,22 @@ DRIVE_SNARE  = "....X.......X..."   # backbeat droit
 # In C Phrygian: 1=C, b2=Db, b3=Eb, 5=G. So per bar:
 #   8th 1: C   2: C   3: Db  4: C   5: G   6: C   7: Eb  8: C
 DRIVE_BASS_8THS = ("1", "1", "b2", "1", "5", "1", "b3", "1")
+
+# --- TEASE : Phrygian dom dark profile (sheet 05 R14) ---
+TEASE_KICK   = "X...X...X...X..."   # four-on-floor (Acid Drops kick)
+TEASE_HAT    = "..X...X.a.X...X."   # dark techno hat with accent step 9 (sheet 02 R16)
+TEASE_SNARE  = "....X.......X..."   # backbeat 1, 3
+# Phrygian dom dark bass: 1, b2, 3, 1 (sheet 08 R11) - the major 3rd in bass.
+# In C Phr Dom: 1=C, b2=Db, 3=E (NATURAL), 1=C
+TEASE_BASS_DEGREES = ("1", "b2", "3", "1")  # one degree per bar in 4-bar cycle
+
+# --- BRIDGE : Industrial breakbeat profile (sheet 05 R15) ---
+# Kick "0, 2.5 (broken)" -> beats 0.0 and 2.5 -> steps 0 and 10
+BRIDGE_KICK  = "X.........X....."
+# Snare "1, 3.5 (off)" -> beats 1.0 and 3.5 -> steps 4 and 14
+BRIDGE_SNARE = "....X.........X."
+# Hat "breakbeat ghosted" - Amen-style 16ths (sheet 02 R33)
+BRIDGE_HAT   = "X.X.X.XgX.X.X.X."
 
 
 # ============================================================================
@@ -565,12 +634,272 @@ def gen_drive_fx() -> List[Dict]:
     return out
 
 
+# --- TEASE -----------------------------------------------------------------
+
+
+def gen_tease_drum() -> List[Dict]:
+    """Phrygian dom dark profile — 4x4 kick, hat off-beat with accent step 9,
+    snare 1+3 backbeat. Velocity range 95-120 per bank R14."""
+    out: List[Dict] = []
+    for bar in range(BARS_PER_SECTION):
+        b = bar * BEATS_PER_BAR
+        out.extend(grid_to_drum_notes(TEASE_KICK, pitch=36, bar_offset_beats=b,
+                                      velocity_main=115, note_dur=0.25))
+        out.extend(grid_to_drum_notes(TEASE_HAT, pitch=42, bar_offset_beats=b,
+                                      velocity_main=92, velocity_accent=110,
+                                      note_dur=0.18))
+        out.extend(grid_to_drum_notes(TEASE_SNARE, pitch=38, bar_offset_beats=b,
+                                      velocity_main=108, note_dur=0.20))
+        # Venom sub-section (bars 12-15): add metal hit on beat 1 for emphasis
+        if 12 <= bar < 16:
+            out.append({"time": b, "pitch": 49, "duration": 0.5, "velocity": 122})
+    return out
+
+
+def gen_tease_bass() -> List[Dict]:
+    """Phrygian dom dark bass: 1, b2, 3, 1 cycle (C Db E C). The major 3rd
+    in the bass IS the venom signature. 4-on-floor pulse locked with kick."""
+    out: List[Dict] = []
+    for bar in range(BARS_PER_SECTION):
+        b = bar * BEATS_PER_BAR
+        degree = TEASE_BASS_DEGREES[bar % 4]
+        pitch = degree_to_pitch(degree, ROOT_C1)
+        # Pulse on each quarter, with octave punch on beat 4 for forward motion
+        for beat in (0.0, 1.0, 2.0):
+            vel = 110 if beat == 0.0 else 100
+            out.append({"time": b + beat, "pitch": pitch, "duration": 0.85, "velocity": vel})
+        # Octave-up on beat 4 — the venom signature (especially on the bar 3 = E natural)
+        out.append({"time": b + 3.0, "pitch": pitch + 12, "duration": 0.85, "velocity": 105})
+    return out
+
+
+def gen_tease_lead() -> List[Dict]:
+    """Lead phrase emphasizing the maj-3rd (E natural) — the venom note.
+    Phrase descends C-Bb-Ab-G (b7-b6-5 Phrygian dom palette) then climbs
+    back via C-Db-E (the b2-maj3 snake-charmer interval). Repeats with
+    variation, intensifying in venom sub-section."""
+    out: List[Dict] = []
+    # E_b3 = 51, but here we want E natural = 52! That IS the venom.
+    # Palette: C=48, Db=49, E=52, F=53, G=55, Ab=56, Bb=58
+    C, Db, E, F, G, Ab, Bb = 48, 49, 52, 53, 55, 56, 58
+    # 4-bar phrase template (cycles 4 times, with intensification in cycle 4)
+    for cycle in range(4):
+        b = cycle * 4 * BEATS_PER_BAR
+        # Bar 1: descending Bb-Ab-G figure (b7-b6-5)
+        out.append({"time": b + 0.5, "pitch": Bb, "duration": 0.45, "velocity": 100})
+        out.append({"time": b + 1.0, "pitch": Ab, "duration": 0.45, "velocity": 95})
+        out.append({"time": b + 1.5, "pitch": G,  "duration": 0.95, "velocity": 105})
+        # Bar 2: snake-charmer climb C-Db-E (root, b2, maj3 — THE venom interval)
+        out.append({"time": b + 4.0, "pitch": C,  "duration": 0.45, "velocity": 105})
+        out.append({"time": b + 4.5, "pitch": Db, "duration": 0.45, "velocity": 110})
+        out.append({"time": b + 5.0, "pitch": E,  "duration": 1.5,  "velocity": 115})
+        out.append({"time": b + 6.5, "pitch": E,  "duration": 1.45, "velocity": 110})
+        # Bar 3: tense interval E-Bb (the tritone of the venom voicing)
+        out.append({"time": b + 8.0,  "pitch": E,  "duration": 0.95, "velocity": 100})
+        out.append({"time": b + 9.0,  "pitch": Bb, "duration": 0.45, "velocity": 100})
+        out.append({"time": b + 10.0, "pitch": E,  "duration": 0.95, "velocity": 105})
+        out.append({"time": b + 11.0, "pitch": Bb, "duration": 0.95, "velocity": 105})
+        # Bar 4: resolution to C — but in cycle 3+ stay on E to push venom forward
+        if cycle < 2:
+            out.append({"time": b + 12.0, "pitch": C, "duration": 1.95, "velocity": 110})
+            out.append({"time": b + 14.0, "pitch": E, "duration": 1.95, "velocity": 100})
+        else:
+            # Cycles 3+ (venom sub-section starts at bar 12) — climb by step
+            for i, p in enumerate([C, Db, E, F, G, Ab, Bb, E + 12]):
+                t = b + 12.0 + i * 0.5
+                vel = 95 + i * 4
+                out.append({"time": t, "pitch": p, "duration": 0.45, "velocity": min(125, vel)})
+    return out
+
+
+def gen_tease_pad() -> List[Dict]:
+    """I_dominant7_no5 (C+E+Bb) on I bars — the venom voicing.
+    Db power chord (Db+Ab) on bII bars."""
+    out: List[Dict] = []
+    # Tease progression: I-I-bII-I-I-I-bII-I-I-bII-I-I-bII-I-bII-I
+    # bII at bars 2, 6, 9, 12, 14
+    bII_bars = {2, 6, 9, 12, 14}
+    # Voicings
+    I_venom = [48, 52, 58]       # C + E + Bb (no 5th)
+    bII_power = [49, 56]         # Db + Ab
+    for bar in range(BARS_PER_SECTION):
+        t = bar * BEATS_PER_BAR
+        voicing = bII_power if bar in bII_bars else I_venom
+        for p in voicing:
+            out.append({"time": t, "pitch": p,
+                        "duration": float(BEATS_PER_BAR), "velocity": 78})
+    return out
+
+
+def gen_tease_fx() -> List[Dict]:
+    """Sub C drone + cyber-desert metal sweep at venom entry bar 12."""
+    out: List[Dict] = []
+    out.append({"time": 0.0, "pitch": 12, "duration": float(SECTION_BEATS), "velocity": 90})
+    # Venom entry: high E natural stab at bar 12 (the maj-3 spotlit)
+    out.append({"time": 12 * BEATS_PER_BAR, "pitch": 76,
+                "duration": float(BEATS_PER_BAR * 4), "velocity": 110})
+    # Final accent at bar 15 (breath_point / venom peak)
+    out.append({"time": 15 * BEATS_PER_BAR, "pitch": 64,
+                "duration": 0.5, "velocity": 120})
+    return out
+
+
+# --- BRIDGE ----------------------------------------------------------------
+
+
+def gen_bridge_drum() -> List[Dict]:
+    """Industrial breakbeat — broken kick (1 + 'and of 3'), displaced
+    snare (1 + 3.5 off), Amen-style ghost-dense hats. Bar 12 stop_time."""
+    out: List[Dict] = []
+    for bar in range(BARS_PER_SECTION):
+        b = bar * BEATS_PER_BAR
+        if bar == 12:
+            # Stop-time: drums silent except a held metal crash
+            out.append({"time": b, "pitch": 49, "duration": float(BEATS_PER_BAR),
+                        "velocity": 95})
+            continue
+        # Broken kick
+        out.extend(grid_to_drum_notes(BRIDGE_KICK, pitch=36, bar_offset_beats=b,
+                                      velocity_main=115, note_dur=0.22))
+        # Displaced snare
+        out.extend(grid_to_drum_notes(BRIDGE_SNARE, pitch=38, bar_offset_beats=b,
+                                      velocity_main=108, note_dur=0.20))
+        # Amen-ghost hat
+        out.extend(grid_to_drum_notes(BRIDGE_HAT, pitch=42, bar_offset_beats=b,
+                                      velocity_main=92, velocity_ghost=55,
+                                      note_dur=0.15))
+        # Final push (bars 13-15): add ride accents
+        if bar >= 13:
+            for off in (0.0, 1.0, 2.0, 3.0):
+                out.append({"time": b + off, "pitch": 51, "duration": 0.4,
+                            "velocity": 105})
+    return out
+
+
+def gen_bridge_bass() -> List[Dict]:
+    """Bass follows broken kick syncopation: hit on beat 0 and 2.5 matching
+    kick, with chromatic walk on beat 3.75 (push toward bar boundary).
+    Chord progression i-bII-i-bvii° per bar dictates the root."""
+    out: List[Dict] = []
+    # i = C (1=0), bII = Db (b2=1), bvii° = Bb (b7=10) — root pitches
+    chord_roots_offset = [0, 1, 0, 10]  # i, bII, i, bvii°
+    for bar in range(BARS_PER_SECTION):
+        b = bar * BEATS_PER_BAR
+        if bar == 12:
+            # Stop-time: single low sustained root
+            out.append({"time": b, "pitch": ROOT_C1, "duration": float(BEATS_PER_BAR),
+                        "velocity": 60})
+            continue
+        offset = chord_roots_offset[bar % 4]
+        root_pitch = ROOT_C1 + offset
+        # Hit on beat 0 (with kick)
+        out.append({"time": b + 0.0, "pitch": root_pitch, "duration": 1.5, "velocity": 110})
+        # Hit on beat 2.5 (with kick "and of 3")
+        out.append({"time": b + 2.5, "pitch": root_pitch, "duration": 0.85, "velocity": 100})
+        # Chromatic walk approach on beat 3.5 (push to next bar)
+        # Use a passing tone leading to next bar's root
+        next_offset = chord_roots_offset[(bar + 1) % 4] if bar < 15 else 0
+        # Approach by half-step from below
+        approach_pitch = ROOT_C1 + next_offset - 1
+        out.append({"time": b + 3.5, "pitch": approach_pitch, "duration": 0.40, "velocity": 95})
+    return out
+
+
+def gen_bridge_lead() -> List[Dict]:
+    """Lead phrase tracking i-bII-i-bvii° progression. Each cycle:
+    Bar 1 (Cm): C-Eb stab
+    Bar 2 (Db): Db-F neighbor stab
+    Bar 3 (Cm): C punch + Eb pull
+    Bar 4 (Bb°): Bb-Db-E (the diminished triad — collapse note)
+    Bar 12 stop_time = silent."""
+    out: List[Dict] = []
+    # Phrygian palette: C=48, Db=49, Eb=51, F=53, G=55, Ab=56, Bb=58
+    # bvii° = Bb diminished = Bb-Db-E (E natural, since Bb° has b3 of Bb = Db, b5 of Bb = E)
+    chord_phrases = [
+        # Bar i (Cm): C-Eb-G stab figure
+        [(0.0, 48, 0.45, 105), (0.5, 51, 0.45, 100), (1.5, 55, 0.95, 105),
+         (2.5, 51, 0.45, 95),  (3.0, 48, 0.95, 90)],
+        # Bar bII (Db): Db-F-Ab stab + pull
+        [(0.0, 49, 0.45, 110), (0.5, 53, 0.45, 105), (1.0, 56, 0.45, 100),
+         (2.0, 53, 0.45, 100), (2.5, 49, 1.45, 95)],
+        # Bar i (Cm): tighter — C punch + Eb pull
+        [(0.0, 48, 0.95, 108), (1.0, 51, 0.45, 100), (2.0, 48, 0.95, 105),
+         (3.0, 51, 0.95, 95)],
+        # Bar bvii° (Bb° = Bb-Db-E): the COLLAPSE — diminished triad arpeggio
+        [(0.0, 58, 0.45, 100), (0.5, 49, 0.45, 100), (1.0, 52, 0.95, 105),
+         (2.0, 58, 0.45, 95),  (2.5, 52, 0.45, 90),  (3.0, 49, 0.95, 85)],
+    ]
+    for cycle in range(4):
+        for bar_idx, phrase in enumerate(chord_phrases):
+            bar = cycle * 4 + bar_idx
+            if bar == 12:
+                # Stop-time bar — silent (lead drops out for the freeze)
+                continue
+            t_bar = bar * BEATS_PER_BAR
+            for offset, pitch, dur, vel in phrase:
+                out.append({"time": t_bar + offset, "pitch": pitch,
+                            "duration": dur, "velocity": vel})
+    return out
+
+
+def gen_bridge_pad() -> List[Dict]:
+    """Per agent voicing: power chord on i, chromatic_neighbor_pad on bII,
+    diminished triad on bvii°. Bar 12 stop_time = sus4 voicing for
+    suspended breath."""
+    out: List[Dict] = []
+    # i power chord = C3 + G3 (48, 55)
+    # bII chromatic_neighbor = Db + F + Ab (49, 53, 56)
+    # bvii° diminished = Bb + Db + E (46, 49, 52) — Bb2 + Db3 + E3
+    # sus4 (bar 12) = Db + F# + Ab — actually use Db + Gb + Ab (Db sus4)
+    chord_voicings = [
+        [48, 55],            # i (Cm power)
+        [49, 53, 56],        # bII (Db chromatic_neighbor_pad)
+        [48, 55],            # i again
+        [46, 49, 52],        # bvii° (Bb° diminished)
+    ]
+    sus4 = [49, 54, 56]      # Db sus4 = Db + Gb + Ab
+    for bar in range(BARS_PER_SECTION):
+        t = bar * BEATS_PER_BAR
+        if bar == 12:
+            voicing = sus4
+            vel = 70
+        else:
+            voicing = chord_voicings[bar % 4]
+            vel = 75
+        for p in voicing:
+            out.append({"time": t, "pitch": p,
+                        "duration": float(BEATS_PER_BAR), "velocity": vel})
+    return out
+
+
+def gen_bridge_fx() -> List[Dict]:
+    """Sub C drone (with stop_time gap at bar 12), reverse swell into
+    bar 13 final_push, abrupt cut at end."""
+    out: List[Dict] = []
+    # Drone bars 0-11 (12 bars, 48 beats)
+    out.append({"time": 0.0, "pitch": 12, "duration": 12.0 * BEATS_PER_BAR, "velocity": 88})
+    # Stop-time silence at bar 12 = no drone
+    # Reverse swell on bar 12 (high pitch building toward bar 13 entry)
+    out.append({"time": 12 * BEATS_PER_BAR, "pitch": 84,
+                "duration": float(BEATS_PER_BAR), "velocity": 60})
+    # Final push (bars 13-15): drone resumes + push hits
+    out.append({"time": 13 * BEATS_PER_BAR, "pitch": 12,
+                "duration": 3.0 * BEATS_PER_BAR, "velocity": 95})
+    for bar in (13, 14, 15):
+        out.append({"time": bar * BEATS_PER_BAR, "pitch": 60,
+                    "duration": 0.5, "velocity": 115})
+    # Final cut accent on bar 15 last beat
+    out.append({"time": 15 * BEATS_PER_BAR + 3.5, "pitch": 24,
+                "duration": 0.5, "velocity": 125})
+    return out
+
+
 # ============================================================================
 # Section / role / generator dispatch table
 # ============================================================================
 
 
-SECTIONS = ("Pedal", "Lock", "Drive")
+SECTIONS = ("Pedal", "Lock", "Drive", "Tease", "Bridge")
 
 # Live color codes (0-69) — all sections share the same role-color mapping
 ROLE_COLOR = {
@@ -582,28 +911,40 @@ ROLE_COLOR = {
 }
 
 SECTION_COLOR = {
-    "Pedal": 4,    # orange
-    "Lock":  10,   # dark
-    "Drive": 14,   # teal
+    "Pedal":  4,    # orange  — Acid Drops signature
+    "Lock":  10,    # dark teal — industrial layered
+    "Drive": 14,    # teal — relentless EBM
+    "Tease": 25,    # purple — exotic venom
+    "Bridge": 7,    # red — broken closer
 }
 
 # (section_name, role) -> generator function
 GENERATORS: Dict[Tuple[str, str], callable] = {
-    ("Pedal", "DRUM_KIT"): gen_pedal_drum,
-    ("Pedal", "BASS"):     gen_pedal_bass,
-    ("Pedal", "LEAD"):     gen_pedal_lead,
-    ("Pedal", "PAD"):      gen_pedal_pad,
-    ("Pedal", "FX"):       gen_pedal_fx,
-    ("Lock",  "DRUM_KIT"): gen_lock_drum,
-    ("Lock",  "BASS"):     gen_lock_bass,
-    ("Lock",  "LEAD"):     gen_lock_lead,
-    ("Lock",  "PAD"):      gen_lock_pad,
-    ("Lock",  "FX"):       gen_lock_fx,
-    ("Drive", "DRUM_KIT"): gen_drive_drum,
-    ("Drive", "BASS"):     gen_drive_bass,
-    ("Drive", "LEAD"):     gen_drive_lead,
-    ("Drive", "PAD"):      gen_drive_pad,
-    ("Drive", "FX"):       gen_drive_fx,
+    ("Pedal",  "DRUM_KIT"): gen_pedal_drum,
+    ("Pedal",  "BASS"):     gen_pedal_bass,
+    ("Pedal",  "LEAD"):     gen_pedal_lead,
+    ("Pedal",  "PAD"):      gen_pedal_pad,
+    ("Pedal",  "FX"):       gen_pedal_fx,
+    ("Lock",   "DRUM_KIT"): gen_lock_drum,
+    ("Lock",   "BASS"):     gen_lock_bass,
+    ("Lock",   "LEAD"):     gen_lock_lead,
+    ("Lock",   "PAD"):      gen_lock_pad,
+    ("Lock",   "FX"):       gen_lock_fx,
+    ("Drive",  "DRUM_KIT"): gen_drive_drum,
+    ("Drive",  "BASS"):     gen_drive_bass,
+    ("Drive",  "LEAD"):     gen_drive_lead,
+    ("Drive",  "PAD"):      gen_drive_pad,
+    ("Drive",  "FX"):       gen_drive_fx,
+    ("Tease",  "DRUM_KIT"): gen_tease_drum,
+    ("Tease",  "BASS"):     gen_tease_bass,
+    ("Tease",  "LEAD"):     gen_tease_lead,
+    ("Tease",  "PAD"):      gen_tease_pad,
+    ("Tease",  "FX"):       gen_tease_fx,
+    ("Bridge", "DRUM_KIT"): gen_bridge_drum,
+    ("Bridge", "BASS"):     gen_bridge_bass,
+    ("Bridge", "LEAD"):     gen_bridge_lead,
+    ("Bridge", "PAD"):      gen_bridge_pad,
+    ("Bridge", "FX"):       gen_bridge_fx,
 }
 
 ROLES = ("DRUM_KIT", "BASS", "LEAD", "PAD", "FX")
@@ -615,25 +956,25 @@ ROLES = ("DRUM_KIT", "BASS", "LEAD", "PAD", "FX")
 
 
 def main() -> None:
-    print("=== Qrust 3-sections build ===")
+    print(f"=== Qrust {N_SECTIONS}-sections build ===")
 
     # --- Phase 1: blueprints ---
-    print("\n[1/4] Parse 6 sphere-decider JSONs -> 3 SectionBlueprints")
-    bp_pedal, bp_lock, bp_drive = assemble_blueprints()
-    for bp in (bp_pedal, bp_lock, bp_drive):
+    print(f"\n[1/4] Parse {2*N_SECTIONS} sphere-decider JSONs -> {N_SECTIONS} SectionBlueprints")
+    blueprints = assemble_blueprints()
+    for bp in blueprints:
         filled = bp.filled_spheres()
-        print(f"  OK {bp.name}: spheres={filled}, "
+        print(f"  OK {bp.name:7s}: spheres={filled}, "
               f"key={bp.harmony.value.key_root} {bp.harmony.value.mode}")
 
     # --- Phase 2: cohesion ---
     print("\n[2/4] Cohesion checks")
-    for bp in (bp_pedal, bp_lock, bp_drive):
+    for bp in blueprints:
         report = check_cohesion(bp)
         if not report.is_clean:
             for v in report.blockers:
                 print(f"  FAIL {bp.name} / {v.rule}: {v.message}")
             raise SystemExit(1)
-        print(f"  OK {bp.name}: clean")
+        print(f"  OK {bp.name:7s}: clean")
 
     # --- Phase 3: generate notes per (section, role) ---
     print("\n[3/4] Generate notes per (section, role)")
@@ -706,7 +1047,7 @@ def main() -> None:
     print(f"  OK Final size: {DST.stat().st_size} bytes")
     print(f"\n=== DONE ===")
     print(f"Output: {DST}")
-    print(f"Timeline: 3 sections * {SECTION_BEATS} beats = {TOTAL_BEATS} beats total")
+    print(f"Timeline: {N_SECTIONS} sections * {SECTION_BEATS} beats = {TOTAL_BEATS} beats total")
 
 
 if __name__ == "__main__":
