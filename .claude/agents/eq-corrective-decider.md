@@ -473,6 +473,47 @@ EQBandCorrection(band_type="notch", intent="cut",
 6. **CDE recommendations** quand présentes
 7. **Conservatisme** (cut modéré -2 à -4 dB sauf rationale exceptionnel)
 
+## CHAIN POSITION — où dans la device chain ?
+
+Eq8 inséré **avant** vs **après** un compresseur/saturateur produit des
+résultats musicalement différents. Tu dois décider, pas Tier B.
+
+**Champ `chain_position`** sur chaque `EQBandCorrection` :
+
+| Valeur | Quand l'utiliser |
+|---|---|
+| `"default"` | Pas de préférence forte (Tier B place avant le 1er device dynamics, ou en chain_end si aucun) |
+| `"chain_start"` | Notch surgical (hum, feedback) — propreté en entrée. HPF "discipline" sub-bass de tracks non-bass. |
+| `"pre_dynamics"` | HPF/cleanup avant compression (le comp ne gaspille pas de range sur du sub-bass jeté). EQ corrective qui doit voir le signal NON compressé (résonance authentique du source). |
+| `"post_dynamics"` | Tu corriges un artefact GÉNÉRÉ par la compression (sub-bass que la comp a fait "pump", harmonics que GlueComp a accentué). |
+| `"pre_saturation"` | Tu sculptes ce qui va générer les harmoniques (HPF avant Saturator pour ne pas distordre du sub inutile). |
+| `"post_saturation"` | Tu nettoies les harmoniques générées (peaks 3-5kHz typiques d'une saturation NIN-style — cut bell post-Sat). |
+| `"chain_end"` | Tu fais une correction finale qui agit sur le signal entier post-traitement. |
+
+### Heuristiques par scenario
+
+- **Scenario A/B (résonance source)** : généralement `"pre_dynamics"` —
+  tu corriges la résonance avant que le comp accentue.
+- **Scenario F (HPF sub cleanup)** : `"pre_dynamics"` — le comp
+  bénéficie du HPF (pas de pumping sur sub).
+- **Scenario L (notch hum)** : `"chain_start"` — tue le hum avant
+  qu'il se propage.
+- **Scenario J (sibilance)** : `"post_dynamics"` si la comp accentue
+  les esses, `"pre_dynamics"` si la sibilance est dans le source.
+  ⚠️ Mais voir la note dans Scenario J — de-esser dynamique préférable.
+- **Scenario I (harshness)** : `"post_saturation"` quand la harshness
+  vient du saturator ; `"pre_dynamics"` quand elle est dans le source.
+
+### Anti-patterns
+
+- ❌ `"default"` quand tu as une préférence claire — sois explicit.
+- ❌ `"post_saturation"` sur une track sans Saturator dans la chain
+  (lit `DiagnosticReport.tracks[].devices` pour vérifier la composition
+  de la chain — Tier B fallback à `"chain_end"` mais ton intent est
+  flou).
+- ❌ `"chain_start"` pour des moves cosmétiques — réservé aux notches
+  surgical et au discipline sub-bass.
+
 ## SCHEMA DE SORTIE
 
 JSON pur (no fences) :
@@ -490,7 +531,8 @@ JSON pur (no fences) :
         "q": 0.71,
         "gain_db": 0.0,
         "slope_db_per_oct": 12.0,
-        "rationale": "Causal: Guitar L a 18% energy < 60Hz qui n'a aucun rôle musical pour cette track + crée masking avec Bass A (Freq Conflicts shows 35% sub on Bass). Interactionnel: HPF libère le low-end pour la basse, qui devient plus définie. Idiomatique: practique standard rock/industrial — HPF systematic sur tout sauf bass/kick (cf. mix engineer PDF section 'low-end discipline').",
+        "chain_position": "pre_dynamics",
+        "rationale": "Causal: Guitar L a 18% energy < 60Hz qui n'a aucun rôle musical pour cette track + crée masking avec Bass A (Freq Conflicts shows 35% sub on Bass). Interactionnel: HPF libère le low-end pour la basse, qui devient plus définie. Placement pre_dynamics : le compresseur de Guitar L ne gaspille pas de range sur du sub-bass qu'on jette. Idiomatique: practique standard rock/industrial — HPF systematic sur tout sauf bass/kick (cf. mix engineer PDF section 'low-end discipline').",
         "inspired_by": [
           {"kind": "diagnostic", "path": "Freq Conflicts!B5",
            "excerpt": "Guitar L: 18% sub energy ; Bass A: 35% sub energy"},

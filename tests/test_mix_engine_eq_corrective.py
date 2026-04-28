@@ -21,6 +21,7 @@ from mix_engine.blueprint import (
     MixAgentOutputError,
     MixBlueprint,
     SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS,
+    VALID_CHAIN_POSITIONS,
     VALID_EQ_BAND_TYPES,
     VALID_EQ_INTENTS,
     parse_eq_corrective_decision,
@@ -531,6 +532,82 @@ def test_notch_filter_correction():
     assert band.band_type == "notch"
     assert band.q == 15.0
     assert band.gain_db == -14.0
+
+
+# ============================================================================
+# Phase 4.2.3 — chain_position field (audio engineer audit fix #1)
+# ============================================================================
+
+
+def test_chain_position_default_when_omitted():
+    """Backward-compat : payloads without chain_position get 'default'."""
+    payload = _valid_payload()
+    # _valid_band() does NOT set chain_position
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].chain_position == "default"
+
+
+def test_canonical_chain_positions_pin():
+    """Trip-wire on the canonical set."""
+    assert VALID_CHAIN_POSITIONS == {
+        "default", "chain_start",
+        "pre_dynamics", "post_dynamics",
+        "pre_saturation", "post_saturation",
+        "chain_end",
+    }
+
+
+@pytest.mark.parametrize("position", sorted(VALID_CHAIN_POSITIONS))
+def test_all_valid_chain_positions_accepted(position):
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"][0]["chain_position"] = position
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].chain_position == position
+
+
+@pytest.mark.parametrize(
+    "invalid_position",
+    ["before_comp", "PRE_DYNAMICS", "after_sat", "first", ""],
+)
+def test_invalid_chain_position_raises(invalid_position):
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"][0]["chain_position"] = invalid_position
+    if invalid_position == "":
+        # Empty string normalizes to "default" via the strip-and-fall-back
+        # logic — verify that's the case.
+        decision = parse_eq_corrective_decision(payload)
+        assert decision.value.bands[0].chain_position == "default"
+    else:
+        with pytest.raises(MixAgentOutputError, match="chain_position"):
+            parse_eq_corrective_decision(payload)
+
+
+def test_chain_position_pre_dynamics_for_hpf_scenario():
+    """Realistic scenario : HPF on guitar should be pre_dynamics so the
+    compressor doesn't waste headroom on sub the engineer is removing."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Guitar L", band_type="highpass", intent="filter",
+        center_hz=80.0, q=0.71, gain_db=0.0,
+        slope_db_per_oct=12.0,
+        chain_position="pre_dynamics",
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].chain_position == "pre_dynamics"
+    assert decision.value.bands[0].band_type == "highpass"
+
+
+def test_chain_position_post_saturation_for_clean_up_scenario():
+    """Realistic scenario : cut harmonic artifact AFTER the saturator
+    that generated it (a 4kHz peak coming from saturation distortion)."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Bass A", band_type="bell", intent="cut",
+        center_hz=4200.0, q=4.0, gain_db=-3.0,
+        chain_position="post_saturation",
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].chain_position == "post_saturation"
 
 
 def test_full_payload_with_diverse_band_types():

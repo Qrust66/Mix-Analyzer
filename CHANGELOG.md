@@ -1,5 +1,76 @@
 # Changelog
 
+## [Unreleased — mix_engine Phase 4.2.3] - 2026-04-28
+
+Audio engineer audit fix #1 of 9 — chain_position field. Establishes
+the **8-sub-step hardening methodology** (now documented in
+`docs/AGENT_HARDENING_METHODOLOGY.md`) that will be applied to every
+remaining audit weakness, here and on future agents.
+
+### Added — `docs/AGENT_HARDENING_METHODOLOGY.md`
+
+Canonical pattern for transforming an audited weakness into a force.
+Each weakness is decomposed into 8 sub-steps : plan + semantics →
+schema → parser → re-export → tests → agent .md → smoke test →
+CHANGELOG + commit. Wait-for-go cadence between weaknesses. Applies
+to all mix and composition agents.
+
+### Added — `chain_position` field on `EQBandCorrection`
+
+Audio engineer audit identified that the agent only said "track X
+correction" without specifying WHERE in the device chain to insert.
+Pre-comp HPF cleans the compressor input ; post-comp HPF catches what
+comp generated — radically different musical results. The decider
+must specify ; not Tier B's job to guess.
+
+7 canonical positions in new `VALID_CHAIN_POSITIONS` frozenset :
+- `"default"` — Tier B picks (typically pre_dynamics or chain_end)
+- `"chain_start"` — first device (notch surgical, hum kill)
+- `"pre_dynamics"` — before first comp/limiter/gate/glue/drumbuss
+- `"post_dynamics"` — after last dynamics device
+- `"pre_saturation"` — before first Saturator/AutoFilter2
+- `"post_saturation"` — after last saturator
+- `"chain_end"` — last device
+
+Default value `"default"` ensures backward compat with payloads from
+Phase 4.2 / 4.2.1 / 4.2.2.
+
+### Updated — agent .md
+
+New section "CHAIN POSITION — où dans la device chain ?" mapping each
+position value to its musical use case. Heuristics by scenario :
+- A/B (resonance source) → `pre_dynamics`
+- F (HPF cleanup) → `pre_dynamics`
+- L (notch hum) → `chain_start`
+- I (harshness from saturator) → `post_saturation`
+- J (sibilance) → `post_dynamics` if comp-induced, `pre_dynamics` if source
+
+3 anti-patterns added (don't use "default" if you have preference,
+don't ask "post_saturation" on track without saturator, etc.).
+
+### Tests — 16 new in `test_mix_engine_eq_corrective.py`
+
+- Default value when omitted (backward compat)
+- Canonical set trip-wire
+- All 7 positions parametrized
+- Invalid values rejected with informative errors
+- Empty string normalizes to "default"
+- Realistic scenario payloads (HPF pre_dynamics, post-sat cleanup)
+
+88 eq_corrective tests total. 1014 tests pass overall.
+
+### Methodology applied (sub-step trace)
+
+1. Plan + semantics ✅ (7 canonical positions defined)
+2. Schema change ✅ (`schema.py` : VALID_CHAIN_POSITIONS + field)
+3. Parser change ✅ (`agent_parsers.py` : validation + assignment)
+4. Re-export ✅ (`__init__.py`)
+5. Tests ✅ (16 new)
+6. Agent .md update ✅ (CHAIN POSITION section + scenario heuristics
+   + anti-patterns + example)
+7. Smoke test ✅ (4-band realistic payload exercising 4 positions)
+8. CHANGELOG + commit ✅
+
 ## [Unreleased — mix_engine Phase 4.2.2] - 2026-04-28
 
 User feedback: in Phase 4.2.1 the pre-flight gates read like hard rules

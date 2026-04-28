@@ -38,6 +38,7 @@ from mix_engine.blueprint.schema import (
     MixCitation,
     MixDecision,
     TrackInfo,
+    VALID_CHAIN_POSITIONS,
     VALID_EQ_BAND_TYPES,
     VALID_EQ_INTENTS,
     VALID_FILTER_SLOPES_DB_PER_OCT,
@@ -652,6 +653,20 @@ def _parse_eq_band_correction(item: Any, *, where: str) -> EQBandCorrection:
                 f"only 12 or 48 dB/oct ; pick the closest)."
             )
 
+    # Phase 4.2.3 : chain_position. Default = "default" (Tier B picks).
+    chain_position = _coerce_str(
+        item.get("chain_position", "default"),
+        where=f"{where}.chain_position",
+    ).strip()
+    if not chain_position:
+        chain_position = "default"
+    if chain_position not in VALID_CHAIN_POSITIONS:
+        raise MixAgentOutputError(
+            f"{where}.chain_position={chain_position!r} not in "
+            f"{sorted(VALID_CHAIN_POSITIONS)}. Use 'default' if you "
+            f"don't have a strong placement preference."
+        )
+
     gain_envelope = _parse_envelope_strictly_ordered(
         item.get("gain_envelope", []), where=f"{where}.gain_envelope"
     )
@@ -719,6 +734,7 @@ def _parse_eq_band_correction(item: Any, *, where: str) -> EQBandCorrection:
         q=q,
         gain_db=gain_db,
         slope_db_per_oct=slope_db_per_oct,
+        chain_position=chain_position,
         gain_envelope=gain_envelope,
         freq_envelope=freq_envelope,
         q_envelope=q_envelope,

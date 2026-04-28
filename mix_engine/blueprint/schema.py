@@ -194,6 +194,22 @@ VALID_EQ_BAND_TYPES = frozenset({
 # band is not a steepness-bearing filter (bell/notch/shelves).
 VALID_FILTER_SLOPES_DB_PER_OCT = frozenset({12.0, 48.0})
 
+# Position of the corrective EQ within the track's existing device chain.
+# The decider knows MUSICALLY where the EQ should sit (pre-comp = clean
+# the input ; post-comp = catch what comp generated ; pre-sat = sculpt
+# what generates harmonics ; post-sat = clean harmonic artifacts). Tier B
+# (eq8-configurator) reads this and inserts the new device at the right
+# index in the chain, scanning for existing dynamics/saturator devices.
+VALID_CHAIN_POSITIONS = frozenset({
+    "default",          # Tier B picks (typically pre_dynamics, fallback chain_end)
+    "chain_start",      # First device in the chain
+    "pre_dynamics",     # Before first Comp2/GlueComp/Limiter/Gate/DrumBuss
+    "post_dynamics",    # After last dynamics device
+    "pre_saturation",   # Before first Saturator/AutoFilter2
+    "post_saturation",  # After last Saturator/AutoFilter2
+    "chain_end",        # Last device in the chain
+})
+
 # Acceptable intent labels.
 VALID_EQ_INTENTS = frozenset({
     "cut",      # negative gain — remove problem (resonance, masking, mud)
@@ -265,6 +281,14 @@ class EQBandCorrection:
     # all other types. None default = Tier B picks based on context
     # (gentle 12 dB for cleanup, steep 48 dB for surgical sub control).
     slope_db_per_oct: Optional[float] = None
+
+    # Where in the track's existing device chain the new EQ should sit.
+    # Default "default" means Tier B picks based on chain content
+    # (typically pre_dynamics if any compressor exists, else chain_end).
+    # Critical for musical correctness : pre-comp HPF cleans the
+    # compressor's input, post-comp HPF catches comp-generated sub
+    # artifacts — different jobs.
+    chain_position: str = "default"
 
     # Dynamic envelopes — empty tuple = static-only
     gain_envelope: tuple[EQAutomationPoint, ...] = ()
@@ -350,6 +374,7 @@ __all__ = [
     "VALID_EQ_BAND_TYPES",
     "VALID_EQ_INTENTS",
     "VALID_FILTER_SLOPES_DB_PER_OCT",
+    "VALID_CHAIN_POSITIONS",
     "EQ_Q_MIN",
     "EQ_Q_MAX",
     "EQ_FREQ_MIN_HZ",
