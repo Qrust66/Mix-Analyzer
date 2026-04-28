@@ -410,3 +410,152 @@ def test_from_response_handles_prose_around():
     prosed = f"Voici la décision EQ:\n{payload_str}\nFin."
     decision = parse_eq_corrective_decision_from_response(prosed)
     assert len(decision.value.bands) == 1
+
+
+# ============================================================================
+# Phase 4.2.1 — slope_db_per_oct + full EQ family coverage
+# ============================================================================
+
+
+def test_highpass_with_12db_slope_accepted():
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Guitar L", band_type="highpass", intent="filter",
+        center_hz=80.0, q=0.71, gain_db=0.0,
+        slope_db_per_oct=12.0,
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].band_type == "highpass"
+    assert decision.value.bands[0].slope_db_per_oct == 12.0
+
+
+def test_highpass_with_48db_slope_accepted():
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Snare", band_type="highpass", intent="filter",
+        center_hz=120.0, q=0.71, gain_db=0.0,
+        slope_db_per_oct=48.0,
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].slope_db_per_oct == 48.0
+
+
+def test_lowpass_with_slope_accepted():
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Synth Pad", band_type="lowpass", intent="filter",
+        center_hz=12000.0, q=0.71, gain_db=0.0,
+        slope_db_per_oct=12.0,
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].band_type == "lowpass"
+
+
+@pytest.mark.parametrize("invalid_slope", [6.0, 24.0, 36.0, 60.0, 96.0])
+def test_invalid_slope_value_raises(invalid_slope):
+    """Eq8 only supports 12 or 48 dB/oct."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="x", band_type="highpass", intent="filter",
+        center_hz=80.0, q=0.71, gain_db=0.0,
+        slope_db_per_oct=invalid_slope,
+    )]
+    with pytest.raises(MixAgentOutputError, match="slope_db_per_oct"):
+        parse_eq_corrective_decision(payload)
+
+
+@pytest.mark.parametrize("non_filter_type", ["bell", "notch", "low_shelf", "high_shelf"])
+def test_slope_on_non_filter_band_type_raises(non_filter_type):
+    """slope_db_per_oct only meaningful for highpass/lowpass."""
+    payload = _valid_payload()
+    band = _valid_band(band_type=non_filter_type)
+    band["slope_db_per_oct"] = 12.0
+    # Adjust intent to be coherent with band_type
+    if non_filter_type in {"bell", "low_shelf", "high_shelf"}:
+        band["intent"] = "cut"
+        band["gain_db"] = -3.0
+    elif non_filter_type == "notch":
+        band["intent"] = "cut"
+        band["gain_db"] = -10.0
+    payload["eq_corrective"]["bands"] = [band]
+    with pytest.raises(MixAgentOutputError, match="slope_db_per_oct"):
+        parse_eq_corrective_decision(payload)
+
+
+def test_slope_omitted_for_filter_is_fine():
+    """Tier B picks default slope when not specified."""
+    payload = _valid_payload()
+    band = _valid_band(
+        track="x", band_type="highpass", intent="filter",
+        center_hz=80.0, q=0.71, gain_db=0.0,
+    )
+    # No slope_db_per_oct field — should default to None
+    payload["eq_corrective"]["bands"] = [band]
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].slope_db_per_oct is None
+
+
+def test_low_shelf_correction():
+    """Scenario for warmth/clean low-mid via shelf."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Mix Bus", band_type="low_shelf", intent="cut",
+        center_hz=120.0, q=0.7, gain_db=-1.5,
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].band_type == "low_shelf"
+
+
+def test_high_shelf_correction():
+    """Scenario K — air clutter management via high shelf."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Hat",
+        band_type="high_shelf", intent="cut",
+        center_hz=10000.0, q=0.7, gain_db=-2.5,
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].band_type == "high_shelf"
+
+
+def test_notch_filter_correction():
+    """Scenario L — surgical notch (hum/feedback)."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Vocal",
+        band_type="notch", intent="cut",
+        center_hz=60.0, q=15.0, gain_db=-14.0,
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    band = decision.value.bands[0]
+    assert band.band_type == "notch"
+    assert band.q == 15.0
+    assert band.gain_db == -14.0
+
+
+def test_full_payload_with_diverse_band_types():
+    """End-to-end: a realistic decision combining HPF + bell cut +
+    high shelf + dynamic de-essing — mimics what a real session emits."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [
+        _valid_band(track="Guitar L", band_type="highpass", intent="filter",
+                    center_hz=80.0, q=0.71, gain_db=0.0,
+                    slope_db_per_oct=12.0),
+        _valid_band(track="Bass A", band_type="bell", intent="cut",
+                    center_hz=247.0, q=4.5, gain_db=-3.5),
+        _valid_band(track="Hat", band_type="high_shelf", intent="cut",
+                    center_hz=10000.0, q=0.7, gain_db=-2.0),
+        {**_valid_band(track="Vocal Lead", band_type="bell", intent="cut",
+                       center_hz=7000.0, q=5.5, gain_db=-2.0),
+         "gain_envelope": [
+             {"bar": 0, "value": 0.0},
+             {"bar": 16, "value": -2.0},
+             {"bar": 32, "value": -4.5},
+             {"bar": 48, "value": 0.0},
+         ],
+         "sections": [1, 2, 3]},
+    ]
+    decision = parse_eq_corrective_decision(payload)
+    assert len(decision.value.bands) == 4
+    assert decision.value.bands[0].slope_db_per_oct == 12.0
+    assert decision.value.bands[3].gain_envelope[2].value == -4.5

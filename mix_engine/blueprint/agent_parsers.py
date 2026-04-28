@@ -40,6 +40,7 @@ from mix_engine.blueprint.schema import (
     TrackInfo,
     VALID_EQ_BAND_TYPES,
     VALID_EQ_INTENTS,
+    VALID_FILTER_SLOPES_DB_PER_OCT,
 )
 
 
@@ -630,6 +631,27 @@ def _parse_eq_band_correction(item: Any, *, where: str) -> EQBandCorrection:
             f"{{highpass, lowpass, notch}}, got {band_type!r}"
         )
 
+    # Slope only meaningful for highpass/lowpass.
+    raw_slope = item.get("slope_db_per_oct", None)
+    if raw_slope is None:
+        slope_db_per_oct = None
+    else:
+        slope_db_per_oct = _coerce_float(
+            raw_slope, where=f"{where}.slope_db_per_oct"
+        )
+        if band_type not in {"highpass", "lowpass"}:
+            raise MixAgentOutputError(
+                f"{where}.slope_db_per_oct only meaningful for "
+                f"highpass/lowpass ; got band_type={band_type!r}. "
+                f"Remove the field for shelves/bell/notch."
+            )
+        if slope_db_per_oct not in VALID_FILTER_SLOPES_DB_PER_OCT:
+            raise MixAgentOutputError(
+                f"{where}.slope_db_per_oct={slope_db_per_oct} not in "
+                f"{sorted(VALID_FILTER_SLOPES_DB_PER_OCT)} (Eq8 supports "
+                f"only 12 or 48 dB/oct ; pick the closest)."
+            )
+
     gain_envelope = _parse_envelope_strictly_ordered(
         item.get("gain_envelope", []), where=f"{where}.gain_envelope"
     )
@@ -696,6 +718,7 @@ def _parse_eq_band_correction(item: Any, *, where: str) -> EQBandCorrection:
         center_hz=center_hz,
         q=q,
         gain_db=gain_db,
+        slope_db_per_oct=slope_db_per_oct,
         gain_envelope=gain_envelope,
         freq_envelope=freq_envelope,
         q_envelope=q_envelope,

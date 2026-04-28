@@ -1,5 +1,98 @@
 # Changelog
 
+## [Unreleased — mix_engine Phase 4.2.1] - 2026-04-28
+
+User feedback : Phase 4.2 only deeply covered peak resonances. The
+agent's role is broader — it must handle ALL EQ correction families.
+Phase 4.2.1 expands `eq-corrective-decider` to cover the full EQ
+spectrum + adds a hard "no conflict, no cut" guard.
+
+### Added — Scenarios F-L in agent .md
+
+The agent now covers 12 scenarios (was 5) :
+
+- **Scenario A** : static peak resonance (was already there)
+- **Scenario B** : dynamic peak resonance (was already there)
+- **Scenario C** : cross-track masking (was already there)
+- **Scenario D** : global tonal imbalance (refuses, escalates)
+- **Scenario E** : no relevant conflicts (returns empty bands)
+- **Scenario F** ★ : low-end / sub cleanup (HPF surgical)
+- **Scenario G** ★ : mud zone management (200-400 Hz cluster)
+- **Scenario H** ★ : boxiness (500 Hz - 1 kHz cluster)
+- **Scenario I** ★ : high-mid harshness (2-5 kHz)
+- **Scenario J** ★ : sibilance / de-essing (5-9 kHz, dynamic envelope)
+- **Scenario K** ★ : high-end air clutter (10-16 kHz, LPF / shelf)
+- **Scenario L** ★ : surgical notch (hum, feedback, ringing)
+
+Each new scenario specifies its **pre-flight gate** (the measurable
+conflict that justifies intervention), the canonical action, and
+exception conditions.
+
+### Added — "No conflict, no cut" master rule
+
+Top of agent .md now opens with a non-negotiable rule : do NOT cut
+frequencies that aren't measurably in conflict. The agent must point
+to one of 5 conflict signals before acting :
+1. Anomaly with severity ≠ "info"
+2. `Freq Conflicts` matrix ≥ 2 tracks > 30% on same band
+3. `Mix Health Score.spectral_balance < 70`
+4. CDE `peak_resonances[].magnitude_db > 3.0`
+5. User brief explicit ("kick is muddy", etc.)
+
+This addresses the user concern : "s'il n'y a pas de conflit on ne
+coupe pas pour rien".
+
+### Added — `slope_db_per_oct` field on `EQBandCorrection`
+
+Eq8 supports 8 filter modes (0-7) where HPF and LPF have either 12 dB
+or 48 dB slopes. The agent now expresses the steepness explicitly :
+
+- `slope_db_per_oct=12.0` — gentle cleanup (Eq8 mode 1 or 6)
+- `slope_db_per_oct=48.0` — surgical brick-wall (Eq8 mode 0 or 7)
+- `slope_db_per_oct=None` — Tier B picks default based on context
+
+Parser enforces : value ∈ {12.0, 48.0} and only meaningful when
+`band_type ∈ {highpass, lowpass}` ; rejects otherwise.
+
+New public constant `VALID_FILTER_SLOPES_DB_PER_OCT = frozenset({12.0, 48.0})`.
+
+### Added — Eq8 mode mapping documented in agent
+
+The agent's "API utiles" section now explicitly documents Eq8's
+filter mode enum (from `band_params.Mode.values`) :
+
+```
+0: 48 dB Low Cut    → band_type="highpass" + slope_db_per_oct=48
+1: 12 dB Low Cut    → band_type="highpass" + slope_db_per_oct=12
+2: Low Shelf        → band_type="low_shelf"
+3: Bell             → band_type="bell"
+4: Notch            → band_type="notch"
+5: High Shelf       → band_type="high_shelf"
+6: 12 dB High Cut   → band_type="lowpass"  + slope_db_per_oct=12
+7: 48 dB High Cut   → band_type="lowpass"  + slope_db_per_oct=48
+```
+
+The agent decides ; Tier B (eq8-configurator) maps this to actual XML
+mode indices.
+
+### Added — Anomaly category mapping table
+
+Agent .md now has a table mapping each Excel `Anomaly.category` to
+its scenario(s) — mud, boxiness, harshness, sibilance, air_clutter
+all addressable explicitly.
+
+### Tests — 17 new in `test_mix_engine_eq_corrective.py`
+
+- HPF / LPF with 12 + 48 dB slopes
+- Invalid slopes (6, 24, 36, 60, 96 dB) rejected
+- Slope on bell/notch/shelf rejected
+- Slope omitted (None) accepted
+- Low shelf, high shelf, notch correction shapes
+- End-to-end multi-band realistic payload (HPF + bell + high shelf +
+  dynamic de-essing in one decision)
+
+72 eq_corrective tests total. 998 tests pass overall.
+
 ## [Unreleased — mix_engine Phase 4.2] - 2026-04-28
 
 First Tier A mix agent (decisional, no .als writes). Pivot to mix-side

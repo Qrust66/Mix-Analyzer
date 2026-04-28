@@ -176,15 +176,23 @@ class DiagnosticReport:
 # them as static-only (envelopes empty) or static+automated.
 
 
-# Acceptable EQ band types (matches Eq8's "Mode" enum + universal terms).
+# Acceptable EQ band types. Semantic terms — Tier B (eq8-configurator)
+# maps these to Eq8's 8 filter Modes (0=48dB LowCut, 1=12dB LowCut,
+# 2=LowShelf, 3=Bell, 4=Notch, 5=HighShelf, 6=12dB HighCut, 7=48dB HighCut),
+# using `slope_db_per_oct` to disambiguate steep vs gentle filters.
 VALID_EQ_BAND_TYPES = frozenset({
-    "bell",         # parametric (default for cuts/boosts at frequency)
-    "low_shelf",    # boost/cut everything below a corner frequency
-    "high_shelf",   # boost/cut everything above a corner frequency
-    "highpass",     # remove everything below
-    "lowpass",      # remove everything above
-    "notch",        # very narrow cut (Q > 8 typically)
+    "bell",         # parametric peak/cut at frequency (Eq8 mode 3)
+    "low_shelf",    # boost/cut everything below a corner (Eq8 mode 2)
+    "high_shelf",   # boost/cut everything above a corner (Eq8 mode 5)
+    "highpass",     # remove low frequencies below corner (Eq8 mode 0 or 1)
+    "lowpass",      # remove high frequencies above corner (Eq8 mode 6 or 7)
+    "notch",        # very narrow cut (Eq8 mode 4)
 })
+
+# Slopes available on Eq8's HPF/LPF filters. The decider can request
+# either ; Tier B picks the right Eq8 Mode index. Semantic null: the
+# band is not a steepness-bearing filter (bell/notch/shelves).
+VALID_FILTER_SLOPES_DB_PER_OCT = frozenset({12.0, 48.0})
 
 # Acceptable intent labels.
 VALID_EQ_INTENTS = frozenset({
@@ -251,6 +259,12 @@ class EQBandCorrection:
     center_hz: float  # in [EQ_FREQ_MIN_HZ, EQ_FREQ_MAX_HZ]
     q: float  # in [EQ_Q_MIN, EQ_Q_MAX]
     gain_db: float  # in [EQ_GAIN_MIN_DB, EQ_GAIN_MAX_DB]
+
+    # Slope steepness for highpass/lowpass filters (12 or 48 dB/oct in
+    # Eq8). Set ONLY when band_type ∈ {highpass, lowpass} ; None for
+    # all other types. None default = Tier B picks based on context
+    # (gentle 12 dB for cleanup, steep 48 dB for surgical sub control).
+    slope_db_per_oct: Optional[float] = None
 
     # Dynamic envelopes — empty tuple = static-only
     gain_envelope: tuple[EQAutomationPoint, ...] = ()
@@ -335,6 +349,7 @@ __all__ = [
     # EQ corrective lane (Phase 4.2)
     "VALID_EQ_BAND_TYPES",
     "VALID_EQ_INTENTS",
+    "VALID_FILTER_SLOPES_DB_PER_OCT",
     "EQ_Q_MIN",
     "EQ_Q_MAX",
     "EQ_FREQ_MIN_HZ",

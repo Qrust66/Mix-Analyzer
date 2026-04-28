@@ -30,6 +30,7 @@ from mix_engine.blueprint.schema import (
     TrackInfo,
     VALID_EQ_BAND_TYPES,
     VALID_EQ_INTENTS,
+    VALID_FILTER_SLOPES_DB_PER_OCT,
 )
 from mix_engine.blueprint.agent_parsers import (
     MixAgentOutputError,
@@ -69,6 +70,7 @@ __all__ = [
     "EQCorrectiveDecision",
     "VALID_EQ_BAND_TYPES",
     "VALID_EQ_INTENTS",
+    "VALID_FILTER_SLOPES_DB_PER_OCT",
     # Schema versions + canonical enums
     "SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS",
     "SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS",
