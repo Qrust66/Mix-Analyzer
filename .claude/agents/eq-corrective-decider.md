@@ -285,14 +285,58 @@ band_params.Gain     : -15 → +15 dB
 Tu n'écris pas ces valeurs en XML toi-même — Tier B fait. Mais tu DOIS
 respecter les ranges (ils sont enforce par le parser).
 
-### 6. CDE DEFER MODE (Phase 4.2.6 — comportement par défaut)
+### 6. CDE DEFER MODE (Phase 4.2.6 + 4.2.7 hardening)
 
 **Quand un fichier `<projet>_diagnostics.json` existe**, ton comportement
 par défaut est de **reproduire le `primary_correction` de CDE** plutôt
 que de redécider from scratch. CDE est le moteur éprouvé qui a déjà
 filtré + scoré + proposé.
 
-#### Pour chaque `diagnostic` dans `diagnostics[]` :
+#### Étape 0 — Filtrage par `application_status` (Phase 4.2.7 fix #1)
+
+**Avant** d'itérer sur `diagnostics[]`, filtre :
+
+```
+diagnostics_actionable = [
+    d for d in diagnostics
+    if d.application_status not in {"rejected"}
+]
+```
+
+Les `application_status` possibles : `None` (jamais traité),
+`"pending"` (en attente), `"applied"` (appliqué — repdoduire = redondant
+mais pas dangereux), `"rejected"` (utilisateur a refusé).
+
+**Reproduce un diagnostic `rejected` = re-introduire un move que
+l'utilisateur a explicitement refusé**. Inacceptable. Filtre toujours.
+
+Si un diagnostic est `"applied"` ET le `.als` actuel reflète déjà cette
+correction (vérifier `DiagnosticReport.tracks[*].devices` pour la
+présence d'un Eq8 avec params matching), **skip** : ne re-applique pas.
+Note dans le rationale global : "Diagnostic CDE-XXX déjà appliqué,
+skipped".
+
+#### Étape 0.5 — Consolidation multi-diagnostics (Phase 4.2.7 fix #4)
+
+Quand plusieurs diagnostics actionable visent la **même `(target_track,
+frequency_hz ± 10%)`** :
+
+- Si `severity` identique et `confidence` identique → ce sont
+  probablement des duplicates, garde-en UN
+- Si `severity` ou `confidence` différents → garde le diagnostic avec
+  la plus haute combinaison `(severity_rank, confidence_rank)` :
+  - severity_rank : critical=3, warning=2, info=1
+  - confidence_rank : high=3, medium=2, low=1
+  - Si égal, garde celui avec section coverage la plus large
+- Note dans rationale : "Consolidé from CDE diagnostics [id1, id2,
+  id3] — kept primary because higher confidence/severity"
+
+Si plusieurs diagnostics visent la même track + freq mais en
+**sections différentes non-overlapping** → garde-les tous (ce sont
+des moves dynamiques distincts), mais documente le pattern dans le
+rationale global.
+
+#### Pour chaque `diagnostic` dans `diagnostics_actionable` (post-consolidation) :
 
 1. **Si `issue_type == "masking_conflict"` ou `"accumulation_risk"`
    AND `primary_correction.device == "EQ8 — Peak Resonance"`** :
@@ -305,12 +349,62 @@ filtré + scoré + proposé.
    center_hz         ← parameters.frequency_hz
    q                 ← parameters.q
    gain_db           ← parameters.gain_db
-   sections          ← parameters.active_in_sections (ou applies_to_sections)
+   sections          ← parameters.active_in_sections (precedence) ;
+                       fallback applies_to_sections ; default [] (Phase 4.2.7 fix #5)
    chain_position    ← dérivé de approach (cf. table ci-dessous)
    processing_mode   ← "stereo"  (CDE ne spécifie pas M/S)
-   rationale         ← "[CDE primary] " + cde rationale + ton enrichissement (chain_position justification)
-   inspired_by       ← cite CDE diagnostic_id
+   rationale         ← assembly riche (cf. ci-dessous)
+   inspired_by       ← citations multiples (cf. ci-dessous)
    ```
+
+   **Construction du `rationale` (Phase 4.2.7 fix #3)** :
+
+   Inclure verbatim ces 3 sources CDE pour traçabilité maximale :
+   ```
+   "[CDE primary diagnostic_id=<id> issue_type=<X> approach=<Y>]
+    {primary_correction.rationale}
+
+    Expected outcomes (CDE pre-computed):
+    - {expected_outcomes[0]}
+    - {expected_outcomes[1]}
+    ...
+
+    Potential risks (CDE pre-computed):
+    - {potential_risks[0]}
+    - {potential_risks[1]}
+    ...
+
+    Agent enrichment: <pourquoi tu choisis chain_position=X et
+    processing_mode=Y>"
+   ```
+
+   **Construction de `inspired_by` (Phase 4.2.7 fix #2)** :
+
+   Au minimum 2 citations, jusqu'à 4 quand pertinent :
+   ```
+   inspired_by = [
+       # 1. Le primary correction (always)
+       {kind: "diagnostic", path: "cde:<diagnostic_id>",
+        excerpt: "primary_correction approach=<X> {device} {params}"},
+
+       # 2. tfp_context si présent (souvent — Hero/Support justification)
+       {kind: "diagnostic", path: "cde:<diagnostic_id>.tfp_context",
+        excerpt: "track_a_role=<X> track_b_role=<Y> compat=<Z>"},
+
+       # 3. fallback_correction si présent (Phase 4.2.7 fix #2)
+       {kind: "diagnostic", path: "cde:<diagnostic_id>.fallback",
+        excerpt: "fallback if primary fails: {fallback.device}
+                  {fallback.approach} {fallback.parameters}"},
+
+       # 4. (optionnel) source brief utilisateur si tu diverges du CDE
+       {kind: "user_brief", path: "<short>", excerpt: "..."}
+   ]
+   ```
+
+   **Pourquoi citer le fallback** : si Tier B (eq8-configurator) ne peut
+   pas appliquer le primary (chain budget plein, sidechain target stale,
+   etc.), il a immédiatement la voie alternative pré-validée par CDE.
+   Sans cette citation, il faudrait retourner consulter le JSON CDE.
 
    **Mapping `approach` → `chain_position`** :
    | CDE approach | chain_position recommended |

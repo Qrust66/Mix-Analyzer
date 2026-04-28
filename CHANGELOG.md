@@ -1,5 +1,121 @@
 # Changelog
 
+## [Unreleased — mix_engine Phase 4.2.7] - 2026-04-28
+
+Audio engineer audit of Phase 4.2.6 found 4 CRITICAL gaps in CDE
+defer mode. Phase 4.2.7 hardens the defer mode behavior so it never
+re-applies user-rejected corrections, never wastes CDE's pre-computed
+reasoning, and consolidates duplicate diagnostics.
+
+All 4 fixes are in `eq-corrective-decider.md` (no schema/parser
+changes). 1038 tests still pass unchanged.
+
+### Fixed #1 — `application_status="rejected"` now filtered
+
+**Without this fix, defer mode could re-apply moves the user
+explicitly rejected.** Catastrophic in production use.
+
+Agent now begins CDE iteration with :
+```
+diagnostics_actionable = [d for d in diagnostics
+                          if d.application_status not in {"rejected"}]
+```
+
+`"applied"` diagnostics are also skipped if the .als chain already
+reflects the correction (verified via `DiagnosticReport.tracks[*].devices`).
+
+### Fixed #2 — `fallback_correction` now cited in `inspired_by`
+
+CDE produces a fallback for every primary correction. Phase 4.2.6
+ignored it. Tier B (eq8-configurator) needs it when the primary fails
+(chain budget full, sidechain target stale, etc.).
+
+Agent now adds a citation per band:
+```
+{kind: "diagnostic", path: "cde:<id>.fallback",
+ excerpt: "fallback if primary fails: <device> <approach> <params>"}
+```
+
+### Fixed #3 — `expected_outcomes` + `potential_risks` included verbatim
+
+CDE pre-computes these. They are CDE's *best summary of its reasoning*.
+Phase 4.2.6 paraphrased or ignored them.
+
+Agent's rationale now embeds them verbatim :
+```
+[CDE primary diagnostic_id=...]
+{primary_correction.rationale}
+
+Expected outcomes (CDE pre-computed):
+- {item 1}
+- {item 2}
+
+Potential risks (CDE pre-computed):
+- {item 1}
+- {item 2}
+
+Agent enrichment: <chain_position + processing_mode rationale>
+```
+
+### Fixed #4 — Multi-diagnostics consolidation policy
+
+Multiple CDE diagnostics targeting the same `(track, frequency_hz ± 10%)`
+caused duplicate or conflicting EQBandCorrections. Phase 4.2.7 adds a
+consolidation rule before iteration :
+
+- Same severity + confidence → keep ONE (likely duplicates)
+- Different severity/confidence → keep highest combined rank
+  (severity_rank: critical=3, warning=2, info=1 ; confidence_rank:
+  high=3, medium=2, low=1)
+- Different non-overlapping sections → keep ALL (legitimate dynamic
+  moves)
+
+Decisions document the consolidation in rationale :
+"Consolidé from CDE diagnostics [id1, id2, id3] — kept primary because
+higher confidence/severity".
+
+### Fixed bonus — `applies_to_sections` precedence
+
+Phase 4.2.6 was ambiguous : "active_in_sections (or applies_to_sections)".
+Now explicit precedence :
+1. `parameters.active_in_sections` (correction-specific)
+2. `applies_to_sections` (diagnostic-level fallback)
+3. `[]` (always — empty tuple)
+
+### No schema/parser/test changes
+
+The fixes are entirely behavioral (agent .md). The internal contract
+was already capable of expressing all 4 patterns ; the agent just had
+to be told to do it.
+
+### Methodology trace (8 sub-steps, mostly behavioral)
+
+1. Plan ✅ (4 critical fixes scoped)
+2-5. N/A (no schema/parser/tests changes)
+6. Agent .md update ✅ (CDE DEFER MODE section reworked, étape 0
+   filtering, étape 0.5 consolidation, rich rationale assembly,
+   inspired_by 4-citation pattern)
+7. Smoke test ✅ (5-diagnostic input → 1 EQBandCorrection output
+   demonstrating filter + consolidate + fallback citation +
+   expected_outcomes embedding)
+8. CHANGELOG + commit ✅
+
+### Audit issues remaining
+
+11 of original 15 still queued :
+- Multi-freq resonance prose explicitness (#6)
+- Eq8 8-band budget pre-check (#7)
+- tfp_context letter codes documentation (#8)
+- B2/B3 in DiagnosticReport schema (#9)
+- Scenario L hum overconfident (#10)
+- Escalation handoff structured (#11)
+- Cumulative dose awareness (#12)
+- A/B verify loop (#13)
+- Architectural CDE reading (#14)
+- Section indices documented (#15)
+- Original list (Scenario M bus elevation, sibilance handoff
+  structured, cap cut levée, etc.)
+
 ## [Unreleased — mix_engine Phase 4.2.6] - 2026-04-28
 
 API alignment audit fix : `eq-corrective-decider.md` was referencing
