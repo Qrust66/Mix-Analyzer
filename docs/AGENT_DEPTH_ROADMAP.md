@@ -14,7 +14,7 @@ La banque `ableton/banque_midi_qrust.xlsx` (10 sheets : drum_mapping, rhythm_pat
 
 | Bloc | Titre | Effort | Statut |
 |------|-------|--------|--------|
-| **0** | Banque MIDI loader (préalable) | ~3h | 🟡 en cours |
+| **0** | Banque MIDI loader (préalable) | ~3h | ✅ |
 | **1** | Contrat de profondeur machine-vérifiable | ~3.5h | ⚪ pas commencé |
 | **2** | Motif-decider PROFOND | ~14h | ⚪ |
 | **3** | Wirage des sphères descriptives au rendu | ~7h | ⚪ |
@@ -32,8 +32,8 @@ Sans interface Python sur `banque_midi_qrust.xlsx`, aucun agent ne peut piocher 
 
 | # | Tâche | Effort | Statut |
 |---|---|---|---|
-| 0.1 | `composition_engine/banque_bridge/banque_loader.py` — slicing par sheet (drum_mapping, rhythm_patterns, scales, progressions, qrust_profiles, velocity, tempo, basslines) | ~2h | ⚪ |
-| 0.2 | Tests du loader (chaque sheet retourne du JSON structuré, profils Qrust accessibles par nom) | ~1h | ⚪ |
+| 0.1 | `composition_engine/banque_bridge/banque_loader.py` — slicing par sheet (drum_mapping, rhythm_patterns, scales, progressions, qrust_profiles, velocity, tempo, basslines) | ~2h | ✅ |
+| 0.2 | Tests du loader (chaque sheet retourne du JSON structuré, profils Qrust accessibles par nom) | ~1h | ✅ (30 tests passent) |
 
 ## Bloc 1 — Définir "profondeur" comme contrat machine-vérifiable
 

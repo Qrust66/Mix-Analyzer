@@ -1,5 +1,49 @@
 # Changelog
 
+## [Unreleased — banque_bridge Bloc 0] - 2026-04-27
+
+First step of the AGENT_DEPTH_ROADMAP. Adds a deterministic Python
+interface to `ableton/banque_midi_qrust.xlsx` (10 sheets : drum
+mapping, rhythm patterns, scales/modes, chord progressions, Qrust
+profiles, velocity dynamics, tempo reference, bassline patterns,
+notes usage). Without this loader, no agent can pick from the user's
+hand-curated material library — they'd have to invent their own
+notes / patterns / velocities, which is exactly today's 70/30 problem.
+
+### Added — `composition_engine/banque_bridge/banque_loader.py`
+
+Mirrors `song_loader` and `catalog_loader` patterns: cached load,
+sliced read-only access. The .xlsx itself stays untouched.
+
+API:
+- `load_banque()` / `get_meta()`
+- **Drums**: `get_drum_mapping()`, `get_drum_note_for_role(role)` — maps
+  "kick" → 36, "snare" → 38, "hat" → 42, etc. via priority-ordered
+  alias matching (kick principal beats sub kick)
+- **Rhythm**: `list_rhythm_genres()`, `get_rhythm_pattern(genre, element)`,
+  `parse_pattern_16(pattern)` — decodes "X...X...X...X..." into step events
+- **Scales**: `list_scales()`, `get_scale(name)`, `list_qrust_starred_scales(min_stars)`,
+  `parse_intervals(intervals_str)`
+- **Chords**: `list_chord_progressions(mood=None)`
+- **Profiles**: `list_qrust_profiles()`, `get_qrust_profile(name)` — full
+  presets (tempo + scale + kick/snare/hat patterns + velocity range)
+- **Velocity**: `get_velocity_range(style, element=None)`
+- **Tempo**: `get_tempo_for_genre(genre)`, `list_tempo_genres()`
+- **Bassline**: `list_basslines(style=None)`
+
+### Tests — 30 in `tests/test_banque_loader.py`
+
+Trip-wire invariants on the user's curation: expected sheet set, MIDI
+35-64 drum range coverage, 16-char pattern format, all diatonic modes
+present, Phrygien/Locrien/Phrygien-dominant rated 3-stars, Acid Drops
+profile = 128 BPM Phrygien, etc. Any future user edit that breaks
+loader assumptions surfaces immediately.
+
+### Roadmap status
+
+Bloc 0 (préalable bloquant) → ✅ shipped. Bloc 1 (contrat de
+profondeur machine-vérifiable) is next.
+
 ## [Unreleased — mix_engine Phase 4.1] - 2026-04-27
 
 First lane agent of the mix-side multi-agent system. Lands the
