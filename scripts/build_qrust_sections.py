@@ -1,4 +1,4 @@
-"""Build Qrust_5Sections.als — 5 driving sections at 128 BPM in C, composed
+"""Build Qrust_7Sections.als — 7 driving sections at 128 BPM in C, composed
 via the multi-agent sphere agents PLUS the banque MIDI Qrust v2 patterns.
 
 The bank (`ableton/banque_midi_qrust_v2.xlsx`) provides:
@@ -39,14 +39,31 @@ Sections (all 16 bars @ 128 BPM, root = C):
        Kick: X.........X..... (broken — 1 and "and of 3")
        Snare: ....X.........X. (displaced — 1 and 3.5 off)
        Hat: X.X.X.XgX.X.X.X. (Amen-style ghost-dense breakbeat)
-       Vibe: broken closer — propulsion via syncope, not grid.
        1-bar stop_time at bar 12 -> final_push 13-16 -> abrupt cut.
 
+  6. PULSE  — Dark techno minimal profile (sheet 05 R10)
+       Mode: C LOCRIAN (b5 = Gb introduced, peak modal darkness)
+       Progression: i° pedal × 14 + bII × 2 + biii × 1 (16 events)
+       Kick: X...X...X...X... 4-on-floor  |  Snare: ABSENT (per profile)
+       Hat: off-beat + accents random  |  Voicing: i_dim_no5 hides b5
+       Asymmetric phrasing 5+5+6 (Locrian instability at structural level)
+       Vibe: maximum darkness — "le groove vient des accents" (bank R10).
+
+  7. CLIMB  — Industrial groovy profile (sheet 05 R6)
+       Mode: C Phrygian (HOME after Pulse's Locrian darkness)
+       Progression: i → bVII → bVI → bII × 4 (descending chromatic)
+       Kick: X...X...X..gX... (variation with GHOST kick on 2.75)
+       Snare: 1+3 backbeat  |  Hat: 16ths denses
+       Voicing: power i, drop_2 bVI, chromatic_neighbor_pad bII
+       Cadence: modal (bII -> i loop — Phrygian fingerprint closes EP)
+       Vibe: encore / final climax with ghost-kick swagger.
+
 Timeline: Pedal 0-64, Lock 64-128, Drive 128-192, Tease 192-256,
-Bridge 256-320. 320 beats total = 80 bars at 4/4 = ~2:30 @ 128 BPM.
+Bridge 256-320, Pulse 320-384, Climb 384-448. 448 beats = 112 bars
+@ 4/4 = ~3:30 at 128 BPM.
 
 Sphere agents invoked: structure-decider + harmony-decider per section
-(10 agent calls total). Rhythm/arrangement/dynamics come from the bank
+(14 agent calls total). Rhythm/arrangement/dynamics come from the bank
 profile mapping — the agents at Phase 2.6 are descriptive at those
 spheres anyway, so the bank does the substantive work.
 
@@ -79,14 +96,14 @@ from scripts.build_multi_agent_demo import (
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "ableton" / "projects" / "Template" / "Template Project" / "Template.als"
-DST = ROOT / "ableton" / "projects" / "Template" / "Template Project" / "Qrust_5Sections.als"
+DST = ROOT / "ableton" / "projects" / "Template" / "Template Project" / "Qrust_7Sections.als"
 
 PROJECT_TEMPO = 128
 BARS_PER_SECTION = 16
 BEATS_PER_BAR = 4
 SECTION_BEATS = BARS_PER_SECTION * BEATS_PER_BAR  # 64
-N_SECTIONS = 5
-TOTAL_BEATS = N_SECTIONS * SECTION_BEATS  # 320
+N_SECTIONS = 7
+TOTAL_BEATS = N_SECTIONS * SECTION_BEATS  # 448
 
 
 # ============================================================================
@@ -131,6 +148,22 @@ BRIDGE_STRUCTURE = """
 
 BRIDGE_HARMONY = """
 {"schema_version":"1.0","harmony":{"mode":"Phrygian","key_root":"C","progression":["i","bII","i","bvii°","i","bII","i","bvii°","i","bII","i","bvii°","i","bII","i","bvii°"],"harmonic_rhythm":1.0,"voicing_strategy":"power chord (root + 5th, no 3rd) on i — defeat Tease's bright maj-3rd by reasserting cold minor tonic; chromatic_neighbor_pad on bII (Db major Db-F-Ab held against C5 for max Phrygian rub); diminished triad on bvii° (Bb-Db-E enharmonic) — the section ends each cycle on bvii° as a COLLAPSE (no resolution). Bar 12 stop_time bar replaces bII with sus4 voicing (Db-Gb-Ab) — suspended breathing moment before final cycle.","cadence_at_end":"modal"},"rationale":"C Phrygien — return home after Tease's Phrygian Dominant. The i power chord (no 3rd) on opening defeats Tease's bright maj-3rd. bvii° (Bb diminished) as the closing chord of each cycle does not resolve — it COLLAPSES, functioning as punctuation. EP closer logic: bridge ends on bvii° rather than i to feel like an expiration, not a relaunch (March_Of_The_Pigs abrupt-termination model).","inspired_by":[{"song":"Nine_Inch_Nails/March_Of_The_Pigs","path":"composition.modal_choice","excerpt":"C# minor (Aeolian) with Phrygian-tinged inflections"},{"song":"Nine_Inch_Nails/Copy_Of_A","path":"composition.harmonic_motion","excerpt":"Chord shifts often expressed via filter-cutoff modulation — modal-static with texture as motion engine"},{"song":"Radiohead/The_National_Anthem","path":"composition.harmonic_pacing","excerpt":"Zero at the chord level (one mode for the entire track). Generated entirely by BRASS DENSITY"}],"confidence":0.91}
+"""
+
+PULSE_STRUCTURE = """
+{"schema_version":"1.0","structure":{"total_bars":16,"sub_sections":[{"name":"dark_pulse_entry","start_bar":0,"end_bar":5,"role":"loop"},{"name":"accent_accumulation","start_bar":5,"end_bar":10,"role":"build"},{"name":"locrian_sink","start_bar":10,"end_bar":16,"role":"drop"}],"breath_points":[9],"transition_in":"abrupt_drum_entry_no_riser","transition_out":"loop_open_no_resolution"},"rationale":"5+5+6 asymmetric phrasing reflects Locrian's harmonic instability at the structural level — no symmetric phrase ever resolves, mirroring the b2/b5 that prevent tonic consonance. Inspired by Everything_In_Its_Right_Place's 10/4 'asymmetry as compositional payload' principle.","inspired_by":[{"song":"Radiohead/Everything_In_Its_Right_Place","path":"composition.phrase_symmetry","excerpt":"asymmetry is at the meter level (10/4 against expectations of 4/4), not at the phrase level"},{"song":"Nine_Inch_Nails/The_Day_The_World_Went_Away","path":"stylistic_figures.drops_and_breakdowns","excerpt":"TDTWWA has no drops — only gradual subtraction"},{"song":"Nine_Inch_Nails/Copy_Of_A","path":"composition.characteristic_riff_construction","excerpt":"Pattern is short (1-2 bar cycle), modular-synth, evolves via filter-cutoff and envelope changes"}],"confidence":0.88}
+"""
+
+PULSE_HARMONY = """
+{"schema_version":"1.0","harmony":{"mode":"Locrian","key_root":"C","progression":["i°","i°","i°","i°","i°","i°","bII","i°","i°","i°","biii","i°","i°","i°","bII","i°"],"harmonic_rhythm":1.0,"voicing_strategy":"i° voiced as i_dim_no5 (C + Eb only — the b5 Gb is HIDDEN to create pseudo-stability, per sheet 11 Locrian recipe). bII (Db major) sustained as chromatic_neighbor_pad — chromatic rub against tonic. biii (Ebm = Eb + Gb + Bb) FORCES Gb (b5) into the voicing — this is the one bar of pure Locrian unrest at bar 11. Internal motion via filter-cutoff modulation, not chord changes (Copy_Of_A philosophy).","cadence_at_end":"open"},"rationale":"C Locrian — same root C as all other sections but the b5 (Gb) appears for the first time at bar 11 (biii voicing). 14 bars on i° pedal with i_dim_no5 voicing creates pseudo-stability that DEFIES Locrian's instability at the surface, with two brief bII intrusions (bars 7 and 15) and one full biii dissonance (bar 11) as the 'moment of pure Locrian unrest'. Cadence ouverte hands tension to Climb — Locrian refuses resolution by definition.","inspired_by":[{"song":"Nine_Inch_Nails/Copy_Of_A","path":"composition.harmonic_motion","excerpt":"Chord shifts often expressed via filter-cutoff modulation rather than via discrete chord changes"},{"song":"Radiohead/Everything_In_Its_Right_Place","path":"composition.harmonic_motion","excerpt":"Static modal with no functional progression. Tension-release happens textually — the b2 dissonance creates a constant chromatic rub against tonic"},{"song":"Nine_Inch_Nails/The_Day_The_World_Went_Away","path":"composition.harmonic_motion","excerpt":"Long pad sustains hold a chord for many bars before resolving slightly to a neighbor"}],"confidence":0.91}
+"""
+
+CLIMB_STRUCTURE = """
+{"schema_version":"1.0","structure":{"total_bars":16,"sub_sections":[{"name":"slam_in","start_bar":0,"end_bar":4,"role":"build"},{"name":"lock_groove","start_bar":4,"end_bar":8,"role":"loop"},{"name":"layer_stack","start_bar":8,"end_bar":12,"role":"build"},{"name":"full_drive","start_bar":12,"end_bar":16,"role":"climax"}],"breath_points":[],"transition_in":"full_band_slam_downbeat_zero","transition_out":"abrupt_cut_or_loop_back_to_Pedal"},"rationale":"4×4 symmetric phrasing anchors listener after Pulse's Locrian instability. Slam at bar 0 (NIN/Six_Shooter), groove with ghost-kick variation at bars 4-8, additive layer stacking bars 8-12 (HBFS vocoder_phrase_stack model), max density bars 12-16. Zero breath_points — encore doesn't pause.","inspired_by":[{"song":"Nine_Inch_Nails/The_Hand_That_Feeds","path":"composition.phrase_symmetry","excerpt":"Symmetric 4-bar and 8-bar phrasing throughout. 16-bar verses, 16-bar choruses"},{"song":"Queens_Of_The_Stone_Age/Six_Shooter","path":"stylistic_figures.transitions_between_sections","excerpt":"abrupt_punk_style_ending — Track ENDS rather than concludes, abrupt cut on final beat, no fade"},{"song":"Daft_Punk/Harder_Better_Faster_Stronger","path":"stylistic_figures.risers_and_builds","excerpt":"vocoder_phrase_stack_as_riser — gradual accumulation, each bar adds a new layer"}],"confidence":0.91}
+"""
+
+CLIMB_HARMONY = """
+{"schema_version":"1.0","harmony":{"mode":"Phrygian","key_root":"C","progression":["i","bVII","bVI","bII","i","bVII","bVI","bII","i","bVII","bVI","bII","i","bVII","bVI","bII"],"harmonic_rhythm":1.0,"voicing_strategy":"power chord (root + 5th) on i, descending chromatic motion through bVII (Bb power) and bVI (Ab drop_2 voicing for jazz spread), landing on bII (Db chromatic_neighbor_pad held against bass C pedal). Final 2 cycles add i_with_b9 voicing on i for climactic dissonance.","cadence_at_end":"modal"},"rationale":"C Phrygian — return home from Pulse's Locrian. Progression i→bVII→bVI→bII (Cm-Bb-Ab-Db) is a descending chromatic variant — DIFFERENT from Drive's i-bII-bVII-i (which moves up-down). Climb moves DOWN-DOWN-DOWN-DOWN-loop, creating a falling-spiral feel that builds tension via inevitability. Ends on bII as Phrygian fingerprint cadence: bII→i loop is the most Phrygian close possible (more characteristic than authentic V-i, which doesn't exist in Phrygian).","inspired_by":[{"song":"Daft_Punk/Harder_Better_Faster_Stronger","path":"composition.harmonic_motion","excerpt":"commonly read as i - bVII - bVI - v in the chosen minor or close variants. No V-i resolution"},{"song":"Nine_Inch_Nails/The_Hand_That_Feeds","path":"composition.characteristic_riff_construction","excerpt":"b-minor tonic with descending chromatic tail — chromatic descent is the song's identity"},{"song":"Queens_Of_The_Stone_Age/Six_Shooter","path":"composition.harmonic_motion","excerpt":"Tonic minor with movement to relative areas via chromatic chord shifts. Voice-leading punk-rock-craft"}],"confidence":0.88}
 """
 
 
@@ -193,7 +226,29 @@ def assemble_blueprints() -> Tuple[SectionBlueprint, ...]:
         .with_decision("structure", parse_structure_decision_from_response(BRIDGE_STRUCTURE))
         .with_decision("harmony", parse_harmony_decision_from_response(BRIDGE_HARMONY))
     )
-    return bp_pedal, bp_lock, bp_drive, bp_tease, bp_bridge
+    bp_pulse = (
+        SectionBlueprint(
+            name="Pulse",
+            references=("Nine_Inch_Nails/Copy_Of_A",
+                        "Nine_Inch_Nails/The_Day_The_World_Went_Away",
+                        "Radiohead/Everything_In_Its_Right_Place"),
+            brief="Dark techno minimal — 16 bars, C Locrian, kick 4x4 no snare, accent-driven groove, peak modal darkness",
+        )
+        .with_decision("structure", parse_structure_decision_from_response(PULSE_STRUCTURE))
+        .with_decision("harmony", parse_harmony_decision_from_response(PULSE_HARMONY))
+    )
+    bp_climb = (
+        SectionBlueprint(
+            name="Climb",
+            references=("Nine_Inch_Nails/The_Hand_That_Feeds",
+                        "Queens_Of_The_Stone_Age/Six_Shooter",
+                        "Daft_Punk/Harder_Better_Faster_Stronger"),
+            brief="Industrial groovy — 16 bars, C Phrygian, ghost-kick variation, descending chromatic progression i-bVII-bVI-bII",
+        )
+        .with_decision("structure", parse_structure_decision_from_response(CLIMB_STRUCTURE))
+        .with_decision("harmony", parse_harmony_decision_from_response(CLIMB_HARMONY))
+    )
+    return bp_pedal, bp_lock, bp_drive, bp_tease, bp_bridge, bp_pulse, bp_climb
 
 
 # ============================================================================
@@ -248,6 +303,22 @@ BRIDGE_KICK  = "X.........X....."
 BRIDGE_SNARE = "....X.........X."
 # Hat "breakbeat ghosted" - Amen-style 16ths (sheet 02 R33)
 BRIDGE_HAT   = "X.X.X.XgX.X.X.X."
+
+# --- PULSE : Dark techno minimal profile (sheet 05 R10) ---
+PULSE_KICK         = "X...X...X...X..."   # 4-on-floor (per profile)
+# No snare per profile — but we use industrial perc on step 9 for accent
+PULSE_INDUSTRIAL   = "........X......."   # metal hit step 9 (sheet 02 R17)
+# "off-beat + accents random" — two patterns alternating per bar for irregular feel
+PULSE_HAT_BAR_EVEN = "..X.aX....X.aX.."   # off-beat with accents at steps 4 and 12
+PULSE_HAT_BAR_ODD  = ".aX...X...X.aX.."   # accents at steps 1 and 12
+
+# --- CLIMB : Industrial groovy profile (sheet 05 R6) ---
+# Kick "0, 1, 2, 2.75, 3" -> beats 0, 1, 2, 2.75, 3 -> steps 0, 4, 8, 11, 12
+# step 11 is the GHOST kick (low velocity), distinguishing it from Pedal's plain 4x4
+CLIMB_KICK   = "X...X...X..gX..."
+CLIMB_SNARE  = "....X.......X..."   # 1+3 backbeat
+# 16ths denses (per profile R6) — full 16th-note hi-hat
+CLIMB_HAT    = "XXXXXXXXXXXXXXXX"
 
 
 # ============================================================================
@@ -894,12 +965,293 @@ def gen_bridge_fx() -> List[Dict]:
     return out
 
 
+# --- PULSE -----------------------------------------------------------------
+
+
+def gen_pulse_drum() -> List[Dict]:
+    """Dark techno minimal — kick 4x4, NO snare (per profile), hat off-beat
+    with random accents. Industrial metal hit on step 9 every other bar
+    for accent-driven groove ('le groove vient des accents'). Velocity
+    range 90-110 per bank R10."""
+    out: List[Dict] = []
+    for bar in range(BARS_PER_SECTION):
+        b = bar * BEATS_PER_BAR
+        out.extend(grid_to_drum_notes(PULSE_KICK, pitch=36, bar_offset_beats=b,
+                                      velocity_main=110, note_dur=0.25))
+        # Alternating hat patterns for "random" accent feel
+        hat_grid = PULSE_HAT_BAR_EVEN if bar % 2 == 0 else PULSE_HAT_BAR_ODD
+        out.extend(grid_to_drum_notes(hat_grid, pitch=42, bar_offset_beats=b,
+                                      velocity_main=88, velocity_accent=108,
+                                      note_dur=0.16))
+        # Industrial metal hit accent on step 9 every other bar (49 = crash)
+        if bar % 2 == 1:
+            out.extend(grid_to_drum_notes(PULSE_INDUSTRIAL, pitch=49, bar_offset_beats=b,
+                                          velocity_main=105, note_dur=0.4))
+    # Locrian sink (bars 10-15): add deeper metal hit on biii bar 10 + bII bar 14
+    out.append({"time": 10 * BEATS_PER_BAR, "pitch": 56, "duration": float(BEATS_PER_BAR),
+                "velocity": 115})  # cowbell-slot industrial deep hit
+    out.append({"time": 14 * BEATS_PER_BAR, "pitch": 56, "duration": float(BEATS_PER_BAR),
+                "velocity": 110})
+    return out
+
+
+def gen_pulse_bass() -> List[Dict]:
+    """Drone-like bass emphasizing the Locrian b5 (Gb).
+    Pattern per bar: root sustained on beat 0, b5 (Gb) on beat 2.5
+    for the tritone tension. On bII bars (6, 14): bass walks to Db.
+    On biii bar 10: bass goes to Eb (the b3 of Locrian, ground note of Ebm)."""
+    out: List[Dict] = []
+    # Locrian palette: 1=C(0), b2=Db(1), b3=Eb(3), 4=F(5), b5=Gb(6), b6=Ab(8), b7=Bb(10)
+    GB = ROOT_C1 + 6   # b5 — the Locrian fingerprint
+    DB = ROOT_C1 + 1   # b2
+    EB = ROOT_C1 + 3   # b3 (root of biii)
+    bII_bars = {6, 14}
+    biii_bar = 10
+    for bar in range(BARS_PER_SECTION):
+        b = bar * BEATS_PER_BAR
+        if bar in bII_bars:
+            # bII bar: bass on Db sustained
+            out.append({"time": b + 0.0, "pitch": DB, "duration": 1.95, "velocity": 105})
+            out.append({"time": b + 2.0, "pitch": DB, "duration": 1.95, "velocity": 95})
+        elif bar == biii_bar:
+            # biii bar: bass on Eb (forces the b3 into ground)
+            out.append({"time": b + 0.0, "pitch": EB, "duration": 1.95, "velocity": 110})
+            out.append({"time": b + 2.0, "pitch": GB, "duration": 1.95, "velocity": 105})
+            # The Gb in the bass is the FULL Locrian moment — bar 10 unrest peak
+        else:
+            # i° bar: root C on beat 0, then b5 Gb on beat 2.5 (tritone tension)
+            out.append({"time": b + 0.0, "pitch": ROOT_C1, "duration": 1.95, "velocity": 100})
+            out.append({"time": b + 2.5, "pitch": GB, "duration": 0.85, "velocity": 90})
+            out.append({"time": b + 3.5, "pitch": ROOT_C1, "duration": 0.40, "velocity": 95})
+    return out
+
+
+def gen_pulse_lead() -> List[Dict]:
+    """Sparse lead — Locrian doesn't sustain melodic ideas. Phrase based on
+    the b5 (Gb) and b2 (Db) — the destabilizing notes. Most of the section
+    has minimal lead; the biii bar (10) has a longer phrase exposing Gb."""
+    out: List[Dict] = []
+    # Mid-register Locrian palette: C=48, Db=49, Eb=51, F=53, Gb=54, Ab=56, Bb=58
+    C, Db, Eb, F, Gb, Ab, Bb = 48, 49, 51, 53, 54, 56, 58
+    # Phrase template (4-bar cycles): minimal stab on beat 1, neighbor figure on bar 4
+    for cycle in range(4):
+        b = cycle * 4 * BEATS_PER_BAR
+        # Bar 1: single stab on Eb (b3) — pseudo-stable
+        out.append({"time": b + 0.0, "pitch": Eb, "duration": 1.5, "velocity": 95})
+        # Bar 2: pause then C-Db neighbor (b2 chromatic rub)
+        out.append({"time": b + 6.0, "pitch": C, "duration": 0.45, "velocity": 88})
+        out.append({"time": b + 6.5, "pitch": Db, "duration": 1.45, "velocity": 92})
+        # Bar 3: rest (silence sustains tension)
+        # Bar 4: single Bb (b7) sustained
+        out.append({"time": b + 12.0, "pitch": Bb, "duration": 1.95, "velocity": 90})
+    # Bar 10 (biii — Locrian unrest peak): 4-note phrase exposing b5 Gb
+    b10 = 10 * BEATS_PER_BAR
+    out.append({"time": b10 + 0.0, "pitch": Eb, "duration": 0.95, "velocity": 105})
+    out.append({"time": b10 + 1.0, "pitch": Gb, "duration": 0.95, "velocity": 115})  # b5!
+    out.append({"time": b10 + 2.0, "pitch": Bb, "duration": 0.95, "velocity": 110})
+    out.append({"time": b10 + 3.0, "pitch": Gb, "duration": 0.95, "velocity": 108})
+    return out
+
+
+def gen_pulse_pad() -> List[Dict]:
+    """Per agent voicing: i_dim_no5 (C+Eb) on i° bars, chromatic_neighbor_pad
+    Db major on bII bars, Ebm (Eb-Gb-Bb) on biii bar 10 (forces b5)."""
+    out: List[Dict] = []
+    # i_dim_no5 = C3 + Eb3 (48, 51)
+    # bII (Db major chromatic_neighbor_pad) = Db3 + F3 + Ab3 (49, 53, 56)
+    # biii (Ebm — forces b5 Gb) = Eb3 + Gb3 + Bb3 (51, 54, 58)
+    i_dim_no5 = [48, 51]
+    bII_pad   = [49, 53, 56]
+    biii_pad  = [51, 54, 58]
+    bII_bars = {6, 14}
+    for bar in range(BARS_PER_SECTION):
+        t = bar * BEATS_PER_BAR
+        if bar in bII_bars:
+            voicing, vel = bII_pad, 80
+        elif bar == 10:
+            voicing, vel = biii_pad, 88
+        else:
+            voicing, vel = i_dim_no5, 72
+        for p in voicing:
+            out.append({"time": t, "pitch": p,
+                        "duration": float(BEATS_PER_BAR), "velocity": vel})
+    return out
+
+
+def gen_pulse_fx() -> List[Dict]:
+    """Sub C drone + glitch hit at bar 10 (the Locrian unrest peak).
+    Add a high stab at bar 9 (breath_point) marking the pivot."""
+    out: List[Dict] = []
+    out.append({"time": 0.0, "pitch": 12, "duration": float(SECTION_BEATS), "velocity": 85})
+    # Breath_point bar 9 — a noise wash signaling the locrian_sink entry
+    out.append({"time": 9 * BEATS_PER_BAR, "pitch": 80,
+                "duration": 1.0, "velocity": 100})
+    # Bar 10 unrest peak — high Gb stab (the full Locrian b5)
+    out.append({"time": 10 * BEATS_PER_BAR, "pitch": 78,
+                "duration": float(BEATS_PER_BAR), "velocity": 115})
+    return out
+
+
+# --- CLIMB -----------------------------------------------------------------
+
+
+def gen_climb_drum() -> List[Dict]:
+    """Industrial groovy — kick with ghost on 2.75, snare backbeat 1+3,
+    hat 16ths denses. Velocity range 85-120 per bank R6."""
+    out: List[Dict] = []
+    for bar in range(BARS_PER_SECTION):
+        b = bar * BEATS_PER_BAR
+        out.extend(grid_to_drum_notes(CLIMB_KICK, pitch=36, bar_offset_beats=b,
+                                      velocity_main=115, velocity_ghost=70,
+                                      note_dur=0.20))
+        out.extend(grid_to_drum_notes(CLIMB_SNARE, pitch=38, bar_offset_beats=b,
+                                      velocity_main=110, note_dur=0.20))
+        # 16ths hat with subtle velocity variation (every 4th step accented)
+        for step in range(16):
+            t = b + step * 0.25
+            vel = 105 if step % 4 == 0 else (90 if step % 2 == 0 else 78)
+            out.append({"time": t, "pitch": 42, "duration": 0.12, "velocity": vel})
+        # Layer_stack subsection (bars 8-11): add open hat on beat 4 for lift
+        if 8 <= bar < 12:
+            out.append({"time": b + 3.5, "pitch": 46, "duration": 0.4, "velocity": 105})
+        # Full_drive subsection (bars 12-15): crash on beat 1 of every bar
+        if bar >= 12:
+            out.append({"time": b + 0.0, "pitch": 49, "duration": 0.5, "velocity": 122})
+    return out
+
+
+def gen_climb_bass() -> List[Dict]:
+    """Bass follows descending progression i-bVII-bVI-bII (C-Bb-Ab-Db).
+    Drives 8th-notes with the ghost-kick variation: hits on beat 0, 1, 2,
+    2.75 (ghost), 3, plus push-octave on beat 3.5 toward next bar."""
+    out: List[Dict] = []
+    # Phrygian palette degrees for the 4-bar cycle:
+    # i=C(0), bVII=Bb(10), bVI=Ab(8), bII=Db(1)
+    chord_offsets = [0, 10, 8, 1]
+    for bar in range(BARS_PER_SECTION):
+        b = bar * BEATS_PER_BAR
+        chord_offset = chord_offsets[bar % 4]
+        root_pitch = ROOT_C1 + chord_offset
+        # Hits matching the kick pattern
+        for beat, dur, vel in [(0.0, 0.85, 110), (1.0, 0.85, 100),
+                                (2.0, 0.65, 105), (2.75, 0.20, 75),  # ghost!
+                                (3.0, 0.85, 110)]:
+            out.append({"time": b + beat, "pitch": root_pitch,
+                        "duration": dur, "velocity": vel})
+        # Octave push on beat 3.5 toward next bar (drive forward)
+        out.append({"time": b + 3.5, "pitch": root_pitch + 12,
+                    "duration": 0.40, "velocity": 105})
+    return out
+
+
+def gen_climb_lead() -> List[Dict]:
+    """Lead phrase tracking i-bVII-bVI-bII descending progression.
+    Each chord gets a 1-bar stab figure with descending shape that
+    matches the chord descent. Final cycle (bars 12-15) doubles density
+    for full_drive climax."""
+    out: List[Dict] = []
+    # Chord arpeggios (high register for memorable hook)
+    # i (Cm):     C-Eb-G   (60, 63, 67)
+    # bVII (Bb):  Bb-D-F   (58, 62, 65)
+    # bVI (Ab):   Ab-C-Eb  (56, 60, 63)
+    # bII (Db):   Db-F-Ab  (61, 65, 68)
+    PHRASES_NORMAL = [
+        # i (Cm): root + b3 + 5 stab figure
+        [(0.0, 60, 0.45, 105), (0.5, 63, 0.45, 100), (1.0, 67, 0.95, 105),
+         (2.5, 63, 0.45, 95), (3.0, 60, 0.95, 95)],
+        # bVII (Bb): descending figure
+        [(0.0, 58, 0.45, 105), (0.5, 62, 0.45, 100), (1.0, 65, 0.45, 100),
+         (2.0, 62, 0.45, 95), (2.5, 58, 0.95, 100), (3.5, 60, 0.40, 90)],
+        # bVI (Ab): drop a third — descending continues
+        [(0.0, 56, 0.45, 105), (0.5, 60, 0.45, 100), (1.0, 63, 0.95, 100),
+         (2.5, 60, 0.45, 95), (3.0, 56, 0.95, 100)],
+        # bII (Db): the Phrygian hook — Db neighbor figure, climbs to Ab
+        [(0.0, 61, 0.45, 110), (0.5, 65, 0.45, 105), (1.0, 68, 0.45, 100),
+         (2.0, 65, 0.45, 100), (2.5, 61, 0.45, 105), (3.0, 60, 0.95, 110)],
+        # the trailing 60 (C) is the resolution to next i
+    ]
+    # Climactic phrases for final cycle (bars 12-15) — denser, higher
+    PHRASES_CLIMAX = [
+        # i: octave high — ascending
+        [(0.0, 72, 0.45, 115), (0.5, 75, 0.45, 110), (1.0, 79, 0.45, 115),
+         (1.5, 75, 0.45, 105), (2.0, 72, 0.45, 110), (2.5, 75, 0.45, 105),
+         (3.0, 79, 0.95, 115)],
+        # bVII: descending fast
+        [(0.0, 70, 0.45, 115), (0.5, 74, 0.45, 110), (1.0, 77, 0.45, 110),
+         (1.5, 74, 0.45, 105), (2.0, 70, 0.45, 110), (2.5, 67, 0.95, 105)],
+        # bVI: descending continues
+        [(0.0, 68, 0.45, 115), (0.5, 72, 0.45, 110), (1.0, 75, 0.45, 110),
+         (1.5, 72, 0.45, 105), (2.0, 68, 0.45, 110), (2.5, 65, 0.95, 105)],
+        # bII: final dissonance — Db climbing to F-Ab octave
+        [(0.0, 73, 0.45, 120), (0.5, 77, 0.45, 115), (1.0, 80, 0.95, 115),
+         (2.0, 77, 0.45, 115), (2.5, 73, 0.45, 115), (3.0, 72, 0.95, 122)],
+    ]
+    for cycle in range(4):
+        b = cycle * 4 * BEATS_PER_BAR
+        phrases = PHRASES_CLIMAX if cycle == 3 else PHRASES_NORMAL
+        for bar_idx in range(4):
+            t_bar = b + bar_idx * BEATS_PER_BAR
+            for offset, pitch, dur, vel in phrases[bar_idx]:
+                out.append({"time": t_bar + offset, "pitch": pitch,
+                            "duration": dur, "velocity": vel})
+    return out
+
+
+def gen_climb_pad() -> List[Dict]:
+    """Per agent voicing: power chord on i, drop_2 on bVI (jazz spread),
+    chromatic_neighbor_pad on bII. Final cycle uses i_with_b9 for
+    climactic dissonance."""
+    out: List[Dict] = []
+    # i power = C3 + G3 (48, 55)
+    # bVII power = Bb2 + F3 (46, 53)
+    # bVI drop_2 = Ab2 + Eb3 + Ab3 + C4 (44, 51, 56, 60)
+    # bII chromatic_neighbor = Db3 + F3 + Ab3 (49, 53, 56)
+    # i_with_b9 (Phrygian voicing) = C3 + Eb3 + G3 + Db4 (48, 51, 55, 61)
+    voicings_normal = [
+        [48, 55],            # i
+        [46, 53],            # bVII
+        [44, 51, 56, 60],    # bVI drop_2
+        [49, 53, 56],        # bII chromatic_neighbor
+    ]
+    voicings_climax = [
+        [48, 51, 55, 61],    # i_with_b9
+        [46, 53, 58],        # bVII open
+        [44, 51, 56, 60, 63],  # bVI drop_2 + 5
+        [49, 53, 56, 60],    # bII + b9 high
+    ]
+    for cycle in range(4):
+        b = cycle * 4 * BEATS_PER_BAR
+        voicings = voicings_climax if cycle == 3 else voicings_normal
+        for bar_idx in range(4):
+            t_bar = b + bar_idx * BEATS_PER_BAR
+            voicing = voicings[bar_idx]
+            vel = 82 if cycle == 3 else 75
+            for p in voicing:
+                out.append({"time": t_bar, "pitch": p,
+                            "duration": float(BEATS_PER_BAR), "velocity": vel})
+    return out
+
+
+def gen_climb_fx() -> List[Dict]:
+    """Sub C drone + push hits at each layer_stack and full_drive boundary
+    (bars 4, 8, 12). Final cathartic stab on bar 15 last beat."""
+    out: List[Dict] = []
+    out.append({"time": 0.0, "pitch": 12, "duration": float(SECTION_BEATS), "velocity": 95})
+    for bar in (0, 4, 8, 12):
+        out.append({"time": bar * BEATS_PER_BAR, "pitch": 60,
+                    "duration": 0.5, "velocity": 118})
+    # Final climax stab on last bar last beat
+    out.append({"time": 15 * BEATS_PER_BAR + 3.0, "pitch": 72,
+                "duration": 1.0, "velocity": 125})
+    return out
+
+
 # ============================================================================
 # Section / role / generator dispatch table
 # ============================================================================
 
 
-SECTIONS = ("Pedal", "Lock", "Drive", "Tease", "Bridge")
+SECTIONS = ("Pedal", "Lock", "Drive", "Tease", "Bridge", "Pulse", "Climb")
 
 # Live color codes (0-69) — all sections share the same role-color mapping
 ROLE_COLOR = {
@@ -916,6 +1268,8 @@ SECTION_COLOR = {
     "Drive": 14,    # teal — relentless EBM
     "Tease": 25,    # purple — exotic venom
     "Bridge": 7,    # red — broken closer
+    "Pulse": 22,    # dark gray — Locrian darkness peak
+    "Climb": 41,    # gold — encore climax
 }
 
 # (section_name, role) -> generator function
@@ -945,6 +1299,16 @@ GENERATORS: Dict[Tuple[str, str], callable] = {
     ("Bridge", "LEAD"):     gen_bridge_lead,
     ("Bridge", "PAD"):      gen_bridge_pad,
     ("Bridge", "FX"):       gen_bridge_fx,
+    ("Pulse",  "DRUM_KIT"): gen_pulse_drum,
+    ("Pulse",  "BASS"):     gen_pulse_bass,
+    ("Pulse",  "LEAD"):     gen_pulse_lead,
+    ("Pulse",  "PAD"):      gen_pulse_pad,
+    ("Pulse",  "FX"):       gen_pulse_fx,
+    ("Climb",  "DRUM_KIT"): gen_climb_drum,
+    ("Climb",  "BASS"):     gen_climb_bass,
+    ("Climb",  "LEAD"):     gen_climb_lead,
+    ("Climb",  "PAD"):      gen_climb_pad,
+    ("Climb",  "FX"):       gen_climb_fx,
 }
 
 ROLES = ("DRUM_KIT", "BASS", "LEAD", "PAD", "FX")
