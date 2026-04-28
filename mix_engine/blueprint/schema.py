@@ -295,6 +295,24 @@ class DiagnosticReport:
     freq_conflicts_meta: Optional[FreqConflictsMetadata] = None  # B2/B3 from sheet
     freq_conflicts_bands: tuple[BandConflict, ...] = ()  # rows of the matrix
 
+    def get_health_category_score(self, category: str) -> Optional[float]:
+        """Lookup a Mix Health Score category score by name (case-insensitive).
+
+        Phase 4.3 helper consumed by every Tier A agent that conditions on a
+        single canonical category. The 5 categories emitted by
+        ``mix_analyzer.py:4869`` are: Loudness, Dynamics, Spectral Balance,
+        Stereo Image, Anomalies. mix-diagnostician normalizes them to lowercase
+        in ``health_score.breakdown`` ; this method matches case-insensitively
+        so it works on either form.
+
+        Returns None if no breakdown entry matches.
+        """
+        target = category.strip().lower()
+        for cat, score in self.health_score.breakdown:
+            if cat.strip().lower() == target:
+                return score
+        return None
+
 
 # ============================================================================
 # EQ corrective lane — Phase 4.2
@@ -500,6 +518,216 @@ class EQCorrectiveDecision:
     bands: tuple[EQBandCorrection, ...] = ()
 
 
+# ============================================================================
+# Dynamics corrective lane — Phase 4.3
+# ============================================================================
+#
+# Tier A schema for compression / gating / limiting / sidechain ducking /
+# transient shaping moves. Sister of EQCorrectiveDecision but for the
+# dynamics domain. Tier B (dynamics-configurator, future) reads these
+# decisions and writes Compressor2 / GlueCompressor / Limiter / Gate /
+# DrumBuss XML. automation-writer (Tier B) consumes the *_envelope tuples.
+#
+# Design notes from the audit (Phase 4.3 Pass 2):
+# 1. Tier A emits intent (e.g. ``sidechain.depth_db = -8.0``) ; Tier B
+#    translates to the right Compressor2 threshold/ratio combo. Same
+#    separation as eq-corrective.
+# 2. Kickstart 2 is NOT in ``ableton_devices_mapping.json`` (only 9 native
+#    devices + 2 VST3). CDE emits ``device="Kickstart 2"`` symbolically ;
+#    dynamics-corrective-decider's defer mode translates to
+#    ``device="Compressor2"`` with ``sidechain.mode="external"``.
+# 3. ``release_auto: bool`` separates from ``release_ms`` because GlueComp
+#    encodes auto via enum value 6 and Limiter via a bool — different
+#    mechanisms not unifiable as a single float sentinel.
+# 4. Per-track audio metrics (crest_factor) are NOT typed in TrackInfo
+#    today (rule-with-consumer : extend mix-diagnostician when a 2nd
+#    consumer arises). Brief explicit on a track is therefore the primary
+#    trigger for Scenario A (standard compression).
+
+
+# Type of dynamic move — categorizes intent musically. Each maps to one
+# or more devices ; some devices serve multiple types (Compressor2 covers
+# compress/sidechain_duck/parallel_compress/deess).
+VALID_DYNAMICS_TYPES = frozenset({
+    "compress",            # Standard track compression (Compressor2)
+    "sidechain_duck",      # External sidechain ducking (kick → bass typique) — CDE Kickstart 2 maps here
+    "bus_glue",            # GlueCompressor on Group/bus — 1-3 dB GR, low ratio
+    "gate",                # Noise floor / bleed cleanup (Gate)
+    "limit",               # Per-track peak control (Limiter ; rare ; master = mastering scope)
+    "transient_shape",     # DrumBuss.Transients enhance/tame transients
+    "parallel_compress",   # DryWet < 100% — sustain without killing transients
+    "deess",               # Multi-band dynamic via Compressor2 with internal_filtered sidechain
+})
+
+# Device family — Tier B maps to the actual Ableton plugin.
+# Kickstart 2 is intentionally absent (not mapped in catalog).
+VALID_DYNAMICS_DEVICES = frozenset({
+    "Compressor2",         # Le couteau suisse — incl. external + internal_filtered sidechain
+    "GlueCompressor",      # SSL-style bus glue ; sidechain natif
+    "Limiter",             # Peak control finalizer
+    "Gate",                # Noise floor / bleed cleanup
+    "DrumBuss",            # Hybrid ; corrective lane uses Transients section only
+})
+
+# Sidechain mode (when dynamics_type involves sidechain).
+VALID_SIDECHAIN_MODES = frozenset({
+    "none",                # No sidechain
+    "external",            # Trigger from another track (ducking)
+    "internal_filtered",   # Sidechain filter on the same track's signal (de-essing)
+})
+
+# Chain position — dynamics-specific vocabulary. Co-designed with
+# eq-corrective's VALID_CHAIN_POSITIONS so that absolute device order is
+# unambiguous when both agents emit corrections for the same track.
+# Tier B reconciles the absolute slot ordering.
+VALID_DYNAMICS_CHAIN_POSITIONS = frozenset({
+    "default",                  # Tier B picks based on chain content
+    "gate_first",               # Gate must be 1st (pre-cleanup before any other processing)
+    "pre_eq_corrective",        # Before the corrective EQ8 (rare ; used for gate before EQ to avoid amplifying noise)
+    "post_eq_corrective",       # After the corrective EQ8 (typical compressor placement)
+    "pre_saturation",           # Before Saturator/DrumBuss — compress clean signal before coloration
+    "post_saturation",          # After last Saturator/DrumBuss — clamp peaks generated by saturation
+    "pre_limiter",              # Before the Limiter finalizer (typical : final comp then limit)
+    "chain_end_limiter",        # Limiter last (mandatory placement for Limiter device)
+})
+
+
+# ============================================================================
+# Dynamics value ranges — audio-physics bounds (parser-enforced)
+# ============================================================================
+
+DYN_THRESHOLD_MIN_DB: float = -60.0
+DYN_THRESHOLD_MAX_DB: float = 0.0
+DYN_RATIO_MIN: float = 1.0          # 1:1 = no compression (legal but caught by cross-field if dynamics_type=compress)
+DYN_RATIO_MAX: float = 100.0        # brick-wall ratio (Limiter territory)
+DYN_ATTACK_MIN_MS: float = 0.01
+DYN_ATTACK_MAX_MS: float = 200.0
+DYN_RELEASE_MIN_MS: float = 1.0
+DYN_RELEASE_MAX_MS: float = 5000.0  # 5s (incl. very long release for ambient/cinematic)
+DYN_MAKEUP_MIN_DB: float = -24.0
+DYN_MAKEUP_MAX_DB: float = 24.0
+DYN_KNEE_MIN_DB: float = 0.0        # hard knee
+DYN_KNEE_MAX_DB: float = 24.0       # very soft knee
+DYN_DRY_WET_MIN: float = 0.0        # 0 = full dry (bypass)
+DYN_DRY_WET_MAX: float = 1.0        # 1 = full wet
+DYN_SIDECHAIN_DEPTH_MIN_DB: float = -24.0
+DYN_SIDECHAIN_DEPTH_MAX_DB: float = 0.0
+DYN_CEILING_MIN_DB: float = -12.0
+DYN_CEILING_MAX_DB: float = 0.0     # Limiter ceiling must be ≤ 0 dBFS
+DYN_TRANSIENTS_MIN: float = -1.0    # DrumBuss.Transients (tame)
+DYN_TRANSIENTS_MAX: float = 1.0     # DrumBuss.Transients (enhance)
+
+
+@dataclass(frozen=True)
+class DynamicsAutomationPoint:
+    """One key point in a dynamics parameter automation envelope.
+
+    Bar is the section-relative bar (0-indexed). Value's meaning depends
+    on which envelope this point belongs to :
+    - in `threshold_envelope`: dB
+    - in `makeup_envelope`: dB
+    - in `dry_wet_envelope`: 0..1
+    - in `sidechain_depth_envelope`: dB (negative)
+    """
+
+    bar: int
+    value: float
+
+
+@dataclass(frozen=True)
+class SidechainConfig:
+    """Sidechain configuration block.
+
+    Required when ``dynamics_type == "sidechain_duck"`` (cross-field
+    enforced). Optional for ``deess`` (uses ``mode="internal_filtered"``).
+
+    `depth_db` is the agent's INTENT (e.g. -8 dB = "duck the target by
+    8 dB on each trigger hit"). Tier B translates to Compressor2
+    threshold + ratio + attack/release combo that achieves that depth
+    given the trigger envelope shape.
+
+    `filter_freq_hz` / `filter_q` configure the Compressor2 sidechain
+    EQ section (used for de-essing : filter the sidechain so the comp
+    only triggers on sibilance freqs).
+    """
+
+    mode: str                                 # in VALID_SIDECHAIN_MODES
+    trigger_track: Optional[str] = None       # required if mode == "external"
+    depth_db: Optional[float] = None          # intent dB ; required if external sidechain_duck
+    filter_freq_hz: Optional[float] = None    # for internal_filtered (de-ess) or external EQ shaping
+    filter_q: Optional[float] = None
+
+
+@dataclass(frozen=True)
+class DynamicsCorrection:
+    """One dynamics correction targeting one track.
+
+    Tier A (dynamics-corrective-decider) emits these without knowing how
+    Compressor2/GlueCompressor/Gate/Limiter/DrumBuss encode them in XML.
+    Tier B reconciles with the existing chain (track.devices), allocates
+    the device, writes XML, and hands envelopes off to automation-writer.
+
+    Static-only correction : envelopes are empty tuples. Dynamic
+    correction : at least one envelope is non-empty ; the static fields
+    are the baseline.
+
+    Param defaults are None (= "device default, Tier B picks"). At least
+    one parameter must be set unless ``dynamics_type`` is ``transient_shape``
+    (which sets only DrumBuss.Transients) or ``gate``/``limit`` (which
+    have device-specific required fields enforced by cross-field checks).
+    """
+
+    track: str                              # must match an existing TrackInfo.name
+    dynamics_type: str                      # in VALID_DYNAMICS_TYPES
+    device: str                             # in VALID_DYNAMICS_DEVICES
+
+    # Static (baseline) params — None = device default
+    threshold_db: Optional[float] = None    # in [DYN_THRESHOLD_MIN_DB, DYN_THRESHOLD_MAX_DB]
+    ratio: Optional[float] = None           # in [DYN_RATIO_MIN, DYN_RATIO_MAX]
+    attack_ms: Optional[float] = None       # in [DYN_ATTACK_MIN_MS, DYN_ATTACK_MAX_MS]
+    release_ms: Optional[float] = None      # in [DYN_RELEASE_MIN_MS, DYN_RELEASE_MAX_MS]
+    release_auto: bool = False              # Tier B encodes per device : GlueComp enum=6 ; Limiter AutoRelease=true ; Compressor2 raises (no auto)
+    makeup_db: Optional[float] = None       # in [DYN_MAKEUP_MIN_DB, DYN_MAKEUP_MAX_DB]
+    knee_db: Optional[float] = None         # in [DYN_KNEE_MIN_DB, DYN_KNEE_MAX_DB]
+    dry_wet: Optional[float] = None         # in [DYN_DRY_WET_MIN, DYN_DRY_WET_MAX]
+    ceiling_db: Optional[float] = None      # Limiter only ; in [DYN_CEILING_MIN_DB, DYN_CEILING_MAX_DB]
+    transients: Optional[float] = None      # DrumBuss only ; in [DYN_TRANSIENTS_MIN, DYN_TRANSIENTS_MAX]
+
+    # Sidechain configuration (required for sidechain_duck and deess)
+    sidechain: Optional[SidechainConfig] = None
+
+    # Placement
+    chain_position: str = "default"         # in VALID_DYNAMICS_CHAIN_POSITIONS
+    processing_mode: str = "stereo"         # stereo / mid / side (M/S rare in dynamics — see anti-patterns)
+
+    # Dynamic envelopes — empty tuple = static-only ; ≥ 3 points if non-empty
+    threshold_envelope: tuple[DynamicsAutomationPoint, ...] = ()
+    makeup_envelope: tuple[DynamicsAutomationPoint, ...] = ()
+    dry_wet_envelope: tuple[DynamicsAutomationPoint, ...] = ()
+    sidechain_depth_envelope: tuple[DynamicsAutomationPoint, ...] = ()
+
+    # Sections this correction applies to (Sections Timeline indices,
+    # 0-based). Empty tuple = "always" (whole project). Required if any
+    # envelope is non-empty (cross-field enforced).
+    sections: tuple[int, ...] = ()
+
+    rationale: str = ""
+    inspired_by: tuple[MixCitation, ...] = ()
+
+
+@dataclass(frozen=True)
+class DynamicsCorrectiveDecision:
+    """All dynamics corrective decisions for a track set.
+
+    `corrections` is the list of moves (one per track per dynamics_type).
+    Multiple corrections on the same track must have distinct
+    ``dynamics_type`` (cross-field enforced) — stacking 2 plain
+    compressors is a pumping mess.
+    """
+
+    corrections: tuple[DynamicsCorrection, ...] = ()
+
+
 @dataclass(frozen=True)
 class MixBlueprint:
     """The immutable carrier of all lane decisions for one mix session.
@@ -515,10 +743,10 @@ class MixBlueprint:
     name: str
     diagnostic: Optional[MixDecision[DiagnosticReport]] = None
     eq_corrective: Optional[MixDecision[EQCorrectiveDecision]] = None
+    dynamics_corrective: Optional[MixDecision[DynamicsCorrectiveDecision]] = None
     # Future lanes (added with their producing agents):
     # routing: Optional[MixDecision[RoutingDecision]] = None
     # eq_creative: Optional[MixDecision[EQCreativeDecision]] = None
-    # dynamics_corrective: Optional[MixDecision[DynamicsCorrectiveDecision]] = None
     # ... etc per MIX_LANES
 
     def with_decision(self, lane: str, decision: MixDecision) -> "MixBlueprint":
@@ -582,4 +810,33 @@ __all__ = [
     "EQAutomationPoint",
     "EQBandCorrection",
     "EQCorrectiveDecision",
+    # Dynamics corrective lane (Phase 4.3)
+    "VALID_DYNAMICS_TYPES",
+    "VALID_DYNAMICS_DEVICES",
+    "VALID_SIDECHAIN_MODES",
+    "VALID_DYNAMICS_CHAIN_POSITIONS",
+    "DYN_THRESHOLD_MIN_DB",
+    "DYN_THRESHOLD_MAX_DB",
+    "DYN_RATIO_MIN",
+    "DYN_RATIO_MAX",
+    "DYN_ATTACK_MIN_MS",
+    "DYN_ATTACK_MAX_MS",
+    "DYN_RELEASE_MIN_MS",
+    "DYN_RELEASE_MAX_MS",
+    "DYN_MAKEUP_MIN_DB",
+    "DYN_MAKEUP_MAX_DB",
+    "DYN_KNEE_MIN_DB",
+    "DYN_KNEE_MAX_DB",
+    "DYN_DRY_WET_MIN",
+    "DYN_DRY_WET_MAX",
+    "DYN_SIDECHAIN_DEPTH_MIN_DB",
+    "DYN_SIDECHAIN_DEPTH_MAX_DB",
+    "DYN_CEILING_MIN_DB",
+    "DYN_CEILING_MAX_DB",
+    "DYN_TRANSIENTS_MIN",
+    "DYN_TRANSIENTS_MAX",
+    "DynamicsAutomationPoint",
+    "SidechainConfig",
+    "DynamicsCorrection",
+    "DynamicsCorrectiveDecision",
 ]

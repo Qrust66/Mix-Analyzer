@@ -29,6 +29,29 @@ from mix_engine.blueprint.schema import (
     CDEMeasurement,
     CDETFPContext,
     DiagnosticReport,
+    DynamicsAutomationPoint,
+    DynamicsCorrection,
+    DynamicsCorrectiveDecision,
+    DYN_ATTACK_MAX_MS,
+    DYN_ATTACK_MIN_MS,
+    DYN_CEILING_MAX_DB,
+    DYN_CEILING_MIN_DB,
+    DYN_DRY_WET_MAX,
+    DYN_DRY_WET_MIN,
+    DYN_KNEE_MAX_DB,
+    DYN_KNEE_MIN_DB,
+    DYN_MAKEUP_MAX_DB,
+    DYN_MAKEUP_MIN_DB,
+    DYN_RATIO_MAX,
+    DYN_RATIO_MIN,
+    DYN_RELEASE_MAX_MS,
+    DYN_RELEASE_MIN_MS,
+    DYN_SIDECHAIN_DEPTH_MAX_DB,
+    DYN_SIDECHAIN_DEPTH_MIN_DB,
+    DYN_THRESHOLD_MAX_DB,
+    DYN_THRESHOLD_MIN_DB,
+    DYN_TRANSIENTS_MAX,
+    DYN_TRANSIENTS_MIN,
     EQAutomationPoint,
     EQBandCorrection,
     EQCorrectiveDecision,
@@ -44,21 +67,27 @@ from mix_engine.blueprint.schema import (
     KNOWN_CDE_ISSUE_TYPES,
     MixCitation,
     MixDecision,
+    SidechainConfig,
     TrackInfo,
     DEPRECATED_CHAIN_POSITIONS_REDIRECT,
     VALID_CDE_APPLICATION_STATUSES,
     VALID_CDE_CONFIDENCES,
     VALID_CDE_SEVERITIES,
     VALID_CHAIN_POSITIONS,
+    VALID_DYNAMICS_CHAIN_POSITIONS,
+    VALID_DYNAMICS_DEVICES,
+    VALID_DYNAMICS_TYPES,
     VALID_EQ_BAND_TYPES,
     VALID_EQ_INTENTS,
     VALID_FILTER_SLOPES_DB_PER_OCT,
     VALID_PROCESSING_MODES,
+    VALID_SIDECHAIN_MODES,
 )
 
 
 SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS = frozenset({"1.0"})
 
 # Severity values accepted in Anomaly.severity.
 VALID_ANOMALY_SEVERITIES = frozenset({"critical", "warning", "info"})
@@ -1069,10 +1098,497 @@ def parse_eq_corrective_decision_from_response(
     return parse_eq_corrective_decision(extract_json_payload(text))
 
 
+# ============================================================================
+# Public parser — dynamics_corrective lane (Phase 4.3)
+# ============================================================================
+#
+# Mirror of the eq-corrective parser. Strict on output : ranges enforced,
+# envelopes bar-ascending strict, depth-light per correction, 13
+# cross-field semantic-contradiction checks. Pure-payload — checks that
+# require DiagnosticReport context (M/S vs correlation, sidechain
+# trigger_track presence in tracks) live in the agent prompt as
+# anti-patterns the agent must self-enforce before emission.
+
+
+def _parse_dynamics_automation_point(
+    item: Any, *, where: str
+) -> DynamicsAutomationPoint:
+    """Parse one envelope point. Accepts {bar, value} or [bar, value]."""
+    if isinstance(item, Mapping):
+        bar = _coerce_int_strict(_require(item, "bar", where=where), where=f"{where}.bar")
+        value = _coerce_float(_require(item, "value", where=where), where=f"{where}.value")
+    elif isinstance(item, (list, tuple)):
+        if len(item) != 2:
+            raise MixAgentOutputError(
+                f"{where}: expected [bar, value] pair, got len={len(item)}"
+            )
+        bar = _coerce_int_strict(item[0], where=f"{where}[0]")
+        value = _coerce_float(item[1], where=f"{where}[1]")
+    else:
+        raise MixAgentOutputError(
+            f"{where}: expected object or [bar, value] pair, "
+            f"got {type(item).__name__}"
+        )
+    if bar < 0:
+        raise MixAgentOutputError(f"{where}.bar must be >= 0, got {bar}")
+    return DynamicsAutomationPoint(bar=bar, value=value)
+
+
+def _parse_dynamics_envelope_strict(
+    raw: Any, *, where: str, value_min: float, value_max: float, value_unit: str
+) -> tuple[DynamicsAutomationPoint, ...]:
+    """Parse + validate envelope ordering (bar ascending strict, ≥ 3 points
+    if non-empty) + range-check values."""
+    items_raw = _coerce_list(raw, where=where)
+    points = tuple(
+        _parse_dynamics_automation_point(item, where=f"{where}[{i}]")
+        for i, item in enumerate(items_raw)
+    )
+    if not points:
+        return points
+    bars = [p.bar for p in points]
+    if bars != sorted(set(bars)) or len(set(bars)) != len(bars):
+        raise MixAgentOutputError(
+            f"{where} must be strictly bar-ascending (no repeats). Got bars: {bars}"
+        )
+    # Cross-field check #9 : envelope non-empty AND len < 3 → reject
+    if len(points) < 3:
+        raise MixAgentOutputError(
+            f"{where} non-empty envelope needs ≥ 3 points (got {len(points)} ; "
+            f"2 points = ramp, equivalent to a static change — use static fields)."
+        )
+    for p in points:
+        if not (value_min <= p.value <= value_max):
+            raise MixAgentOutputError(
+                f"{where} contains value {p.value} {value_unit} outside "
+                f"[{value_min}, {value_max}]"
+            )
+    return points
+
+
+def _parse_sidechain_config(
+    item: Any, *, where: str
+) -> Optional[SidechainConfig]:
+    if item is None:
+        return None
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object or null, got {type(item).__name__}"
+        )
+    mode = _coerce_str(_require(item, "mode", where=where), where=f"{where}.mode").strip()
+    if mode not in VALID_SIDECHAIN_MODES:
+        raise MixAgentOutputError(
+            f"{where}.mode={mode!r} not in {sorted(VALID_SIDECHAIN_MODES)}"
+        )
+    trigger_raw = item.get("trigger_track", None)
+    trigger_track = (
+        None if trigger_raw is None or trigger_raw == ""
+        else _coerce_str(trigger_raw, where=f"{where}.trigger_track")
+    )
+    depth_raw = item.get("depth_db", None)
+    depth_db = (
+        None if depth_raw is None
+        else _coerce_float(depth_raw, where=f"{where}.depth_db")
+    )
+    if depth_db is not None and not (DYN_SIDECHAIN_DEPTH_MIN_DB <= depth_db <= DYN_SIDECHAIN_DEPTH_MAX_DB):
+        raise MixAgentOutputError(
+            f"{where}.depth_db={depth_db} not in "
+            f"[{DYN_SIDECHAIN_DEPTH_MIN_DB}, {DYN_SIDECHAIN_DEPTH_MAX_DB}]"
+        )
+    filter_freq_raw = item.get("filter_freq_hz", None)
+    filter_freq_hz = (
+        None if filter_freq_raw is None
+        else _coerce_float(filter_freq_raw, where=f"{where}.filter_freq_hz")
+    )
+    if filter_freq_hz is not None and not (EQ_FREQ_MIN_HZ <= filter_freq_hz <= EQ_FREQ_MAX_HZ):
+        raise MixAgentOutputError(
+            f"{where}.filter_freq_hz={filter_freq_hz} not in "
+            f"[{EQ_FREQ_MIN_HZ}, {EQ_FREQ_MAX_HZ}]"
+        )
+    filter_q_raw = item.get("filter_q", None)
+    filter_q = (
+        None if filter_q_raw is None
+        else _coerce_float(filter_q_raw, where=f"{where}.filter_q")
+    )
+    if filter_q is not None and not (EQ_Q_MIN <= filter_q <= EQ_Q_MAX):
+        raise MixAgentOutputError(
+            f"{where}.filter_q={filter_q} not in [{EQ_Q_MIN}, {EQ_Q_MAX}]"
+        )
+    # Cross-field within sidechain : external mode requires trigger_track
+    if mode == "external" and not trigger_track:
+        raise MixAgentOutputError(
+            f"{where}.mode='external' requires non-empty trigger_track"
+        )
+    return SidechainConfig(
+        mode=mode,
+        trigger_track=trigger_track,
+        depth_db=depth_db,
+        filter_freq_hz=filter_freq_hz,
+        filter_q=filter_q,
+    )
+
+
+def _coerce_optional_float_in_range(
+    value: Any, *, where: str, lo: float, hi: float, unit: str
+) -> Optional[float]:
+    if value is None:
+        return None
+    f = _coerce_float(value, where=where)
+    if not (lo <= f <= hi):
+        raise MixAgentOutputError(
+            f"{where}={f} {unit} not in [{lo}, {hi}]"
+        )
+    return f
+
+
+def _parse_dynamics_correction(item: Any, *, where: str) -> DynamicsCorrection:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+
+    track = _coerce_str(_require(item, "track", where=where), where=f"{where}.track").strip()
+    if not track:
+        raise MixAgentOutputError(f"{where}.track must be non-empty")
+
+    # Strict casing — matches eq-corrective discipline (band_type, intent are
+    # also strict). Agent emits canonical lowercase values from VALID_DYNAMICS_TYPES.
+    dynamics_type = _coerce_str(
+        _require(item, "dynamics_type", where=where), where=f"{where}.dynamics_type"
+    ).strip()
+    if dynamics_type not in VALID_DYNAMICS_TYPES:
+        raise MixAgentOutputError(
+            f"{where}.dynamics_type={dynamics_type!r} not in {sorted(VALID_DYNAMICS_TYPES)}"
+        )
+
+    device = _coerce_str(
+        _require(item, "device", where=where), where=f"{where}.device"
+    ).strip()
+    if device not in VALID_DYNAMICS_DEVICES:
+        raise MixAgentOutputError(
+            f"{where}.device={device!r} not in {sorted(VALID_DYNAMICS_DEVICES)} "
+            f"(Kickstart 2 is intentionally absent — use Compressor2 with "
+            f"sidechain.mode='external' for ducking)"
+        )
+
+    threshold_db = _coerce_optional_float_in_range(
+        item.get("threshold_db"), where=f"{where}.threshold_db",
+        lo=DYN_THRESHOLD_MIN_DB, hi=DYN_THRESHOLD_MAX_DB, unit="dB",
+    )
+    ratio = _coerce_optional_float_in_range(
+        item.get("ratio"), where=f"{where}.ratio",
+        lo=DYN_RATIO_MIN, hi=DYN_RATIO_MAX, unit=":1",
+    )
+    attack_ms = _coerce_optional_float_in_range(
+        item.get("attack_ms"), where=f"{where}.attack_ms",
+        lo=DYN_ATTACK_MIN_MS, hi=DYN_ATTACK_MAX_MS, unit="ms",
+    )
+    release_ms = _coerce_optional_float_in_range(
+        item.get("release_ms"), where=f"{where}.release_ms",
+        lo=DYN_RELEASE_MIN_MS, hi=DYN_RELEASE_MAX_MS, unit="ms",
+    )
+    release_auto = _coerce_bool(
+        item.get("release_auto", False), where=f"{where}.release_auto"
+    )
+    makeup_db = _coerce_optional_float_in_range(
+        item.get("makeup_db"), where=f"{where}.makeup_db",
+        lo=DYN_MAKEUP_MIN_DB, hi=DYN_MAKEUP_MAX_DB, unit="dB",
+    )
+    knee_db = _coerce_optional_float_in_range(
+        item.get("knee_db"), where=f"{where}.knee_db",
+        lo=DYN_KNEE_MIN_DB, hi=DYN_KNEE_MAX_DB, unit="dB",
+    )
+    dry_wet = _coerce_optional_float_in_range(
+        item.get("dry_wet"), where=f"{where}.dry_wet",
+        lo=DYN_DRY_WET_MIN, hi=DYN_DRY_WET_MAX, unit="(0..1)",
+    )
+    ceiling_db = _coerce_optional_float_in_range(
+        item.get("ceiling_db"), where=f"{where}.ceiling_db",
+        lo=DYN_CEILING_MIN_DB, hi=DYN_CEILING_MAX_DB, unit="dB",
+    )
+    transients = _coerce_optional_float_in_range(
+        item.get("transients"), where=f"{where}.transients",
+        lo=DYN_TRANSIENTS_MIN, hi=DYN_TRANSIENTS_MAX, unit="(-1..+1)",
+    )
+
+    sidechain = _parse_sidechain_config(
+        item.get("sidechain"), where=f"{where}.sidechain"
+    )
+
+    chain_position = _coerce_str(
+        item.get("chain_position", "default"),
+        where=f"{where}.chain_position",
+    ).strip()
+    if not chain_position:
+        chain_position = "default"
+    if chain_position not in VALID_DYNAMICS_CHAIN_POSITIONS:
+        raise MixAgentOutputError(
+            f"{where}.chain_position={chain_position!r} not in "
+            f"{sorted(VALID_DYNAMICS_CHAIN_POSITIONS)}. Use 'default' if you "
+            f"don't have a strong placement preference."
+        )
+
+    processing_mode = _coerce_str(
+        item.get("processing_mode", "stereo"),
+        where=f"{where}.processing_mode",
+    ).strip().lower()
+    if not processing_mode:
+        processing_mode = "stereo"
+    if processing_mode not in VALID_PROCESSING_MODES:
+        raise MixAgentOutputError(
+            f"{where}.processing_mode={processing_mode!r} not in "
+            f"{sorted(VALID_PROCESSING_MODES)}."
+        )
+
+    threshold_envelope = _parse_dynamics_envelope_strict(
+        item.get("threshold_envelope", []), where=f"{where}.threshold_envelope",
+        value_min=DYN_THRESHOLD_MIN_DB, value_max=DYN_THRESHOLD_MAX_DB, value_unit="dB",
+    )
+    makeup_envelope = _parse_dynamics_envelope_strict(
+        item.get("makeup_envelope", []), where=f"{where}.makeup_envelope",
+        value_min=DYN_MAKEUP_MIN_DB, value_max=DYN_MAKEUP_MAX_DB, value_unit="dB",
+    )
+    dry_wet_envelope = _parse_dynamics_envelope_strict(
+        item.get("dry_wet_envelope", []), where=f"{where}.dry_wet_envelope",
+        value_min=DYN_DRY_WET_MIN, value_max=DYN_DRY_WET_MAX, value_unit="(0..1)",
+    )
+    sidechain_depth_envelope = _parse_dynamics_envelope_strict(
+        item.get("sidechain_depth_envelope", []), where=f"{where}.sidechain_depth_envelope",
+        value_min=DYN_SIDECHAIN_DEPTH_MIN_DB, value_max=DYN_SIDECHAIN_DEPTH_MAX_DB, value_unit="dB",
+    )
+
+    sections_raw = _coerce_list(
+        item.get("sections", []), where=f"{where}.sections"
+    )
+    sections = tuple(
+        _coerce_int_strict(s, where=f"{where}.sections[{i}]")
+        for i, s in enumerate(sections_raw)
+    )
+
+    rationale = _coerce_str(item.get("rationale", ""))
+    inspired_by_raw = _coerce_list(
+        item.get("inspired_by", []), where=f"{where}.inspired_by"
+    )
+    inspired_by = _parse_citations(inspired_by_raw, where=f"{where}.inspired_by")
+
+    # ------------------------------------------------------------------
+    # Cross-field semantic-contradiction checks (12 total — pure-payload).
+    # The original Pass-2 list had 13 ; check #2 (gate threshold > 0) was
+    # dropped because the threshold_db range [-60, 0] already enforces it.
+    # ------------------------------------------------------------------
+
+    # #1 — compress with effectively-no-compression ratio
+    if dynamics_type == "compress" and ratio is not None and ratio < 1.1:
+        raise MixAgentOutputError(
+            f"{where}.dynamics_type='compress' but ratio={ratio} < 1.1 "
+            f"(no compression). Use ratio ≥ 1.5 for real compression, or "
+            f"set dynamics_type to a passthrough type."
+        )
+
+    # #2 — limit ceiling above 0 dBFS (impossible)
+    if dynamics_type == "limit" and ceiling_db is not None and ceiling_db > 0:
+        raise MixAgentOutputError(
+            f"{where}.dynamics_type='limit' but ceiling_db={ceiling_db} > 0 dBFS. "
+            f"Limiter ceiling must be ≤ 0 dBFS."
+        )
+
+    # #3 — sidechain_duck requires SidechainConfig(mode='external', trigger_track=...)
+    if dynamics_type == "sidechain_duck":
+        if sidechain is None:
+            raise MixAgentOutputError(
+                f"{where}.dynamics_type='sidechain_duck' requires "
+                f"sidechain block (mode='external', trigger_track=..., depth_db=...)."
+            )
+        if sidechain.mode != "external":
+            raise MixAgentOutputError(
+                f"{where}.dynamics_type='sidechain_duck' requires "
+                f"sidechain.mode='external' (got {sidechain.mode!r})."
+            )
+
+    # #4 — parallel_compress with full-wet dry_wet (= standard compression)
+    if dynamics_type == "parallel_compress" and dry_wet is not None and dry_wet >= 0.95:
+        raise MixAgentOutputError(
+            f"{where}.dynamics_type='parallel_compress' but dry_wet={dry_wet} ≥ 0.95 "
+            f"(essentially full wet). Use dynamics_type='compress' instead."
+        )
+
+    # #5 — non-parallel types with low dry_wet (= parallel territory)
+    if (dynamics_type in {"compress", "limit", "sidechain_duck"}
+            and dry_wet is not None and dry_wet < 0.5):
+        raise MixAgentOutputError(
+            f"{where}.dynamics_type={dynamics_type!r} but dry_wet={dry_wet} < 0.5 "
+            f"(parallel territory). Use dynamics_type='parallel_compress' for blends."
+        )
+
+    # #6 — GlueCompressor outside bus_glue role
+    if device == "GlueCompressor" and dynamics_type != "bus_glue":
+        raise MixAgentOutputError(
+            f"{where}.device='GlueCompressor' but dynamics_type={dynamics_type!r}. "
+            f"GlueCompressor is the bus-glue device ; use Compressor2 for "
+            f"track-level compression / sidechain / parallel."
+        )
+
+    # #7 — DrumBuss outside transient_shape role
+    if device == "DrumBuss" and dynamics_type != "transient_shape":
+        raise MixAgentOutputError(
+            f"{where}.device='DrumBuss' but dynamics_type={dynamics_type!r}. "
+            f"DrumBuss in this lane = transient shaping only ; full sat/comp "
+            f"belongs to eq-creative-colorist."
+        )
+
+    # #8 — envelope non-empty AND sections == () (envelope #9 = ≥3 points
+    # already enforced in _parse_dynamics_envelope_strict)
+    has_envelope = bool(threshold_envelope or makeup_envelope
+                        or dry_wet_envelope or sidechain_depth_envelope)
+    if has_envelope and not sections:
+        raise MixAgentOutputError(
+            f"{where} has non-empty envelope but sections=() ; specify which "
+            f"section indices the envelope applies to."
+        )
+
+    # #9 — depth-light : rationale ≥ 50 chars, ≥ 1 citation
+    if len(rationale) < 50:
+        raise MixAgentOutputError(
+            f"{where}.rationale too short ({len(rationale)} chars, need ≥ 50). "
+            f"Untraced dynamics correction = stub : the Tier B configurator "
+            f"can't justify the move to safety-guardian."
+        )
+    if not inspired_by:
+        raise MixAgentOutputError(
+            f"{where}.inspired_by must contain at least one citation. "
+            f"Cite the Mix Analyzer cell, CDE diagnostic, or user brief that "
+            f"justifies this correction."
+        )
+
+    # #10 — external sidechain_duck requires depth_db intent
+    if (dynamics_type == "sidechain_duck"
+            and sidechain is not None and sidechain.mode == "external"
+            and sidechain.depth_db is None):
+        raise MixAgentOutputError(
+            f"{where}.dynamics_type='sidechain_duck' with external sidechain "
+            f"requires sidechain.depth_db (the agent's intent dB ; Tier B "
+            f"translates to threshold/ratio)."
+        )
+
+    # #11 — Compressor2 has no auto-release ; release_auto only valid on
+    # GlueCompressor and Limiter
+    if release_auto and device == "Compressor2":
+        raise MixAgentOutputError(
+            f"{where}.release_auto=True but device='Compressor2' — Compressor2 "
+            f"has no auto-release. Use a numeric release_ms, or pick "
+            f"GlueCompressor/Limiter if auto behavior is required."
+        )
+
+    return DynamicsCorrection(
+        track=track,
+        dynamics_type=dynamics_type,
+        device=device,
+        threshold_db=threshold_db,
+        ratio=ratio,
+        attack_ms=attack_ms,
+        release_ms=release_ms,
+        release_auto=release_auto,
+        makeup_db=makeup_db,
+        knee_db=knee_db,
+        dry_wet=dry_wet,
+        ceiling_db=ceiling_db,
+        transients=transients,
+        sidechain=sidechain,
+        chain_position=chain_position,
+        processing_mode=processing_mode,
+        threshold_envelope=threshold_envelope,
+        makeup_envelope=makeup_envelope,
+        dry_wet_envelope=dry_wet_envelope,
+        sidechain_depth_envelope=sidechain_depth_envelope,
+        sections=sections,
+        rationale=rationale,
+        inspired_by=inspired_by,
+    )
+
+
+def parse_dynamics_corrective_decision(
+    payload: Mapping[str, Any],
+) -> MixDecision[DynamicsCorrectiveDecision]:
+    """Parse a dynamics-corrective-decider payload into a MixDecision.
+
+    Expected shape (schema 1.0) :
+        {
+          "schema_version": "1.0",
+          "dynamics_corrective": {
+            "corrections": [
+              {
+                "track": str,
+                "dynamics_type": str ∈ VALID_DYNAMICS_TYPES,
+                "device": str ∈ VALID_DYNAMICS_DEVICES,
+                "threshold_db": Optional[float],
+                "ratio": Optional[float],
+                "attack_ms": Optional[float],
+                "release_ms": Optional[float],
+                "release_auto": Optional[bool],
+                "makeup_db": Optional[float],
+                "knee_db": Optional[float],
+                "dry_wet": Optional[float],
+                "ceiling_db": Optional[float],
+                "transients": Optional[float],
+                "sidechain": Optional[{mode, trigger_track, depth_db, filter_freq_hz, filter_q}],
+                "chain_position": str ∈ VALID_DYNAMICS_CHAIN_POSITIONS,
+                "processing_mode": "stereo"|"mid"|"side",
+                "threshold_envelope": [{bar, value}, …]   # optional
+                "makeup_envelope": [...]                  # optional
+                "dry_wet_envelope": [...]                 # optional
+                "sidechain_depth_envelope": [...]         # optional
+                "sections": [int, ...]                    # required if any envelope non-empty
+                "rationale": str (≥ 50 chars),
+                "inspired_by": [{kind, path, excerpt}, …] # ≥ 1 cite
+              },
+              ...
+            ]
+          },
+          "cited_by": [...],
+          "rationale": str,
+          "confidence": float (0..1)
+        }
+
+    Or a refusal: {"error": "...", "details": "..."}
+
+    Strict on output : ranges enforced, envelopes bar-ascending strict
+    (≥ 3 points if non-empty), 13 cross-field semantic-contradiction
+    checks, depth-light per correction.
+    """
+    envelope = _parse_envelope(
+        payload, supported_versions=SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS
+    )
+
+    dyn_dict = _require(payload, "dynamics_corrective", where="root")
+    if not isinstance(dyn_dict, Mapping):
+        raise MixAgentOutputError(
+            f"dynamics_corrective: expected object, got {type(dyn_dict).__name__}"
+        )
+
+    corrections_raw = _coerce_list(
+        dyn_dict.get("corrections", []), where="dynamics_corrective.corrections"
+    )
+    corrections = tuple(
+        _parse_dynamics_correction(item, where=f"dynamics_corrective.corrections[{i}]")
+        for i, item in enumerate(corrections_raw)
+    )
+
+    decision_value = DynamicsCorrectiveDecision(corrections=corrections)
+    return MixDecision(value=decision_value, lane="dynamics_corrective", **envelope)
+
+
+def parse_dynamics_corrective_decision_from_response(
+    text: str,
+) -> MixDecision[DynamicsCorrectiveDecision]:
+    """End-to-end: raw LLM response → MixDecision[DynamicsCorrectiveDecision]."""
+    return parse_dynamics_corrective_decision(extract_json_payload(text))
+
+
 __all__ = [
     "MixAgentOutputError",
     "SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS",
     "SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS",
+    "SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS",
     "VALID_ANOMALY_SEVERITIES",
     "VALID_TRACK_TYPES",
     "VALID_CITATION_KINDS",
@@ -1081,9 +1597,16 @@ __all__ = [
     "VALID_CDE_CONFIDENCES",
     "VALID_CDE_APPLICATION_STATUSES",
     "KNOWN_CDE_ISSUE_TYPES",
+    # Phase 4.3 — Dynamics corrective re-exports
+    "VALID_DYNAMICS_TYPES",
+    "VALID_DYNAMICS_DEVICES",
+    "VALID_SIDECHAIN_MODES",
+    "VALID_DYNAMICS_CHAIN_POSITIONS",
     "extract_json_payload",
     "parse_diagnostic_decision",
     "parse_diagnostic_decision_from_response",
     "parse_eq_corrective_decision",
     "parse_eq_corrective_decision_from_response",
+    "parse_dynamics_corrective_decision",
+    "parse_dynamics_corrective_decision_from_response",
 ]
