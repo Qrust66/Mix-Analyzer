@@ -1,5 +1,82 @@
 # Changelog
 
+## [Unreleased — mix_engine Phase 4.2] - 2026-04-28
+
+First Tier A mix agent (decisional, no .als writes). Pivot to mix-side
+focus per user direction. Establishes the **decision/execution
+separation** : Tier A agents decide WHAT to fix and HOW it evolves
+across time ; Tier B agents (Phase 4.3+) consume those typed decisions
+and write the .als XML.
+
+### Added — `eq-corrective-decider` agent (`.claude/agents/`)
+
+Tier A : reads Mix Analyzer Excel + DiagnosticReport + user brief.
+Output : `Decision[EQCorrectiveDecision]`. Does NOT touch the .als.
+
+The agent .md is **deeply specified** with conditional decision paths :
+
+- **Scenario A** — static resonance peak (single track, persistent)
+- **Scenario B** — dynamic resonance evolving across sections (gain
+  envelope, optional freq/Q envelopes for drift)
+- **Scenario C** — cross-track masking (hero track identification +
+  cuts on competitors)
+- **Scenario D** — global tonal imbalance (refuses, escalates to
+  mastering-decider)
+- **Scenario E** — no anomalies (returns empty bands legitimately)
+
+Constraint hierarchy : brief explicit → critical anomalies → PDF
+anti-patterns → genre target → CDE recommendations → conservatism.
+
+Specifies which Excel sheets the agent owns (Anomalies, Freq Conflicts,
+Track Comparison, Sections Timeline, Mix Health Score) and what it
+extracts from each.
+
+Anti-patterns enforced (8 explicit) including : gain < -10 dB without
+exceptional rationale, Q > 12 on bell, boost without citation,
+envelope < 3 points (just a delayed cut, not justified), > 8 bands
+per track (Eq8 capacity).
+
+Iteration discipline : "first draft → review (compensations? temporal
+evolution covered? severity proportional?) → push ONE step further →
+ship".
+
+### Added — `EQCorrectiveDecision` schema in `mix_engine/blueprint/schema.py`
+
+- `EQAutomationPoint(bar, value)` — frozen dataclass for envelope keypoints
+- `EQBandCorrection(track, band_type, intent, center_hz, q, gain_db,
+  gain_envelope, freq_envelope, q_envelope, sections, rationale,
+  inspired_by)` — supports both static and dynamic corrections in one
+  type ; static = empty envelopes, dynamic = at least one non-empty
+- `EQCorrectiveDecision(bands)` — collection per project/section
+- 6 public constants : `VALID_EQ_BAND_TYPES`,`VALID_EQ_INTENTS`,
+  `EQ_Q_MIN/MAX`, `EQ_FREQ_MIN_HZ/MAX_HZ`, `EQ_GAIN_MIN_DB/MAX_DB`
+
+`MixBlueprint.eq_corrective` lane added.
+
+### Added — `parse_eq_corrective_decision()` in agent_parsers.py
+
+Strict validation :
+- Range checks : center_hz ∈ [16, 22000], q ∈ [0.1, 18], gain_db ∈ [-15, 15]
+- band_type / intent in canonical frozensets
+- Cross-field coherence : intent='cut' requires gain<0, intent='boost'
+  requires gain>0, intent='filter' requires band_type ∈
+  {highpass, lowpass, notch}
+- Envelopes (gain/freq/q) : bar-ascending strict (no duplicates),
+  values within their domain ranges
+- Lenient input : envelope points accept both `{bar,value}` object and
+  `[bar, value]` pair forms
+- Depth-light : per-band rationale ≥ 50 chars + inspired_by ≥ 1 citation
+
+### Tests — 55 in `tests/test_mix_engine_eq_corrective.py`
+
+Schema invariants (canonical enums pinned), happy paths (static + dynamic
++ multi-band), range validation parametrized over freq/q/gain,
+cross-field coherence (cut+positive-gain rejected, filter+bell rejected),
+envelope ordering + duplicates + range, depth-light enforcement,
+lenient-input fences/prose, blueprint integration.
+
+981 tests pass total.
+
 ## [Unreleased — composition_engine Phase 2.7.1] - 2026-04-28
 
 Audit-driven cleanup of Phase 2.7 (motif-decider). Transforms the 9

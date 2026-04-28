@@ -24,15 +24,27 @@ from typing import Any, Mapping
 from mix_engine.blueprint.schema import (
     Anomaly,
     DiagnosticReport,
+    EQAutomationPoint,
+    EQBandCorrection,
+    EQCorrectiveDecision,
+    EQ_FREQ_MAX_HZ,
+    EQ_FREQ_MIN_HZ,
+    EQ_GAIN_MAX_DB,
+    EQ_GAIN_MIN_DB,
+    EQ_Q_MAX,
+    EQ_Q_MIN,
     FullMixMetrics,
     HealthScore,
     MixCitation,
     MixDecision,
     TrackInfo,
+    VALID_EQ_BAND_TYPES,
+    VALID_EQ_INTENTS,
 )
 
 
 SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS = frozenset({"1.0"})
 
 # Severity values accepted in Anomaly.severity.
 VALID_ANOMALY_SEVERITIES = frozenset({"critical", "warning", "info"})
@@ -489,13 +501,286 @@ def parse_diagnostic_decision_from_response(
     return parse_diagnostic_decision(extract_json_payload(text))
 
 
+# ============================================================================
+# Public parser — eq_corrective lane (Phase 4.2)
+# ============================================================================
+
+
+def _parse_eq_automation_point(item: Any, *, where: str) -> EQAutomationPoint:
+    """Parse a single envelope point. Accepts {bar, value} object OR
+    [bar, value] pair (lenient input)."""
+    if isinstance(item, Mapping):
+        bar = _coerce_int_strict(_require(item, "bar", where=where), where=f"{where}.bar")
+        value = _coerce_float(_require(item, "value", where=where), where=f"{where}.value")
+    elif isinstance(item, (list, tuple)):
+        if len(item) != 2:
+            raise MixAgentOutputError(
+                f"{where}: expected [bar, value] pair, got len={len(item)}"
+            )
+        bar = _coerce_int_strict(item[0], where=f"{where}[0]")
+        value = _coerce_float(item[1], where=f"{where}[1]")
+    else:
+        raise MixAgentOutputError(
+            f"{where}: expected object or [bar, value] pair, "
+            f"got {type(item).__name__}"
+        )
+    if bar < 0:
+        raise MixAgentOutputError(f"{where}.bar must be >= 0, got {bar}")
+    return EQAutomationPoint(bar=bar, value=value)
+
+
+def _parse_envelope_strictly_ordered(
+    raw: Any, *, where: str
+) -> tuple[EQAutomationPoint, ...]:
+    """Parse and validate envelope ordering (bar ascending strict).
+
+    An out-of-order or duplicate-bar envelope would create ambiguous
+    automation playback — better to raise than render unpredictably.
+    """
+    items_raw = _coerce_list(raw, where=where)
+    points = tuple(
+        _parse_eq_automation_point(item, where=f"{where}[{i}]")
+        for i, item in enumerate(items_raw)
+    )
+    bars = [p.bar for p in points]
+    if bars != sorted(set(bars)) or len(set(bars)) != len(bars):
+        raise MixAgentOutputError(
+            f"{where} must be strictly bar-ascending (no repeats). "
+            f"Got bars: {bars}"
+        )
+    return points
+
+
+def _coerce_int_strict(value: Any, *, where: str) -> int:
+    """Strict-only int coercion (no string-of-int leniency for bars in
+    automation envelopes — surface contract bugs)."""
+    if isinstance(value, bool):
+        raise MixAgentOutputError(f"{where}: expected int, got bool")
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    raise MixAgentOutputError(
+        f"{where}: expected int, got {type(value).__name__}"
+    )
+
+
+def _parse_eq_band_correction(item: Any, *, where: str) -> EQBandCorrection:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+
+    track = _coerce_str(_require(item, "track", where=where), where=f"{where}.track").strip()
+    if not track:
+        raise MixAgentOutputError(f"{where}.track must be non-empty")
+
+    band_type = _coerce_str(
+        _require(item, "band_type", where=where), where=f"{where}.band_type"
+    ).strip()
+    if band_type not in VALID_EQ_BAND_TYPES:
+        raise MixAgentOutputError(
+            f"{where}.band_type={band_type!r} not in {sorted(VALID_EQ_BAND_TYPES)}"
+        )
+
+    intent = _coerce_str(
+        _require(item, "intent", where=where), where=f"{where}.intent"
+    ).strip()
+    if intent not in VALID_EQ_INTENTS:
+        raise MixAgentOutputError(
+            f"{where}.intent={intent!r} not in {sorted(VALID_EQ_INTENTS)}"
+        )
+
+    center_hz = _coerce_float(
+        _require(item, "center_hz", where=where), where=f"{where}.center_hz"
+    )
+    if not (EQ_FREQ_MIN_HZ <= center_hz <= EQ_FREQ_MAX_HZ):
+        raise MixAgentOutputError(
+            f"{where}.center_hz={center_hz} not in [{EQ_FREQ_MIN_HZ}, {EQ_FREQ_MAX_HZ}]"
+        )
+
+    q = _coerce_float(_require(item, "q", where=where), where=f"{where}.q")
+    if not (EQ_Q_MIN <= q <= EQ_Q_MAX):
+        raise MixAgentOutputError(
+            f"{where}.q={q} not in [{EQ_Q_MIN}, {EQ_Q_MAX}]"
+        )
+
+    gain_db = _coerce_float(
+        _require(item, "gain_db", where=where), where=f"{where}.gain_db"
+    )
+    if not (EQ_GAIN_MIN_DB <= gain_db <= EQ_GAIN_MAX_DB):
+        raise MixAgentOutputError(
+            f"{where}.gain_db={gain_db} not in [{EQ_GAIN_MIN_DB}, {EQ_GAIN_MAX_DB}]"
+        )
+
+    # Cross-field consistency : intent should match gain sign / band_type
+    if intent == "cut" and gain_db > 0:
+        raise MixAgentOutputError(
+            f"{where}.intent='cut' but gain_db={gain_db} (positive). "
+            f"A cut requires negative gain — set intent='boost' or fix gain."
+        )
+    if intent == "boost" and gain_db < 0:
+        raise MixAgentOutputError(
+            f"{where}.intent='boost' but gain_db={gain_db} (negative). "
+            f"A boost requires positive gain — set intent='cut' or fix gain."
+        )
+    if intent == "filter" and band_type not in {"highpass", "lowpass", "notch"}:
+        raise MixAgentOutputError(
+            f"{where}.intent='filter' requires band_type in "
+            f"{{highpass, lowpass, notch}}, got {band_type!r}"
+        )
+
+    gain_envelope = _parse_envelope_strictly_ordered(
+        item.get("gain_envelope", []), where=f"{where}.gain_envelope"
+    )
+    freq_envelope = _parse_envelope_strictly_ordered(
+        item.get("freq_envelope", []), where=f"{where}.freq_envelope"
+    )
+    q_envelope = _parse_envelope_strictly_ordered(
+        item.get("q_envelope", []), where=f"{where}.q_envelope"
+    )
+
+    # Range-check envelope values
+    for p in gain_envelope:
+        if not (EQ_GAIN_MIN_DB <= p.value <= EQ_GAIN_MAX_DB):
+            raise MixAgentOutputError(
+                f"{where}.gain_envelope contains value {p.value} dB outside "
+                f"[{EQ_GAIN_MIN_DB}, {EQ_GAIN_MAX_DB}]"
+            )
+    for p in freq_envelope:
+        if not (EQ_FREQ_MIN_HZ <= p.value <= EQ_FREQ_MAX_HZ):
+            raise MixAgentOutputError(
+                f"{where}.freq_envelope contains value {p.value} Hz outside "
+                f"[{EQ_FREQ_MIN_HZ}, {EQ_FREQ_MAX_HZ}]"
+            )
+    for p in q_envelope:
+        if not (EQ_Q_MIN <= p.value <= EQ_Q_MAX):
+            raise MixAgentOutputError(
+                f"{where}.q_envelope contains value {p.value} outside "
+                f"[{EQ_Q_MIN}, {EQ_Q_MAX}]"
+            )
+
+    sections_raw = _coerce_list(
+        item.get("sections", []), where=f"{where}.sections"
+    )
+    sections = tuple(
+        _coerce_int_strict(s, where=f"{where}.sections[{i}]")
+        for i, s in enumerate(sections_raw)
+    )
+
+    rationale = _coerce_str(item.get("rationale", ""))
+    inspired_by_raw = _coerce_list(
+        item.get("inspired_by", []), where=f"{where}.inspired_by"
+    )
+    inspired_by = _parse_citations(inspired_by_raw, where=f"{where}.inspired_by")
+
+    # Depth-light : every band must have ≥ 1 citation + ≥ 50 char rationale.
+    # Same discipline as composition motif-decider Phase 2.7.1 fix #5.
+    if len(rationale) < 50:
+        raise MixAgentOutputError(
+            f"{where}.rationale too short ({len(rationale)} chars, need ≥ 50). "
+            f"Untraced EQ correction = stub : the Tier B configurator can't "
+            f"justify the move to safety-guardian."
+        )
+    if not inspired_by:
+        raise MixAgentOutputError(
+            f"{where}.inspired_by must contain at least one citation. "
+            f"Cite the Mix Analyzer cell (Anomalies!A12 etc.) or device "
+            f"mapping rule that justifies this band."
+        )
+
+    return EQBandCorrection(
+        track=track,
+        band_type=band_type,
+        intent=intent,
+        center_hz=center_hz,
+        q=q,
+        gain_db=gain_db,
+        gain_envelope=gain_envelope,
+        freq_envelope=freq_envelope,
+        q_envelope=q_envelope,
+        sections=sections,
+        rationale=rationale,
+        inspired_by=inspired_by,
+    )
+
+
+def parse_eq_corrective_decision(
+    payload: Mapping[str, Any],
+) -> MixDecision[EQCorrectiveDecision]:
+    """Parse an eq-corrective-decider payload into a MixDecision.
+
+    Expected shape (schema 1.0) :
+        {
+          "schema_version": "1.0",
+          "eq_corrective": {
+            "bands": [
+              {
+                "track": str,
+                "band_type": str ∈ VALID_EQ_BAND_TYPES,
+                "intent": str ∈ VALID_EQ_INTENTS,
+                "center_hz": float,
+                "q": float,
+                "gain_db": float,
+                "gain_envelope": [{"bar": int, "value": float}, …]   # optional
+                "freq_envelope": [...],                              # optional
+                "q_envelope": [...],                                 # optional
+                "sections": [int, ...]                               # optional
+                "rationale": str (≥ 50 chars),
+                "inspired_by": [{kind, path, excerpt}, …]            # ≥ 1 cite
+              },
+              ...
+            ]
+          },
+          "cited_by": [...],
+          "rationale": str,
+          "confidence": float (0..1)
+        }
+
+    Or a refusal: {"error": "...", "details": "..."}
+
+    Strict on output : ranges enforced (freq, Q, gain), envelopes
+    bar-ascending strict, intent/gain sign coherence, depth-light per band.
+    """
+    envelope = _parse_envelope(
+        payload, supported_versions=SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS
+    )
+
+    eq_dict = _require(payload, "eq_corrective", where="root")
+    if not isinstance(eq_dict, Mapping):
+        raise MixAgentOutputError(
+            f"eq_corrective: expected object, got {type(eq_dict).__name__}"
+        )
+
+    bands_raw = _coerce_list(
+        eq_dict.get("bands", []), where="eq_corrective.bands"
+    )
+    bands = tuple(
+        _parse_eq_band_correction(item, where=f"eq_corrective.bands[{i}]")
+        for i, item in enumerate(bands_raw)
+    )
+
+    decision_value = EQCorrectiveDecision(bands=bands)
+    return MixDecision(value=decision_value, lane="eq_corrective", **envelope)
+
+
+def parse_eq_corrective_decision_from_response(
+    text: str,
+) -> MixDecision[EQCorrectiveDecision]:
+    """End-to-end: raw LLM response → MixDecision[EQCorrectiveDecision]."""
+    return parse_eq_corrective_decision(extract_json_payload(text))
+
+
 __all__ = [
     "MixAgentOutputError",
     "SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS",
+    "SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS",
     "VALID_ANOMALY_SEVERITIES",
     "VALID_TRACK_TYPES",
     "VALID_CITATION_KINDS",
     "extract_json_payload",
     "parse_diagnostic_decision",
     "parse_diagnostic_decision_from_response",
+    "parse_eq_corrective_decision",
+    "parse_eq_corrective_decision_from_response",
 ]

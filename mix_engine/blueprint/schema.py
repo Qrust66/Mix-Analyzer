@@ -161,6 +161,122 @@ class DiagnosticReport:
     routing_warnings: tuple[str, ...] = ()  # broken sidechain refs, "No Output", etc.
 
 
+# ============================================================================
+# EQ corrective lane — Phase 4.2
+# ============================================================================
+#
+# Tier A schema : decisions only, no XML. Tier B (eq8-configurator)
+# consumes these and writes the .als ; automation-writer consumes any
+# *_envelope tuples and writes the AutomationEnvelope XML.
+#
+# A single EQBandCorrection can describe BOTH a static cut AND a
+# dynamic gain/freq/Q envelope. The static fields are the baseline
+# (what the band sits at when no envelope is active); the *_envelope
+# tuples list (bar, value) keypoints. Tier B decides whether to wire
+# them as static-only (envelopes empty) or static+automated.
+
+
+# Acceptable EQ band types (matches Eq8's "Mode" enum + universal terms).
+VALID_EQ_BAND_TYPES = frozenset({
+    "bell",         # parametric (default for cuts/boosts at frequency)
+    "low_shelf",    # boost/cut everything below a corner frequency
+    "high_shelf",   # boost/cut everything above a corner frequency
+    "highpass",     # remove everything below
+    "lowpass",      # remove everything above
+    "notch",        # very narrow cut (Q > 8 typically)
+})
+
+# Acceptable intent labels.
+VALID_EQ_INTENTS = frozenset({
+    "cut",      # negative gain — remove problem (resonance, masking, mud)
+    "boost",    # positive gain — enhance presence/character
+    "shape",    # complex tilt / multi-band tone shaping
+    "filter",   # highpass/lowpass/notch — full band removal
+})
+
+# Reasonable Q range for parametric EQ. Below 0.1 = barely audible ;
+# above 18 = extreme notch. Mix Analyzer typical resonance fixes use
+# Q ∈ [3, 8] ; surgical notches use Q ∈ [10, 18].
+EQ_Q_MIN: float = 0.1
+EQ_Q_MAX: float = 18.0
+
+# Audible frequency range bounds (slightly wider than 20-20000 Hz to
+# allow for sub-bass shelf corners and sibilance ranges).
+EQ_FREQ_MIN_HZ: float = 16.0
+EQ_FREQ_MAX_HZ: float = 22000.0
+
+# Gain range — Eq8 supports up to ±15 dB per band. Beyond ±12 dB is
+# almost always a sign that the move belongs upstream (saturator,
+# dynamics, level) rather than EQ.
+EQ_GAIN_MIN_DB: float = -15.0
+EQ_GAIN_MAX_DB: float = 15.0
+
+
+@dataclass(frozen=True)
+class EQAutomationPoint:
+    """One key point in an EQ parameter automation envelope.
+
+    Bar is the section-relative bar (0-indexed). Value's meaning depends
+    on which envelope this point belongs to :
+    - in `gain_envelope`: dB
+    - in `freq_envelope`: Hz
+    - in `q_envelope`: dimensionless Q
+    """
+
+    bar: int
+    value: float
+
+
+@dataclass(frozen=True)
+class EQBandCorrection:
+    """One EQ correction targeting one track + one frequency range.
+
+    Tier A (eq-corrective-decider) emits these without knowing how Eq8
+    encodes them in XML. Tier B (eq8-configurator) chooses which Eq8
+    band slot (1-8) hosts each correction, allocates AutomationTarget
+    Ids for envelope-bearing fields, and hands envelopes off to
+    automation-writer.
+
+    Static-only correction : envelopes are empty tuples. Dynamic
+    correction : at least one envelope is non-empty ; the static
+    `gain_db` / `center_hz` / `q` fields are the baseline (the value
+    the param sits at when no envelope event has fired yet).
+    """
+
+    track: str  # must match an existing TrackInfo.name
+    band_type: str  # in VALID_EQ_BAND_TYPES
+    intent: str  # in VALID_EQ_INTENTS
+
+    # Static (baseline) params — always set
+    center_hz: float  # in [EQ_FREQ_MIN_HZ, EQ_FREQ_MAX_HZ]
+    q: float  # in [EQ_Q_MIN, EQ_Q_MAX]
+    gain_db: float  # in [EQ_GAIN_MIN_DB, EQ_GAIN_MAX_DB]
+
+    # Dynamic envelopes — empty tuple = static-only
+    gain_envelope: tuple[EQAutomationPoint, ...] = ()
+    freq_envelope: tuple[EQAutomationPoint, ...] = ()
+    q_envelope: tuple[EQAutomationPoint, ...] = ()
+
+    # Sections this correction applies to (Sections Timeline indices,
+    # 0-based). Empty tuple = "always" (whole project).
+    sections: tuple[int, ...] = ()
+
+    rationale: str = ""
+    inspired_by: tuple[MixCitation, ...] = ()
+
+
+@dataclass(frozen=True)
+class EQCorrectiveDecision:
+    """All EQ corrective decisions for a track set.
+
+    `bands` is the list of corrections (one band per anomaly / per
+    spectral move). Tier B will pack them into Eq8 bands per track,
+    respecting Eq8's 8-band limit.
+    """
+
+    bands: tuple[EQBandCorrection, ...] = ()
+
+
 @dataclass(frozen=True)
 class MixBlueprint:
     """The immutable carrier of all lane decisions for one mix session.
@@ -175,9 +291,11 @@ class MixBlueprint:
 
     name: str
     diagnostic: Optional[MixDecision[DiagnosticReport]] = None
+    eq_corrective: Optional[MixDecision[EQCorrectiveDecision]] = None
     # Future lanes (added with their producing agents):
     # routing: Optional[MixDecision[RoutingDecision]] = None
-    # eq_corrective: Optional[MixDecision[EqCorrectiveDecision]] = None
+    # eq_creative: Optional[MixDecision[EQCreativeDecision]] = None
+    # dynamics_corrective: Optional[MixDecision[DynamicsCorrectiveDecision]] = None
     # ... etc per MIX_LANES
 
     def with_decision(self, lane: str, decision: MixDecision) -> "MixBlueprint":
@@ -214,4 +332,16 @@ __all__ = [
     "HealthScore",
     "DiagnosticReport",
     "MixBlueprint",
+    # EQ corrective lane (Phase 4.2)
+    "VALID_EQ_BAND_TYPES",
+    "VALID_EQ_INTENTS",
+    "EQ_Q_MIN",
+    "EQ_Q_MAX",
+    "EQ_FREQ_MIN_HZ",
+    "EQ_FREQ_MAX_HZ",
+    "EQ_GAIN_MIN_DB",
+    "EQ_GAIN_MAX_DB",
+    "EQAutomationPoint",
+    "EQBandCorrection",
+    "EQCorrectiveDecision",
 ]

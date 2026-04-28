@@ -89,7 +89,8 @@ Audit a confirmé : tous les agents sphère + oracles + diagnostician sont scaff
 | # | Tâche | Effort | Statut |
 |---|---|---|---|
 | 5.1 | `excel_loader.py` (Mix Analyzer report) implémenté | ~3h | ⚪ |
-| 5.2 | eq-corrective-engineer ULTRA-DÉTAILLÉ (résonances, masking matrix, voice leading EQ) | ~4h | ⚪ |
+| 5.2 | **eq-corrective-decider** Tier A (résonances, masking matrix, dynamiques sections) — agent .md profond + schema + parser + 55 tests | ~4h | ✅ Phase 4.2 |
+| 5.2b | **eq8-configurator** Tier B (consume EQCorrectiveDecision → .als XML patches + automation handoff) | ~4h | ⏳ next |
 | 5.3 | dynamics-corrective-engineer (sidechain, glue, multiband) | ~4h | ⚪ |
 | 5.4 | routing-and-sidechain-architect | ~3h | ⚪ |
 | 5.5 | automation-engineer (creative + corrective modes — lit la banque pour patterns d'automation idiomatiques) | ~5h | ⚪ |
