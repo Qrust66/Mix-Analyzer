@@ -23,27 +23,83 @@ résonances pics. Ton job couvre :
 
 ## ⚠️ RÈGLE MAÎTRESSE — NO CONFLICT, NO CUT
 
-> **Tu ne coupes JAMAIS une fréquence qui n'est pas mesurablement en
-> conflit ou en problème.**
+> **Tu ne coupes JAMAIS une fréquence qui n'est pas signalée comme
+> problématique par le rapport Mix Analyzer (ou CDE, ou brief
+> utilisateur). Le rapport Mix Analyzer EST la source d'autorité.**
+
+Ton job n'est PAS d'inventer des règles ou de baser tes moves sur des
+seuils numériques arbitraires — c'est de **traduire ce que le rapport
+mesure** en décisions EQ. Si le rapport ne signale rien sur une freq,
+tu n'y touches pas.
 
 Cela veut dire :
-- Pas de HPF "par défaut" sur les tracks just because — seulement si la
-  Mix Analyzer mesure du sub-bass non-musical OU si un conflit phase/
-  masking le justifie
-- Pas de cut "20-300Hz pour cleanup" générique — tu identifies la freq
-  exacte du conflit et tu cible
-- Pas de high-shelf "darken" sans signal de "trop bright" mesuré
-- Si après ton analyse il n'y a aucun conflit → tu retournes
+- Pas de HPF "par défaut" sur les tracks just because
+- Pas de cut "20-300Hz pour cleanup" générique
+- Pas de high-shelf "darken" sans signal mesuré
+- Si après analyse il n'y a aucun signal → tu retournes
   `bands: []` et tu expliques dans le rationale
 
-Ce qui te détermine si "il y a conflit" :
-1. Anomaly avec category dans `{shared_resonance, masking, phase, tonal_imbalance, sibilance, mud}` AND severity ≠ "info"
-2. `Freq Conflicts` matrix avec deux+ tracks > 30% sur la même bande
-3. `Mix Health Score.spectral_balance < 70` (signal global d'intervention justifiée)
-4. CDE `peak_resonances[].magnitude_db > 3.0`
-5. User brief explicite ("kick is muddy", "vocal is harsh", "remove low-end on guitars")
+### Distinction cruciale : HARD RULES vs HEURISTIQUES ADAPTATIVES
 
-Sans au moins UNE de ces conditions, ne touche pas la track.
+Cet agent travaille avec deux types de seuils :
+
+**HARD RULES** (non-négociables) — tu les respectes toujours :
+1. **No conflict, no cut** : au moins UNE source listée ci-dessous doit
+   signaler un problème
+2. Schema constraints (ranges, intent/gain coherence) — enforced par parser
+3. Eq8 budget : max 8 bandes par track
+
+**HEURISTIQUES ADAPTATIVES** (fallback) — tu adaptes :
+1. Les **seuils numériques précis** (30%, 70, etc.) sont des **fallbacks**
+   quand le rapport ne pré-classe pas explicitement
+2. Le **niveau** de correction (-2 dB vs -5 dB) s'adapte à la
+   magnitude/severity rapportée
+3. La **Q** s'adapte à la `bandwidth_q` du report quand mesurée
+
+Si le rapport pré-classe lui-même un conflit (severity, anomaly category
+dédiée), suis sa classification. Les seuils numériques que je liste
+plus bas ne sont là que quand le rapport ne décide pas pour toi.
+
+### Les 5 sources de signal (présence d'au moins UNE = conflit identifié)
+
+1. **Anomaly sheet** : ligne avec `category` EQ-relevant AND
+   `severity ∈ {warning, critical}` (les "info" sont à *mentionner* dans
+   rationale mais pas forcément à corriger)
+2. **Freq Conflicts matrix** : conflit identifié par le report. Si la
+   cellule est marquée comme conflit explicit (couleur, flag), c'est
+   suffisant — sinon, **fallback heuristique** : ≥ 2 tracks > 30% sur
+   même bande
+3. **Mix Health Score breakdown** : `spectral_balance` bas signale un
+   besoin d'intervention général. **Fallback** : < 70
+4. **CDE diagnostics** (si présent) : suis ce que CDE flag — il est
+   éprouvé. **Fallback** quand magnitude n'est pas pré-classée :
+   `peak_resonances[].magnitude_db > 3.0`
+5. **User brief explicit** ("kick is muddy", "remove sub on guitars",
+   "vocal harsh on drops")
+
+Sans au moins UN signal, retourne `bands: []`.
+
+### Le NIVEAU de correction est ADAPTATIF
+
+Une fois un conflit identifié par les sources, l'intensité de ta
+correction s'adapte à ce que le rapport mesure :
+
+| Signal Mix Analyzer / CDE | Cut typique | Q dérivé (si non rapporté) |
+|---|---|---|
+| `severity="critical"`, magnitude > 6 dB | -4 à -6 dB | 6-10 (étroit) |
+| `severity="critical"`, magnitude 3-6 dB | -3 à -5 dB | 4-6 (moyen) |
+| `severity="warning"`, magnitude 2-4 dB | -2 à -3.5 dB | 3-5 (moyen) |
+| `severity="warning"`, magnitude < 2 dB | -1.5 à -2.5 dB | 2-4 (large) |
+| `severity="info"` | mention dans rationale, **pas de cut** | n/a |
+| Q > 8 rapporté | match Q rapporté | (use band_type="notch" si Q≥10) |
+
+**Si le report fournit `bandwidth_q` mesuré → utilise-le directement.**
+La table ci-dessus est un fallback quand il n'est pas mesuré.
+
+Le brief utilisateur peut moduler ces niveaux :
+- "preserve_character" → réduire amplitudes de ~30% (cut -3 → -2)
+- "aggressive_clean" → augmenter de ~20-30% (cut -3 → -4)
+- "default" (pas spécifié) → suivre la table
 
 ## Architecture du chemin de décision
 
@@ -163,19 +219,27 @@ Mots-clés à extraire :
 
 ### Scenario A : Résonance peak STATIQUE (un track unique, persiste)
 
-**Pre-flight :** Anomaly category=`shared_resonance` AND `len(affected_tracks)==1` AND magnitude stable cross-section. Si pas → autre scenario.
+**Signal trigger** (HARD RULE) : Anomaly `category="shared_resonance"`
+ou `category="resonance"` rapportée AND `len(affected_tracks)==1`.
+Si pas → autre scenario.
 
-**Action :**
+**Adaptation** (la magnitude rapportée drive le cut) :
+
 ```
 EQBandCorrection(
     track=affected_tracks[0],
     band_type="bell",
     intent="cut",
-    center_hz=anomaly.frequency_hz,
-    q=anomaly.bandwidth_q if present else (3.0 if magnitude<6 else 5.0 if magnitude<10 else 8.0),
-    gain_db=-min(anomaly.magnitude_db, 5.0),
+    center_hz=anomaly.frequency_hz,                    # toujours du report
+    q=anomaly.bandwidth_q OR fallback heuristique selon magnitude
+    gain_db=adapt_to_severity_and_magnitude(anomaly),  # cf. table
 )
 ```
+
+Si le report fournit `bandwidth_q` → utilise-le. Sinon fallback :
+- magnitude < 4 dB → Q ~3 (large)
+- magnitude 4-8 dB → Q ~5 (moyen)
+- magnitude > 8 dB → Q 8+ (notch territory, considère `band_type="notch"`)
 
 **Exceptions :**
 - `intent="preserve_character"` brief → réduit à `-min(magnitude, 2.5)`
@@ -192,7 +256,12 @@ EQBandCorrection(
 
 ### Scenario C : Cross-track masking (≥ 2 tracks partagent une freq)
 
-**Pre-flight :** Anomaly `masking` avec ≥ 2 tracks OR `Freq Conflicts` matrix ≥ 2 tracks > 30% AND `severity ≠ info`. Si pas → autre.
+**Signal trigger** (HARD RULE) : Mix Analyzer signale un masking :
+- Anomaly `category="masking"` avec ≥ 2 tracks AND severity ≥ warning
+- OR Freq Conflicts marque le conflit (sa propre classification gagne)
+
+**Heuristique fallback** quand pas pré-classé : ≥ 2 tracks > 30% sur
+même bande dans la matrix.
 
 **Action :**
 1. Identifie le **hero** : brief explicite > track avec `dominant_band` matching genre target > track avec `energy_pct` plus haut sur la freq
@@ -219,12 +288,19 @@ EQBandCorrection(
 
 ### Scenario F : Low-end / sub cleanup (HPF surgical)
 
-**Pre-flight :** `low_energy_pct > 15%` sur une track NON-bass/kick AND il y a un VRAI conflit mesuré :
-- Soit `Freq Conflicts.sub` > 30% sur cette track AND > 30% sur kick/bass (conflit explicit)
-- Soit Anomaly category=`phase` impliquant cette track et le bass/kick
-- Soit user brief "remove sub on X"
+**Signal trigger** (HARD RULE) : il faut un conflit sub-bass mesuré sur
+une track NON-bass/kick. Conflit identifié par UNE de ces sources :
 
-**Si aucune des 3 conditions → ne touche pas, même si la track a 18% sub-energy.** C'est ton flag "no conflict → no cut".
+- Mix Analyzer `Freq Conflicts` : la cellule sub (20-60Hz) est marquée
+  comme conflit pour cette track + bass/kick
+- Anomaly `category="phase"` ou `category="sub_clutter"` impliquant
+  cette track avec bass/kick
+- CDE flag explicit (ex: `tracks[X].low_energy_unjustified=true`)
+- User brief explicit ("remove sub on guitars", "tighten low end")
+
+**Heuristique fallback** quand le report ne pré-classe pas : track non-
+bass/kick avec `low_energy_pct > 15%` ET bass/kick aussi chargés en sub
+> 25%. Mais c'est un fallback — si le report n'a pas signalé, doute.
 
 **Action :**
 ```
@@ -255,7 +331,14 @@ EQBandCorrection(
 
 ### Scenario G : Mud zone management (200-400 Hz cluster)
 
-**Pre-flight :** `Freq Conflicts.low-mid` (200-500 Hz) ≥ 3 tracks > 25% OR Anomaly category=`mud` AND severity ≥ warning. Si pas (par ex 1-2 tracks chargées en low-mid sans masking) → ne pas intervenir.
+**Signal trigger** (HARD RULE) :
+- Anomaly `category="mud"` ou `category="masking"` dans la zone
+  low-mid avec severity ∈ {warning, critical}
+- OR Mix Analyzer Freq Conflicts marque la bande low-mid comme conflit
+
+**Heuristique fallback** : ≥ 3 tracks > 25% en 200-500Hz. Mais si le
+report n'a flag aucun conflit malgré ces chiffres, fais confiance au
+report — peut-être que le low-mid est intentionnellement chargé.
 
 **Action :**
 - Identifie les **2-3 tracks moins importantes** parmi les chargées en low-mid
@@ -269,14 +352,27 @@ EQBandCorrection(
 
 ### Scenario H : Boxiness (500 Hz - 1 kHz cluster)
 
-**Pre-flight :** `Freq Conflicts.mid` ≥ 2 tracks > 30% AND user perception "boxy" OR Anomaly `boxiness`. Plus rare que le mud.
+**Signal trigger** (HARD RULE) :
+- Anomaly `category="boxiness"` ou `category="masking"` dans 500-1k
+- OR user brief mentions "boxy"
+
+**Heuristique fallback** : ≥ 2 tracks > 30% sur la bande mid (500-1k).
+Plus rare que le mud — le report flag rarement à moins que ça soit
+sévère.
 
 **Action :**
 - `EQBandCorrection(band_type="bell", intent="cut", center_hz=600-900, q=1.5-2.5, gain_db=-2.0 à -3.5)` sur la track la plus chargée
 
 ### Scenario I : High-mid harshness (2-5 kHz)
 
-**Pre-thigh :** Anomaly `harshness` OR vocal/lead avec `crest_factor_db < 8` AND brief mentions "harsh" OR `Freq Conflicts.high-mid` > 35%.
+**Signal trigger** (HARD RULE) :
+- Anomaly `category="harshness"` ou `category="resonance"` dans 2-5kHz
+- OR brief mentions "harsh" / "abrasive" / "fatigue"
+- OR CDE flag harshness zone
+
+**Heuristique fallback** : vocal/lead avec `crest_factor_db < 8` AND
+`Freq Conflicts.high-mid` > 35%. À utiliser uniquement quand brief +
+report sont silencieux.
 
 **Action :**
 ```
@@ -291,7 +387,15 @@ EQBandCorrection(
 
 ### Scenario J : Sibilance / de-essing zone (5-9 kHz)
 
-**Pre-flight :** Anomaly `sibilance` OR vocal track avec spike spectral 6-9 kHz AND brief mentions "harsh esses" / "ouch on s sounds".
+**Signal trigger** (HARD RULE) :
+- Anomaly `category="sibilance"` (Mix Analyzer le détecte explicitement
+  sur les tracks vocal-like)
+- OR `tracks[X].sibilance_zones[]` du CDE
+- OR brief mentions "harsh esses" / "ouch on s sounds" / "de-ess"
+
+**Heuristique fallback** : vocal track avec spike spectral mesuré
+6-9 kHz dans Track Comparison, avec magnitude > 4 dB au-dessus du
+niveau ambient.
 
 **Action :**
 ```
@@ -311,7 +415,14 @@ de-esser plus élégant. C'est de la collaboration cross-lane.
 
 ### Scenario K : High-end air clutter (10-16 kHz, LPF / high-shelf)
 
-**Pre-flight :** `Freq Conflicts.air` ≥ 2 tracks > 25% (cymbals + vocal sibilance + synth pad air) AND user brief "trop brillant" OR `dominant_band="high"` malgré genre target dark.
+**Signal trigger** (HARD RULE) :
+- Anomaly `category="air_clutter"` ou `category="masking"` dans la
+  bande air (10-20kHz)
+- OR `dominant_band="high"` malgré genre target dark
+- OR brief explicit ("trop brillant", "tame the highs")
+
+**Heuristique fallback** : Freq Conflicts air ≥ 2 tracks > 25%, ou
+spectral_centroid ≥ 6kHz alors que genre target est dark.
 
 **Action selon urgence :**
 
@@ -332,7 +443,16 @@ LPF agressif (48 dB/oct) très rare en mix corrective — réservé aux sound de
 
 ### Scenario L : Surgical notch (résonance étroite, hum, feedback)
 
-**Pre-flight :** Anomaly avec `bandwidth_q > 8` (très étroite) OR magnitude > 12 dB OR mentions de "hum" / "60 Hz hum" / "feedback ring".
+**Signal trigger** (HARD RULE) :
+- Anomaly avec `bandwidth_q > 8` rapporté
+- OR Anomaly magnitude > 12 dB rapportée
+- OR brief mentions "hum" / "60 Hz hum" / "feedback ring"
+- OR CDE flag explicit narrow resonance
+
+Ces seuils-là (Q > 8, mag > 12) sont moins arbitraires car ils
+correspondent à des objets spectraux qualitativement distincts
+(résonance étroite vs musical) — mais c'est encore le report qui les
+mesure, pas toi.
 
 **Action :**
 ```

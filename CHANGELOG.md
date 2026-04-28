@@ -1,5 +1,70 @@
 # Changelog
 
+## [Unreleased — mix_engine Phase 4.2.2] - 2026-04-28
+
+User feedback: in Phase 4.2.1 the pre-flight gates read like hard rules
+(specific numeric thresholds : 30%, 70, 3.0 dB), but the actual decision
+should adapt to what the Mix Analyzer report measures. Mix Analyzer is
+the source of authority — not arbitrary thresholds.
+
+### Changed — Master rule reworded for hard-rule / heuristic distinction
+
+The `eq-corrective-decider.md` agent now opens with an explicit
+distinction between two kinds of constraints :
+
+**HARD RULES** (non-negotiable) :
+1. No conflict, no cut — at least one source must signal a problem
+2. Schema constraints (parser-enforced)
+3. Eq8 budget (max 8 bands per track)
+
+**HEURISTIQUES ADAPTATIVES** (fallbacks) :
+1. Numeric thresholds (30%, 70, 3.0 dB) are only fallbacks when the
+   report doesn't pre-classify
+2. Correction magnitude scales to reported severity/magnitude
+3. Q values pull from `bandwidth_q` when measured
+
+### Added — Adaptation table
+
+The agent now has an explicit adaptation table showing how Mix
+Analyzer's `severity` + `magnitude_db` scale to the cut amount and the
+fallback Q :
+
+| Signal | Cut typique | Q fallback |
+|---|---|---|
+| critical, magnitude > 6 dB | -4 to -6 dB | 6-10 |
+| critical, magnitude 3-6 dB | -3 to -5 dB | 4-6 |
+| warning, magnitude 2-4 dB | -2 to -3.5 dB | 3-5 |
+| warning, magnitude < 2 dB | -1.5 to -2.5 dB | 2-4 |
+| info | mention only, no cut | n/a |
+
+If the report provides `bandwidth_q` measured, the agent uses it
+directly — fallback only when missing.
+
+The brief modulates : "preserve_character" → -30% amplitude,
+"aggressive_clean" → +20-30%.
+
+### Changed — Per-scenario pre-flight gates rewritten
+
+Each of the 12 scenarios (A through L) now distinguishes :
+- **Signal trigger** (HARD RULE) : the report-driven condition that
+  *must* be met for any intervention
+- **Heuristique fallback** : the numeric heuristic that applies *only*
+  when the report doesn't pre-classify
+
+For example Scenario G (mud) :
+- HARD RULE : `Anomaly category="mud"` or `"masking"` in 200-500Hz
+- FALLBACK : ≥ 3 tracks > 25% on low-mid in Freq Conflicts (used
+  only when no anomaly is flagged)
+
+This codifies the user's intent : "le niveau de correction sera adapté
+à ce qu'on trouve dans le rapport mix analyzer" — the report drives,
+not arbitrary thresholds.
+
+### No schema changes, no parser changes, no test changes
+
+Phase 4.2.2 is purely a clarification of the agent's behavioral model.
+72 eq_corrective tests still pass. 998 total.
+
 ## [Unreleased — mix_engine Phase 4.2.1] - 2026-04-28
 
 User feedback : Phase 4.2 only deeply covered peak resonances. The
