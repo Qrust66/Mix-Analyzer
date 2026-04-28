@@ -1,5 +1,68 @@
 # Changelog
 
+## [Unreleased — mix_engine Phase 4.1] - 2026-04-27
+
+First lane agent of the mix-side multi-agent system. Lands the
+**diagnostic foundation**: every downstream mix agent consumes
+mix-diagnostician's structured output instead of re-reading the .als
+or the Excel report from scratch.
+
+### Added — `.claude/agents/mix-diagnostician.md`
+
+Reads a `.als` + a Mix Analyzer `.xlsx` report and produces a
+`DiagnosticReport`:
+- `full_mix` : LUFS / TP / crest / PLR / LRA / dominant_band /
+  correlation / stereo_width / spectral_entropy
+- `tracks` : per-track inventory (TrackInfo)
+- `anomalies` : pre-classified by severity, with `suggested_fix_lane`
+  hint per anomaly (routes to the right downstream lane)
+- `health_score` : overall + breakdown per category
+- `routing_warnings` : broken sidechain refs, stale routing targets
+
+Read-only — observes, structures, surfaces. Makes no mix moves.
+Symmetric to composition-side `structure-decider` (first sphere agent
+of Phase 2.2).
+
+### Added — schema in `mix_engine/blueprint/schema.py`
+
+Activates the foundation types previously stubbed Phase 4.0 plus the
+diagnostic-lane dataclasses:
+- `MixCitation` (kind ∈ {diagnostic, device_mapping, manipulation_guide,
+  pdf, user_brief, als_state})
+- `MixDecision[T]` (provenance-carrying envelope, parallel to
+  composition-side `Decision[T]`)
+- `MixBlueprint` with immutable `with_decision(lane, decision)` and
+  `filled_lanes()` API
+- `TrackInfo`, `FullMixMetrics`, `Anomaly`, `HealthScore`, `DiagnosticReport`
+
+### Added — parser in `mix_engine/blueprint/agent_parsers.py`
+
+- `parse_diagnostic_decision(payload)` + companion
+  `parse_diagnostic_decision_from_response(text)`. Strict validation:
+    * Schema versioning (`SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS`)
+    * Track type ∈ `VALID_TRACK_TYPES` frozenset
+    * Severity ∈ `VALID_ANOMALY_SEVERITIES` frozenset
+    * Citation kind ∈ `VALID_CITATION_KINDS` frozenset
+    * Range checks: pan ∈ [-1, 1], correlation ∈ [-1, 1], stereo_width
+      ∈ [0, 1], health overall ∈ [0, 100], confidence ∈ [0, 1]
+    * `health_score.breakdown` accepts both `{category, score}` objects
+      and `[category, score]` pairs (lenient on input)
+- `MixAgentOutputError` raised on contract violation, with a `where=...`
+  pointer per the composition-side convention
+
+### Tests
+- `tests/test_mix_engine_schema.py` — 8 tests on dataclasses, MixBlueprint
+  immutability, lane validation, single-source-of-truth invariant
+- `tests/test_mix_engine_agent_parsers.py` — 39 tests : minimum-valid
+  payload, all valid track_types parametrized, all valid severities
+  parametrized, all valid citation kinds parametrized, range violations
+  (pan/correlation/stereo_width/health/confidence), refusal payload,
+  fences + prose support, blueprint integration, sidechain target
+  text preservation
+
+47/47 mix_engine tests pass. 832 total tests pass (composition-side
+unchanged).
+
 ## [Unreleased — mix_engine Phase 4.0] - 2026-04-27
 
 Foundation for the mix-side multi-agent system. **Architecture-only**

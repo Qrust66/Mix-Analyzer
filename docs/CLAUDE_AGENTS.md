@@ -51,7 +51,8 @@ mécanique, il vaut mieux l'avoir comme hook que comme agent — l'agent peut
 | **Composition spheres** | structure, harmony, rhythm, arrangement, dynamics deciders | 2.2-2.6 | ✅ |
 | **Composition spheres restantes** | performance-decider, fx-decider | 2.7-2.8 | ⏳ |
 | **Ableton-expertise oracles** | device-mapping-oracle, als-manipulation-oracle | 4.0 | ✅ |
-| **Mix lanes** | mix-diagnostician, routing-and-sidechain-architect, eq-corrective-engineer, eq-creative-colorist, dynamics-corrective-engineer, saturation-and-color-engineer, stereo-and-spatial-engineer, automation-engineer, chain-builder, mastering-engineer, mix-orchestrator, mix-safety-guardian | 4.1+ | ⏳ |
+| **Mix lane — diagnostic** | mix-diagnostician | 4.1 | ✅ |
+| **Mix lanes restantes** | routing-and-sidechain-architect, eq-corrective-engineer, eq-creative-colorist, dynamics-corrective-engineer, saturation-and-color-engineer, stereo-and-spatial-engineer, automation-engineer, chain-builder, mastering-engineer, mix-orchestrator, mix-safety-guardian | 4.2+ | ⏳ |
 
 Les **oracles** (Phase 4.0) sont la couche d'expertise active sur la
 documentation Ableton (device mapping JSON + manipulation guide). Tout
@@ -152,6 +153,38 @@ frozenset canonique.
 **Effet sur le rendu** : chaque LayerSpec devient une track MIDI
 (drum_kit → kick on 36, bass → tonic-12, lead → tonic+7, pad → minor
 triad). Décisions vraies = MIDI vrai.
+
+### mix-diagnostician (`.claude/agents/mix-diagnostician.md`)
+
+**First mix lane agent (Phase 4.1).** Foundation : tous les autres mix
+agents consomment sa sortie — ils ne re-lisent jamais le `.als` ou le
+rapport Excel directement.
+
+**Invoquer** au début de toute session mix, avant n'importe quelle autre
+décision. Inputs requis :
+- `.als` du projet à diagnostiquer
+- `.xlsx` rapport Mix Analyzer correspondant
+- (optionnel) brief humain sur l'intent
+
+L'agent décide :
+- `project_name`
+- `full_mix` : LUFS/TP/crest/PLR/LRA/dominant_band/correlation/width/entropy
+- `tracks` (TrackInfo[] : name, type, parent_bus, devices, volume_db, pan,
+  sidechain_targets, activator)
+- `anomalies` (severity ∈ {critical, warning, info}, category, description,
+  affected_tracks, **suggested_fix_lane** ∈ MIX_LANES — hint pour l'orchestrator)
+- `health_score` (overall + breakdown par catégorie)
+- `routing_warnings` (broken sidechain refs, "No Output", etc.)
+
+Output parsé via `parse_diagnostic_decision()` ou
+`parse_diagnostic_decision_from_response()` dans
+`mix_engine.blueprint.agent_parsers`. Validation stricte : track_type,
+severity, citation kind canoniques, ranges enforcés (pan, correlation,
+stereo_width, health_score).
+
+**Lit les oracles** : `device-mapping-oracle` quand il rencontre un
+device pour confirmer ses paramètres ; `als-manipulation-oracle` jamais
+(il ne modifie rien). Read-only strict.
 
 ### device-mapping-oracle (`.claude/agents/device-mapping-oracle.md`)
 
