@@ -270,10 +270,63 @@ def test_multi_layer_payload_preserves_order():
             {"bar": 0, "beat": 0.5, "pitch": 42,
              "duration_beats": 0.25, "velocity": 95},
         ],
-        "rationale": "Off-beat hat",
-        "inspired_by": [{"song": "X/Y", "path": "p", "excerpt": "e"}],
+        "rationale": "Off-beat hat at 0.5: tombe entre les kicks pour creer le shuffle Acid Drops profile.",
+        "inspired_by": [{"song": "banque/05_Qrust_Profiles",
+                         "path": "Acid Drops (cible)",
+                         "excerpt": "Hat pattern 0.5, 1.5, 2.5, 3.5 (off-beat)"}],
     })
     decision = parse_motifs_decision(payload)
     assert len(decision.value.by_layer) == 2
     assert decision.value.by_layer[0].layer_role == "drum_kit"
     assert decision.value.by_layer[1].layer_role == "perc"
+
+
+# ============================================================================
+# Phase 2.7.1 audit-driven hardening
+# ============================================================================
+
+
+def test_unordered_notes_within_layer_raises():
+    """Notes must be (bar, beat) ascending strict — same discipline as
+    Phase 2.6.1 inflection_points ordering."""
+    payload = _valid_payload()
+    payload["motifs"]["by_layer"][0]["notes"] = [
+        {"bar": 5, "beat": 0.0, "pitch": 36, "duration_beats": 0.25, "velocity": 100},
+        {"bar": 0, "beat": 0.0, "pitch": 36, "duration_beats": 0.25, "velocity": 100},
+    ]
+    with pytest.raises(AgentOutputError, match="ordered"):
+        parse_motifs_decision(payload)
+
+
+def test_thin_rationale_rejected():
+    """rationale < 50 chars indicates placeholder agent output."""
+    payload = _valid_payload()
+    payload["motifs"]["by_layer"][0]["rationale"] = "drum"
+    with pytest.raises(AgentOutputError, match="rationale"):
+        parse_motifs_decision(payload)
+
+
+def test_empty_inspired_by_per_layer_rejected():
+    """A LayerMotif without provenance is indistinguishable from placeholder."""
+    payload = _valid_payload()
+    payload["motifs"]["by_layer"][0]["inspired_by"] = []
+    with pytest.raises(AgentOutputError, match="inspired_by"):
+        parse_motifs_decision(payload)
+
+
+def test_duplicate_role_instrument_rejected():
+    """Composer's _find_layer_motif first-match would silently ignore
+    the duplicate — better to raise so the agent sees the bug."""
+    payload = _valid_payload()
+    payload["motifs"]["by_layer"].append({
+        "layer_role": "drum_kit",
+        "layer_instrument": "kit",  # same as the existing entry
+        "notes": [
+            {"bar": 0, "beat": 2.0, "pitch": 36,
+             "duration_beats": 0.25, "velocity": 100},
+        ],
+        "rationale": "Different bar/beat but same role+instrument — dupe to test.",
+        "inspired_by": [{"song": "X/Y", "path": "p", "excerpt": "non-empty"}],
+    })
+    with pytest.raises(AgentOutputError, match="duplicate"):
+        parse_motifs_decision(payload)

@@ -9,7 +9,10 @@ from composition_engine.blueprint import (
     DynamicsDecision,
     HarmonyDecision,
     InstChange,
+    LayerMotif,
     LayerSpec,
+    MotifsDecision,
+    Note,
     SectionBlueprint,
     StructureDecision,
     check_cohesion,
@@ -158,6 +161,7 @@ def test_concrete_rules_registered():
 
     - Phase 2.5.1: 3 rules tying arrangement ↔ structure bounds.
     - Phase 2.6.1: 1 rule tying dynamics  ↔ structure bounds.
+    - Phase 2.7.1: 2 rules tying motifs ↔ structure / arrangement.
 
     If you remove or add a rule, update this assertion.
     """
@@ -167,6 +171,8 @@ def test_concrete_rules_registered():
         "instrumentation_changes_within_structure_bounds",
         "arrangement_coverage_check",
         "dynamics_within_structure_bounds",
+        "motif_notes_within_structure_bounds",
+        "motifs_cover_arrangement_layers",
     ])
     assert rule_names == expected, (
         f"Expected exactly the production rules. Got: {rule_names}"
@@ -523,5 +529,199 @@ def test_dynamics_inflection_at_total_bars_passes():
     report = check_cohesion(bp)
     assert all(
         v.rule != "dynamics_within_structure_bounds"
+        for v in report.violations
+    )
+
+
+# ============================================================================
+# Phase 2.7.1 — motifs cohesion rules
+# ============================================================================
+
+
+def _bp_with_structure_motifs(
+    total_bars: int,
+    layer_motifs: list,
+) -> SectionBlueprint:
+    bp = SectionBlueprint(name="x").with_decision(
+        "structure", _wrap(StructureDecision(total_bars=total_bars), "structure")
+    )
+    bp = bp.with_decision(
+        "motifs",
+        _wrap(MotifsDecision(by_layer=tuple(layer_motifs)), "motifs"),
+    )
+    return bp
+
+
+def _bp_with_arrangement_motifs(
+    arrangement_layers: list,
+    layer_motifs: list,
+) -> SectionBlueprint:
+    bp = SectionBlueprint(name="x").with_decision(
+        "arrangement",
+        _wrap(
+            ArrangementDecision(layers=tuple(arrangement_layers)),
+            "arrangement",
+        ),
+    )
+    bp = bp.with_decision(
+        "motifs",
+        _wrap(MotifsDecision(by_layer=tuple(layer_motifs)), "motifs"),
+    )
+    return bp
+
+
+def _make_layer_motif(role="kick", instrument="kit", bars=(0,)) -> LayerMotif:
+    return LayerMotif(
+        layer_role=role,
+        layer_instrument=instrument,
+        notes=tuple(
+            Note(bar=b, beat=0.0, pitch=36, duration_beats=0.25, velocity=100)
+            for b in bars
+        ),
+        rationale="Test rationale that is long enough to satisfy the parser-level check.",
+        inspired_by=(),  # cohesion rule doesn't read this; parser does
+    )
+
+
+# Rule: motif_notes_within_structure_bounds
+
+
+def test_motif_notes_within_bounds_passes():
+    bp = _bp_with_structure_motifs(
+        total_bars=4,
+        layer_motifs=[_make_layer_motif(bars=(0, 1, 2, 3))],
+    )
+    report = check_cohesion(bp)
+    assert all(
+        v.rule != "motif_notes_within_structure_bounds"
+        for v in report.violations
+    )
+
+
+def test_motif_note_at_total_bars_blocks():
+    """bar == total_bars is out of range (cycle indexing is 0-based)."""
+    bp = _bp_with_structure_motifs(
+        total_bars=4,
+        layer_motifs=[_make_layer_motif(bars=(0, 4))],  # 4 == total_bars
+    )
+    report = check_cohesion(bp)
+    blockers = [
+        v for v in report.blockers
+        if v.rule == "motif_notes_within_structure_bounds"
+    ]
+    assert len(blockers) == 1
+    assert "bar=4" in blockers[0].message
+
+
+def test_motif_note_at_high_bar_blocks():
+    bp = _bp_with_structure_motifs(
+        total_bars=4,
+        layer_motifs=[_make_layer_motif(bars=(0, 99))],
+    )
+    report = check_cohesion(bp)
+    assert any(
+        v.rule == "motif_notes_within_structure_bounds"
+        for v in report.blockers
+    )
+
+
+# Rule: motifs_cover_arrangement_layers
+
+
+def test_motifs_full_coverage_passes():
+    bp = _bp_with_arrangement_motifs(
+        arrangement_layers=[
+            LayerSpec(role="kick", instrument="kit",
+                      enters_at_bar=0, exits_at_bar=4),
+            LayerSpec(role="hat", instrument="closed",
+                      enters_at_bar=0, exits_at_bar=4),
+        ],
+        layer_motifs=[
+            _make_layer_motif(role="kick", instrument="kit"),
+            _make_layer_motif(role="hat", instrument="closed"),
+        ],
+    )
+    report = check_cohesion(bp)
+    assert all(
+        v.rule != "motifs_cover_arrangement_layers"
+        for v in report.violations
+    )
+
+
+def test_motifs_50pct_coverage_blocks():
+    """2 of 4 layers unmatched = 50% coverage = below 70% → BLOCK."""
+    bp = _bp_with_arrangement_motifs(
+        arrangement_layers=[
+            LayerSpec(role="kick", instrument="kit",
+                      enters_at_bar=0, exits_at_bar=4),
+            LayerSpec(role="hat", instrument="closed",
+                      enters_at_bar=0, exits_at_bar=4),
+            LayerSpec(role="bass", instrument="sub",
+                      enters_at_bar=0, exits_at_bar=4),
+            LayerSpec(role="lead", instrument="synth",
+                      enters_at_bar=0, exits_at_bar=4),
+        ],
+        layer_motifs=[
+            _make_layer_motif(role="kick", instrument="kit"),
+            _make_layer_motif(role="hat", instrument="closed"),
+            # bass and lead unmatched
+        ],
+    )
+    report = check_cohesion(bp)
+    blockers = [
+        v for v in report.blockers
+        if v.rule == "motifs_cover_arrangement_layers"
+    ]
+    assert len(blockers) == 1
+    assert "50%" in blockers[0].message
+
+
+def test_motifs_75pct_coverage_warns_does_not_block():
+    """3 of 4 = 75% → above 70% threshold → WARN only, not block."""
+    bp = _bp_with_arrangement_motifs(
+        arrangement_layers=[
+            LayerSpec(role="kick", instrument="kit",
+                      enters_at_bar=0, exits_at_bar=4),
+            LayerSpec(role="hat", instrument="closed",
+                      enters_at_bar=0, exits_at_bar=4),
+            LayerSpec(role="bass", instrument="sub",
+                      enters_at_bar=0, exits_at_bar=4),
+            LayerSpec(role="lead", instrument="synth",
+                      enters_at_bar=0, exits_at_bar=4),
+        ],
+        layer_motifs=[
+            _make_layer_motif(role="kick", instrument="kit"),
+            _make_layer_motif(role="hat", instrument="closed"),
+            _make_layer_motif(role="bass", instrument="sub"),
+        ],
+    )
+    report = check_cohesion(bp)
+    warnings = [
+        v for v in report.warnings
+        if v.rule == "motifs_cover_arrangement_layers"
+    ]
+    blockers = [
+        v for v in report.blockers
+        if v.rule == "motifs_cover_arrangement_layers"
+    ]
+    assert len(warnings) == 1
+    assert len(blockers) == 0
+
+
+def test_motifs_role_only_match_satisfies_coverage():
+    """Composer's _find_layer_motif falls back to role-only match if
+    instrument doesn't match. Cohesion rule honors that."""
+    bp = _bp_with_arrangement_motifs(
+        arrangement_layers=[
+            LayerSpec(role="kick", instrument="kit_a",
+                      enters_at_bar=0, exits_at_bar=4),
+        ],
+        layer_motifs=[
+            _make_layer_motif(role="kick", instrument="kit_b"),
+        ],
+    )
+    report = check_cohesion(bp)
+    assert all(
+        v.rule != "motifs_cover_arrangement_layers"
         for v in report.violations
     )

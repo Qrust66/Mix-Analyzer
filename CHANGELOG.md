@@ -1,5 +1,98 @@
 # Changelog
 
+## [Unreleased — composition_engine Phase 2.7.1] - 2026-04-28
+
+Audit-driven cleanup of Phase 2.7 (motif-decider). Transforms the 9
+weaknesses identified in the self-audit into active guard rails. Same
+discipline as Phase 2.5.1, 2.6.1.
+
+### Added — `dynamics` arc → velocity envelope wired (audit fix #1, was HIGH)
+
+Phase 2.7 promised this for Phase 3+ ; Phase 2.7.1 delivers it now.
+
+- New helper `_dynamics_velocity_multiplier(dynamics_decision, total_bars,
+  bar_idx) -> float` in `composer_adapter.py` : converts dB arc to a
+  per-bar linear amplitude multiplier (`10 ** (db / 20)`).
+- `_motif_render_from_decision()` now accepts `dynamics_decision` +
+  `total_bars` and applies the multiplier to each note's velocity,
+  clamping to MIDI [1, 127].
+- Inflection points override linear interpolation when the queried bar
+  matches.
+- Composer warning replaced : was "Phase 2.6 dynamics fields not yet
+  applied", now logs INFO when arc is actually wired and only WARNS
+  when dynamics is set but motifs is missing (the only remaining case
+  where the arc can't reach MIDI).
+
+End-to-end : `velocity=100` × `arc_shape="rising", -18 → -6 dB` over
+4 bars → `[13, 20, 32, 50]`. Working as designed.
+
+### Added — 2 cohesion rules (audit fixes #2, #3 — was HIGH + MED)
+
+- `motif_notes_within_structure_bounds` (BLOCK) : every note's `bar`
+  must fit `[0, total_bars)`. Prevents silent-drop by composer cycle
+  iteration. Mirror of Phase 2.5.1's
+  `arrangement_layers_within_structure_bounds`.
+- `motifs_cover_arrangement_layers` (BLOCK at <70%, WARN otherwise) :
+  unmatched layers fall back to placeholder stubs ; below 70% coverage
+  means the section is still mostly stubs (defeats the purpose of the
+  agent). Honors composer's role-only fallback for instrument
+  mismatches.
+
+Production cohesion rules now : 6 (was 4). Test sentinel updated.
+
+### Hardened — `parse_motifs_decision` (audit fixes #4, #5, #9)
+
+- **#4 — Notes ascending strict** : raises if `[(bar, beat) ...]` not
+  sorted within a layer. Mirrors Phase 2.6.1 inflection_points
+  ordering.
+- **#5 — Depth-light enforcement** : per-layer `rationale` must be ≥ 50
+  chars and `inspired_by` must be non-empty. The agent .md asks for
+  triple-rationale + ≥ 1 banque + ≥ 1 corpus citation ; the parser now
+  rejects obviously-empty output that would defeat the agent's purpose.
+- **#9 — Duplicate `(role, instrument)` pairs** : raises rather than
+  letting `_find_layer_motif` first-match silently ignore the
+  duplicate.
+
+### Tests
+- 4 new motifs parser tests (unordered notes, thin rationale, empty
+  inspired_by, duplicate role+instrument)
+- 7 new cohesion tests (motif bounds + coverage at 50%/75%/100% + role-
+  only match)
+- 14 new composer-wiring unit tests in `test_motifs_composer_wiring.py`
+  (`_motif_render_from_decision`, `_find_layer_motif`,
+  `_dynamics_velocity_multiplier`, dynamics multiplier × motif end-to-end,
+  velocity clamp)
+- 3 new regression tests in `test_track_layerer_fade_fix.py` pinning
+  the Phase 2.7 fade fix (audit fix #7)
+- Updated `complete_blueprint` fixture with parser-compliant motif
+  rationale + citation
+
+926 tests pass total.
+
+### Updated — `composer_adapter` module docstring (audit fix #10)
+
+Was stale ("Phase 2.1 only consumes 4 essential spheres"). Now reflects
+Phase 2.7.1 reality : 6 spheres consumed (structure, harmony, rhythm,
+arrangement, motifs, dynamics).
+
+### Audit — 9 weaknesses → 9 forces
+
+| Phase 2.7 weakness | Phase 2.7.1 force |
+|---|---|
+| ① dynamics velocity envelope ignoré | Wired into composer per-bar multiplier |
+| ② Pas de couverture motifs/arrangement | Cohesion rule BLOCK <70%, WARN otherwise |
+| ③ `bar < total_bars` non validé | Cohesion rule `motif_notes_within_structure_bounds` |
+| ④ Notes non triées | Parser raise sur (bar, beat) non-ascending |
+| ⑤ Profondeur non-enforcée | Parser raise sur rationale<50ch ou inspired_by vide |
+| ⑥ Wiring sans tests | 14 unit tests pour `_motif_render_*`, `_find_*`, `_dynamics_*` |
+| ⑦ Fade fix sans test | 3 regression tests pinning entry_fade_bars=0 → all cycles |
+| ⑨ Duplicates silencieux | Parser raise sur duplicate (role, instrument) |
+| ⑩ Docstring stale | composer_adapter module docstring updated |
+
+Weakness ⑧ (only 3 in-context examples vs planned 6-8) deferred —
+pas critique pour la fonctionnalité, peut être enrichi quand un
+projet réel demande lead/melody/pad/transition cases.
+
 ## [Unreleased — composition_engine Phase 2.7] - 2026-04-28
 
 **THE phase that closes the 70/30 gap.** First sphere agent that descends

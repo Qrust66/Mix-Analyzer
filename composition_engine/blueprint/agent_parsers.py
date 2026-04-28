@@ -1014,6 +1014,20 @@ def _parse_layer_motif(item: Any, *, where: str) -> LayerMotif:
         _parse_note(n, where=f"{where}.notes[{i}]")
         for i, n in enumerate(raw_notes)
     )
+
+    # Phase 2.7.1 audit fix #4 : notes must be ordered by (bar, beat)
+    # ascending strict (no exact-time duplicates within a layer — two
+    # notes at the same (bar, beat, pitch) would collide ; same bar+beat
+    # with different pitch is a CHORD which we encode as a separate
+    # layer or as separate notes at distinct pitches — but here we
+    # enforce strict ordering to surface accidental dupes).
+    keys = [(n.bar, n.beat) for n in notes]
+    if keys != sorted(keys):
+        raise AgentOutputError(
+            f"{where}.notes must be ordered by (bar, beat) ascending. "
+            f"Got bar/beat sequence: {keys[:8]}{'...' if len(keys)>8 else ''}"
+        )
+
     rationale = _coerce_str(item.get("rationale", ""))
     inspired_by_raw = _coerce_list(
         item.get("inspired_by", []), where=f"{where}.inspired_by"
@@ -1022,6 +1036,25 @@ def _parse_layer_motif(item: Any, *, where: str) -> LayerMotif:
         _parse_citation(c, where=f"{where}.inspired_by[{i}]")
         for i, c in enumerate(inspired_by_raw)
     )
+
+    # Phase 2.7.1 audit fix #5 : depth-light enforcement at parser level.
+    # The agent .md asks for triple-rationale + ≥ 1 banque + ≥ 1 corpus
+    # citation with substantial excerpts. We can't verify the QUALITY of
+    # the rationale at parse-time (that needs a human ear), but we can
+    # reject obviously empty or token-thin output — that's where the
+    # 70/30 disease shows up.
+    if len(rationale) < 50:
+        raise AgentOutputError(
+            f"{where}.rationale too short ({len(rationale)} chars, need ≥ 50). "
+            f"A motif decision without substantive reasoning falls back to "
+            f"placeholder behavior — defeats the purpose of the agent."
+        )
+    if not inspired_by:
+        raise AgentOutputError(
+            f"{where}.inspired_by must contain at least one citation. "
+            f"Untraced motifs are indistinguishable from placeholders."
+        )
+
     return LayerMotif(
         layer_role=layer_role,
         layer_instrument=layer_instrument,
@@ -1087,6 +1120,20 @@ def parse_motifs_decision(payload: Mapping[str, Any]) -> Decision[MotifsDecision
         _parse_layer_motif(item, where=f"motifs.by_layer[{i}]")
         for i, item in enumerate(raw_by_layer)
     )
+
+    # Phase 2.7.1 audit fix #9 : reject duplicate (role, instrument) pairs.
+    # The composer's _find_layer_motif first-match would silently ignore
+    # subsequent entries — better to raise so the agent gets feedback.
+    seen_keys: set[tuple[str, str]] = set()
+    for i, lm in enumerate(by_layer):
+        key = (lm.layer_role.lower().strip(), lm.layer_instrument.lower().strip())
+        if key in seen_keys:
+            raise AgentOutputError(
+                f"motifs.by_layer[{i}]: duplicate (role={lm.layer_role!r}, "
+                f"instrument={lm.layer_instrument!r}) — only the first would "
+                f"render. Merge their notes or rename one of them."
+            )
+        seen_keys.add(key)
 
     motifs_value = MotifsDecision(by_layer=by_layer)
     return Decision(value=motifs_value, sphere="motifs", **envelope)

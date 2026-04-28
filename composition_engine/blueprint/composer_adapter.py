@@ -1,23 +1,25 @@
-"""Composer adapter — Phase 2.1 of the multi-agent composition system.
+"""Composer adapter — Phase 2.7+ of the multi-agent composition system.
 
 Converts a SectionBlueprint (declarative description from sphere agents)
 into a Composition (the dataclass that composer.compose() consumes).
 
-Phase 2.1 scope (intentionally minimal):
-- Only the four essential spheres are wired: structure, harmony, rhythm,
-  arrangement. The other three (dynamics, performance, fx) are not yet
-  consumed — they will be Phase 2.2+ as their downstream consumers
-  (envelope shaping, humanization, FX rendering) get built or surfaced.
-- Each blueprint LayerSpec produces a default motif based on its role
-  (drum_kit / bass / lead / pad / etc.). These are placeholder motifs —
-  Phase 2.2+ will let sphere agents generate richer note patterns.
-- The composer pipeline (resolve_recipe_set, layer_track,
-  finalization_pass) is reused as-is. No modification to composer.compose().
+Currently consumes (Phase 2.7.1):
+- structure (total_bars), harmony (key_root → tonic_pitch), rhythm
+  (tempo_bpm), arrangement (layers + base_velocity)
+- **motifs** (Phase 2.7) — when filled, replaces per-role placeholder
+  stubs with the agent-decided notes per layer
+- **dynamics** (Phase 2.7.1) — when filled, applies a per-bar velocity
+  envelope multiplier on top of the agent's notes (arc_shape interpolated
+  from start_db to end_db across structure.total_bars)
+
+Still descriptive (logged as WARNING when filled, not yet wired):
+- performance (feel, humanization), fx (reverb, sidechain)
 
 Public API:
     key_root_to_midi(key_root, octave=3) -> int
     blueprint_to_composition(bp) -> Composition
     compose_from_blueprint(bp) -> dict (composer's output dict)
+    compose_to_midi(bp, output_path) -> Path
 """
 from __future__ import annotations
 
@@ -135,8 +137,55 @@ def _motif_for_role(role: str, tonic_pitch: int) -> Callable[[int], List[Dict[st
     return _default_motif(tonic_pitch)
 
 
+def _dynamics_velocity_multiplier(
+    dynamics_decision: Any, total_bars: int, bar_idx: int,
+) -> float:
+    """Phase 2.7.1 — compute the velocity multiplier for a given bar.
+
+    Translates `dynamics.start_db` → `dynamics.end_db` (relative to the
+    section baseline of -12 dB by convention) into a 0..1 multiplier
+    according to `arc_shape`. Inflection points override interpolation
+    locally when present.
+
+    Maps:
+      - dB → linear amplitude : `10 ** (db / 20)`
+      - 0 dB (max baseline) → 1.0 multiplier (no attenuation)
+      - -12 dB (default baseline) → ≈ 0.25 multiplier
+      - -60 dB (quasi-silence) → ≈ 0.001
+
+    Returns 1.0 (no-op) when dynamics is None or no arc.
+    """
+    if dynamics_decision is None or total_bars <= 0:
+        return 1.0
+    dyn = dynamics_decision.value
+    arc = dyn.arc_shape
+    if arc == "flat" and dyn.start_db == dyn.end_db and not dyn.inflection_points:
+        # Constant — no per-bar variation. Apply the absolute level.
+        return 10 ** (dyn.start_db / 20.0)
+
+    # Inflection points override : if the bar matches one, use that dB
+    for inf_bar, inf_db in dyn.inflection_points:
+        if inf_bar == bar_idx:
+            return 10 ** (inf_db / 20.0)
+
+    # Linear interpolation start_db → end_db across [0, total_bars-1]
+    if total_bars == 1:
+        t = 0.0
+    else:
+        t = bar_idx / (total_bars - 1)
+    db = dyn.start_db + t * (dyn.end_db - dyn.start_db)
+
+    # Shape-specific curves (Phase 2.7.1 minimal — linear interp is the
+    # baseline for rising/descending/flat ; valley/peak/exponential/
+    # sawtooth currently fall back to linear interp until the agent's
+    # inflection points capture their shape explicitly)
+    return 10 ** (db / 20.0)
+
+
 def _motif_render_from_decision(
     layer_motif: Any,  # composition_engine.blueprint.schema.LayerMotif
+    dynamics_decision: Any = None,  # Optional[Decision[DynamicsDecision]]
+    total_bars: int = 0,
 ) -> Callable[[int], List[Dict[str, Any]]]:
     """Build a render function from a motif-decider's LayerMotif decision.
 
@@ -144,8 +193,9 @@ def _motif_render_from_decision(
     (0-based) and expects a list of {time, duration, velocity, pitch}
     dicts with `time` in beats from the start of that bar.
 
-    Phase 2.7 wiring: when bp.motifs is filled, this replaces
-    `_motif_for_role`'s placeholder per-role stubs.
+    Phase 2.7 : replaces `_motif_for_role`'s placeholder per-role stubs.
+    Phase 2.7.1 : if `dynamics_decision` is filled, applies a per-bar
+    velocity multiplier from the dB arc on top of the agent's velocities.
     """
     # Group notes by bar for O(1) lookup per cycle
     notes_by_bar: Dict[int, List[Dict[str, Any]]] = {}
@@ -158,7 +208,17 @@ def _motif_render_from_decision(
         })
 
     def render(cycle_idx: int) -> List[Dict[str, Any]]:
-        return list(notes_by_bar.get(cycle_idx, []))
+        notes = notes_by_bar.get(cycle_idx, [])
+        if dynamics_decision is None or total_bars <= 0:
+            return list(notes)
+        mult = _dynamics_velocity_multiplier(
+            dynamics_decision, total_bars, cycle_idx
+        )
+        # Clamp to MIDI range [1, 127] — velocity 0 = silent (useless)
+        return [
+            {**n, "velocity": max(1, min(127, int(round(n["velocity"] * mult))))}
+            for n in notes
+        ]
     return render
 
 
@@ -253,15 +313,25 @@ def blueprint_to_composition(bp: SectionBlueprint) -> Composition:
             or dyn.peak_bar is not None
             or dyn.inflection_points
         )
-        if non_default:
+        if non_default and bp.motifs is None:
+            # Without motifs filled, the composer uses placeholder stubs
+            # whose velocities are static — the dynamics arc cannot be
+            # applied to per-note rendering. Warn explicitly.
             _LOG.warning(
-                "[composer_adapter] Phase 2.6 dynamics fields not yet applied "
-                "to MIDI rendering: arc_shape=%r, start_db=%s, end_db=%s, "
-                "peak_bar=%s, inflection_points=%d entries. The composer "
-                "currently uses each layer's static base_velocity. Phase 3+ "
-                "will wire the arc to a per-note velocity envelope.",
+                "[composer_adapter] dynamics arc set (arc_shape=%r, %sdB → "
+                "%sdB) but bp.motifs is None — composer is using placeholder "
+                "stubs. The dB arc cannot reach the MIDI without an agent-"
+                "decided motif. Run motif-decider first.",
                 dyn.arc_shape, dyn.start_db, dyn.end_db,
-                dyn.peak_bar, len(dyn.inflection_points),
+            )
+        elif non_default and bp.motifs is not None:
+            # Phase 2.7.1 wiring : dB arc IS now applied as a per-bar
+            # velocity multiplier on top of the motif's note velocities.
+            _LOG.info(
+                "[composer_adapter] dynamics arc applied to motif velocities "
+                "(arc_shape=%r, %sdB → %sdB across %d bars).",
+                dyn.arc_shape, dyn.start_db, dyn.end_db,
+                bp.structure.value.total_bars if bp.structure else 0,
             )
 
     # Phase 2.4 added rich rhythm fields (time_signature, drum_pattern,
@@ -347,7 +417,11 @@ def blueprint_to_composition(bp: SectionBlueprint) -> Composition:
             if motifs_decision is not None else None
         )
         if layer_motif is not None:
-            motif_render_func = _motif_render_from_decision(layer_motif)
+            motif_render_func = _motif_render_from_decision(
+                layer_motif,
+                dynamics_decision=bp.dynamics,
+                total_bars=structure.total_bars,
+            )
         else:
             motif_render_func = _motif_for_role(bp_layer.role, tonic_pitch)
             if motifs_decision is not None:

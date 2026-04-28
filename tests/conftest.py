@@ -152,6 +152,12 @@ def complete_blueprint() -> SectionBlueprint:
                             Note(bar=0, beat=0.0, pitch=69, duration_beats=4.0,
                                  velocity=70),
                         ),
+                        rationale=(
+                            "Pad sustained on tonic for 4 bars — provides "
+                            "harmonic floor while structure is sparse intro. "
+                            "Layered with breath_points to lift the section."
+                        ),
+                        inspired_by=(cit,),
                     ),
                 ),
             ),

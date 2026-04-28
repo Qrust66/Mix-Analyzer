@@ -267,3 +267,116 @@ def arrangement_coverage_check(
             spheres=("structure", "arrangement"),
         )
     return None
+
+
+# ============================================================================
+# Phase 2.7.1 — motifs cohesion rules
+# ============================================================================
+#
+# motif-decider produces note sequences per layer. These rules verify
+# the sequences are coherent with the surrounding skeleton :
+#   - notes within structure.total_bars
+#   - layer coverage matches arrangement.layers (no orphan motifs, no
+#     unmatched layers above a tolerance)
+
+
+@cohesion_rule(spheres=("structure", "motifs"))
+def motif_notes_within_structure_bounds(
+    bp: SectionBlueprint,
+) -> Optional[CohesionViolation]:
+    """Every note's bar must fit inside [0, total_bars).
+
+    Out-of-bounds notes are silently dropped by the composer's cycle
+    iteration (cycle_idx beyond num_cycles produces no output). Block
+    them at cohesion time so the agent gets feedback rather than
+    surprise-empty rendering.
+    """
+    structure = bp.structure
+    motifs = bp.motifs
+    assert structure is not None and motifs is not None
+    total_bars = structure.value.total_bars
+
+    for li, layer_motif in enumerate(motifs.value.by_layer):
+        for ni, note in enumerate(layer_motif.notes):
+            if note.bar < 0 or note.bar >= total_bars:
+                return CohesionViolation(
+                    rule="motif_notes_within_structure_bounds",
+                    severity="block",
+                    message=(
+                        f"motifs.by_layer[{li}] ({layer_motif.layer_role!r}, "
+                        f"{layer_motif.layer_instrument!r}) note[{ni}] at "
+                        f"bar={note.bar} is outside [0, {total_bars}). "
+                        f"The composer would silently drop it — fix the "
+                        f"motif decision."
+                    ),
+                    spheres=("structure", "motifs"),
+                )
+    return None
+
+
+@cohesion_rule(spheres=("arrangement", "motifs"))
+def motifs_cover_arrangement_layers(
+    bp: SectionBlueprint,
+) -> Optional[CohesionViolation]:
+    """Block when more than 30% of arrangement.layers have no matching motif.
+
+    The composer falls back to placeholder stubs for unmatched layers,
+    which is the disease motif-decider was built to cure. If a section
+    ships with > 30% layers unmatched, it's still mostly stubs.
+
+    A WARNING-level signal also fires for any non-zero unmatched count
+    so the user sees the partial coverage explicitly.
+    """
+    arrangement = bp.arrangement
+    motifs = bp.motifs
+    assert arrangement is not None and motifs is not None
+
+    layers = arrangement.value.layers
+    if not layers:
+        return None  # arrangement_layers cohesion handles this
+
+    motif_keys = {
+        (lm.layer_role.lower().strip(),
+         lm.layer_instrument.lower().strip())
+        for lm in motifs.value.by_layer
+    }
+    unmatched: list[tuple[str, str]] = []
+    for layer in layers:
+        key = (layer.role.lower().strip(),
+               layer.instrument.lower().strip())
+        if key not in motif_keys:
+            # Try role-only match (composer's fallback strategy)
+            role_only = any(
+                k[0] == key[0] for k in motif_keys
+            )
+            if not role_only:
+                unmatched.append((layer.role, layer.instrument))
+
+    if not unmatched:
+        return None
+
+    coverage_pct = (len(layers) - len(unmatched)) / len(layers)
+    if coverage_pct < 0.7:
+        return CohesionViolation(
+            rule="motifs_cover_arrangement_layers",
+            severity="block",
+            message=(
+                f"motifs cover only {coverage_pct:.0%} of arrangement.layers "
+                f"({len(layers) - len(unmatched)}/{len(layers)}). Composer "
+                f"will fall back to placeholder stubs for unmatched layers : "
+                f"{unmatched}. Below 70% coverage means the section is "
+                f"still mostly stubs — fix the motif decision."
+            ),
+            spheres=("arrangement", "motifs"),
+        )
+    return CohesionViolation(
+        rule="motifs_cover_arrangement_layers",
+        severity="warn",
+        message=(
+            f"{len(unmatched)}/{len(layers)} layer(s) without matching motif "
+            f"will render with placeholder stubs : {unmatched}. "
+            f"Coverage {coverage_pct:.0%} is OK but consider adding motifs "
+            f"for the missing layers to keep the agent decision rate high."
+        ),
+        spheres=("arrangement", "motifs"),
+    )

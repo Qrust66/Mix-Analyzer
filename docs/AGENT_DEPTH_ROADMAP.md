@@ -16,7 +16,7 @@ La banque `ableton/banque_midi_qrust.xlsx` (10 sheets : drum_mapping, rhythm_pat
 |------|-------|--------|--------|
 | **0** | Banque MIDI loader (préalable) | ~3h | ✅ |
 | **1** | Contrat de profondeur machine-vérifiable | ~3.5h | ⚪ pas commencé |
-| **2** | Motif-decider PROFOND (minimal first) | ~14h | 🟡 schema+parser+wiring+agent.md ✅ ; cohesion+audit ⏳ |
+| **2** | Motif-decider PROFOND (minimal first) | ~14h | ✅ Phase 2.7 + 2.7.1 audit-cleanup |
 | **3** | Wirage des sphères descriptives au rendu | ~7h | ⚪ |
 | **4** | Approfondir les agents existants creux | ~13h | ⚪ |
 | **5** | Mix engine continuation | ~27h | ⚪ |
@@ -54,10 +54,11 @@ Le seul agent qui peut résoudre le 70/30 — celui qui décide les NOTES.
 | 2.1 | Schema `MotifsDecision`, `LayerMotif`, `Note` (minimal : bar/beat/pitch/duration/velocity) | ~1h | ✅ |
 | 2.2 | Parser `parse_motifs_decision` strict | ~2h | ✅ (35 tests) |
 | 2.3 | `.claude/agents/motif-decider.md` — 3 in-context examples + triple-rationale + banque/corpus citations | ~4h | ✅ |
-| 2.4 | Cohesion rules (motifs vs arrangement, harmony, structure) | ~1.5h | ⚪ deferred to 2.7.1 audit |
+| 2.4 | Cohesion rules (motifs vs arrangement, structure) | ~1.5h | ✅ 2 BLOCK rules |
 | 2.5 | Wirage `composer_adapter` (remplace `_default_motif`) | ~1.5h | ✅ + bonus fix track_layerer fade bug |
 | 2.6 | Test d'intégration end-to-end : 32/32 notes match | ~2h | ✅ |
-| 2.7 | Audit + Phase 2.7.1 cleanup | ~2h | ⏳ next |
+| 2.7 | Audit + Phase 2.7.1 cleanup | ~2h | ✅ 9 weaknesses → 9 forces |
+| **+** | Bloc 3.1 wirage dynamics arc → velocity envelope | ~2h | ✅ embedded in 2.7.1 |
 
 ## Bloc 3 — Wirer les sphères descriptives au rendu
 
