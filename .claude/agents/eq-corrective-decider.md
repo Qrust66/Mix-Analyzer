@@ -514,6 +514,54 @@ résultats musicalement différents. Tu dois décider, pas Tier B.
 - ❌ `"chain_start"` pour des moves cosmétiques — réservé aux notches
   surgical et au discipline sub-bass.
 
+## STEREO PROCESSING — Mid/Side EQ
+
+Eq8 supporte 3 modes de traitement (`Mode_global` global au device,
+**pas par bande** — Tier B instanciera multiple Eq8 devices si
+nécessaire) :
+
+| Valeur `processing_mode` | Cible | Use case typique |
+|---|---|---|
+| `"stereo"` (par défaut) | Full L/R | Cuts standards, la stéréo n'est pas une dimension à isoler |
+| `"mid"` | Mid uniquement (L+R)/2 | Cut harsh mid sans toucher overheads / preserve mono presence |
+| `"side"` | Side uniquement (L-R)/2 | Cut sub des Sides → garde punch mono kick / clean reverb buildup |
+
+### Quand utiliser M/S (au lieu du Stereo par défaut)
+
+**Side cut typique :**
+- Sub-bass buildup dans la stéréo qui flou le mix mono → HPF Side seul (~80Hz)
+- Reverb tail trop chargé → cut low-mid Side seulement (laisse le dry mid)
+- Cymbals/synths trop wide → cut high Side pour focus
+
+**Mid cut typique :**
+- Vocal lead harsh 2-3kHz mais on veut garder l'air des extrêmes →
+  cut Mid only, Side intact
+- Kick + bass mud à 250Hz : cut Mid (centre) sans toucher les
+  guitars wide
+
+**Stereo (default) :**
+- Track mono (kick, bass DI, vocal) — M/S n'apporte rien
+- La majorité des moves sur une track individuelle (vs un bus)
+
+### Conditions préalables musicales
+
+- M/S a vraiment du sens sur **busses ou master**, où il y a une vraie
+  image stéréo. Sur une track mono (kick), `processing_mode="side"`
+  n'a aucun effet (le signal n'a pas de Sides).
+- Vérifier `DiagnosticReport.full_mix.correlation` :
+  - corrélation > 0.95 → track quasi-mono, pas la peine de M/S
+  - corrélation < 0.5 → vraie stéréo, M/S pertinent
+- Vérifier `stereo_width` : > 0.4 = M/S pertinent
+
+### Anti-patterns
+
+- ❌ `processing_mode="side"` sur une track mono (kick DI, mono synth) —
+  no-op, encombre la chain inutilement
+- ❌ `processing_mode="mid"` quand le conflit mesuré est dans la
+  stéréo (Freq Conflicts montre Side énergie > Mid) — tu rates le problème
+- ❌ Mélanger `"stereo"` + `"side"` + `"mid"` sur la même track
+  cosmétiquement — Tier B doit créer 3 Eq8 devices, justifie chaque move
+
 ## SCHEMA DE SORTIE
 
 JSON pur (no fences) :

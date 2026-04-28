@@ -194,6 +194,17 @@ VALID_EQ_BAND_TYPES = frozenset({
 # band is not a steepness-bearing filter (bell/notch/shelves).
 VALID_FILTER_SLOPES_DB_PER_OCT = frozenset({12.0, 48.0})
 
+# Stereo processing mode for the EQ band. Eq8 supports global Stereo,
+# Mid, Side modes — one mode per Eq8 instance. The decider thinks per
+# band ("cut sub on Sides only") and Tier B groups bands by mode,
+# instantiating multiple Eq8 devices on the same track when needed.
+VALID_PROCESSING_MODES = frozenset({
+    "stereo",  # Full L/R (default — most common)
+    "mid",     # Mid only (L+R)/2 — center / mono content
+    "side",    # Side only (L-R)/2 — stereo information / extremes
+})
+
+
 # Position of the corrective EQ within the track's existing device chain.
 # The decider knows MUSICALLY where the EQ should sit (pre-comp = clean
 # the input ; post-comp = catch what comp generated ; pre-sat = sculpt
@@ -290,6 +301,15 @@ class EQBandCorrection:
     # artifacts — different jobs.
     chain_position: str = "default"
 
+    # Stereo processing mode for this band. Default "stereo" = full
+    # L/R. "mid" = center only ; "side" = stereo extremes only. Tier B
+    # may need to instantiate multiple Eq8 devices when bands on the
+    # same track ask for different modes (each Eq8 has a single
+    # Mode_global). Critical for solving conflicts that only exist on
+    # one stereo dimension (e.g., sub buildup on Sides without losing
+    # mono kick punch).
+    processing_mode: str = "stereo"
+
     # Dynamic envelopes — empty tuple = static-only
     gain_envelope: tuple[EQAutomationPoint, ...] = ()
     freq_envelope: tuple[EQAutomationPoint, ...] = ()
@@ -375,6 +395,7 @@ __all__ = [
     "VALID_EQ_INTENTS",
     "VALID_FILTER_SLOPES_DB_PER_OCT",
     "VALID_CHAIN_POSITIONS",
+    "VALID_PROCESSING_MODES",
     "EQ_Q_MIN",
     "EQ_Q_MAX",
     "EQ_FREQ_MIN_HZ",

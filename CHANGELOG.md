@@ -1,5 +1,59 @@
 # Changelog
 
+## [Unreleased — mix_engine Phase 4.2.4] - 2026-04-28
+
+Audio engineer audit fix #2 of 9 — `processing_mode` field for Mid/Side
+EQ. Following the 8-sub-step methodology established in Phase 4.2.3.
+
+### Added — `processing_mode` field on `EQBandCorrection`
+
+Eq8 supports global Stereo/Mid/Side processing — one mode per Eq8
+instance. The decider now thinks per band ("cut sub on Sides only")
+and Tier B (eq8-configurator, future) groups bands by mode,
+instantiating multiple Eq8 devices on the same track when needed.
+
+3 canonical modes in new `VALID_PROCESSING_MODES` frozenset :
+- `"stereo"` (default) — full L/R signal
+- `"mid"` — center only, (L+R)/2
+- `"side"` — stereo extremes only, (L-R)/2
+
+Default `"stereo"` keeps backward compat ; lenient input normalizes
+case ("MID" → "mid") and empty string fallback to default.
+
+### Updated — agent .md
+
+New "STEREO PROCESSING — Mid/Side EQ" section with :
+- Use cases per mode (side cut for sub buildup ; mid cut for vocal
+  harshness preserving Side air ; stereo for mono tracks)
+- Pre-conditions : `correlation` and `stereo_width` checks (M/S
+  irrelevant on quasi-mono tracks)
+- 3 anti-patterns (no M/S on mono tracks, no mid cut when conflict
+  is in Side, no cosmetic mode mixing on same track)
+
+### Tests — 17 new in `test_mix_engine_eq_corrective.py`
+
+- Default value when omitted (backward compat)
+- Canonical set trip-wire
+- All 3 modes parametrized
+- Lenient case normalization (Mid/MID/mid all accepted)
+- Invalid values rejected (left, right, m_s, binaural)
+- Empty string normalizes to "stereo"
+- Realistic scenarios (Side sub cleanup, Mid harshness cut, mixed
+  modes on same track)
+
+105 eq_corrective tests total. 1031 tests pass overall.
+
+### Methodology trace (8 sub-steps)
+
+1. Plan + semantics ✅
+2. Schema change ✅
+3. Parser change ✅
+4. Re-export ✅
+5. Tests (17 new) ✅
+6. Agent .md update ✅
+7. Smoke test ✅ (3-band payload mixing all 3 modes)
+8. CHANGELOG + commit ✅
+
 ## [Unreleased — mix_engine Phase 4.2.3] - 2026-04-28
 
 Audio engineer audit fix #1 of 9 — chain_position field. Establishes

@@ -24,6 +24,7 @@ from mix_engine.blueprint import (
     VALID_CHAIN_POSITIONS,
     VALID_EQ_BAND_TYPES,
     VALID_EQ_INTENTS,
+    VALID_PROCESSING_MODES,
     parse_eq_corrective_decision,
     parse_eq_corrective_decision_from_response,
 )
@@ -608,6 +609,102 @@ def test_chain_position_post_saturation_for_clean_up_scenario():
     )]
     decision = parse_eq_corrective_decision(payload)
     assert decision.value.bands[0].chain_position == "post_saturation"
+
+
+# ============================================================================
+# Phase 4.2.4 — processing_mode field (audio engineer audit fix #2)
+# ============================================================================
+
+
+def test_processing_mode_default_when_omitted():
+    """Backward-compat: payloads without processing_mode get 'stereo'."""
+    payload = _valid_payload()
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].processing_mode == "stereo"
+
+
+def test_canonical_processing_modes_pin():
+    assert VALID_PROCESSING_MODES == {"stereo", "mid", "side"}
+
+
+@pytest.mark.parametrize("mode", sorted(VALID_PROCESSING_MODES))
+def test_all_valid_processing_modes_accepted(mode):
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"][0]["processing_mode"] = mode
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].processing_mode == mode
+
+
+@pytest.mark.parametrize("uppercase", ["Stereo", "MID", "Side"])
+def test_processing_mode_normalized_to_lowercase(uppercase):
+    """Lenient input: normalize to lowercase before validation."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"][0]["processing_mode"] = uppercase
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].processing_mode == uppercase.lower()
+
+
+@pytest.mark.parametrize("invalid_mode", ["m_s", "binaural", "left", "right", "Mids"])
+def test_invalid_processing_mode_raises(invalid_mode):
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"][0]["processing_mode"] = invalid_mode
+    with pytest.raises(MixAgentOutputError, match="processing_mode"):
+        parse_eq_corrective_decision(payload)
+
+
+def test_processing_mode_empty_string_normalizes_to_stereo():
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"][0]["processing_mode"] = ""
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].processing_mode == "stereo"
+
+
+def test_side_only_sub_cleanup_scenario():
+    """Realistic: cut sub on Sides only to preserve mono kick punch."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Mix Bus", band_type="highpass", intent="filter",
+        center_hz=80.0, q=0.71, gain_db=0.0,
+        slope_db_per_oct=12.0,
+        chain_position="chain_end",
+        processing_mode="side",
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    band = decision.value.bands[0]
+    assert band.processing_mode == "side"
+    assert band.band_type == "highpass"
+
+
+def test_mid_only_harshness_cut_scenario():
+    """Realistic: cut high-mid harshness on Mid only, preserve Side air."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Master Bus", band_type="bell", intent="cut",
+        center_hz=2800.0, q=3.5, gain_db=-2.5,
+        chain_position="chain_end",
+        processing_mode="mid",
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].processing_mode == "mid"
+
+
+def test_mixed_modes_on_same_track_accepted():
+    """Multiple bands on same track with different modes — Tier B will
+    instantiate multiple Eq8 devices."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [
+        _valid_band(track="Drum Bus", band_type="bell", intent="cut",
+                    center_hz=300.0, q=2.0, gain_db=-2.0,
+                    processing_mode="mid"),
+        _valid_band(track="Drum Bus", band_type="highpass", intent="filter",
+                    center_hz=60.0, q=0.71, gain_db=0.0,
+                    slope_db_per_oct=12.0,
+                    processing_mode="side"),
+    ]
+    decision = parse_eq_corrective_decision(payload)
+    assert len(decision.value.bands) == 2
+    assert decision.value.bands[0].processing_mode == "mid"
+    assert decision.value.bands[1].processing_mode == "side"
 
 
 def test_full_payload_with_diverse_band_types():

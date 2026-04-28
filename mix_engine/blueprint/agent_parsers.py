@@ -42,6 +42,7 @@ from mix_engine.blueprint.schema import (
     VALID_EQ_BAND_TYPES,
     VALID_EQ_INTENTS,
     VALID_FILTER_SLOPES_DB_PER_OCT,
+    VALID_PROCESSING_MODES,
 )
 
 
@@ -667,6 +668,20 @@ def _parse_eq_band_correction(item: Any, *, where: str) -> EQBandCorrection:
             f"don't have a strong placement preference."
         )
 
+    # Phase 4.2.4 : processing_mode (stereo / mid / side).
+    processing_mode = _coerce_str(
+        item.get("processing_mode", "stereo"),
+        where=f"{where}.processing_mode",
+    ).strip().lower()
+    if not processing_mode:
+        processing_mode = "stereo"
+    if processing_mode not in VALID_PROCESSING_MODES:
+        raise MixAgentOutputError(
+            f"{where}.processing_mode={processing_mode!r} not in "
+            f"{sorted(VALID_PROCESSING_MODES)}. Eq8 supports only "
+            f"stereo, mid, side."
+        )
+
     gain_envelope = _parse_envelope_strictly_ordered(
         item.get("gain_envelope", []), where=f"{where}.gain_envelope"
     )
@@ -735,6 +750,7 @@ def _parse_eq_band_correction(item: Any, *, where: str) -> EQBandCorrection:
         gain_db=gain_db,
         slope_db_per_oct=slope_db_per_oct,
         chain_position=chain_position,
+        processing_mode=processing_mode,
         gain_envelope=gain_envelope,
         freq_envelope=freq_envelope,
         q_envelope=q_envelope,
