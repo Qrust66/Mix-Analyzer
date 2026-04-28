@@ -1,5 +1,143 @@
 # Changelog
 
+## [Unreleased — mix_engine Phase 4.2.6] - 2026-04-28
+
+API alignment audit fix : `eq-corrective-decider.md` was referencing
+fictional fields and categories that don't exist in `mix_analyzer.py`
+or `cde_engine.py`. Phase 4.2.6 realigns the agent's CONTEXT INTAKE
+section to match what the production code actually produces.
+
+### Fixed — Anomaly sheet structure (real)
+
+Was: agent assumed Anomalies had structured columns (`category`,
+`frequency_hz`, `magnitude_db`, `bandwidth_q`, `affected_tracks`).
+Reality (`mix_analyzer.py:6868`): only 4 columns — `Track`, `Type`,
+`Severity` (uppercase CRITICAL/WARNING/INFO), `Description` (free prose).
+
+Agent now :
+- Parses Description prose via regex patterns
+- Documents the 7 actual anomaly types produced by
+  `mix_analyzer.py:840-880` (resonance peaks, peak level, true peak,
+  phase correlation, RMS low, crest factor, stereo width)
+- Notes that ONLY "Strong resonance peaks detected at: <freq>Hz"
+  is EQ-relevant ; the other 6 escalate to other lanes
+- Severity expected lowercase via mix-diagnostician normalization
+
+### Fixed — Freq Conflicts threshold reading
+
+Was: hardcoded "≥ 2 tracks > 30%". Reality: threshold is in cell B2
+(configurable runtime) and min_tracks in B3 (`mix_analyzer.py:3925`).
+Agent now reads B2/B3 from the sheet rather than hardcoding.
+
+### Fixed — CDE diagnostics structure (real)
+
+Was: agent assumed CDE produced `tracks[].peak_resonances[]`,
+`masking_pairs[]`, `tracks[].sibilance_zones[]` — none of which exist.
+Reality (`cde_engine.py:1614`):
+
+```
+{
+  "cde_version", "generated_at", "diagnostic_count",
+  "diagnostics": [{
+    "diagnostic_id", "issue_type" ∈ {masking_conflict, accumulation_risk},
+    "severity", "track_a", "track_b",
+    "measurement", "tfp_context",
+    "primary_correction": {device, approach, parameters, ...},
+    "fallback_correction", ...
+  }]
+}
+```
+
+Major implication: **CDE already produces correction recipes** with
+`approach ∈ {reciprocal_cuts, static_dip, musical_dip, sidechain}`.
+The agent should DEFER to CDE's `primary_correction` rather than
+duplicate the analysis.
+
+### Added — CDE DEFER MODE section in agent .md
+
+New default behavior when `<projet>_diagnostics.json` exists :
+
+1. Iterate `diagnostics[]`
+2. For `device == "EQ8 — Peak Resonance"` → translate `primary_correction`
+   to `EQBandCorrection` (track, freq, gain, q, sections all map directly)
+3. For `approach == "reciprocal_cuts"` → generate 2 EQBandCorrection
+   (target_track + secondary_cut.track)
+4. For `device == "Kickstart 2"` (sidechain) → out-of-scope, escalate
+   to dynamics-corrective-decider with rationale flag
+5. Diverge from CDE only with explicit reasons : brief override
+   (preserve_character → -30% gain), CDE confidence=low + agent has
+   stronger anomaly signal, genre target mismatch
+6. Cite via `inspired_by` with `path = "cde:<diagnostic_id>"`
+
+### Added — Confidence translation table
+
+CDE string `"low"|"medium"|"high"` → MixDecision.confidence float :
+- high → 0.85-0.95 (faithful), 0.75-0.85 (with divergence)
+- medium → 0.65-0.80
+- low → 0.45-0.65
+
+### Added — Anomaly description parsing patterns
+
+Regex patterns to extract substructure from Description prose :
+- `Strong resonance peaks detected at: <freq>Hz, <freq>Hz, ...`
+- `Phase correlation <X>` → escalate (out-of-scope)
+- `Very low crest factor (<X> dB)` → escalate to dynamics
+- `Peak level at <X> dBFS` → escalate to mastering
+- `Very wide stereo image (<X>)` → escalate to stereo
+- `RMS level very low (<X> dBFS)` → escalate to gain staging
+
+Of the 7 patterns, only resonance peaks is EQ-relevant.
+
+### Fixed — Scenarios G/H/I/J/K reframed
+
+Was: signal triggers used fictional `Anomaly category={mud, boxiness,
+harshness, sibilance, air_clutter}`. Reality: `mix_analyzer.py` does
+not pre-classify these. CDE doesn't either (only `masking_conflict`
+and `accumulation_risk`).
+
+Agent now reframes these scenarios as **derived** from Freq Conflicts
+matrix conflicts in the relevant frequency band, not pre-classified.
+Cite "inferred from Freq Conflicts <band>" in rationale.
+
+Special note for Scenario J (sibilance) : recommendation strengthened
+to **prefer dynamic de-esser** over static EQ cut, with explicit
+escalation flag in rationale.
+
+### Updated — `mix-diagnostician.md`
+
+Added "Normalisation obligatoire" section documenting the contract :
+- Excel CRITICAL/WARNING/INFO → lowercase in DiagnosticReport
+- Description prose preserved verbatim with optional sub-extraction
+- CDE confidence stays string (downstream agents translate)
+
+### Updated — Mix Health Score categories
+
+Was: `breakdown.spectral_balance` (snake_case). Reality
+(`mix_analyzer.py:4949`): 5 canonical categories with weights —
+`Loudness` (20%), `Dynamics` (20%), `Spectral Balance` (25%),
+`Stereo Image` (15%), `Anomalies` (20%). Agent now uses
+`Spectral Balance` (proper title-case label).
+
+### No schema or parser changes
+
+The internal contract (`EQBandCorrection`, `EQCorrectiveDecision`,
+parser validation) was already correct — only the agent .md described
+fictional source APIs. Schema/parser/tests are unchanged. 1038 tests
+still pass.
+
+### Methodology trace (8 sub-steps, mostly behavioral)
+
+1. Plan + scope ✅
+2. Schema check (no change needed) ✅
+3. Parser check (no change needed) ✅
+4. Re-export (N/A) ✅
+5. Tests (no change needed — internal contract intact) ✅
+6. Agent .md major rewrite ✅ (CONTEXT INTAKE realigned + CDE DEFER
+   MODE + Anomaly parsing + scenarios reframed)
+7. Smoke test ✅ (CDE defer mode payload : 3 EQBandCorrection from
+   CDE diagnostics including reciprocal_cuts pair)
+8. CHANGELOG + commit ✅
+
 ## [Unreleased — mix_engine Phase 4.2.5] - 2026-04-28
 
 Audio engineer review of Phase 4.2.3/4.2.4 found 12 issues. This phase

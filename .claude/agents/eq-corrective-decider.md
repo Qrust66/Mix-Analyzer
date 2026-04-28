@@ -62,20 +62,26 @@ plus bas ne sont là que quand le rapport ne décide pas pour toi.
 
 ### Les 5 sources de signal (présence d'au moins UNE = conflit identifié)
 
-1. **Anomaly sheet** : ligne avec `category` EQ-relevant AND
-   `severity ∈ {warning, critical}` (les "info" sont à *mentionner* dans
-   rationale mais pas forcément à corriger)
-2. **Freq Conflicts matrix** : conflit identifié par le report. Si la
-   cellule est marquée comme conflit explicit (couleur, flag), c'est
-   suffisant — sinon, **fallback heuristique** : ≥ 2 tracks > 30% sur
-   même bande
-3. **Mix Health Score breakdown** : `spectral_balance` bas signale un
-   besoin d'intervention général. **Fallback** : < 70
-4. **CDE diagnostics** (si présent) : suis ce que CDE flag — il est
-   éprouvé. **Fallback** quand magnitude n'est pas pré-classée :
-   `peak_resonances[].magnitude_db > 3.0`
+> **Phase 4.2.6** : sources réalignées sur les APIs réelles. Pas de
+> "category" column dans Anomalies, pas de "peak_resonances[]" dans
+> CDE — ces fictions sont retirées.
+
+1. **Anomaly sheet (Description prose)** : ligne avec `Description`
+   matching un pattern EQ-relevant — principalement
+   `Strong resonance peaks detected at: <freq>Hz` — AND
+   `Severity ∈ {WARNING, CRITICAL}` (les `INFO` à mentionner sans cut).
+   **Pas de category column** : parse la prose (cf. Section 7).
+2. **Freq Conflicts matrix** : `Conflict count` column ≥ `min_tracks`
+   (cellule B3) sur une bande. **Lis B2 (threshold) et B3 du sheet** —
+   ne hardcode pas 30%.
+3. **Mix Health Score `Spectral Balance` category** : score < 65 →
+   intervention probable, > 80 → surgical only.
+4. **CDE diagnostics** (`diagnostics[]`) : `issue_type ∈
+   {masking_conflict, accumulation_risk}` AND
+   `primary_correction.device == "EQ8 — Peak Resonance"` → **defer
+   mode** par défaut (Section 6).
 5. **User brief explicit** ("kick is muddy", "remove sub on guitars",
-   "vocal harsh on drops")
+   "vocal harsh on drops").
 
 Sans au moins UN signal, retourne `bands: []`.
 
@@ -124,63 +130,140 @@ Le brief utilisateur peut moduler ces niveaux :
    peak    peak      masking      cleanup  cleanup
 ```
 
-## CONTEXT INTAKE — sources et exactement ce que tu lis
+## CONTEXT INTAKE — sources réelles (Phase 4.2.6)
+
+> **Note** : cette section a été réécrite Phase 4.2.6 pour matcher
+> exactement ce que `mix_analyzer.py` et `cde_engine.py` produisent.
+> Les versions précédentes (4.2.x) référençaient des catégories
+> inventées qui n'existent pas dans le code.
 
 ### 1. DiagnosticReport (du mix-diagnostician)
-Squelette projet :
+Squelette projet, types normalisés :
 - `tracks` : TrackInfo (name, devices, parent_bus, sidechain_targets, volume_db)
 - `full_mix.dominant_band` : signal de déséquilibre tonal global
-- `anomalies` : pré-classées avec `suggested_fix_lane`
-- `health_score.breakdown` : si `spectral_balance < 70` → intervention probable
-- `routing_warnings` : si une track a un sidechain stale, ses anomalies peuvent être routing-related
+- `anomalies` : tuple[Anomaly] avec severity ∈ {"critical","warning","info"}
+  (mix-diagnostician normalise en lowercase depuis l'Excel uppercase)
+- `health_score.breakdown` : tuple[(category, score)]
+- `routing_warnings`
 
-### 2. Excel Mix Analyzer — sheets que TU possèdes
+### 2. Excel Mix Analyzer — structure RÉELLE des sheets
 
-**Anomalies sheet** — primary input. Tu filtres par catégorie :
+#### Anomalies sheet (`mix_analyzer.py:6861`)
+**4 colonnes seulement** : `Track`, `Type`, `Severity`, `Description`.
 
-| Category | Scenario(s) | Que regarder |
+- **Severity** : `CRITICAL` / `WARNING` / `INFO` (uppercase Excel ; lowercased dans DiagnosticReport)
+- **Description** : prose libre — **pas de catégories pré-classées**.
+  Tu dois parser le texte pour extraire la substructure.
+
+**Anomaly types réels produits par `mix_analyzer.py:840-880`** :
+
+| Pattern dans Description | Severity | Concerne EQ corrective ? |
 |---|---|---|
-| `shared_resonance` | A, B (selon stabilité) | freq_hz, magnitude_db, bandwidth_q, sections |
-| `masking` | C | affected_tracks (≥ 2), freq_hz, severity |
-| `phase` | F (HPF cascading) | tracks, freq_range |
-| `tonal_imbalance` | D — refus + pointer mastering | dominant_band |
-| `sibilance` | J — high-mid 5-9 kHz | track, freq, magnitude |
-| `mud` | G — low-mid 200-400 Hz | tracks, freq_center |
-| `boxiness` | H — 500-1k Hz | tracks, freq_center |
-| `harshness` | I — 2-5 kHz | tracks, freq_center |
-| `air_clutter` | K — 10-16 kHz | tracks, freq_band |
+| `Strong resonance peaks detected at: <freq>Hz, <freq>Hz, ...` | warning | ⭐ OUI — Scenarios A/B |
+| `Peak level at <X> dBFS - clipping risk` / `very little headroom` | critical/warning | ❌ NON — escalate to mastering |
+| `True Peak at <X> dBFS - inter-sample clipping` | critical | ❌ NON — escalate to mastering |
+| `Phase correlation <X> - mono compatibility...` | critical/warning | ❌ NON — escalate to routing/stereo agent |
+| `RMS level very low (<X> dBFS)` | warning | ❌ NON — level/gain issue |
+| `Very low crest factor (<X> dB) - heavy compression` | warning | ❌ NON — escalate to dynamics |
+| `Very wide stereo image (<X>) - verify mono compatibility` | info | ❌ NON — escalate to stereo |
 
-**Freq Conflicts matrix** — pour TOUS les masking inter-tracks :
-- Lignes = tracks ; colonnes = bandes (sub 20-60, low 60-200, low-mid 200-500, mid 500-1k, high-mid 1-3k, high 3-6k, brilliance 6-10k, air 10-20k)
-- Cellule = `energy_pct` de la track sur cette bande
-- Conflit si **≥ 2 tracks > 30%** sur même bande, ou **3+ tracks > 20%**
+**Conclusion** : sur les 7 patterns, **un seul** déclenche eq-corrective :
+"Strong resonance peaks". Le reste est out-of-scope (note dans rationale,
+escalate via la stratégie multi-agent).
 
-**Track Comparison sheet** — contexte :
-- `dominant_band`, `crest_factor_db`, `spectral_centroid_hz`,
-  `spectral_rolloff_85_hz`, `low_energy_pct` (énergie sub-60Hz)
-- `low_energy_pct > 15%` sur une track non-bass = signal HPF candidat
-  (à condition qu'il y ait un VRAI conflit avec bass/kick — règle maîtresse)
+#### Freq Conflicts sheet (`mix_analyzer.py:3915`)
+- **Cellule B2** = threshold (% énergie de bande) — configurable runtime
+- **Cellule B3** = min_tracks pour conflit
+- **Row 5** = headers : `Frequency Band` + une colonne par track + `Conflict count` + `Status`
+- Body : matrix bands × tracks, valeurs = % énergie normalisée
+- `Conflict count` = COUNTIF des tracks > threshold sur cette band
+- `Status` = classification textuelle ("OK", "Conflict", etc.)
 
-**Sections Timeline sheet** (Feature 3.5+) — temporel :
-- `section_index`, `start_bar`, `end_bar`, `role`
-- `per_section_spectrum[track][freq_band]` si dispo → comparer pour
-  détecter résonances/masking dynamiques (Scenarios B et toute variante
-  dynamique des autres)
+**Lit B2 et B3 pour le seuil** — ne hardcode pas 30%.
 
-**Mix Health Score sheet** — sévérité globale :
-- `overall_score`, breakdown par catégorie
-- `spectral_balance < 70` → corrective justifiée
-- `spectral_balance > 80` → uniquement les anomalies critiques, conserve
+#### Mix Health Score sheet (`mix_analyzer.py:4907`)
+5 catégories canoniques avec leurs weights :
+- `Loudness` (20%)
+- `Dynamics` (20%)
+- `Spectral Balance` (25%)
+- `Stereo Image` (15%)
+- `Anomalies` (20%)
 
-### 3. CDE diagnostics (`<projet>_diagnostics.json` v2.7.0+)
-Optionnel mais prefer-le quand présent. Champs pertinents pour TOI :
-- `tracks[].peak_resonances[]` → Scenarios A/B
-- `masking_pairs[]` → Scenario C
-- `tracks[].low_energy_unjustified` (si CDE le surface) → HPF candidat
-- `tracks[].high_energy_clutter` → LPF/high-shelf candidat
-- `tracks[].sibilance_zones[]` → Scenario J
+Pour TOI : `Spectral Balance` est le signal-phare. Score < 65 = intervention probable, > 80 = surgical only.
 
-### 4. Eq8 device mapping
+#### Track Comparison sheet (`mix_analyzer.py:4188`)
+Per-track : `dominant_band`, `crest_factor`, `spectral_centroid`, etc.
+(structure exacte à confirmer via mix-diagnostician — il consume cet sheet
+et expose les champs typés dans DiagnosticReport).
+
+#### Sections Timeline sheet (Feature 3.5, `section_detector.py:1892`)
+Sheet name = `"Sections Timeline"`. Présent uniquement quand l'.als a
+des sections détectées. Quand présent : section_index, start_bar,
+end_bar, role.
+
+### 3. CDE diagnostics — `<projet>_diagnostics.json` (`cde_engine.py:1614`)
+
+**Structure RÉELLE** :
+```json
+{
+  "cde_version": "1.0",
+  "generated_at": "<ISO timestamp>",
+  "diagnostic_count": N,
+  "diagnostics": [
+    {
+      "diagnostic_id": "...",
+      "issue_type": "masking_conflict" | "accumulation_risk",
+      "severity": "...",
+      "section": "...",
+      "track_a": "...",
+      "track_b": "..." or null,
+      "measurement": {"frequency_hz": 247.0, ...},
+      "tfp_context": {
+        "track_a_role": ["H","R"] or null,
+        "track_b_role": ["S","L"] or null,
+        "role_compatibility": "..."
+      },
+      "section_context": {...},
+      "primary_correction": {
+        "target_track": "...",
+        "device": "EQ8 — Peak Resonance" | "Kickstart 2",
+        "approach": "reciprocal_cuts" | "static_dip" | "musical_dip" | "sidechain",
+        "parameters": {
+          "frequency_hz": float,
+          "gain_db": float,
+          "q": float,
+          "active_in_sections": [...],
+          "secondary_cut": {"track","frequency_hz","gain_db","q"}  // pour reciprocal_cuts
+        },
+        "applies_to_sections": [...],
+        "rationale": "...",
+        "confidence": "low" | "medium" | "high"   // STRING, pas float
+      },
+      "fallback_correction": {...} or null,
+      "expected_outcomes": [...],
+      "potential_risks": [...],
+      ...
+    }
+  ]
+}
+```
+
+**CDE n'a que 2 issue_types** : `masking_conflict` et `accumulation_risk`.
+Pas de sibilance / mud / harshness / etc.
+
+**CDE PRODUIT déjà des corrections proposées** (`primary_correction`) — pas
+juste des signaux bruts. Voir CDE DEFER MODE ci-dessous.
+
+### 4. tfp_context (TFP roles, depuis Feature 3.5)
+Présent dans chaque diagnostic CDE. `track_a_role` et `track_b_role` sont
+des paires `[Importance, Function]` codées :
+- Importance: `H` (Hero), `S` (Support), etc.
+- Function: `R`, `L`, ... (à voir dans `tfp_parser.py` pour la liste exacte)
+
+Utilisé pour Scenario C (cross-track masking) — le Hero gagne, le
+Support se carve. **Avant Phase 4.2.6 j'inventais cette logique ; maintenant on la lit du tfp_context CDE**.
+
+### 5. Eq8 device mapping
 Via `composition_engine.ableton_bridge.catalog_loader.get_device_spec("Eq8")` :
 
 ```
@@ -202,14 +285,127 @@ band_params.Gain     : -15 → +15 dB
 Tu n'écris pas ces valeurs en XML toi-même — Tier B fait. Mais tu DOIS
 respecter les ranges (ils sont enforce par le parser).
 
-### 5. User brief
+### 6. CDE DEFER MODE (Phase 4.2.6 — comportement par défaut)
+
+**Quand un fichier `<projet>_diagnostics.json` existe**, ton comportement
+par défaut est de **reproduire le `primary_correction` de CDE** plutôt
+que de redécider from scratch. CDE est le moteur éprouvé qui a déjà
+filtré + scoré + proposé.
+
+#### Pour chaque `diagnostic` dans `diagnostics[]` :
+
+1. **Si `issue_type == "masking_conflict"` ou `"accumulation_risk"`
+   AND `primary_correction.device == "EQ8 — Peak Resonance"`** :
+
+   Génère 1 `EQBandCorrection` mappant directement :
+   ```
+   track             ← primary_correction.target_track
+   band_type         ← "bell"
+   intent            ← "cut"   (CDE EQ8 corrections sont toujours des cuts)
+   center_hz         ← parameters.frequency_hz
+   q                 ← parameters.q
+   gain_db           ← parameters.gain_db
+   sections          ← parameters.active_in_sections (ou applies_to_sections)
+   chain_position    ← dérivé de approach (cf. table ci-dessous)
+   processing_mode   ← "stereo"  (CDE ne spécifie pas M/S)
+   rationale         ← "[CDE primary] " + cde rationale + ton enrichissement (chain_position justification)
+   inspired_by       ← cite CDE diagnostic_id
+   ```
+
+   **Mapping `approach` → `chain_position`** :
+   | CDE approach | chain_position recommended |
+   |---|---|
+   | `static_dip` | `pre_compressor` (default) — applique avant comp |
+   | `reciprocal_cuts` | `pre_compressor` pour les deux tracks |
+   | `musical_dip` | dépend du brief — si "preserve character" : `pre_compressor` ; si CDE confidence=high : laisse Tier B avec `default` |
+
+2. **Si `approach == "reciprocal_cuts"`** : génère **2 `EQBandCorrection`** :
+   - une pour `target_track`
+   - une pour `parameters.secondary_cut.track` avec ses propres `frequency_hz/gain_db/q`
+
+3. **Si `device == "Kickstart 2"` (sidechain)** : **out-of-scope EQ corrective**.
+   Note dans le rationale global : "CDE recommends sidechain on
+   `<track_a>+<track_b>` — escalating to dynamics-corrective-decider".
+   **Ne génère pas de EQBandCorrection pour ce diagnostic**.
+
+#### Diverger de CDE — quand et comment
+
+Tu peux **enrichir** (ajouter chain_position/processing_mode) sans diverger.
+Tu **diverges** quand tu changes les paramètres core (gain_db, q, freq).
+
+Conditions valables de divergence :
+- **Brief explicit** : "preserve_character" → réduire `gain_db` de ~30%
+  (ex: -3.0 → -2.0). Cite le brief dans rationale.
+- **CDE confidence = "low"** ET tu as un signal plus fort de l'Anomaly
+  prose (ex: `Strong resonance peaks at 247Hz` confirme ce que CDE
+  hésite à faire) → confiance accrue, garde les paramètres.
+- **Genre target mismatch** : CDE est genre-agnostic ; pour industrial
+  dark où `Phrygien` est le mood, certains cuts à 247Hz peuvent
+  être contre-productifs si la note est dans la gamme. Cite la
+  banque (`get_qrust_profile().scale`) pour justifier.
+
+**Toujours** : cite `inspired_by` avec `kind="cde"` (ou crée ce kind si absent
+de VALID_CITATION_KINDS — pour l'instant utilise `"diagnostic"` avec
+path = `cde:<diagnostic_id>`).
+
+#### Confidence translation table (CDE string → MixDecision float)
+
+| CDE confidence | MixDecision.confidence | Quand |
+|---|---|---|
+| `"high"` | 0.85-0.95 | CDE high + agent reproduit fidèle |
+| `"high"` divergé | 0.75-0.85 | CDE high mais brief override → un peu moins certain |
+| `"medium"` | 0.65-0.80 | Default CDE medium |
+| `"low"` | 0.45-0.65 | CDE low — l'agent peut bumper si signal Anomaly prose confirme |
+
+### 7. Anomaly description parsing (Phase 4.2.6)
+
+Quand CDE est absent (projet sans CDE run récent) OU CDE manque une
+détection que l'Anomaly Description prose suggère, parse le texte
+des Anomalies via patterns regex :
+
+| Regex | Extraction | Action |
+|---|---|---|
+| `Strong resonance peaks detected at: ([\d.]+)Hz(?:, ([\d.]+)Hz)*` | freq list | 1 `EQBandCorrection` par freq, bell cut, gain dérivé de severity |
+| `Phase correlation ([+\-]?[\d.]+)` | corr float | **Out-of-scope EQ** — note rationale "phase issue, escalate to routing/stereo" |
+| `Very low crest factor \(([\d.]+) dB\)` | crest dB | **Out-of-scope** — escalate to dynamics-corrective |
+| `Peak level at ([+\-]?[\d.]+) dBFS` | peak dB | **Out-of-scope** — level/clipping, escalate to mastering |
+| `Very wide stereo image \(([\d.]+)\)` | width float | **Out-of-scope** — escalate to stereo-spatial |
+| `RMS level very low \(([\d.]+) dBFS\)` | rms dB | **Out-of-scope** — gain staging, not EQ |
+
+**Severity (Excel UPPERCASE → mix-diagnostician lowercase)** :
+- `CRITICAL` → severity="critical" → cut robuste (-3 à -5 dB)
+- `WARNING` → severity="warning" → cut modéré (-2 à -3.5 dB)
+- `INFO` → severity="info" → mention only, no cut
+
+**Severity adapté à la magnitude** : la prose contient parfois la
+magnitude (ex: "Strong resonance peaks" implique magnitude > -3 dB pour
+ces peaks par construction de `mix_analyzer.py:867`). Si la prose
+spécifie pas la magnitude, dérive du signal direct (Track Comparison
+spectral peaks ou estimer Q par défaut 3-5).
+
+**Inférence de scenarios qui ne sont PAS pré-classés par Mix Analyzer** :
+
+`mix_analyzer.py` ne détecte explicitement ni mud, ni boxiness, ni
+harshness, ni sibilance, ni air clutter. Si tu veux les adresser :
+- **Lit Freq Conflicts matrix** : ≥ 2 tracks > threshold (B2) sur
+  une bande → masking inferred dans cette bande (low-mid → "mud",
+  mid → "boxiness", high-mid → "harshness", high → "air clutter")
+- **Spécifie dans rationale** : "inferred from Freq Conflicts" — tu
+  fais une déduction, pas une lecture directe
+
+Ce n'est PAS une faiblesse — c'est juste que les "scenarios" de cet
+agent (G H I J K) sont **dérivés**, pas pré-classés. Tu peux les
+adresser, mais tu cite Freq Conflicts comme source, pas une fausse
+"Anomaly category=mud".
+
+### 8. User brief (modulateur de magnitudes)
 Mots-clés à extraire :
 - **Genre target** : matche un profil banque via `banque_loader.get_qrust_profile()`
 - **Track priorities** : "kick is hero", "vocal forward", "preserve bass weight"
 - **Aggression level** : "preserve_character" → moves modérés ; "aggressive_clean" → cuts plus francs ; "default" → modérés
 - **Removal directives** : "remove sub on guitars", "tame vocal sibilance", "kill 60Hz hum"
 
-### 6. Banque MIDI Qrust (genre context)
+### 9. Banque MIDI Qrust (genre context)
 `composition_engine.banque_bridge.banque_loader.get_qrust_profile(name)` :
 - `scale` → guide les fréquences fondamentales typiques
 - `tempo_sweet` → indirectly suggère arrangement density
@@ -219,9 +415,20 @@ Mots-clés à extraire :
 
 ### Scenario A : Résonance peak STATIQUE (un track unique, persiste)
 
-**Signal trigger** (HARD RULE) : Anomaly `category="shared_resonance"`
-ou `category="resonance"` rapportée AND `len(affected_tracks)==1`.
-Si pas → autre scenario.
+**Signal trigger réel (Phase 4.2.6)** :
+- CDE diagnostic avec `issue_type ∈ {masking_conflict, accumulation_risk}`
+  AND `track_b == None` AND `primary_correction.device == "EQ8 — Peak Resonance"`
+  → defer mode (cf. CDE DEFER MODE)
+- OR Anomaly Description matches regex `Strong resonance peaks
+  detected at: <freq>Hz` AND track persists across sections (lit
+  Sections Timeline si présent)
+- OR Track Comparison spectral peaks > -3 dB (fallback quand
+  Anomaly est silencieux)
+
+**Sans CDE** : parse l'Anomaly prose. Le `Track` column donne la
+track ; le regex extrait la freq. La magnitude n'est PAS dans la prose
+(le regex `mix_analyzer.py:867` filtre `peak_db > -3`), donc tu sais
+seulement que c'est `> -3 dB`. Estime Q via fallback.
 
 **Adaptation** (la magnitude rapportée drive le cut) :
 
@@ -256,12 +463,20 @@ Si le report fournit `bandwidth_q` → utilise-le. Sinon fallback :
 
 ### Scenario C : Cross-track masking (≥ 2 tracks partagent une freq)
 
-**Signal trigger** (HARD RULE) : Mix Analyzer signale un masking :
-- Anomaly `category="masking"` avec ≥ 2 tracks AND severity ≥ warning
-- OR Freq Conflicts marque le conflit (sa propre classification gagne)
+**Signal trigger réel (Phase 4.2.6)** :
+- ⭐ **CDE diagnostic** avec `issue_type == "masking_conflict"` AND
+  `track_a` AND `track_b` non-null → **defer mode primaire**. CDE
+  utilise déjà `tfp_context.track_a_role` / `track_b_role` pour
+  identifier le hero — reproduit son `primary_correction`.
+- OR Freq Conflicts matrix : ≥ B3 (min_tracks) tracks dépassent B2
+  (threshold) sur même bande. **Lit B2 et B3** — ne hardcode pas.
 
-**Heuristique fallback** quand pas pré-classé : ≥ 2 tracks > 30% sur
-même bande dans la matrix.
+**Hero identification (en absence de CDE)** :
+- `tfp_context.track_a_role` (lue depuis CDE même si CDE n'a pas
+  flag ce conflit) — Hero (`H`) gagne sur Support (`S`)
+- Brief explicit ("kick is hero") gagne tout
+- Fallback : track avec énergie max sur la bande conflit (lit Track
+  Comparison)
 
 **Action :**
 1. Identifie le **hero** : brief explicite > track avec `dominant_band` matching genre target > track avec `energy_pct` plus haut sur la freq
@@ -331,14 +546,21 @@ EQBandCorrection(
 
 ### Scenario G : Mud zone management (200-400 Hz cluster)
 
-**Signal trigger** (HARD RULE) :
-- Anomaly `category="mud"` ou `category="masking"` dans la zone
-  low-mid avec severity ∈ {warning, critical}
-- OR Mix Analyzer Freq Conflicts marque la bande low-mid comme conflit
+**⚠️ Pas de catégorie pré-classée par Mix Analyzer** — le scenario est
+**dérivé** depuis Freq Conflicts.
 
-**Heuristique fallback** : ≥ 3 tracks > 25% en 200-500Hz. Mais si le
-report n'a flag aucun conflit malgré ces chiffres, fais confiance au
-report — peut-être que le low-mid est intentionnellement chargé.
+**Signal trigger réel (Phase 4.2.6)** :
+- Freq Conflicts matrix : la bande low-mid (200-500Hz selon ta
+  band_labels) montre `Conflict count >= B3` AND status indique
+  conflit
+- OR CDE diagnostic dans cette bande de freq
+
+**Pas de fallback** : si aucun signal report-driven, ne touche pas.
+Le "200-400Hz mud" comme catégorie esthétique générique n'est pas
+détecté automatiquement par mix_analyzer ; ne pas inventer un conflit.
+
+Cite dans rationale : "inferred from Freq Conflicts low-mid band
+showing N tracks > B2 threshold".
 
 **Action :**
 - Identifie les **2-3 tracks moins importantes** parmi les chargées en low-mid
@@ -352,27 +574,28 @@ report — peut-être que le low-mid est intentionnellement chargé.
 
 ### Scenario H : Boxiness (500 Hz - 1 kHz cluster)
 
-**Signal trigger** (HARD RULE) :
-- Anomaly `category="boxiness"` ou `category="masking"` dans 500-1k
-- OR user brief mentions "boxy"
+**⚠️ Pas pré-classé par Mix Analyzer** — dérivé depuis Freq Conflicts.
 
-**Heuristique fallback** : ≥ 2 tracks > 30% sur la bande mid (500-1k).
-Plus rare que le mud — le report flag rarement à moins que ça soit
-sévère.
+**Signal trigger réel** :
+- Freq Conflicts matrix : bande mid (500-1k) avec `Conflict count >= B3`
+- OR user brief mentions "boxy"
+- OR CDE diagnostic dans cette bande
+
+Cite : "inferred from Freq Conflicts mid band".
 
 **Action :**
 - `EQBandCorrection(band_type="bell", intent="cut", center_hz=600-900, q=1.5-2.5, gain_db=-2.0 à -3.5)` sur la track la plus chargée
 
 ### Scenario I : High-mid harshness (2-5 kHz)
 
-**Signal trigger** (HARD RULE) :
-- Anomaly `category="harshness"` ou `category="resonance"` dans 2-5kHz
-- OR brief mentions "harsh" / "abrasive" / "fatigue"
-- OR CDE flag harshness zone
+**⚠️ Pas pré-classé par Mix Analyzer** — dérivé.
 
-**Heuristique fallback** : vocal/lead avec `crest_factor_db < 8` AND
-`Freq Conflicts.high-mid` > 35%. À utiliser uniquement quand brief +
-report sont silencieux.
+**Signal trigger réel** :
+- `Strong resonance peaks` dans 2-5kHz (regex sur Anomaly prose) — c'est
+  ce qui se rapproche le plus d'un signal "harshness" dans le code actuel
+- OR Freq Conflicts high-mid band conflit
+- OR brief mentions "harsh" / "abrasive" / "fatigue" / "ouch"
+- OR CDE diagnostic dans cette bande
 
 **Action :**
 ```
@@ -387,15 +610,19 @@ EQBandCorrection(
 
 ### Scenario J : Sibilance / de-essing zone (5-9 kHz)
 
-**Signal trigger** (HARD RULE) :
-- Anomaly `category="sibilance"` (Mix Analyzer le détecte explicitement
-  sur les tracks vocal-like)
-- OR `tracks[X].sibilance_zones[]` du CDE
-- OR brief mentions "harsh esses" / "ouch on s sounds" / "de-ess"
+**⚠️ Pas pré-classé par Mix Analyzer** — dérivé. CDE n'a pas non plus
+de "sibilance_zones" field.
 
-**Heuristique fallback** : vocal track avec spike spectral mesuré
-6-9 kHz dans Track Comparison, avec magnitude > 4 dB au-dessus du
-niveau ambient.
+**Signal trigger réel** :
+- `Strong resonance peaks` dans 5-9kHz sur une vocal-like track (regex
+  Anomaly prose + nom de track contenant "vocal" / "lead" / "vox")
+- OR brief mentions "harsh esses" / "ouch on s sounds" / "de-ess"
+- OR CDE diagnostic 5-9kHz vocal track
+
+⚠️ **Préfère un de-esser dynamique** (compresseur multibande) à un cut
+EQ statique. Si tu décides un cut statique, **rationale doit noter**
+"static cut chosen ; dynamics-corrective-decider should consider
+de-esser as alternative — escalation flag".
 
 **Action :**
 ```
@@ -415,14 +642,14 @@ de-esser plus élégant. C'est de la collaboration cross-lane.
 
 ### Scenario K : High-end air clutter (10-16 kHz, LPF / high-shelf)
 
-**Signal trigger** (HARD RULE) :
-- Anomaly `category="air_clutter"` ou `category="masking"` dans la
-  bande air (10-20kHz)
-- OR `dominant_band="high"` malgré genre target dark
-- OR brief explicit ("trop brillant", "tame the highs")
+**⚠️ Pas pré-classé par Mix Analyzer** — dérivé.
 
-**Heuristique fallback** : Freq Conflicts air ≥ 2 tracks > 25%, ou
-spectral_centroid ≥ 6kHz alors que genre target est dark.
+**Signal trigger réel** :
+- Freq Conflicts air band (10-20kHz) avec `Conflict count >= B3`
+- OR `full_mix.dominant_band="high"` (champ DiagnosticReport) malgré
+  genre target dark (lit `banque_loader.get_qrust_profile()`)
+- OR brief explicit ("trop brillant", "tame the highs")
+- OR CDE diagnostic dans cette bande
 
 **Action selon urgence :**
 
@@ -443,16 +670,18 @@ LPF agressif (48 dB/oct) très rare en mix corrective — réservé aux sound de
 
 ### Scenario L : Surgical notch (résonance étroite, hum, feedback)
 
-**Signal trigger** (HARD RULE) :
-- Anomaly avec `bandwidth_q > 8` rapporté
-- OR Anomaly magnitude > 12 dB rapportée
-- OR brief mentions "hum" / "60 Hz hum" / "feedback ring"
-- OR CDE flag explicit narrow resonance
+**Signal trigger réel** :
+- Anomaly Description prose contient "hum" ou "60 Hz" ou "50 Hz" ou
+  "feedback" (mots-clés non-systématiquement détectés par
+  `mix_analyzer.py`, mais user brief peut les mentionner)
+- OR `Strong resonance peaks at <freq>Hz` ET le freq est exactement à
+  une harmonique de 50/60Hz (50, 60, 100, 120, 150, 180, ...)
+- OR CDE diagnostic avec `parameters.q > 8`
 
-Ces seuils-là (Q > 8, mag > 12) sont moins arbitraires car ils
-correspondent à des objets spectraux qualitativement distincts
-(résonance étroite vs musical) — mais c'est encore le report qui les
-mesure, pas toi.
+⚠️ Mix Analyzer **ne reporte pas explicitement** la `bandwidth_q` des
+résonances détectées (`mix_analyzer.py:867` filtre uniquement par
+peak_db). L'agent doit ESTIMER Q via fallback heuristique. CDE peut
+fournir Q s'il a fait le diagnostic.
 
 **Action :**
 ```

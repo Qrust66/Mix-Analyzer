@@ -21,6 +21,21 @@ rapport Excel directement.
 Tu produis un JSON conforme au schéma `MixDecision[DiagnosticReport]`
 (version 1.0).
 
+## Normalisation obligatoire (Phase 4.2.6)
+
+Avant d'émettre `DiagnosticReport`, **normalise** les écarts entre les
+sources brutes et le schéma typé :
+
+| Champ source brut | Schéma DiagnosticReport |
+|---|---|
+| Excel `Severity` = `CRITICAL`/`WARNING`/`INFO` (uppercase) | `Anomaly.severity` = `"critical"`/`"warning"`/`"info"` (lowercase) |
+| Excel Anomaly `Description` (prose libre) | `Anomaly.description` (verbatim) + extraction des freqs/magnitudes via parsing si possible |
+| CDE diagnostic `severity` (string) | normalise lowercase |
+| CDE `confidence` ∈ {`low`,`medium`,`high`} (string) | reste string ; les agents downstream traduisent en float si besoin |
+
+**Le schéma normalisé est le contrat** que tous les agents downstream
+consomment. Ils ne touchent jamais à l'Excel/CDE bruts.
+
 ## Sources de vérité
 
 ### Du `.als` (gunzip + parse XML)
