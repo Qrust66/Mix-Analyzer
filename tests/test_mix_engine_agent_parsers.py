@@ -241,6 +241,188 @@ def test_from_response_handles_prose_around():
     assert decision.value.project_name == "TestProject"
 
 
+# ============================================================================
+# Phase 4.2.8 — CDE diagnostics + Freq Conflicts absorption
+# ============================================================================
+
+
+def _valid_cde_diagnostic() -> dict:
+    """Minimum-valid CDE diagnostic, mimicking cde_engine.py output."""
+    return {
+        "diagnostic_id": "cde-007",
+        "issue_type": "masking_conflict",
+        "severity": "critical",
+        "section": "drop_1",
+        "track_a": "Kick A",
+        "track_b": "Bass A",
+        "measurement": {"frequency_hz": 247.0},
+        "tfp_context": {
+            "track_a_role": ["H", "R"],
+            "track_b_role": ["S", "L"],
+            "role_compatibility": "high",
+        },
+        "primary_correction": {
+            "target_track": "Bass A",
+            "device": "EQ8 — Peak Resonance",
+            "approach": "static_dip",
+            "parameters": {
+                "frequency_hz": 247.0, "gain_db": -3.0, "q": 4.0,
+                "active_in_sections": [2, 3, 4],
+            },
+            "applies_to_sections": [2, 3, 4],
+            "rationale": "Static dip libère espace pour Kick A (Hero).",
+            "confidence": "high",
+        },
+        "fallback_correction": {
+            "target_track": "Bass A",
+            "device": "Kickstart 2",
+            "approach": "sidechain",
+            "parameters": {"trigger_track": "Kick A", "depth_db": -6.0, "release_ms": 120},
+            "applies_to_sections": [2, 3, 4],
+            "rationale": "Sidechain alternatif si EQ8 budget plein.",
+            "confidence": "medium",
+        },
+        "expected_outcomes": [
+            "Bass A clears 247Hz region by 3dB",
+            "Mono compatibility +0.05",
+        ],
+        "potential_risks": [
+            "Bass A may lose body if applied across all sections",
+        ],
+        "application_status": "pending",
+    }
+
+
+def test_diagnostic_report_with_cde_diagnostics():
+    payload = _valid_payload()
+    payload["diagnostic"]["cde_diagnostics"] = [_valid_cde_diagnostic()]
+    decision = parse_diagnostic_decision(payload)
+    cde_diags = decision.value.cde_diagnostics
+    assert len(cde_diags) == 1
+    d = cde_diags[0]
+    assert d.diagnostic_id == "cde-007"
+    assert d.issue_type == "masking_conflict"
+    assert d.severity == "critical"
+    assert d.track_a == "Kick A"
+    assert d.track_b == "Bass A"
+    assert d.measurement.frequency_hz == 247.0
+    assert d.tfp_context.track_a_role == ("H", "R")
+    assert d.primary_correction.device == "EQ8 — Peak Resonance"
+    assert d.primary_correction.confidence == "high"
+    assert d.primary_correction.parameters["gain_db"] == -3.0
+    assert d.fallback_correction.device == "Kickstart 2"
+    assert len(d.expected_outcomes) == 2
+    assert len(d.potential_risks) == 1
+    assert d.application_status == "pending"
+
+
+def test_cde_diagnostic_with_null_optional_fields():
+    """measurement, tfp_context, primary_correction, fallback_correction
+    all may be null. application_status may be null (never processed)."""
+    payload = _valid_payload()
+    payload["diagnostic"]["cde_diagnostics"] = [{
+        "diagnostic_id": "cde-min",
+        "issue_type": "accumulation_risk",
+        "severity": "moderate",
+        "track_a": "Pad",
+        "track_b": None,
+        "measurement": None,
+        "tfp_context": None,
+        "primary_correction": None,
+        "fallback_correction": None,
+        "expected_outcomes": [],
+        "potential_risks": [],
+        "application_status": None,
+    }]
+    decision = parse_diagnostic_decision(payload)
+    d = decision.value.cde_diagnostics[0]
+    assert d.measurement is None
+    assert d.tfp_context is None
+    assert d.primary_correction is None
+    assert d.application_status is None
+
+
+def test_cde_invalid_severity_raises():
+    payload = _valid_payload()
+    bad_diag = _valid_cde_diagnostic()
+    bad_diag["severity"] = "INFO"  # not in CDE vocabulary
+    payload["diagnostic"]["cde_diagnostics"] = [bad_diag]
+    with pytest.raises(MixAgentOutputError, match="severity"):
+        parse_diagnostic_decision(payload)
+
+
+def test_cde_invalid_application_status_raises():
+    payload = _valid_payload()
+    bad_diag = _valid_cde_diagnostic()
+    bad_diag["application_status"] = "queued"  # not in valid set
+    payload["diagnostic"]["cde_diagnostics"] = [bad_diag]
+    with pytest.raises(MixAgentOutputError, match="application_status"):
+        parse_diagnostic_decision(payload)
+
+
+def test_cde_invalid_confidence_raises():
+    payload = _valid_payload()
+    bad_diag = _valid_cde_diagnostic()
+    bad_diag["primary_correction"]["confidence"] = "very_high"
+    payload["diagnostic"]["cde_diagnostics"] = [bad_diag]
+    with pytest.raises(MixAgentOutputError, match="confidence"):
+        parse_diagnostic_decision(payload)
+
+
+def test_cde_unknown_issue_type_does_not_raise():
+    """Open-set : unknown issue_type forwarded so future CDE detectors don't break."""
+    payload = _valid_payload()
+    novel_diag = _valid_cde_diagnostic()
+    novel_diag["issue_type"] = "novel_detector_xyz"
+    payload["diagnostic"]["cde_diagnostics"] = [novel_diag]
+    decision = parse_diagnostic_decision(payload)
+    assert decision.value.cde_diagnostics[0].issue_type == "novel_detector_xyz"
+
+
+def test_diagnostic_report_with_freq_conflicts_meta():
+    payload = _valid_payload()
+    payload["diagnostic"]["freq_conflicts_meta"] = {
+        "threshold_pct": 30.0,
+        "min_tracks": 2,
+    }
+    payload["diagnostic"]["freq_conflicts_bands"] = [
+        {
+            "band_label": "low-mid (200-500Hz)",
+            "energy_per_track": {"Kick A": 22.0, "Bass A": 38.0, "Synth Pad": 28.0},
+            "conflict_count": 2,
+            "status": "Conflict",
+        },
+        {
+            "band_label": "mid (500-1k)",
+            "energy_per_track": {"Kick A": 8.0, "Bass A": 12.0, "Synth Pad": 35.0},
+            "conflict_count": 1,
+            "status": "OK",
+        },
+    ]
+    decision = parse_diagnostic_decision(payload)
+    meta = decision.value.freq_conflicts_meta
+    assert meta is not None
+    assert meta.threshold_pct == 30.0
+    assert meta.min_tracks == 2
+    bands = decision.value.freq_conflicts_bands
+    assert len(bands) == 2
+    low_mid = bands[0]
+    assert low_mid.band_label == "low-mid (200-500Hz)"
+    assert low_mid.conflict_count == 2
+    assert low_mid.status == "Conflict"
+    energy_dict = dict(low_mid.energy_per_track)
+    assert energy_dict["Bass A"] == 38.0
+
+
+def test_diagnostic_report_without_cde_or_freq_conflicts_optional():
+    """Backward-compat: payloads without cde_diagnostics/freq_conflicts_*
+    still parse cleanly with empty defaults."""
+    decision = parse_diagnostic_decision(_valid_payload())
+    assert decision.value.cde_diagnostics == ()
+    assert decision.value.freq_conflicts_meta is None
+    assert decision.value.freq_conflicts_bands == ()
+
+
 def test_sidechain_target_text_preserved():
     """Routing references to renamed tracks survive verbatim — a downstream
     routing-and-sidechain-architect agent will check them against current

@@ -21,6 +21,58 @@ rapport Excel directement.
 Tu produis un JSON conforme au schéma `MixDecision[DiagnosticReport]`
 (version 1.0).
 
+## Phase 4.2.8 — Absorption CDE + Freq Conflicts metadata
+
+Le `DiagnosticReport` exposé aux agents downstream **inclut maintenant**
+les diagnostics CDE et la métadonnée Freq Conflicts. Tu absorbes ces 2
+sources et les rend disponibles typées via :
+
+- `report.cde_diagnostics: tuple[CDEDiagnostic, ...]` — diagnostics CDE
+  parsés depuis `<projet>_diagnostics.json`
+- `report.freq_conflicts_meta: Optional[FreqConflictsMetadata]` — B2/B3
+  du sheet (threshold_pct, min_tracks)
+- `report.freq_conflicts_bands: tuple[BandConflict, ...]` — rows de la
+  matrix (band × tracks) avec conflict_count + status
+
+### Lecture de `<projet>_diagnostics.json` (cde_engine.py output)
+
+Format documented dans `cde_engine.py:1614`. Pour chaque entry de
+`diagnostics[]` :
+
+```python
+CDEDiagnostic(
+    diagnostic_id=...,
+    issue_type=...,         # "masking_conflict" | "accumulation_risk" | (forward unknown)
+    severity=...,           # "critical" | "moderate" (lowercase enforced)
+    section=...,
+    track_a=..., track_b=...,
+    measurement=CDEMeasurement(frequency_hz=..., raw=...),
+    tfp_context=CDETFPContext(track_a_role=("H","R"), ...),
+    primary_correction=CDECorrectionRecipe(target_track, device, approach,
+                                           parameters (free-form dict),
+                                           applies_to_sections, rationale,
+                                           confidence ("low"/"medium"/"high")),
+    fallback_correction=CDECorrectionRecipe(...) or None,
+    expected_outcomes=tuple of strings,
+    potential_risks=tuple of strings,
+    application_status=None | "pending" | "applied" | "rejected",
+)
+```
+
+### Lecture du Freq Conflicts sheet
+
+Tu extrais explicitement :
+- **Cellule B2** → `FreqConflictsMetadata.threshold_pct` (par exemple 30.0)
+- **Cellule B3** → `FreqConflictsMetadata.min_tracks` (par exemple 2)
+- **Rows à partir de Row 6** : pour chaque band :
+  - `band_label` (col A)
+  - `energy_per_track` ← dict {track_name → energy_pct} sur les colonnes 2..N+1
+  - `conflict_count` (col N+2)
+  - `status` (col N+3)
+
+Ne fait pas confiance à 30%/2 hardcoded : **lis vraiment B2/B3** car
+l'utilisateur peut les changer entre runs.
+
 ## Normalisation obligatoire (Phase 4.2.6)
 
 Avant d'émettre `DiagnosticReport`, **normalise** les écarts entre les

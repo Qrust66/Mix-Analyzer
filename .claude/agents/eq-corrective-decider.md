@@ -171,15 +171,27 @@ Squelette projet, types normalisés :
 "Strong resonance peaks". Le reste est out-of-scope (note dans rationale,
 escalate via la stratégie multi-agent).
 
-#### Freq Conflicts sheet (`mix_analyzer.py:3915`)
-- **Cellule B2** = threshold (% énergie de bande) — configurable runtime
-- **Cellule B3** = min_tracks pour conflit
-- **Row 5** = headers : `Frequency Band` + une colonne par track + `Conflict count` + `Status`
-- Body : matrix bands × tracks, valeurs = % énergie normalisée
-- `Conflict count` = COUNTIF des tracks > threshold sur cette band
-- `Status` = classification textuelle ("OK", "Conflict", etc.)
+#### Freq Conflicts — typés via `DiagnosticReport.freq_conflicts_*` (Phase 4.2.8)
 
-**Lit B2 et B3 pour le seuil** — ne hardcode pas 30%.
+> **Phase 4.2.8 architectural** : mix-diagnostician absorbe le sheet et
+> expose les structures typées. Tu lis :
+
+```
+report.freq_conflicts_meta: Optional[FreqConflictsMetadata(threshold_pct, min_tracks)]
+report.freq_conflicts_bands: tuple[BandConflict, ...]
+
+BandConflict.{
+  band_label: str,
+  energy_per_track: tuple[(track_name, energy_pct), ...],
+  conflict_count: int,
+  status: str,
+}
+```
+
+Pour le scénario C (cross-track masking) tu itères sur
+`freq_conflicts_bands` et tu cherches les bands avec
+`status == "Conflict"` ou `conflict_count >= meta.min_tracks`.
+**Le threshold/min_tracks viennent de `meta`, pas hardcoded.**
 
 #### Mix Health Score sheet (`mix_analyzer.py:4907`)
 5 catégories canoniques avec leurs weights :
@@ -201,7 +213,34 @@ Sheet name = `"Sections Timeline"`. Présent uniquement quand l'.als a
 des sections détectées. Quand présent : section_index, start_bar,
 end_bar, role.
 
-### 3. CDE diagnostics — `<projet>_diagnostics.json` (`cde_engine.py:1614`)
+### 3. CDE diagnostics — typés via `DiagnosticReport.cde_diagnostics` (Phase 4.2.8)
+
+> **Phase 4.2.8 architectural** : tu ne lis plus le JSON CDE
+> directement. mix-diagnostician absorbe `<projet>_diagnostics.json`
+> et expose les CDEDiagnostic typés dans `DiagnosticReport.cde_diagnostics`.
+> Tu consommes le tuple typé.
+
+Champs disponibles :
+```
+report.cde_diagnostics: tuple[CDEDiagnostic, ...]
+
+CDEDiagnostic.{
+  diagnostic_id, issue_type, severity ("critical"|"moderate"),
+  section, track_a, track_b,
+  measurement: Optional[CDEMeasurement(frequency_hz, raw)],
+  tfp_context: Optional[CDETFPContext(track_a_role, track_b_role, role_compatibility)],
+  primary_correction: Optional[CDECorrectionRecipe(target_track, device,
+                                                   approach, parameters, applies_to_sections,
+                                                   rationale, confidence)],
+  fallback_correction: Optional[CDECorrectionRecipe],
+  expected_outcomes: tuple[str, ...],
+  potential_risks: tuple[str, ...],
+  application_status: None | "pending" | "applied" | "rejected",
+}
+```
+
+Reference structure brute (`cde_engine.py:1614`) ci-dessous pour
+compréhension de ce que mix-diagnostician absorbe :
 
 **Structure RÉELLE** :
 ```json

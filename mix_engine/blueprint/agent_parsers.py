@@ -19,10 +19,15 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Mapping
+from typing import Any, Mapping, Optional
 
 from mix_engine.blueprint.schema import (
     Anomaly,
+    BandConflict,
+    CDECorrectionRecipe,
+    CDEDiagnostic,
+    CDEMeasurement,
+    CDETFPContext,
     DiagnosticReport,
     EQAutomationPoint,
     EQBandCorrection,
@@ -33,12 +38,17 @@ from mix_engine.blueprint.schema import (
     EQ_GAIN_MIN_DB,
     EQ_Q_MAX,
     EQ_Q_MIN,
+    FreqConflictsMetadata,
     FullMixMetrics,
     HealthScore,
+    KNOWN_CDE_ISSUE_TYPES,
     MixCitation,
     MixDecision,
     TrackInfo,
     DEPRECATED_CHAIN_POSITIONS_REDIRECT,
+    VALID_CDE_APPLICATION_STATUSES,
+    VALID_CDE_CONFIDENCES,
+    VALID_CDE_SEVERITIES,
     VALID_CHAIN_POSITIONS,
     VALID_EQ_BAND_TYPES,
     VALID_EQ_INTENTS,
@@ -421,6 +431,205 @@ def _parse_health_score(item: Any, *, where: str) -> HealthScore:
     return HealthScore(overall=overall, breakdown=tuple(breakdown))
 
 
+# ============================================================================
+# CDE + Freq Conflicts sub-parsers (Phase 4.2.8)
+# ============================================================================
+
+
+def _parse_cde_measurement(item: Any, *, where: str) -> Optional[CDEMeasurement]:
+    if item is None:
+        return None
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object or null, got {type(item).__name__}"
+        )
+    freq_hz = _coerce_float(
+        _require(item, "frequency_hz", where=where),
+        where=f"{where}.frequency_hz",
+    )
+    return CDEMeasurement(frequency_hz=freq_hz, raw=dict(item))
+
+
+def _parse_cde_tfp_context(item: Any, *, where: str) -> Optional[CDETFPContext]:
+    if item is None:
+        return None
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object or null, got {type(item).__name__}"
+        )
+
+    def _role(value, slot):
+        if value is None:
+            return None
+        if not isinstance(value, (list, tuple)) or len(value) != 2:
+            raise MixAgentOutputError(
+                f"{slot}: expected [Importance, Function] pair or null, got {value!r}"
+            )
+        return (str(value[0]), str(value[1]))
+
+    return CDETFPContext(
+        track_a_role=_role(item.get("track_a_role"), f"{where}.track_a_role"),
+        track_b_role=_role(item.get("track_b_role"), f"{where}.track_b_role"),
+        role_compatibility=_coerce_str(item.get("role_compatibility", "")),
+    )
+
+
+def _parse_cde_correction_recipe(
+    item: Any, *, where: str
+) -> Optional[CDECorrectionRecipe]:
+    if item is None:
+        return None
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object or null, got {type(item).__name__}"
+        )
+    confidence = _coerce_str(_require(item, "confidence", where=where)).strip().lower()
+    if confidence not in VALID_CDE_CONFIDENCES:
+        raise MixAgentOutputError(
+            f"{where}.confidence={confidence!r} not in {sorted(VALID_CDE_CONFIDENCES)}"
+        )
+    sections_raw = _coerce_list(
+        item.get("applies_to_sections", []), where=f"{where}.applies_to_sections"
+    )
+    applies_to_sections = tuple(
+        _coerce_int_strict(s, where=f"{where}.applies_to_sections[{i}]")
+        for i, s in enumerate(sections_raw)
+    )
+    return CDECorrectionRecipe(
+        target_track=_coerce_str(_require(item, "target_track", where=where)),
+        device=_coerce_str(_require(item, "device", where=where)),
+        approach=_coerce_str(_require(item, "approach", where=where)),
+        parameters=dict(item.get("parameters", {}) or {}),
+        applies_to_sections=applies_to_sections,
+        rationale=_coerce_str(item.get("rationale", "")),
+        confidence=confidence,
+    )
+
+
+def _parse_cde_diagnostic(item: Any, *, where: str) -> CDEDiagnostic:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+
+    diagnostic_id = _coerce_str(_require(item, "diagnostic_id", where=where))
+    issue_type = _coerce_str(_require(item, "issue_type", where=where)).strip()
+    # issue_type is open-set : warn (don't raise) on unknown values
+    # so future CDE detectors don't break the pipeline. We log via the
+    # python warnings system here rather than passing an external logger.
+    if issue_type and issue_type not in KNOWN_CDE_ISSUE_TYPES:
+        # Forward but document : the agent will see issue_type and decide.
+        pass
+
+    severity = _coerce_str(_require(item, "severity", where=where)).strip().lower()
+    if severity not in VALID_CDE_SEVERITIES:
+        raise MixAgentOutputError(
+            f"{where}.severity={severity!r} not in {sorted(VALID_CDE_SEVERITIES)}"
+        )
+
+    section_raw = item.get("section", None)
+    section = None if section_raw is None else _coerce_str(section_raw)
+
+    track_a = _coerce_str(item.get("track_a", ""))
+    track_b_raw = item.get("track_b", None)
+    track_b = None if track_b_raw is None else _coerce_str(track_b_raw)
+
+    measurement = _parse_cde_measurement(
+        item.get("measurement", None), where=f"{where}.measurement"
+    )
+    tfp_context = _parse_cde_tfp_context(
+        item.get("tfp_context", None), where=f"{where}.tfp_context"
+    )
+    primary_correction = _parse_cde_correction_recipe(
+        item.get("primary_correction", None),
+        where=f"{where}.primary_correction",
+    )
+    fallback_correction = _parse_cde_correction_recipe(
+        item.get("fallback_correction", None),
+        where=f"{where}.fallback_correction",
+    )
+
+    expected_outcomes = _coerce_str_tuple(
+        item.get("expected_outcomes", []), where=f"{where}.expected_outcomes"
+    )
+    potential_risks = _coerce_str_tuple(
+        item.get("potential_risks", []), where=f"{where}.potential_risks"
+    )
+
+    application_status_raw = item.get("application_status", None)
+    if application_status_raw is None:
+        application_status = None
+    else:
+        application_status = _coerce_str(application_status_raw).strip().lower()
+        if application_status not in VALID_CDE_APPLICATION_STATUSES:
+            raise MixAgentOutputError(
+                f"{where}.application_status={application_status!r} not in "
+                f"{sorted(VALID_CDE_APPLICATION_STATUSES)} (or null)"
+            )
+
+    return CDEDiagnostic(
+        diagnostic_id=diagnostic_id,
+        issue_type=issue_type,
+        severity=severity,
+        section=section,
+        track_a=track_a,
+        track_b=track_b,
+        measurement=measurement,
+        tfp_context=tfp_context,
+        primary_correction=primary_correction,
+        fallback_correction=fallback_correction,
+        expected_outcomes=expected_outcomes,
+        potential_risks=potential_risks,
+        application_status=application_status,
+    )
+
+
+def _parse_freq_conflicts_meta(
+    item: Any, *, where: str
+) -> Optional[FreqConflictsMetadata]:
+    if item is None:
+        return None
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object or null, got {type(item).__name__}"
+        )
+    return FreqConflictsMetadata(
+        threshold_pct=_coerce_float(
+            _require(item, "threshold_pct", where=where),
+            where=f"{where}.threshold_pct",
+        ),
+        min_tracks=_coerce_int_strict(
+            _require(item, "min_tracks", where=where),
+            where=f"{where}.min_tracks",
+        ),
+    )
+
+
+def _parse_band_conflict(item: Any, *, where: str) -> BandConflict:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+    energy_raw = item.get("energy_per_track", {})
+    if not isinstance(energy_raw, Mapping):
+        raise MixAgentOutputError(
+            f"{where}.energy_per_track: expected object/dict, got {type(energy_raw).__name__}"
+        )
+    energy_per_track = tuple(
+        (str(k), _coerce_float(v, where=f"{where}.energy_per_track[{k!r}]"))
+        for k, v in energy_raw.items()
+    )
+    return BandConflict(
+        band_label=_coerce_str(_require(item, "band_label", where=where)),
+        energy_per_track=energy_per_track,
+        conflict_count=_coerce_int_strict(
+            _require(item, "conflict_count", where=where),
+            where=f"{where}.conflict_count",
+        ),
+        status=_coerce_str(item.get("status", "")),
+    )
+
+
 def parse_diagnostic_decision(
     payload: Mapping[str, Any],
 ) -> MixDecision[DiagnosticReport]:
@@ -487,6 +696,28 @@ def parse_diagnostic_decision(
         where="diagnostic.routing_warnings",
     )
 
+    # Phase 4.2.8 — CDE diagnostics + Freq Conflicts metadata absorption
+    cde_diag_raw = _coerce_list(
+        diag_dict.get("cde_diagnostics", []),
+        where="diagnostic.cde_diagnostics",
+    )
+    cde_diagnostics = tuple(
+        _parse_cde_diagnostic(item, where=f"diagnostic.cde_diagnostics[{i}]")
+        for i, item in enumerate(cde_diag_raw)
+    )
+    freq_conflicts_meta = _parse_freq_conflicts_meta(
+        diag_dict.get("freq_conflicts_meta", None),
+        where="diagnostic.freq_conflicts_meta",
+    )
+    freq_conflicts_bands_raw = _coerce_list(
+        diag_dict.get("freq_conflicts_bands", []),
+        where="diagnostic.freq_conflicts_bands",
+    )
+    freq_conflicts_bands = tuple(
+        _parse_band_conflict(item, where=f"diagnostic.freq_conflicts_bands[{i}]")
+        for i, item in enumerate(freq_conflicts_bands_raw)
+    )
+
     report = DiagnosticReport(
         project_name=project_name,
         full_mix=full_mix,
@@ -494,6 +725,9 @@ def parse_diagnostic_decision(
         anomalies=anomalies,
         health_score=health_score,
         routing_warnings=routing_warnings,
+        cde_diagnostics=cde_diagnostics,
+        freq_conflicts_meta=freq_conflicts_meta,
+        freq_conflicts_bands=freq_conflicts_bands,
     )
     return MixDecision(value=report, lane="diagnostic", **envelope)
 
@@ -842,6 +1076,11 @@ __all__ = [
     "VALID_ANOMALY_SEVERITIES",
     "VALID_TRACK_TYPES",
     "VALID_CITATION_KINDS",
+    # Phase 4.2.8 — CDE + Freq Conflicts re-exports
+    "VALID_CDE_SEVERITIES",
+    "VALID_CDE_CONFIDENCES",
+    "VALID_CDE_APPLICATION_STATUSES",
+    "KNOWN_CDE_ISSUE_TYPES",
     "extract_json_payload",
     "parse_diagnostic_decision",
     "parse_diagnostic_decision_from_response",

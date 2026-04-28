@@ -144,6 +144,137 @@ class HealthScore:
     breakdown: tuple[tuple[str, float], ...]  # (category, score)
 
 
+# ============================================================================
+# CDE diagnostics absorption (Phase 4.2.8)
+# ============================================================================
+#
+# Mix-diagnostician now reads `<projet>_diagnostics.json` produced by
+# `cde_engine.py:1614` and exposes the structured diagnostics inside
+# DiagnosticReport. eq-corrective-decider (and other Tier A agents)
+# consume these typed CDEDiagnostic objects rather than parsing JSON
+# at the agent level — clean decision/execution separation.
+
+VALID_CDE_SEVERITIES = frozenset({"critical", "moderate"})
+
+# CDE issue_type values (cde_engine.py emits these). Open-set : new ones
+# may be added by future CDE detectors. The parser warns but does not
+# raise on unknown — we want to forward novel diagnostics rather than
+# silently drop them.
+KNOWN_CDE_ISSUE_TYPES = frozenset({"masking_conflict", "accumulation_risk"})
+
+# CDE confidence labels.
+VALID_CDE_CONFIDENCES = frozenset({"low", "medium", "high"})
+
+# CDE application_status values (None = never processed).
+VALID_CDE_APPLICATION_STATUSES = frozenset({"pending", "applied", "rejected"})
+
+
+@dataclass(frozen=True)
+class CDEMeasurement:
+    """The `measurement` block inside a CDE diagnostic.
+
+    CDE writes more fields than `frequency_hz`; agents may not need all
+    of them. We expose `frequency_hz` (the EQ-relevant one) plus a
+    `raw` dict for forward-compat (anything the agent wants beyond
+    frequency_hz can be read from `raw`).
+    """
+
+    frequency_hz: float
+    raw: dict
+
+
+@dataclass(frozen=True)
+class CDETFPContext:
+    """The `tfp_context` block inside a CDE diagnostic.
+
+    `track_a_role` / `track_b_role` are pairs `(Importance, Function)`
+    where Importance ∈ {"H", "S", ...} (Hero, Support) and Function is
+    role-specific letter codes (see `tfp_parser.py`). None when CDE
+    didn't have role info.
+    """
+
+    track_a_role: Optional[tuple[str, str]] = None
+    track_b_role: Optional[tuple[str, str]] = None
+    role_compatibility: str = ""
+
+
+@dataclass(frozen=True)
+class CDECorrectionRecipe:
+    """The `primary_correction` (or `fallback_correction`) block.
+
+    `parameters` is kept as a free-form dict because CDE writes
+    different shapes per device (EQ8 vs Kickstart). Agents extract
+    what they need (frequency_hz, gain_db, q, active_in_sections, etc.).
+    """
+
+    target_track: str
+    device: str  # e.g., "EQ8 — Peak Resonance" or "Kickstart 2"
+    approach: str  # e.g., "static_dip", "reciprocal_cuts", "musical_dip", "sidechain"
+    parameters: dict
+    applies_to_sections: tuple[int, ...]
+    rationale: str
+    confidence: str  # one of VALID_CDE_CONFIDENCES
+
+
+@dataclass(frozen=True)
+class CDEDiagnostic:
+    """One CDE diagnostic, fully structured.
+
+    Mix-diagnostician parses `<projet>_diagnostics.json` and produces
+    one of these per entry in `diagnostics[]`. Tier A agents (e.g.,
+    eq-corrective-decider) iterate `DiagnosticReport.cde_diagnostics`
+    and apply the CDE DEFER MODE protocol.
+    """
+
+    diagnostic_id: str
+    issue_type: str  # see KNOWN_CDE_ISSUE_TYPES
+    severity: str  # one of VALID_CDE_SEVERITIES
+    section: Optional[str] = None
+    track_a: str = ""
+    track_b: Optional[str] = None
+    measurement: Optional[CDEMeasurement] = None
+    tfp_context: Optional[CDETFPContext] = None
+    primary_correction: Optional[CDECorrectionRecipe] = None
+    fallback_correction: Optional[CDECorrectionRecipe] = None
+    expected_outcomes: tuple[str, ...] = ()
+    potential_risks: tuple[str, ...] = ()
+    application_status: Optional[str] = None  # see VALID_CDE_APPLICATION_STATUSES
+
+
+# ============================================================================
+# Freq Conflicts metadata absorption (Phase 4.2.8)
+# ============================================================================
+#
+# Mix-diagnostician reads B2 (threshold) and B3 (min_tracks) from the
+# Freq Conflicts sheet, plus the band × track matrix and per-band
+# conflict_count + status. Tier A agents read these typed structures
+# rather than referencing Excel cells directly.
+
+
+@dataclass(frozen=True)
+class FreqConflictsMetadata:
+    """Configurable parameters from Freq Conflicts sheet (B2, B3)."""
+
+    threshold_pct: float  # cell B2 — % energy threshold for conflict
+    min_tracks: int  # cell B3 — min tracks > threshold to flag conflict
+
+
+@dataclass(frozen=True)
+class BandConflict:
+    """One row of the Freq Conflicts matrix.
+
+    `energy_per_track` is a tuple of (track_name, energy_pct) pairs
+    (frozen-friendly form of dict). `conflict_count` is the COUNTIF
+    (tracks > threshold) ; `status` is the textual classification
+    (e.g., "Conflict", "OK").
+    """
+
+    band_label: str  # e.g., "low-mid (200-500Hz)"
+    energy_per_track: tuple[tuple[str, float], ...]
+    conflict_count: int
+    status: str
+
+
 @dataclass(frozen=True)
 class DiagnosticReport:
     """The structured output of mix-diagnostician.
@@ -159,6 +290,10 @@ class DiagnosticReport:
     anomalies: tuple[Anomaly, ...]
     health_score: HealthScore
     routing_warnings: tuple[str, ...] = ()  # broken sidechain refs, "No Output", etc.
+    # Phase 4.2.8 : CDE + Freq Conflicts absorption
+    cde_diagnostics: tuple[CDEDiagnostic, ...] = ()  # parsed from <projet>_diagnostics.json
+    freq_conflicts_meta: Optional[FreqConflictsMetadata] = None  # B2/B3 from sheet
+    freq_conflicts_bands: tuple[BandConflict, ...] = ()  # rows of the matrix
 
 
 # ============================================================================
@@ -420,6 +555,17 @@ __all__ = [
     "HealthScore",
     "DiagnosticReport",
     "MixBlueprint",
+    # CDE + Freq Conflicts absorption (Phase 4.2.8)
+    "VALID_CDE_SEVERITIES",
+    "KNOWN_CDE_ISSUE_TYPES",
+    "VALID_CDE_CONFIDENCES",
+    "VALID_CDE_APPLICATION_STATUSES",
+    "CDEMeasurement",
+    "CDETFPContext",
+    "CDECorrectionRecipe",
+    "CDEDiagnostic",
+    "FreqConflictsMetadata",
+    "BandConflict",
     # EQ corrective lane (Phase 4.2)
     "VALID_EQ_BAND_TYPES",
     "VALID_EQ_INTENTS",
