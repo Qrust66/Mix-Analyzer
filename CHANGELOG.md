@@ -1,5 +1,101 @@
 # Changelog
 
+## [Unreleased — mix_engine Phase 4.2.5] - 2026-04-28
+
+Audio engineer review of Phase 4.2.3/4.2.4 found 12 issues. This phase
+addresses the **3 critical musical errors** (others queued for follow-up).
+
+### Refactored — `chain_position` vocabulary refined
+
+Phase 4.2.3 introduced `pre_dynamics` / `post_dynamics` which lumped
+Gate + Compressor + Limiter together. Real engineering practice : the
+**sweet spot for corrective EQ on percussive tracks is AFTER the Gate
+but BEFORE the Compressor**. The previous taxonomy couldn't express it.
+
+**Replaced** `pre_dynamics` / `post_dynamics` with finer-grained set :
+- `post_gate_pre_compressor` ⭐ (the missing sweet spot)
+- `pre_compressor` / `post_compressor`
+- `pre_eq_creative` / `post_eq_creative` (when track has corrective +
+  creative EQ pair)
+- `chain_start` / `chain_end` / `default` / `pre_saturation` /
+  `post_saturation` (kept)
+
+Total : 10 canonical positions (was 7).
+
+### Added — `DEPRECATED_CHAIN_POSITIONS_REDIRECT`
+
+Old `pre_dynamics` / `post_dynamics` payloads now raise with explicit
+redirect message pointing to the right new equivalent. No silent
+mapping (would mask intent ambiguity that this refactor fixes).
+
+### Refactored — Device categorization for placement
+
+Audit found two miscategorizations :
+- **DrumBuss** was lumped under "dynamics" but it's a hybrid
+  comp+sat+transient with character dominated by saturation. Now
+  treated as **saturation** for placement purposes (use
+  `pre_saturation` / `post_saturation` to position EQ relative to
+  DrumBuss).
+- **AutoFilter2** was lumped under "saturation" but it's a filter,
+  not a saturator. Removed from any chain_position grouping ; if
+  AutoFilter2 is in the chain, use `default` and let Tier B figure it
+  out (rare interaction with corrective EQ).
+
+Documented in agent .md "Categorization Ableton" section.
+
+### Updated — Agent .md heuristics per scenario
+
+Each scenario's chain_position recommendation now branches on whether
+the track has a Gate :
+- Percussive with Gate → `post_gate_pre_compressor`
+- Non-percussive (no Gate) → `pre_compressor`
+
+Plus 4 new anti-patterns (no `chain_start` if Gate exists ; no
+`pre_eq_creative` without creative EQ in chain ; multi-bands same
+position grouped into one Eq8 ; explicit cascading via different
+positions).
+
+### Tests — adjusted + extended
+
+- `test_canonical_chain_positions_pin` updated to new 10-value set
+- `test_invalid_chain_position_raises` removed empty-string from list
+  (now has dedicated test)
+- New `test_empty_chain_position_normalizes_to_default`
+- New parametrized `test_deprecated_chain_positions_raise_with_redirect`
+  (covers `pre_dynamics`, `post_dynamics`)
+- New realistic scenario tests :
+  - `test_post_gate_pre_compressor_for_drum_corrective_scenario`
+  - `test_pre_compressor_for_hpf_cleanup_scenario`
+  - `test_post_saturation_for_artifact_cleanup_scenario`
+  - `test_pre_eq_creative_for_corrective_before_creative_scenario`
+
+112 eq_corrective tests total (was 105). 1038 tests pass overall.
+
+### Methodology trace (8 sub-steps)
+
+1. Plan + semantics ✅ (10 refined values + DrumBuss/AutoFilter2 fix)
+2. Schema change ✅
+3. Parser change ✅ (deprecation redirect)
+4. Re-export ✅
+5. Tests ✅ (7 net new + adjustments)
+6. Agent .md update ✅ (categorization section + per-scenario heuristics)
+7. Smoke test ✅ (4-band realistic + deprecation check)
+8. CHANGELOG + commit ✅
+
+### Audit issues queued for follow-up
+
+From the engineer audit, 9 remaining issues for future phases :
+- Multi-bands same position ambiguity (4) → covered in agent .md note
+- M/S enforcement on mono tracks (6) → cohesion rule when mix cohesion
+  module exists
+- M/S cascading order (7) → next priority
+- Phase stacking warning (8)
+- Smoke tests not in suite (10) → next priority
+- Fixture-payloads per scenario (11)
+- Cross-field integration tests (12)
+- L/R isolated (9) → out-of-scope, document escalation
+- chain_start with Gate risk (5) → covered in anti-patterns
+
 ## [Unreleased — mix_engine Phase 4.2.4] - 2026-04-28
 
 Audio engineer audit fix #2 of 9 — `processing_mode` field for Mid/Side

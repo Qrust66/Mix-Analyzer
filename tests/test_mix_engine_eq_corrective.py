@@ -549,11 +549,13 @@ def test_chain_position_default_when_omitted():
 
 
 def test_canonical_chain_positions_pin():
-    """Trip-wire on the canonical set."""
+    """Trip-wire on the refined Phase 4.2.5 canonical set."""
     assert VALID_CHAIN_POSITIONS == {
         "default", "chain_start",
-        "pre_dynamics", "post_dynamics",
+        "post_gate_pre_compressor",
+        "pre_compressor", "post_compressor",
         "pre_saturation", "post_saturation",
+        "pre_eq_creative", "post_eq_creative",
         "chain_end",
     }
 
@@ -568,39 +570,62 @@ def test_all_valid_chain_positions_accepted(position):
 
 @pytest.mark.parametrize(
     "invalid_position",
-    ["before_comp", "PRE_DYNAMICS", "after_sat", "first", ""],
+    ["before_comp", "PRE_DYNAMICS", "after_sat", "first"],
 )
 def test_invalid_chain_position_raises(invalid_position):
     payload = _valid_payload()
     payload["eq_corrective"]["bands"][0]["chain_position"] = invalid_position
-    if invalid_position == "":
-        # Empty string normalizes to "default" via the strip-and-fall-back
-        # logic — verify that's the case.
-        decision = parse_eq_corrective_decision(payload)
-        assert decision.value.bands[0].chain_position == "default"
-    else:
-        with pytest.raises(MixAgentOutputError, match="chain_position"):
-            parse_eq_corrective_decision(payload)
+    with pytest.raises(MixAgentOutputError, match="chain_position"):
+        parse_eq_corrective_decision(payload)
 
 
-def test_chain_position_pre_dynamics_for_hpf_scenario():
-    """Realistic scenario : HPF on guitar should be pre_dynamics so the
-    compressor doesn't waste headroom on sub the engineer is removing."""
+def test_empty_chain_position_normalizes_to_default():
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"][0]["chain_position"] = ""
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].chain_position == "default"
+
+
+@pytest.mark.parametrize("deprecated", ["pre_dynamics", "post_dynamics"])
+def test_deprecated_chain_positions_raise_with_redirect(deprecated):
+    """Phase 4.2.5: pre_dynamics / post_dynamics dropped because too
+    coarse. Parser raises with explicit redirect to the new vocabulary."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"][0]["chain_position"] = deprecated
+    with pytest.raises(MixAgentOutputError, match="deprecated"):
+        parse_eq_corrective_decision(payload)
+
+
+def test_post_gate_pre_compressor_for_drum_corrective_scenario():
+    """The sweet spot for corrective EQ on percussive tracks : after
+    the Gate cleans transients, before the Compressor glues them."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Snare A", band_type="bell", intent="cut",
+        center_hz=300.0, q=3.0, gain_db=-3.5,
+        chain_position="post_gate_pre_compressor",
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].chain_position == "post_gate_pre_compressor"
+
+
+def test_pre_compressor_for_hpf_cleanup_scenario():
+    """HPF cleanup on a non-percussive track (no Gate) : pre_compressor
+    so the comp doesn't waste headroom on jettisoned sub."""
     payload = _valid_payload()
     payload["eq_corrective"]["bands"] = [_valid_band(
         track="Guitar L", band_type="highpass", intent="filter",
         center_hz=80.0, q=0.71, gain_db=0.0,
         slope_db_per_oct=12.0,
-        chain_position="pre_dynamics",
+        chain_position="pre_compressor",
     )]
     decision = parse_eq_corrective_decision(payload)
-    assert decision.value.bands[0].chain_position == "pre_dynamics"
-    assert decision.value.bands[0].band_type == "highpass"
+    assert decision.value.bands[0].chain_position == "pre_compressor"
 
 
-def test_chain_position_post_saturation_for_clean_up_scenario():
-    """Realistic scenario : cut harmonic artifact AFTER the saturator
-    that generated it (a 4kHz peak coming from saturation distortion)."""
+def test_post_saturation_for_artifact_cleanup_scenario():
+    """Cut harmonic artifact AFTER the saturator that generated it
+    (covers DrumBuss too — DrumBuss is treated as saturation)."""
     payload = _valid_payload()
     payload["eq_corrective"]["bands"] = [_valid_band(
         track="Bass A", band_type="bell", intent="cut",
@@ -609,6 +634,19 @@ def test_chain_position_post_saturation_for_clean_up_scenario():
     )]
     decision = parse_eq_corrective_decision(payload)
     assert decision.value.bands[0].chain_position == "post_saturation"
+
+
+def test_pre_eq_creative_for_corrective_before_creative_scenario():
+    """Track has both corrective and creative EQ. Corrective should
+    sit before creative so creative shapes the cleaned signal."""
+    payload = _valid_payload()
+    payload["eq_corrective"]["bands"] = [_valid_band(
+        track="Vocal Lead", band_type="bell", intent="cut",
+        center_hz=247.0, q=4.5, gain_db=-3.5,
+        chain_position="pre_eq_creative",
+    )]
+    decision = parse_eq_corrective_decision(payload)
+    assert decision.value.bands[0].chain_position == "pre_eq_creative"
 
 
 # ============================================================================

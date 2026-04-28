@@ -475,44 +475,88 @@ EQBandCorrection(band_type="notch", intent="cut",
 
 ## CHAIN POSITION — où dans la device chain ?
 
-Eq8 inséré **avant** vs **après** un compresseur/saturateur produit des
-résultats musicalement différents. Tu dois décider, pas Tier B.
+Eq8 inséré **avant** vs **après** un device produit des résultats
+musicalement différents. Tu dois décider, pas Tier B.
 
-**Champ `chain_position`** sur chaque `EQBandCorrection` :
+### Categorization Ableton (Phase 4.2.5)
 
-| Valeur | Quand l'utiliser |
+Pour interpréter correctement les valeurs ci-dessous, sache comment
+les devices Ableton se classent pour le placement :
+
+- **Gate** : standalone, souvent 1er device sur les tracks percussives
+- **Compressor** : Compressor2, GlueCompressor, **Limiter**
+- **Saturation** : Saturator AND **DrumBuss** (DrumBuss est hybride
+  comp+sat+transient, mais son caractère est dominé par la saturation —
+  il est traité comme Saturator pour le placement)
+- **Filter** : AutoFilter2 (rarement pertinent pour corrective EQ —
+  utilise `default` si AutoFilter2 est dans la chain)
+
+### Valeurs `chain_position`
+
+| Valeur | Sémantique précise |
 |---|---|
-| `"default"` | Pas de préférence forte (Tier B place avant le 1er device dynamics, ou en chain_end si aucun) |
-| `"chain_start"` | Notch surgical (hum, feedback) — propreté en entrée. HPF "discipline" sub-bass de tracks non-bass. |
-| `"pre_dynamics"` | HPF/cleanup avant compression (le comp ne gaspille pas de range sur du sub-bass jeté). EQ corrective qui doit voir le signal NON compressé (résonance authentique du source). |
-| `"post_dynamics"` | Tu corriges un artefact GÉNÉRÉ par la compression (sub-bass que la comp a fait "pump", harmonics que GlueComp a accentué). |
-| `"pre_saturation"` | Tu sculptes ce qui va générer les harmoniques (HPF avant Saturator pour ne pas distordre du sub inutile). |
-| `"post_saturation"` | Tu nettoies les harmoniques générées (peaks 3-5kHz typiques d'une saturation NIN-style — cut bell post-Sat). |
-| `"chain_end"` | Tu fais une correction finale qui agit sur le signal entier post-traitement. |
+| `"default"` | Pas de préférence forte (Tier B place selon contenu chain) |
+| `"chain_start"` | 1er device — réservé aux notches surgical (hum, feedback) AVANT que le signal se propage |
+| ⭐ `"post_gate_pre_compressor"` | **Sweet spot pour percussive** — après que le Gate clean les transients, avant que la Compression les colle |
+| `"pre_compressor"` | Avant tout Compressor2/GlueComp/Limiter (alias du précédent quand pas de Gate) |
+| `"post_compressor"` | Après last compressor (typiquement avant le Limiter finalizer) — corriger ce que la comp a généré |
+| `"pre_saturation"` | Avant tout Saturator OU DrumBuss — sculpter ce qui va générer les harmoniques |
+| `"post_saturation"` | Après last Saturator/DrumBuss — nettoyer les harmoniques générées (peaks 3-5kHz typiques NIN-style) |
+| `"pre_eq_creative"` | Avant un autre EQ Eight en aval qui sert un rôle creative (boost/tilt) — la track a deux EQ : ton corrective puis le creative |
+| `"post_eq_creative"` | Après le creative EQ (rare mais valide quand le corrective est cosmétique post-shaping) |
+| `"chain_end"` | Dernier device — sweep correctif final |
 
 ### Heuristiques par scenario
 
-- **Scenario A/B (résonance source)** : généralement `"pre_dynamics"` —
-  tu corriges la résonance avant que le comp accentue.
-- **Scenario F (HPF sub cleanup)** : `"pre_dynamics"` — le comp
-  bénéficie du HPF (pas de pumping sur sub).
+- **Scenario A/B (résonance source)** :
+  - Sur percussive avec Gate → `"post_gate_pre_compressor"` (le slot prime)
+  - Sans Gate → `"pre_compressor"`
+
+- **Scenario F (HPF sub cleanup)** :
+  - Sur track non-percussive → `"pre_compressor"` (le comp ne gaspille pas de range sur sub jeté)
+  - Sur percussive (kick) → `"post_gate_pre_compressor"`
+
 - **Scenario L (notch hum)** : `"chain_start"` — tue le hum avant
-  qu'il se propage.
-- **Scenario J (sibilance)** : `"post_dynamics"` si la comp accentue
-  les esses, `"pre_dynamics"` si la sibilance est dans le source.
-  ⚠️ Mais voir la note dans Scenario J — de-esser dynamique préférable.
-- **Scenario I (harshness)** : `"post_saturation"` quand la harshness
-  vient du saturator ; `"pre_dynamics"` quand elle est dans le source.
+  qu'il se propage à travers Gate/Comp/Sat downstream.
+
+- **Scenario J (sibilance)** :
+  - Si comp accentue les esses → `"post_compressor"`
+  - Si sibilance dans source → `"pre_compressor"`
+  - ⚠️ Considère plutôt de-esser dynamique (voir Scenario J)
+
+- **Scenario I (harshness)** :
+  - Harshness venant du saturator → `"post_saturation"`
+  - Harshness dans source → `"pre_compressor"` (si percussive : `"post_gate_pre_compressor"`)
+
+- **Cas track avec corrective + creative EQ** : ton corrective sort
+  `"pre_eq_creative"` — le creative shape le signal nettoyé.
+
+### ⚠️ Caveat : valeurs dépréciées (Phase 4.2.3, retirées en 4.2.5)
+
+`pre_dynamics` et `post_dynamics` étaient trop coarses (lumpaient Gate +
+Compressor + Limiter sans distinction). **Le parser raise maintenant**
+avec un message de redirection vers les nouveaux équivalents. Exemples :
+
+- Old `"pre_dynamics"` → New `"post_gate_pre_compressor"` (percussive) OU `"pre_compressor"` (non-percussive)
+- Old `"post_dynamics"` → New `"post_compressor"` ou `"chain_end"`
 
 ### Anti-patterns
 
 - ❌ `"default"` quand tu as une préférence claire — sois explicit.
-- ❌ `"post_saturation"` sur une track sans Saturator dans la chain
-  (lit `DiagnosticReport.tracks[].devices` pour vérifier la composition
-  de la chain — Tier B fallback à `"chain_end"` mais ton intent est
-  flou).
-- ❌ `"chain_start"` pour des moves cosmétiques — réservé aux notches
-  surgical et au discipline sub-bass.
+- ❌ `"post_saturation"` sur une track sans Saturator NI DrumBuss
+  (lit `DiagnosticReport.tracks[].devices`). Tier B fallback à
+  `"chain_end"` mais ton intent est flou.
+- ❌ `"chain_start"` sur une track avec Gate — l'EQ avant Gate peut
+  fausser le detection du gate (gate utilise full-spectrum). Utilise
+  `"post_gate_pre_compressor"` à la place pour les corrections,
+  réserve `"chain_start"` aux notches surgical (hum/feedback).
+- ❌ `"pre_eq_creative"` quand la track n'a pas de creative EQ en aval
+  — c'est un no-op, fall-back implicite.
+- ❌ Multiple `EQBandCorrection` sur même track avec mêmes
+  `(chain_position, processing_mode)` ne créent pas plusieurs Eq8.
+  Tier B les groupe en UN seul Eq8 (jusqu'à 8 bandes par instance).
+  Si tu veux 2 Eq8 séparés (cascading), utilise des `chain_position`
+  différents (ex: `pre_compressor` + `post_compressor`).
 
 ## STEREO PROCESSING — Mid/Side EQ
 
@@ -579,8 +623,8 @@ JSON pur (no fences) :
         "q": 0.71,
         "gain_db": 0.0,
         "slope_db_per_oct": 12.0,
-        "chain_position": "pre_dynamics",
-        "rationale": "Causal: Guitar L a 18% energy < 60Hz qui n'a aucun rôle musical pour cette track + crée masking avec Bass A (Freq Conflicts shows 35% sub on Bass). Interactionnel: HPF libère le low-end pour la basse, qui devient plus définie. Placement pre_dynamics : le compresseur de Guitar L ne gaspille pas de range sur du sub-bass qu'on jette. Idiomatique: practique standard rock/industrial — HPF systematic sur tout sauf bass/kick (cf. mix engineer PDF section 'low-end discipline').",
+        "chain_position": "pre_compressor",
+        "rationale": "Causal: Guitar L a 18% energy < 60Hz qui n'a aucun rôle musical pour cette track + crée masking avec Bass A (Freq Conflicts shows 35% sub on Bass). Interactionnel: HPF libère le low-end pour la basse, qui devient plus définie. Placement pre_compressor (pas de Gate sur Guitar L) : le compresseur ne gaspille pas de range sur du sub-bass jeté. Idiomatique: practique standard rock/industrial — HPF systematic sur tout sauf bass/kick (cf. mix engineer PDF section 'low-end discipline').",
         "inspired_by": [
           {"kind": "diagnostic", "path": "Freq Conflicts!B5",
            "excerpt": "Guitar L: 18% sub energy ; Bass A: 35% sub energy"},

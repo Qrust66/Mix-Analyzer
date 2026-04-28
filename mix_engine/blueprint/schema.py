@@ -206,20 +206,50 @@ VALID_PROCESSING_MODES = frozenset({
 
 
 # Position of the corrective EQ within the track's existing device chain.
-# The decider knows MUSICALLY where the EQ should sit (pre-comp = clean
-# the input ; post-comp = catch what comp generated ; pre-sat = sculpt
-# what generates harmonics ; post-sat = clean harmonic artifacts). Tier B
-# (eq8-configurator) reads this and inserts the new device at the right
-# index in the chain, scanning for existing dynamics/saturator devices.
+# Refined Phase 4.2.5 from the audio engineer audit : the previous
+# pre_dynamics / post_dynamics lumping was too coarse to express the
+# actual musical sweet spot for corrective EQ on percussive tracks.
+#
+# Device categorization for placement (Tier B reads this):
+# - Gate       : standalone, often first on percussion
+# - Compressor : Compressor2, GlueCompressor, Limiter
+# - DrumBuss   : treated as Saturation (hybrid, but character = saturation)
+# - Saturator  : AND DrumBuss
+# - AutoFilter2: filter (rarely interacts with corrective EQ — defaults)
 VALID_CHAIN_POSITIONS = frozenset({
-    "default",          # Tier B picks (typically pre_dynamics, fallback chain_end)
-    "chain_start",      # First device in the chain
-    "pre_dynamics",     # Before first Comp2/GlueComp/Limiter/Gate/DrumBuss
-    "post_dynamics",    # After last dynamics device
-    "pre_saturation",   # Before first Saturator/AutoFilter2
-    "post_saturation",  # After last Saturator/AutoFilter2
-    "chain_end",        # Last device in the chain
+    "default",                    # Tier B picks based on chain content
+    "chain_start",                # First device in the chain
+    "post_gate_pre_compressor",   # ⭐ Sweet spot for corrective EQ on
+                                  #   percussive tracks (after gate cleans
+                                  #   transients, before comp glues them)
+    "pre_compressor",             # Before any Compressor2/GlueComp/Limiter
+                                  #   (alias of post_gate_pre_compressor
+                                  #   when no Gate exists)
+    "post_compressor",            # After last compressor (typically just
+                                  #   before any Limiter finalizer)
+    "pre_saturation",             # Before any Saturator OR DrumBuss
+    "post_saturation",            # After last Saturator/DrumBuss — clean
+                                  #   harmonic artifacts generated
+    "pre_eq_creative",            # Before another EQ Eight downstream that
+                                  #   serves a creative role (boost/tilt)
+    "post_eq_creative",           # After the creative EQ (uncommon)
+    "chain_end",                  # Last device — final corrective sweep
 })
+
+# Deprecated chain_position values from Phase 4.2.3. The parser raises
+# with a redirect message rather than silently mapping (would mask
+# intent ambiguity that this refactor is meant to fix).
+DEPRECATED_CHAIN_POSITIONS_REDIRECT = {
+    "pre_dynamics": (
+        "Use 'post_gate_pre_compressor' (after Gate, before Comp — "
+        "sweet spot for corrective EQ on percussive tracks) or "
+        "'pre_compressor' (when no Gate exists)."
+    ),
+    "post_dynamics": (
+        "Use 'post_compressor' (after Comp/GlueComp, typically before "
+        "Limiter) or 'chain_end' (truly last)."
+    ),
+}
 
 # Acceptable intent labels.
 VALID_EQ_INTENTS = frozenset({
@@ -395,6 +425,7 @@ __all__ = [
     "VALID_EQ_INTENTS",
     "VALID_FILTER_SLOPES_DB_PER_OCT",
     "VALID_CHAIN_POSITIONS",
+    "DEPRECATED_CHAIN_POSITIONS_REDIRECT",
     "VALID_PROCESSING_MODES",
     "EQ_Q_MIN",
     "EQ_Q_MAX",
