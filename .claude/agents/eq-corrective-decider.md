@@ -544,6 +544,65 @@ Mots-clés à extraire :
 - `tempo_sweet` → indirectly suggère arrangement density
 - `description` → mentionne quel `dominant_band` est attendu
 
+### 10. Per-track audio metrics (Phase 4.7+ typed source — PREFERRED when present)
+
+`report.tracks[*].audio_metrics: Optional[TrackAudioMetrics]` — populated by mix-diagnostician via lazy absorption (only for tracks with anomalies / CDE / brief consumers).
+
+**Champs particulièrement pertinents pour eq-corrective** :
+
+| Field | Use | Triggers / signals |
+|---|---|---|
+| `spectral_peaks` (tuple of {frequency_hz, magnitude_db}) | Per-track resonance peaks typed | ⭐ Alternative source vs Anomaly prose `Strong resonance peaks` — typed structure, more precise, magnitude descending |
+| `dominant_band` | Per-track dominant frequency band | "low_mid"/"mid" → Scenario G/H mud/boxiness candidate ; "presence"/"air" → Scenario K air clutter candidate |
+| `band_energies` (tuple len 7 ordered per CANONICAL_BAND_LABELS) | Per-track energy distribution | Cross-validate Freq Conflicts matrix : `band_energies[idx]` vs `freq_conflicts_bands` ; identifie tracks heavy-loaded sur conflict bands |
+| `centroid_hz` | Per-track spectral centroid | Bright track (`centroid_hz > 4000`) → Scenario K candidate ; dark track (`centroid_hz < 800`) → Scenario G low-mid candidate |
+| `rolloff_hz` | Per-track high-end rolloff | `rolloff_hz < 5000` → track manque presence/air ; corrective EQ pour boost créatif (out-of-scope ici, escalate) |
+| `is_tonal` + `dominant_note` | Musical context | ⚠️ **AVOID cutting on harmonic notes** : si `is_tonal=True` AND a peak frequency matches `dominant_note` octave/fifth → reduce cut amount or shift center_hz away from the note |
+| `is_stereo` + `correlation` | Stereo content awareness | Cross-validate `processing_mode="mid"|"side"` decisions (M/S only valuable when correlation < 0.95) |
+
+**Mapping `band_energies` index → canonical bands** :
+```
+band_energies[0] = sub        (20-60 Hz)    → Scenario F (HPF cleanup) candidate
+band_energies[1] = bass       (60-250 Hz)   → Scenario F bass region
+band_energies[2] = low_mid    (250-500 Hz)  → Scenario G mud zone
+band_energies[3] = mid        (500-2000 Hz) → Scenario H boxiness
+band_energies[4] = high_mid   (2-4 kHz)     → Scenario I harshness
+band_energies[5] = presence   (4-8 kHz)     → Scenario J sibilance / Scenario I extended
+band_energies[6] = air        (8-20 kHz)    → Scenario K air clutter
+```
+
+**Backward-compat strict** :
+```python
+if track.audio_metrics is not None:
+    # Phase 4.7+ typed signal-driven path
+    use spectral_peaks / band_energies / dominant_band directly
+    cross-validate against Anomaly prose if both present
+else:
+    # Pre-Phase-4.7 fallback : Anomaly Description prose patterns
+    use Source #2 (Excel sheets) + Section 7 regex parsing
+```
+
+### 11. Genre context (Phase 4.7+ project-level — cut amount modulation)
+
+`report.genre_context: Optional[GenreContext]` — when populated, modulates corrective cut intensity :
+
+| `family` | Cut intensity tendency | Low-end discipline | Anti-pattern alert |
+|---|---|---|---|
+| `electronic_aggressive` / `electronic_dance` | aggressive cuts OK (-4 to -6 dB on conflicts) | strict HPF on non-bass | over-cut high-mid kills synths |
+| `rock` | medium cuts (-3 to -5 dB) | standard HPF | over-cut low_mid kills body |
+| `acoustic` | surgical cuts only (-1.5 to -3 dB) | gentle HPF si needed | aggressive cuts destroy character |
+| `electronic_soft` | gentle cuts (-2 to -4 dB) | gentle HPF | preserve atmospheric content |
+| `urban` / `pop` | balanced cuts (-3 to -4 dB) | strict HPF on non-bass | over-cut presence kills vocal clarity |
+| `generic` | baseline (-2 to -4 dB) | standard | — |
+
+**Density tolerance modulator** :
+- `density_tolerance="very_high"` (electronic_aggressive) → freq conflicts often INTENTIONAL ; cut threshold higher (don't over-correct)
+- `density_tolerance="low"` (acoustic, electronic_soft) → conflicts rare ; small conflict signal warrants surgical cut
+
+Cite `genre_context.family` dans `inspired_by` quand modulator appliqué.
+
+Backward-compat : `genre_context is None` → brief drives genre intent (existing path).
+
 ## SCENARIOS — chemins conditionnels (chaque scenario = pre-flight gate puis action)
 
 ### Scenario A : Résonance peak STATIQUE (un track unique, persiste)
@@ -585,6 +644,23 @@ Si le report fournit `bandwidth_q` → utilise-le. Sinon fallback :
 - `intent="preserve_character"` brief → réduit à `-min(magnitude, 2.5)`
 - Résonance dans target_band du genre → cut très réduit (-1 dB Q=2) ou skip
 - Track est un return/group → refuse + pointe vers la source dans rationale
+- **Phase 4.7+** : si `track.audio_metrics.is_tonal == True` AND la peak frequency est proche de `dominant_note` octave/fifth → réduit cut (préserve la note harmonique du track) ; mention dans rationale.
+
+**Phase 4.7+ alternative trigger via `audio_metrics.spectral_peaks`** :
+
+Quand `track.audio_metrics is not None`, tu peux utiliser `spectral_peaks` typé directement au lieu de regex sur Anomaly prose :
+```
+for peak in track.audio_metrics.spectral_peaks:  # ordered magnitude DESCENDING
+    if peak.magnitude_db > -3.0:                 # match Anomaly threshold
+        # Strong resonance candidate, peak.frequency_hz known precisely
+        emit EQBandCorrection(
+            center_hz=peak.frequency_hz,
+            gain_db=adapt_to_magnitude(peak.magnitude_db),
+            ...
+        )
+```
+
+⚠️ **Avoid double-correction** : si Anomaly prose AND spectral_peaks both signal le même peak → emit UN move (cite both sources dans `inspired_by`).
 
 ### Scenario B : Résonance peak DYNAMIQUE (évolue dans le temps)
 
@@ -682,21 +758,27 @@ EQBandCorrection(
 **⚠️ Pas de catégorie pré-classée par Mix Analyzer** — le scenario est
 **dérivé** depuis Freq Conflicts.
 
-**Signal trigger réel (Phase 4.2.6)** :
+**Signal trigger réel (Phase 4.2.6 + 4.7+ extended)** :
 - Freq Conflicts matrix : la bande low-mid (200-500Hz selon ta
   band_labels) montre `Conflict count >= B3` AND status indique
   conflit
 - OR CDE diagnostic dans cette bande de freq
+- **Phase 4.7+ alternative typed** : `track.audio_metrics.band_energies[2]` (low_mid index)
+  > 25% AND multiple tracks have similar high low_mid energy → mud
+  candidate identified per-track without Freq Conflicts dependence
 
 **Pas de fallback** : si aucun signal report-driven, ne touche pas.
 Le "200-400Hz mud" comme catégorie esthétique générique n'est pas
 détecté automatiquement par mix_analyzer ; ne pas inventer un conflit.
 
 Cite dans rationale : "inferred from Freq Conflicts low-mid band
-showing N tracks > B2 threshold".
+showing N tracks > B2 threshold" OR (Phase 4.7+) "audio_metrics.band_energies[2]
+shows N tracks > 25% low_mid".
 
 **Action :**
 - Identifie les **2-3 tracks moins importantes** parmi les chargées en low-mid
+  - Phase 4.7+ : prioritize tracks where `audio_metrics.dominant_band == "low_mid"`
+    (tracks dominantly low_mid are primary culprits)
 - Sur chacune : `EQBandCorrection(band_type="bell", intent="cut", center_hz=240-300, q=1.2-2.0, gain_db=-2.5 à -4.0)`
 - Q wide-ish (1.2-2) car on cleanup une zone, pas une fréquence pic
 
