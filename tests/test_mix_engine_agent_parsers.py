@@ -2478,3 +2478,405 @@ def test_chain_dag_dependencies_include_corrective_trio_plus_routing():
     assert "dynamics_corrective" in chain_deps
     assert "stereo_spatial" in chain_deps  # audit pre-empt fix
     assert "routing" in chain_deps          # audit pre-empt fix
+
+
+# ============================================================================
+# Phase 4.7 — Per-track audio metrics + genre context absorption
+# ============================================================================
+
+
+from mix_engine.blueprint import (
+    CANONICAL_BAND_COUNT,
+    CANONICAL_BAND_LABELS,
+    SPECTRAL_PEAKS_MAX,
+    GenreContext,
+    SpectralPeak,
+    TrackAudioMetrics,
+    VALID_DENSITY_TOLERANCES,
+    VALID_GENRE_FAMILIES,
+)
+
+
+def _valid_audio_metrics(**overrides) -> dict:
+    """Minimum-valid TrackAudioMetrics dict (mono case)."""
+    base = {
+        "peak_db": -3.2,
+        "true_peak_db": -2.8,
+        "rms_db": -18.5,
+        "lufs_integrated": -14.2,
+        "lufs_short_term_max": -10.5,
+        "lra": 8.5,
+        "crest_factor": 14.7,
+        "plr": 10.5,
+        "psr": 11.2,
+        "dominant_band": "bass",
+        "centroid_hz": 2150.0,
+        "rolloff_hz": 8500.0,
+        "spectral_flatness": 0.15,
+        "band_energies": [15.2, 35.8, 18.5, 12.3, 9.5, 5.2, 3.5],  # 7 bands
+        "spectral_peaks": [
+            {"frequency_hz": 247.0, "magnitude_db": -3.5},
+            {"frequency_hz": 120.0, "magnitude_db": -8.2},
+        ],
+        "num_onsets": 180,
+        "onsets_per_second": 2.5,
+        "is_stereo": False,
+        # mono → stereo fields all None
+        "is_tonal": True,
+        "dominant_note": "C",
+        "tonal_strength": 0.78,
+    }
+    base.update(overrides)
+    return base
+
+
+def _valid_genre_context(**overrides) -> dict:
+    base = {
+        "family": "electronic_aggressive",
+        "target_lufs_mix": -8.0,
+        "typical_crest_mix": 8.0,
+        "density_tolerance": "very_high",
+    }
+    base.update(overrides)
+    return base
+
+
+# ----------------------------------------------------------------------------
+# Backward-compat (CRITICAL — existing fixtures must still parse)
+# ----------------------------------------------------------------------------
+
+
+def test_phase47_diagnostic_report_backward_compat_no_audio_metrics():
+    """Existing fixture without audio_metrics still parses, audio_metrics=None."""
+    decision = parse_diagnostic_decision(_valid_payload())
+    for t in decision.value.tracks:
+        assert t.audio_metrics is None
+
+
+def test_phase47_diagnostic_report_backward_compat_no_genre_context():
+    decision = parse_diagnostic_decision(_valid_payload())
+    assert decision.value.genre_context is None
+
+
+# ----------------------------------------------------------------------------
+# TrackAudioMetrics happy paths (mono + stereo)
+# ----------------------------------------------------------------------------
+
+
+def test_phase47_audio_metrics_mono_happy_path():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics()
+    decision = parse_diagnostic_decision(payload)
+    am = decision.value.tracks[0].audio_metrics
+    assert am is not None
+    assert am.peak_db == -3.2
+    assert am.lra == 8.5
+    assert am.dominant_band == "bass"
+    assert len(am.band_energies) == 7
+    assert am.is_stereo is False
+    assert am.correlation is None
+    assert am.is_tonal is True
+
+
+def test_phase47_audio_metrics_stereo_happy_path():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        is_stereo=True,
+        correlation=0.85,
+        width_overall=0.45,
+        width_per_band=[0.1, 0.2, 0.3, 0.5, 0.6, 0.4, 0.3],
+    )
+    decision = parse_diagnostic_decision(payload)
+    am = decision.value.tracks[0].audio_metrics
+    assert am.is_stereo is True
+    assert am.correlation == 0.85
+    assert am.width_overall == 0.45
+    assert len(am.width_per_band) == 7
+
+
+def test_phase47_audio_metrics_partial_population_per_track():
+    """Lazy absorption : some tracks have audio_metrics, others don't."""
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics()
+    # tracks[1] has no audio_metrics (still parses)
+    decision = parse_diagnostic_decision(payload)
+    assert decision.value.tracks[0].audio_metrics is not None
+    assert decision.value.tracks[1].audio_metrics is None
+
+
+# ----------------------------------------------------------------------------
+# Range checks
+# ----------------------------------------------------------------------------
+
+
+def test_phase47_audio_metrics_peak_db_out_of_range():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(peak_db=50.0)
+    with pytest.raises(MixAgentOutputError, match="peak_db"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_lra_negative():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(lra=-1.0)
+    with pytest.raises(MixAgentOutputError, match="lra"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_crest_factor_extreme():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(crest_factor=100.0)
+    with pytest.raises(MixAgentOutputError, match="crest_factor"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_centroid_above_nyquist_max():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(centroid_hz=30000.0)
+    with pytest.raises(MixAgentOutputError, match="centroid_hz"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_negative_onsets():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(num_onsets=-5)
+    with pytest.raises(MixAgentOutputError, match="num_onsets"):
+        parse_diagnostic_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# Cross-field check #1 — NaN rejection
+# ----------------------------------------------------------------------------
+
+
+def test_phase47_audio_metrics_nan_rejected():
+    """NaN floats are rejected explicitly — mix-diagnostician must normalize."""
+    import math
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        peak_db=float("nan")
+    )
+    with pytest.raises(MixAgentOutputError, match="NaN"):
+        parse_diagnostic_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# Cross-field check #2 — is_stereo coherence
+# ----------------------------------------------------------------------------
+
+
+def test_phase47_audio_metrics_mono_with_correlation_set_raises():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        is_stereo=False, correlation=0.5,
+    )
+    with pytest.raises(MixAgentOutputError, match="is_stereo=False"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_mono_with_width_overall_set_raises():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        is_stereo=False, width_overall=0.3,
+    )
+    with pytest.raises(MixAgentOutputError, match="is_stereo=False"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_stereo_without_correlation_raises():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        is_stereo=True, width_overall=0.4,
+        # correlation omis → required
+    )
+    with pytest.raises(MixAgentOutputError, match="correlation"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_stereo_without_width_overall_raises():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        is_stereo=True, correlation=0.7,
+        # width_overall omis → required
+    )
+    with pytest.raises(MixAgentOutputError, match="width_overall"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_stereo_width_per_band_optional():
+    """Stereo : width_per_band is optional (correlation + width_overall mandatory)."""
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        is_stereo=True, correlation=0.7, width_overall=0.4,
+        # width_per_band omitted → OK
+    )
+    decision = parse_diagnostic_decision(payload)
+    assert decision.value.tracks[0].audio_metrics.width_per_band is None
+
+
+# ----------------------------------------------------------------------------
+# Cross-field check #3/#4 — band_energies + width_per_band len exact 7
+# ----------------------------------------------------------------------------
+
+
+def test_phase47_audio_metrics_band_energies_wrong_length_6():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        band_energies=[10.0, 20.0, 30.0, 25.0, 10.0, 5.0],  # only 6
+    )
+    with pytest.raises(MixAgentOutputError, match="band_energies"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_width_per_band_wrong_length():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        is_stereo=True, correlation=0.7, width_overall=0.4,
+        width_per_band=[0.1, 0.2, 0.3],  # only 3
+    )
+    with pytest.raises(MixAgentOutputError, match="width_per_band"):
+        parse_diagnostic_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# Cross-field check #5 — spectral_peaks cap + descending order
+# ----------------------------------------------------------------------------
+
+
+def test_phase47_audio_metrics_spectral_peaks_above_max_raises():
+    """SPECTRAL_PEAKS_MAX = 10 cap."""
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        spectral_peaks=[
+            {"frequency_hz": 100.0 + i * 50, "magnitude_db": -5.0 - i * 0.5}
+            for i in range(11)  # 11 > 10 cap
+        ],
+    )
+    with pytest.raises(MixAgentOutputError, match="spectral_peaks"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_spectral_peaks_not_descending_raises():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        spectral_peaks=[
+            {"frequency_hz": 100.0, "magnitude_db": -10.0},
+            {"frequency_hz": 247.0, "magnitude_db": -3.5},  # higher = should be first
+        ],
+    )
+    with pytest.raises(MixAgentOutputError, match="DESCENDING"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_spectral_peaks_empty_accepted():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        spectral_peaks=[],
+    )
+    decision = parse_diagnostic_decision(payload)
+    assert decision.value.tracks[0].audio_metrics.spectral_peaks == ()
+
+
+# ----------------------------------------------------------------------------
+# Cross-field check #6 — dominant_band ∈ CANONICAL_BAND_LABELS
+# ----------------------------------------------------------------------------
+
+
+def test_phase47_audio_metrics_invalid_dominant_band_raises():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        dominant_band="treble"  # not in canonical 7
+    )
+    with pytest.raises(MixAgentOutputError, match="dominant_band"):
+        parse_diagnostic_decision(payload)
+
+
+@pytest.mark.parametrize("band", sorted(CANONICAL_BAND_LABELS))
+def test_phase47_audio_metrics_all_canonical_bands_accepted(band):
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        dominant_band=band
+    )
+    decision = parse_diagnostic_decision(payload)
+    assert decision.value.tracks[0].audio_metrics.dominant_band == band
+
+
+# ----------------------------------------------------------------------------
+# GenreContext
+# ----------------------------------------------------------------------------
+
+
+def test_phase47_genre_context_minimum_valid():
+    payload = _valid_payload()
+    payload["diagnostic"]["genre_context"] = _valid_genre_context()
+    decision = parse_diagnostic_decision(payload)
+    gc = decision.value.genre_context
+    assert gc is not None
+    assert gc.family == "electronic_aggressive"
+    assert gc.target_lufs_mix == -8.0
+    assert gc.density_tolerance == "very_high"
+
+
+def test_phase47_genre_context_invalid_family_raises():
+    payload = _valid_payload()
+    payload["diagnostic"]["genre_context"] = _valid_genre_context(family="metal")
+    with pytest.raises(MixAgentOutputError, match="family"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_genre_context_invalid_density_tolerance_raises():
+    payload = _valid_payload()
+    payload["diagnostic"]["genre_context"] = _valid_genre_context(
+        density_tolerance="extreme"
+    )
+    with pytest.raises(MixAgentOutputError, match="density_tolerance"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_genre_context_target_lufs_out_of_range():
+    payload = _valid_payload()
+    payload["diagnostic"]["genre_context"] = _valid_genre_context(
+        target_lufs_mix=-50.0  # below TARGET_LUFS_MIX_MIN=-30
+    )
+    with pytest.raises(MixAgentOutputError, match="target_lufs_mix"):
+        parse_diagnostic_decision(payload)
+
+
+@pytest.mark.parametrize("family", sorted(VALID_GENRE_FAMILIES))
+def test_phase47_all_valid_genre_families_parse(family):
+    payload = _valid_payload()
+    payload["diagnostic"]["genre_context"] = _valid_genre_context(family=family)
+    decision = parse_diagnostic_decision(payload)
+    assert decision.value.genre_context.family == family
+
+
+@pytest.mark.parametrize("dt", sorted(VALID_DENSITY_TOLERANCES))
+def test_phase47_all_valid_density_tolerances_parse(dt):
+    payload = _valid_payload()
+    payload["diagnostic"]["genre_context"] = _valid_genre_context(density_tolerance=dt)
+    decision = parse_diagnostic_decision(payload)
+    assert decision.value.genre_context.density_tolerance == dt
+
+
+# ----------------------------------------------------------------------------
+# Full integration smoke test
+# ----------------------------------------------------------------------------
+
+
+def test_phase47_full_integration_audio_metrics_plus_genre_context():
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        is_stereo=True, correlation=0.78, width_overall=0.35,
+        width_per_band=[0.05, 0.1, 0.2, 0.45, 0.55, 0.4, 0.3],
+    )
+    payload["diagnostic"]["tracks"][1]["audio_metrics"] = _valid_audio_metrics(
+        is_stereo=False,  # mono kick
+    )
+    payload["diagnostic"]["genre_context"] = _valid_genre_context(
+        family="electronic_dance", target_lufs_mix=-9.0,
+        typical_crest_mix=8.0, density_tolerance="high",
+    )
+    decision = parse_diagnostic_decision(payload)
+    assert decision.value.tracks[0].audio_metrics.is_stereo is True
+    assert decision.value.tracks[1].audio_metrics.is_stereo is False
+    assert decision.value.genre_context.family == "electronic_dance"

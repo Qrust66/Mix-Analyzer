@@ -93,7 +93,14 @@ class MixDecision(Generic[T]):
 
 @dataclass(frozen=True)
 class TrackInfo:
-    """One track's identity, routing, and chain state."""
+    """One track's identity, routing, and chain state.
+
+    Phase 4.7 extension : optional ``audio_metrics`` field exposes per-track
+    audio character (loudness/spectrum/temporal/stereo/musical) computed
+    by mix_analyzer.py:analyze_track. mix-diagnostician populates this
+    via lazy absorption (only for tracks consumed by downstream Tier A
+    agents — anomalies, CDE diagnostics, brief mentions).
+    """
 
     name: str
     track_type: str  # "Audio" | "MIDI" | "Group" | "Return" | "Master"
@@ -104,6 +111,8 @@ class TrackInfo:
     pan: float  # -1.0 (full L) to +1.0 (full R)
     sidechain_targets: tuple[str, ...]  # tracks this one ducks
     activator: bool  # track-on
+    # Phase 4.7 — per-track audio character (Optional ; lazy absorption)
+    audio_metrics: Optional["TrackAudioMetrics"] = None
 
 
 @dataclass(frozen=True)
@@ -275,6 +284,172 @@ class BandConflict:
     status: str
 
 
+# ============================================================================
+# Phase 4.7 — Per-track audio metrics + genre context absorption
+# ============================================================================
+#
+# Phase 4.7 layer extension : exposes per-track audio character that
+# mix_analyzer.py:analyze_track computes but DiagnosticReport previously
+# omitted. Parallel pattern to Phase 4.2.8 (CDE + Freq Conflicts).
+#
+# Audit Pass 1 findings applied :
+# - CANONICAL_BAND_LABELS / CANONICAL_BAND_COUNT match mix_analyzer.py:382-390
+#   FREQ_BANDS exactly (7 bands : sub/bass/low_mid/mid/high_mid/presence/air ;
+#   not the fictive 6-band split the plan originally used)
+# - band_energies as tuple[float] len 7 ordered per CANONICAL_BAND_LABELS
+#   (mix-diagnostician converts mix_analyzer dict to ordered tuple)
+# - SPECTRAL_PEAKS_MAX = 10 (generous ; mix_analyzer caps internally at 6)
+# - is_tonal exposed separately (mirrors analyze_musical structure)
+# - onsets_per_second is mix-diagnostician-derived (num_onsets / duration)
+
+
+# Canonical 7-band frequency split per mix_analyzer.py:382-390 FREQ_BANDS.
+# Order is fixed ; index ↔ semantic enforced via this tuple.
+CANONICAL_BAND_LABELS: tuple[str, ...] = (
+    "sub",        # 20-60 Hz
+    "bass",       # 60-250 Hz
+    "low_mid",    # 250-500 Hz
+    "mid",        # 500-2000 Hz
+    "high_mid",   # 2000-4000 Hz
+    "presence",   # 4000-8000 Hz
+    "air",        # 8000-20000 Hz
+)
+CANONICAL_BAND_COUNT: int = 7
+
+# Cap to prevent payload bloat ; mix_analyzer.py:543 internally caps at 6.
+SPECTRAL_PEAKS_MAX: int = 10
+
+# Genre profiles per mix_analyzer.py:267-274 FAMILY_PROFILES (8 families).
+VALID_GENRE_FAMILIES = frozenset({
+    "generic", "acoustic", "rock",
+    "electronic_soft", "electronic_dance", "electronic_aggressive",
+    "urban", "pop",
+})
+VALID_DENSITY_TOLERANCES = frozenset({"low", "normal", "high", "very_high"})
+
+
+# Audio-physics range bounds (parser-enforced).
+LOUDNESS_DB_MIN: float = -150.0
+LOUDNESS_DB_MAX: float = 20.0
+LUFS_MIN: float = -100.0
+LUFS_MAX: float = 0.0
+LRA_MIN: float = 0.0
+LRA_MAX: float = 60.0
+CREST_FACTOR_MIN: float = 0.0
+CREST_FACTOR_MAX: float = 50.0
+PLR_PSR_MIN: float = -30.0
+PLR_PSR_MAX: float = 30.0
+CENTROID_HZ_MIN: float = 0.0
+CENTROID_HZ_MAX: float = 22050.0
+SPECTRAL_FLATNESS_MIN: float = 0.0
+SPECTRAL_FLATNESS_MAX: float = 1.0
+ONSETS_PER_SECOND_MIN: float = 0.0
+ONSETS_PER_SECOND_MAX: float = 50.0
+TONAL_STRENGTH_MIN: float = 0.0
+TONAL_STRENGTH_MAX: float = 1.0
+TARGET_LUFS_MIX_MIN: float = -30.0
+TARGET_LUFS_MIX_MAX: float = 0.0
+TYPICAL_CREST_MIX_MIN: float = 0.0
+TYPICAL_CREST_MIX_MAX: float = 30.0
+
+
+@dataclass(frozen=True)
+class SpectralPeak:
+    """One peak in per-track spectrum (from analyze_spectrum.peaks).
+
+    Convention : when used in TrackAudioMetrics.spectral_peaks, peaks
+    are ordered by magnitude_db DESCENDING (most prominent first ;
+    parser enforces this ordering — Phase 4.7 audit Pass 1 Finding 7).
+    """
+    frequency_hz: float    # in [16, 22050]
+    magnitude_db: float    # in [-150, 0]
+
+
+@dataclass(frozen=True)
+class TrackAudioMetrics:
+    """Per-track audio metrics from mix_analyzer.py:analyze_track.
+
+    Phase 4.7 absorption layer — typed exposure of per-track audio
+    character. Source mapping :
+    - Loudness scalars : analyze_loudness (mix_analyzer.py:451)
+    - Spectrum scalars : analyze_spectrum (mix_analyzer.py:511)
+    - Temporal scalars : analyze_temporal (mix_analyzer.py:579)
+    - Stereo scalars  : analyze_stereo (mix_analyzer.py:769)
+    - Musical scalars : analyze_musical (mix_analyzer.py:746)
+
+    LAZY ABSORPTION (Phase 4.7 Risk #5 mitigation) : mix-diagnostician
+    populates this Optional field only for tracks that downstream Tier A
+    agents will consume (typically tracks with anomalies, CDE diagnostics,
+    or explicit user brief mention). For projects with N>20 tracks,
+    partial population is the norm.
+
+    NaN HANDLING (Risk #9) : mix-diagnostician MUST normalize NaN values
+    to null before emit. Parser rejects NaN explicitly — these always
+    indicate a measurement edge case (silent track, mono-summed-stereo)
+    that the agent should treat as "not measured" rather than "value 0".
+
+    CROSS-FIELD is_stereo COHERENCE (Risk #8 — parser-enforced) :
+    - is_stereo=False : correlation, width_overall, width_per_band MUST be None
+    - is_stereo=True  : correlation + width_overall mandatory ;
+                        width_per_band optional
+    """
+
+    # === Loudness scalars (analyze_loudness — 9 fields, mix_analyzer.py:451) ===
+    peak_db: float                   # in [LOUDNESS_DB_MIN, LOUDNESS_DB_MAX]
+    true_peak_db: float
+    rms_db: float
+    lufs_integrated: float           # in [LUFS_MIN, LUFS_MAX]
+    lufs_short_term_max: float
+    lra: float                       # in [LRA_MIN, LRA_MAX] — per-track Loudness Range
+    crest_factor: float              # in [CREST_FACTOR_MIN, CREST_FACTOR_MAX]
+    plr: float                       # in [PLR_PSR_MIN, PLR_PSR_MAX] — Peak-to-Loudness
+    psr: float                       # in [PLR_PSR_MIN, PLR_PSR_MAX] — Peak-to-Short-Term-Loudness
+
+    # === Spectrum scalars + bounded tuples (analyze_spectrum, mix_analyzer.py:511) ===
+    dominant_band: str                            # in CANONICAL_BAND_LABELS (7 values)
+    centroid_hz: float                            # mix_analyzer field name : 'centroid'
+    rolloff_hz: float                             # mix_analyzer field name : 'rolloff'
+    spectral_flatness: float                      # mix_analyzer field name : 'flatness'
+    band_energies: tuple[float, ...]              # len == CANONICAL_BAND_COUNT (7)
+                                                  # ordered per CANONICAL_BAND_LABELS index
+    spectral_peaks: tuple[SpectralPeak, ...]      # len ≤ SPECTRAL_PEAKS_MAX, magnitude descending
+
+    # === Temporal scalars (analyze_temporal, mix_analyzer.py:579) ===
+    num_onsets: int                  # in [0, ∞)
+    onsets_per_second: float         # mix-diagnostician derived (num_onsets / duration_seconds)
+
+    # === Stereo scalars (analyze_stereo, mix_analyzer.py:769) ===
+    is_stereo: bool
+    correlation: Optional[float] = None           # in [-1, 1] when is_stereo=True
+    width_overall: Optional[float] = None         # in [0, 1] when is_stereo=True
+    width_per_band: Optional[tuple[float, ...]] = None  # len == 7 when set
+
+    # === Musical scalars (analyze_musical, mix_analyzer.py:746) ===
+    is_tonal: bool = False                        # mix_analyzer 'is_tonal' field
+    dominant_note: Optional[str] = None           # e.g., "C", "F#" or None if non-tonal
+    tonal_strength: float = 0.0                   # in [0, 1]
+
+
+@dataclass(frozen=True)
+class GenreContext:
+    """Project-level genre context from mix_analyzer.py:267 FAMILY_PROFILES.
+
+    Project-level (one genre per project) ; lives on DiagnosticReport,
+    not TrackInfo. Auto-modulates downstream Tier A decisions when
+    populated (e.g., dynamics ratio×, stereo width tendency, mastering
+    target_lufs).
+    """
+    family: str                       # in VALID_GENRE_FAMILIES (8 values exact)
+    target_lufs_mix: float            # in [TARGET_LUFS_MIX_MIN, TARGET_LUFS_MIX_MAX]
+    typical_crest_mix: float          # in [TYPICAL_CREST_MIX_MIN, TYPICAL_CREST_MIX_MAX]
+    density_tolerance: str            # in VALID_DENSITY_TOLERANCES
+
+
+# ============================================================================
+# Diagnostic lane DiagnosticReport — Phase 4.1 + extensions Phase 4.2.8 + 4.7
+# ============================================================================
+
+
 @dataclass(frozen=True)
 class DiagnosticReport:
     """The structured output of mix-diagnostician.
@@ -294,6 +469,8 @@ class DiagnosticReport:
     cde_diagnostics: tuple[CDEDiagnostic, ...] = ()  # parsed from <projet>_diagnostics.json
     freq_conflicts_meta: Optional[FreqConflictsMetadata] = None  # B2/B3 from sheet
     freq_conflicts_bands: tuple[BandConflict, ...] = ()  # rows of the matrix
+    # Phase 4.7 : project-level genre context
+    genre_context: Optional[GenreContext] = None    # FAMILY_PROFILES typed
 
     def get_health_category_score(self, category: str) -> Optional[float]:
         """Lookup a Mix Health Score category score by name (case-insensitive).
@@ -1218,4 +1395,35 @@ __all__ = [
     "ChainSlot",
     "TrackChainPlan",
     "ChainBuildDecision",
+    # Per-track audio metrics + genre context absorption (Phase 4.7)
+    "CANONICAL_BAND_LABELS",
+    "CANONICAL_BAND_COUNT",
+    "SPECTRAL_PEAKS_MAX",
+    "VALID_GENRE_FAMILIES",
+    "VALID_DENSITY_TOLERANCES",
+    "LOUDNESS_DB_MIN",
+    "LOUDNESS_DB_MAX",
+    "LUFS_MIN",
+    "LUFS_MAX",
+    "LRA_MIN",
+    "LRA_MAX",
+    "CREST_FACTOR_MIN",
+    "CREST_FACTOR_MAX",
+    "PLR_PSR_MIN",
+    "PLR_PSR_MAX",
+    "CENTROID_HZ_MIN",
+    "CENTROID_HZ_MAX",
+    "SPECTRAL_FLATNESS_MIN",
+    "SPECTRAL_FLATNESS_MAX",
+    "ONSETS_PER_SECOND_MIN",
+    "ONSETS_PER_SECOND_MAX",
+    "TONAL_STRENGTH_MIN",
+    "TONAL_STRENGTH_MAX",
+    "TARGET_LUFS_MIX_MIN",
+    "TARGET_LUFS_MIX_MAX",
+    "TYPICAL_CREST_MIX_MIN",
+    "TYPICAL_CREST_MIX_MAX",
+    "SpectralPeak",
+    "TrackAudioMetrics",
+    "GenreContext",
 ]

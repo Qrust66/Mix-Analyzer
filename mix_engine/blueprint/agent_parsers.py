@@ -18,17 +18,48 @@ Conventions inherited from the composition side:
 from __future__ import annotations
 
 import json
+import math
 import re
 from typing import Any, Mapping, Optional
 
 from mix_engine.blueprint.schema import (
     Anomaly,
     BandConflict,
+    CANONICAL_BAND_COUNT,
+    CANONICAL_BAND_LABELS,
     CDECorrectionRecipe,
     CDEDiagnostic,
     CDEMeasurement,
     CDETFPContext,
+    CENTROID_HZ_MAX,
+    CENTROID_HZ_MIN,
+    CREST_FACTOR_MAX,
+    CREST_FACTOR_MIN,
     DiagnosticReport,
+    GenreContext,
+    LOUDNESS_DB_MAX,
+    LOUDNESS_DB_MIN,
+    LRA_MAX,
+    LRA_MIN,
+    LUFS_MAX,
+    LUFS_MIN,
+    ONSETS_PER_SECOND_MAX,
+    ONSETS_PER_SECOND_MIN,
+    PLR_PSR_MAX,
+    PLR_PSR_MIN,
+    SPECTRAL_FLATNESS_MAX,
+    SPECTRAL_FLATNESS_MIN,
+    SPECTRAL_PEAKS_MAX,
+    SpectralPeak,
+    TARGET_LUFS_MIX_MAX,
+    TARGET_LUFS_MIX_MIN,
+    TONAL_STRENGTH_MAX,
+    TONAL_STRENGTH_MIN,
+    TYPICAL_CREST_MIX_MAX,
+    TYPICAL_CREST_MIX_MIN,
+    TrackAudioMetrics,
+    VALID_DENSITY_TOLERANCES,
+    VALID_GENRE_FAMILIES,
     DynamicsAutomationPoint,
     DynamicsCorrection,
     DynamicsCorrectiveDecision,
@@ -319,6 +350,317 @@ def _parse_envelope(
 # ============================================================================
 
 
+# ============================================================================
+# Phase 4.7 — Per-track audio metrics + genre context sub-parsers
+# ============================================================================
+#
+# Cross-field checks (parser-enforced) :
+# 1. NaN rejection — mix-diagnostician must normalize NaN → null upstream
+# 2. is_stereo coherence — mono = stereo fields None ; stereo = correlation
+#    + width_overall mandatory
+# 3. band_energies len == CANONICAL_BAND_COUNT (7)
+# 4. width_per_band len == CANONICAL_BAND_COUNT (7) when set
+# 5. spectral_peaks len ≤ SPECTRAL_PEAKS_MAX (10) ; magnitude descending
+# 6. dominant_band ∈ CANONICAL_BAND_LABELS (7 values)
+
+
+def _check_not_nan(value: Any, *, where: str) -> None:
+    """Phase 4.7 cross-field check #1 : reject NaN floats explicitly.
+    mix-diagnostician must normalize NaN → null upstream."""
+    if isinstance(value, float) and math.isnan(value):
+        raise MixAgentOutputError(
+            f"{where} is NaN — mix-diagnostician must normalize NaN values "
+            f"to null before emit (NaN indicates a measurement edge case "
+            f"like silent track or mono-summed-stereo)."
+        )
+
+
+def _coerce_float_nonan_in_range(
+    value: Any, *, where: str, lo: float, hi: float, unit: str = ""
+) -> float:
+    """Strict float coercion with NaN rejection + range check."""
+    f = _coerce_float(value, where=where)
+    _check_not_nan(f, where=where)
+    if not (lo <= f <= hi):
+        raise MixAgentOutputError(
+            f"{where}={f}{(' ' + unit) if unit else ''} not in [{lo}, {hi}]"
+        )
+    return f
+
+
+def _parse_spectral_peak(item: Any, *, where: str) -> SpectralPeak:
+    if not isinstance(item, Mapping):
+        # Allow [freq, db] tuple form for lenient input
+        if isinstance(item, (list, tuple)) and len(item) == 2:
+            freq = _coerce_float_nonan_in_range(
+                item[0], where=f"{where}[0]", lo=16.0, hi=22050.0, unit="Hz",
+            )
+            mag = _coerce_float_nonan_in_range(
+                item[1], where=f"{where}[1]", lo=-150.0, hi=0.0, unit="dB",
+            )
+            return SpectralPeak(frequency_hz=freq, magnitude_db=mag)
+        raise MixAgentOutputError(
+            f"{where}: expected object or [freq_hz, magnitude_db] pair, "
+            f"got {type(item).__name__}"
+        )
+    freq = _coerce_float_nonan_in_range(
+        _require(item, "frequency_hz", where=where),
+        where=f"{where}.frequency_hz", lo=16.0, hi=22050.0, unit="Hz",
+    )
+    mag = _coerce_float_nonan_in_range(
+        _require(item, "magnitude_db", where=where),
+        where=f"{where}.magnitude_db", lo=-150.0, hi=0.0, unit="dB",
+    )
+    return SpectralPeak(frequency_hz=freq, magnitude_db=mag)
+
+
+def _parse_track_audio_metrics(item: Any, *, where: str) -> TrackAudioMetrics:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+
+    # === Loudness scalars (9 fields) ===
+    peak_db = _coerce_float_nonan_in_range(
+        _require(item, "peak_db", where=where), where=f"{where}.peak_db",
+        lo=LOUDNESS_DB_MIN, hi=LOUDNESS_DB_MAX, unit="dB",
+    )
+    true_peak_db = _coerce_float_nonan_in_range(
+        _require(item, "true_peak_db", where=where), where=f"{where}.true_peak_db",
+        lo=LOUDNESS_DB_MIN, hi=LOUDNESS_DB_MAX, unit="dB",
+    )
+    rms_db = _coerce_float_nonan_in_range(
+        _require(item, "rms_db", where=where), where=f"{where}.rms_db",
+        lo=LOUDNESS_DB_MIN, hi=LOUDNESS_DB_MAX, unit="dB",
+    )
+    lufs_integrated = _coerce_float_nonan_in_range(
+        _require(item, "lufs_integrated", where=where), where=f"{where}.lufs_integrated",
+        lo=LUFS_MIN, hi=LUFS_MAX, unit="LUFS",
+    )
+    lufs_short_term_max = _coerce_float_nonan_in_range(
+        _require(item, "lufs_short_term_max", where=where), where=f"{where}.lufs_short_term_max",
+        lo=LUFS_MIN, hi=LUFS_MAX, unit="LUFS",
+    )
+    lra = _coerce_float_nonan_in_range(
+        _require(item, "lra", where=where), where=f"{where}.lra",
+        lo=LRA_MIN, hi=LRA_MAX, unit="LU",
+    )
+    crest_factor = _coerce_float_nonan_in_range(
+        _require(item, "crest_factor", where=where), where=f"{where}.crest_factor",
+        lo=CREST_FACTOR_MIN, hi=CREST_FACTOR_MAX, unit="dB",
+    )
+    plr = _coerce_float_nonan_in_range(
+        _require(item, "plr", where=where), where=f"{where}.plr",
+        lo=PLR_PSR_MIN, hi=PLR_PSR_MAX, unit="dB",
+    )
+    psr = _coerce_float_nonan_in_range(
+        _require(item, "psr", where=where), where=f"{where}.psr",
+        lo=PLR_PSR_MIN, hi=PLR_PSR_MAX, unit="dB",
+    )
+
+    # === Spectrum scalars + tuples ===
+    dominant_band = _coerce_str(
+        _require(item, "dominant_band", where=where), where=f"{where}.dominant_band"
+    ).strip()
+    # Cross-field #6 — dominant_band ∈ CANONICAL_BAND_LABELS
+    if dominant_band not in CANONICAL_BAND_LABELS:
+        raise MixAgentOutputError(
+            f"{where}.dominant_band={dominant_band!r} not in "
+            f"{CANONICAL_BAND_LABELS}."
+        )
+    centroid_hz = _coerce_float_nonan_in_range(
+        _require(item, "centroid_hz", where=where), where=f"{where}.centroid_hz",
+        lo=CENTROID_HZ_MIN, hi=CENTROID_HZ_MAX, unit="Hz",
+    )
+    rolloff_hz = _coerce_float_nonan_in_range(
+        _require(item, "rolloff_hz", where=where), where=f"{where}.rolloff_hz",
+        lo=CENTROID_HZ_MIN, hi=CENTROID_HZ_MAX, unit="Hz",
+    )
+    spectral_flatness = _coerce_float_nonan_in_range(
+        _require(item, "spectral_flatness", where=where), where=f"{where}.spectral_flatness",
+        lo=SPECTRAL_FLATNESS_MIN, hi=SPECTRAL_FLATNESS_MAX,
+    )
+    band_energies_raw = _coerce_list(
+        _require(item, "band_energies", where=where), where=f"{where}.band_energies"
+    )
+    # Cross-field #3 — band_energies len exact 7
+    if len(band_energies_raw) != CANONICAL_BAND_COUNT:
+        raise MixAgentOutputError(
+            f"{where}.band_energies len={len(band_energies_raw)} != "
+            f"{CANONICAL_BAND_COUNT} (canonical : {CANONICAL_BAND_LABELS}). "
+            f"mix_analyzer.py:382-390 FREQ_BANDS uses fixed 7-band split ; "
+            f"reorder/migrate if upstream changes."
+        )
+    band_energies = tuple(
+        _coerce_float_nonan_in_range(
+            v, where=f"{where}.band_energies[{i}]", lo=0.0, hi=100.0, unit="%",
+        )
+        for i, v in enumerate(band_energies_raw)
+    )
+    # spectral_peaks
+    peaks_raw = _coerce_list(
+        item.get("spectral_peaks", []), where=f"{where}.spectral_peaks"
+    )
+    # Cross-field #5 — len cap
+    if len(peaks_raw) > SPECTRAL_PEAKS_MAX:
+        raise MixAgentOutputError(
+            f"{where}.spectral_peaks len={len(peaks_raw)} > "
+            f"{SPECTRAL_PEAKS_MAX} (cap). Keep only top-N most prominent ; "
+            f"full spectrum lives in Excel."
+        )
+    spectral_peaks = tuple(
+        _parse_spectral_peak(p, where=f"{where}.spectral_peaks[{i}]")
+        for i, p in enumerate(peaks_raw)
+    )
+    # Cross-field #5 — magnitude descending order
+    for i in range(len(spectral_peaks) - 1):
+        if spectral_peaks[i].magnitude_db < spectral_peaks[i + 1].magnitude_db:
+            raise MixAgentOutputError(
+                f"{where}.spectral_peaks must be ordered by magnitude_db "
+                f"DESCENDING (most prominent first). Got "
+                f"[{i}].magnitude_db={spectral_peaks[i].magnitude_db} < "
+                f"[{i+1}].magnitude_db={spectral_peaks[i+1].magnitude_db}."
+            )
+
+    # === Temporal scalars ===
+    num_onsets = _coerce_int_strict(
+        _require(item, "num_onsets", where=where), where=f"{where}.num_onsets"
+    )
+    if num_onsets < 0:
+        raise MixAgentOutputError(
+            f"{where}.num_onsets={num_onsets} must be >= 0"
+        )
+    onsets_per_second = _coerce_float_nonan_in_range(
+        _require(item, "onsets_per_second", where=where),
+        where=f"{where}.onsets_per_second",
+        lo=ONSETS_PER_SECOND_MIN, hi=ONSETS_PER_SECOND_MAX,
+    )
+
+    # === Stereo scalars (cross-field #2 is_stereo coherence) ===
+    is_stereo = _coerce_bool(
+        _require(item, "is_stereo", where=where), where=f"{where}.is_stereo"
+    )
+    correlation_raw = item.get("correlation", None)
+    correlation = (
+        None if correlation_raw is None
+        else _coerce_float_nonan_in_range(
+            correlation_raw, where=f"{where}.correlation",
+            lo=-1.0, hi=1.0,
+        )
+    )
+    width_overall_raw = item.get("width_overall", None)
+    width_overall = (
+        None if width_overall_raw is None
+        else _coerce_float_nonan_in_range(
+            width_overall_raw, where=f"{where}.width_overall",
+            lo=0.0, hi=1.0,
+        )
+    )
+    width_per_band_raw = item.get("width_per_band", None)
+    if width_per_band_raw is None:
+        width_per_band = None
+    else:
+        wpb_list = _coerce_list(
+            width_per_band_raw, where=f"{where}.width_per_band"
+        )
+        # Cross-field #4 — width_per_band len exact 7 when set
+        if len(wpb_list) != CANONICAL_BAND_COUNT:
+            raise MixAgentOutputError(
+                f"{where}.width_per_band len={len(wpb_list)} != "
+                f"{CANONICAL_BAND_COUNT} (canonical 7-band)."
+            )
+        width_per_band = tuple(
+            _coerce_float_nonan_in_range(
+                v, where=f"{where}.width_per_band[{i}]", lo=0.0, hi=1.0,
+            )
+            for i, v in enumerate(wpb_list)
+        )
+
+    # Cross-field #2 — is_stereo coherence
+    if not is_stereo:
+        for fname, fval in [("correlation", correlation),
+                             ("width_overall", width_overall),
+                             ("width_per_band", width_per_band)]:
+            if fval is not None:
+                raise MixAgentOutputError(
+                    f"{where}.is_stereo=False but {fname}={fval!r} is set. "
+                    f"Mono tracks have no stereo metrics — set to null."
+                )
+    else:
+        if correlation is None or width_overall is None:
+            raise MixAgentOutputError(
+                f"{where}.is_stereo=True requires correlation AND "
+                f"width_overall (got correlation={correlation!r}, "
+                f"width_overall={width_overall!r}). width_per_band optional."
+            )
+
+    # === Musical scalars ===
+    is_tonal = _coerce_bool(
+        item.get("is_tonal", False), where=f"{where}.is_tonal"
+    )
+    dominant_note_raw = item.get("dominant_note", None)
+    dominant_note = (
+        None if dominant_note_raw is None or dominant_note_raw == ""
+        else _coerce_str(dominant_note_raw, where=f"{where}.dominant_note")
+    )
+    tonal_strength = _coerce_float_nonan_in_range(
+        item.get("tonal_strength", 0.0), where=f"{where}.tonal_strength",
+        lo=TONAL_STRENGTH_MIN, hi=TONAL_STRENGTH_MAX,
+    )
+
+    return TrackAudioMetrics(
+        peak_db=peak_db, true_peak_db=true_peak_db, rms_db=rms_db,
+        lufs_integrated=lufs_integrated, lufs_short_term_max=lufs_short_term_max,
+        lra=lra, crest_factor=crest_factor, plr=plr, psr=psr,
+        dominant_band=dominant_band, centroid_hz=centroid_hz,
+        rolloff_hz=rolloff_hz, spectral_flatness=spectral_flatness,
+        band_energies=band_energies, spectral_peaks=spectral_peaks,
+        num_onsets=num_onsets, onsets_per_second=onsets_per_second,
+        is_stereo=is_stereo, correlation=correlation,
+        width_overall=width_overall, width_per_band=width_per_band,
+        is_tonal=is_tonal, dominant_note=dominant_note,
+        tonal_strength=tonal_strength,
+    )
+
+
+def _parse_genre_context(item: Any, *, where: str) -> GenreContext:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+    family = _coerce_str(
+        _require(item, "family", where=where), where=f"{where}.family"
+    ).strip()
+    if family not in VALID_GENRE_FAMILIES:
+        raise MixAgentOutputError(
+            f"{where}.family={family!r} not in {sorted(VALID_GENRE_FAMILIES)} "
+            f"(8 families per mix_analyzer.py:267 FAMILY_PROFILES)."
+        )
+    target_lufs_mix = _coerce_float_nonan_in_range(
+        _require(item, "target_lufs_mix", where=where), where=f"{where}.target_lufs_mix",
+        lo=TARGET_LUFS_MIX_MIN, hi=TARGET_LUFS_MIX_MAX, unit="LUFS",
+    )
+    typical_crest_mix = _coerce_float_nonan_in_range(
+        _require(item, "typical_crest_mix", where=where), where=f"{where}.typical_crest_mix",
+        lo=TYPICAL_CREST_MIX_MIN, hi=TYPICAL_CREST_MIX_MAX, unit="dB",
+    )
+    density_tolerance = _coerce_str(
+        _require(item, "density_tolerance", where=where),
+        where=f"{where}.density_tolerance",
+    ).strip()
+    if density_tolerance not in VALID_DENSITY_TOLERANCES:
+        raise MixAgentOutputError(
+            f"{where}.density_tolerance={density_tolerance!r} not in "
+            f"{sorted(VALID_DENSITY_TOLERANCES)}."
+        )
+    return GenreContext(
+        family=family,
+        target_lufs_mix=target_lufs_mix,
+        typical_crest_mix=typical_crest_mix,
+        density_tolerance=density_tolerance,
+    )
+
+
 def _parse_track_info(item: Any, *, where: str) -> TrackInfo:
     if not isinstance(item, Mapping):
         raise MixAgentOutputError(
@@ -355,6 +697,12 @@ def _parse_track_info(item: Any, *, where: str) -> TrackInfo:
     activator = _coerce_bool(
         item.get("activator", True), where=f"{where}.activator"
     )
+    # Phase 4.7 — optional per-track audio metrics absorption
+    audio_metrics_raw = item.get("audio_metrics", None)
+    audio_metrics = (
+        None if audio_metrics_raw is None
+        else _parse_track_audio_metrics(audio_metrics_raw, where=f"{where}.audio_metrics")
+    )
     return TrackInfo(
         name=name,
         track_type=track_type,
@@ -365,6 +713,7 @@ def _parse_track_info(item: Any, *, where: str) -> TrackInfo:
         pan=pan,
         sidechain_targets=sidechain_targets,
         activator=activator,
+        audio_metrics=audio_metrics,
     )
 
 
@@ -779,6 +1128,13 @@ def parse_diagnostic_decision(
         for i, item in enumerate(freq_conflicts_bands_raw)
     )
 
+    # Phase 4.7 — optional project-level genre context
+    genre_context_raw = diag_dict.get("genre_context", None)
+    genre_context = (
+        None if genre_context_raw is None
+        else _parse_genre_context(genre_context_raw, where="diagnostic.genre_context")
+    )
+
     report = DiagnosticReport(
         project_name=project_name,
         full_mix=full_mix,
@@ -789,6 +1145,7 @@ def parse_diagnostic_decision(
         cde_diagnostics=cde_diagnostics,
         freq_conflicts_meta=freq_conflicts_meta,
         freq_conflicts_bands=freq_conflicts_bands,
+        genre_context=genre_context,
     )
     return MixDecision(value=report, lane="diagnostic", **envelope)
 

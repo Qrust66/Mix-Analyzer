@@ -73,6 +73,102 @@ Tu extrais explicitement :
 Ne fait pas confiance à 30%/2 hardcoded : **lis vraiment B2/B3** car
 l'utilisateur peut les changer entre runs.
 
+## Phase 4.7 — Per-track audio metrics + genre context absorption
+
+Le `DiagnosticReport` exposé aux agents downstream **inclut maintenant** :
+- `report.tracks[*].audio_metrics: Optional[TrackAudioMetrics]` — per-track audio character (loudness/spectrum/temporal/stereo/musical)
+- `report.genre_context: Optional[GenreContext]` — project-level family + targets
+
+### Lazy absorption (token cost mitigation)
+
+⚠️ **Ne PAS populer `audio_metrics` pour TOUTES les tracks par défaut**. Pour des projets > 20 tracks, le payload deviendrait prohibitif (~30 fields × N tracks).
+
+**Stratégie de population** :
+- ✅ **Populer** `audio_metrics` pour tracks avec : Anomaly per-track, CDE diagnostic targeting, brief utilisateur mention explicite
+- ❌ **Skip** (laisser `audio_metrics: null`) pour tracks "spectator" sans signal pour Tier A consumers
+
+### Lecture per-track depuis Excel (sheets individuels)
+
+Chaque track analysée a un sheet individuel dans le rapport Excel (nommé d'après le filename). Pattern openpyxl :
+
+```python
+import openpyxl
+wb = openpyxl.load_workbook(xlsx_path, data_only=True)
+
+for track_name in selected_tracks:  # only consumed tracks (lazy)
+    sheet = wb[_safe_sheet_name(track_name)]
+    # Lecture cellules (positions à confirmer per workbook layout)
+    audio_metrics = {
+        "peak_db":           sheet["B5"].value,
+        "true_peak_db":      sheet["B6"].value,
+        "rms_db":            sheet["B7"].value,
+        "lufs_integrated":   sheet["B8"].value,
+        "lufs_short_term_max": sheet["B9"].value,
+        "lra":               sheet["B10"].value,
+        "crest_factor":      sheet["B11"].value,
+        "plr":               sheet["B12"].value,
+        "psr":               sheet["B13"].value,
+        # ... etc per workbook structure
+    }
+```
+
+### NaN handling — REQUIS
+
+mix_analyzer peut produire `NaN` pour edge cases (silent track, mono-summed-stereo). **Tu DOIS normaliser NaN → null avant d'émettre** :
+
+```python
+import math
+def normalize_nan(v):
+    if isinstance(v, float) and math.isnan(v):
+        return None
+    return v
+```
+
+Le parser **rejette explicitement les NaN** (Phase 4.7 cross-field check #1) — c'est une mesure edge case, pas un "value 0".
+
+### Cross-field is_stereo coherence
+
+Quand tu populates `audio_metrics` :
+- **Mono track** : `is_stereo=False` → `correlation`, `width_overall`, `width_per_band` doivent rester `null`
+- **Stereo track** : `is_stereo=True` → `correlation` AND `width_overall` mandatory ; `width_per_band` optional
+
+Parser rejette les violations (cross-field check #2).
+
+### band_energies len exactement 7
+
+`mix_analyzer.py:382-390` `FREQ_BANDS` a 7 bandes canoniques :
+```
+sub (20-60Hz), bass (60-250), low_mid (250-500), mid (500-2k),
+high_mid (2-4k), presence (4-8k), air (8-20k)
+```
+
+`band_energies` doit être un tuple de **exactement 7 floats** dans cet ordre (CANONICAL_BAND_LABELS index → semantic). mix_analyzer renvoie un dict ; tu convertis en tuple ordonné.
+
+### spectral_peaks ordering + cap
+
+- Top **10 peaks max** (`SPECTRAL_PEAKS_MAX` ; mix_analyzer cap interne à 6)
+- Ordre : magnitude_db **DESCENDING** (most prominent first)
+- Format : `[{"frequency_hz": F, "magnitude_db": M}, ...]` ou `[[F, M], ...]` pair lenient
+
+### Genre context (project-level)
+
+Source : config user OR Excel `AI Context` sheet OR derived from project name.
+
+Mapping vers `mix_analyzer.py:267 FAMILY_PROFILES` :
+
+| `family` | target_lufs_mix | typical_crest_mix | density_tolerance |
+|---|---|---|---|
+| generic | -14 | 10 | normal |
+| acoustic | -16 | 14 | low |
+| rock | -10 | 10 | high |
+| electronic_soft | -16 | 14 | low |
+| electronic_dance | -9 | 8 | high |
+| electronic_aggressive | -8 | 8 | very_high |
+| urban | -10 | 9 | high |
+| pop | -10 | 9 | normal |
+
+8 families exact ; agent emits le tuple correspondant.
+
 ## Normalisation obligatoire (Phase 4.2.6)
 
 Avant d'émettre `DiagnosticReport`, **normalise** les écarts entre les
