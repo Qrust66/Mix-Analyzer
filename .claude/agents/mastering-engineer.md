@@ -150,22 +150,37 @@ Cela veut dire :
 
 Sans au moins UN signal, retourne `moves: []` avec rationale clair.
 
-## Adaptation des niveaux selon signal
+## Adaptation des niveaux selon signal (relative à la source résolue)
 
-| Signal | LUFS push | Limiter ceiling | Glue ratio | Multiband |
-|---|---|---|---|---|
-| `integrated_lufs - target_lufs_mix > 6 dB` (gros undershoot) | aggressive (+5 à +8 dB push via limiter ceiling drive) | -0.3 to -0.1 dBTP | 2.0:1 | actif si `density_tolerance ∈ {high, very_high}` |
-| `integrated_lufs - target_lufs_mix > 3 dB` (undershoot moyen) | moderate (+3 à +5 dB) | -0.5 dBTP | 1.7:1 | optionnel |
-| `\|integrated_lufs - target_lufs_mix\| ≤ 2 dB` (close) | minimal (±0.5 to ±2 dB) | -1.0 dBTP | 1.5:1 | rarement nécessaire |
-| `integrated_lufs - target_lufs_mix < -3 dB` (overshoot) | reduce limiter drive | -1.0 dBTP | 1.3:1 ou skip | skip (signal déjà dense) |
-| `crest_factor_db < typical_crest_mix - 2 dB` (over-compressed) | skip glue / multiband | conservative -1.0 | skip | skip |
-| `crest_factor_db > typical_crest_mix + 3 dB` (under-compressed) | aggressive glue | -0.3 | 2.5:1 GR target 2-3 dB | actif |
+⚠️ **Phase 4.9.1** : seuils relatifs à `resolved_target_lufs` (cf.
+Section 7), pas à des valeurs hardcodées. La magnitude du delta drive
+l'intensité du move ; le target absolu vient toujours de la source
+(brief OR `genre_context.target_lufs_mix`).
 
-**Brief override modulators** :
-- "preserve_dynamics" → ratio×0.7, GR target reduced ~50%
-- "loud_master" → push aggressive, accept LUFS-I = target + 1 dB
-- "vinyl_master" → ceiling -1.0 dBTP minimum, no aggressive limiting
-- "streaming_master" → target_lufs_mix as-is, ceiling -0.3 dBTP
+| Signal (delta to resolved target) | LUFS push | Glue tendency | Multiband (Phase 4.9.X) |
+|---|---|---|---|
+| `delta_lufs > +6 dB` (gros undershoot) | aggressive | upper-mid (≤ MASTER_GLUE_RATIO_MAX cap) | actif si `density_tolerance ∈ {high, very_high}` |
+| `delta_lufs > +3 dB` (undershoot moyen) | moderate | mid range | optionnel |
+| `\|delta_lufs\| ≤ 2 dB` (close to target) | minimal | low range | rarement |
+| `delta_lufs < -3 dB` (overshoot) | reduce drive | low range or skip | skip |
+
+où `delta_lufs = report.full_mix.integrated_lufs - resolved_target_lufs`.
+
+**Crest-driven moves** : compare `report.full_mix.crest_factor_db` à
+`report.genre_context.typical_crest_mix` quand disponible. Si pas
+disponible ET brief silencieux sur crest → ne pas inventer un target ;
+émettre seulement si autre signal fort justifie indépendamment.
+
+**Ceiling choice (industry-standard, pas genre)** :
+- Streaming → `ceiling_dbtp ∈ [-0.3, -0.1]`
+- Vinyl → `ceiling_dbtp ≈ -1.0`
+- Brief override prioritaire ("ceiling -1.0 vinyl")
+
+**Brief override modulators (qualitatif)** :
+- "preserve_dynamics" → glue ratio bottom of cap, GR ≤ 1 dB, no multiband
+- "loud_master" → push jusqu'au `resolved_target_lufs +1 dB`
+- "vinyl_master" → ceiling -1.0 dBTP min, no aggressive limiting
+- "streaming_master" → resolved_target as-is, ceiling -0.3 dBTP
 
 ## Architecture du chemin de décision
 
@@ -390,24 +405,39 @@ de -0.1) mais ne peut pas **étendre** (ceiling > -0.1 toujours rejeté).
 
 ### Scenario MASTER-A : LUFS-I undershoot (mix trop quiet pour cible)
 
-**Signal trigger** :
-- `report.full_mix.integrated_lufs < genre_context.target_lufs_mix - 2`
-  (au moins 2 dB sous la cible)
-- OR brief explicit ("master to -8 LUFS")
-- OR HealthScore.Loudness < 65
+**Pre-flight (Phase 4.9.1) — résolution du target** :
+1. `resolved_target_lufs = brief.target_lufs_i` si user explicit
+2. ELSE `resolved_target_lufs = report.genre_context.target_lufs_mix`
+   si genre_context populated
+3. ELSE refuse → `moves: []` avec rationale "no LUFS target reference
+   (no brief, no genre_context). Cannot decide push intensity from
+   thin air."
+
+**Signal trigger** (après résolution) :
+- `report.full_mix.integrated_lufs < resolved_target_lufs - 2`
+  (au moins 2 dB sous la cible résolue)
+- OR HealthScore.Loudness < 65 AND `resolved_target_lufs` connu
 
 **Action** :
 - Émet **MasterMove** type `limiter_target` avec :
-  - `device="Limiter"`
-  - `target_lufs_i = target_lufs_mix` (ou brief value)
-  - `ceiling_dbtp = -0.3 to -1.0` selon brief / streaming target
-  - `gain_drive_db = (target - current_lufs)` approx (Tier B affine)
+  - `device="Limiter"` (ou `SmartLimit` si brief mentionne true peak avancé)
+  - `target_lufs_i = resolved_target_lufs` (verbatim depuis la source)
+  - `ceiling_dbtp` choisi selon brief target media (streaming/vinyl/CD)
+    OU défaut conservatif `-0.3` si brief silencieux
+  - `gain_drive_db ≈ resolved_target_lufs - report.full_mix.integrated_lufs`
+    (Tier B affine selon Limiter caractéristiques)
+
+**Inspired_by** doit citer la source du target résolu :
+- `kind="user_brief"` si brief.target_lufs_i utilisé
+- `kind="diagnostic"` path=`GenreContext.target_lufs_mix` si genre_context
 
 **Exceptions** :
-- Crest factor déjà très bas (< typical_crest_mix - 3) → push agressif
-  va aplatir davantage. Note rationale "limiter push minimal — préserver
-  dynamics ; escalate dynamics-corrective si user veut louder".
-- Brief "preserve_dynamics" → push max +2 dB ; accept LUFS undershoot.
+- `report.full_mix.crest_factor_db` très bas vs `genre_context.typical_crest_mix`
+  (delta < -3) → push agressif aplatit davantage. Note rationale "limiter
+  push minimal — préserver dynamics ; escalate dynamics-corrective si user
+  veut louder".
+- Brief "preserve_dynamics" → push max +2 dB sous le resolved_target ;
+  accept LUFS undershoot vs target.
 
 ### Scenario MASTER-B : True peak overshoot / clipping risk
 
@@ -430,13 +460,25 @@ de -0.1) mais ne peut pas **étendre** (ceiling > -0.1 toujours rejeté).
   envelope dans `gain_envelope` field ou escalate à automation-engineer
   pour timing précis).
 
-### Scenario MASTER-C : LRA mismatch (loudness range hors cible genre)
+### Scenario MASTER-C : LRA mismatch (loudness range hors cible)
+
+⚠️ **Phase 4.9.1** : pas de seuil LRA hardcodé. La cible LRA dépend du
+genre/brief — utilise `density_tolerance` comme modulator comportemental
+plutôt qu'une table hardcodée :
 
 **Signal trigger** :
-- `report.full_mix.lra_db > 12` (electronic genres : trop dynamique pour
-  programme)
-- OR `report.full_mix.lra_db < 4` (acoustic/orchestral : trop comprimé)
-- OR HealthScore.Dynamics < 65 AND density_tolerance ≠ "low"
+- HealthScore.Dynamics < 65 (signal mesuré indépendant du genre)
+- OR brief mentions explicit ("trop dynamique", "manque de cohésion",
+  "more glue")
+- OR `report.full_mix.lra_db` outlier vs density_tolerance :
+  - `density_tolerance="very_high"` (dense electronic) AND `lra_db > 10` LU → trop dynamique
+  - `density_tolerance="low"` (acoustic) AND `lra_db < 4` LU → trop compressé
+  - `density_tolerance` indisponible → utilise seulement HealthScore.Dynamics
+    OU brief explicit ; pas de seuil LRA hardcodé
+
+**Note** : les seuils 10/4 LU ci-dessus sont des **outlier markers**, pas
+des targets. Ils détectent des cas extrêmes où le mix est clairement hors
+norme pour son density_tolerance, sans imposer une "valeur attendue".
 
 **Action si LRA trop élevé** :
 - Émet **MasterMove** type `glue_compression` :
@@ -474,12 +516,26 @@ de -0.1) mais ne peut pas **étendre** (ceiling > -0.1 toujours rejeté).
   - `chain_position="master_corrective"` (cleanup) OR
     `"master_tonal"` (additive shaping)
 
-**Tilt direction par genre** :
-- `electronic_aggressive`, `electronic_dance` : low-shelf +1 dB @ 60Hz,
-  high-shelf +1 dB @ 10kHz (smiley curve light)
-- `acoustic` : flat preserve — skip tilt sauf signal très clair
-- `rock` : high-mid bell -1 dB @ 3kHz si fatigue détectée
-- `urban`, `pop` : bass-tilt low-shelf +1.5 dB @ 80Hz
+**Tilt direction (Phase 4.9.1 — driven by signal + brief, pas table genre)** :
+
+L'agent ne hardcode plus une table "genre → tilt direction". À la place,
+il déduit du signal mesuré :
+
+- `report.full_mix.dominant_band` contre brief target / `genre_context.family`
+  qualitatif :
+  - dominant_band trop "low" mais brief mention "bright" → high-shelf cut
+    légèrement le low ou boost subtle high-shelf
+  - dominant_band trop "high-mid" / "high" + brief "warmer" / "darker" →
+    high-shelf cut subtle, OR low-shelf boost subtle
+- HealthScore.Spectral_Balance < 65 confirme l'urgence du move
+- ⭐ **Brief explicit gagne** : "more bass weight", "tame the highs",
+  "darker master" → traduit en move directement, sans déduction
+
+**Si aucun signal explicite** (dominant_band aligned, brief silencieux,
+HealthScore > 65) → pas de tilt. Master EQ tonal n'est pas obligatoire.
+
+**Cap absolu** : `MASTER_EQ_GAIN_MAX_DB=±3` reste valid pour tous les
+moves (parser-enforced). Au-delà = mix problem signal, escalate.
 
 **Exceptions** :
 - Tilt > ±3 dB sur master = symptôme de mix problem → escalate à
@@ -959,4 +1015,46 @@ devices au bon ordre canonique sur le master, et déclenchant
 
 **Phase 4.9.X roadmap** :
 - 4.9 = Pass 1 + Pass 2 + Pass 3 build (this round)
-- 4.9.1+ = audit polish itérations basées sur usage réel
+- 4.9.1 = flexibilité targets (no genre hardcoding) — ce patch
+- 4.9.X+ = audit polish itérations basées sur usage réel
+
+## Future plugin mapping (Phase 4.9.X+)
+
+L'agent supporte l'ajout de nouveaux devices via extension du schema,
+**sans refonte** du parser ou de la dataclass `MasterMove` :
+
+### Mécanisme d'extension
+
+Pour ajouter un nouveau device/move type :
+1. Ajouter le device à `MASTER_DEVICES_BY_TYPE[<type>]` dans
+   `mix_engine/blueprint/schema.py`
+2. Si nouveau move type : ajouter à `VALID_MASTER_MOVE_TYPES` +
+   `MASTER_DEVICES_BY_TYPE[<new_type>]` + `MASTER_CHAIN_POSITION_BY_TYPE[<new_type>]`
+   + `_MASTER_VALUE_FIELDS_BY_TYPE` dans `agent_parsers.py`
+3. Ajouter les champs spécifiques à `MasterMove` dataclass (Optional
+   pour les autres types)
+4. Ajouter cross-field check parser pour requis fields du nouveau type
+5. Tests pour happy path + cross-field rejections
+
+### Candidats prioritaires
+
+| Plugin | Use case mastering | Complexité ajout |
+|---|---|---|
+| `MultibandDynamics` (Ableton stock) | Multiband bus control (Scenario MASTER-E currently deferred) | Moyenne — 3 bands × params (threshold/ratio/attack/release) |
+| `iZotope Ozone Master` (VST3) | All-in-one mastering chain alternative | Élevée — Ozone modulaire, plusieurs sub-modules |
+| `FabFilter Pro-L 2` (VST3) | True peak limiter de référence | Faible — paramètres simples |
+| `Soothe2` (VST3) | Resonance suppressor dynamique master-side | Moyenne |
+| `bx_xl V2` (VST3) | M/S phase-coherent stereo enhancer | Moyenne |
+| `iZotope Tonal Balance Control` (VST3) | Reference matching workflow | Élevée — workflow integration vs simple param mapping |
+
+### Principes invariants pour future plugins
+
+- ⭐ **Pas de hardcoding de targets** dans le prompt (cf. Section 7) —
+  reste une règle pour TOUS les nouveaux types
+- ⭐ **Caps absolus parser-enforced** s'étendent aux nouveaux paramètres
+  (ranges audio-physics, pas opinion)
+- ⭐ **Cross-lane handoff** : si un plugin couvre du scope per-track (ex:
+  Soothe2 sur kick track), reste hors mastering-engineer scope —
+  escalate aux mix-fix lanes amont
+- ⭐ **Static-only par design** : envelopes restent gérées par
+  automation-engineer Phase 4.8 (purpose='mastering_master_bus')
