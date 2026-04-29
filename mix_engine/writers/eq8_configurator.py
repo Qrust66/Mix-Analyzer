@@ -182,6 +182,7 @@ def apply_eq_corrective_decision(
     decision: MixDecision[EQCorrectiveDecision],
     output_path: str | Path | None = None,
     dry_run: bool = False,
+    invoke_safety_guardian: bool = True,
 ) -> EqConfiguratorReport:
     """Apply an EQ corrective decision to an .als file.
 
@@ -421,12 +422,24 @@ def apply_eq_corrective_decision(
     # NextPointeeId + Ableton-native XML declaration).
     final_als = als_utils.save_als_from_tree(tree, str(output_path))
 
+    # Phase 4.10 Step 5 — deterministic post-write safety checks.
+    # Subset of als-safety-guardian (LLM agent) ; the full LLM guardian
+    # remains a separate Claude-orchestrated check for design-intent
+    # validation. Python-side runs ALWAYS unless explicitly disabled.
+    safety_status = "SKIPPED"
+    if invoke_safety_guardian:
+        safety_status, safety_issues = _run_safety_checks(final_als)
+        if safety_issues:
+            for issue in safety_issues:
+                warnings.append(f"safety_guardian: {issue}")
+
     return EqConfiguratorReport(
         bands_applied=tuple(bands_applied),
         bands_skipped=tuple(bands_skipped),
         eq8_created=eq8_created,
         eq8_reused=eq8_reused,
         automations_written=automations_written,
+        safety_guardian_status=safety_status,
         warnings=tuple(warnings),
         output_path=str(final_als),
     )
@@ -438,6 +451,165 @@ def apply_eq_corrective_decision(
 
 
 _EQ8_BANDS_PER_INSTANCE: int = 8
+
+
+# ============================================================================
+# Phase 4.10 Step 5 — Post-write deterministic safety checks
+# ============================================================================
+#
+# Subset of als-safety-guardian (LLM agent) checks that can be run
+# deterministically in Python. The full LLM guardian remains as a separate
+# Claude-orchestrated check (invoked via Agent tool when user runs full
+# pipeline). Python-side runs ALWAYS post-write to catch structural
+# corruption immediately — fail fast before .als reaches user.
+#
+# Checks performed :
+# 1. File exists, is gunzippable, parses as XML (no malformed structure)
+# 2. NextPointeeId > max(Id) in tree (Ableton requirement)
+# 3. All Eq8 Mode values in {0,1,2} (channel mode)
+# 4. All Eq8 band Mode values in {0..7}
+# 5. All Eq8 band Freq within [30, 22000] Hz
+# 6. All Eq8 band Gain within [-15, +15] dB
+# 7. All Eq8 band Q within [0.10, 18.00]
+# 8. No duplicate AutomationEnvelope on same PointeeId
+
+
+def _run_safety_checks(als_path: str | Path) -> tuple[str, list[str]]:
+    """Run deterministic structural checks on a written .als.
+
+    Returns (status, issues) where status is "PASS" or "FAIL", and issues
+    is a list of issue descriptions (empty when status="PASS").
+    """
+    issues: list[str] = []
+    als_path = Path(als_path)
+
+    if not als_path.exists():
+        return "FAIL", [f"File does not exist: {als_path}"]
+
+    # Check 1 : parses as valid .als
+    try:
+        tree = als_utils.parse_als(str(als_path))
+    except Exception as exc:
+        return "FAIL", [f"Cannot parse as .als: {type(exc).__name__}: {exc}"]
+
+    root = tree.getroot()
+
+    # Check 2 : NextPointeeId > max(Id)
+    next_pid_el = root.find(".//NextPointeeId")
+    max_id = 0
+    for elem in root.iter():
+        raw = elem.get("Id")
+        if raw is not None:
+            try:
+                v = int(raw)
+                if v > max_id:
+                    max_id = v
+            except ValueError:
+                pass
+    if next_pid_el is not None:
+        try:
+            next_pid_val = int(next_pid_el.get("Value", "0"))
+            if next_pid_val <= max_id:
+                issues.append(
+                    f"NextPointeeId={next_pid_val} ≤ max Id ({max_id}) ; "
+                    f"Ableton will refuse to load."
+                )
+        except ValueError:
+            issues.append(
+                f"NextPointeeId Value not an int: {next_pid_el.get('Value')!r}"
+            )
+
+    # Checks 3-7 : Eq8 ranges
+    for eq8 in root.findall(".//Eq8"):
+        mode_el = eq8.find("Mode")
+        if mode_el is not None:
+            try:
+                mode_val = int(mode_el.get("Value", "0"))
+                if mode_val not in (0, 1, 2):
+                    issues.append(
+                        f"Eq8 Mode={mode_val} not in {{0,1,2}}"
+                    )
+            except ValueError:
+                pass
+        for i in range(8):
+            band = eq8.find(f"Bands.{i}")
+            if band is None:
+                continue
+            for param_name in ("ParameterA", "ParameterB"):
+                param = band.find(param_name)
+                if param is None:
+                    continue
+                # Mode 0..7
+                bm = param.find("Mode/Manual")
+                if bm is not None:
+                    try:
+                        bm_val = int(bm.get("Value", "0"))
+                        if not (0 <= bm_val <= 7):
+                            issues.append(
+                                f"Eq8 Bands.{i}/{param_name} Mode={bm_val} "
+                                f"not in 0..7"
+                            )
+                    except ValueError:
+                        pass
+                # Freq 30..22000 Hz
+                freq = param.find("Freq/Manual")
+                if freq is not None:
+                    try:
+                        f_val = float(freq.get("Value", "0"))
+                        if not (30.0 <= f_val <= 22000.0):
+                            issues.append(
+                                f"Eq8 Bands.{i}/{param_name} Freq={f_val} "
+                                f"out of [30, 22000] Hz"
+                            )
+                    except ValueError:
+                        pass
+                # Gain -15..+15 dB
+                gain = param.find("Gain/Manual")
+                if gain is not None:
+                    try:
+                        g_val = float(gain.get("Value", "0"))
+                        if not (-15.0 <= g_val <= 15.0):
+                            issues.append(
+                                f"Eq8 Bands.{i}/{param_name} Gain={g_val} "
+                                f"out of [-15, +15] dB"
+                            )
+                    except ValueError:
+                        pass
+                # Q 0.10..18.00
+                q = param.find("Q/Manual")
+                if q is not None:
+                    try:
+                        q_val = float(q.get("Value", "0"))
+                        if not (0.10 <= q_val <= 18.00):
+                            issues.append(
+                                f"Eq8 Bands.{i}/{param_name} Q={q_val} "
+                                f"out of [0.10, 18.00]"
+                            )
+                    except ValueError:
+                        pass
+
+    # Check 8 : no duplicate AutomationEnvelope on same PointeeId per track
+    for track in root.findall(".//AudioTrack") + root.findall(".//MidiTrack"):
+        envs = track.findall(".//AutomationEnvelopes/Envelopes/AutomationEnvelope")
+        seen_pointees: dict[str, int] = {}
+        for env in envs:
+            pointee = env.find(".//PointeeId")
+            if pointee is None:
+                continue
+            pid = pointee.get("Value", "")
+            if pid in seen_pointees:
+                seen_pointees[pid] += 1
+            else:
+                seen_pointees[pid] = 1
+        for pid, count in seen_pointees.items():
+            if count > 1:
+                issues.append(
+                    f"Duplicate AutomationEnvelope on PointeeId={pid} "
+                    f"({count} envelopes — Ableton may use only one, "
+                    f"non-deterministic behavior)"
+                )
+
+    return ("PASS" if not issues else "FAIL"), issues
 
 # Phase 4.10 Step 3 — bar → time_beats conversion. Assumes 4/4 time signature
 # (4 beats per bar). Future enhancement could extract real time signature

@@ -999,6 +999,90 @@ def test_apply_processing_mode_invalid_raises(tmp_path):
         apply_eq_corrective_decision(ref_copy, decision, dry_run=True)
 
 
+# ============================================================================
+# Phase 4.10 Step 5 — Safety guardian (post-write deterministic checks)
+# ============================================================================
+
+from mix_engine.writers.eq8_configurator import _run_safety_checks  # noqa: E402
+
+
+def test_safety_check_pass_on_fresh_apply(tmp_path):
+    """Standard apply produces a .als that passes deterministic safety checks."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    band = _make_band()
+    decision = MixDecision(
+        value=EQCorrectiveDecision(bands=(band,)),
+        lane="eq_corrective",
+        rationale="Safety check baseline — fresh apply should be PASS.",
+        confidence=0.85,
+    )
+    report = apply_eq_corrective_decision(ref_copy, decision, output_path=output)
+    assert report.safety_guardian_status == "PASS"
+    # No safety_guardian warnings
+    sg_warnings = [w for w in report.warnings if "safety_guardian:" in w]
+    assert len(sg_warnings) == 0
+
+
+def test_safety_check_skipped_when_disabled(tmp_path):
+    """invoke_safety_guardian=False → status SKIPPED, no checks run."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    band = _make_band()
+    decision = MixDecision(
+        value=EQCorrectiveDecision(bands=(band,)),
+        lane="eq_corrective",
+        rationale="Safety check skip test — invoke_safety_guardian=False.",
+        confidence=0.85,
+    )
+    report = apply_eq_corrective_decision(
+        ref_copy, decision, output_path=output, invoke_safety_guardian=False,
+    )
+    assert report.safety_guardian_status == "SKIPPED"
+
+
+def test_safety_check_skipped_for_dry_run(tmp_path):
+    """dry_run=True → no .als written → safety check status remains SKIPPED."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    band = _make_band()
+    decision = MixDecision(
+        value=EQCorrectiveDecision(bands=(band,)),
+        lane="eq_corrective",
+        rationale="Safety check on dry_run — should remain SKIPPED.",
+        confidence=0.85,
+    )
+    report = apply_eq_corrective_decision(ref_copy, decision, dry_run=True)
+    assert report.safety_guardian_status == "SKIPPED"
+
+
+def test_safety_check_unmodified_als_passes(tmp_path):
+    """Reference fixture should pass safety check verbatim."""
+    status, issues = _run_safety_checks(_REF_ALS)
+    assert status == "PASS", f"Reference fixture has issues: {issues}"
+
+
+def test_safety_check_detects_corrupted_als(tmp_path):
+    """Hand-corrupt a .als (non-gzip content) → safety check FAILs."""
+    bad_path = tmp_path / "bad.als"
+    bad_path.write_bytes(b"not a real .als file at all")
+    status, issues = _run_safety_checks(bad_path)
+    assert status == "FAIL"
+    assert any("Cannot parse" in i for i in issues)
+
+
+def test_safety_check_detects_missing_file(tmp_path):
+    """Missing file → FAIL."""
+    status, issues = _run_safety_checks(tmp_path / "nonexistent.als")
+    assert status == "FAIL"
+    assert any("does not exist" in i for i in issues)
+
+
 def test_apply_chain_start_existing_eq8_reused(tmp_path):
     """Kick 1 has Eq8 at index 0 → chain_start reuses it (not duplicates)."""
     ref_copy = tmp_path / "ref.als"
