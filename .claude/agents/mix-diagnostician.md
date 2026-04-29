@@ -204,6 +204,69 @@ Mapping vers `mix_analyzer.py:267 FAMILY_PROFILES` :
 
 8 families exact ; agent emits le tuple correspondant.
 
+### Genre detection heuristique (Phase 4.7.5 — concrete guidance)
+
+Comment dériver `family` quand non-spécifié explicitement par l'utilisateur :
+
+**1. Project name keyword matching** (priorité 1, déterministe) :
+
+```python
+PROJECT_NAME_GENRE_KEYWORDS = {
+    "electronic_aggressive": ["industrial", "techno", "ebm", "darksynth",
+                               "darkwave", "nin", "aggressive"],
+    "electronic_dance": ["edm", "house", "trance", "drum_n_bass", "dnb",
+                          "dance", "club"],
+    "electronic_soft": ["ambient", "downtempo", "chillout", "lofi",
+                        "ambient_techno"],
+    "rock": ["rock", "metal", "punk", "alternative", "grunge", "indie_rock"],
+    "acoustic": ["acoustic", "folk", "singer_songwriter", "classical",
+                  "jazz", "orchestral"],
+    "urban": ["hip_hop", "rap", "trap", "rnb", "soul"],
+    "pop": ["pop", "synth_pop", "indie_pop"],
+    "generic": [],  # fallback
+}
+
+def derive_family(project_name: str) -> str:
+    name_lower = project_name.lower().replace(" ", "_")
+    for family, keywords in PROJECT_NAME_GENRE_KEYWORDS.items():
+        if any(kw in name_lower for kw in keywords):
+            return family
+    return "generic"  # default fallback
+```
+
+**2. Brief utilisateur explicit** (priorité 0, override absolu) :
+
+Si user brief mentions une genre family directement ("industrial production", "ambient mix"), use that family verbatim.
+
+**3. Excel AI Context sheet** (Phase 4.7.5+ TBD) :
+
+Future Mix Analyzer versions could expose detected family in AI Context sheet (via tempo_dynamic + spectral_centroid heuristics). For now, mix-diagnostician derives via project_name OR brief.
+
+**4. Skip when uncertain** :
+
+If no project_name keyword match AND no brief mention → emit `genre_context: null` (downstream agents fall to brief-only path, no genre auto-modulation). Don't guess "generic" for projects that don't match — let consumer agents handle the absence explicitly.
+
+### Forward-looking : future mastering-engineer consumer (Phase 4.X TBD)
+
+Quand mastering-engineer agent sera built (Tier A final lane), il consumera `genre_context` pour :
+
+| Use case | `genre_context` field | Decision impact |
+|---|---|---|
+| Master Limiter ceiling target | `target_lufs_mix` | Limiter ceiling = target_lufs_mix + headroom (typically -1 dB) ; family electronic_aggressive → target -8, ceiling -7 dBFS ; acoustic → target -16, ceiling -14 |
+| Master compression target | `typical_crest_mix` | Master Compressor2 GR target keeps crest within ±2 dB of typical_crest_mix |
+| Master multiband sensitivity | `density_tolerance` | "very_high" → multiband acceptable ; "low" → preserve dynamics, single-band only |
+| Master EQ tilt | `family` direct | electronic → bass-tilt OK ; acoustic → flat preserve |
+| Stereo enhancer master | `family` + density | electronic_dance → wider acceptable ; acoustic → preserve natural |
+
+Cohérence consumer agents Phase 4.7.x :
+- 4.7.1 dynamics-corrective : family → ratio×/attack×/release× modulators
+- 4.7.2 stereo-spatial : family → width/mono summing tendencies
+- 4.7.3 eq-corrective : family → cut intensity tendency + density anti-pattern alerts
+- 4.7.4 chain-builder : family → chain composition tendencies (sidechain common, vocal de-essing common, etc.)
+- 4.7.5 mastering-engineer (future) : family → target_lufs ceiling, compression target, multiband sensitivity
+
+**Phase 4.7.5 status** : mastering-engineer agent pas built ; cette section documente le contrat futur. Quand mastering-engineer arrive, son prompt référencera cette section pour cohérence.
+
 ## Normalisation obligatoire (Phase 4.2.6)
 
 Avant d'émettre `DiagnosticReport`, **normalise** les écarts entre les
