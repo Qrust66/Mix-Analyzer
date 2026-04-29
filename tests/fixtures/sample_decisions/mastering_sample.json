@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "mastering": {
+    "moves": [
+      {
+        "type": "stereo_enhance",
+        "target_track": "Master",
+        "device": "StereoGain",
+        "chain_position": "master_stereo",
+        "width": 1.1,
+        "rationale": "Causal: master width 1.1 = subtle widen for stereo image enhancement. Interactional: 10% wider preserves mono compatibility while adding sense of space. Idiomatic: streaming-safe master width tendency for electronic genres.",
+        "inspired_by": [
+          {"kind": "diagnostic", "path": "FullMixMetrics.stereo_width",
+           "excerpt": "stereo_width 0.14 — could benefit from subtle widen"}
+        ]
+      },
+      {
+        "type": "bus_glue",
+        "target_track": "[H/R] Bass Rythm",
+        "device": "GlueCompressor",
+        "chain_position": "bus_glue",
+        "ratio": 1.7,
+        "threshold_db": -10.0,
+        "attack_ms": 30.0,
+        "release_ms": 200.0,
+        "makeup_db": 1.5,
+        "rationale": "Causal: bass bus needs subtle glue for inter-section consistency. Interactional: 1.7:1 ratio with slow attack preserves transients while gluing tail. Idiomatic: SSL-style bus glue, GR target 1-2 dB.",
+        "inspired_by": [
+          {"kind": "diagnostic", "path": "HealthScore.Dynamics",
+           "excerpt": "Dynamics 65 — moderate cohesion need on Bass Rythm"}
+        ]
+      }
+    ]
+  },
+  "cited_by": [
+    {"kind": "diagnostic", "path": "FullMixMetrics",
+     "excerpt": "Master + sub-bus mastering pass"}
+  ],
+  "rationale": "Sample test drive : master stereo widen + Bass Rythm bus glue.",
+  "confidence": 0.85
+}

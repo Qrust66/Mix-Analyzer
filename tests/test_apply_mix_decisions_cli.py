@@ -215,6 +215,24 @@ def test_cli_routing_only_smoke(tmp_path):
     assert "RESULT : OK" in result.stdout
 
 
+def test_cli_mastering_only_smoke(tmp_path):
+    """Phase 4.15 — mastering-only test drive : master stereo + bus_glue."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    mastering_json = _SAMPLES / "mastering_sample.json"
+    result = _run_cli([
+        "--als", str(ref_copy),
+        "--mastering-json", str(mastering_json),
+        "--output", str(output),
+    ])
+    assert result.returncode == 0, f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    assert output.exists()
+    assert "Mastering" in result.stdout
+    assert "RESULT : OK" in result.stdout
+
+
 def test_cli_dry_run_does_not_write(tmp_path):
     """--dry-run leaves source .als untouched."""
     ref_copy = tmp_path / "ref.als"

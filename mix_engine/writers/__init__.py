@@ -49,6 +49,13 @@ from mix_engine.writers.routing_configurator import (
     SidechainBlockNotFoundError,
     apply_routing_decision,
 )
+from mix_engine.writers.master_bus_configurator import (
+    MasterBusConfiguratorError,
+    MasterBusConfiguratorReport,
+    MasterDeviceNotFoundError,
+    MasterTrackNotFoundError,
+    apply_mastering_decision,
+)
 
 __all__ = [
     "EqConfiguratorError",
@@ -66,4 +73,9 @@ __all__ = [
     "RoutingConfiguratorReport",
     "SidechainBlockNotFoundError",
     "apply_routing_decision",
+    "MasterBusConfiguratorError",
+    "MasterBusConfiguratorReport",
+    "MasterDeviceNotFoundError",
+    "MasterTrackNotFoundError",
+    "apply_mastering_decision",
 ]

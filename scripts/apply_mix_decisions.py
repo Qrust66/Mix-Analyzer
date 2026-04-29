@@ -58,12 +58,14 @@ import als_utils
 from mix_engine.blueprint import (
     parse_dynamics_corrective_decision,
     parse_eq_corrective_decision,
+    parse_mastering_decision,
     parse_routing_decision,
     parse_spatial_decision,
 )
 from mix_engine.writers import (
     apply_dynamics_corrective_decision,
     apply_eq_corrective_decision,
+    apply_mastering_decision,
     apply_routing_decision,
     apply_spatial_decision,
 )
@@ -138,6 +140,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="Spatial / stereo decision JSON.")
     parser.add_argument("--routing-json", type=Path, default=None,
                         help="Routing / sidechain repair decision JSON.")
+    parser.add_argument("--mastering-json", type=Path, default=None,
+                        help="Mastering decision JSON (master bus + sub-bus glue).")
     parser.add_argument("--no-safety", action="store_true",
                         help="Disable post-write safety_guardian (not recommended).")
     parser.add_argument("--dry-run", action="store_true",
@@ -150,14 +154,15 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if (args.eq_json is None and args.dynamics_json is None
-            and args.spatial_json is None and args.routing_json is None):
+            and args.spatial_json is None and args.routing_json is None
+            and args.mastering_json is None):
         print("ERROR: at least one of --eq-json / --dynamics-json / "
-                "--spatial-json / --routing-json must be provided.",
-                file=sys.stderr)
+                "--spatial-json / --routing-json / --mastering-json must "
+                "be provided.", file=sys.stderr)
         return 2
 
     for json_path in (args.eq_json, args.dynamics_json, args.spatial_json,
-                       args.routing_json):
+                       args.routing_json, args.mastering_json):
         if json_path is not None and not json_path.exists():
             print(f"ERROR: decision JSON not found: {json_path}", file=sys.stderr)
             return 2
@@ -227,6 +232,18 @@ def main(argv: list[str] | None = None) -> int:
             invoke_safety_guardian=invoke_safety,
         )
         any_fail = _print_report("Routing", report) or any_fail
+
+    # 5. Mastering (master bus + sub-bus glue)
+    if args.mastering_json is not None:
+        payload = _load_json(args.mastering_json)
+        decision = parse_mastering_decision(payload)
+        report = apply_mastering_decision(
+            working_path, decision,
+            output_path=working_path if not args.dry_run else None,
+            dry_run=args.dry_run,
+            invoke_safety_guardian=invoke_safety,
+        )
+        any_fail = _print_report("Mastering", report) or any_fail
 
     print()
     if any_fail:

@@ -38,7 +38,7 @@ purement décisionnel.
 | `spatial-configurator` | `SpatialDecision` | StereoGain (REUSE) + Mixer.Pan (no device), 7 move types | ✅ **Phase 4.12 done** (1 step, 20 tests, methodology converged) |
 | `chain-assembler` | `ChainBuildDecision` | Ordre absolu devices par track | 🟡 1-2 jours |
 | `automation-writer` | `AutomationDecision` | `<AutomationEnvelope>` XML | 🟡 partiel (eq8_automation.py existe pour Eq8 only) — 1-2 jours pour étendre |
-| `master-bus-configurator` | `MasteringDecision` | Master track chain entière | 🟡 1 jour |
+| `master-bus-configurator` | `MasteringDecision` | Master (LiveSet/MainTrack) + sub-bus glue, 6 move types | ✅ **Phase 4.15 done** (1 step, 19 tests, REUSE-only) |
 
 **Total Tier B restant** : ~7-10 jours (eq8-configurator livré).
 
