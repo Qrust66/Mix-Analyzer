@@ -30,17 +30,35 @@ Tous Tier A : décident en JSON, **n'écrivent jamais le `.als`**.
 mais aucun agent ne traduit en patches XML Ableton. Le système est
 purement décisionnel.
 
-| Tier B agent | Consomme | Écrit dans .als | Effort |
+| Tier B agent | Consomme | Écrit dans .als | Status |
 |---|---|---|---|
-| `eq8-configurator` | `EQCorrectiveDecision` | Eq8 devices, 8 bandes max, Mode 0-7 mapping | 1-2 jours |
-| `dynamics-configurator` | `DynamicsCorrectiveDecision` | Compressor2/GlueComp/Limiter/Gate/DrumBuss | 1-2 jours |
-| `routing-configurator` | `RoutingDecision` | Bus, sidechain refs, sends | 1 jour |
-| `spatial-configurator` | `SpatialDecision` | Utility/StereoGain devices | 1 jour |
-| `chain-assembler` | `ChainBuildDecision` | Ordre absolu devices par track | 1-2 jours |
-| `automation-writer` | `AutomationDecision` | `<AutomationEnvelope>` XML | partiel (eq8_automation.py existe pour Eq8 only) — 1-2 jours pour étendre |
-| `master-bus-configurator` | `MasteringDecision` | Master track chain entière | 1 jour |
+| `eq8-configurator` | `EQCorrectiveDecision` | Eq8 devices, 8 bandes max, Mode 0-7 mapping | ✅ **Phase 4.10 done** (5 steps, 60 tests) |
+| `dynamics-configurator` | `DynamicsCorrectiveDecision` | Compressor2/GlueComp/Limiter/Gate/DrumBuss | 🟡 1-2 jours |
+| `routing-configurator` | `RoutingDecision` | Bus, sidechain refs, sends | 🟡 1 jour |
+| `spatial-configurator` | `SpatialDecision` | Utility/StereoGain devices | 🟡 1 jour |
+| `chain-assembler` | `ChainBuildDecision` | Ordre absolu devices par track | 🟡 1-2 jours |
+| `automation-writer` | `AutomationDecision` | `<AutomationEnvelope>` XML | 🟡 partiel (eq8_automation.py existe pour Eq8 only) — 1-2 jours pour étendre |
+| `master-bus-configurator` | `MasteringDecision` | Master track chain entière | 🟡 1 jour |
 
-**Total Tier B** : ~8-12 jours.
+**Total Tier B restant** : ~7-10 jours (eq8-configurator livré).
+
+### Pattern Tier B établi (référence Phase 4.10)
+
+eq8-configurator livre la méthodologie réutilisable :
+1. Step 1 : skeleton + translation table semantic→XML + apply basique
+2. Step 2 : chain_position support (find_or_create_X_at_position parallèle)
+3. Step 3 : envelope writing (cross-lane handoff sections-relative bars)
+4. Step 4 : processing_mode (M/S) + idempotency by params
+5. Step 5 : safety_guardian post-write (8 deterministic checks subset)
+
+Patterns clés :
+- Module Python déterministe (pas LLM), réutilise als_utils primitives
+- Backward-compat strict sur als_utils (fonctions parallèles, jamais
+  toucher l'API existante utilisée par eq8_automation.py)
+- Idempotency-by-params : re-applying same decision = no-op
+- Tests : happy + cross-field rejections + integration sur fixture .als
+- Skip if template absent (graceful degradation pour CI sans
+  Pluggin Mapping.als)
 
 **Méthodologie Tier B** (différente de Tier A) : XML patches, beaucoup plus
 simple que decisional, mais demande mastery du XML Ableton. Oracles
