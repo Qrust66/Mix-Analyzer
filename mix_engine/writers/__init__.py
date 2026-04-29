@@ -31,9 +31,19 @@ from mix_engine.writers.eq8_configurator import (
     EqConfiguratorReport,
     apply_eq_corrective_decision,
 )
+from mix_engine.writers.dynamics_configurator import (
+    DynamicsConfiguratorError,
+    DynamicsConfiguratorReport,
+    DynamicsDeviceNotFoundError,
+    apply_dynamics_corrective_decision,
+)
 
 __all__ = [
     "EqConfiguratorError",
     "EqConfiguratorReport",
     "apply_eq_corrective_decision",
+    "DynamicsConfiguratorError",
+    "DynamicsConfiguratorReport",
+    "DynamicsDeviceNotFoundError",
+    "apply_dynamics_corrective_decision",
 ]
