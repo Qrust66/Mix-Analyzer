@@ -110,6 +110,50 @@ if abs(target_pan - track.pan) < 0.05:
 
 **Le brief doit nommer la track explicitement.** Si plusieurs tracks matchent (ex: "narrow the pads" avec Pad 1 et Pad 2 dans tracks) → ambiguïté, demander clarification ou skip.
 
+### 6. Per-track audio metrics (Phase 4.7+ typed source — PREFERRED when present)
+
+`report.tracks[*].audio_metrics: Optional[TrackAudioMetrics]` — populated by mix-diagnostician via lazy absorption.
+
+**Champs particulièrement pertinents pour stereo-spatial** :
+
+| Field | Use | Triggers / signals |
+|---|---|---|
+| `is_stereo` | Track type pre-flight | `False` → Scenarios B/C/D/F/G inapplicables (mono content) |
+| `correlation` (-1..+1) | Per-track phase coherence | `< 0` → Scenario C phase_flip signal-driven trigger ; `> 0.95` → Scenario E mono safe-to-commit |
+| `width_overall` (0..1) | Per-track stereo width scalar | `> 0.6` → Scenario B narrow signal ; `< 0.1` → Scenario B wide candidate |
+| `width_per_band` (tuple len 7) | Width per canonical band | Inform Scenario D (bass_mono) — narrow if `width_per_band[0]` (sub) > 0.3 |
+| `dominant_band` | Track frequency profile | Bass/sub-territory tracks (`sub`/`bass`) → Scenario D candidates |
+
+**Backward-compat strict** :
+```python
+if track.audio_metrics is not None:
+    # Phase 4.7+ signal-driven path (preferred)
+    use track.audio_metrics.correlation / width_overall directly
+else:
+    # Pre-Phase-4.7 fallback : Anomaly prose + project-level full_mix proxy
+    use Source #1 + #3 paths as documented
+```
+
+**Idempotence improvement (Phase 4.7+)** : audio_metrics enables better partial idempotence for Scenarios B/D/E :
+- Scenario B (width) : compare target `stereo_width` vs `track.audio_metrics.width_overall` ; skip if Δ < 0.1
+- Scenario E (mono) : if `track.audio_metrics.is_stereo == False` OR `correlation > 0.99` → already mono, skip
+- Scenario C (phase_flip) : `track.audio_metrics.correlation > 0` → no phase issue, skip even if Anomaly stale
+
+⚠️ **Limitation persists** : audio_metrics reflects mix_analyzer time-of-analysis. Re-running stereo-spatial after Tier B applied moves does NOT re-analyze ; audio_metrics still shows pre-application values. Full idempotence requires mix-diagnostician re-run between Tier B applications.
+
+### 7. Genre context (Phase 4.7+ project-level — light usage)
+
+`report.genre_context.family` and `density_tolerance` provide light tendencies for stereo decisions :
+
+| `family` | Width tendency | Mono summing tendency |
+|---|---|---|
+| `electronic_aggressive` / `electronic_dance` | wide pads OK ; bass mono mandatory | sub mono common |
+| `rock` | medium width ; guitars wide | rare |
+| `acoustic` / `electronic_soft` | preserve natural stereo image | rare |
+| `urban` / `pop` | center-anchored vocals + width on instruments | uncommon |
+
+Backward-compat : `genre_context is None` → brief drives stereo intent (existing path).
+
 ## Architecture du chemin de décision
 
 ```
@@ -173,19 +217,31 @@ SpatialMove(
 
 ### Scenario B — Width adjustment (StereoGain.StereoWidth)
 
-**Pre-flight gate** :
+**Pre-flight gate (Phase 4.7+ extended with audio_metrics signal-driven path)** :
 ```
 gate_B passes if (NARROW direction):
    (
      Anomaly "Very wide stereo image" per-track (info severity)
      OR brief "narrow <track>" / "tighten stereo on <track>" / "too wide on <track>"
+     OR (track.audio_metrics is not None             # Phase 4.7+ signal-driven
+         AND track.audio_metrics.is_stereo == True
+         AND track.audio_metrics.width_overall > 0.6)
    )
-   AND report.full_mix.correlation < 0.95   # pas déjà mono
+   AND (
+     # idempotence + safety (audio_metrics preferred over project-level proxy)
+     if track.audio_metrics is not None:
+         track.audio_metrics.correlation < 0.95   # pas déjà mono per-track
+     else:
+         report.full_mix.correlation < 0.95        # fallback project-level
+   )
    AND target_stereo_width < 1.0
+   AND (track.audio_metrics is None
+        OR abs(target_stereo_width - track.audio_metrics.width_overall) >= 0.1)  # idempotence
 
 OR gate_B passes if (WIDE direction):
    brief contains "<track>" AND ("open up" OR "widen" OR "more space")
-   # Mix Health Stereo Image < 65 act as severity modulator (NOT trigger)
+   # Mix Health Stereo Image < 65 = severity modulator (NOT trigger)
+   # Phase 4.7+ : track.audio_metrics.width_overall < 0.1 confirms narrow image
    AND target_stereo_width > 1.0
 ```
 
@@ -213,17 +269,27 @@ SpatialMove(
 
 ### Scenario C — Phase polarity flip (StereoGain.PhaseInvertL/R)
 
-**Pre-flight gate** :
+**Pre-flight gate (Phase 4.7+ extended with typed audio_metrics signal)** :
 ```
-gate_C passes if:
-   exists Anomaly a where:
-      a.severity ∈ {"critical", "warning"}
-      AND a.description matches r"Phase correlation"
-      AND len(a.affected_tracks) >= 1
-      AND a.affected_tracks[0] in {t.name for t in tracks}
-      # Track must be stereo content — Phase correlation anomaly only
-      # fires on is_stereo=True (mix_analyzer.py:856), so existence of
-      # this anomaly on a track IMPLIES stereo content.
+gate_C passes if EITHER :
+
+   (a) ANOMALY-DRIVEN PATH (existing Phase 4.5) :
+       exists Anomaly a where:
+          a.severity ∈ {"critical", "warning"}
+          AND a.description matches r"Phase correlation"
+          AND len(a.affected_tracks) >= 1
+          AND a.affected_tracks[0] in {t.name for t in tracks}
+          # Track must be stereo content — Phase correlation anomaly only
+          # fires on is_stereo=True (mix_analyzer.py:856).
+
+   OR (b) SIGNAL-DRIVEN PATH (Phase 4.7+ — preferred when audio_metrics typed) :
+       track.audio_metrics is not None
+       AND track.audio_metrics.is_stereo == True
+       AND track.audio_metrics.correlation < 0.0
+       # Per-track typed correlation < 0 = phase issue confirmed objectively
+
+# Idempotence (Phase 4.7+) : if track.audio_metrics.correlation > 0,
+# phase issue already resolved (or never existed) → skip even if Anomaly stale.
 ```
 
 **Action** :
@@ -272,12 +338,17 @@ SpatialMove(
 
 ### Scenario E — Full mono summing (StereoGain.Mono = True)
 
-**Pre-flight gate** :
+**Pre-flight gate (Phase 4.7+ extended with audio_metrics safety net)** :
 ```
 gate_E passes if:
    brief explicit "<track> mono" / "force mono on <track>"
    AND track in {t.name for t in report.tracks}
-   # NO project-level correlation gate (audit Finding 5 — was bad proxy).
+   # NO project-level correlation gate (Phase 4.5.1 audit Finding 5 — bad proxy).
+   # Phase 4.7+ : if track.audio_metrics is not None :
+   #   - track.audio_metrics.is_stereo == False → already mono, skip (no-op)
+   #   - track.audio_metrics.correlation > 0.99 → quasi-mono, mono summing safe
+   #   - track.audio_metrics.correlation < 0.7 with stereo content → REFUSE
+   #     (kill significant stereo info ; brief might be wrong intent)
 ```
 
 **Action** :
@@ -372,6 +443,8 @@ SpatialMove(
 
 ## Confidence translation
 
+### Phase 4.5 baseline (existing)
+
 | Sources alignées | `MixDecision.confidence` |
 |---|---|
 | Brief explicit + Anomaly per-track + target ≠ current | 0.85–0.95 |
@@ -380,6 +453,16 @@ SpatialMove(
 | Brief explicit seul (Scenario F brief-driven only) | 0.55–0.70 |
 | Mix Health < 65 + brief implicit (Scenario G with Mix Health) | 0.75–0.85 |
 | Inférence multi-source ambiguë | 0.45–0.55 |
+
+### Phase 4.7+ extension (audio_metrics signal-driven path)
+
+| Sources alignées | `MixDecision.confidence` |
+|---|---|
+| Brief explicit + audio_metrics confirms (correlation/width matches expected) | 0.85–0.95 |
+| Signal-driven path (audio_metrics objective) + brief silent | 0.75–0.90 |
+| audio_metrics.correlation < 0 (Scenario C signal-driven) confirms Anomaly | 0.85–0.95 |
+| audio_metrics.width_overall > 0.6 alone (Scenario B narrow signal) | 0.65–0.80 |
+| Brief explicit + audio_metrics is None (Phase 4.5 fallback path) | 0.55–0.70 |
 
 ## Idempotence pattern (specific à stereo)
 
