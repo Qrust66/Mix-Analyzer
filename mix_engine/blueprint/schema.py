@@ -340,7 +340,10 @@ CREST_FACTOR_MAX: float = 50.0
 PLR_PSR_MIN: float = -30.0
 PLR_PSR_MAX: float = 30.0
 CENTROID_HZ_MIN: float = 0.0
-CENTROID_HZ_MAX: float = 22050.0
+# Phase 4.7.0.1 audit Finding 2 : bumped from 22050 to 24000 to cover
+# 48 kHz Nyquist (pro-audio standard sample rate). 22050 was 44.1 kHz Nyquist
+# only ; 48 kHz files would have produced legitimate centroid > 22050 rejected.
+CENTROID_HZ_MAX: float = 24000.0
 SPECTRAL_FLATNESS_MIN: float = 0.0
 SPECTRAL_FLATNESS_MAX: float = 1.0
 ONSETS_PER_SECOND_MIN: float = 0.0

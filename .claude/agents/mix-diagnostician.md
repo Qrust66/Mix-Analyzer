@@ -126,6 +126,41 @@ def normalize_nan(v):
 
 Le parser **rejette explicitement les NaN** (Phase 4.7 cross-field check #1) — c'est une mesure edge case, pas un "value 0".
 
+### Field name remappings (mix_analyzer → schema)
+
+⚠️ Schema TrackAudioMetrics utilise des noms typés **différents** de ceux retournés par `mix_analyzer.py` :
+
+| mix_analyzer field | Schema field | Note |
+|---|---|---|
+| `analyze_spectrum` → `flatness` | `spectral_flatness` | renommé pour clarté semantic |
+| `analyze_spectrum` → `centroid` | `centroid_hz` | suffix Hz pour unité explicite |
+| `analyze_spectrum` → `rolloff` | `rolloff_hz` | idem |
+| `analyze_spectrum` → `peaks` (list of [F, M] tuples) | `spectral_peaks` (tuple of SpectralPeak {frequency_hz, magnitude_db}) | renommé + structure typée |
+| `analyze_spectrum` → `band_energies` (dict keyed by band name) | `band_energies` (tuple[float] len 7 ordered) | dict → tuple ordered per CANONICAL_BAND_LABELS index |
+
+**Construction du tuple band_energies depuis dict** :
+```python
+# mix_analyzer returns dict like {"sub": 15.2, "bass": 35.8, "low_mid": 18.5, ...}
+band_energies_tuple = tuple(
+    float(spectrum["band_energies"][band_name])
+    for band_name in CANONICAL_BAND_LABELS  # forced canonical order
+)
+```
+
+### Edge case : silent tracks (LUFS very low)
+
+Quand un track est silent ou quasi-silent (`lufs_integrated < -70` LU OR `is_inf`) :
+- mix_analyzer peut produire des values out-of-range ou non-significatives
+- **Stratégie recommandée** : `audio_metrics=null` entièrement (lazy absorption — Tier A consumers n'ont rien à faire d'une track silent de toute façon)
+- Plutôt que clamper à `LUFS_MIN=-100` une mesure non-significative
+
+```python
+if lufs_integrated < -70 or math.isinf(lufs_integrated):
+    audio_metrics = None  # lazy absorption ; skip silent tracks
+else:
+    audio_metrics = {...}  # populate normally
+```
+
 ### Cross-field is_stereo coherence
 
 Quand tu populates `audio_metrics` :

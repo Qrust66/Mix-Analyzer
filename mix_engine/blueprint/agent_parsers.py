@@ -365,8 +365,14 @@ def _parse_envelope(
 
 
 def _check_not_nan(value: Any, *, where: str) -> None:
-    """Phase 4.7 cross-field check #1 : reject NaN floats explicitly.
-    mix-diagnostician must normalize NaN → null upstream."""
+    """Phase 4.7 Cross-field #1 — NaN rejection.
+
+    mix-diagnostician must normalize NaN → null upstream. NaN floats
+    indicate a measurement edge case (silent track, mono-summed-stereo)
+    that should be treated as "not measured" rather than "value 0".
+    """
+    # Cross-field #1 — NaN rejection (audit Pass 3 Finding 5 : tagged for
+    # coherence with #2-#7 numbering visible in inline comments).
     if isinstance(value, float) and math.isnan(value):
         raise MixAgentOutputError(
             f"{where} is NaN — mix-diagnostician must normalize NaN values "
@@ -607,6 +613,17 @@ def _parse_track_audio_metrics(item: Any, *, where: str) -> TrackAudioMetrics:
         item.get("tonal_strength", 0.0), where=f"{where}.tonal_strength",
         lo=TONAL_STRENGTH_MIN, hi=TONAL_STRENGTH_MAX,
     )
+
+    # Cross-field #7 — is_tonal coherence (audit Pass 3 Finding 3).
+    # When is_tonal=False, dominant_note must be None (logical : a non-tonal
+    # signal has no clear dominant note ; mix_analyzer derives is_tonal from
+    # tonal_strength threshold).
+    if not is_tonal and dominant_note is not None:
+        raise MixAgentOutputError(
+            f"{where}.is_tonal=False but dominant_note={dominant_note!r} is set. "
+            f"Non-tonal signals have no clear dominant note — set dominant_note "
+            f"to null (mix_analyzer derives is_tonal from tonal_strength threshold)."
+        )
 
     return TrackAudioMetrics(
         peak_db=peak_db, true_peak_db=true_peak_db, rms_db=rms_db,

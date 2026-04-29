@@ -2863,6 +2863,52 @@ def test_phase47_all_valid_density_tolerances_parse(dt):
 # ----------------------------------------------------------------------------
 
 
+def test_phase47_audio_metrics_is_tonal_false_with_dominant_note_raises():
+    """Phase 4.7.0.1 audit Finding 3 : cross-field #7 is_tonal coherence.
+    is_tonal=False signals non-tonal content ; dominant_note must be None."""
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        is_tonal=False,
+        dominant_note="C",  # contradiction
+    )
+    with pytest.raises(MixAgentOutputError, match="is_tonal=False"):
+        parse_diagnostic_decision(payload)
+
+
+def test_phase47_audio_metrics_is_tonal_false_with_dominant_note_none_accepted():
+    """Mirror of #7 : non-tonal with dominant_note None is correct."""
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        is_tonal=False,
+        dominant_note=None,
+        tonal_strength=0.05,
+    )
+    decision = parse_diagnostic_decision(payload)
+    assert decision.value.tracks[0].audio_metrics.is_tonal is False
+    assert decision.value.tracks[0].audio_metrics.dominant_note is None
+
+
+def test_phase47_audio_metrics_centroid_24000_accepted():
+    """Phase 4.7.0.1 audit Finding 2 : centroid_hz max bumped 22050→24000
+    to cover 48 kHz Nyquist. Test that 24000 (Nyquist for 48 kHz) accepted."""
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        centroid_hz=24000.0,
+    )
+    decision = parse_diagnostic_decision(payload)
+    assert decision.value.tracks[0].audio_metrics.centroid_hz == 24000.0
+
+
+def test_phase47_audio_metrics_rolloff_above_24000_raises():
+    """Above Nyquist for 48 kHz still rejected."""
+    payload = _valid_payload()
+    payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
+        rolloff_hz=25000.0,
+    )
+    with pytest.raises(MixAgentOutputError, match="rolloff_hz"):
+        parse_diagnostic_decision(payload)
+
+
 def test_phase47_full_integration_audio_metrics_plus_genre_context():
     payload = _valid_payload()
     payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
