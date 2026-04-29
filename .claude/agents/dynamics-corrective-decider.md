@@ -72,8 +72,10 @@ Cet agent travaille avec deux types de seuils :
 > peut étendre `mix-diagnostician` avec `TrackInfo.audio_metrics` quand
 > 2+ agents en auront besoin (rule-with-consumer).
 
-### 1. Anomaly prose per-track
+### 1. Anomaly prose per-track (existing source, kept as fallback)
 `report.anomalies` filtré sur `affected_tracks` non-vide AND track ∈ `{t.name for t in report.tracks}`.
+
+⚠️ **Phase 4.7+ note** : quand `track.audio_metrics is not None` (Source #6 below), prefer typed audio_metrics path over Anomaly prose pattern matching — it's more precise. Anomaly prose remains the fallback when audio_metrics is None (lazy absorption skipped this track).
 
 | Pattern dans Description | Severity | Triggers ? |
 |---|---|---|
@@ -139,6 +141,55 @@ La source primaire pour Scenarios A/D/F (compression standard, gate, transient_s
 
 ### 5. Project-level escalation
 Si une anomaly est project-level (affected_tracks vide ou track absente du report) → **escalate mastering-engineer** (skip ce diagnostic, note dans rationale global).
+
+### 6. Per-track audio metrics (Phase 4.7+ typed source — PREFERRED when present)
+
+`report.tracks[*].audio_metrics: Optional[TrackAudioMetrics]` — populated by mix-diagnostician via lazy absorption (only for tracks that downstream Tier A consumers will use).
+
+**Champs particulièrement pertinents pour dynamics-corrective** :
+
+| Field | Use | Triggers |
+|---|---|---|
+| `crest_factor` (dB) | Per-track dynamic range scalar | `> 18` → wide dynamics, signal-driven candidate Scenario A ; `< 6` → HARD REFUSE (over-compressed) |
+| `lra` (LU) | Per-track Loudness Range | `> 12` → bump severity ; `< 2` → already smashed flag |
+| `plr` / `psr` | Peak-to-loudness ratios | Cross-validate crest_factor + brief alignment |
+| `onsets_per_second` | Rhythmic content density | `> 6` → drum/percussive (modifier attack ×0.5) ; `< 0.5` → sustained content (slower attack OK) |
+| `dominant_band` | Per-track dominant frequency band | "bass"/"sub" tracks → bass-territory rules ; "high"/"presence" → vocal-like rules |
+| `is_stereo` + `correlation` | Stereo content awareness | M/S processing inférable depuis correlation < 0.7 |
+| `is_tonal` + `dominant_note` | Musical context | Sidechain depth tuning vs note interactions |
+
+**Backward-compat strict** :
+```python
+if track.audio_metrics is not None:
+    # Phase 4.7+ typed signal-driven path
+    use track.audio_metrics.crest_factor / lra / onsets_per_second directly
+else:
+    # Pre-Phase-4.7 fallback : Anomaly prose + Mix Health Score project proxy
+    use Source #1 + #2 paths as documented
+```
+
+### 7. Genre context (Phase 4.7+ project-level auto-modulation)
+
+`report.genre_context: Optional[GenreContext]` — `family` enum + `target_lufs_mix` + `typical_crest_mix` + `density_tolerance`. When populated, **auto-modulates baselines** :
+
+| `family` | Ratio modulator | Attack modulator | Release modulator | Sidechain depth |
+|---|---|---|---|---|
+| `electronic_aggressive` | ×1.3 | ×0.5 | ×0.7 | -6 to -10 dB |
+| `electronic_dance` | ×1.2 | ×0.6 | ×0.8 | -6 to -10 dB |
+| `rock` | ×1.0 (baseline) | ×1.0 | ×1.0 | -3 to -6 dB |
+| `urban` | ×1.1 | ×1.0 | ×0.9 | -3 to -5 dB |
+| `pop` | ×1.0 | ×1.0 | ×1.0 | -3 to -5 dB |
+| `electronic_soft` | ×0.8 | ×1.5 | ×1.3 | -2 to -4 dB |
+| `acoustic` | ×0.6 | ×3.0 | ×2.0 | rare |
+| `generic` | ×1.0 | ×1.0 | ×1.0 | -3 to -6 dB |
+
+Cite `genre_context.family` dans `inspired_by` quand modulator appliqué :
+```json
+{"kind": "diagnostic", "path": "genre_context.family",
+ "excerpt": "family=electronic_aggressive → ratio×1.3 attack×0.5"}
+```
+
+Backward-compat : `genre_context is None` → brief drives genre intent (existing Phase 4.3 path).
 
 ## Architecture du chemin de décision
 
@@ -334,6 +385,18 @@ inspired_by = [
 | `"medium"` | 0.65–0.80 | Default CDE medium |
 | `"low"` | 0.45–0.65 | CDE low — agent peut bumper si Anomaly prose confirme |
 
+### Confidence translation (Phase 4.7+ — non-CDE moves with audio_metrics)
+
+When emitting Scenario A/F decisions backed by `track.audio_metrics` typed signals (vs Anomaly prose) :
+
+| Sources alignées | confidence |
+|---|---|
+| Brief explicit + audio_metrics confirms (crest matches expected) | 0.85–0.95 |
+| Signal-driven path (audio_metrics objective) + Mix Health Dynamics aligns | 0.75–0.90 |
+| Brief explicit + audio_metrics is None (Phase 4.3 fallback path) | 0.55–0.70 |
+| audio_metrics confirms but Mix Health Dynamics > 80 (no project-level signal) | 0.55–0.70 |
+| genre_context auto-modulation applied + brief silent | 0.65–0.80 |
+
 ### Diverger de CDE — quand et comment
 
 Tu peux **enrichir** (ajouter chain_position, processing_mode) sans diverger.
@@ -350,20 +413,42 @@ Conditions valables de divergence :
 
 ### Scenario A : Standard compression (track-level)
 
-**Pre-flight gate** :
+**Pre-flight gate (Phase 4.7+ extended)** :
 ```
-gate_A passes if:
-   brief contains explicit verb on this track
-       ("tighten" | "control" | "level out" | "even out" | "compress")
-   AND no Anomaly with description matching "Very low crest factor"
-       on this track    # HARD REFUSE — already over-compressed
+gate_A passes if EITHER :
 
-# Mix Health Dynamics < 65 = MODULATEUR de severity, pas trigger.
+   (a) BRIEF-DRIVEN PATH (existing Phase 4.3 path) :
+       brief contains explicit verb on this track
+           ("tighten" | "control" | "level out" | "even out" | "compress")
+       AND HARD REFUSE check :
+           if track.audio_metrics is not None:
+               track.audio_metrics.crest_factor >= 6.0  # not over-compressed
+           else:
+               no Anomaly matching "Very low crest factor" on this track
+
+   OR (b) SIGNAL-DRIVEN PATH (Phase 4.7+ ; preferred when audio_metrics typed) :
+       track.audio_metrics is not None
+       AND track.audio_metrics.crest_factor > 18.0  # objectively wide dynamics
+       AND track.audio_metrics.crest_factor >= 6.0  # HARD REFUSE not triggered
+
+# Mix Health Dynamics < 65 = MODULATEUR de severity (project-level).
+# audio_metrics.lra > 12 LU = additional severity bump (per-track).
 ```
 
 **Action** :
 
-Table d'adaptation par Mix Health `Dynamics` score :
+**Per-track signal-driven adaptation table (Phase 4.7+ when audio_metrics is not None — PREFERRED)** :
+
+| Per-track signal | Ratio | Threshold target GR | Attack | Release | Knee |
+|---|---|---|---|---|---|
+| `crest_factor` 12-15 (slight wide) | 2.0-2.5:1 | 2-3 dB GR | 15-30 ms | 100-200 ms | 6 dB (soft) |
+| `crest_factor` 15-20 (wide) | 3.0-4.0:1 | 4-5 dB GR | 8-20 ms | 60-150 ms | 3-6 dB |
+| `crest_factor` > 20 (very wide) | 4.0-6.0:1 | 5-7 dB GR | 5-10 ms | 50-100 ms | 0-3 dB (hard) |
+| Bump `lra > 12 LU` modifier | +0.5 to ratio | +1 dB GR target | — | longer release ×1.2 | — |
+| Bump `onsets_per_second > 6` (drum) | — | — | ×0.5 (faster) | ×0.8 (shorter) | — |
+| `is_tonal=True` + dominant_note in scale | comp on 1/8 note timing si possible | — | longer attack si sustained note | — | — |
+
+**Project-level fallback adaptation table (when audio_metrics is None)** :
 
 | `Dynamics` score | Ratio | Threshold target GR | Attack | Release | Knee |
 |---|---|---|---|---|---|
@@ -393,7 +478,10 @@ DynamicsCorrection(
 ```
 
 **Exceptions** :
-- `Very low crest factor` anomaly sur cette track → **HARD REFUSE** : `corrections=[]` pour cette track + rationale "track already over-compressed (crest=X dB), additional compression contraindicated, escalate to mix-orchestrator for multi-track rebalance"
+- HARD REFUSE (Phase 4.7+ typed source preferred) :
+   - **If `track.audio_metrics is not None`** : `audio_metrics.crest_factor < 6.0` → REFUSE
+   - **Else (fallback Phase 4.3)** : Anomaly `Very low crest factor` on this track → REFUSE
+  → `corrections=[]` pour cette track + rationale "track already over-compressed (crest=X dB), additional compression contraindicated, escalate to mix-orchestrator for multi-track rebalance"
 - Brief "preserve_character" → réduire all GR de ~30% (target 2-3 dB instead of 4-5)
 
 ### Scenario B : Sidechain duck (CDE-driven)
@@ -546,22 +634,30 @@ DynamicsCorrection(
 
 ### Scenario F : Transient shape (DrumBuss)
 
-**Pre-flight gate** : **brief-driven only**.
+**Pre-flight gate (Phase 4.7+ : brief-driven trigger ; audio_metrics modulates severity)** :
 ```
 gate_F passes if:
    brief contains "punchier" | "tame transients" | "snare crack"
                 | "softer attack" | "tame the kick"
    AND track.name in brief
+
+# Phase 4.7+ — when audio_metrics is not None :
+#   onsets_per_second > 6 → strong rhythmic content, signal CONFIRMS drum-bus
+#                            (severity modifier ; transients values can lean ±0.5+)
+#   onsets_per_second < 1 → sustained content, brief mismatch ; mention warning
+#
+# Signal alone NEVER triggers Scenario F (transient_shape is creative-leaning ;
+# brief mandatory).
 ```
 
 **Action** :
 
-Table d'adaptation par brief intent :
+Table d'adaptation par brief intent (Phase 4.7+ severity modulator via onsets_per_second) :
 
-| Brief intent | `Transients` value | Compressor section action |
-|---|---|---|
-| "punchier" / "enhance attack" | +0.2 à +0.5 | Compressor section default OFF |
-| "tame the snare crack" | -0.2 à -0.5 | Compressor section optional 1-2 dB GR |
+| Brief intent | `Transients` value | Compressor section action | Phase 4.7+ modulator |
+|---|---|---|---|
+| "punchier" / "enhance attack" | +0.2 à +0.5 | Compressor section default OFF | onsets_per_second > 6 → bump to +0.4 to +0.5 |
+| "tame the snare crack" | -0.2 à -0.5 | Compressor section optional 1-2 dB GR | onsets_per_second > 8 → bump to -0.4 to -0.5 |
 | "softer transients" / "round the kick" | -0.4 à -0.7 | OFF |
 
 ```
