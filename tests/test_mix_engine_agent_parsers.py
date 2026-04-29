@@ -2351,6 +2351,15 @@ def test_chain_position_negative_raises():
         parse_chain_decision(payload)
 
 
+def test_chain_consumes_indices_negative_raises():
+    """Phase 4.6.1 audit Finding 2 : negative indices rejected (Python
+    -1 = last semantics would silently re-target Tier B reads)."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"][1]["consumes_indices"] = [0, 1, -1]
+    with pytest.raises(MixAgentOutputError, match="negative indexing"):
+        parse_chain_decision(payload)
+
+
 # ----------------------------------------------------------------------------
 # Scenario coverage
 # ----------------------------------------------------------------------------

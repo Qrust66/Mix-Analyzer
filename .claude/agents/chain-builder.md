@@ -111,6 +111,23 @@ for track in tracks:
 
 **Preservation transversale** (audit Pass 2 Finding 1) : pour CHAQUE scenario A-E, les devices existants dans `track.devices` doivent être **interleaved** dans la TrackChainPlan via `is_preexisting=True` slots. Pas de scenario isolé pour preservation — c'est un concern transversal.
 
+### Heuristique de positionnement preexisting devices (Phase 4.6.1 audit Finding 1)
+
+**Quand un track a des devices existants ET des nouvelles insertions Tier A**, comment décider où placer les preexisting slots ?
+
+**Règle** : **preserve relative order** des devices existants. Nouveaux slots Tier A insérés **entre** les preexisting selon canonical mapping. Si le canonical slot d'un preexisting device est ambigu (ex: Reverb pas dans VALID_CHAIN_DEVICES), placer **AFTER** les insertions Tier A de même type/proximité fonctionnelle.
+
+**Exemple concret** :
+- `track.devices = ["Reverb", "EchoFx"]` (ordre original)
+- Tier A décide : Eq8 (eq_corrective slot 2) + Compressor2 (dynamics slot 3)
+- **Plan correct** :
+  - slot 2 : Eq8 (new, eq_corrective)
+  - slot 3 : Compressor2 (new, dynamics_corrective)
+  - slot 7 : Reverb (preexisting, post-dynamics canonical)
+  - slot 8 : EchoFx (preexisting, après Reverb pour preserve ordre relatif)
+
+**Anti-pattern** : insérer Reverb au slot 0 juste because "premier dans track.devices" — détruit le signal flow corrective→creative→spatial.
+
 ### 6. Brief utilisateur (override priority)
 
 | Brief mot-clé | Effet |
@@ -212,12 +229,21 @@ Mapping `chain_position` (Tier A source) → absolute slot number :
 Quand 2+ sources demandent même slot OU contradictions apparaissent :
 
 1. **Hard semantic rules** (priorité absolue, non-overridable) :
-   - `gate_first` (Gate) → slot 0 mandatory
-   - `chain_end_limiter` (Limiter) → max position in plan mandatory
+   - `gate_first` (Gate) → slot 0 mandatory — **agent-prompt enforced** (parser ne voit pas le source `chain_position` value, juste le slot final)
+   - `chain_end_limiter` (Limiter) → max position in plan mandatory — **parser-enforced** (check #8, parser voit Limiter device + max position dans le payload)
 2. **Brief utilisateur explicit override** (sauf hard rules ci-dessus)
 3. **Canonical mapping** par chain_position
 4. **Lane priority** : eq < dynamics < spatial (signal flow direction audio standard)
 5. **Lower index** dans lane's collection wins (déterministe)
+
+### Edge case 2+ `gate_first` sur même track (Phase 4.6.1 audit Finding 5)
+
+Si dynamics-corrective émet 2 corrections avec `chain_position="gate_first"` sur même track (anomaly upstream — dynamics-corrective rule "distinct dynamics_type" devrait prévenir, mais possible si dynamics_type="gate" + dynamics_type="sidechain_duck" both want gate_first), les deux veulent slot 0 → impossible.
+
+**Action chain-builder** : refuse + escalate dynamics-corrective for review via cross_lane_notes :
+> "Multiple gate_first hard rules conflict on track <X> : <2+ dynamics_type values>. Upstream rule 'distinct dynamics_type' violated OR semantic conflict. Escalate dynamics-corrective for resolution."
+
+Skip emission of TrackChainPlan for this track until resolved.
 
 ## Cross-lane handoffs
 
@@ -387,6 +413,15 @@ JSON pur (no fences) :
       (sauf violation hard semantic rule).
    j. PAN MOVE SKIPPED : aucun ChainSlot émis pour stereo_spatial moves
       avec move_type="pan".
+   k. CROSS-BLUEPRINT VALIDATION (Phase 4.6.1 audit Finding 3) : pour
+      chaque DynamicsCorrection avec dynamics_type="sidechain_duck",
+      vérifier qu'une routing.value.repairs couvre le trigger_track
+      (sidechain_redirect ou sidechain_create vers ce trigger). Sinon →
+      cross_lane_notes mention "broken sidechain ref : DynamicsCorrection
+      trigger_track=<X> not addressed by routing.repairs ; Tier B will
+      write Compressor2 sidechain pointing to potentially stale ref".
+      Parser ne peut pas valider (parser voit juste le payload chain) —
+      c'est agent-prompt review responsibility.
 
 3. Push UN move : sur 1 plan, durcir / ajuster l'ordre / ajouter cross_lane_note.
 

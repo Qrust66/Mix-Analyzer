@@ -2201,10 +2201,21 @@ def _parse_chain_slot(item: Any, *, where: str) -> ChainSlot:
     indices_raw = _coerce_list(
         item.get("consumes_indices", []), where=f"{where}.consumes_indices"
     )
-    consumes_indices = tuple(
-        _coerce_int_strict(idx, where=f"{where}.consumes_indices[{i}]")
-        for i, idx in enumerate(indices_raw)
-    )
+    consumes_indices_list = []
+    for i, idx in enumerate(indices_raw):
+        idx_int = _coerce_int_strict(idx, where=f"{where}.consumes_indices[{i}]")
+        # Phase 4.6.1 audit Finding 2 : reject negative indices.
+        # Python negative indexing (bands[-1] = last band) would confuse
+        # Tier B which expects original-position references.
+        if idx_int < 0:
+            raise MixAgentOutputError(
+                f"{where}.consumes_indices[{i}]={idx_int} must be >= 0 "
+                f"(references position in lane's collection ; negative "
+                f"indexing not allowed — would silently re-target via "
+                f"Python's bands[-1]=last semantics)."
+            )
+        consumes_indices_list.append(idx_int)
+    consumes_indices = tuple(consumes_indices_list)
 
     purpose = _coerce_str(item.get("purpose", ""), where=f"{where}.purpose")
 
