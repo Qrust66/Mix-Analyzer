@@ -32,6 +32,9 @@ from mix_engine.blueprint.schema import (
     DynamicsAutomationPoint,
     DynamicsCorrection,
     DynamicsCorrectiveDecision,
+    RoutingDecision,
+    SidechainRepair,
+    STALE_SIDECHAIN_REGEX,
     DYN_ATTACK_MAX_MS,
     DYN_ATTACK_MIN_MS,
     DYN_CEILING_MAX_DB,
@@ -81,6 +84,7 @@ from mix_engine.blueprint.schema import (
     VALID_EQ_INTENTS,
     VALID_FILTER_SLOPES_DB_PER_OCT,
     VALID_PROCESSING_MODES,
+    VALID_ROUTING_FIX_TYPES,
     VALID_SIDECHAIN_MODES,
 )
 
@@ -88,6 +92,7 @@ from mix_engine.blueprint.schema import (
 SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_ROUTING_SCHEMA_VERSIONS = frozenset({"1.0"})
 
 # Severity values accepted in Anomaly.severity.
 VALID_ANOMALY_SEVERITIES = frozenset({"critical", "warning", "info"})
@@ -1587,11 +1592,226 @@ def parse_dynamics_corrective_decision_from_response(
     return parse_dynamics_corrective_decision(extract_json_payload(text))
 
 
+# ============================================================================
+# Public parser — routing & sidechain lane (Phase 4.4)
+# ============================================================================
+#
+# Topological domain (track→track refs), no parametric values. The
+# parser enforces 8 cross-field semantic-contradiction checks (pure
+# payload — checks requiring DiagnosticReport context like
+# "new_trigger ∈ tracks" live in the agent prompt as anti-patterns).
+
+
+# Compile the regex once at module load — used by check #7 (recreating
+# stale ref) and exposed via the schema constant for agent-side detection.
+_STALE_SIDECHAIN_PATTERN = re.compile(STALE_SIDECHAIN_REGEX)
+
+
+def _parse_sidechain_repair(item: Any, *, where: str) -> SidechainRepair:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+
+    track = _coerce_str(_require(item, "track", where=where), where=f"{where}.track").strip()
+    if not track:
+        raise MixAgentOutputError(f"{where}.track must be non-empty")
+
+    fix_type = _coerce_str(
+        _require(item, "fix_type", where=where), where=f"{where}.fix_type"
+    ).strip()
+    if fix_type not in VALID_ROUTING_FIX_TYPES:
+        raise MixAgentOutputError(
+            f"{where}.fix_type={fix_type!r} not in {sorted(VALID_ROUTING_FIX_TYPES)}"
+        )
+
+    current_raw = item.get("current_trigger", None)
+    current_trigger = (
+        None if current_raw is None or current_raw == ""
+        else _coerce_str(current_raw, where=f"{where}.current_trigger")
+    )
+
+    new_raw = item.get("new_trigger", None)
+    new_trigger = (
+        None if new_raw is None or new_raw == ""
+        else _coerce_str(new_raw, where=f"{where}.new_trigger")
+    )
+
+    rationale = _coerce_str(item.get("rationale", ""))
+    inspired_by_raw = _coerce_list(
+        item.get("inspired_by", []), where=f"{where}.inspired_by"
+    )
+    inspired_by = _parse_citations(inspired_by_raw, where=f"{where}.inspired_by")
+
+    # ------------------------------------------------------------------
+    # Cross-field semantic-contradiction checks (8 numbered — pure-payload).
+    # Required-field-per-fix_type matrix :
+    #   redirect : current_trigger AND new_trigger BOTH required, must differ
+    #   remove   : current_trigger required ; new_trigger must be None
+    #   create   : new_trigger required ; current_trigger must be None
+    # ------------------------------------------------------------------
+
+    # #1 — redirect with same source and target (no-op)
+    if (fix_type == "sidechain_redirect"
+            and current_trigger is not None and new_trigger is not None
+            and current_trigger == new_trigger):
+        raise MixAgentOutputError(
+            f"{where}.fix_type='sidechain_redirect' but new_trigger == current_trigger "
+            f"({current_trigger!r}) — no-op, not a repair."
+        )
+
+    # #2 — redirect missing required fields
+    if fix_type == "sidechain_redirect" and (current_trigger is None or new_trigger is None):
+        raise MixAgentOutputError(
+            f"{where}.fix_type='sidechain_redirect' requires BOTH current_trigger "
+            f"and new_trigger (non-empty). Got current={current_trigger!r}, "
+            f"new={new_trigger!r}."
+        )
+
+    # #3 — remove with new_trigger set (semantic contradiction)
+    if fix_type == "sidechain_remove" and new_trigger is not None:
+        raise MixAgentOutputError(
+            f"{where}.fix_type='sidechain_remove' but new_trigger={new_trigger!r} "
+            f"is set. A remove has no target — set new_trigger to null."
+        )
+
+    # #4 — remove without current_trigger (no ref to remove)
+    if fix_type == "sidechain_remove" and current_trigger is None:
+        raise MixAgentOutputError(
+            f"{where}.fix_type='sidechain_remove' requires current_trigger "
+            f"(the stale ref being removed). Got null."
+        )
+
+    # #5 — create with current_trigger set (semantic contradiction)
+    if fix_type == "sidechain_create" and current_trigger is not None:
+        raise MixAgentOutputError(
+            f"{where}.fix_type='sidechain_create' but current_trigger={current_trigger!r} "
+            f"is set. A create has no existing ref to replace — set current_trigger to null."
+        )
+
+    # #6 — create without new_trigger (no target)
+    if fix_type == "sidechain_create" and new_trigger is None:
+        raise MixAgentOutputError(
+            f"{where}.fix_type='sidechain_create' requires new_trigger "
+            f"(the trigger track being wired). Got null."
+        )
+
+    # #7 — recreating a stale ref : new_trigger must NOT match the
+    # raw AudioIn/Track.N format (it should be a resolved track name)
+    if (fix_type in {"sidechain_redirect", "sidechain_create"}
+            and new_trigger is not None
+            and _STALE_SIDECHAIN_PATTERN.match(new_trigger)):
+        raise MixAgentOutputError(
+            f"{where}.new_trigger={new_trigger!r} matches the raw stale-ref format "
+            f"(AudioIn/Track.N/...). Use a resolved track name (e.g. 'Kick A'), "
+            f"not the XML routing string — Tier B resolves the index from the name."
+        )
+
+    # #8 — depth-light : rationale ≥ 50 chars, ≥ 1 citation
+    if len(rationale) < 50:
+        raise MixAgentOutputError(
+            f"{where}.rationale too short ({len(rationale)} chars, need ≥ 50). "
+            f"Untraced routing repair = stub : Tier B routing-configurator can't "
+            f"justify the wiring change to safety-guardian."
+        )
+    if not inspired_by:
+        raise MixAgentOutputError(
+            f"{where}.inspired_by must contain at least one citation. "
+            f"Cite the routing_warning, CDE diagnostic, or user brief that "
+            f"justifies this repair."
+        )
+
+    return SidechainRepair(
+        track=track,
+        fix_type=fix_type,
+        current_trigger=current_trigger,
+        new_trigger=new_trigger,
+        rationale=rationale,
+        inspired_by=inspired_by,
+    )
+
+
+def parse_routing_decision(
+    payload: Mapping[str, Any],
+) -> MixDecision[RoutingDecision]:
+    """Parse a routing-and-sidechain-architect payload into a MixDecision.
+
+    Expected shape (schema 1.0) :
+        {
+          "schema_version": "1.0",
+          "routing": {
+            "repairs": [
+              {
+                "track": str,
+                "fix_type": str ∈ VALID_ROUTING_FIX_TYPES,
+                "current_trigger": Optional[str],
+                "new_trigger": Optional[str],
+                "rationale": str (≥ 50 chars),
+                "inspired_by": [{kind, path, excerpt}, …]   # ≥ 1 cite
+              },
+              ...
+            ]
+          },
+          "cited_by": [...],
+          "rationale": str,
+          "confidence": float (0..1)
+        }
+
+    Or a refusal: {"error": "...", "details": "..."}
+
+    Strict on output : 8 cross-field semantic-contradiction checks (per
+    fix_type field requirements + recreating-stale-ref + depth-light)
+    plus duplicate-key check across the repairs list.
+    """
+    envelope = _parse_envelope(
+        payload, supported_versions=SUPPORTED_ROUTING_SCHEMA_VERSIONS
+    )
+
+    routing_dict = _require(payload, "routing", where="root")
+    if not isinstance(routing_dict, Mapping):
+        raise MixAgentOutputError(
+            f"routing: expected object, got {type(routing_dict).__name__}"
+        )
+
+    repairs_raw = _coerce_list(
+        routing_dict.get("repairs", []), where="routing.repairs"
+    )
+    repairs = tuple(
+        _parse_sidechain_repair(item, where=f"routing.repairs[{i}]")
+        for i, item in enumerate(repairs_raw)
+    )
+
+    # Cross-correction check : duplicate (track, fix_type, current_trigger,
+    # new_trigger) tuples across repairs (Tier B would have collisions).
+    seen_keys: set[tuple[str, str, Optional[str], Optional[str]]] = set()
+    for i, r in enumerate(repairs):
+        key = (r.track, r.fix_type, r.current_trigger, r.new_trigger)
+        if key in seen_keys:
+            raise MixAgentOutputError(
+                f"routing.repairs[{i}]: duplicate repair "
+                f"(track={r.track!r}, fix_type={r.fix_type!r}, "
+                f"current_trigger={r.current_trigger!r}, new_trigger={r.new_trigger!r}). "
+                f"Tier B would collide ; remove the duplicate."
+            )
+        seen_keys.add(key)
+
+    decision_value = RoutingDecision(repairs=repairs)
+    return MixDecision(value=decision_value, lane="routing", **envelope)
+
+
+def parse_routing_decision_from_response(
+    text: str,
+) -> MixDecision[RoutingDecision]:
+    """End-to-end: raw LLM response → MixDecision[RoutingDecision]."""
+    return parse_routing_decision(extract_json_payload(text))
+
+
 __all__ = [
     "MixAgentOutputError",
     "SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS",
     "SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS",
     "SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS",
+    "SUPPORTED_ROUTING_SCHEMA_VERSIONS",
     "VALID_ANOMALY_SEVERITIES",
     "VALID_TRACK_TYPES",
     "VALID_CITATION_KINDS",
@@ -1605,6 +1825,8 @@ __all__ = [
     "VALID_DYNAMICS_DEVICES",
     "VALID_SIDECHAIN_MODES",
     "VALID_DYNAMICS_CHAIN_POSITIONS",
+    # Phase 4.4 — Routing & sidechain re-exports
+    "VALID_ROUTING_FIX_TYPES",
     "extract_json_payload",
     "parse_diagnostic_decision",
     "parse_diagnostic_decision_from_response",
@@ -1612,4 +1834,6 @@ __all__ = [
     "parse_eq_corrective_decision_from_response",
     "parse_dynamics_corrective_decision",
     "parse_dynamics_corrective_decision_from_response",
+    "parse_routing_decision",
+    "parse_routing_decision_from_response",
 ]

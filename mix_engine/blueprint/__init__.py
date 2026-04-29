@@ -48,6 +48,9 @@ from mix_engine.blueprint.schema import (
     DynamicsAutomationPoint,
     DynamicsCorrection,
     DynamicsCorrectiveDecision,
+    RoutingDecision,
+    SidechainRepair,
+    STALE_SIDECHAIN_REGEX,
     EQAutomationPoint,
     EQBandCorrection,
     EQCorrectiveDecision,
@@ -71,6 +74,7 @@ from mix_engine.blueprint.schema import (
     VALID_EQ_INTENTS,
     VALID_FILTER_SLOPES_DB_PER_OCT,
     VALID_PROCESSING_MODES,
+    VALID_ROUTING_FIX_TYPES,
     VALID_SIDECHAIN_MODES,
 )
 from mix_engine.blueprint.agent_parsers import (
@@ -78,6 +82,7 @@ from mix_engine.blueprint.agent_parsers import (
     SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS,
     SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS,
     SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS,
+    SUPPORTED_ROUTING_SCHEMA_VERSIONS,
     VALID_ANOMALY_SEVERITIES,
     VALID_CITATION_KINDS,
     VALID_TRACK_TYPES,
@@ -88,6 +93,8 @@ from mix_engine.blueprint.agent_parsers import (
     parse_dynamics_corrective_decision_from_response,
     parse_eq_corrective_decision,
     parse_eq_corrective_decision_from_response,
+    parse_routing_decision,
+    parse_routing_decision_from_response,
 )
 
 __all__ = [
@@ -158,10 +165,16 @@ __all__ = [
     "VALID_DYNAMICS_DEVICES",
     "VALID_DYNAMICS_TYPES",
     "VALID_SIDECHAIN_MODES",
+    # Routing & sidechain lane (Phase 4.4)
+    "RoutingDecision",
+    "SidechainRepair",
+    "STALE_SIDECHAIN_REGEX",
+    "VALID_ROUTING_FIX_TYPES",
     # Schema versions + canonical enums
     "SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS",
     "SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS",
     "SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS",
+    "SUPPORTED_ROUTING_SCHEMA_VERSIONS",
     "VALID_ANOMALY_SEVERITIES",
     "VALID_CITATION_KINDS",
     "VALID_TRACK_TYPES",
@@ -173,4 +186,6 @@ __all__ = [
     "parse_dynamics_corrective_decision_from_response",
     "parse_eq_corrective_decision",
     "parse_eq_corrective_decision_from_response",
+    "parse_routing_decision",
+    "parse_routing_decision_from_response",
 ]

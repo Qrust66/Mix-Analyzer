@@ -1106,3 +1106,341 @@ def test_dyn_all_valid_dynamics_types_can_be_parsed():
         )
         decision = parse_dynamics_corrective_decision(payload)
         assert decision.value.corrections[0].dynamics_type == dt, f"dynamics_type {dt} failed"
+
+
+# ============================================================================
+# Phase 4.4 — Routing & sidechain lane parser
+# ============================================================================
+
+
+from mix_engine.blueprint import (
+    RoutingDecision,
+    SidechainRepair,
+    STALE_SIDECHAIN_REGEX,
+    VALID_ROUTING_FIX_TYPES,
+    parse_routing_decision,
+    parse_routing_decision_from_response,
+)
+
+
+def _valid_routing_repair(**overrides) -> dict:
+    """Default = sidechain_redirect repair (most common scenario)."""
+    base = {
+        "track": "Bass A",
+        "fix_type": "sidechain_redirect",
+        "current_trigger": "AudioIn/Track.4/PostFxOut",
+        "new_trigger": "Kick A",
+        "rationale": "Bass A sidechain ref stale (Track 4 renommé) ; redirect vers Kick A confirmé par CDE diagnostic primary.",
+        "inspired_by": [
+            {"kind": "diagnostic", "path": "routing_warnings[0]",
+             "excerpt": "Sidechain on Bass A points to renamed track"},
+        ],
+    }
+    base.update(overrides)
+    return base
+
+
+def _valid_routing_payload(**overrides) -> dict:
+    base = {
+        "schema_version": "1.0",
+        "routing": {"repairs": [_valid_routing_repair()]},
+        "cited_by": [
+            {"kind": "diagnostic", "path": "routing_warnings",
+             "excerpt": "1 stale sidechain ref detected"},
+        ],
+        "rationale": "1 stale sidechain ref repair on Bass A (CDE-driven).",
+        "confidence": 0.85,
+    }
+    base.update(overrides)
+    return base
+
+
+# ----------------------------------------------------------------------------
+# Happy paths
+# ----------------------------------------------------------------------------
+
+
+def test_routing_parses_minimum_valid_payload():
+    decision = parse_routing_decision(_valid_routing_payload())
+    assert decision.lane == "routing"
+    assert isinstance(decision.value, RoutingDecision)
+    assert len(decision.value.repairs) == 1
+    r = decision.value.repairs[0]
+    assert r.fix_type == "sidechain_redirect"
+    assert r.current_trigger == "AudioIn/Track.4/PostFxOut"
+    assert r.new_trigger == "Kick A"
+
+
+def test_routing_decision_assignable_to_blueprint():
+    from mix_engine.blueprint import MixBlueprint
+    decision = parse_routing_decision(_valid_routing_payload())
+    bp = MixBlueprint(name="session").with_decision("routing", decision)
+    assert bp.routing is decision
+    assert bp.filled_lanes() == ("routing",)
+
+
+def test_routing_unsupported_schema_version_raises():
+    payload = _valid_routing_payload()
+    payload["schema_version"] = "99.0"
+    with pytest.raises(MixAgentOutputError, match="schema_version"):
+        parse_routing_decision(payload)
+
+
+def test_routing_error_payload_raises():
+    with pytest.raises(MixAgentOutputError, match="agent refused"):
+        parse_routing_decision({"error": "no signal", "details": "no broken refs"})
+
+
+def test_routing_empty_repairs_accepted():
+    """No broken refs in the project → repairs=[] is the right outcome
+    (idempotence preserves this on re-runs after Tier B applies fixes)."""
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"] = []
+    payload["rationale"] = "All sidechain refs intact ; no repair needed."
+    decision = parse_routing_decision(payload)
+    assert decision.value.repairs == ()
+
+
+@pytest.mark.parametrize("invalid_type", ["sidechain_validate", "redirect", "Sidechain_Redirect", ""])
+def test_routing_invalid_fix_type_raises(invalid_type):
+    """sidechain_validate was dropped (Pass 1 D audit) ; strict casing."""
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0]["fix_type"] = invalid_type
+    with pytest.raises(MixAgentOutputError, match="fix_type"):
+        parse_routing_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# 8 cross-field checks
+# ----------------------------------------------------------------------------
+
+
+def test_routing_check1_redirect_same_source_target_raises():
+    """#1 : redirect with current == new = no-op."""
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0].update({
+        "current_trigger": "Kick A",
+        "new_trigger": "Kick A",
+    })
+    with pytest.raises(MixAgentOutputError, match="no-op"):
+        parse_routing_decision(payload)
+
+
+def test_routing_check2_redirect_missing_current_raises():
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0]["current_trigger"] = None
+    with pytest.raises(MixAgentOutputError, match="requires BOTH"):
+        parse_routing_decision(payload)
+
+
+def test_routing_check2_redirect_missing_new_raises():
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0]["new_trigger"] = None
+    with pytest.raises(MixAgentOutputError, match="requires BOTH"):
+        parse_routing_decision(payload)
+
+
+def test_routing_check3_remove_with_new_trigger_raises():
+    """#3 : sidechain_remove must NOT have new_trigger."""
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0] = _valid_routing_repair(
+        fix_type="sidechain_remove",
+        current_trigger="AudioIn/Track.4/PostFxOut",
+        new_trigger="Kick A",  # contradiction
+        rationale="Remove broken sidechain ref but somehow new_trigger is set — should reject.",
+    )
+    with pytest.raises(MixAgentOutputError, match="no target"):
+        parse_routing_decision(payload)
+
+
+def test_routing_check4_remove_without_current_trigger_raises():
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0] = _valid_routing_repair(
+        fix_type="sidechain_remove",
+        current_trigger=None,
+        new_trigger=None,
+        rationale="Remove sidechain but no current_trigger specified — nothing to remove.",
+    )
+    with pytest.raises(MixAgentOutputError, match="current_trigger"):
+        parse_routing_decision(payload)
+
+
+def test_routing_check5_create_with_current_trigger_raises():
+    """#5 : sidechain_create must NOT have current_trigger (Pass 2 audit Finding 2)."""
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0] = _valid_routing_repair(
+        fix_type="sidechain_create",
+        current_trigger="AudioIn/Track.4/PostFxOut",  # contradiction
+        new_trigger="Kick A",
+        rationale="Create new sidechain wiring but current_trigger set — should reject.",
+    )
+    with pytest.raises(MixAgentOutputError, match="no existing ref"):
+        parse_routing_decision(payload)
+
+
+def test_routing_check6_create_without_new_trigger_raises():
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0] = _valid_routing_repair(
+        fix_type="sidechain_create",
+        current_trigger=None,
+        new_trigger=None,
+        rationale="Create new sidechain but no new_trigger specified — no target.",
+    )
+    with pytest.raises(MixAgentOutputError, match="new_trigger"):
+        parse_routing_decision(payload)
+
+
+def test_routing_check7_recreating_stale_ref_raises():
+    """#7 : new_trigger matching STALE_SIDECHAIN_REGEX = recreating broken ref."""
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0]["new_trigger"] = "AudioIn/Track.5/PostFxOut"
+    with pytest.raises(MixAgentOutputError, match="raw stale-ref"):
+        parse_routing_decision(payload)
+
+
+def test_routing_check8_short_rationale_raises():
+    """#8 : depth-light requires rationale ≥ 50 chars."""
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0]["rationale"] = "too short"
+    with pytest.raises(MixAgentOutputError, match="rationale"):
+        parse_routing_decision(payload)
+
+
+def test_routing_check8_no_inspired_by_raises():
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0]["inspired_by"] = []
+    with pytest.raises(MixAgentOutputError, match="inspired_by"):
+        parse_routing_decision(payload)
+
+
+def test_routing_duplicate_repairs_raises():
+    """Cross-correction check : duplicate (track, fix_type, current, new) tuple."""
+    payload = _valid_routing_payload()
+    repair_dup = _valid_routing_repair()
+    payload["routing"]["repairs"] = [repair_dup, dict(repair_dup)]
+    with pytest.raises(MixAgentOutputError, match="duplicate"):
+        parse_routing_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# Scenario coverage
+# ----------------------------------------------------------------------------
+
+
+def test_routing_scenario_b_remove_happy_path():
+    """B : sidechain_remove when no good target available."""
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0] = _valid_routing_repair(
+        fix_type="sidechain_remove",
+        current_trigger="AudioIn/Track.7/PostFxOut",
+        new_trigger=None,
+        rationale="Bass A stale sidechain ; brief silent + no CDE diagnostic ; remove rather than guess a trigger.",
+    )
+    decision = parse_routing_decision(payload)
+    r = decision.value.repairs[0]
+    assert r.fix_type == "sidechain_remove"
+    assert r.current_trigger == "AudioIn/Track.7/PostFxOut"
+    assert r.new_trigger is None
+
+
+def test_routing_scenario_c_create_happy_path():
+    """C : sidechain_create from brief explicit "duck X under Y"."""
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0] = _valid_routing_repair(
+        track="Pad",
+        fix_type="sidechain_create",
+        current_trigger=None,
+        new_trigger="Kick A",
+        rationale="Brief explicit duck Pad under Kick A ; wire sidechain ref ; dynamics-corrective Scenario B configures depth.",
+        inspired_by=[
+            {"kind": "user_brief", "path": "brief:duck", "excerpt": "duck Pad under Kick A"},
+        ],
+    )
+    decision = parse_routing_decision(payload)
+    r = decision.value.repairs[0]
+    assert r.fix_type == "sidechain_create"
+    assert r.current_trigger is None
+    assert r.new_trigger == "Kick A"
+
+
+# ----------------------------------------------------------------------------
+# STALE_SIDECHAIN_REGEX exposed correctly
+# ----------------------------------------------------------------------------
+
+
+def test_stale_sidechain_regex_matches_documented_format():
+    import re
+    pat = re.compile(STALE_SIDECHAIN_REGEX)
+    # Should match
+    assert pat.match("AudioIn/Track.4/PostFxOut")
+    assert pat.match("AudioIn/Track.0/PostMixerOut")
+    assert pat.match("AudioIn/Track.10")
+    # Should NOT match (resolved track names + permanent destinations)
+    assert not pat.match("Kick A")
+    assert not pat.match("AudioIn/Bus.1/Out")  # bus refs are permanent
+    assert not pat.match("AudioIn/Master/Out")  # master is permanent
+
+
+# ----------------------------------------------------------------------------
+# Idempotence — re-running on .als post-Tier-B-applied produces repairs=()
+# ----------------------------------------------------------------------------
+
+
+def test_routing_idempotence_after_redirect_applied():
+    """Once Tier B applies a redirect, mix-diagnostician re-reads the .als
+    and sees a resolved track name (not raw AudioIn/Track.N). Re-running
+    the agent on the new state must produce repairs=() — gates require
+    stale signals that no longer exist."""
+    # State 1 : stale ref → agent emits redirect
+    payload_before = _valid_routing_payload()
+    decision_before = parse_routing_decision(payload_before)
+    assert len(decision_before.value.repairs) == 1
+
+    # State 2 (post-Tier-B) : agent receives same brief but routing_warnings
+    # is now empty AND the report would no longer contain the stale ref.
+    # Agent's correct emission : repairs=[] (no signal, no move).
+    payload_after = _valid_routing_payload()
+    payload_after["routing"]["repairs"] = []
+    payload_after["rationale"] = "Re-run after Tier B applied redirect ; sidechain ref now resolved to Kick A ; no further action."
+    decision_after = parse_routing_decision(payload_after)
+    assert decision_after.value.repairs == ()
+
+
+# ----------------------------------------------------------------------------
+# from_response (markdown fences, prose around)
+# ----------------------------------------------------------------------------
+
+
+def test_routing_from_response_handles_fences():
+    payload_str = json.dumps(_valid_routing_payload())
+    fenced = f"```json\n{payload_str}\n```"
+    decision = parse_routing_decision_from_response(fenced)
+    assert len(decision.value.repairs) == 1
+
+
+def test_routing_from_response_handles_prose():
+    payload_str = json.dumps(_valid_routing_payload())
+    prosed = f"Here are the routing decisions:\n{payload_str}\nDone."
+    decision = parse_routing_decision_from_response(prosed)
+    assert len(decision.value.repairs) == 1
+
+
+@pytest.mark.parametrize("ft", sorted(VALID_ROUTING_FIX_TYPES))
+def test_routing_all_valid_fix_types_can_be_parsed(ft):
+    """Smoke : each valid fix_type can produce a coherent repair."""
+    if ft == "sidechain_redirect":
+        repair = _valid_routing_repair()
+    elif ft == "sidechain_remove":
+        repair = _valid_routing_repair(
+            fix_type=ft, new_trigger=None,
+            rationale="No trigger candidate available ; remove the broken sidechain ref entirely.",
+        )
+    elif ft == "sidechain_create":
+        repair = _valid_routing_repair(
+            fix_type=ft, current_trigger=None, new_trigger="Kick A",
+            rationale="Brief explicit duck Bass A under Kick A ; create new sidechain wiring.",
+        )
+    payload = _valid_routing_payload()
+    payload["routing"]["repairs"][0] = repair
+    decision = parse_routing_decision(payload)
+    assert decision.value.repairs[0].fix_type == ft

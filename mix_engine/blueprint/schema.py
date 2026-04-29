@@ -731,6 +731,99 @@ class DynamicsCorrectiveDecision:
     corrections: tuple[DynamicsCorrection, ...] = ()
 
 
+# ============================================================================
+# Routing & sidechain lane — Phase 4.4
+# ============================================================================
+#
+# Tier A schema for sidechain reference repairs / creations / removals.
+# Foundation lane in the Mix Director DAG : runs BEFORE the corrective
+# trio (eq / dynamics / stereo) so that downstream agents see a clean
+# routing graph.
+#
+# Phase 4.4 scope is intentionally narrow (rule-with-consumer) :
+# ONLY sidechain refs. Send / Group / Master output routing are
+# explicitly out-of-scope until a downstream consumer requires them.
+#
+# Tier B (routing-configurator, future) consumes these decisions to
+# update <SideChain>/<AudioInputProcessing>/<AudioIn>/<RoutingTarget>
+# text in the .als XML.
+#
+# Audit findings applied (cf. Pass 1 + Pass 2 audits) :
+# - Drop "sidechain_validate" fix_type (informational noise — Pass 1 D)
+# - Drop als_path_hint field (premature, no Tier B consumer — Pass 1 C)
+# - Drop ROUTING_MAX_REPAIRS_PER_TRACK constant (becomes agent-prompt
+#   anti-pattern, not parser-enforced — Pass 1 F)
+# - Drop TFP Hero/Support inference fallback (redundant with CDE
+#   primary_correction match — Pass 2 #1)
+# - Detection regex STALE_SIDECHAIN_REGEX exposed for parser cross-field
+#   checks AND agent-side detection logic
+
+
+VALID_ROUTING_FIX_TYPES = frozenset({
+    "sidechain_redirect",     # Change trigger_track of an existing sidechain (stale ref repair)
+    "sidechain_remove",       # Disable broken sidechain (no good target available)
+    "sidechain_create",       # Add new sidechain wiring (brief-driven)
+})
+
+# RoutingTarget format convention used by Ableton XML for inter-track refs.
+# When a track is renamed, mix-diagnostician keeps the raw form (rather
+# than resolving) and adds an entry to ``routing_warnings`` ; the raw
+# form is the stale-ref signal for routing-and-sidechain-architect.
+#
+# Patterns matched : ``AudioIn/Track.4/PostFxOut``, ``AudioIn/Track.10``,
+# ``AudioIn/Track.0/PostMixerOut``, etc.
+#
+# Patterns NOT matched (intentional — these refs target permanent
+# destinations that don't get renamed) :
+# - ``AudioIn/Bus.N/...`` (busses)
+# - ``AudioIn/Master/...`` (master)
+# - ``AudioIn/Returns/...`` (returns)
+# - Resolved track names like ``Kick A``
+STALE_SIDECHAIN_REGEX: str = r"^AudioIn/Track\.\d+(/.*)?$"
+
+
+@dataclass(frozen=True)
+class SidechainRepair:
+    """One sidechain routing repair, creation, or removal.
+
+    Phase 4.4 scope : sidechain refs only. Send / Group / Master routing
+    out-of-scope until a downstream consumer demands them.
+
+    Field requirements per fix_type (parser-enforced) :
+    - ``sidechain_redirect`` : both ``current_trigger`` and ``new_trigger``
+      required (non-empty), and they must differ.
+    - ``sidechain_remove``   : ``current_trigger`` required ; ``new_trigger``
+      must be None.
+    - ``sidechain_create``   : ``new_trigger`` required ; ``current_trigger``
+      must be None.
+
+    For redirect/create, ``new_trigger`` must be a resolved track name
+    (not a raw ``AudioIn/Track.N`` form — recreating a stale ref is a
+    contradiction). Parser validates via STALE_SIDECHAIN_REGEX.
+    """
+
+    track: str                                    # the track owning the sidechain (target of the duck)
+    fix_type: str                                 # in VALID_ROUTING_FIX_TYPES
+    current_trigger: Optional[str] = None         # see field requirements above
+    new_trigger: Optional[str] = None             # see field requirements above
+    rationale: str = ""
+    inspired_by: tuple[MixCitation, ...] = ()
+
+
+@dataclass(frozen=True)
+class RoutingDecision:
+    """All routing decisions for the project.
+
+    `repairs` is the list of sidechain wiring fixes/creations/removals.
+    Tier B applies them in order ; the design is idempotent : re-running
+    routing-and-sidechain-architect on a .als post-Tier-B-applied
+    produces ``repairs=()`` because gates require stale signals that no
+    longer exist after fixes apply.
+    """
+
+    repairs: tuple[SidechainRepair, ...] = ()
+
+
 @dataclass(frozen=True)
 class MixBlueprint:
     """The immutable carrier of all lane decisions for one mix session.
@@ -745,10 +838,10 @@ class MixBlueprint:
 
     name: str
     diagnostic: Optional[MixDecision[DiagnosticReport]] = None
+    routing: Optional[MixDecision[RoutingDecision]] = None
     eq_corrective: Optional[MixDecision[EQCorrectiveDecision]] = None
     dynamics_corrective: Optional[MixDecision[DynamicsCorrectiveDecision]] = None
     # Future lanes (added with their producing agents):
-    # routing: Optional[MixDecision[RoutingDecision]] = None
     # eq_creative: Optional[MixDecision[EQCreativeDecision]] = None
     # ... etc per MIX_LANES
 
@@ -842,4 +935,9 @@ __all__ = [
     "SidechainConfig",
     "DynamicsCorrection",
     "DynamicsCorrectiveDecision",
+    # Routing & sidechain lane (Phase 4.4)
+    "VALID_ROUTING_FIX_TYPES",
+    "STALE_SIDECHAIN_REGEX",
+    "SidechainRepair",
+    "RoutingDecision",
 ]
