@@ -37,6 +37,12 @@ from mix_engine.writers.dynamics_configurator import (
     DynamicsDeviceNotFoundError,
     apply_dynamics_corrective_decision,
 )
+from mix_engine.writers.spatial_configurator import (
+    SpatialConfiguratorError,
+    SpatialConfiguratorReport,
+    SpatialDeviceNotFoundError,
+    apply_spatial_decision,
+)
 
 __all__ = [
     "EqConfiguratorError",
@@ -46,4 +52,8 @@ __all__ = [
     "DynamicsConfiguratorReport",
     "DynamicsDeviceNotFoundError",
     "apply_dynamics_corrective_decision",
+    "SpatialConfiguratorError",
+    "SpatialConfiguratorReport",
+    "SpatialDeviceNotFoundError",
+    "apply_spatial_decision",
 ]
