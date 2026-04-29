@@ -151,6 +151,30 @@ from mix_engine.blueprint.schema import (
     VALID_SIDECHAIN_MODES,
     VALID_SPATIAL_CHAIN_POSITIONS,
     VALID_SPATIAL_MOVE_TYPES,
+    # Phase 4.9 — Mastering lane
+    MASTER_BASS_MONO_FREQ_MAX_HZ,
+    MASTER_BASS_MONO_FREQ_MIN_HZ,
+    MASTER_CEILING_MAX_DBTP,
+    MASTER_CEILING_MIN_DBTP,
+    MASTER_CHAIN_POSITION_BY_TYPE,
+    MASTER_DEVICES_BY_TYPE,
+    MASTER_EQ_GAIN_MAX_DB,
+    MASTER_EQ_GAIN_MIN_DB,
+    MASTER_GLUE_GR_TARGET_MAX_DB,
+    MASTER_GLUE_GR_TARGET_MIN_DB,
+    MASTER_GLUE_RATIO_MAX,
+    MASTER_GLUE_RATIO_MIN,
+    MASTER_LUFS_MAX,
+    MASTER_LUFS_MIN,
+    MASTER_SATURATION_DRIVE_MAX_PCT,
+    MASTER_SATURATION_DRIVE_MIN_PCT,
+    MASTER_STEREO_WIDTH_MAX,
+    MASTER_STEREO_WIDTH_MIN,
+    MasterMove,
+    MasteringDecision,
+    VALID_MASTER_CHAIN_POSITIONS,
+    VALID_MASTER_MOVE_TYPES,
+    VALID_SATURATION_TYPES,
 )
 
 
@@ -161,6 +185,7 @@ SUPPORTED_ROUTING_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_SPATIAL_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_CHAIN_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_AUTOMATION_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_MASTERING_SCHEMA_VERSIONS = frozenset({"1.0"})
 
 # Severity values accepted in Anomaly.severity.
 VALID_ANOMALY_SEVERITIES = frozenset({"critical", "warning", "info"})
@@ -3120,6 +3145,456 @@ def parse_automation_decision_from_response(
     return parse_automation_decision(extract_json_payload(text))
 
 
+# ============================================================================
+# Mastering lane parser — Phase 4.9
+# ============================================================================
+#
+# Discriminator-based : MasterMove.type selects which subset of fields
+# applies. Cross-field checks enforce coherence between type / device /
+# chain_position / value fields.
+
+
+# Numeric value-bearing fields per type (used for "extra fields not allowed
+# for this type" check, mirroring spatial _SPATIAL_VALUE_FIELD_SPEC).
+_MASTER_VALUE_FIELDS_BY_TYPE: dict[str, frozenset[str]] = {
+    "limiter_target": frozenset({"target_lufs_i", "ceiling_dbtp",
+                                  "lookahead_ms", "gain_drive_db"}),
+    "glue_compression": frozenset({"ratio", "threshold_db", "attack_ms",
+                                    "release_ms", "gr_target_db", "makeup_db"}),
+    "master_eq_band": frozenset({"band_type", "center_hz", "q", "gain_db",
+                                  "slope_db_per_oct", "processing_mode"}),
+    "stereo_enhance": frozenset({"width", "mid_side_balance",
+                                  "bass_mono_freq_hz"}),
+    "saturation_color": frozenset({"drive_pct", "saturation_type",
+                                    "dry_wet", "output_db"}),
+    "bus_glue": frozenset({"ratio", "threshold_db", "attack_ms",
+                            "release_ms", "gr_target_db", "makeup_db"}),
+}
+
+_MASTER_ALL_VALUE_FIELDS: frozenset[str] = frozenset({
+    "target_lufs_i", "ceiling_dbtp", "lookahead_ms", "gain_drive_db",
+    "ratio", "threshold_db", "attack_ms", "release_ms",
+    "gr_target_db", "makeup_db",
+    "band_type", "center_hz", "q", "gain_db", "slope_db_per_oct",
+    "processing_mode",
+    "width", "mid_side_balance", "bass_mono_freq_hz",
+    "drive_pct", "saturation_type", "dry_wet", "output_db",
+})
+
+
+def _parse_master_move(item: Any, *, where: str) -> MasterMove:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+
+    # === Discriminator + targeting ===
+    move_type = _coerce_str(
+        _require(item, "type", where=where), where=f"{where}.type"
+    ).strip()
+    if move_type not in VALID_MASTER_MOVE_TYPES:
+        raise MixAgentOutputError(
+            f"{where}.type={move_type!r} not in {sorted(VALID_MASTER_MOVE_TYPES)}"
+        )
+
+    target_track = _coerce_str(
+        _require(item, "target_track", where=where),
+        where=f"{where}.target_track",
+    ).strip()
+    if not target_track:
+        raise MixAgentOutputError(f"{where}.target_track must be non-empty")
+
+    device = _coerce_str(
+        _require(item, "device", where=where), where=f"{where}.device"
+    ).strip()
+    allowed_devices = MASTER_DEVICES_BY_TYPE[move_type]
+    if device not in allowed_devices:
+        raise MixAgentOutputError(
+            f"{where}.device={device!r} not allowed for type={move_type!r}. "
+            f"Allowed: {sorted(allowed_devices)}"
+        )
+
+    chain_position = _coerce_str(
+        item.get("chain_position", "default"),
+        where=f"{where}.chain_position",
+    ).strip()
+    if not chain_position:
+        chain_position = "default"
+    if chain_position not in VALID_MASTER_CHAIN_POSITIONS:
+        raise MixAgentOutputError(
+            f"{where}.chain_position={chain_position!r} not in "
+            f"{sorted(VALID_MASTER_CHAIN_POSITIONS)}"
+        )
+    allowed_positions = MASTER_CHAIN_POSITION_BY_TYPE[move_type]
+    if chain_position not in allowed_positions:
+        raise MixAgentOutputError(
+            f"{where}.chain_position={chain_position!r} not allowed for "
+            f"type={move_type!r}. Allowed: {sorted(allowed_positions)}"
+        )
+
+    rationale = _coerce_str(item.get("rationale", ""))
+    inspired_by_raw = _coerce_list(
+        item.get("inspired_by", []), where=f"{where}.inspired_by"
+    )
+    inspired_by = _parse_citations(inspired_by_raw, where=f"{where}.inspired_by")
+
+    # === Numeric / categorical fields (read all, validate presence below) ===
+    target_lufs_i = _coerce_optional_float_in_range(
+        item.get("target_lufs_i"), where=f"{where}.target_lufs_i",
+        lo=MASTER_LUFS_MIN, hi=MASTER_LUFS_MAX, unit="LUFS",
+    )
+    ceiling_dbtp = _coerce_optional_float_in_range(
+        item.get("ceiling_dbtp"), where=f"{where}.ceiling_dbtp",
+        lo=MASTER_CEILING_MIN_DBTP, hi=MASTER_CEILING_MAX_DBTP, unit="dBTP",
+    )
+    lookahead_ms = _coerce_optional_float_in_range(
+        item.get("lookahead_ms"), where=f"{where}.lookahead_ms",
+        lo=0.0, hi=10.0, unit="ms",
+    )
+    gain_drive_db = _coerce_optional_float_in_range(
+        item.get("gain_drive_db"), where=f"{where}.gain_drive_db",
+        lo=-12.0, hi=24.0, unit="dB",
+    )
+
+    ratio = _coerce_optional_float_in_range(
+        item.get("ratio"), where=f"{where}.ratio",
+        lo=MASTER_GLUE_RATIO_MIN, hi=MASTER_GLUE_RATIO_MAX, unit=":1",
+    )
+    threshold_db = _coerce_optional_float_in_range(
+        item.get("threshold_db"), where=f"{where}.threshold_db",
+        lo=DYN_THRESHOLD_MIN_DB, hi=DYN_THRESHOLD_MAX_DB, unit="dB",
+    )
+    attack_ms = _coerce_optional_float_in_range(
+        item.get("attack_ms"), where=f"{where}.attack_ms",
+        lo=DYN_ATTACK_MIN_MS, hi=DYN_ATTACK_MAX_MS, unit="ms",
+    )
+    release_ms = _coerce_optional_float_in_range(
+        item.get("release_ms"), where=f"{where}.release_ms",
+        lo=DYN_RELEASE_MIN_MS, hi=DYN_RELEASE_MAX_MS, unit="ms",
+    )
+    gr_target_db = _coerce_optional_float_in_range(
+        item.get("gr_target_db"), where=f"{where}.gr_target_db",
+        lo=MASTER_GLUE_GR_TARGET_MIN_DB, hi=MASTER_GLUE_GR_TARGET_MAX_DB, unit="dB",
+    )
+    makeup_db = _coerce_optional_float_in_range(
+        item.get("makeup_db"), where=f"{where}.makeup_db",
+        lo=DYN_MAKEUP_MIN_DB, hi=DYN_MAKEUP_MAX_DB, unit="dB",
+    )
+
+    band_type_raw = item.get("band_type")
+    band_type = (
+        None if band_type_raw is None or band_type_raw == ""
+        else _coerce_str(band_type_raw, where=f"{where}.band_type").strip()
+    )
+    if band_type is not None and band_type not in VALID_EQ_BAND_TYPES:
+        raise MixAgentOutputError(
+            f"{where}.band_type={band_type!r} not in {sorted(VALID_EQ_BAND_TYPES)}"
+        )
+
+    center_hz = _coerce_optional_float_in_range(
+        item.get("center_hz"), where=f"{where}.center_hz",
+        lo=EQ_FREQ_MIN_HZ, hi=EQ_FREQ_MAX_HZ, unit="Hz",
+    )
+    q = _coerce_optional_float_in_range(
+        item.get("q"), where=f"{where}.q",
+        lo=EQ_Q_MIN, hi=EQ_Q_MAX, unit="(Q)",
+    )
+    gain_db = _coerce_optional_float_in_range(
+        item.get("gain_db"), where=f"{where}.gain_db",
+        lo=MASTER_EQ_GAIN_MIN_DB, hi=MASTER_EQ_GAIN_MAX_DB, unit="dB",
+    )
+
+    slope_raw = item.get("slope_db_per_oct")
+    slope_db_per_oct: Optional[float] = None
+    if slope_raw is not None:
+        slope_db_per_oct = _coerce_float(slope_raw, where=f"{where}.slope_db_per_oct")
+        if slope_db_per_oct not in VALID_FILTER_SLOPES_DB_PER_OCT:
+            raise MixAgentOutputError(
+                f"{where}.slope_db_per_oct={slope_db_per_oct} not in "
+                f"{sorted(VALID_FILTER_SLOPES_DB_PER_OCT)}"
+            )
+
+    processing_mode_raw = item.get("processing_mode")
+    processing_mode = (
+        None if processing_mode_raw is None or processing_mode_raw == ""
+        else _coerce_str(processing_mode_raw, where=f"{where}.processing_mode").strip()
+    )
+    if processing_mode is not None and processing_mode not in VALID_PROCESSING_MODES:
+        raise MixAgentOutputError(
+            f"{where}.processing_mode={processing_mode!r} not in "
+            f"{sorted(VALID_PROCESSING_MODES)}"
+        )
+
+    width = _coerce_optional_float_in_range(
+        item.get("width"), where=f"{where}.width",
+        lo=MASTER_STEREO_WIDTH_MIN, hi=MASTER_STEREO_WIDTH_MAX, unit="(width)",
+    )
+    mid_side_balance = _coerce_optional_float_in_range(
+        item.get("mid_side_balance"), where=f"{where}.mid_side_balance",
+        lo=MS_BALANCE_MIN, hi=MS_BALANCE_MAX, unit="(MS)",
+    )
+    bass_mono_freq_hz = _coerce_optional_float_in_range(
+        item.get("bass_mono_freq_hz"), where=f"{where}.bass_mono_freq_hz",
+        lo=MASTER_BASS_MONO_FREQ_MIN_HZ, hi=MASTER_BASS_MONO_FREQ_MAX_HZ, unit="Hz",
+    )
+
+    drive_pct = _coerce_optional_float_in_range(
+        item.get("drive_pct"), where=f"{where}.drive_pct",
+        lo=MASTER_SATURATION_DRIVE_MIN_PCT, hi=MASTER_SATURATION_DRIVE_MAX_PCT,
+        unit="%",
+    )
+    saturation_type_raw = item.get("saturation_type")
+    saturation_type = (
+        None if saturation_type_raw is None or saturation_type_raw == ""
+        else _coerce_str(saturation_type_raw, where=f"{where}.saturation_type").strip()
+    )
+    if saturation_type is not None and saturation_type not in VALID_SATURATION_TYPES:
+        raise MixAgentOutputError(
+            f"{where}.saturation_type={saturation_type!r} not in "
+            f"{sorted(VALID_SATURATION_TYPES)}"
+        )
+
+    dry_wet = _coerce_optional_float_in_range(
+        item.get("dry_wet"), where=f"{where}.dry_wet",
+        lo=DYN_DRY_WET_MIN, hi=DYN_DRY_WET_MAX, unit="(0..1)",
+    )
+    output_db = _coerce_optional_float_in_range(
+        item.get("output_db"), where=f"{where}.output_db",
+        lo=DYN_MAKEUP_MIN_DB, hi=DYN_MAKEUP_MAX_DB, unit="dB",
+    )
+
+    # ------------------------------------------------------------------
+    # Cross-field checks (12 numbered)
+    # ------------------------------------------------------------------
+
+    # #1 — target_track : Master constant for all types except bus_glue
+    if move_type != "bus_glue" and target_track != MASTER_TRACK_NAME:
+        raise MixAgentOutputError(
+            f"{where}.target_track={target_track!r} but type={move_type!r} "
+            f"requires target_track={MASTER_TRACK_NAME!r}. "
+            f"Only type='bus_glue' targets sub-bus tracks."
+        )
+    if move_type == "bus_glue" and target_track == MASTER_TRACK_NAME:
+        raise MixAgentOutputError(
+            f"{where}.target_track={MASTER_TRACK_NAME!r} but type='bus_glue' "
+            f"targets sub-bus (Group) tracks ; use type='glue_compression' "
+            f"for master bus."
+        )
+
+    # #2 — limiter_target requires target_lufs_i AND ceiling_dbtp
+    if move_type == "limiter_target":
+        if target_lufs_i is None:
+            raise MixAgentOutputError(
+                f"{where}.type='limiter_target' requires target_lufs_i field "
+                f"(in [{MASTER_LUFS_MIN}, {MASTER_LUFS_MAX}] LUFS)."
+            )
+        if ceiling_dbtp is None:
+            raise MixAgentOutputError(
+                f"{where}.type='limiter_target' requires ceiling_dbtp field "
+                f"(in [{MASTER_CEILING_MIN_DBTP}, {MASTER_CEILING_MAX_DBTP}] dBTP)."
+            )
+
+    # #3 — glue_compression / bus_glue require ratio AND threshold_db
+    if move_type in ("glue_compression", "bus_glue"):
+        if ratio is None:
+            raise MixAgentOutputError(
+                f"{where}.type={move_type!r} requires ratio field "
+                f"(in [{MASTER_GLUE_RATIO_MIN}, {MASTER_GLUE_RATIO_MAX}])."
+            )
+        if threshold_db is None:
+            raise MixAgentOutputError(
+                f"{where}.type={move_type!r} requires threshold_db field."
+            )
+
+    # #4 — master_eq_band requires band_type, center_hz, q
+    if move_type == "master_eq_band":
+        if band_type is None:
+            raise MixAgentOutputError(
+                f"{where}.type='master_eq_band' requires band_type field."
+            )
+        if center_hz is None:
+            raise MixAgentOutputError(
+                f"{where}.type='master_eq_band' requires center_hz field."
+            )
+        if q is None:
+            raise MixAgentOutputError(
+                f"{where}.type='master_eq_band' requires q field."
+            )
+
+    # #5 — band_type/slope coherence (mirror EQBandCorrection rules)
+    if move_type == "master_eq_band" and band_type is not None:
+        if band_type in {"highpass", "lowpass"} and slope_db_per_oct is None:
+            raise MixAgentOutputError(
+                f"{where}.band_type={band_type!r} requires slope_db_per_oct "
+                f"(in {sorted(VALID_FILTER_SLOPES_DB_PER_OCT)})."
+            )
+        if (band_type in {"bell", "notch", "low_shelf", "high_shelf"}
+                and slope_db_per_oct is not None):
+            raise MixAgentOutputError(
+                f"{where}.band_type={band_type!r} must NOT have slope_db_per_oct ; "
+                f"slope only applies to highpass/lowpass."
+            )
+        # gain_db meaningful for bell + shelves ; 0.0 acceptable but warn-worthy
+        if band_type == "notch" and gain_db is not None and gain_db > -1.0:
+            raise MixAgentOutputError(
+                f"{where}.band_type='notch' typically uses deep cuts ; "
+                f"gain_db={gain_db} > -1.0 dB suggests bell instead."
+            )
+
+    # #6 — stereo_enhance requires at least ONE value field
+    if move_type == "stereo_enhance":
+        if width is None and mid_side_balance is None and bass_mono_freq_hz is None:
+            raise MixAgentOutputError(
+                f"{where}.type='stereo_enhance' requires at least one of "
+                f"(width, mid_side_balance, bass_mono_freq_hz)."
+            )
+        # No-op identity checks
+        if width is not None and width == 1.0:
+            raise MixAgentOutputError(
+                f"{where}.type='stereo_enhance' but width=1.0 (neutre, no-op). "
+                f"Pick a value ≠ 1.0 in [{MASTER_STEREO_WIDTH_MIN}, "
+                f"{MASTER_STEREO_WIDTH_MAX}]."
+            )
+        if mid_side_balance is not None and mid_side_balance == MS_BALANCE_NEUTRAL:
+            raise MixAgentOutputError(
+                f"{where}.type='stereo_enhance' but mid_side_balance=1.0 (neutre, no-op)."
+            )
+
+    # #7 — saturation_color requires drive_pct AND saturation_type
+    if move_type == "saturation_color":
+        if drive_pct is None:
+            raise MixAgentOutputError(
+                f"{where}.type='saturation_color' requires drive_pct field "
+                f"(in [{MASTER_SATURATION_DRIVE_MIN_PCT}, "
+                f"{MASTER_SATURATION_DRIVE_MAX_PCT}] %)."
+            )
+        if saturation_type is None:
+            raise MixAgentOutputError(
+                f"{where}.type='saturation_color' requires saturation_type field "
+                f"(in {sorted(VALID_SATURATION_TYPES)})."
+            )
+
+    # #8 — extra value fields not relevant to this type forbidden
+    relevant_fields = _MASTER_VALUE_FIELDS_BY_TYPE[move_type]
+    extras: list[str] = []
+    for fname in _MASTER_ALL_VALUE_FIELDS - relevant_fields:
+        val = locals().get(fname)
+        if val is not None:
+            extras.append(fname)
+    if extras:
+        raise MixAgentOutputError(
+            f"{where}.type={move_type!r} but extra value fields set : "
+            f"{sorted(extras)}. Each type allows only its own fields ; "
+            f"leave others null. Allowed for {move_type!r}: {sorted(relevant_fields)}."
+        )
+
+    # #9 — depth-light : rationale ≥ 50 chars + ≥ 1 citation
+    if len(rationale) < 50:
+        raise MixAgentOutputError(
+            f"{where}.rationale too short ({len(rationale)} chars, need ≥ 50). "
+            f"Untraced master move = stub : Tier B master-bus-configurator "
+            f"can't justify the move to safety-guardian."
+        )
+    if not inspired_by:
+        raise MixAgentOutputError(
+            f"{where}.inspired_by must contain at least one citation. "
+            f"Cite FullMixMetrics, HealthScore breakdown, Anomaly, or user brief."
+        )
+
+    return MasterMove(
+        type=move_type,
+        target_track=target_track,
+        device=device,
+        chain_position=chain_position,
+        rationale=rationale,
+        inspired_by=inspired_by,
+        target_lufs_i=target_lufs_i,
+        ceiling_dbtp=ceiling_dbtp,
+        lookahead_ms=lookahead_ms,
+        gain_drive_db=gain_drive_db,
+        ratio=ratio,
+        threshold_db=threshold_db,
+        attack_ms=attack_ms,
+        release_ms=release_ms,
+        gr_target_db=gr_target_db,
+        makeup_db=makeup_db,
+        band_type=band_type,
+        center_hz=center_hz,
+        q=q,
+        gain_db=gain_db,
+        slope_db_per_oct=slope_db_per_oct,
+        processing_mode=processing_mode,
+        width=width,
+        mid_side_balance=mid_side_balance,
+        bass_mono_freq_hz=bass_mono_freq_hz,
+        drive_pct=drive_pct,
+        saturation_type=saturation_type,
+        dry_wet=dry_wet,
+        output_db=output_db,
+    )
+
+
+def parse_mastering_decision(
+    payload: Mapping[str, Any],
+) -> MixDecision[MasteringDecision]:
+    """Parse a mastering-engineer payload into a MixDecision.
+
+    Phase 4.9 contract :
+    - Static-only moves (no envelopes here ; envelopes via automation-engineer)
+    - ≤ 1 limiter_target move (cross-field check)
+    - Each move : type discriminator + type-specific value fields +
+      shared (target_track, device, chain_position, rationale, inspired_by)
+    """
+    envelope_meta = _parse_envelope(
+        payload, supported_versions=SUPPORTED_MASTERING_SCHEMA_VERSIONS
+    )
+
+    mastering_dict = _require(payload, "mastering", where="root")
+    if not isinstance(mastering_dict, Mapping):
+        raise MixAgentOutputError(
+            f"mastering: expected object, got {type(mastering_dict).__name__}"
+        )
+
+    moves_raw = _coerce_list(
+        mastering_dict.get("moves", []), where="mastering.moves"
+    )
+    moves = tuple(
+        _parse_master_move(m, where=f"mastering.moves[{i}]")
+        for i, m in enumerate(moves_raw)
+    )
+
+    # #10 — at most 1 limiter_target per MasteringDecision
+    limiter_count = sum(1 for m in moves if m.type == "limiter_target")
+    if limiter_count > 1:
+        raise MixAgentOutputError(
+            f"mastering.moves: {limiter_count} limiter_target moves found, "
+            f"max 1 allowed (single Limiter terminal on master bus)."
+        )
+
+    # #11 — duplicate (target_track, device, chain_position) check
+    seen_keys: set[tuple] = set()
+    for i, m in enumerate(moves):
+        key = (m.target_track, m.device, m.chain_position)
+        if key in seen_keys:
+            raise MixAgentOutputError(
+                f"mastering.moves[{i}]: duplicate move on "
+                f"(track={m.target_track!r}, device={m.device!r}, "
+                f"chain_position={m.chain_position!r}). "
+                f"Tier B master-bus-configurator would collide."
+            )
+        seen_keys.add(key)
+
+    decision_value = MasteringDecision(moves=moves)
+    return MixDecision(value=decision_value, lane="mastering", **envelope_meta)
+
+
+def parse_mastering_decision_from_response(
+    text: str,
+) -> MixDecision[MasteringDecision]:
+    """End-to-end: raw LLM response → MixDecision[MasteringDecision]."""
+    return parse_mastering_decision(extract_json_payload(text))
+
+
 __all__ = [
     "MixAgentOutputError",
     "SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS",
@@ -3154,6 +3629,11 @@ __all__ = [
     # Phase 4.8 — Automation re-exports
     "VALID_AUTOMATION_PURPOSES",
     "VALID_AUTOMATION_TARGET_DEVICES",
+    # Phase 4.9 — Mastering re-exports
+    "SUPPORTED_MASTERING_SCHEMA_VERSIONS",
+    "VALID_MASTER_MOVE_TYPES",
+    "VALID_MASTER_CHAIN_POSITIONS",
+    "VALID_SATURATION_TYPES",
     "extract_json_payload",
     "parse_diagnostic_decision",
     "parse_diagnostic_decision_from_response",
@@ -3169,4 +3649,6 @@ __all__ = [
     "parse_chain_decision_from_response",
     "parse_automation_decision",
     "parse_automation_decision_from_response",
+    "parse_mastering_decision",
+    "parse_mastering_decision_from_response",
 ]

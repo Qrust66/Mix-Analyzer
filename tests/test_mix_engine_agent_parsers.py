@@ -3665,3 +3665,466 @@ def test_phase47_full_integration_audio_metrics_plus_genre_context():
     assert decision.value.tracks[0].audio_metrics.is_stereo is True
     assert decision.value.tracks[1].audio_metrics.is_stereo is False
     assert decision.value.genre_context.family == "electronic_dance"
+
+
+# ============================================================================
+# Phase 4.9 — Mastering lane parser tests
+# ============================================================================
+
+from mix_engine.blueprint import (  # noqa: E402
+    MASTER_TRACK_NAME,
+    MasterMove,
+    MasteringDecision,
+    SUPPORTED_MASTERING_SCHEMA_VERSIONS,
+    VALID_MASTER_CHAIN_POSITIONS,
+    VALID_MASTER_MOVE_TYPES,
+    VALID_SATURATION_TYPES,
+    parse_mastering_decision,
+    parse_mastering_decision_from_response,
+)
+
+
+_RATIONALE_50 = (
+    "Master move justifié par signal full_mix.integrated_lufs vs target genre context."
+)
+_CITE_FULL_MIX = {
+    "kind": "diagnostic", "path": "Full Mix Analysis!B7",
+    "excerpt": "Integrated LUFS: -13.5",
+}
+_CITE_GENRE = {
+    "kind": "diagnostic", "path": "GenreContext.target_lufs_mix",
+    "excerpt": "electronic_aggressive: -8 LUFS",
+}
+
+
+def _master_payload(moves):
+    return {
+        "schema_version": "1.0",
+        "mastering": {"moves": moves},
+        "cited_by": [_CITE_FULL_MIX],
+        "rationale": _RATIONALE_50,
+        "confidence": 0.85,
+    }
+
+
+def _move_limiter(**over):
+    base = {
+        "type": "limiter_target",
+        "target_track": "Master",
+        "device": "Limiter",
+        "target_lufs_i": -8.0,
+        "ceiling_dbtp": -0.3,
+        "lookahead_ms": 1.5,
+        "chain_position": "master_limiter",
+        "rationale": _RATIONALE_50,
+        "inspired_by": [_CITE_FULL_MIX, _CITE_GENRE],
+    }
+    base.update(over)
+    return base
+
+
+def _move_glue(**over):
+    base = {
+        "type": "glue_compression",
+        "target_track": "Master",
+        "device": "GlueCompressor",
+        "ratio": 1.7,
+        "threshold_db": -12.0,
+        "attack_ms": 30.0,
+        "release_ms": 200.0,
+        "gr_target_db": 2.0,
+        "chain_position": "master_glue",
+        "rationale": _RATIONALE_50,
+        "inspired_by": [_CITE_FULL_MIX],
+    }
+    base.update(over)
+    return base
+
+
+def _move_eq_bell(**over):
+    base = {
+        "type": "master_eq_band",
+        "target_track": "Master",
+        "device": "Eq8",
+        "band_type": "bell",
+        "center_hz": 600.0,
+        "q": 1.5,
+        "gain_db": -1.5,
+        "chain_position": "master_corrective",
+        "processing_mode": "stereo",
+        "rationale": _RATIONALE_50,
+        "inspired_by": [_CITE_FULL_MIX],
+    }
+    base.update(over)
+    return base
+
+
+def _move_eq_hpf(**over):
+    base = {
+        "type": "master_eq_band",
+        "target_track": "Master",
+        "device": "Eq8",
+        "band_type": "highpass",
+        "center_hz": 30.0,
+        "q": 0.71,
+        "slope_db_per_oct": 12.0,
+        "chain_position": "master_corrective",
+        "processing_mode": "stereo",
+        "rationale": _RATIONALE_50,
+        "inspired_by": [_CITE_FULL_MIX],
+    }
+    base.update(over)
+    return base
+
+
+def _move_stereo(**over):
+    base = {
+        "type": "stereo_enhance",
+        "target_track": "Master",
+        "device": "StereoGain",
+        "width": 1.15,
+        "chain_position": "master_stereo",
+        "rationale": _RATIONALE_50,
+        "inspired_by": [_CITE_FULL_MIX],
+    }
+    base.update(over)
+    return base
+
+
+def _move_saturation(**over):
+    base = {
+        "type": "saturation_color",
+        "target_track": "Master",
+        "device": "Saturator",
+        "drive_pct": 8.0,
+        "saturation_type": "soft_sine",
+        "dry_wet": 1.0,
+        "chain_position": "master_color",
+        "rationale": _RATIONALE_50,
+        "inspired_by": [_CITE_FULL_MIX],
+    }
+    base.update(over)
+    return base
+
+
+def _move_bus_glue(**over):
+    base = {
+        "type": "bus_glue",
+        "target_track": "Drum Bus",
+        "device": "GlueCompressor",
+        "ratio": 1.7,
+        "threshold_db": -10.0,
+        "attack_ms": 30.0,
+        "release_ms": 250.0,
+        "gr_target_db": 1.5,
+        "chain_position": "bus_glue",
+        "rationale": _RATIONALE_50,
+        "inspired_by": [_CITE_FULL_MIX],
+    }
+    base.update(over)
+    return base
+
+
+# === Happy paths ===
+
+def test_mastering_empty_moves_accepted():
+    """No master signal → moves: [] is the do-no-harm exit."""
+    decision = parse_mastering_decision(_master_payload([]))
+    assert isinstance(decision.value, MasteringDecision)
+    assert decision.value.moves == ()
+    assert decision.lane == "mastering"
+
+
+def test_mastering_limiter_target_native_valid():
+    decision = parse_mastering_decision(_master_payload([_move_limiter()]))
+    assert len(decision.value.moves) == 1
+    move = decision.value.moves[0]
+    assert move.type == "limiter_target"
+    assert move.device == "Limiter"
+    assert move.target_lufs_i == -8.0
+    assert move.ceiling_dbtp == -0.3
+
+
+def test_mastering_limiter_target_smartlimit_alternative():
+    decision = parse_mastering_decision(_master_payload([
+        _move_limiter(device="SmartLimit"),
+    ]))
+    assert decision.value.moves[0].device == "SmartLimit"
+
+
+def test_mastering_glue_compression_valid():
+    decision = parse_mastering_decision(_master_payload([_move_glue()]))
+    move = decision.value.moves[0]
+    assert move.type == "glue_compression"
+    assert move.ratio == 1.7
+    assert move.gr_target_db == 2.0
+
+
+def test_mastering_glue_compression_compressor2_alternative():
+    decision = parse_mastering_decision(_master_payload([
+        _move_glue(device="Compressor2"),
+    ]))
+    assert decision.value.moves[0].device == "Compressor2"
+
+
+def test_mastering_master_eq_bell_valid():
+    decision = parse_mastering_decision(_master_payload([_move_eq_bell()]))
+    move = decision.value.moves[0]
+    assert move.band_type == "bell"
+    assert move.gain_db == -1.5
+    assert move.slope_db_per_oct is None
+
+
+def test_mastering_master_eq_high_shelf_tonal():
+    decision = parse_mastering_decision(_master_payload([
+        _move_eq_bell(band_type="high_shelf", center_hz=10000.0,
+                      q=0.7, gain_db=1.5,
+                      chain_position="master_tonal"),
+    ]))
+    move = decision.value.moves[0]
+    assert move.band_type == "high_shelf"
+    assert move.chain_position == "master_tonal"
+
+
+def test_mastering_master_eq_hpf_with_slope_valid():
+    decision = parse_mastering_decision(_master_payload([_move_eq_hpf()]))
+    move = decision.value.moves[0]
+    assert move.band_type == "highpass"
+    assert move.slope_db_per_oct == 12.0
+
+
+def test_mastering_stereo_enhance_width_valid():
+    decision = parse_mastering_decision(_master_payload([_move_stereo()]))
+    move = decision.value.moves[0]
+    assert move.width == 1.15
+
+
+def test_mastering_stereo_enhance_bass_mono_valid():
+    decision = parse_mastering_decision(_master_payload([
+        _move_stereo(width=None, bass_mono_freq_hz=120.0),
+    ]))
+    move = decision.value.moves[0]
+    assert move.bass_mono_freq_hz == 120.0
+    assert move.width is None
+
+
+def test_mastering_saturation_color_valid():
+    decision = parse_mastering_decision(_master_payload([_move_saturation()]))
+    move = decision.value.moves[0]
+    assert move.drive_pct == 8.0
+    assert move.saturation_type == "soft_sine"
+
+
+def test_mastering_bus_glue_valid():
+    decision = parse_mastering_decision(_master_payload([_move_bus_glue()]))
+    move = decision.value.moves[0]
+    assert move.type == "bus_glue"
+    assert move.target_track == "Drum Bus"
+    assert move.chain_position == "bus_glue"
+
+
+def test_mastering_multi_move_decision():
+    """Realistic mastering chain : limiter + glue + tonal EQ."""
+    decision = parse_mastering_decision(_master_payload([
+        _move_eq_bell(band_type="high_shelf", center_hz=10000.0,
+                      q=0.7, gain_db=1.5, chain_position="master_tonal"),
+        _move_glue(),
+        _move_limiter(),
+    ]))
+    assert len(decision.value.moves) == 3
+    types = [m.type for m in decision.value.moves]
+    assert types == ["master_eq_band", "glue_compression", "limiter_target"]
+
+
+# === Cross-field check rejections ===
+
+def test_mastering_limiter_target_missing_lufs_raises():
+    payload = _master_payload([_move_limiter(target_lufs_i=None)])
+    with pytest.raises(MixAgentOutputError, match="requires target_lufs_i"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_limiter_target_missing_ceiling_raises():
+    payload = _master_payload([_move_limiter(ceiling_dbtp=None)])
+    with pytest.raises(MixAgentOutputError, match="requires ceiling_dbtp"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_ceiling_above_minus_0_1_rejected():
+    """Streaming standard : ceiling NEVER above -0.1 dBTP."""
+    payload = _master_payload([_move_limiter(ceiling_dbtp=0.0)])
+    with pytest.raises(MixAgentOutputError, match="ceiling_dbtp"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_eq_gain_above_3db_rejected():
+    """Master EQ gain capped at ±3 dB ; > 3 = mix problem signal."""
+    payload = _master_payload([_move_eq_bell(gain_db=5.0)])
+    with pytest.raises(MixAgentOutputError, match="gain_db"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_eq_bell_with_slope_rejected():
+    """Bell/notch/shelf MUST NOT have slope_db_per_oct."""
+    payload = _master_payload([_move_eq_bell(slope_db_per_oct=12.0)])
+    with pytest.raises(MixAgentOutputError, match="slope only applies"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_eq_hpf_without_slope_rejected():
+    """HPF/LPF MUST have slope_db_per_oct."""
+    payload = _master_payload([_move_eq_hpf(slope_db_per_oct=None)])
+    with pytest.raises(MixAgentOutputError, match="requires slope_db_per_oct"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_stereo_enhance_no_value_rejected():
+    """At least one of (width, mid_side_balance, bass_mono_freq_hz)."""
+    payload = _master_payload([_move_stereo(width=None)])
+    with pytest.raises(MixAgentOutputError, match="at least one"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_stereo_enhance_width_neutral_rejected():
+    """No-op identity (width=1.0) rejected."""
+    payload = _master_payload([_move_stereo(width=1.0)])
+    with pytest.raises(MixAgentOutputError, match="no-op"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_target_track_non_master_for_limiter_rejected():
+    """Only bus_glue can target sub-bus."""
+    payload = _master_payload([_move_limiter(target_track="Drum Bus")])
+    with pytest.raises(MixAgentOutputError, match="requires target_track"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_bus_glue_targeting_master_rejected():
+    """bus_glue must target sub-bus, not master itself."""
+    payload = _master_payload([_move_bus_glue(target_track="Master")])
+    with pytest.raises(MixAgentOutputError, match="bus_glue"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_two_limiter_targets_rejected():
+    """Only ONE Limiter terminal per master."""
+    payload = _master_payload([_move_limiter(), _move_limiter(device="SmartLimit")])
+    with pytest.raises(MixAgentOutputError, match="max 1"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_duplicate_move_rejected():
+    """Same (target_track, device, chain_position) twice rejected."""
+    payload = _master_payload([_move_glue(), _move_glue()])
+    with pytest.raises(MixAgentOutputError, match="duplicate move"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_chain_position_mismatch_for_type_rejected():
+    """limiter_target with master_glue position rejected."""
+    payload = _master_payload([_move_limiter(chain_position="master_glue")])
+    with pytest.raises(MixAgentOutputError, match="not allowed for type"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_device_mismatch_for_type_rejected():
+    """limiter_target with Eq8 rejected."""
+    payload = _master_payload([_move_limiter(device="Eq8")])
+    with pytest.raises(MixAgentOutputError, match="not allowed for type"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_extra_field_for_type_rejected():
+    """saturation_color with target_lufs_i (limiter field) rejected."""
+    move = _move_saturation()
+    move["target_lufs_i"] = -8.0
+    payload = _master_payload([move])
+    with pytest.raises(MixAgentOutputError, match="extra value fields"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_glue_ratio_above_4_rejected():
+    """Master glue ratio capped at 4:1 ; > 4 = creative scope."""
+    payload = _master_payload([_move_glue(ratio=5.0)])
+    with pytest.raises(MixAgentOutputError, match="ratio"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_saturation_drive_above_25_rejected():
+    """Master saturation drive capped at 25% ; > 25 = creative scope."""
+    payload = _master_payload([_move_saturation(drive_pct=50.0)])
+    with pytest.raises(MixAgentOutputError, match="drive_pct"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_invalid_saturation_type_rejected():
+    payload = _master_payload([_move_saturation(saturation_type="bogus")])
+    with pytest.raises(MixAgentOutputError, match="saturation_type"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_invalid_move_type_rejected():
+    payload = _master_payload([_move_limiter(type="bogus_move")])
+    with pytest.raises(MixAgentOutputError, match="not in"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_invalid_band_type_rejected():
+    payload = _master_payload([_move_eq_bell(band_type="bogus")])
+    with pytest.raises(MixAgentOutputError, match="band_type"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_invalid_processing_mode_rejected():
+    payload = _master_payload([_move_eq_bell(processing_mode="bogus")])
+    with pytest.raises(MixAgentOutputError, match="processing_mode"):
+        parse_mastering_decision(payload)
+
+
+# === Depth-light + envelope checks ===
+
+def test_mastering_rationale_too_short_rejected():
+    payload = _master_payload([_move_limiter(rationale="short")])
+    with pytest.raises(MixAgentOutputError, match="rationale too short"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_inspired_by_empty_rejected():
+    payload = _master_payload([_move_limiter(inspired_by=[])])
+    with pytest.raises(MixAgentOutputError, match="must contain at least one citation"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_unsupported_schema_version_rejected():
+    payload = _master_payload([])
+    payload["schema_version"] = "9.0"
+    with pytest.raises(MixAgentOutputError):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_refusal_payload_propagates():
+    payload = {"error": "missing input", "details": "no .als path"}
+    with pytest.raises(MixAgentOutputError, match="agent refused"):
+        parse_mastering_decision(payload)
+
+
+def test_mastering_from_response_handles_fences():
+    payload = _master_payload([_move_limiter()])
+    text = "```json\n" + json.dumps(payload) + "\n```"
+    decision = parse_mastering_decision_from_response(text)
+    assert decision.value.moves[0].type == "limiter_target"
+
+
+def test_mastering_master_track_name_constant_used():
+    """target_track must equal MASTER_TRACK_NAME for all non-bus_glue."""
+    decision = parse_mastering_decision(_master_payload([_move_limiter()]))
+    assert decision.value.moves[0].target_track == MASTER_TRACK_NAME
+
+
+def test_mastering_blueprint_slot_filled():
+    """Phase 4.9 : MixBlueprint.mastering slot exists."""
+    bp = MixBlueprint(name="t")
+    decision = parse_mastering_decision(_master_payload([_move_limiter()]))
+    bp_filled = bp.with_decision("mastering", decision)
+    assert bp_filled.mastering is not None
+    assert "mastering" in bp_filled.filled_lanes()

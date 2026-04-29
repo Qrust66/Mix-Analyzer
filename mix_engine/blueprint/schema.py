@@ -1424,6 +1424,175 @@ class AutomationDecision:
     envelopes: tuple[AutomationEnvelope, ...] = ()
 
 
+# ============================================================================
+# Mastering lane — Phase 4.9
+# ============================================================================
+#
+# Tier A schema for master-bus-only decisions : LUFS targeting, true peak
+# ceiling, LRA control, master corrective/tonal EQ, glue compression,
+# stereo enhancement, saturation color, sub-bus glue.
+#
+# Static-only by design — envelope overlay (per-section ramps, intro/outro
+# fades) handled by automation-engineer Phase 4.8 via
+# AutomationEnvelope(purpose="mastering_master_bus", target_track="Master").
+# This avoids capability duplication and keeps Tier A static / Tier A
+# automation cleanly separated.
+#
+# Out-of-scope Phase 4.9 (rule-with-consumer) :
+# - MultibandDynamics device (not yet mapped in VALID_DYNAMICS_DEVICES) →
+#   "multiband_band" type deferred Phase 4.9.X
+# - Reference matching workflow (curve/RMS match) — agent prompt skeleton
+#   only ; future schema extension if usage justifies
+# - Dither (export config, not chain device — out-of-band)
+
+
+# Master move types — discriminator for MasterMove dataclass.
+VALID_MASTER_MOVE_TYPES = frozenset({
+    "limiter_target",       # MASTER-A, MASTER-B (Limiter / SmartLimit terminal)
+    "glue_compression",     # MASTER-C, MASTER-G (GlueCompressor / Compressor2 master glue)
+    "master_eq_band",       # MASTER-D (Eq8 master corrective + tonal)
+    "stereo_enhance",       # MASTER-F (Utility / StereoGain master width)
+    "saturation_color",     # MASTER-H (Saturator subtle harmonic excitement)
+    "bus_glue",             # MASTER-I (sub-bus GlueCompressor — drum bus, vocal bus)
+    # Phase 4.9.X future :
+    # "multiband_band",
+})
+
+
+# Devices acceptables par type. Cross-field parser enforces type → device.
+MASTER_DEVICES_BY_TYPE: dict[str, frozenset[str]] = {
+    "limiter_target": frozenset({"Limiter", "SmartLimit"}),
+    "glue_compression": frozenset({"GlueCompressor", "Compressor2"}),
+    "master_eq_band": frozenset({"Eq8"}),
+    "stereo_enhance": frozenset({"Utility", "StereoGain"}),
+    "saturation_color": frozenset({"Saturator"}),
+    "bus_glue": frozenset({"GlueCompressor", "Compressor2"}),
+}
+
+
+# Chain positions valides côté master bus.
+VALID_MASTER_CHAIN_POSITIONS = frozenset({
+    "master_corrective",    # 1er Eq8 master — subtractive cleanup
+    "master_tonal",         # 2e Eq8 master (rare) — additive tilt
+    "master_glue",          # GlueCompressor / Compressor2 master
+    "master_color",         # Saturator master
+    "master_stereo",        # Utility / StereoGain master
+    "master_limiter",       # Limiter / SmartLimit terminal
+    "bus_glue",             # Sub-bus glue (NOT master)
+    "default",              # Tier B picks based on chain content
+})
+
+
+# Cross-field : type → required chain_position (when not "default").
+MASTER_CHAIN_POSITION_BY_TYPE: dict[str, frozenset[str]] = {
+    "limiter_target": frozenset({"master_limiter", "default"}),
+    "glue_compression": frozenset({"master_glue", "default"}),
+    "master_eq_band": frozenset({"master_corrective", "master_tonal", "default"}),
+    "stereo_enhance": frozenset({"master_stereo", "default"}),
+    "saturation_color": frozenset({"master_color", "default"}),
+    "bus_glue": frozenset({"bus_glue", "default"}),
+}
+
+
+# Saturation type discriminator.
+VALID_SATURATION_TYPES = frozenset({
+    "analog_clip",          # Hard analog clipping curve
+    "soft_sine",            # Sine waveshaping
+    "digital_clip",         # Hard digital clip
+    "tape",                 # Tape saturation simulation
+    "tube",                 # Tube/valve simulation
+})
+
+
+# Master-scope value bounds (parser-enforced).
+MASTER_LUFS_MIN: float = -23.0          # LUFS-I min for mastering target (very quiet)
+MASTER_LUFS_MAX: float = -5.0           # LUFS-I max (very loud, club-aggressive)
+MASTER_CEILING_MIN_DBTP: float = -3.0   # Conservative vinyl ceiling
+MASTER_CEILING_MAX_DBTP: float = -0.1   # Streaming standard upper limit (NEVER above)
+MASTER_GLUE_RATIO_MIN: float = 1.0      # 1:1 = no compression (legal but caught by cross-field)
+MASTER_GLUE_RATIO_MAX: float = 4.0      # > 4 = creative scope (escalate)
+MASTER_GLUE_GR_TARGET_MIN_DB: float = 0.0
+MASTER_GLUE_GR_TARGET_MAX_DB: float = 6.0
+MASTER_EQ_GAIN_MIN_DB: float = -3.0     # Master EQ gentle range (cohérent agent prompt)
+MASTER_EQ_GAIN_MAX_DB: float = 3.0      # > 3 = mix problem ; escalate to eq-corrective
+MASTER_SATURATION_DRIVE_MIN_PCT: float = 0.5    # > 0 (cross-field) ; au moins 0.5%
+MASTER_SATURATION_DRIVE_MAX_PCT: float = 25.0   # > 25 = creative scope (escalate)
+MASTER_STEREO_WIDTH_MIN: float = 0.5    # Subtle narrow
+MASTER_STEREO_WIDTH_MAX: float = 1.5    # Subtle widen ; > 1.5 = creative
+MASTER_BASS_MONO_FREQ_MIN_HZ: float = 50.0
+MASTER_BASS_MONO_FREQ_MAX_HZ: float = 500.0
+
+
+@dataclass(frozen=True)
+class MasterMove:
+    """One master-bus or sub-bus mastering move (static, no envelopes).
+
+    Discriminator-based : `type` field selects which subset of fields
+    applies. Cross-field parser checks enforce coherence.
+
+    Phase 4.9 : envelopes are NOT carried here — automation-engineer
+    Phase 4.8 handles temporal overlay via AutomationEnvelope with
+    purpose='mastering_master_bus'. If a master move needs section-aware
+    variation, agent prompt rationale must escalate to automation-engineer.
+    """
+
+    # === Discriminator + targeting (always required) ===
+    type: str                                       # in VALID_MASTER_MOVE_TYPES
+    target_track: str                               # MASTER_TRACK_NAME OR sub-bus name (bus_glue only)
+    device: str                                     # in MASTER_DEVICES_BY_TYPE[type]
+    chain_position: str                             # in VALID_MASTER_CHAIN_POSITIONS
+    rationale: str                                  # ≥ 50 chars (depth-light)
+    inspired_by: tuple[MixCitation, ...]            # ≥ 1 cite
+
+    # === limiter_target fields ===
+    target_lufs_i: Optional[float] = None           # in [MASTER_LUFS_MIN, MASTER_LUFS_MAX]
+    ceiling_dbtp: Optional[float] = None            # in [MASTER_CEILING_MIN_DBTP, MASTER_CEILING_MAX_DBTP]
+    lookahead_ms: Optional[float] = None            # in [0.5, 5.0] typical
+    gain_drive_db: Optional[float] = None           # Limiter input drive ; agent guidance, Tier B may recompute
+
+    # === glue_compression / bus_glue shared fields ===
+    ratio: Optional[float] = None                   # in [MASTER_GLUE_RATIO_MIN, MASTER_GLUE_RATIO_MAX]
+    threshold_db: Optional[float] = None            # reuses DYN_THRESHOLD_MIN_DB / MAX_DB
+    attack_ms: Optional[float] = None               # reuses DYN_ATTACK_MIN_MS / MAX_MS
+    release_ms: Optional[float] = None              # reuses DYN_RELEASE_MIN_MS / MAX_MS
+    gr_target_db: Optional[float] = None            # in [MASTER_GLUE_GR_TARGET_MIN_DB, MAX_DB]
+    makeup_db: Optional[float] = None               # reuses DYN_MAKEUP_MIN_DB / MAX_DB
+
+    # === master_eq_band fields ===
+    band_type: Optional[str] = None                 # in VALID_EQ_BAND_TYPES
+    center_hz: Optional[float] = None               # in [EQ_FREQ_MIN_HZ, EQ_FREQ_MAX_HZ]
+    q: Optional[float] = None                       # in [EQ_Q_MIN, EQ_Q_MAX]
+    gain_db: Optional[float] = None                 # in [MASTER_EQ_GAIN_MIN_DB, MAX_DB] (master cap)
+    slope_db_per_oct: Optional[float] = None        # in VALID_FILTER_SLOPES_DB_PER_OCT (HPF/LPF only)
+    processing_mode: Optional[str] = None           # in VALID_PROCESSING_MODES (default "stereo")
+
+    # === stereo_enhance fields (at least one required) ===
+    width: Optional[float] = None                   # in [MASTER_STEREO_WIDTH_MIN, MAX]
+    mid_side_balance: Optional[float] = None        # in [0, 2] ; neutral=1.0 (StereoGain native range)
+    bass_mono_freq_hz: Optional[float] = None       # in [MASTER_BASS_MONO_FREQ_MIN_HZ, MAX_HZ]
+
+    # === saturation_color fields ===
+    drive_pct: Optional[float] = None               # in [MASTER_SATURATION_DRIVE_MIN_PCT, MAX_PCT]
+    saturation_type: Optional[str] = None           # in VALID_SATURATION_TYPES
+    dry_wet: Optional[float] = None                 # in [0, 1] ; default 1.0 = full wet
+    output_db: Optional[float] = None               # Saturator output trim ; in [-24, 24]
+
+
+@dataclass(frozen=True)
+class MasteringDecision:
+    """All mastering decisions for the project (static, master-bus + sub-bus glue).
+
+    Phase 4.9 contract :
+    - ≤ 1 limiter_target move (cross-field check)
+    - moves[] empty when no master-level signal justifies intervention
+      (do-no-harm rule)
+    - Envelopes NOT here — handed off to automation-engineer when section
+      variation justifies (rationale must escalate explicitly).
+    """
+
+    moves: tuple[MasterMove, ...] = ()
+
+
 @dataclass(frozen=True)
 class MixBlueprint:
     """The immutable carrier of all lane decisions for one mix session.
@@ -1441,10 +1610,10 @@ class MixBlueprint:
     stereo_spatial: Optional[MixDecision[SpatialDecision]] = None
     chain: Optional[MixDecision[ChainBuildDecision]] = None
     automation: Optional[MixDecision[AutomationDecision]] = None
+    mastering: Optional[MixDecision[MasteringDecision]] = None
     # Future lanes (added with their producing agents):
     # eq_creative: Optional[MixDecision[EQCreativeDecision]] = None
     # saturation_color: Optional[MixDecision[...]] = None
-    # mastering: Optional[MixDecision[...]] = None
 
     def with_decision(self, lane: str, decision: MixDecision) -> "MixBlueprint":
         """Return a new MixBlueprint with `lane` filled by `decision`.
@@ -1610,4 +1779,28 @@ __all__ = [
     "AutomationPoint",
     "AutomationEnvelope",
     "AutomationDecision",
+    # Mastering lane (Phase 4.9 — master bus + sub-bus glue, static-only)
+    "VALID_MASTER_MOVE_TYPES",
+    "MASTER_DEVICES_BY_TYPE",
+    "VALID_MASTER_CHAIN_POSITIONS",
+    "MASTER_CHAIN_POSITION_BY_TYPE",
+    "VALID_SATURATION_TYPES",
+    "MASTER_LUFS_MIN",
+    "MASTER_LUFS_MAX",
+    "MASTER_CEILING_MIN_DBTP",
+    "MASTER_CEILING_MAX_DBTP",
+    "MASTER_GLUE_RATIO_MIN",
+    "MASTER_GLUE_RATIO_MAX",
+    "MASTER_GLUE_GR_TARGET_MIN_DB",
+    "MASTER_GLUE_GR_TARGET_MAX_DB",
+    "MASTER_EQ_GAIN_MIN_DB",
+    "MASTER_EQ_GAIN_MAX_DB",
+    "MASTER_SATURATION_DRIVE_MIN_PCT",
+    "MASTER_SATURATION_DRIVE_MAX_PCT",
+    "MASTER_STEREO_WIDTH_MIN",
+    "MASTER_STEREO_WIDTH_MAX",
+    "MASTER_BASS_MONO_FREQ_MIN_HZ",
+    "MASTER_BASS_MONO_FREQ_MAX_HZ",
+    "MasterMove",
+    "MasteringDecision",
 ]
