@@ -152,6 +152,60 @@ def _find_device(track: ET.Element, allowed_tags: frozenset[str]) -> tuple[Optio
     return None, None
 
 
+def _find_master_eq_at_chain_position(
+    master_track: ET.Element, chain_position: str,
+) -> Optional[ET.Element]:
+    """Phase 4.15.1 audit fix : find a specific Eq8 on master per chain_position.
+
+    Master can have up to 2 Eq8 instances :
+    - master_corrective : 1st Eq8 (subtractive cleanup, before dynamics)
+    - master_tonal      : 2nd Eq8 (additive tilt, after dynamics)
+
+    For 'default' or single-Eq8 masters, returns the first found.
+    For 'master_corrective', returns the first Eq8 (assumes corrective comes first
+    by convention).
+    For 'master_tonal', returns the LAST Eq8 (tonal is later in chain).
+
+    Returns None if no Eq8 on master.
+    """
+    devices_container = master_track.find(".//DeviceChain/DeviceChain/Devices")
+    if devices_container is None:
+        devices_container = master_track.find(".//DeviceChain/Devices")
+    if devices_container is None:
+        return None
+
+    eq8s = [c for c in list(devices_container) if c.tag == "Eq8"]
+    if not eq8s:
+        return None
+
+    if chain_position == "master_corrective" or chain_position == "default":
+        return eq8s[0]
+    if chain_position == "master_tonal":
+        return eq8s[-1] if len(eq8s) >= 2 else eq8s[0]
+    # Other chain_positions don't apply to Eq8 ; return first as fallback
+    return eq8s[0]
+
+
+def _set_eq8_mode_global_for_processing_mode(
+    eq8: ET.Element, processing_mode: Optional[str],
+) -> None:
+    """Phase 4.15.1 audit fix : set Eq8 Mode_global per processing_mode.
+
+    Mapping (matching eq8-configurator Phase 4.10 step 4 conventions) :
+    - "stereo" or None → Mode 0 (Stereo)
+    - "mid"            → Mode 2 (M/S, write to ParameterA)
+    - "side"           → Mode 2 (M/S, write to ParameterB)
+    """
+    if processing_mode is None or processing_mode == "stereo":
+        target_mode = 0
+    elif processing_mode in ("mid", "side"):
+        target_mode = 2
+    else:
+        return  # unknown mode, leave Mode_global untouched
+
+    als_utils.set_eq8_mode_global(eq8, target_mode)
+
+
 def _write_limiter_target(device: ET.Element, move: MasterMove, device_tag: str) -> list[str]:
     """Write Limiter or SmartLimit params (Ceiling, Release, lookahead)."""
     warnings: list[str] = []
@@ -212,7 +266,10 @@ def _write_glue_compression(device: ET.Element, move: MasterMove, device_tag: st
 def _write_master_eq_band(device: ET.Element, move: MasterMove) -> list[str]:
     """Write one Eq8 band on master. Translates band_type → Mode integer.
 
-    Reuses the eq8-configurator translation table conventions.
+    Phase 4.15.1 audit fix : honors move.processing_mode :
+    - "stereo" or None → Mode_global=0, write ParameterA
+    - "mid"            → Mode_global=2 (M/S), write ParameterA
+    - "side"           → Mode_global=2 (M/S), write ParameterB
     """
     warnings: list[str] = []
     # Translate band_type + slope → Eq8 Mode
@@ -235,6 +292,9 @@ def _write_master_eq_band(device: ET.Element, move: MasterMove) -> list[str]:
         return warnings
     mode = mode_map[key]
 
+    # Phase 4.15.1 : set Eq8 Mode_global per processing_mode
+    _set_eq8_mode_global_for_processing_mode(device, move.processing_mode)
+
     # Find first inactive band slot on the master Eq8
     slot = None
     for i in range(8):
@@ -252,7 +312,12 @@ def _write_master_eq_band(device: ET.Element, move: MasterMove) -> list[str]:
         )
         return warnings
 
-    band_param = als_utils.get_eq8_band(device, slot)
+    # Phase 4.15.1 : choose ParameterA (Mid/Stereo) vs ParameterB (Side)
+    if move.processing_mode == "side":
+        band_param = als_utils.get_eq8_band_param_b(device, slot)
+    else:
+        band_param = als_utils.get_eq8_band(device, slot)
+
     als_utils.configure_eq8_band(
         band_param,
         mode=mode,
@@ -297,13 +362,27 @@ def _write_stereo_enhance(device: ET.Element, move: MasterMove, device_tag: str)
 
 
 def _write_saturation_color(device: ET.Element, move: MasterMove) -> list[str]:
-    """Write Saturator params. drive_pct + saturation_type + dry_wet."""
+    """Write Saturator params. drive_pct + saturation_type + dry_wet.
+
+    ⚠️ Phase 4.15.1 audit flag : Saturator XML param names + Type enum
+    values are UNVERIFIED. Reference fixture lacks Saturator instances ;
+    proper mapping requires consultation of device-mapping-oracle and/or
+    a fixture project containing Saturator. Tier B v1 attempts best-guess
+    names ('Drive', 'Type', 'DryWet', 'Output') and emits warnings on
+    write failure. Phase 4.15.X v2 should verify against catalog.
+    """
     warnings: list[str] = []
 
     if move.drive_pct is not None:
-        # Saturator's Drive param is in dB, not pct directly. Tier A schema
-        # uses 0-25% range ; we write the value verbatim and let user verify
-        # (calibration may refine in Phase 4.15.X).
+        # ⚠️ unverified : Saturator's Drive Manual likely encodes dB, NOT %.
+        # drive_pct=8 will write Drive=8.0 which may overdrive significantly.
+        # Schema documents drive_pct ∈ [0.5, 25.0] so we cap interpretation
+        # by trusting Tier A's range, but Ableton's actual scale may differ.
+        warnings.append(
+            f"drive_pct={move.drive_pct} written verbatim to Saturator/Drive — "
+            f"unit calibration unverified (likely dB, not % ; Phase 4.15.X "
+            f"should consult device-mapping-oracle to confirm)"
+        )
         if not _set_param(device, "Drive", move.drive_pct):
             # Saturator may use "Pre" or "Drive" — try fallback names
             if not _set_param(device, "PreDrive", move.drive_pct):
@@ -425,8 +504,17 @@ def apply_mastering_decision(
         # Filter to the specific device the move asks for (e.g., move.device='Limiter'
         # but allowed_tags also contains 'SmartLimit' — prefer move.device first)
         device, device_tag = None, None
+
+        # Phase 4.15.1 audit fix : chain_position dispatch for master_eq_band
+        # (master can have multiple Eq8 instances : master_corrective vs master_tonal)
+        if (move.type == "master_eq_band"
+                and move.target_track == MASTER_TRACK_NAME):
+            eq8 = _find_master_eq_at_chain_position(track_el, move.chain_position)
+            if eq8 is not None:
+                device, device_tag = eq8, "Eq8"
+
         # 1st pass : find exact device requested by move.device
-        if move.device in allowed_tags:
+        if device is None and move.device in allowed_tags:
             d = track_el.find(f".//{move.device}")
             if d is not None:
                 device, device_tag = d, move.device

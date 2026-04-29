@@ -378,6 +378,82 @@ def test_safety_check_idempotent_re_apply(tmp_path):
 # ============================================================================
 
 
+# ============================================================================
+# Phase 4.15.1 audit fix — chain_position + processing_mode tests
+# ============================================================================
+
+from mix_engine.writers.master_bus_configurator import (  # noqa: E402
+    _find_master_eq_at_chain_position,
+    _set_eq8_mode_global_for_processing_mode,
+)
+
+
+def test_find_master_eq_at_chain_position_no_eq8_returns_none(tmp_path):
+    """MainTrack fixture has no Eq8 → returns None for any chain_position."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    tree = als_utils.parse_als(str(ref_copy))
+    main = _find_master_track(tree)
+    assert _find_master_eq_at_chain_position(main, "master_corrective") is None
+    assert _find_master_eq_at_chain_position(main, "master_tonal") is None
+    assert _find_master_eq_at_chain_position(main, "default") is None
+
+
+def test_set_eq8_mode_global_stereo():
+    """processing_mode='stereo' → Mode=0."""
+    import xml.etree.ElementTree as ET
+    eq8 = ET.Element("Eq8")
+    ET.SubElement(eq8, "Mode").set("Value", "1")
+    _set_eq8_mode_global_for_processing_mode(eq8, "stereo")
+    assert eq8.find("Mode").get("Value") == "0"
+
+
+def test_set_eq8_mode_global_mid_or_side_sets_2():
+    """processing_mode='mid' or 'side' → Mode=2 (M/S)."""
+    import xml.etree.ElementTree as ET
+    for mode_str in ("mid", "side"):
+        eq8 = ET.Element("Eq8")
+        ET.SubElement(eq8, "Mode").set("Value", "0")
+        _set_eq8_mode_global_for_processing_mode(eq8, mode_str)
+        assert eq8.find("Mode").get("Value") == "2", \
+            f"processing_mode={mode_str} should set Mode=2"
+
+
+def test_set_eq8_mode_global_none_defaults_stereo():
+    """processing_mode=None → Mode=0."""
+    import xml.etree.ElementTree as ET
+    eq8 = ET.Element("Eq8")
+    ET.SubElement(eq8, "Mode").set("Value", "1")
+    _set_eq8_mode_global_for_processing_mode(eq8, None)
+    assert eq8.find("Mode").get("Value") == "0"
+
+
+def test_set_eq8_mode_global_unknown_no_op():
+    """Unknown processing_mode → leaves Mode_global untouched (defensive)."""
+    import xml.etree.ElementTree as ET
+    eq8 = ET.Element("Eq8")
+    ET.SubElement(eq8, "Mode").set("Value", "1")
+    _set_eq8_mode_global_for_processing_mode(eq8, "bogus_mode")
+    # Should remain "1" (untouched)
+    assert eq8.find("Mode").get("Value") == "1"
+
+
+def test_apply_master_eq_band_chain_position_skipped_no_eq8(tmp_path):
+    """master_eq_band with chain_position='master_corrective' but MainTrack
+    has no Eq8 → skip with reason."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    move = _make_move(
+        type="master_eq_band", device="Eq8",
+        chain_position="master_corrective",
+        band_type="bell", center_hz=600.0, q=1.5, gain_db=-1.5,
+        processing_mode="stereo",
+    )
+    report = apply_mastering_decision(ref_copy, _decision(move), dry_run=True)
+    assert len(report.moves_skipped) == 1
+
+
 def test_apply_multi_move_mixed_master_subbus(tmp_path):
     """3 moves : stereo_enhance master + limiter_target master skipped +
     bus_glue Bass Rythm applied."""
