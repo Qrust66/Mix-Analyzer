@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "eq_corrective": {
+    "bands": [
+      {
+        "track": "[H/R] Bass Rythm",
+        "band_type": "bell",
+        "intent": "cut",
+        "center_hz": 250.0,
+        "q": 2.5,
+        "gain_db": -2.5,
+        "chain_position": "default",
+        "processing_mode": "stereo",
+        "rationale": "Causal: 250 Hz boom on Bass Rythm masking with kick fundamental. Interactional: cleanup pre-comp lets Compressor work on cleaned signal. Idiomatic: standard low-mid surgical cut on bass tracks per industrial production conventions.",
+        "inspired_by": [
+          {"kind": "diagnostic", "path": "Anomalies!A3",
+           "excerpt": "Strong resonance peaks at 250Hz on Bass Rythm"}
+        ]
+      },
+      {
+        "track": "[H/R] Kick 1",
+        "band_type": "highpass",
+        "intent": "filter",
+        "center_hz": 30.0,
+        "q": 0.71,
+        "gain_db": 0.0,
+        "slope_db_per_oct": 12.0,
+        "chain_position": "default",
+        "processing_mode": "stereo",
+        "rationale": "Causal: sub-bass rumble below 30Hz adds no perceptual content but eats headroom. Interactional: HPF tightens kick attack and frees mastering bus headroom. Idiomatic: gentle 12 dB/oct cleanup HPF is standard pre-comp practice on percussive tracks.",
+        "inspired_by": [
+          {"kind": "diagnostic", "path": "FreqConflicts!sub-band",
+           "excerpt": "Sub band conflict: Kick 1 + Bass Rythm both > 35%"}
+        ]
+      }
+    ]
+  },
+  "cited_by": [
+    {"kind": "diagnostic", "path": "Mix Health Score!B5",
+     "excerpt": "spectral_balance 62/100"}
+  ],
+  "rationale": "Sample test drive : 2 corrections — bell cut Bass Rythm 250 Hz mud + HPF Kick 1 sub-bass rumble cleanup.",
+  "confidence": 0.85
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "stereo_spatial": {
+    "moves": [
+      {
+        "track": "[H/R] Bass Rythm",
+        "move_type": "bass_mono",
+        "bass_mono_freq_hz": 120.0,
+        "chain_position": "post_eq_corrective",
+        "rationale": "Causal: stereo bass content below 120 Hz blurs mono compatibility for vinyl/club playback. Interactional: bass-mono frees stereo headroom for higher frequencies and tightens phase coherence. Idiomatic: standard 100-150 Hz bass-mono on bass-heavy genres.",
+        "inspired_by": [
+          {"kind": "diagnostic", "path": "FullMixMetrics.correlation",
+           "excerpt": "correlation 0.72 with low-end stereo content"}
+        ]
+      },
+      {
+        "track": "[H/R] Bass Rythm",
+        "move_type": "pan",
+        "pan": 0.0,
+        "chain_position": "default",
+        "rationale": "Causal: bass center for mono compatibility and low-end power. Interactional: panning bass off-center weakens punch and risks phase issues with kick. Idiomatic: bass tracks always centered in mainstream genres.",
+        "inspired_by": [
+          {"kind": "user_brief", "path": "test_drive_demo",
+           "excerpt": "Bass center for clarity"}
+        ]
+      },
+      {
+        "track": "[H/R] Kick 1",
+        "move_type": "pan",
+        "pan": 0.0,
+        "chain_position": "default",
+        "rationale": "Causal: kick center for mono punch. Interactional: kick-center + bass-center = solid low-end foundation. Idiomatic: kick is always centered in mix engineering.",
+        "inspired_by": [
+          {"kind": "user_brief", "path": "test_drive_demo",
+           "excerpt": "Kick center"}
+        ]
+      }
+    ]
+  },
+  "cited_by": [
+    {"kind": "diagnostic", "path": "FullMixMetrics",
+     "excerpt": "stereo image needs low-end mono summing"}
+  ],
+  "rationale": "Sample test drive : bass-mono Bass Rythm + center kick & bass for low-end clarity.",
+  "confidence": 0.85
+}

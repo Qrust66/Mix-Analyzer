@@ -61,6 +61,7 @@ Execution, Use the Knowledge Graph).
 | **`docs/CODING_PRINCIPLES.md`** | 5 principes coding (Think Before, Simplicity, Surgical, Goal-Driven, Use Graph) |
 | **`docs/DEVICE_MAPPING_EXTENSION_GUIDE.md`** | **Checklist canonique 12 étapes** pour intégrer un nouveau device/plugin (Ableton stock, VST3) — à consulter dès qu'un user partage un nouveau plugin à mapper |
 | **`docs/MIX_ENGINE_ROADMAP.md`** | **Roadmap mix+mastering** — état Tier A (8 agents done) + 6 chantiers restants (Tier B writers, orchestrator, mix-safety-guardian, creative agents, Phase 4.9.X gaps, FX) + 3 ordres de priorité |
+| **`docs/TEST_DRIVE_GUIDE.md`** | **Test drive end-to-end** : workflow CLI `scripts/apply_mix_decisions.py` pour appliquer Tier A décisions (EQ + Dynamics + Spatial) sur un .als réel via les 3 Tier B writers livrés Phase 4.10-4.12 |
 | **`.claude/COST_DISCIPLINE.md`** | 10 règles d'économie de tokens |
 
 Quand une tâche concerne explicitement un de ces sujets, lire le document

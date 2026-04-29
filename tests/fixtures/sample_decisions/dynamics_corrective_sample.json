@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "dynamics_corrective": {
+    "corrections": [
+      {
+        "track": "[H/R] Bass Rythm",
+        "dynamics_type": "bus_glue",
+        "device": "GlueCompressor",
+        "threshold_db": -12.0,
+        "ratio": 2.0,
+        "attack_ms": 15.0,
+        "release_ms": 200.0,
+        "makeup_db": 2.5,
+        "dry_wet": 1.0,
+        "chain_position": "post_eq_corrective",
+        "processing_mode": "stereo",
+        "rationale": "Causal: bass bus crest 14 dB suggests room to glue inter-section consistency. Interactional: 2:1 ratio with 15ms attack preserves transients while gluing tail. Idiomatic: SSL-style bus glue, GR target 2-3 dB.",
+        "inspired_by": [
+          {"kind": "diagnostic", "path": "HealthScore!Dynamics",
+           "excerpt": "Dynamics 65/100 — moderate cohesion need"}
+        ]
+      },
+      {
+        "track": "[H/R] Bass Rythm",
+        "dynamics_type": "limit",
+        "device": "Limiter",
+        "ceiling_db": -0.3,
+        "release_ms": 50.0,
+        "release_auto": false,
+        "chain_position": "chain_end_limiter",
+        "processing_mode": "stereo",
+        "rationale": "Causal: per-track Limiter prevents transient spikes from triggering master limiter. Interactional: ceiling -0.3 dBTP leaves room for master bus processing. Idiomatic: per-track safety net, common on bass-heavy tracks.",
+        "inspired_by": [
+          {"kind": "diagnostic", "path": "Anomalies",
+           "excerpt": "Peak level approaching -0.5 dBFS on bass transients"}
+        ]
+      }
+    ]
+  },
+  "cited_by": [
+    {"kind": "diagnostic", "path": "Mix Health Score",
+     "excerpt": "Dynamics 65, mid-range glue opportunity"}
+  ],
+  "rationale": "Sample test drive : bus glue + safety limiter on Bass Rythm.",
+  "confidence": 0.8
+}
