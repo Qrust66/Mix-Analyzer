@@ -203,6 +203,34 @@ AutomationEnvelope(
 )
 ```
 
+### Scenario CORRECTIVE-E — Per-section Eq8 HPF/LPF Q resonance correlation (Phase 4.8.4)
+**Trigger** : Tier A `EQBandCorrection` static avec `band_type ∈ {"highpass", "lowpass"}` AND `audio_metrics.band_energies` cross-track montre correlation inter-pistes qui varie per Sections Timeline. **Use case corrective** (pas creative) : modulation de la résonance au cutoff pour aération inter-track dynamique.
+
+**Action** :
+```
+AutomationEnvelope(
+    purpose="corrective_per_section",
+    target_track=<track>,
+    target_device="Eq8",
+    target_param="Q",
+    target_band_index=<HPF or LPF band index, typically 0 ou 7>,
+    points=[(time_beats_section_0, 0.7),    # baseline flat (Q = Butterworth)
+            (time_beats_section_1, 2.5),    # Q peak résonance au cutoff
+            (time_beats_section_2, 0.7)],
+    sections=[...],
+    rationale="Track HPF/LPF Q correlation-driven : Q haute quand cross-track band_energies au cutoff recule (Sections Timeline divergence). Q peak fills space via résonance ; pas creative (Q < 8) — corrective inter-track aération.",
+    inspired_by=[<EQBandCorrection HPF/LPF reference>,
+                 <audio_metrics.band_energies cross-track evidence>],
+)
+```
+
+**Constraint Phase 4.8.4** : `Q value > 8` sur HPF/LPF en corrective context = leans creative (peak résonant audible) — escalate creative-automation OR require brief explicit. **Q ∈ [0.5, 4.0]** typical corrective range pour inter-track correlation modulation.
+
+**Use cases concrets** :
+- Snare HPF Q : Q haute en chorus quand kick saturate (kick libère space cutoff)
+- Bass LPF Q : Q peak compense quand kick low-mid recule
+- 2 synths HPF overlap : Q alternance pour mutual aération
+
 ### Scenario MASTERING-A — Master Limiter ceiling envelope
 **Trigger** : `report.genre_context.target_lufs_mix` populated AND
 Sections Timeline available AND brief mentions per-section loudness OR
@@ -529,6 +557,27 @@ Liste non-exhaustive des params typically automated per device :
 | **`SmartLimit`** (4.8.3 VST3) | General_inputGain, General_outputGain, General_limiterThreshold, General_attack, General_release, General_saturation |
 
 ⚠️ Liste indicative. Parser permissif sur `target_param` ; agent-prompt + Tier B device-mapping-oracle valident la compatibilité device↔param.
+
+## Phase 4.8.5 — Resolution divergence Tier A vs automation-engineer (conscious design)
+
+⚠️ **Différence de résolution intentionnelle** entre les schemas envelope :
+
+| Schema | Field | Resolution | Scope |
+|---|---|---|---|
+| `EQAutomationPoint` (Phase 4.2) | `bar: int` | Bar-level (~2 sec @ 120 BPM) | Intra-décision Tier A (gain_envelope on EQ band) |
+| `DynamicsAutomationPoint` (Phase 4.3) | `bar: int` | Bar-level | Intra-décision Tier A (threshold_envelope on Compressor) |
+| `SpatialAutomationPoint` (n/a — uses brief signals) | — | — | Intra-décision Tier A spatial |
+| ⭐ `AutomationPoint` (Phase 4.8.2 — automation-engineer) | `time_beats: float` | Sub-beat (frame-level) | Cross-decision automation-engineer |
+
+**Justification design** :
+- Tier A envelopes = built-in to one decision (e.g., `EQBandCorrection.gain_envelope` for ONE band's gain trajectory). Bar-level résolution suffit pour use cases typiques (sibilance only chorus, etc.)
+- Phase 4.8 automation-engineer = cross-decision, peut targeter ANY device param at ANY track. Sub-beat résolution nécessaire pour fast tracking + mix_analyzer alignment
+- **Pas une incohérence** — les 2 schemas ont scope fonctionnel différent ; resolution divergence reflète besoins audio-engineering distincts
+
+**Implications pour l'agent** :
+- Si tu vois un `EQBandCorrection.gain_envelope` non-empty avec `bar: int` → Tier A a déjà décidé une dynamique bar-level intra-décision ; **NE PAS** émettre une nouvelle envelope `time_beats` sur le même param (double-envelope anti-pattern, cf. Anti-patterns)
+- Si Tier A a émis static (envelope vide) → automation-engineer peut émettre envelope sub-beat via AutomationPoint
+- Phase 4.X.X future : si use case réel demande sub-bar Tier A, migration possible (Tier A bar→time_beats)
 
 ## Phase 4.8.2 — Resolution alignment with mix_analyzer
 
