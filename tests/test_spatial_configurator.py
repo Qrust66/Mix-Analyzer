@@ -342,6 +342,141 @@ def test_safety_check_detects_corrupted_file(tmp_path):
     assert any("Cannot parse" in i for i in issues)
 
 
+# ============================================================================
+# Phase 4.12.1 audit fix — chain_position support tests
+# ============================================================================
+
+from mix_engine.writers.spatial_configurator import _find_existing_stereo_gain  # noqa: E402
+
+
+def test_chain_position_default_finds_stereo_gain(tmp_path):
+    """default → first StereoGain found (legacy behavior preserved)."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    found = _find_existing_stereo_gain(track, "default")
+    assert found is not None and found.tag == "StereoGain"
+
+
+def test_chain_position_post_eq_corrective_matches(tmp_path):
+    """Bass Rythm chain : [Eq8, StereoGain, ...] → StereoGain IS after Eq8 → match."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    found = _find_existing_stereo_gain(track, "post_eq_corrective")
+    assert found is not None
+
+
+def test_chain_position_post_dynamics_corrective_no_match(tmp_path):
+    """Bass Rythm StereoGain at index 1, but GlueComp at 3 + Limiter at 4.
+    StereoGain is NOT after dynamics → no match."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    found = _find_existing_stereo_gain(track, "post_dynamics_corrective")
+    assert found is None
+
+
+def test_chain_position_chain_start_no_match_when_eq8_first(tmp_path):
+    """Bass Rythm has Eq8 at index 0, not StereoGain → chain_start no match."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    found = _find_existing_stereo_gain(track, "chain_start")
+    assert found is None
+
+
+def test_chain_position_chain_end_no_match_when_limiter_last(tmp_path):
+    """Bass Rythm has Limiter at last index, not StereoGain → chain_end no match."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    found = _find_existing_stereo_gain(track, "chain_end")
+    assert found is None
+
+
+def test_chain_position_unknown_raises(tmp_path):
+    """Unknown chain_position → ValueError (defensive double-check)."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    with pytest.raises(ValueError, match="Unknown spatial chain_position"):
+        _find_existing_stereo_gain(track, "bogus")
+
+
+def test_apply_post_eq_corrective_writes_to_existing_sg(tmp_path):
+    """End-to-end : Tier A specifies chain_position='post_eq_corrective' →
+    configurator finds StereoGain (after Eq8 on Bass Rythm) and writes width."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    move = _make_move(
+        track="[H/R] Bass Rythm",
+        move_type="width",
+        stereo_width=1.6,
+        chain_position="post_eq_corrective",
+    )
+    report = apply_spatial_decision(ref_copy, _decision(move), output_path=output)
+    assert len(report.moves_applied) == 1
+    assert report.stereo_gains_reused == 1
+
+
+def test_apply_chain_end_skipped_when_no_sg_terminal(tmp_path):
+    """Bass Rythm : Limiter is last, not StereoGain → chain_end position
+    skipped with reason."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    move = _make_move(
+        track="[H/R] Bass Rythm",
+        move_type="width",
+        stereo_width=1.5,
+        chain_position="chain_end",
+    )
+    report = apply_spatial_decision(ref_copy, _decision(move), dry_run=True)
+    assert len(report.moves_skipped) == 1
+    assert "chain_position='chain_end'" in report.moves_skipped[0][1]
+
+
+# ============================================================================
+# Phase 4.12.1 audit — invalid move_type defensive check
+# ============================================================================
+
+
+def test_apply_unknown_move_type_skipped(tmp_path):
+    """Tier B double-checks move_type even if Tier A schema enforces.
+    Defensive : if a malformed SpatialMove (constructed by hand bypassing
+    Tier A parser) reaches Tier B, it must be skipped, not crash."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    # SpatialMove dataclass doesn't enforce move_type at construction time —
+    # only the Tier A parser does. Tier B is the last line of defense.
+    bogus_move = SpatialMove(
+        track="[H/R] Bass Rythm",
+        move_type="bogus_type",
+        chain_position="default",
+        rationale="Testing Tier B defensive check on unknown move_type.",
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    decision = MixDecision(
+        value=SpatialDecision(moves=(bogus_move,)),
+        lane="stereo_spatial",
+        rationale="Defensive check test for invalid move_type.",
+        confidence=0.5,
+    )
+    report = apply_spatial_decision(ref_copy, decision, dry_run=True)
+    assert len(report.moves_skipped) == 1
+    assert "Unknown move_type" in report.moves_skipped[0][1]
+
+
 def test_safety_check_idempotent_re_apply(tmp_path):
     """Re-apply same width value → no change, safety still PASS."""
     ref_copy = tmp_path / "ref.als"

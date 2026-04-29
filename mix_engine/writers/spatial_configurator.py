@@ -168,9 +168,75 @@ def _write_stereo_gain_phase_flip(sg: ET.Element, channel: str) -> bool:
     return True
 
 
-def _find_existing_stereo_gain(track_element: ET.Element) -> Optional[ET.Element]:
-    """REUSE-only : find first StereoGain on the track. None if absent."""
-    return track_element.find(".//StereoGain")
+def _find_existing_stereo_gain(
+    track_element: ET.Element, chain_position: str = "default",
+) -> Optional[ET.Element]:
+    """REUSE-only : find existing StereoGain honoring chain_position semantics.
+
+    Phase 4.12.1 audit fix : prior version ignored chain_position entirely.
+    Now respects the 5 VALID_SPATIAL_CHAIN_POSITIONS values :
+
+    - 'default'                  → first StereoGain found (any position)
+    - 'chain_start'              → StereoGain at chain index 0 (typically for
+                                    phase_flip — fix polarity before processing)
+    - 'post_eq_corrective'       → StereoGain placed AFTER any Eq8
+    - 'post_dynamics_corrective' → StereoGain AFTER any Compressor2/
+                                    GlueCompressor/Limiter/Gate/DrumBuss
+    - 'chain_end'                → StereoGain at the last index (no device
+                                    after it ; typical pan-stage / width slot)
+
+    Returns the matching StereoGain Element, or None if no match in the
+    requested region (caller skips with reason).
+    """
+    devices_container = track_element.find(".//DeviceChain/DeviceChain/Devices")
+    if devices_container is None:
+        devices_container = track_element.find(".//DeviceChain/Devices")
+    if devices_container is None:
+        return None
+
+    children = list(devices_container)
+    sg_indices = [i for i, c in enumerate(children) if c.tag == "StereoGain"]
+    if not sg_indices:
+        return None
+
+    if chain_position == "default":
+        return children[sg_indices[0]]
+
+    if chain_position == "chain_start":
+        return children[sg_indices[0]] if sg_indices[0] == 0 else None
+
+    if chain_position == "chain_end":
+        # Last device in chain must be StereoGain
+        return (children[sg_indices[-1]]
+                if sg_indices[-1] == len(children) - 1 else None)
+
+    if chain_position == "post_eq_corrective":
+        eq8_indices = [i for i, c in enumerate(children) if c.tag == "Eq8"]
+        if not eq8_indices:
+            return None  # no Eq8 to anchor against
+        last_eq8 = eq8_indices[-1]
+        for idx in sg_indices:
+            if idx > last_eq8:
+                return children[idx]
+        return None
+
+    if chain_position == "post_dynamics_corrective":
+        dyn_tags = ("Compressor2", "GlueCompressor", "Limiter", "Gate", "DrumBuss")
+        dyn_indices = [
+            i for i, c in enumerate(children) if c.tag in dyn_tags
+        ]
+        if not dyn_indices:
+            return None  # no dynamics device to anchor against
+        last_dyn = dyn_indices[-1]
+        for idx in sg_indices:
+            if idx > last_dyn:
+                return children[idx]
+        return None
+
+    raise ValueError(
+        f"Unknown spatial chain_position={chain_position!r}. Valid : default, "
+        f"chain_start, post_eq_corrective, post_dynamics_corrective, chain_end."
+    )
 
 
 # ============================================================================
@@ -258,13 +324,22 @@ def apply_spatial_decision(
             continue
 
         # ---- all other move types : need StereoGain ----
-        sg = _find_existing_stereo_gain(track_el)
+        # Phase 4.12.1 audit fix : honor chain_position for StereoGain lookup
+        sg = _find_existing_stereo_gain(track_el, chain_position=move.chain_position)
         if sg is None:
-            reason = (
-                f"track {move.track!r} has no StereoGain device. Phase 4.12 v1 "
-                f"is REUSE-only ; user must add a StereoGain to the track "
-                f"manually (or future Phase will add create paths via template)."
-            )
+            if move.chain_position == "default":
+                reason = (
+                    f"track {move.track!r} has no StereoGain device. Phase 4.12 v1 "
+                    f"is REUSE-only ; user must add a StereoGain to the track "
+                    f"manually (or future Phase will add create paths via template)."
+                )
+            else:
+                reason = (
+                    f"track {move.track!r} has no StereoGain at chain_position="
+                    f"{move.chain_position!r}. Phase 4.12 v1 is REUSE-only — "
+                    f"Tier B cannot insert a new device at the requested position "
+                    f"without a template."
+                )
             moves_skipped.append((move_id, reason))
             warnings.append(f"{move_id} skipped : {reason}")
             continue
