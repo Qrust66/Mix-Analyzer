@@ -3558,6 +3558,54 @@ def test_automation_phase483_all_devices_accepted(device):
     assert decision.value.envelopes[0].target_device == device
 
 
+def test_automation_phase484_q_on_hpf_lpf_corrective_use_case():
+    """Phase 4.8.4 correction : Q on HPF/LPF Eq8 bands EST automatable
+    et audio-meaningful (résonance au cutoff). Use case corrective :
+    Q modulation inter-track correlation-driven (snare HPF Q higher
+    when kick saturates, lower when kick quiet)."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Snare Top",
+        target_device="Eq8",
+        target_param="Q",
+        target_band_index=0,  # HPF band typically band 0
+        points=[
+            {"time_beats": 0.0, "value": 0.7},      # verse : flat HPF (no resonance peak)
+            {"time_beats": 64.0, "value": 2.5},     # chorus : Q peak adds snare snap
+            {"time_beats": 128.0, "value": 0.7},
+        ],
+        sections=[0, 1, 2],
+        rationale="Snare HPF Q correlation-driven : Q haute en chorus quand kick saturate libère space pour snare snap résonance au cutoff. Phase 4.8.4 corrective inter-track use case (audio_metrics.band_energies kick low-mid varies per section).",
+    )
+    decision = parse_automation_decision(payload)
+    env = decision.value.envelopes[0]
+    assert env.target_param == "Q"
+    assert env.target_band_index == 0
+    assert env.points[1].value == 2.5  # peak character in chorus
+
+
+def test_automation_phase484_q_on_lpf_inter_track_correlation():
+    """Phase 4.8.4 : Q on LPF for bass<->kick low-mid correlation balance."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Bass A",
+        target_device="Eq8",
+        target_param="Q",
+        target_band_index=7,  # LPF band typically last
+        points=[
+            {"time_beats": 0.0, "value": 0.7},      # kick dominant low-mid
+            {"time_beats": 64.0, "value": 1.5},     # kick recule, bass Q peak fills space
+            {"time_beats": 128.0, "value": 0.7},
+        ],
+        sections=[0, 1, 2],
+        rationale="Bass LPF Q automation correlation-driven : Q haute quand kick low-mid recule (cross-track band_energies divergence per Sections Timeline). Q peak = warm character compensation pour kick absence.",
+    )
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].target_param == "Q"
+
+
 def test_automation_phase483_trackspacer_still_rejected():
     """Phase 4.8.3 : Trackspacer remains OOS (eq-creative scope)."""
     payload = _valid_automation_payload()

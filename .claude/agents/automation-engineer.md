@@ -456,30 +456,60 @@ explicitement OOS).
 ### Eq8 band_type ↔ params automatable matrix (anti-pattern guidance)
 
 Eq8's 8 bandes ont 5 params chacune (Mode, Frequency, Gain, Q, On)
-**indépendamment du band_type** assigné par eq-corrective. MAIS la
-**signification audio** varie :
+**indépendamment du band_type** assigné par eq-corrective. Le Q range
+catalog `[0.1, 18.0]` s'applique à **toutes** les band_types — ce qui
+varie c'est la signification audio du Q :
 
-| `band_type` (Mode) | `Frequency` automatable ? | `Gain` automatable ? | `Q` automatable ? | `On` automatable ? |
+| `band_type` (Mode) | `Frequency` | `Gain` | `Q` | `On` |
 |---|---|---|---|---|
-| `bell` (Mode 3) | ✅ peak tracking | ✅ cut/boost dynamic | ✅ width modulation | ✅ on/off |
-| `notch` (Mode 4) | ✅ surgical hunt | ❌ Notch = -∞ implicite | ✅ width (haute Q) | ✅ |
-| `low_shelf` (Mode 2) | ✅ corner sweep | ✅ shelf amount | symbolique (slope flat) | ✅ |
-| `high_shelf` (Mode 5) | ✅ corner sweep | ✅ shelf amount | symbolique | ✅ |
-| `highpass 12dB` (Mode 1) | ✅ cutoff sweep | ❌ filter no gain | n/a (slope = 12 dB/oct fixe) | ✅ |
-| `highpass 48dB` (Mode 0) | ✅ cutoff sweep | ❌ | n/a (slope 48 dB/oct fixe) | ✅ |
-| `lowpass 12dB` (Mode 6) | ✅ cutoff sweep | ❌ | n/a | ✅ |
-| `lowpass 48dB` (Mode 7) | ✅ cutoff sweep | ❌ | n/a | ✅ |
+| `bell` (Mode 3) | ✅ peak tracking | ✅ cut/boost dynamic | ✅ width modulation (Q haute = étroit) | ✅ |
+| `notch` (Mode 4) | ✅ surgical hunt | ❌ Notch = -∞ implicite | ✅ Q haute (10-18) typique | ✅ |
+| `low_shelf` (Mode 2) | ✅ corner sweep | ✅ shelf amount | ✅ shelf slope shape | ✅ |
+| `high_shelf` (Mode 5) | ✅ corner sweep | ✅ shelf amount | ✅ shelf slope shape | ✅ |
+| `highpass 12dB` (Mode 1) | ✅ cutoff sweep | ❌ filter no gain | ⭐ **résonance au cutoff** (Q 0.5=flat, 2-4=peak character, 8+=creative) | ✅ |
+| `highpass 48dB` (Mode 0) | ✅ cutoff sweep | ❌ | ⭐ **résonance au cutoff** plus prononcée (slope 48 dB/oct + Q peak = filter character marqué) | ✅ |
+| `lowpass 12dB` (Mode 6) | ✅ cutoff sweep | ❌ | ⭐ **résonance au cutoff** | ✅ |
+| `lowpass 48dB` (Mode 7) | ✅ cutoff sweep | ❌ | ⭐ **résonance au cutoff** marquée | ✅ |
 
-**Anti-pattern agent-prompt** : émettre `target_param="Gain"` sur une band en HPF/LPF/Notch mode = **audio-engineering invalide** (parser permissif, mais agent doit verify).
+⭐ **Phase 4.8.4 correction** : Q sur HPF/LPF EST audio-meaningful — c'est la **résonance au cutoff** (peak qui crée du caractère filtre).
 
+### Q sur HPF/LPF : use cases corrective inter-track correlation
+
+Pas que creative — Q sur HPF/LPF peut être **corrective** pour gérer les corrélations inter-pistes :
+
+**Use case 1 — Snare HPF resonance dynamique pour interaction avec kick** :
+```json
+{"target_device": "Eq8", "target_band_index": 0,
+ "target_param": "Q",
+ "points": [
+   {"time_beats": 0.0, "value": 0.7},     // verse : flat HPF (kick dominant)
+   {"time_beats": 64.0, "value": 2.5}     // chorus : Q peak adds snare snap (kick saturated)
+ ],
+ "rationale": "Snare HPF Q correlation-driven : Q haute en chorus seulement quand le kick saturate et libère space pour snare snap au cutoff. Pas creative — corrective inter-track."}
 ```
-❌ Eq8 band index=0 with band_type="highpass 48dB" + automate target_param="Gain"
-   → HPF n'a pas de gain meaningful ; Tier B + device-mapping-oracle catches
-✅ Eq8 band index=0 with band_type="highpass 48dB" + automate target_param="Frequency"
-   → cutoff sweep, valid use case
+
+**Use case 2 — LPF Q sur bass varie selon presence kick low-mid** :
+```json
+{"target_param": "Q",
+ "points": [
+   {"time_beats": 0.0, "value": 0.7},     // kick presence forte → bass LPF flat
+   {"time_beats": 64.0, "value": 1.5}     // kick recule → bass Q peak fills low-mid
+ ]}
 ```
 
-**Source de vérité** : pour chaque band, lit `blueprint.eq_corrective.value.bands[N].band_type` (ou via chain-builder consumes_indices référence) avant émettre envelope. Le band_type étant statique (eq-corrective decides), agent select target_param compatible.
+**Use case 3 — 2 synths overlapping low-mid HPF zones** :
+- Synth A HPF Q automation : Q=0.7 quand B est dominant ; Q=2.0 quand B silent → mutual aération via résonance peak modulation
+
+**Trigger** : `audio_metrics.band_energies` per-section + cross-track correlation analysis. Agent peut détecter "tracks A et B partagent low-mid en chorus mais pas verse → Q automation A/B alternance".
+
+### Anti-pattern updated (Phase 4.8.4)
+
+**Anti-pattern agent-prompt** :
+- ❌ `target_param="Gain"` sur HPF/LPF/Notch band → audio-engineering invalide (parser permissif, agent doit verify)
+- ✅ `target_param="Q"` sur HPF/LPF band → **MAINTENANT documenté valid** (corrective inter-track resonance modulation OR creative filter character)
+- ❌ `target_param="Q"` valeur > 8 sur HPF/LPF dans contexte corrective → high-Q crée pic résonant audible, leans creative ; require brief explicit OR escalate to creative-automation agent
+
+**Source de vérité band_type** : pour chaque band, lit `blueprint.eq_corrective.value.bands[N].band_type` avant émettre envelope. Le band_type étant statique (eq-corrective decides), agent select target_param compatible avec la matrice ci-dessus.
 
 ### COMMON_AUTOMATION_PARAMS_BY_DEVICE table (Phase 4.8.3)
 
