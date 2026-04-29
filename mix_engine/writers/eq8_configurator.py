@@ -280,22 +280,42 @@ def apply_eq_corrective_decision(
 
             had_eq8_before = band.track in tracks_with_eq8_before_run
 
-            # Phase 4.10 Step 2 : route through chain_position-aware function
-            # when band.chain_position != "default". 'default' falls back to
-            # legacy first-Eq8-or-append behavior (backward-compat with Step 1).
+            # Phase 4.10 Step 2 + 4 : route through chain_position +
+            # processing_mode-aware function. 'default' chain_position falls
+            # back to legacy behavior + Mode_global filter.
             eq8 = als_utils.find_or_create_eq8_at_position(
                 track_el, tree,
                 target_chain_position=band.chain_position,
+                target_processing_mode=band.processing_mode,
                 user_name="eq-configurator" if not had_eq8_before else None,
             )
             # Mark the track as having an Eq8 now (so subsequent bands on the
             # same track reuse it instead of attempting another create).
             tracks_with_eq8_before_run.add(band.track)
 
-            # Find first available band slot (Phase 4.10 Step 1 : naive — uses
-            # first inactive band). Step 4 adds idempotency check.
-            slot_index = _find_available_band_slot(eq8)
-            band_param = als_utils.get_eq8_band(eq8, slot_index)
+            # Phase 4.10 Step 4 — idempotency : reuse existing slot if its
+            # params match the target band (within float tolerance). This
+            # makes re-applying the same decision a true no-op (no slot drift,
+            # envelope idempotency works at the pointee_id level).
+            target_gain_for_match = (
+                band.gain_db if band.intent != "filter" else None
+            )
+            existing_slot = _find_matching_active_slot(
+                eq8, mode, band.center_hz, band.q, target_gain_for_match,
+            )
+            if existing_slot is not None:
+                slot_index = existing_slot
+                bands_skipped_this_band = True
+            else:
+                slot_index = _find_available_band_slot(eq8)
+                bands_skipped_this_band = False
+
+            # Phase 4.10 Step 4 — choose ParameterA (Mid/L/Stereo) vs
+            # ParameterB (Side/R) based on processing_mode.
+            if band.processing_mode == "side":
+                band_param = als_utils.get_eq8_band_param_b(eq8, slot_index)
+            else:
+                band_param = als_utils.get_eq8_band(eq8, slot_index)
 
             als_utils.configure_eq8_band(
                 band_param,
@@ -360,10 +380,17 @@ def apply_eq_corrective_decision(
                             )
                         automations_written += 1
 
+            if bands_skipped_this_band:
+                # Logged as "applied" but flagged as no-op rewrite via warning
+                warnings.append(
+                    f"{band_id} : reused existing slot {slot_index} (params "
+                    f"matched within tolerance — idempotent re-apply)."
+                )
+
             bands_applied.append(band_id)
             _LOGGER.info(
-                "Applied %s on %r slot=%d Mode=%d", band_id, band.track,
-                slot_index, mode,
+                "Applied %s on %r slot=%d Mode=%d (mode=%s)", band_id, band.track,
+                slot_index, mode, band.processing_mode,
             )
 
         except EqConfiguratorError:
@@ -488,8 +515,7 @@ def _find_available_band_slot(eq8_element: ET.Element) -> int:
     """Find the first inactive (IsOn=false) band slot in an Eq8.
 
     Eq8 has 8 bands (indices 0-7). A "slot" is available if its IsOn/Manual
-    is "false" or unset. Phase 4.10 Step 1 uses the first available slot ;
-    Step 4 adds idempotency (detect identical-params band → reuse slot).
+    is "false" or unset.
 
     Raises EQ8SlotFullError if all 8 are active.
     """
@@ -508,3 +534,85 @@ def _find_available_band_slot(eq8_element: ET.Element) -> int:
         f"Tier A should split the EQCorrectiveDecision into multiple "
         f"chain_positions OR escalate to chain-builder for additional Eq8."
     )
+
+
+# Phase 4.10 Step 4 — idempotency tolerances for slot-reuse-by-params.
+# When re-applying the same EQCorrectiveDecision, an existing band whose
+# (Mode, Freq, Q, Gain) matches within these tolerances is reused (its
+# slot index is returned), rather than allocating a fresh slot.
+
+_SLOT_REUSE_FREQ_TOLERANCE_HZ: float = 0.5    # Eq8 freq writes are exact ; tiny float-precision tolerance only
+_SLOT_REUSE_Q_TOLERANCE: float = 0.01
+_SLOT_REUSE_GAIN_TOLERANCE_DB: float = 0.05
+
+
+def _find_matching_active_slot(
+    eq8_element: ET.Element,
+    target_mode: int,
+    target_freq: float,
+    target_q: float,
+    target_gain: float | None,
+) -> int | None:
+    """Find an active band slot whose params match the target within tolerance.
+
+    Phase 4.10 Step 4 idempotency : when re-applying a decision, detect
+    bands already configured to the target params and return their slot
+    so the apply replaces in-place (deterministic ; envelopes attached to
+    that pointee_id get replaced cleanly).
+
+    Returns the slot index if a match is found, else None.
+
+    Args:
+        eq8_element: Eq8 device.
+        target_mode: Eq8 Mode (0-7) we'd write.
+        target_freq: Center freq we'd write.
+        target_q: Q we'd write.
+        target_gain: Gain we'd write (None for filter intent — not compared).
+    """
+    for i in range(_EQ8_BANDS_PER_INSTANCE):
+        try:
+            band = als_utils.get_eq8_band(eq8_element, i)
+        except (ValueError, IndexError):
+            continue
+        is_on = band.find("IsOn/Manual")
+        if is_on is None or is_on.get("Value", "false") != "true":
+            continue  # inactive slot, skip
+
+        mode_el = band.find("Mode/Manual")
+        if mode_el is None or int(mode_el.get("Value", "-1")) != target_mode:
+            continue
+
+        freq_el = band.find("Freq/Manual")
+        if freq_el is None:
+            continue
+        try:
+            existing_freq = float(freq_el.get("Value", "0"))
+        except ValueError:
+            continue
+        if abs(existing_freq - target_freq) > _SLOT_REUSE_FREQ_TOLERANCE_HZ:
+            continue
+
+        q_el = band.find("Q/Manual")
+        if q_el is None:
+            continue
+        try:
+            existing_q = float(q_el.get("Value", "0"))
+        except ValueError:
+            continue
+        if abs(existing_q - target_q) > _SLOT_REUSE_Q_TOLERANCE:
+            continue
+
+        if target_gain is not None:
+            gain_el = band.find("Gain/Manual")
+            if gain_el is None:
+                continue
+            try:
+                existing_gain = float(gain_el.get("Value", "0"))
+            except ValueError:
+                continue
+            if abs(existing_gain - target_gain) > _SLOT_REUSE_GAIN_TOLERANCE_DB:
+                continue
+
+        return i  # all params match within tolerance → reuse this slot
+
+    return None

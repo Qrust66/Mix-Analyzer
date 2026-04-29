@@ -785,14 +785,11 @@ def test_apply_envelope_replaces_when_same_pointee(tmp_path):
         "_remove_envelope_for_pointee should find and remove the prior envelope"
 
 
-def test_apply_envelope_step3_known_limitation_slot_drift(tmp_path):
-    """Phase 4.10 Step 3 LIMITATION : re-applying same decision shifts to
-    next band slot (because IsOn is true) → different pointee_id → new
-    envelope written instead of replaced.
-
-    Step 4 will add slot-reuse-by-params detection to fix this cleanly.
-    This test documents the current Step 3 behavior to surface it
-    intentionally."""
+def test_apply_step4_idempotency_no_slot_drift(tmp_path):
+    """Phase 4.10 Step 4 idempotency : re-applying the same decision reuses
+    the same slot (params match within tolerance) → same pointee_id → same
+    envelope (replaced if envelope present). No duplicate envelope, no
+    slot drift."""
     ref_copy = tmp_path / "ref.als"
     shutil.copy(_REF_ALS, ref_copy)
     output = tmp_path / "out.als"
@@ -804,7 +801,7 @@ def test_apply_envelope_step3_known_limitation_slot_drift(tmp_path):
     decision = MixDecision(
         value=EQCorrectiveDecision(bands=(band,)),
         lane="eq_corrective",
-        rationale="Test slot drift behavior of Phase 4.10 Step 3.",
+        rationale="Step 4 idempotency : re-apply same decision yields no-op.",
         confidence=0.85,
     )
     apply_eq_corrective_decision(ref_copy, decision, output_path=output)
@@ -812,17 +809,194 @@ def test_apply_envelope_step3_known_limitation_slot_drift(tmp_path):
     track1 = als_utils.find_track_by_name(tree1, "[H/R] Kick 1")
     envs_1 = len(track1.findall(".//AutomationEnvelope"))
 
-    # Re-apply same decision on output → slot drift → new envelope at slot 1
+    # Re-apply same decision on output → slot reused → envelope replaced
     output2 = tmp_path / "out2.als"
-    apply_eq_corrective_decision(output, decision, output_path=output2)
+    report2 = apply_eq_corrective_decision(output, decision, output_path=output2)
     tree2 = als_utils.parse_als(str(output2))
     track2 = als_utils.find_track_by_name(tree2, "[H/R] Kick 1")
     envs_2 = len(track2.findall(".//AutomationEnvelope"))
 
-    # Step 3 known limitation : re-apply ADDS envelope (slot drift).
-    # Step 4 will fix this : envs_2 == envs_1 will be the new contract.
-    assert envs_2 > envs_1, \
-        f"Step 3 expected slot drift behavior : envs grew {envs_1} → {envs_2}"
+    # Step 4 contract : same envelope count after re-apply (idempotent)
+    assert envs_2 == envs_1, \
+        f"Step 4 idempotency : envs must remain stable, got {envs_1} → {envs_2}"
+    # Slot reuse signaled in warnings
+    assert any("reused existing slot" in w for w in report2.warnings), \
+        f"Expected slot-reuse warning, got : {report2.warnings}"
+
+
+# ============================================================================
+# Phase 4.10 Step 4 — processing_mode (M/S) tests
+# ============================================================================
+
+from als_utils import (  # noqa: E402
+    get_eq8_band_param_b,
+    get_eq8_mode_global,
+    set_eq8_mode_global,
+)
+
+
+def test_set_eq8_mode_global_invalid_raises():
+    """Mode must be 0/1/2."""
+    import xml.etree.ElementTree as ET
+    eq8 = ET.Element("Eq8")
+    ET.SubElement(eq8, "Mode").set("Value", "0")
+    with pytest.raises(ValueError, match="must be 0"):
+        set_eq8_mode_global(eq8, 3)
+
+
+def test_get_eq8_mode_global_default_zero():
+    """Eq8 with Mode="0" returns 0."""
+    import xml.etree.ElementTree as ET
+    eq8 = ET.Element("Eq8")
+    ET.SubElement(eq8, "Mode").set("Value", "0")
+    assert get_eq8_mode_global(eq8) == 0
+
+
+def test_apply_processing_mode_stereo_uses_mode_0(tmp_path):
+    """Default processing_mode='stereo' results in Eq8 with Mode=0."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    band = _make_band(track="[H/R] Kick 1")  # processing_mode='stereo' by default
+    decision = MixDecision(
+        value=EQCorrectiveDecision(bands=(band,)),
+        lane="eq_corrective",
+        rationale="Stereo processing_mode → Eq8 Mode=0 verification.",
+        confidence=0.85,
+    )
+    apply_eq_corrective_decision(ref_copy, decision, output_path=output)
+
+    tree = als_utils.parse_als(str(output))
+    track = als_utils.find_track_by_name(tree, "[H/R] Kick 1")
+    eq8 = track.find(".//Eq8")
+    assert get_eq8_mode_global(eq8) == 0  # Stereo
+
+
+@_skip_if_no_template
+def test_apply_processing_mode_mid_creates_ms_eq8(tmp_path):
+    """processing_mode='mid' creates an Eq8 with Mode=2 (M/S), distinct from
+    any existing stereo Eq8 on the track."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    band_stereo = _make_band(track="[H/R] Kick 1", center_hz=247.0)
+    base = dict(
+        track="[H/R] Kick 1",
+        band_type="bell",
+        intent="cut",
+        center_hz=600.0,
+        q=2.0,
+        gain_db=-2.0,
+        slope_db_per_oct=None,
+        chain_position="default",
+        rationale="Mid-only sculpting test for processing_mode='mid'.",
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+        gain_envelope=(),
+        freq_envelope=(),
+        q_envelope=(),
+        sections=(),
+    )
+    band_mid = EQBandCorrection(processing_mode="mid", **base)
+
+    decision = MixDecision(
+        value=EQCorrectiveDecision(bands=(band_stereo, band_mid)),
+        lane="eq_corrective",
+        rationale="Mixed stereo + mid processing modes on same track.",
+        confidence=0.8,
+    )
+    apply_eq_corrective_decision(ref_copy, decision, output_path=output)
+
+    tree = als_utils.parse_als(str(output))
+    track = als_utils.find_track_by_name(tree, "[H/R] Kick 1")
+    eq8s = track.findall(".//Eq8")
+    # Should have 2 Eq8 instances : one Stereo (Mode 0) + one M/S (Mode 2)
+    modes = sorted(get_eq8_mode_global(e) for e in eq8s)
+    assert 0 in modes, "Stereo Eq8 (Mode=0) missing"
+    assert 2 in modes, "M/S Eq8 (Mode=2) missing for processing_mode='mid'"
+
+
+@_skip_if_no_template
+def test_apply_processing_mode_side_writes_to_param_b(tmp_path):
+    """processing_mode='side' writes to ParameterB (Side channel) on M/S Eq8."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    band_side = EQBandCorrection(
+        track="[H/R] Kick 1",
+        band_type="highpass",
+        intent="filter",
+        center_hz=120.0,
+        q=0.71,
+        gain_db=0.0,
+        slope_db_per_oct=12.0,
+        chain_position="default",
+        processing_mode="side",
+        rationale="Side-only HPF test for processing_mode='side' → ParameterB.",
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    decision = MixDecision(
+        value=EQCorrectiveDecision(bands=(band_side,)),
+        lane="eq_corrective",
+        rationale="Side HPF — bass-mono cleanup.",
+        confidence=0.85,
+    )
+    apply_eq_corrective_decision(ref_copy, decision, output_path=output)
+
+    tree = als_utils.parse_als(str(output))
+    track = als_utils.find_track_by_name(tree, "[H/R] Kick 1")
+    eq8s = track.findall(".//Eq8")
+    # Find the M/S Eq8 (Mode=2)
+    ms_eq8 = next((e for e in eq8s if get_eq8_mode_global(e) == 2), None)
+    assert ms_eq8 is not None, "M/S Eq8 should exist for processing_mode='side'"
+
+    # Find the slot with HPF Mode=1 written to ParameterB
+    found_in_b = False
+    for i in range(8):
+        try:
+            param_b = get_eq8_band_param_b(ms_eq8, i)
+        except (ValueError, IndexError):
+            continue
+        mode_el = param_b.find("Mode/Manual")
+        is_on = param_b.find("IsOn/Manual")
+        if (mode_el is not None and mode_el.get("Value") == "1"  # HPF 12 dB
+                and is_on is not None and is_on.get("Value") == "true"):
+            freq_el = param_b.find("Freq/Manual")
+            if freq_el is not None and abs(float(freq_el.get("Value", 0)) - 120.0) < 0.5:
+                found_in_b = True
+                break
+    assert found_in_b, "HPF for 'side' mode must be written to ParameterB"
+
+
+def test_apply_processing_mode_invalid_raises(tmp_path):
+    """processing_mode not in {stereo, mid, side} → ValueError."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    band = EQBandCorrection(
+        track="[H/R] Kick 1",
+        band_type="bell",
+        intent="cut",
+        center_hz=247.0, q=4.5, gain_db=-3.5,
+        slope_db_per_oct=None,
+        chain_position="default",
+        processing_mode="bogus",
+        rationale="Test invalid processing_mode rejection — should raise.",
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    decision = MixDecision(
+        value=EQCorrectiveDecision(bands=(band,)),
+        lane="eq_corrective",
+        rationale="Invalid mode test.",
+        confidence=0.5,
+    )
+    # ValueError from als_utils.find_or_create_eq8_at_position propagates
+    # raw — validation error pattern, fail-fast (configurator does not wrap
+    # ValueError, mirroring 'track not found' behavior in Step 1).
+    with pytest.raises(ValueError, match="processing_mode"):
+        apply_eq_corrective_decision(ref_copy, decision, dry_run=True)
 
 
 def test_apply_chain_start_existing_eq8_reused(tmp_path):

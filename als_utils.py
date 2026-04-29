@@ -721,44 +721,90 @@ def _find_existing_eq8_in_region(
     return None
 
 
+# processing_mode → Eq8 Mode (channel mode) mapping. Phase 4.10 Step 4.
+# Note : 'mid' and 'side' both require Mode=2 (M/S) ; the per-band channel
+# is selected by writing to ParameterA (Mid) vs ParameterB (Side).
+_PROCESSING_MODE_TO_EQ8_MODE: dict[str, int] = {
+    "stereo": 0,
+    "mid": 2,
+    "side": 2,
+}
+
+
 def find_or_create_eq8_at_position(
     track_element: ET.Element,
     tree: ET.ElementTree,
     target_chain_position: str,
+    target_processing_mode: str = "stereo",
     user_name: str | None = None,
 ) -> ET.Element:
-    """Find or create an Eq8 honoring chain_position semantics.
+    """Find or create an Eq8 honoring chain_position + processing_mode.
 
-    Phase 4.10 Step 2 — extension surgical de :func:`find_or_create_eq8`
-    qui ne tient pas compte de la position dans le chain. Cette fonction-ci
-    place l'Eq8 selon la sémantique demandée (pre_compressor, post_compressor,
-    chain_start, chain_end, post_gate_pre_compressor, pre_saturation,
-    post_saturation).
+    Phase 4.10 Step 2 — chain_position routing (pre_compressor, etc.).
+    Phase 4.10 Step 4 — processing_mode routing (stereo / mid / side ; mid+side
+    both require an Eq8 with Mode=2 M/S, distinct from a stereo-Mode-0 Eq8).
 
-    Backward-compat : :func:`find_or_create_eq8` (sans suffixe) reste
-    inchangé. Les callers existants (eq8_automation.py, etc.) ne sont pas
-    affectés.
+    Two Eq8 instances on the same track with different Mode_global counts as
+    distinct devices — looking up an existing Eq8 must match BOTH the
+    chain_position region AND the Mode_global. If a 'stereo' Eq8 sits at
+    pre_compressor and the user requests 'mid' at pre_compressor, a new
+    M/S Eq8 is created.
+
+    Backward-compat : :func:`find_or_create_eq8` (no suffix) and the
+    existing Step 2 callers without target_processing_mode default to
+    'stereo' (Mode=0).
 
     Args:
         track_element: Track element (from :func:`find_track_by_name`).
         tree: Full ElementTree (for ID allocation when creating).
-        target_chain_position: One of the chain_position values defined
-            in mix_engine VALID_CHAIN_POSITIONS. ``'default'`` falls back
-            to :func:`find_or_create_eq8`.
+        target_chain_position: chain_position value. ``'default'`` falls
+            back to :func:`find_or_create_eq8` (no Mode filtering).
+        target_processing_mode: ``'stereo'`` | ``'mid'`` | ``'side'``.
+            Maps to Eq8 Mode 0 (Stereo) or 2 (M/S).
         user_name: Optional UserName for newly-created Eq8.
 
     Returns:
-        The Eq8 Element (existing in target region, or newly created and
-        inserted at the resolved index).
+        The Eq8 Element (existing matching, or newly created with Mode set).
 
     Raises:
-        ValueError: If track has no DeviceChain/Devices container.
-        ChainPositionUnresolvedError: If pre-conditions for the requested
-            chain_position aren't met (e.g., 'post_compressor' but no comp).
+        ValueError: If track structure is invalid OR target_processing_mode
+            is not one of stereo/mid/side.
+        ChainPositionUnresolvedError: If chain_position pre-conditions
+            aren't met.
         RuntimeError: If the Eq8 template can't be loaded.
     """
+    if target_processing_mode not in _PROCESSING_MODE_TO_EQ8_MODE:
+        raise ValueError(
+            f"target_processing_mode must be in "
+            f"{sorted(_PROCESSING_MODE_TO_EQ8_MODE)}, got "
+            f"{target_processing_mode!r}."
+        )
+    target_mode_int = _PROCESSING_MODE_TO_EQ8_MODE[target_processing_mode]
+
     if target_chain_position == "default":
-        return find_or_create_eq8(track_element, tree, user_name=user_name)
+        # Default position : find any existing Eq8 with matching Mode_global,
+        # else fall back to find_or_create_eq8 (which finds first or appends).
+        # When creating, set Mode after so the new instance honors processing_mode.
+        for eq8_candidate in track_element.findall(".//Eq8"):
+            if get_eq8_mode_global(eq8_candidate) == target_mode_int:
+                return eq8_candidate
+        # No matching existing — create a new one with the target Mode
+        eq8 = find_or_create_eq8(track_element, tree, user_name=user_name)
+        # find_or_create_eq8 may return an existing Eq8 with wrong Mode,
+        # OR a freshly-cloned one. If wrong Mode, we need a new instance ;
+        # if fresh, just set Mode on it.
+        if get_eq8_mode_global(eq8) != target_mode_int:
+            # Existing Eq8 has wrong Mode — clone a new one and append it.
+            new_eq8 = _clone_eq8_with_unique_ids(tree, user_name=user_name)
+            set_eq8_mode_global(new_eq8, target_mode_int)
+            devices = track_element.find(".//DeviceChain/DeviceChain/Devices")
+            if devices is None:
+                devices = track_element.find(".//DeviceChain/Devices")
+            devices.append(new_eq8)
+            return new_eq8
+        # Fresh Eq8 (Mode default 0) ; set if not already
+        set_eq8_mode_global(eq8, target_mode_int)
+        return eq8
 
     devices = track_element.find(".//DeviceChain/DeviceChain/Devices")
     if devices is None:
@@ -772,19 +818,20 @@ def find_or_create_eq8_at_position(
     children = list(devices)
     categories = [_categorize_device(child) for child in children]
 
-    # Idempotency : reuse existing Eq8 in target region if any.
+    # Idempotency : reuse existing Eq8 in target region IF its Mode matches.
     existing = _find_existing_eq8_in_region(
         children, categories, target_chain_position
     )
-    if existing is not None:
+    if existing is not None and get_eq8_mode_global(existing) == target_mode_int:
         return existing
 
     # Resolve the insert index. Raises ChainPositionUnresolvedError if
     # pre-conditions aren't met.
     target_index = _resolve_insert_position(categories, target_chain_position)
 
-    # Clone template and insert at target index.
+    # Clone template, set Mode_global, insert at target index.
     eq8 = _clone_eq8_with_unique_ids(tree, user_name=user_name)
+    set_eq8_mode_global(eq8, target_mode_int)
     devices.insert(target_index, eq8)
     return eq8
 
@@ -857,6 +904,70 @@ def get_eq8_band(eq8_element: ET.Element, band_index: int) -> ET.Element:
         raise ValueError(f"ParameterA not found inside Bands.{band_index}.")
 
     return param_a
+
+
+def get_eq8_band_param_b(eq8_element: ET.Element, band_index: int) -> ET.Element:
+    """Return the ``ParameterB`` element for a specific EQ8 band.
+
+    ParameterB carries the second channel's settings when Eq8 is in L/R or
+    M/S mode (Mode=1 or 2). For M/S, ParameterA = Mid, ParameterB = Side.
+    For L/R, ParameterA = Left, ParameterB = Right.
+
+    When Eq8 is in Stereo mode (Mode=0), ParameterB is unused but still
+    present in the XML — writes to it are no-ops audibly but harmless.
+
+    Args:
+        eq8_element: The ``Eq8`` Element.
+        band_index: Band number (0–7).
+
+    Returns:
+        The ``ParameterB`` child of ``Bands.<band_index>``.
+
+    Raises:
+        ValueError: If band_index is out of range or the element is missing.
+    """
+    if not (0 <= band_index <= 7):
+        raise ValueError(f"band_index must be 0–7, got {band_index}.")
+
+    band = eq8_element.find(f"Bands.{band_index}")
+    if band is None:
+        raise ValueError(f"Bands.{band_index} not found in EQ8 element.")
+
+    param_b = band.find("ParameterB")
+    if param_b is None:
+        raise ValueError(f"ParameterB not found inside Bands.{band_index}.")
+
+    return param_b
+
+
+def get_eq8_mode_global(eq8_element: ET.Element) -> int:
+    """Return Eq8's Mode (channel processing mode) integer value.
+
+    0 = Stereo (default), 1 = L/R, 2 = M/S. Used to filter Eq8 instances
+    when searching for an existing device matching a target processing_mode.
+    """
+    mode = eq8_element.find("Mode")
+    if mode is None:
+        return 0  # default
+    try:
+        return int(mode.get("Value", "0"))
+    except (TypeError, ValueError):
+        return 0
+
+
+def set_eq8_mode_global(eq8_element: ET.Element, mode: int) -> None:
+    """Set Eq8's Mode (channel processing mode).
+
+    0 = Stereo, 1 = L/R, 2 = M/S. Raises ValueError on invalid mode.
+    """
+    if mode not in (0, 1, 2):
+        raise ValueError(
+            f"Eq8 Mode must be 0 (Stereo), 1 (L/R), or 2 (M/S) ; got {mode}."
+        )
+    mode_el = eq8_element.find("Mode")
+    if mode_el is None:
+        raise ValueError("Eq8 element has no Mode child — unexpected structure.")
+    mode_el.set("Value", str(mode))
 
 
 def configure_eq8_band(
