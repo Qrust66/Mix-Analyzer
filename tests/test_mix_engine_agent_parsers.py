@@ -2909,6 +2909,472 @@ def test_phase47_audio_metrics_rolloff_above_24000_raises():
         parse_diagnostic_decision(payload)
 
 
+# ============================================================================
+# Phase 4.8 — Automation lane parser
+# ============================================================================
+
+
+from mix_engine.blueprint import (
+    AUTOMATION_MAX_BAR,
+    AUTOMATION_MAX_POINTS,
+    AUTOMATION_MIN_POINTS,
+    AutomationDecision,
+    AutomationEnvelope,
+    AutomationPoint,
+    MASTER_TRACK_NAME,
+    VALID_AUTOMATION_PURPOSES,
+    VALID_AUTOMATION_TARGET_DEVICES,
+    parse_automation_decision,
+    parse_automation_decision_from_response,
+)
+
+
+def _valid_automation_envelope(**overrides) -> dict:
+    """Default = mastering Limiter ceiling envelope (master bus scope)."""
+    base = {
+        "purpose": "mastering_master_bus",
+        "target_track": "Master",
+        "target_device": "Limiter",
+        "target_param": "Ceiling",
+        "target_device_instance": 0,
+        "points": [
+            {"bar": 0, "value": -1.0},
+            {"bar": 16, "value": -0.5},
+            {"bar": 32, "value": -1.0},
+        ],
+        "sections": [0, 1, 2],
+        "rationale": "Master Limiter ceiling envelope per section : tighter -0.5 dB ceiling in chorus for loudness, -1 dB safety in verses + outro.",
+        "inspired_by": [
+            {"kind": "diagnostic", "path": "genre_context.target_lufs_mix",
+             "excerpt": "electronic_aggressive target -8 LUFS"},
+        ],
+    }
+    base.update(overrides)
+    return base
+
+
+def _valid_automation_payload(**overrides) -> dict:
+    base = {
+        "schema_version": "1.0",
+        "automation": {"envelopes": [_valid_automation_envelope()]},
+        "cited_by": [
+            {"kind": "diagnostic", "path": "genre_context", "excerpt": "1 master automation"},
+        ],
+        "rationale": "1 master Limiter ceiling envelope automation per-section.",
+        "confidence": 0.85,
+    }
+    base.update(overrides)
+    return base
+
+
+# ----------------------------------------------------------------------------
+# Happy paths
+# ----------------------------------------------------------------------------
+
+
+def test_automation_parses_minimum_valid():
+    decision = parse_automation_decision(_valid_automation_payload())
+    assert decision.lane == "automation"
+    assert isinstance(decision.value, AutomationDecision)
+    assert len(decision.value.envelopes) == 1
+    env = decision.value.envelopes[0]
+    assert env.purpose == "mastering_master_bus"
+    assert env.target_track == "Master"
+    assert len(env.points) == 3
+
+
+def test_automation_decision_assignable_to_blueprint():
+    from mix_engine.blueprint import MixBlueprint
+    decision = parse_automation_decision(_valid_automation_payload())
+    bp = MixBlueprint(name="session").with_decision("automation", decision)
+    assert bp.automation is decision
+    assert bp.filled_lanes() == ("automation",)
+
+
+def test_automation_unsupported_schema_version_raises():
+    payload = _valid_automation_payload()
+    payload["schema_version"] = "99.0"
+    with pytest.raises(MixAgentOutputError, match="schema_version"):
+        parse_automation_decision(payload)
+
+
+def test_automation_error_payload_raises():
+    with pytest.raises(MixAgentOutputError, match="agent refused"):
+        parse_automation_decision({"error": "no signal", "details": "..."})
+
+
+def test_automation_empty_envelopes_accepted():
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"] = []
+    payload["rationale"] = "Aucune envelope automation justifiée."
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes == ()
+
+
+# ----------------------------------------------------------------------------
+# Purpose enum + creative OOS
+# ----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("invalid_purpose",
+                         ["creative_riser", "creative_drop_buildup",
+                          "fx_swell", "Mastering", ""])
+def test_automation_invalid_purpose_raises(invalid_purpose):
+    """Creative purposes are out-of-scope Phase 4.8."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["purpose"] = invalid_purpose
+    with pytest.raises(MixAgentOutputError, match="purpose"):
+        parse_automation_decision(payload)
+
+
+@pytest.mark.parametrize("purpose", sorted(VALID_AUTOMATION_PURPOSES))
+def test_automation_all_valid_purposes_accepted(purpose):
+    payload = _valid_automation_payload()
+    if purpose == "corrective_per_section":
+        payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+            purpose=purpose,
+            target_track="Vocal Lead",
+            target_device="Eq8",
+            target_param="Gain",
+            target_band_index=4,  # Eq8 band-specific
+            points=[
+                {"bar": 0, "value": 0.0},
+                {"bar": 16, "value": -3.5},
+                {"bar": 32, "value": 0.0},
+            ],
+            sections=[0, 1, 2],
+            rationale="Vocal Lead sibilance only in chorus sections : Eq8 band 4 gain envelope cuts -3.5 dB at 7 kHz only when sibilance present.",
+        )
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].purpose == purpose
+
+
+# ----------------------------------------------------------------------------
+# Target device + param checks
+# ----------------------------------------------------------------------------
+
+
+def test_automation_invalid_target_device_raises():
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["target_device"] = "Reverb"  # not in VALID set
+    with pytest.raises(MixAgentOutputError, match="target_device"):
+        parse_automation_decision(payload)
+
+
+def test_automation_empty_target_param_raises():
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["target_param"] = ""
+    with pytest.raises(MixAgentOutputError, match="target_param"):
+        parse_automation_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# 8 cross-field checks
+# ----------------------------------------------------------------------------
+
+
+def test_automation_check1_points_too_few_raises():
+    """#1 : envelope < 3 points."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["points"] = [
+        {"bar": 0, "value": -1.0},
+        {"bar": 16, "value": -0.5},
+    ]
+    with pytest.raises(MixAgentOutputError, match="≥ 3 points"):
+        parse_automation_decision(payload)
+
+
+def test_automation_check1_points_above_cap_raises():
+    """#1 : envelope > AUTOMATION_MAX_POINTS sanity cap."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["points"] = [
+        {"bar": i, "value": -1.0} for i in range(AUTOMATION_MAX_POINTS + 1)
+    ]
+    with pytest.raises(MixAgentOutputError, match="cap"):
+        parse_automation_decision(payload)
+
+
+def test_automation_check2_bars_not_ascending_raises():
+    """#2 : bars must be strictly ascending no duplicates."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["points"] = [
+        {"bar": 0, "value": -1.0},
+        {"bar": 32, "value": -0.5},
+        {"bar": 16, "value": -1.0},  # out of order
+    ]
+    with pytest.raises(MixAgentOutputError, match="ascending"):
+        parse_automation_decision(payload)
+
+
+def test_automation_check2_duplicate_bars_raises():
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["points"] = [
+        {"bar": 0, "value": -1.0},
+        {"bar": 16, "value": -0.5},
+        {"bar": 16, "value": -0.7},  # duplicate
+    ]
+    with pytest.raises(MixAgentOutputError, match="ascending"):
+        parse_automation_decision(payload)
+
+
+def test_automation_check3_eq8_band_specific_param_requires_band_index():
+    """#3 : Eq8 + Gain/Frequency/Q requires target_band_index."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Vocal Lead",
+        target_device="Eq8",
+        target_param="Gain",
+        # target_band_index NOT set — should reject
+        sections=[0, 1, 2],
+        rationale="Eq8 Gain envelope without band_index — should reject : Eq8 has 8 bands, must specify which.",
+    )
+    with pytest.raises(MixAgentOutputError, match="target_band_index"):
+        parse_automation_decision(payload)
+
+
+def test_automation_check4_non_eq8_with_band_index_raises():
+    """#4 : Non-Eq8 device must NOT have target_band_index set."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["target_band_index"] = 3  # Limiter doesn't have bands
+    with pytest.raises(MixAgentOutputError, match="band_index"):
+        parse_automation_decision(payload)
+
+
+def test_automation_check4_band_index_out_of_range_raises():
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Vocal Lead",
+        target_device="Eq8",
+        target_param="Gain",
+        target_band_index=8,  # invalid (max 7)
+        sections=[0, 1, 2],
+        rationale="Eq8 band_index=8 out of range test ; valid range is 0-7 (8 bands 0-indexed).",
+    )
+    with pytest.raises(MixAgentOutputError, match="target_band_index"):
+        parse_automation_decision(payload)
+
+
+def test_automation_check5_mastering_purpose_requires_master_track():
+    """#5 : mastering_master_bus purpose requires target_track == Master."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["target_track"] = "Vocal Lead"  # not Master
+    with pytest.raises(MixAgentOutputError, match="Master"):
+        parse_automation_decision(payload)
+
+
+def test_automation_check6_corrective_requires_sections():
+    """#6 : corrective_per_section requires non-empty sections."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Vocal Lead",
+        target_device="Compressor2",
+        target_param="Threshold",
+        sections=[],  # empty — should reject
+        rationale="Corrective envelope without sections anchoring — should reject : envelope ambiguous without section context.",
+    )
+    with pytest.raises(MixAgentOutputError, match="sections"):
+        parse_automation_decision(payload)
+
+
+def test_automation_check7_short_rationale_raises():
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["rationale"] = "too short"
+    with pytest.raises(MixAgentOutputError, match="rationale"):
+        parse_automation_decision(payload)
+
+
+def test_automation_check7_no_inspired_by_raises():
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["inspired_by"] = []
+    with pytest.raises(MixAgentOutputError, match="inspired_by"):
+        parse_automation_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# Cross-correction duplicate check (#8)
+# ----------------------------------------------------------------------------
+
+
+def test_automation_check8_duplicate_envelope_raises():
+    """#8 : duplicate (track, device, instance, param, band_index) tuple."""
+    payload = _valid_automation_payload()
+    env_a = _valid_automation_envelope()
+    env_b = _valid_automation_envelope(
+        points=[
+            {"bar": 0, "value": -2.0},
+            {"bar": 16, "value": -1.0},
+            {"bar": 32, "value": -2.0},
+        ],
+    )  # different points but same (track, device, instance, param) tuple
+    payload["automation"]["envelopes"] = [env_a, env_b]
+    with pytest.raises(MixAgentOutputError, match="duplicate"):
+        parse_automation_decision(payload)
+
+
+def test_automation_distinct_band_indices_accepted():
+    """Same (track, device, instance, param) but distinct band_index = OK."""
+    payload = _valid_automation_payload()
+    env_a = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Vocal Lead",
+        target_device="Eq8",
+        target_param="Gain",
+        target_band_index=4,  # band 4
+        sections=[0, 1, 2],
+        rationale="Eq8 band 4 gain envelope on Vocal Lead per chorus sections (sibilance variation).",
+    )
+    env_b = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Vocal Lead",
+        target_device="Eq8",
+        target_param="Gain",
+        target_band_index=6,  # band 6 — distinct
+        sections=[0, 1, 2],
+        rationale="Eq8 band 6 gain envelope on Vocal Lead per chorus sections (presence boost only in chorus).",
+    )
+    payload["automation"]["envelopes"] = [env_a, env_b]
+    decision = parse_automation_decision(payload)
+    assert len(decision.value.envelopes) == 2
+
+
+# ----------------------------------------------------------------------------
+# Range checks
+# ----------------------------------------------------------------------------
+
+
+def test_automation_bar_above_max_raises():
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["points"] = [
+        {"bar": 0, "value": -1.0},
+        {"bar": 16, "value": -0.5},
+        {"bar": AUTOMATION_MAX_BAR + 1, "value": -1.0},  # above cap
+    ]
+    with pytest.raises(MixAgentOutputError, match="bar"):
+        parse_automation_decision(payload)
+
+
+def test_automation_negative_bar_raises():
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["points"] = [
+        {"bar": -1, "value": -1.0},
+        {"bar": 16, "value": -0.5},
+        {"bar": 32, "value": -1.0},
+    ]
+    with pytest.raises(MixAgentOutputError, match="bar"):
+        parse_automation_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# Scenario coverage (corrective + mastering happy paths)
+# ----------------------------------------------------------------------------
+
+
+def test_automation_corrective_eq8_band_envelope_happy_path():
+    """Per-section sibilance correction via Eq8 band 4 gain envelope."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Vocal Lead",
+        target_device="Eq8",
+        target_param="Gain",
+        target_band_index=4,
+        points=[
+            {"bar": 0, "value": 0.0},     # verse : no cut
+            {"bar": 16, "value": -3.5},    # chorus : sibilance cut
+            {"bar": 32, "value": 0.0},     # outro : no cut
+        ],
+        sections=[0, 1, 2],
+        rationale="Vocal Lead sibilance variable per section : audio_metrics.spectral_peaks confirms 7kHz peak only in chorus ; envelope makes static -3.5dB cut dynamic.",
+    )
+    decision = parse_automation_decision(payload)
+    env = decision.value.envelopes[0]
+    assert env.purpose == "corrective_per_section"
+    assert env.target_band_index == 4
+
+
+def test_automation_corrective_compressor_threshold_envelope():
+    """Per-section dynamics variation via Compressor2 threshold envelope."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Bass A",
+        target_device="Compressor2",
+        target_param="Threshold",
+        points=[
+            {"bar": 0, "value": -18.0},   # verse : less compression
+            {"bar": 16, "value": -22.0},   # chorus : more compression
+            {"bar": 32, "value": -18.0},
+        ],
+        sections=[0, 1, 2],
+        rationale="Bass A dynamics range varies per section ; threshold envelope -18 verse / -22 chorus prevents pumping in verses while controlling chorus peaks.",
+    )
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].target_param == "Threshold"
+
+
+def test_automation_mastering_eq_tilt_envelope():
+    """Master EQ tilt envelope (mastering scope)."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="mastering_master_bus",
+        target_track="Master",
+        target_device="Eq8",
+        target_param="Gain",
+        target_band_index=6,  # presence band
+        points=[
+            {"bar": 0, "value": 0.0},
+            {"bar": 16, "value": +1.5},   # subtle brightness in chorus
+            {"bar": 32, "value": 0.0},
+        ],
+        sections=[0, 1, 2],
+        rationale="Master EQ tilt subtle brightness boost in chorus per family electronic_dance preference ; +1.5dB at 6kHz only in chorus sections.",
+    )
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].purpose == "mastering_master_bus"
+
+
+def test_automation_mastering_stereo_width_envelope():
+    """Master StereoGain.StereoWidth envelope per section."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="mastering_master_bus",
+        target_track="Master",
+        target_device="StereoGain",
+        target_param="StereoWidth",
+        points=[
+            {"bar": 0, "value": 1.0},     # verse : neutral
+            {"bar": 16, "value": 1.4},    # chorus : wider
+            {"bar": 32, "value": 1.0},
+        ],
+        sections=[0, 1, 2],
+        rationale="Master stereo width envelope : neutral in verses (1.0), wider in chorus (1.4) for impact ; transitions at section boundaries.",
+    )
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].target_param == "StereoWidth"
+
+
+# ----------------------------------------------------------------------------
+# from_response (markdown fences, prose around)
+# ----------------------------------------------------------------------------
+
+
+def test_automation_from_response_handles_fences():
+    payload_str = json.dumps(_valid_automation_payload())
+    fenced = f"```json\n{payload_str}\n```"
+    decision = parse_automation_decision_from_response(fenced)
+    assert len(decision.value.envelopes) == 1
+
+
+def test_automation_from_response_handles_prose():
+    payload_str = json.dumps(_valid_automation_payload())
+    prosed = f"Automation envelopes:\n{payload_str}\nDone."
+    decision = parse_automation_decision_from_response(prosed)
+    assert len(decision.value.envelopes) == 1
+
+
 def test_phase47_full_integration_audio_metrics_plus_genre_context():
     payload = _valid_payload()
     payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(

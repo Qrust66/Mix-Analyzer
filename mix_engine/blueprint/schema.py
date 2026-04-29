@@ -1253,6 +1253,138 @@ class ChainBuildDecision:
     plans: tuple[TrackChainPlan, ...] = ()
 
 
+# ============================================================================
+# Automation lane — Phase 4.8 (corrective + mastering scope only)
+# ============================================================================
+#
+# Tier A schema for SECTION-DRIVEN dynamic automation envelopes that
+# Tier A correctives don't naturally produce :
+# - Corrective per-section : converts static Tier A param to dynamic
+#   envelope when per-section signal variation justifies it (e.g.,
+#   sibilance only in chorus sections, dynamics range varies per section)
+# - Mastering master bus : envelopes on master bus that no Tier A
+#   handles directly (Limiter ceiling per-section, master EQ tilt,
+#   master stereo width)
+#
+# Phase 4.8 OOS (rule-with-consumer) :
+# - Creative envelopes (riser, drop buildup, fx swell, filter sweep,
+#   pan automation, send level automation) — separate creative-automation
+#   agent will be built later
+# - Reverb tail automation (FX scope, future fx-decider)
+#
+# Source : Sections Timeline (Feature 3.5+) — section indices used
+# (cohérent avec EQBandCorrection.sections / DynamicsCorrection.sections
+# patterns from Phase 4.2/4.3).
+
+
+VALID_AUTOMATION_PURPOSES = frozenset({
+    "corrective_per_section",   # Convert static Tier A param to dynamic per-section
+    "mastering_master_bus",     # Master bus envelope (Limiter, EQ tilt, etc.)
+    # OOS Phase 4.8 (creative scope — future creative-automation agent) :
+    # "creative_riser", "creative_drop_buildup", "creative_fx_swell",
+    # "creative_pan", "creative_send_level"
+})
+
+
+# Target devices that automation-engineer can address.
+# Reuses the catalog of mapped devices (cf. VALID_CHAIN_DEVICES).
+VALID_AUTOMATION_TARGET_DEVICES = frozenset({
+    "Eq8", "Compressor2", "GlueCompressor", "Limiter",
+    "Gate", "DrumBuss", "StereoGain",
+})
+
+
+# Sample of common automatable parameter names per device family.
+# This is NON-exhaustive ; parser accepts any non-empty string for
+# target_param (validation that the param is automatable on the actual
+# device is delegated to Tier B automation-writer + device-mapping-oracle).
+COMMON_AUTOMATION_PARAMS_BY_DEVICE = {
+    "Eq8": ("Gain", "Frequency", "Q"),
+    "Compressor2": ("Threshold", "Ratio", "Attack", "Release",
+                    "Makeup", "Knee", "DryWet"),
+    "GlueCompressor": ("Threshold", "Range", "Makeup", "DryWet"),
+    "Limiter": ("Ceiling", "Gain", "Release"),
+    "Gate": ("Threshold", "Return", "Attack", "Hold", "Release"),
+    "DrumBuss": ("Drive", "Transients", "DampFreq", "BoostFreq", "Output"),
+    "StereoGain": ("StereoWidth", "Balance", "MidSideBalance",
+                    "BassMonoFrequency", "Gain"),
+}
+
+
+# Master track name reserved (used when purpose=mastering_master_bus).
+# Cohérent avec Ableton convention "Master" track in LiveSet/MasterTrack.
+MASTER_TRACK_NAME: str = "Master"
+
+AUTOMATION_MIN_POINTS: int = 3                 # Min envelope length (parallel to EQ/Dynamics envelopes)
+AUTOMATION_MAX_POINTS: int = 256                # Sanity cap on envelope size
+AUTOMATION_MAX_BAR: int = 9999                  # Project bar count cap (4-min song @ 4/4 = ~16 bars ; cap is generous)
+
+
+@dataclass(frozen=True)
+class AutomationPoint:
+    """One bar-indexed automation point.
+
+    `bar` is project-absolute bar index (0-based). `value` is the
+    parameter value at this bar — meaning depends on the target_param
+    (dB for Gain/Threshold, Hz for Frequency, dimensionless for Q,
+    seconds/ms for Attack/Release, 0..1 for DryWet).
+
+    Tier B automation-writer interpolates linearly between points unless
+    the target_param's device convention dictates otherwise.
+    """
+
+    bar: int
+    value: float
+
+
+@dataclass(frozen=True)
+class AutomationEnvelope:
+    """One automation envelope on one parameter of one device on one track.
+
+    Phase 4.8 scope :
+    - ``purpose="corrective_per_section"`` : converts a Tier A static
+      decision to dynamic. ``target_track`` matches a TrackInfo.name ;
+      typically references a device that chain-builder placed.
+    - ``purpose="mastering_master_bus"`` : ``target_track`` MUST be
+      ``"Master"`` ; addresses master bus device parameters that no
+      Tier A handles (Limiter ceiling envelope, master EQ tilt, etc.).
+
+    For Eq8 envelopes, ``target_band_index`` (0-7) identifies which
+    band of the Eq8 instance is being automated. None for non-Eq8
+    devices or when targeting global Eq8 params (Mode_global, On).
+
+    For cascaded device instances (e.g., 2 Eq8 instances on same track
+    when 8-band budget overflowed), ``target_device_instance`` (0-indexed)
+    identifies which instance.
+    """
+
+    purpose: str                                # in VALID_AUTOMATION_PURPOSES
+    target_track: str                           # TrackInfo.name OR "Master"
+    target_device: str                          # in VALID_AUTOMATION_TARGET_DEVICES
+    target_param: str                           # device parameter name (e.g., "Gain", "Threshold")
+    target_device_instance: int = 0             # 0-indexed for cascaded instances
+    target_band_index: Optional[int] = None     # for Eq8 only ; in [0, 7]
+
+    points: tuple[AutomationPoint, ...] = ()    # ≥ 3 ; bar-ascending strict ; no duplicates
+    sections: tuple[int, ...] = ()              # Sections Timeline indices ; required for corrective_per_section
+
+    rationale: str = ""                         # ≥ 50 chars (depth-light)
+    inspired_by: tuple[MixCitation, ...] = ()    # ≥ 1 cite
+
+
+@dataclass(frozen=True)
+class AutomationDecision:
+    """All automation decisions for the project.
+
+    `envelopes` is the list of automation envelopes. Multiple envelopes
+    on the same (track, device, instance, param, band_index) tuple are
+    rejected (parser duplicate check) — would create ambiguous Tier B
+    write target.
+    """
+
+    envelopes: tuple[AutomationEnvelope, ...] = ()
+
+
 @dataclass(frozen=True)
 class MixBlueprint:
     """The immutable carrier of all lane decisions for one mix session.
@@ -1260,9 +1392,6 @@ class MixBlueprint:
     Like SectionBlueprint on the composition side, but for an existing
     .als rather than a new one. The blueprint describes deltas to apply,
     not absolute state.
-
-    Phase 4.1 ships only the diagnostic lane wiring; other lanes land
-    as their producing agent materializes.
     """
 
     name: str
@@ -1272,9 +1401,11 @@ class MixBlueprint:
     dynamics_corrective: Optional[MixDecision[DynamicsCorrectiveDecision]] = None
     stereo_spatial: Optional[MixDecision[SpatialDecision]] = None
     chain: Optional[MixDecision[ChainBuildDecision]] = None
+    automation: Optional[MixDecision[AutomationDecision]] = None
     # Future lanes (added with their producing agents):
     # eq_creative: Optional[MixDecision[EQCreativeDecision]] = None
-    # ... etc per MIX_LANES
+    # saturation_color: Optional[MixDecision[...]] = None
+    # mastering: Optional[MixDecision[...]] = None
 
     def with_decision(self, lane: str, decision: MixDecision) -> "MixBlueprint":
         """Return a new MixBlueprint with `lane` filled by `decision`.
@@ -1429,4 +1560,15 @@ __all__ = [
     "SpectralPeak",
     "TrackAudioMetrics",
     "GenreContext",
+    # Automation lane (Phase 4.8 — corrective + mastering scope)
+    "VALID_AUTOMATION_PURPOSES",
+    "VALID_AUTOMATION_TARGET_DEVICES",
+    "COMMON_AUTOMATION_PARAMS_BY_DEVICE",
+    "MASTER_TRACK_NAME",
+    "AUTOMATION_MIN_POINTS",
+    "AUTOMATION_MAX_POINTS",
+    "AUTOMATION_MAX_BAR",
+    "AutomationPoint",
+    "AutomationEnvelope",
+    "AutomationDecision",
 ]

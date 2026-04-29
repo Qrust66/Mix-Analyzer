@@ -72,6 +72,13 @@ from mix_engine.blueprint.schema import (
     TrackChainPlan,
     CHAIN_MAX_POSITION,
     EQ8_MAX_BANDS_PER_INSTANCE,
+    AUTOMATION_MAX_BAR,
+    AUTOMATION_MAX_POINTS,
+    AUTOMATION_MIN_POINTS,
+    AutomationDecision,
+    AutomationEnvelope,
+    AutomationPoint,
+    MASTER_TRACK_NAME,
     STALE_SIDECHAIN_REGEX,
     PAN_MIN,
     PAN_MAX,
@@ -133,6 +140,8 @@ from mix_engine.blueprint.schema import (
     VALID_DYNAMICS_TYPES,
     VALID_EQ_BAND_TYPES,
     VALID_EQ_INTENTS,
+    VALID_AUTOMATION_PURPOSES,
+    VALID_AUTOMATION_TARGET_DEVICES,
     VALID_CHAIN_DEVICES,
     VALID_CONSUMES_LANES,
     VALID_FILTER_SLOPES_DB_PER_OCT,
@@ -151,6 +160,7 @@ SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_ROUTING_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_SPATIAL_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_CHAIN_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_AUTOMATION_SCHEMA_VERSIONS = frozenset({"1.0"})
 
 # Severity values accepted in Anomaly.severity.
 VALID_ANOMALY_SEVERITIES = frozenset({"critical", "warning", "info"})
@@ -2814,6 +2824,294 @@ def parse_chain_decision_from_response(
     return parse_chain_decision(extract_json_payload(text))
 
 
+# ============================================================================
+# Public parser — automation lane (Phase 4.8 corrective + mastering scope)
+# ============================================================================
+#
+# 8 cross-field semantic-contradiction checks (pure-payload).
+# Out-of-scope (creative envelopes) flagged as agent-prompt anti-pattern.
+
+
+def _parse_automation_point(item: Any, *, where: str) -> AutomationPoint:
+    """Parse one envelope point. Accepts {bar, value} object OR [bar, value]."""
+    if isinstance(item, Mapping):
+        bar = _coerce_int_strict(_require(item, "bar", where=where), where=f"{where}.bar")
+        value = _coerce_float(_require(item, "value", where=where), where=f"{where}.value")
+    elif isinstance(item, (list, tuple)):
+        if len(item) != 2:
+            raise MixAgentOutputError(
+                f"{where}: expected [bar, value] pair, got len={len(item)}"
+            )
+        bar = _coerce_int_strict(item[0], where=f"{where}[0]")
+        value = _coerce_float(item[1], where=f"{where}[1]")
+    else:
+        raise MixAgentOutputError(
+            f"{where}: expected object or [bar, value] pair, "
+            f"got {type(item).__name__}"
+        )
+    if bar < 0 or bar > AUTOMATION_MAX_BAR:
+        raise MixAgentOutputError(
+            f"{where}.bar={bar} not in [0, {AUTOMATION_MAX_BAR}]"
+        )
+    return AutomationPoint(bar=bar, value=value)
+
+
+def _parse_automation_envelope(item: Any, *, where: str) -> AutomationEnvelope:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+
+    purpose = _coerce_str(
+        _require(item, "purpose", where=where), where=f"{where}.purpose"
+    ).strip()
+    if purpose not in VALID_AUTOMATION_PURPOSES:
+        raise MixAgentOutputError(
+            f"{where}.purpose={purpose!r} not in {sorted(VALID_AUTOMATION_PURPOSES)} "
+            f"(creative envelope purposes are out-of-scope Phase 4.8 ; future "
+            f"creative-automation agent will handle riser/drop/fx swell/etc.)"
+        )
+
+    target_track = _coerce_str(
+        _require(item, "target_track", where=where), where=f"{where}.target_track"
+    ).strip()
+    if not target_track:
+        raise MixAgentOutputError(f"{where}.target_track must be non-empty")
+
+    target_device = _coerce_str(
+        _require(item, "target_device", where=where), where=f"{where}.target_device"
+    ).strip()
+    if target_device not in VALID_AUTOMATION_TARGET_DEVICES:
+        raise MixAgentOutputError(
+            f"{where}.target_device={target_device!r} not in "
+            f"{sorted(VALID_AUTOMATION_TARGET_DEVICES)}."
+        )
+
+    target_param = _coerce_str(
+        _require(item, "target_param", where=where), where=f"{where}.target_param"
+    ).strip()
+    if not target_param:
+        raise MixAgentOutputError(f"{where}.target_param must be non-empty")
+
+    target_device_instance = _coerce_int_strict(
+        item.get("target_device_instance", 0),
+        where=f"{where}.target_device_instance",
+    )
+    if target_device_instance < 0:
+        raise MixAgentOutputError(
+            f"{where}.target_device_instance={target_device_instance} must be >= 0"
+        )
+
+    band_index_raw = item.get("target_band_index", None)
+    if band_index_raw is None:
+        target_band_index = None
+    else:
+        target_band_index = _coerce_int_strict(
+            band_index_raw, where=f"{where}.target_band_index"
+        )
+        if not (0 <= target_band_index <= 7):
+            raise MixAgentOutputError(
+                f"{where}.target_band_index={target_band_index} not in [0, 7] "
+                f"(Eq8 has 8 bands, 0-indexed)."
+            )
+
+    points_raw = _coerce_list(
+        _require(item, "points", where=where), where=f"{where}.points"
+    )
+    points = tuple(
+        _parse_automation_point(p, where=f"{where}.points[{i}]")
+        for i, p in enumerate(points_raw)
+    )
+
+    sections_raw = _coerce_list(
+        item.get("sections", []), where=f"{where}.sections"
+    )
+    sections = tuple(
+        _coerce_int_strict(s, where=f"{where}.sections[{i}]")
+        for i, s in enumerate(sections_raw)
+    )
+
+    rationale = _coerce_str(item.get("rationale", ""))
+    inspired_by_raw = _coerce_list(
+        item.get("inspired_by", []), where=f"{where}.inspired_by"
+    )
+    inspired_by = _parse_citations(inspired_by_raw, where=f"{where}.inspired_by")
+
+    # ------------------------------------------------------------------
+    # Cross-field semantic-contradiction checks (8 pure-payload).
+    # ------------------------------------------------------------------
+
+    # #1 — points len ≥ AUTOMATION_MIN_POINTS (3) ; ≤ AUTOMATION_MAX_POINTS
+    if len(points) < AUTOMATION_MIN_POINTS:
+        raise MixAgentOutputError(
+            f"{where}.points len={len(points)} < {AUTOMATION_MIN_POINTS} "
+            f"(envelope needs ≥ 3 points ; 2 = ramp = static change, use "
+            f"static parameter on the Tier A decision instead)."
+        )
+    if len(points) > AUTOMATION_MAX_POINTS:
+        raise MixAgentOutputError(
+            f"{where}.points len={len(points)} > {AUTOMATION_MAX_POINTS} "
+            f"(sanity cap to prevent runaway envelopes)."
+        )
+
+    # #2 — bars strictly ascending no duplicates
+    bars = [p.bar for p in points]
+    if bars != sorted(set(bars)) or len(set(bars)) != len(bars):
+        raise MixAgentOutputError(
+            f"{where}.points bars must be strictly ascending (no duplicates, "
+            f"no out-of-order). Got bars: {bars}"
+        )
+
+    # #3 — Eq8 target_param requires target_band_index for band-specific params
+    eq8_band_specific_params = {"Gain", "Frequency", "Q"}
+    if target_device == "Eq8" and target_param in eq8_band_specific_params:
+        if target_band_index is None:
+            raise MixAgentOutputError(
+                f"{where}.target_device='Eq8' AND target_param={target_param!r} "
+                f"requires target_band_index (in [0, 7]) — band-specific param "
+                f"on a per-band Eq8 architecture."
+            )
+
+    # #4 — Non-Eq8 device must NOT have target_band_index set
+    if target_device != "Eq8" and target_band_index is not None:
+        raise MixAgentOutputError(
+            f"{where}.target_device={target_device!r} (not Eq8) but "
+            f"target_band_index={target_band_index} is set. band_index only "
+            f"applies to Eq8 devices."
+        )
+
+    # #5 — mastering_master_bus purpose requires target_track == MASTER_TRACK_NAME
+    if purpose == "mastering_master_bus" and target_track != MASTER_TRACK_NAME:
+        raise MixAgentOutputError(
+            f"{where}.purpose='mastering_master_bus' requires target_track="
+            f"{MASTER_TRACK_NAME!r} (got {target_track!r}). Master bus envelopes "
+            f"address only the master track."
+        )
+
+    # #6 — corrective_per_section purpose requires non-empty sections
+    if purpose == "corrective_per_section" and not sections:
+        raise MixAgentOutputError(
+            f"{where}.purpose='corrective_per_section' requires non-empty "
+            f"sections tuple (which Sections Timeline indices the envelope "
+            f"applies to). Without section anchoring, envelope is ambiguous."
+        )
+
+    # #7 — depth-light : rationale ≥ 50 chars + ≥ 1 cite
+    if len(rationale) < 50:
+        raise MixAgentOutputError(
+            f"{where}.rationale too short ({len(rationale)} chars, need ≥ 50). "
+            f"Untraced automation envelope = stub : Tier B automation-writer "
+            f"can't justify the envelope to safety-guardian."
+        )
+    if not inspired_by:
+        raise MixAgentOutputError(
+            f"{where}.inspired_by must contain at least one citation. "
+            f"Cite the Tier A decision being made dynamic OR the section-driven "
+            f"signal that justifies the envelope (Sections Timeline + "
+            f"audio_metrics evidence)."
+        )
+
+    return AutomationEnvelope(
+        purpose=purpose,
+        target_track=target_track,
+        target_device=target_device,
+        target_param=target_param,
+        target_device_instance=target_device_instance,
+        target_band_index=target_band_index,
+        points=points,
+        sections=sections,
+        rationale=rationale,
+        inspired_by=inspired_by,
+    )
+
+
+def parse_automation_decision(
+    payload: Mapping[str, Any],
+) -> MixDecision[AutomationDecision]:
+    """Parse an automation-engineer payload into a MixDecision.
+
+    Expected shape (schema 1.0) :
+        {
+          "schema_version": "1.0",
+          "automation": {
+            "envelopes": [
+              {
+                "purpose": str ∈ VALID_AUTOMATION_PURPOSES,
+                "target_track": str (TrackInfo.name OR "Master"),
+                "target_device": str ∈ VALID_AUTOMATION_TARGET_DEVICES,
+                "target_param": str (device parameter name),
+                "target_device_instance": int (default 0),
+                "target_band_index": Optional[int ∈ [0, 7]] (Eq8 only),
+                "points": [{bar, value}, ...] (≥ 3, bar-ascending strict),
+                "sections": [int, ...] (required for corrective_per_section),
+                "rationale": str (≥ 50 chars),
+                "inspired_by": [{kind, path, excerpt}, ...] (≥ 1)
+              },
+              ...
+            ]
+          },
+          "cited_by": [...],
+          "rationale": str,
+          "confidence": float (0..1)
+        }
+
+    Or a refusal: {"error": "...", "details": "..."}
+
+    Strict on output : 8 cross-field checks (point count + ordering, Eq8
+    band_index requirements, mastering target_track requirement, corrective
+    sections requirement, depth-light) + duplicate-key check across envelopes.
+    """
+    envelope_meta = _parse_envelope(
+        payload, supported_versions=SUPPORTED_AUTOMATION_SCHEMA_VERSIONS
+    )
+
+    auto_dict = _require(payload, "automation", where="root")
+    if not isinstance(auto_dict, Mapping):
+        raise MixAgentOutputError(
+            f"automation: expected object, got {type(auto_dict).__name__}"
+        )
+
+    envelopes_raw = _coerce_list(
+        auto_dict.get("envelopes", []), where="automation.envelopes"
+    )
+    envelopes = tuple(
+        _parse_automation_envelope(e, where=f"automation.envelopes[{i}]")
+        for i, e in enumerate(envelopes_raw)
+    )
+
+    # #8 — Cross-correction duplicate check : (track, device, instance, param,
+    # band_index) must be unique across envelopes (Tier B would have collision).
+    seen_keys: set[tuple] = set()
+    for i, env in enumerate(envelopes):
+        key = (
+            env.target_track,
+            env.target_device,
+            env.target_device_instance,
+            env.target_param,
+            env.target_band_index,
+        )
+        if key in seen_keys:
+            raise MixAgentOutputError(
+                f"automation.envelopes[{i}]: duplicate envelope on "
+                f"(track={env.target_track!r}, device={env.target_device!r}, "
+                f"instance={env.target_device_instance}, "
+                f"param={env.target_param!r}, "
+                f"band_index={env.target_band_index}). "
+                f"Tier B automation-writer would collide ; merge or remove."
+            )
+        seen_keys.add(key)
+
+    decision_value = AutomationDecision(envelopes=envelopes)
+    return MixDecision(value=decision_value, lane="automation", **envelope_meta)
+
+
+def parse_automation_decision_from_response(
+    text: str,
+) -> MixDecision[AutomationDecision]:
+    """End-to-end: raw LLM response → MixDecision[AutomationDecision]."""
+    return parse_automation_decision(extract_json_payload(text))
+
+
 __all__ = [
     "MixAgentOutputError",
     "SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS",
@@ -2822,6 +3120,7 @@ __all__ = [
     "SUPPORTED_ROUTING_SCHEMA_VERSIONS",
     "SUPPORTED_SPATIAL_SCHEMA_VERSIONS",
     "SUPPORTED_CHAIN_SCHEMA_VERSIONS",
+    "SUPPORTED_AUTOMATION_SCHEMA_VERSIONS",
     "VALID_ANOMALY_SEVERITIES",
     "VALID_TRACK_TYPES",
     "VALID_CITATION_KINDS",
@@ -2844,6 +3143,9 @@ __all__ = [
     # Phase 4.6 — Chain build re-exports
     "VALID_CHAIN_DEVICES",
     "VALID_CONSUMES_LANES",
+    # Phase 4.8 — Automation re-exports
+    "VALID_AUTOMATION_PURPOSES",
+    "VALID_AUTOMATION_TARGET_DEVICES",
     "extract_json_payload",
     "parse_diagnostic_decision",
     "parse_diagnostic_decision_from_response",
@@ -2857,4 +3159,6 @@ __all__ = [
     "parse_spatial_decision_from_response",
     "parse_chain_decision",
     "parse_chain_decision_from_response",
+    "parse_automation_decision",
+    "parse_automation_decision_from_response",
 ]
