@@ -33,7 +33,8 @@ MIX_DEPENDENCIES: dict[str, tuple[str, ...]] = {
     "eq_creative":         ("eq_corrective",),
     "saturation_color":    ("eq_corrective", "dynamics_corrective"),
     "chain":               ("eq_corrective", "eq_creative",
-                            "dynamics_corrective", "saturation_color"),
+                            "dynamics_corrective", "saturation_color",
+                            "stereo_spatial", "routing"),
     "automation":          ("chain",),
     "mastering":           ("automation",),
 }

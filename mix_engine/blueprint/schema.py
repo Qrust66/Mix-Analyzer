@@ -955,6 +955,124 @@ class SpatialDecision:
     moves: tuple[SpatialMove, ...] = ()
 
 
+# ============================================================================
+# Chain build lane — Phase 4.6
+# ============================================================================
+#
+# Tier A schema for SECOND-ORDER reconciliation : reads filled MixBlueprint
+# Tier A slots (eq_corrective + dynamics_corrective + stereo_spatial +
+# routing) and produces an absolute per-track device chain order plus
+# consumption refs. Tier B (per-device configurators : eq8-configurator,
+# dynamics-configurator, etc.) reads these plans to know which device
+# instance materializes which Tier A decision and at what slot.
+#
+# Phase 4.6 partial scope (rule-with-consumer) :
+# - Reads available Tier A : eq_corrective, dynamics_corrective,
+#   stereo_spatial, routing (all built Phase 4.2-4.5)
+# - Skips Tier A not yet built : eq_creative, saturation_color
+#   (when these arrive Phase 4.7+, chain-builder extends to consume them)
+#
+# Audit findings applied (cf. Pass 1 + Pass 2 audits) :
+# - is_preexisting: bool flag replaces sentinel string "preexisting"
+#   (Pass 1 Finding B) — clean separation between "device the agent
+#   inserts" (validated against VALID_CHAIN_DEVICES) and "device already
+#   present in track.devices" (any name allowed for preservation)
+# - VALID_CHAIN_DEVICES restricted to 9 mapped Ableton devices ; preexisting
+#   slots bypass this check (Pass 1 Finding C — real .als chains contain
+#   Reverb/Tuner/3rd-party VSTs not in the mapping catalog)
+# - Limiter terminal placement : enforced as "max position within plan",
+#   not hardcoded "slot 10" (Pass 2 Finding 3)
+# - Hard semantic rules > brief override > canonical mapping > lane
+#   priority (Pass 2 Finding 2 hierarchy)
+# - move_type="pan" skipped (Mixer.Pan, no chain device — Pass 2 Finding 6)
+# - Preservation transversal across all scenarios (Pass 2 Finding 1)
+
+
+VALID_CHAIN_DEVICES = frozenset({
+    # 9 mapped Ableton devices (Phase 4.6 scope) — used when is_preexisting=False
+    "Eq8",
+    "Compressor2",
+    "GlueCompressor",
+    "Limiter",
+    "Gate",
+    "DrumBuss",
+    "Saturator",
+    "AutoFilter2",
+    "StereoGain",
+})
+
+VALID_CONSUMES_LANES = frozenset({
+    "eq_corrective",
+    "dynamics_corrective",
+    "stereo_spatial",
+    "routing",          # for Compressor2 sidechain wiring referencing routing.repairs
+})
+
+CHAIN_MAX_POSITION: int = 31
+EQ8_MAX_BANDS_PER_INSTANCE: int = 8
+
+
+@dataclass(frozen=True)
+class ChainSlot:
+    """One device slot in a track's absolute chain order.
+
+    Per-slot validation conditional on ``is_preexisting`` :
+
+    - ``is_preexisting=False`` (chain-builder inserts a NEW device) :
+      ``device`` must be in VALID_CHAIN_DEVICES, ``consumes_lane`` must
+      be in VALID_CONSUMES_LANES, ``consumes_indices`` must be non-empty.
+    - ``is_preexisting=True`` (preserves a device already in
+      ``track.devices``) : ``device`` is free-form (may be Reverb,
+      Tuner, 3rd-party VST3, etc. — any string name from the .als),
+      ``consumes_lane`` must be None, ``consumes_indices`` must be empty.
+
+    Multiple instances of the same device on a track (e.g., 2 Eq8 cascaded
+    when bands > 8 OR processing_modes vary) are distinguished by
+    ``instance`` (0-indexed).
+    """
+
+    position: int                              # 0-indexed absolute slot
+    device: str                                # see is_preexisting validation rule
+    is_preexisting: bool = False
+    instance: int = 0                          # 0-indexed for cascade
+    consumes_lane: Optional[str] = None        # None when is_preexisting=True
+    consumes_indices: tuple[int, ...] = ()     # empty when is_preexisting=True
+    purpose: str = ""                          # short descriptor (e.g., "corrective_eq")
+
+
+@dataclass(frozen=True)
+class TrackChainPlan:
+    """Ordered chain plan for one track.
+
+    Slots must have strictly monotone-increasing ``position`` values.
+    Limiter device (when present) MUST be at the maximum position within
+    this plan (terminal placement enforced, but absolute slot number
+    varies per track chain length).
+
+    ``cross_lane_notes`` documents potential composition effects when
+    Tier A decisions interact in non-trivial ways (e.g., EQ
+    processing_mode="mid" + spatial ms_balance — composition, not conflict).
+    chain-builder DOCUMENTS, does NOT resolve.
+    """
+
+    track: str                                  # must match TrackInfo.name
+    slots: tuple[ChainSlot, ...]                # position strictly ascending
+    rationale: str = ""                          # depth-light ≥ 50 chars
+    inspired_by: tuple[MixCitation, ...] = ()    # ≥ 1 cite
+    cross_lane_notes: tuple[str, ...] = ()       # composition awareness
+
+
+@dataclass(frozen=True)
+class ChainBuildDecision:
+    """All chain plans for the project.
+
+    `plans` is the list of per-track ordered chain plans. Each track
+    appears at most once (duplicate-key check).
+    """
+
+    plans: tuple[TrackChainPlan, ...] = ()
+
+
 @dataclass(frozen=True)
 class MixBlueprint:
     """The immutable carrier of all lane decisions for one mix session.
@@ -973,6 +1091,7 @@ class MixBlueprint:
     eq_corrective: Optional[MixDecision[EQCorrectiveDecision]] = None
     dynamics_corrective: Optional[MixDecision[DynamicsCorrectiveDecision]] = None
     stereo_spatial: Optional[MixDecision[SpatialDecision]] = None
+    chain: Optional[MixDecision[ChainBuildDecision]] = None
     # Future lanes (added with their producing agents):
     # eq_creative: Optional[MixDecision[EQCreativeDecision]] = None
     # ... etc per MIX_LANES
@@ -1091,4 +1210,12 @@ __all__ = [
     "BASS_MONO_FREQ_MAX_HZ",
     "SpatialMove",
     "SpatialDecision",
+    # Chain build lane (Phase 4.6)
+    "VALID_CHAIN_DEVICES",
+    "VALID_CONSUMES_LANES",
+    "CHAIN_MAX_POSITION",
+    "EQ8_MAX_BANDS_PER_INSTANCE",
+    "ChainSlot",
+    "TrackChainPlan",
+    "ChainBuildDecision",
 ]

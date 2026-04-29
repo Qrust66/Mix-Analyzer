@@ -36,6 +36,11 @@ from mix_engine.blueprint.schema import (
     SidechainRepair,
     SpatialDecision,
     SpatialMove,
+    ChainBuildDecision,
+    ChainSlot,
+    TrackChainPlan,
+    CHAIN_MAX_POSITION,
+    EQ8_MAX_BANDS_PER_INSTANCE,
     STALE_SIDECHAIN_REGEX,
     PAN_MIN,
     PAN_MAX,
@@ -97,6 +102,8 @@ from mix_engine.blueprint.schema import (
     VALID_DYNAMICS_TYPES,
     VALID_EQ_BAND_TYPES,
     VALID_EQ_INTENTS,
+    VALID_CHAIN_DEVICES,
+    VALID_CONSUMES_LANES,
     VALID_FILTER_SLOPES_DB_PER_OCT,
     VALID_PHASE_CHANNELS,
     VALID_PROCESSING_MODES,
@@ -112,6 +119,7 @@ SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_ROUTING_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_SPATIAL_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_CHAIN_SCHEMA_VERSIONS = frozenset({"1.0"})
 
 # Severity values accepted in Anomaly.severity.
 VALID_ANOMALY_SEVERITIES = frozenset({"critical", "warning", "info"})
@@ -2138,6 +2146,289 @@ def parse_spatial_decision_from_response(
     return parse_spatial_decision(extract_json_payload(text))
 
 
+# ============================================================================
+# Public parser — chain build lane (Phase 4.6)
+# ============================================================================
+#
+# Second-order reconciliation parser. 10 cross-field semantic-contradiction
+# checks pure-payload + duplicate-key cross-correction check.
+#
+# Audit findings applied (Pass 1 + Pass 2) :
+# - is_preexisting flag with conditional validation (Pass 1 Findings B/C)
+# - Limiter at max position within plan, NOT hardcoded slot 10 (Pass 2 #3)
+# - Hard semantic rules priority hierarchy (Pass 2 #2)
+# - move_type="pan" handled (no chain slot — Mixer.Pan, Pass 2 #6)
+
+
+def _parse_chain_slot(item: Any, *, where: str) -> ChainSlot:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+
+    position = _coerce_int_strict(
+        _require(item, "position", where=where), where=f"{where}.position"
+    )
+    if not (0 <= position <= CHAIN_MAX_POSITION):
+        raise MixAgentOutputError(
+            f"{where}.position={position} not in [0, {CHAIN_MAX_POSITION}]"
+        )
+
+    device = _coerce_str(
+        _require(item, "device", where=where), where=f"{where}.device"
+    ).strip()
+    if not device:
+        raise MixAgentOutputError(f"{where}.device must be non-empty")
+
+    is_preexisting = _coerce_bool(
+        item.get("is_preexisting", False), where=f"{where}.is_preexisting"
+    )
+
+    instance = _coerce_int_strict(
+        item.get("instance", 0), where=f"{where}.instance"
+    )
+    if instance < 0:
+        raise MixAgentOutputError(
+            f"{where}.instance={instance} must be ≥ 0"
+        )
+
+    consumes_lane_raw = item.get("consumes_lane", None)
+    consumes_lane = (
+        None if consumes_lane_raw is None or consumes_lane_raw == ""
+        else _coerce_str(consumes_lane_raw, where=f"{where}.consumes_lane").strip()
+    )
+
+    indices_raw = _coerce_list(
+        item.get("consumes_indices", []), where=f"{where}.consumes_indices"
+    )
+    consumes_indices = tuple(
+        _coerce_int_strict(idx, where=f"{where}.consumes_indices[{i}]")
+        for i, idx in enumerate(indices_raw)
+    )
+
+    purpose = _coerce_str(item.get("purpose", ""), where=f"{where}.purpose")
+
+    # ------------------------------------------------------------------
+    # Cross-field semantic-contradiction checks (slot-level).
+    # is_preexisting conditional validation (Pass 1 Findings B/C).
+    # ------------------------------------------------------------------
+
+    if is_preexisting:
+        # #1 — preexisting must have consumes_lane=None
+        if consumes_lane is not None:
+            raise MixAgentOutputError(
+                f"{where}.is_preexisting=True but consumes_lane={consumes_lane!r} "
+                f"is set. A preserved device has no lane source — set consumes_lane to null."
+            )
+        # #2 — preexisting must have empty consumes_indices
+        if consumes_indices:
+            raise MixAgentOutputError(
+                f"{where}.is_preexisting=True but consumes_indices={consumes_indices} "
+                f"is non-empty. A preserved device has no source decisions — leave empty."
+            )
+    else:
+        # #3 — non-preexisting device must be in VALID_CHAIN_DEVICES
+        if device not in VALID_CHAIN_DEVICES:
+            raise MixAgentOutputError(
+                f"{where}.device={device!r} not in {sorted(VALID_CHAIN_DEVICES)} "
+                f"(set is_preexisting=True if preserving a non-mapped device "
+                f"already in track.devices, e.g., Reverb / Tuner / 3rd-party VST)."
+            )
+        # #4 — non-preexisting must have consumes_lane in VALID_CONSUMES_LANES
+        if consumes_lane is None or consumes_lane not in VALID_CONSUMES_LANES:
+            raise MixAgentOutputError(
+                f"{where}.consumes_lane={consumes_lane!r} required and must be in "
+                f"{sorted(VALID_CONSUMES_LANES)} when is_preexisting=False "
+                f"(every inserted device must source from a Tier A lane)."
+            )
+        # #5 — non-preexisting must have non-empty consumes_indices
+        if not consumes_indices:
+            raise MixAgentOutputError(
+                f"{where}.consumes_indices is empty but is_preexisting=False — "
+                f"orphan device. Every inserted device must materialize ≥ 1 "
+                f"Tier A decision (cite indices in lane's collection)."
+            )
+        # #6 — Eq8 8-band budget limit
+        if device == "Eq8" and len(consumes_indices) > EQ8_MAX_BANDS_PER_INSTANCE:
+            raise MixAgentOutputError(
+                f"{where}.device='Eq8' but consumes_indices length="
+                f"{len(consumes_indices)} > {EQ8_MAX_BANDS_PER_INSTANCE} "
+                f"(Eq8 8-band hard limit). Split into multiple Eq8 instances "
+                f"with distinct ``instance`` values."
+            )
+
+    return ChainSlot(
+        position=position,
+        device=device,
+        is_preexisting=is_preexisting,
+        instance=instance,
+        consumes_lane=consumes_lane,
+        consumes_indices=consumes_indices,
+        purpose=purpose,
+    )
+
+
+def _parse_track_chain_plan(item: Any, *, where: str) -> TrackChainPlan:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+
+    track = _coerce_str(_require(item, "track", where=where), where=f"{where}.track").strip()
+    if not track:
+        raise MixAgentOutputError(f"{where}.track must be non-empty")
+
+    slots_raw = _coerce_list(
+        _require(item, "slots", where=where), where=f"{where}.slots"
+    )
+    slots = tuple(
+        _parse_chain_slot(s, where=f"{where}.slots[{i}]")
+        for i, s in enumerate(slots_raw)
+    )
+
+    rationale = _coerce_str(item.get("rationale", ""))
+    inspired_by_raw = _coerce_list(
+        item.get("inspired_by", []), where=f"{where}.inspired_by"
+    )
+    inspired_by = _parse_citations(inspired_by_raw, where=f"{where}.inspired_by")
+
+    cross_lane_notes = _coerce_str_tuple(
+        item.get("cross_lane_notes", []), where=f"{where}.cross_lane_notes"
+    )
+
+    # ------------------------------------------------------------------
+    # Plan-level cross-field checks.
+    # ------------------------------------------------------------------
+
+    # #7 — slots must have strictly monotone-increasing position
+    positions = [s.position for s in slots]
+    if positions != sorted(set(positions)) or len(set(positions)) != len(positions):
+        raise MixAgentOutputError(
+            f"{where}.slots positions must be strictly increasing (no duplicates, "
+            f"no out-of-order). Got positions: {positions}"
+        )
+
+    # #8 — Limiter device (when present) MUST be at the maximum position
+    # within this plan (terminal placement enforced ; absolute slot number
+    # varies per plan length — Pass 2 audit Finding 3 fix).
+    if slots:
+        max_pos = max(s.position for s in slots)
+        for s in slots:
+            if s.device == "Limiter" and s.position != max_pos:
+                raise MixAgentOutputError(
+                    f"{where}.slots contains Limiter at position {s.position} "
+                    f"but max position in this plan is {max_pos}. Limiter is "
+                    f"terminal — it must be the last slot of the chain. "
+                    f"Move Limiter to position {max_pos} or remove subsequent "
+                    f"slots."
+                )
+
+    # #9 — depth-light : rationale ≥ 50 chars + ≥ 1 citation
+    if len(rationale) < 50:
+        raise MixAgentOutputError(
+            f"{where}.rationale too short ({len(rationale)} chars, need ≥ 50). "
+            f"Untraced chain plan = stub : Tier B configurators can't verify "
+            f"the ordering rationale to safety-guardian."
+        )
+    if not inspired_by:
+        raise MixAgentOutputError(
+            f"{where}.inspired_by must contain at least one citation. "
+            f"Cite the Tier A blueprint slots that justify the slot ordering, "
+            f"OR the user brief override."
+        )
+
+    return TrackChainPlan(
+        track=track,
+        slots=slots,
+        rationale=rationale,
+        inspired_by=inspired_by,
+        cross_lane_notes=cross_lane_notes,
+    )
+
+
+def parse_chain_decision(
+    payload: Mapping[str, Any],
+) -> MixDecision[ChainBuildDecision]:
+    """Parse a chain-builder payload into a MixDecision.
+
+    Expected shape (schema 1.0) :
+        {
+          "schema_version": "1.0",
+          "chain": {
+            "plans": [
+              {
+                "track": str,
+                "slots": [
+                  {
+                    "position": int (∈ [0, 31]),
+                    "device": str,
+                    "is_preexisting": bool (default false),
+                    "instance": int (default 0),
+                    "consumes_lane": Optional[str ∈ VALID_CONSUMES_LANES],
+                    "consumes_indices": Optional[list[int]],
+                    "purpose": Optional[str]
+                  },
+                  ...
+                ],
+                "rationale": str (≥ 50 chars),
+                "inspired_by": [{kind, path, excerpt}, …]   # ≥ 1 cite
+                "cross_lane_notes": Optional[list[str]]
+              },
+              ...
+            ]
+          },
+          "cited_by": [...],
+          "rationale": str,
+          "confidence": float (0..1)
+        }
+
+    Or a refusal: {"error": "...", "details": "..."}
+
+    Strict on output : 9 cross-field semantic-contradiction checks
+    (slot-level + plan-level + duplicate-key) including conditional
+    is_preexisting validation, position monotonicity, Eq8 8-band budget,
+    Limiter terminal placement, and depth-light per plan.
+    """
+    envelope = _parse_envelope(
+        payload, supported_versions=SUPPORTED_CHAIN_SCHEMA_VERSIONS
+    )
+
+    chain_dict = _require(payload, "chain", where="root")
+    if not isinstance(chain_dict, Mapping):
+        raise MixAgentOutputError(
+            f"chain: expected object, got {type(chain_dict).__name__}"
+        )
+
+    plans_raw = _coerce_list(
+        chain_dict.get("plans", []), where="chain.plans"
+    )
+    plans = tuple(
+        _parse_track_chain_plan(p, where=f"chain.plans[{i}]")
+        for i, p in enumerate(plans_raw)
+    )
+
+    # Cross-correction check : duplicate (track,) tuples in plans
+    # (each track gets exactly one plan).
+    seen_tracks: set[str] = set()
+    for i, p in enumerate(plans):
+        if p.track in seen_tracks:
+            raise MixAgentOutputError(
+                f"chain.plans[{i}]: duplicate plan for track={p.track!r}. "
+                f"Each track gets exactly one TrackChainPlan ; merge the duplicate."
+            )
+        seen_tracks.add(p.track)
+
+    decision_value = ChainBuildDecision(plans=plans)
+    return MixDecision(value=decision_value, lane="chain", **envelope)
+
+
+def parse_chain_decision_from_response(
+    text: str,
+) -> MixDecision[ChainBuildDecision]:
+    """End-to-end: raw LLM response → MixDecision[ChainBuildDecision]."""
+    return parse_chain_decision(extract_json_payload(text))
+
+
 __all__ = [
     "MixAgentOutputError",
     "SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS",
@@ -2145,6 +2436,7 @@ __all__ = [
     "SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS",
     "SUPPORTED_ROUTING_SCHEMA_VERSIONS",
     "SUPPORTED_SPATIAL_SCHEMA_VERSIONS",
+    "SUPPORTED_CHAIN_SCHEMA_VERSIONS",
     "VALID_ANOMALY_SEVERITIES",
     "VALID_TRACK_TYPES",
     "VALID_CITATION_KINDS",
@@ -2164,6 +2456,9 @@ __all__ = [
     "VALID_SPATIAL_MOVE_TYPES",
     "VALID_SPATIAL_CHAIN_POSITIONS",
     "VALID_PHASE_CHANNELS",
+    # Phase 4.6 — Chain build re-exports
+    "VALID_CHAIN_DEVICES",
+    "VALID_CONSUMES_LANES",
     "extract_json_payload",
     "parse_diagnostic_decision",
     "parse_diagnostic_decision_from_response",
@@ -2175,4 +2470,6 @@ __all__ = [
     "parse_routing_decision_from_response",
     "parse_spatial_decision",
     "parse_spatial_decision_from_response",
+    "parse_chain_decision",
+    "parse_chain_decision_from_response",
 ]

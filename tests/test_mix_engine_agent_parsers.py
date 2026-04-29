@@ -2029,3 +2029,443 @@ def test_spatial_all_valid_move_types_can_be_parsed(mt):
     payload["stereo_spatial"]["moves"][0] = m
     decision = parse_spatial_decision(payload)
     assert decision.value.moves[0].move_type == mt
+
+
+# ============================================================================
+# Phase 4.6 — Chain build lane parser
+# ============================================================================
+
+
+from mix_engine.blueprint import (
+    ChainBuildDecision,
+    ChainSlot,
+    TrackChainPlan,
+    CHAIN_MAX_POSITION,
+    EQ8_MAX_BANDS_PER_INSTANCE,
+    VALID_CHAIN_DEVICES,
+    VALID_CONSUMES_LANES,
+    parse_chain_decision,
+    parse_chain_decision_from_response,
+)
+
+
+def _valid_chain_slot(**overrides) -> dict:
+    base = {
+        "position": 2,
+        "device": "Eq8",
+        "is_preexisting": False,
+        "instance": 0,
+        "consumes_lane": "eq_corrective",
+        "consumes_indices": [0, 1, 2],
+        "purpose": "corrective_eq",
+    }
+    base.update(overrides)
+    return base
+
+
+def _valid_chain_plan(**overrides) -> dict:
+    base = {
+        "track": "Bass A",
+        "slots": [
+            _valid_chain_slot(position=0, device="Gate",
+                              consumes_lane="dynamics_corrective",
+                              consumes_indices=[0], purpose="gate"),
+            _valid_chain_slot(position=2),
+            _valid_chain_slot(position=3, device="Compressor2",
+                              consumes_lane="dynamics_corrective",
+                              consumes_indices=[1], purpose="comp"),
+        ],
+        "rationale": "Bass A multi-family chain : Gate first cleans noise, Eq8 corrective post-Gate, Compressor2 post-EQ controls dynamics.",
+        "inspired_by": [
+            {"kind": "diagnostic", "path": "blueprint.eq_corrective.bands[0..2]",
+             "excerpt": "3 corrective EQ bands targeting Bass A"},
+        ],
+    }
+    base.update(overrides)
+    return base
+
+
+def _valid_chain_payload(**overrides) -> dict:
+    base = {
+        "schema_version": "1.0",
+        "chain": {"plans": [_valid_chain_plan()]},
+        "cited_by": [
+            {"kind": "als_state", "path": "tracks", "excerpt": "1 plan emitted"},
+        ],
+        "rationale": "1 chain plan : Bass A multi-family.",
+        "confidence": 0.85,
+    }
+    base.update(overrides)
+    return base
+
+
+# ----------------------------------------------------------------------------
+# Happy paths
+# ----------------------------------------------------------------------------
+
+
+def test_chain_parses_minimum_valid_payload():
+    decision = parse_chain_decision(_valid_chain_payload())
+    assert decision.lane == "chain"
+    assert isinstance(decision.value, ChainBuildDecision)
+    assert len(decision.value.plans) == 1
+    plan = decision.value.plans[0]
+    assert plan.track == "Bass A"
+    assert len(plan.slots) == 3
+    assert plan.slots[0].device == "Gate"
+    assert plan.slots[2].device == "Compressor2"
+
+
+def test_chain_decision_assignable_to_blueprint():
+    from mix_engine.blueprint import MixBlueprint
+    decision = parse_chain_decision(_valid_chain_payload())
+    bp = MixBlueprint(name="session").with_decision("chain", decision)
+    assert bp.chain is decision
+    assert bp.filled_lanes() == ("chain",)
+
+
+def test_chain_unsupported_schema_version_raises():
+    payload = _valid_chain_payload()
+    payload["schema_version"] = "99.0"
+    with pytest.raises(MixAgentOutputError, match="schema_version"):
+        parse_chain_decision(payload)
+
+
+def test_chain_error_payload_raises():
+    with pytest.raises(MixAgentOutputError, match="agent refused"):
+        parse_chain_decision({"error": "no Tier A decisions", "details": "blueprint empty"})
+
+
+def test_chain_empty_plans_accepted():
+    """Blueprint with no Tier A decisions targeting any track → plans=[]."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"] = []
+    payload["rationale"] = "Aucune Tier A decision à réconcilier."
+    decision = parse_chain_decision(payload)
+    assert decision.value.plans == ()
+
+
+# ----------------------------------------------------------------------------
+# Slot-level cross-field checks (#1-#6)
+# ----------------------------------------------------------------------------
+
+
+def test_chain_check1_preexisting_with_consumes_lane_raises():
+    """#1 : is_preexisting=True with consumes_lane set is contradiction."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"][1] = _valid_chain_slot(
+        position=2, device="Reverb",
+        is_preexisting=True,
+        consumes_lane="eq_corrective",  # contradiction
+        consumes_indices=[],
+    )
+    with pytest.raises(MixAgentOutputError, match="preserved device has no lane"):
+        parse_chain_decision(payload)
+
+
+def test_chain_check2_preexisting_with_consumes_indices_raises():
+    """#2 : is_preexisting=True with consumes_indices non-empty is contradiction."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"][1] = _valid_chain_slot(
+        position=2, device="Reverb",
+        is_preexisting=True,
+        consumes_lane=None,
+        consumes_indices=[0, 1],  # contradiction
+    )
+    with pytest.raises(MixAgentOutputError, match="no source decisions"):
+        parse_chain_decision(payload)
+
+
+def test_chain_check3_non_preexisting_unknown_device_raises():
+    """#3 : non-preexisting device must be in VALID_CHAIN_DEVICES."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"][1]["device"] = "ProQ3"  # not mapped
+    with pytest.raises(MixAgentOutputError, match="set is_preexisting=True"):
+        parse_chain_decision(payload)
+
+
+def test_chain_check3_preexisting_allows_unmapped_device():
+    """Mirror : preexisting bypasses VALID_CHAIN_DEVICES check (Reverb,
+    Tuner, 3rd-party VSTs preserved from track.devices)."""
+    payload = _valid_chain_payload()
+    # Replace 3 slots with one preexisting Reverb (sole slot)
+    payload["chain"]["plans"][0]["slots"] = [
+        _valid_chain_slot(
+            position=5, device="Reverb",  # not in VALID_CHAIN_DEVICES
+            is_preexisting=True, consumes_lane=None, consumes_indices=[],
+            purpose="preserved_reverb",
+        ),
+    ]
+    decision = parse_chain_decision(payload)
+    assert decision.value.plans[0].slots[0].device == "Reverb"
+    assert decision.value.plans[0].slots[0].is_preexisting is True
+
+
+def test_chain_check4_non_preexisting_missing_consumes_lane_raises():
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"][1]["consumes_lane"] = None
+    with pytest.raises(MixAgentOutputError, match="consumes_lane"):
+        parse_chain_decision(payload)
+
+
+def test_chain_check4_invalid_consumes_lane_raises():
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"][1]["consumes_lane"] = "fx_decider"
+    with pytest.raises(MixAgentOutputError, match="must be in"):
+        parse_chain_decision(payload)
+
+
+def test_chain_check5_non_preexisting_empty_consumes_indices_raises():
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"][1]["consumes_indices"] = []
+    with pytest.raises(MixAgentOutputError, match="orphan"):
+        parse_chain_decision(payload)
+
+
+def test_chain_check6_eq8_8_band_budget_overflow_raises():
+    """#6 : Eq8 instance with > 8 bands consumed = budget overflow."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"][1]["consumes_indices"] = list(range(9))  # 9 bands
+    with pytest.raises(MixAgentOutputError, match="8-band"):
+        parse_chain_decision(payload)
+
+
+def test_chain_eq8_exactly_8_bands_accepted():
+    """Edge case : exactly EQ8_MAX_BANDS_PER_INSTANCE (8) bands accepted."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"][1]["consumes_indices"] = list(range(8))
+    decision = parse_chain_decision(payload)
+    assert len(decision.value.plans[0].slots[1].consumes_indices) == 8
+
+
+# ----------------------------------------------------------------------------
+# Plan-level cross-field checks (#7-#9)
+# ----------------------------------------------------------------------------
+
+
+def test_chain_check7_position_not_monotone_raises():
+    """#7 : slots positions must be strictly increasing."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"] = [
+        _valid_chain_slot(position=2),
+        _valid_chain_slot(position=0, device="Gate",
+                          consumes_lane="dynamics_corrective",
+                          consumes_indices=[0]),  # out of order
+    ]
+    payload["chain"]["plans"][0]["rationale"] = "Test position not monotone — should reject as out-of-order positions in plan."
+    with pytest.raises(MixAgentOutputError, match="strictly increasing"):
+        parse_chain_decision(payload)
+
+
+def test_chain_check7_duplicate_position_raises():
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"] = [
+        _valid_chain_slot(position=2, device="Eq8", consumes_indices=[0]),
+        _valid_chain_slot(position=2, device="Compressor2",
+                          consumes_lane="dynamics_corrective",
+                          consumes_indices=[0]),  # duplicate position
+    ]
+    payload["chain"]["plans"][0]["rationale"] = "Test duplicate position in plan should reject as collision in monotone increasing requirement."
+    with pytest.raises(MixAgentOutputError, match="strictly increasing"):
+        parse_chain_decision(payload)
+
+
+def test_chain_check8_limiter_at_max_position_accepted():
+    """#8 : Limiter at max position in plan = OK (terminal placement
+    enforced but absolute slot varies per plan length, audit Pass 2 #3)."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"] = [
+        _valid_chain_slot(position=0, device="Gate",
+                          consumes_lane="dynamics_corrective",
+                          consumes_indices=[0], purpose="gate"),
+        _valid_chain_slot(position=2),
+        _valid_chain_slot(position=3, device="Limiter",
+                          consumes_lane="dynamics_corrective",
+                          consumes_indices=[1], purpose="limiter"),
+    ]
+    decision = parse_chain_decision(payload)
+    # Limiter at position 3 = max in this plan (only 3 slots) — accepted
+    limiter_slots = [s for s in decision.value.plans[0].slots if s.device == "Limiter"]
+    assert len(limiter_slots) == 1
+    assert limiter_slots[0].position == 3
+
+
+def test_chain_check8_limiter_not_at_max_raises():
+    """#8 : Limiter at non-max position in plan = invalid (terminal violation)."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"] = [
+        _valid_chain_slot(position=0, device="Limiter",
+                          consumes_lane="dynamics_corrective",
+                          consumes_indices=[0], purpose="limiter"),
+        _valid_chain_slot(position=2),  # AFTER Limiter — invalid
+    ]
+    payload["chain"]["plans"][0]["rationale"] = "Test Limiter not at max position — should reject as Limiter must be terminal in chain."
+    with pytest.raises(MixAgentOutputError, match="terminal"):
+        parse_chain_decision(payload)
+
+
+def test_chain_check9_short_rationale_raises():
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["rationale"] = "too short"
+    with pytest.raises(MixAgentOutputError, match="rationale"):
+        parse_chain_decision(payload)
+
+
+def test_chain_check9_no_inspired_by_raises():
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["inspired_by"] = []
+    with pytest.raises(MixAgentOutputError, match="inspired_by"):
+        parse_chain_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# Cross-correction duplicate-key check
+# ----------------------------------------------------------------------------
+
+
+def test_chain_duplicate_track_plans_raises():
+    payload = _valid_chain_payload()
+    plan_a = _valid_chain_plan()
+    plan_b = _valid_chain_plan()  # same track "Bass A"
+    payload["chain"]["plans"] = [plan_a, plan_b]
+    with pytest.raises(MixAgentOutputError, match="duplicate"):
+        parse_chain_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# Position range
+# ----------------------------------------------------------------------------
+
+
+def test_chain_position_above_max_raises():
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"][2]["position"] = CHAIN_MAX_POSITION + 1
+    with pytest.raises(MixAgentOutputError, match="position"):
+        parse_chain_decision(payload)
+
+
+def test_chain_position_negative_raises():
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"][0]["position"] = -1
+    with pytest.raises(MixAgentOutputError, match="position"):
+        parse_chain_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# Scenario coverage
+# ----------------------------------------------------------------------------
+
+
+def test_chain_scenario_c_eq8_overflow_split_accepted():
+    """Scenario C : > 8 bands split into multiple Eq8 instances cascaded."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"] = [
+        _valid_chain_slot(
+            position=2, device="Eq8", instance=0,
+            consumes_lane="eq_corrective",
+            consumes_indices=list(range(8)),  # bands 0-7 in instance 0
+            purpose="corrective_eq_part1",
+        ),
+        _valid_chain_slot(
+            position=3, device="Eq8", instance=1,
+            consumes_lane="eq_corrective",
+            consumes_indices=[8, 9, 10],  # bands 8-10 in instance 1
+            purpose="corrective_eq_part2",
+        ),
+    ]
+    decision = parse_chain_decision(payload)
+    eq8_slots = [s for s in decision.value.plans[0].slots if s.device == "Eq8"]
+    assert len(eq8_slots) == 2
+    assert eq8_slots[0].instance == 0
+    assert eq8_slots[1].instance == 1
+
+
+def test_chain_scenario_d_ms_split_accepted():
+    """Scenario D : different processing_modes → multiple Eq8 instances
+    one per mode (Eq8.Mode_global is device-level)."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0]["slots"] = [
+        _valid_chain_slot(
+            position=2, device="Eq8", instance=0,
+            consumes_indices=[0, 1],  # stereo bands
+            purpose="corrective_eq_stereo",
+        ),
+        _valid_chain_slot(
+            position=3, device="Eq8", instance=1,
+            consumes_indices=[2, 3],  # mid bands
+            purpose="corrective_eq_mid",
+        ),
+    ]
+    decision = parse_chain_decision(payload)
+    assert len(decision.value.plans[0].slots) == 2
+
+
+def test_chain_scenario_f_pure_preservation_accepted():
+    """Scenario F : track with only existing devices, no Tier A decisions."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0] = _valid_chain_plan(
+        track="Tuner Track",
+        slots=[
+            _valid_chain_slot(
+                position=0, device="Tuner",
+                is_preexisting=True, consumes_lane=None, consumes_indices=[],
+                purpose="preserved_tuner",
+            ),
+            _valid_chain_slot(
+                position=1, device="Eq8",
+                is_preexisting=True, consumes_lane=None, consumes_indices=[],
+                purpose="preserved_eq",
+            ),
+        ],
+        rationale="Pure preservation : Tuner Track has Tuner + Eq8 already, no Tier A decisions targeting it. Preserve order.",
+    )
+    decision = parse_chain_decision(payload)
+    assert all(s.is_preexisting for s in decision.value.plans[0].slots)
+
+
+def test_chain_scenario_e_cross_lane_notes_accepted():
+    """Scenario E : cross-lane composition awareness via cross_lane_notes."""
+    payload = _valid_chain_payload()
+    payload["chain"]["plans"][0] = _valid_chain_plan(
+        cross_lane_notes=[
+            "EQ band processing_mode='mid' on slot 2 + StereoGain ms_balance=0.7 on slot 6 : composition cumulative effect ; M-filtered then global M/S amplitude shift. Document for safety-guardian.",
+        ],
+    )
+    decision = parse_chain_decision(payload)
+    assert len(decision.value.plans[0].cross_lane_notes) == 1
+
+
+# ----------------------------------------------------------------------------
+# from_response (markdown fences, prose around)
+# ----------------------------------------------------------------------------
+
+
+def test_chain_from_response_handles_fences():
+    payload_str = json.dumps(_valid_chain_payload())
+    fenced = f"```json\n{payload_str}\n```"
+    decision = parse_chain_decision_from_response(fenced)
+    assert len(decision.value.plans) == 1
+
+
+def test_chain_from_response_handles_prose():
+    payload_str = json.dumps(_valid_chain_payload())
+    prosed = f"Chain plans:\n{payload_str}\nDone."
+    decision = parse_chain_decision_from_response(prosed)
+    assert len(decision.value.plans) == 1
+
+
+# ----------------------------------------------------------------------------
+# DAG cohérence
+# ----------------------------------------------------------------------------
+
+
+def test_chain_dag_dependencies_include_corrective_trio_plus_routing():
+    """Verify Phase 4.6 audit fix : chain depends on stereo_spatial AND
+    routing in addition to eq_corrective + dynamics_corrective + future
+    eq_creative + saturation_color."""
+    from mix_engine.director.director import MIX_DEPENDENCIES
+    chain_deps = MIX_DEPENDENCIES["chain"]
+    assert "eq_corrective" in chain_deps
+    assert "dynamics_corrective" in chain_deps
+    assert "stereo_spatial" in chain_deps  # audit pre-empt fix
+    assert "routing" in chain_deps          # audit pre-empt fix
