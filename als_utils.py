@@ -731,6 +731,139 @@ _PROCESSING_MODE_TO_EQ8_MODE: dict[str, int] = {
 }
 
 
+def find_existing_device_at_dynamics_position(
+    track_element: ET.Element,
+    target_tag: str,
+    target_chain_position: str,
+) -> ET.Element | None:
+    """REUSE-only lookup honoring dynamics-specific chain_position semantics.
+
+    Phase 4.11 Step 2 — finds an existing device of ``target_tag`` (e.g.,
+    'GlueCompressor', 'Limiter') that sits at the position requested by
+    Tier A's chain_position.
+
+    Phase 4.11 Step 2 dynamics chain_position vocabulary :
+    - 'default'             → first matching device found (no position filter)
+    - 'gate_first'          → device at chain index 0 (typically Gate)
+    - 'pre_eq_corrective'   → device positioned before any Eq8
+    - 'post_eq_corrective'  → device positioned after any Eq8
+    - 'pre_saturation'      → device positioned before any Saturator/DrumBuss
+    - 'post_saturation'     → device positioned after any Saturator/DrumBuss
+    - 'pre_limiter'         → device positioned before any Limiter
+    - 'chain_end'           → last device in chain (any tag)
+    - 'chain_end_limiter'   → last Limiter in chain (terminal placement)
+
+    Returns the matching device element, or None if no match (caller decides
+    whether to skip with warning, fall back, or escalate).
+
+    Args:
+        track_element: Track element from :func:`find_track_by_name`.
+        target_tag: Device tag to search ('GlueCompressor', 'Limiter', etc.).
+        target_chain_position: One of the dynamics chain_position values.
+
+    Returns:
+        Matching device or None.
+
+    Raises:
+        ValueError: If track structure is invalid or chain_position unknown.
+    """
+    devices_container = track_element.find(".//DeviceChain/DeviceChain/Devices")
+    if devices_container is None:
+        devices_container = track_element.find(".//DeviceChain/Devices")
+    if devices_container is None:
+        return None  # caller handles missing chain
+
+    children = list(devices_container)
+    matching_indices = [i for i, c in enumerate(children) if c.tag == target_tag]
+    if not matching_indices:
+        return None  # no device of this tag at all
+
+    if target_chain_position == "default":
+        return children[matching_indices[0]]
+
+    if target_chain_position == "gate_first":
+        # 1st device must match (and ideally be a Gate)
+        if matching_indices[0] == 0:
+            return children[matching_indices[0]]
+        return None
+
+    if target_chain_position == "chain_end":
+        # The last device in chain must be the matching tag
+        if matching_indices[-1] == len(children) - 1:
+            return children[matching_indices[-1]]
+        return None
+
+    if target_chain_position == "chain_end_limiter":
+        # The LAST Limiter (any later non-Limiter device disqualifies)
+        last_idx = matching_indices[-1]
+        # No non-Limiter devices allowed AFTER it
+        for i in range(last_idx + 1, len(children)):
+            return None  # something else after the Limiter
+        return children[last_idx]
+
+    # Categorical anchors (relative to other categories)
+    eq8_indices = [i for i, c in enumerate(children) if c.tag == "Eq8"]
+    sat_indices = [
+        i for i, c in enumerate(children)
+        if c.tag in ("Saturator", "DrumBuss")
+    ]
+    limiter_indices = [
+        i for i, c in enumerate(children) if c.tag == "Limiter"
+    ]
+
+    if target_chain_position == "pre_eq_corrective":
+        if not eq8_indices:
+            return None  # no Eq8 to anchor against
+        first_eq8 = eq8_indices[0]
+        for idx in matching_indices:
+            if idx < first_eq8:
+                return children[idx]
+        return None
+
+    if target_chain_position == "post_eq_corrective":
+        if not eq8_indices:
+            return None
+        last_eq8 = eq8_indices[-1]
+        for idx in matching_indices:
+            if idx > last_eq8:
+                return children[idx]
+        return None
+
+    if target_chain_position == "pre_saturation":
+        if not sat_indices:
+            return None
+        first_sat = sat_indices[0]
+        for idx in matching_indices:
+            if idx < first_sat:
+                return children[idx]
+        return None
+
+    if target_chain_position == "post_saturation":
+        if not sat_indices:
+            return None
+        last_sat = sat_indices[-1]
+        for idx in matching_indices:
+            if idx > last_sat:
+                return children[idx]
+        return None
+
+    if target_chain_position == "pre_limiter":
+        if not limiter_indices:
+            return None
+        first_limiter = limiter_indices[0]
+        for idx in matching_indices:
+            if idx < first_limiter:
+                return children[idx]
+        return None
+
+    raise ValueError(
+        f"Unknown dynamics chain_position={target_chain_position!r}. "
+        f"Valid : default, gate_first, pre_eq_corrective, post_eq_corrective, "
+        f"pre_saturation, post_saturation, pre_limiter, chain_end, "
+        f"chain_end_limiter."
+    )
+
+
 def find_or_create_eq8_at_position(
     track_element: ET.Element,
     tree: ET.ElementTree,

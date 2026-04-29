@@ -387,6 +387,168 @@ def test_track_not_found_raises(tmp_path):
 # ============================================================================
 
 
+# ============================================================================
+# Phase 4.11 Step 2 — chain_position support tests
+# ============================================================================
+
+from als_utils import find_existing_device_at_dynamics_position  # noqa: E402
+
+
+def test_position_pre_limiter_finds_glue_before_limiter(tmp_path):
+    """Bass Rythm chain : [Eq8, StereoGain, PluginDevice, GlueComp, Limiter].
+    GlueCompressor at index 3 IS before Limiter at index 4 → match."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    found = find_existing_device_at_dynamics_position(
+        track, "GlueCompressor", "pre_limiter",
+    )
+    assert found is not None
+    assert found.tag == "GlueCompressor"
+
+
+def test_position_chain_end_limiter_finds_terminal_limiter(tmp_path):
+    """Limiter at last index → chain_end_limiter matches."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    found = find_existing_device_at_dynamics_position(
+        track, "Limiter", "chain_end_limiter",
+    )
+    assert found is not None
+    assert found.tag == "Limiter"
+
+
+def test_position_post_eq_corrective_finds_glue_after_eq8(tmp_path):
+    """GlueCompressor at index 3 is after Eq8 at index 0 → post_eq_corrective match."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    found = find_existing_device_at_dynamics_position(
+        track, "GlueCompressor", "post_eq_corrective",
+    )
+    assert found is not None
+
+
+def test_position_pre_eq_corrective_no_match_when_eq8_after(tmp_path):
+    """GlueCompressor at index 3 is AFTER Eq8 at 0 → pre_eq_corrective NO match."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    found = find_existing_device_at_dynamics_position(
+        track, "GlueCompressor", "pre_eq_corrective",
+    )
+    assert found is None
+
+
+def test_position_no_anchor_returns_none(tmp_path):
+    """Track with no Saturator → pre_saturation/post_saturation return None."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    # Bass Rythm has no Saturator/DrumBuss
+    found = find_existing_device_at_dynamics_position(
+        track, "GlueCompressor", "pre_saturation",
+    )
+    assert found is None
+
+
+def test_position_unknown_raises(tmp_path):
+    """Unknown chain_position → ValueError. Requires a track WITH the
+    target device for the validation to fire (None returned early if no match)."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    tree = als_utils.parse_als(str(ref_copy))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    with pytest.raises(ValueError, match="Unknown dynamics chain_position"):
+        find_existing_device_at_dynamics_position(
+            track, "GlueCompressor", "bogus_position",
+        )
+
+
+def test_apply_glue_pre_limiter_position(tmp_path):
+    """End-to-end : Tier A specifies chain_position='pre_limiter' →
+    configurator finds GlueComp (which IS before Limiter on Bass Rythm)."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    correction = _make_correction(
+        track="[H/R] Bass Rythm",
+        chain_position="pre_limiter",
+        threshold_db=-15.0,
+    )
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Glue at pre_limiter — bus glue before final limiter.",
+        confidence=0.85,
+    )
+    report = apply_dynamics_corrective_decision(ref_copy, decision, output_path=output)
+    assert len(report.corrections_applied) == 1
+    assert report.devices_reused == 1
+
+
+def test_apply_glue_chain_end_no_match_skipped(tmp_path):
+    """Bass Rythm has Limiter at chain_end (not GlueComp). Requesting
+    chain_position='chain_end' for GlueCompressor → no match → skipped."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    correction = _make_correction(
+        track="[H/R] Bass Rythm",
+        chain_position="chain_end",
+    )
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="GlueComp at chain_end — but Bass Rythm has Limiter there.",
+        confidence=0.6,
+    )
+    report = apply_dynamics_corrective_decision(ref_copy, decision, dry_run=True)
+    assert len(report.corrections_skipped) == 1
+    assert "chain_position='chain_end'" in report.corrections_skipped[0][1]
+
+
+def test_apply_limiter_chain_end_limiter_position(tmp_path):
+    """chain_end_limiter is the canonical Limiter terminal placement.
+    Bass Rythm Limiter IS at chain end → match."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    correction = DynamicsCorrection(
+        track="[H/R] Bass Rythm",
+        dynamics_type="limit",
+        device="Limiter",
+        ceiling_db=-0.3,
+        release_ms=50.0,
+        chain_position="chain_end_limiter",
+        rationale="Final Limiter at chain_end_limiter — terminal placement.",
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Final limiter on Bass Rythm.",
+        confidence=0.85,
+    )
+    report = apply_dynamics_corrective_decision(ref_copy, decision, output_path=output)
+    assert len(report.corrections_applied) == 1
+    assert report.devices_reused == 1
+
+
 def test_apply_multi_correction_mixed(tmp_path):
     """3 corrections : 1 GlueComp valid + 1 Limiter valid + 1 Compressor2 skipped."""
     ref_copy = tmp_path / "ref.als"

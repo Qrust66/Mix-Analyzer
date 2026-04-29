@@ -258,12 +258,23 @@ def _write_limiter_params(
 
 
 def _find_existing_device(
-    track_element: ET.Element, device_tag: str,
+    track_element: ET.Element,
+    device_tag: str,
+    chain_position: str = "default",
 ) -> Optional[ET.Element]:
-    """REUSE-only : find the first existing device of the given tag on the
-    track. Returns None if not present (caller raises DynamicsDeviceNotFoundError).
+    """REUSE-only lookup honoring chain_position when not 'default'.
+
+    Phase 4.11 Step 2 — delegates to als_utils.find_existing_device_at_dynamics_position
+    when chain_position is specified. Falls back to first-match for 'default'.
+
+    Returns None if no matching device at the requested position (caller
+    skips with reason in the report).
     """
-    return track_element.find(f".//{device_tag}")
+    if chain_position == "default":
+        return track_element.find(f".//{device_tag}")
+    return als_utils.find_existing_device_at_dynamics_position(
+        track_element, device_tag, chain_position,
+    )
 
 
 # ============================================================================
@@ -339,16 +350,26 @@ def apply_dynamics_corrective_decision(
         # Find track
         track_el = als_utils.find_track_by_name(tree, correction.track)
 
-        # REUSE-only : find existing device
+        # REUSE-only : find existing device honoring chain_position
         device_tag = correction.device  # "GlueCompressor" or "Limiter"
-        device = _find_existing_device(track_el, device_tag)
+        device = _find_existing_device(
+            track_el, device_tag, chain_position=correction.chain_position,
+        )
         if device is None:
-            reason = (
-                f"track {correction.track!r} has no {device_tag} device. "
-                f"Phase 4.11 v1 is REUSE-only (no create paths) ; user must "
-                f"add a {device_tag} to the track manually OR Phase 4.12 "
-                f"may add create paths via device template fixture."
-            )
+            if correction.chain_position == "default":
+                reason = (
+                    f"track {correction.track!r} has no {device_tag} device. "
+                    f"Phase 4.11 v1 is REUSE-only (no create paths) ; user "
+                    f"must add a {device_tag} to the track manually OR Phase "
+                    f"4.12 may add create paths via device template fixture."
+                )
+            else:
+                reason = (
+                    f"track {correction.track!r} has no {device_tag} device "
+                    f"at chain_position={correction.chain_position!r}. "
+                    f"Phase 4.11 v1 is REUSE-only — Tier B cannot insert a "
+                    f"new device at the requested position without a template."
+                )
             corrections_skipped.append((correction_id, reason))
             warnings.append(f"{correction_id} skipped : {reason}")
             continue
