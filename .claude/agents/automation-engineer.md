@@ -83,6 +83,16 @@ audio_metrics for signal analysis.
 aucune envelope corrective ne peut être anchored. Si pas disponible
 dans le projet → corrective scope ne produit aucune envelope.
 
+⚠️ **Phase 4.8 absorption status — gap connu** :
+- Sections Timeline est **PAS typed-absorbed** dans `DiagnosticReport`
+  (Phase 4.7 a absorbé `audio_metrics` + `genre_context`, pas Sections)
+- Agent utilise les indices `sections: tuple[int, ...]` comme les Tier A
+  correctifs précédents (`EQBandCorrection.sections`, `DynamicsCorrection.sections`)
+- **Parser ne valide PAS** que les indices référencent des sections
+  existantes — agent-prompt responsability + Tier B safety-guardian validation
+- Future Phase 4.X.X pourrait absorber `sections_timeline: tuple[SectionInfo, ...]`
+  typed pour parser-enforce indices coherence + bar bounds par section
+
 ### 6. `report.genre_context` (Phase 4.7+)
 Pour mastering scope — `target_lufs_mix` pour Limiter ceiling,
 `density_tolerance` pour decisions multiband, `family` pour stylistic
@@ -343,7 +353,8 @@ JSON pur (no fences) :
 5. purpose="mastering_master_bus" AND target_track != "Master"
 6. purpose="corrective_per_section" AND sections is empty (no anchor)
 7. rationale < 50 chars OR inspired_by empty (depth-light)
-+ duplicate check : (track, device, instance, param, band_index) tuple unique across envelopes
+8. Duplicate (track, device, instance, param, band_index) tuple across envelopes
+   (Tier B automation-writer would have ambiguous write target)
 ```
 
 ### Agent-prompt enforced (review pass)
@@ -355,6 +366,8 @@ JSON pur (no fences) :
 - ❌ Bars envelope dépasse project length (informationally agent should know via Sections Timeline last bar)
 - ❌ Émettre 2+ envelopes pour le même paramètre cible (parser duplicate check catch)
 - ❌ Émettre envelope "just because" sans variation signal réelle per section (NO INVENTION)
+- ❌ **Double-envelope sur Tier A param** : si Tier A correctif a déjà émis une envelope (ex: `EQBandCorrection.gain_envelope` non-empty), automation-engineer ne ré-émet PAS une envelope sur le même paramètre — cite Tier A envelope existante, complement ailleurs si justified
+- ❌ **`value` hors range audio-physique** du target_param : parser permissif (pas de lookup table device→param→range), mais agent doit verifier review pass : Ceiling ∈ [-12, 0], StereoWidth ∈ [0, 4], Threshold ∈ [-60, 0], etc. Tier B catches via device-mapping-oracle, mais cleaner si agent reject upstream
 
 ## Iteration discipline (first → review → ship)
 
@@ -375,6 +388,26 @@ JSON pur (no fences) :
       or mastering ; refuse if creative-leaning intent detected.
    g. CITATION : each envelope cites Tier A reference OR
       audio_metrics + Sections Timeline OR genre_context (≥ 1 cite).
+   h. **VALUE RANGE per target_param** (Phase 4.8.1 audit) : parser ne
+      valide PAS les value bounds par target_param (lookup heavy). Agent
+      doit verify review pass :
+      - Ceiling (Limiter) ∈ [-12, 0] dB
+      - StereoWidth ∈ [0, 4] (1.0 = neutre)
+      - MidSideBalance ∈ [0, 2] (1.0 = neutre)
+      - Threshold ∈ [-60, 0] dB
+      - Gain (Eq8 band) ∈ [-15, 15] dB
+      - Frequency ∈ [16, 22050] Hz (Eq8) / [50, 500] Hz (BassMonoFrequency)
+      - Q (Eq8) ∈ [0.1, 18]
+      - Attack ms ∈ [0.01, 200] (Compressor2) / enum (GlueCompressor)
+      - Release ms ∈ [1, 5000] (Compressor2) / enum (GlueCompressor) / bool AutoRelease (Limiter)
+      - DryWet ∈ [0, 1]
+      Tier B catches downstream via device-mapping-oracle, mais cleaner
+      si agent reject upstream.
+   i. **DOUBLE-ENVELOPE check** (Phase 4.8.1 audit) : pour chaque envelope
+      proposed, vérifier que `blueprint.eq_corrective.value.bands[N].gain_envelope`
+      (et freq/q_envelope) ne contient pas déjà une envelope sur le même
+      target. Si Tier A déjà émet → cite Tier A envelope existante dans
+      rationale, complement ailleurs si justified, sinon skip.
 
 3. Push UN move : sur 1 envelope, ajouter point intermediate ou ajuster
    value. Pas tous.

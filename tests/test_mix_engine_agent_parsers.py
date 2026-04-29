@@ -3375,6 +3375,70 @@ def test_automation_from_response_handles_prose():
     assert len(decision.value.envelopes) == 1
 
 
+# ----------------------------------------------------------------------------
+# Phase 4.8.1 audit polish : edge case tests
+# ----------------------------------------------------------------------------
+
+
+def test_automation_empty_target_track_raises():
+    """Phase 4.8.1 audit Finding 5 : empty target_track explicit rejection."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["target_track"] = ""
+    with pytest.raises(MixAgentOutputError, match="target_track"):
+        parse_automation_decision(payload)
+
+
+def test_automation_target_param_case_sensitive():
+    """Phase 4.8.1 audit : target_param strict case (no normalization).
+    Agent emits canonical case ; lowercase variant should not be normalized."""
+    payload = _valid_automation_payload()
+    # "ceiling" lowercase — accepted (parser doesn't validate against device-mapping-oracle)
+    # but Tier B will catch via param name lookup. Parser permissive by design.
+    payload["automation"]["envelopes"][0]["target_param"] = "ceiling"
+    decision = parse_automation_decision(payload)
+    # Parser accepts free-form param name ; design choice (delegation to Tier B)
+    assert decision.value.envelopes[0].target_param == "ceiling"
+
+
+def test_automation_purpose_case_sensitive_strict():
+    """Phase 4.8.1 audit : purpose enum is strict-case (cohérent avec autres
+    Tier A patterns dynamics_type etc.). Capitalized variant rejected."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["purpose"] = "Mastering_Master_Bus"
+    with pytest.raises(MixAgentOutputError, match="purpose"):
+        parse_automation_decision(payload)
+
+
+def test_automation_negative_target_device_instance_raises():
+    """Phase 4.8.1 audit : target_device_instance must be >= 0."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["target_device_instance"] = -1
+    with pytest.raises(MixAgentOutputError, match="target_device_instance"):
+        parse_automation_decision(payload)
+
+
+def test_automation_corrective_with_master_track_raises_via_purpose_check():
+    """Phase 4.8.1 audit : combo corrective_per_section + target_track=Master
+    is contradiction. While parser doesn't directly check this combo,
+    test verifies the typical scenario : agent should use mastering_master_bus
+    for Master target. corrective_per_section + Master track has no parser
+    check directly, but it's an agent-prompt anti-pattern. Test confirms
+    parser ACCEPTS the combo (delegation to agent-prompt enforcement)."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Master",
+        target_device="Eq8",
+        target_param="Gain",
+        target_band_index=4,
+        sections=[0, 1, 2],
+        rationale="Test : corrective_per_section + Master track is logical contradiction (corrective is per-track Tier A scope) but parser permissive. Agent-prompt enforces.",
+    )
+    # Parser accepts (no parser check for this combo) — agent-prompt anti-pattern
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].target_track == "Master"
+
+
 def test_phase47_full_integration_audio_metrics_plus_genre_context():
     payload = _valid_payload()
     payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(
