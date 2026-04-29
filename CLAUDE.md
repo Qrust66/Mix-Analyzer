@@ -59,6 +59,7 @@ Execution, Use the Knowledge Graph).
 | **`docs/MIX_ENGINE_ARCHITECTURE.md`** | Phase 4.0 design doc — module `mix_engine/` parallèle à `composition_engine/`, MixBlueprint, DAG, hooks d'intégration, plan d'évolution graduel du device mapping JSON |
 | **`docs/CLAUDE_GRAPHIFY.md`** | Knowledge graph `graphify-out/graph.json` — quand consulter, commandes `/graphify`, god nodes, maintenance |
 | **`docs/CODING_PRINCIPLES.md`** | 5 principes coding (Think Before, Simplicity, Surgical, Goal-Driven, Use Graph) |
+| **`docs/DEVICE_MAPPING_EXTENSION_GUIDE.md`** | **Checklist canonique 12 étapes** pour intégrer un nouveau device/plugin (Ableton stock, VST3) — à consulter dès qu'un user partage un nouveau plugin à mapper |
 | **`.claude/COST_DISCIPLINE.md`** | 10 règles d'économie de tokens |
 
 Quand une tâche concerne explicitement un de ces sujets, lire le document
