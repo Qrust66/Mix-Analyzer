@@ -43,6 +43,12 @@ from mix_engine.writers.spatial_configurator import (
     SpatialDeviceNotFoundError,
     apply_spatial_decision,
 )
+from mix_engine.writers.routing_configurator import (
+    RoutingConfiguratorError,
+    RoutingConfiguratorReport,
+    SidechainBlockNotFoundError,
+    apply_routing_decision,
+)
 
 __all__ = [
     "EqConfiguratorError",
@@ -56,4 +62,8 @@ __all__ = [
     "SpatialConfiguratorReport",
     "SpatialDeviceNotFoundError",
     "apply_spatial_decision",
+    "RoutingConfiguratorError",
+    "RoutingConfiguratorReport",
+    "SidechainBlockNotFoundError",
+    "apply_routing_decision",
 ]

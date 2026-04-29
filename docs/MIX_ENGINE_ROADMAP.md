@@ -34,7 +34,7 @@ purement décisionnel.
 |---|---|---|---|
 | `eq8-configurator` | `EQCorrectiveDecision` | Eq8 devices, 8 bandes max, Mode 0-7 mapping | ✅ **Phase 4.10 done** (5 steps, 60 tests) |
 | `dynamics-configurator` | `DynamicsCorrectiveDecision` | GlueCompressor + Limiter (Phase 4.11), Compressor2/Gate/DrumBuss (Phase 4.12-bis) | ✅ **Phase 4.11 v1 done** (4 steps, 32 tests, REUSE-only) |
-| `routing-configurator` | `RoutingDecision` | Bus, sidechain refs, sends | 🟡 1 jour |
+| `routing-configurator` | `RoutingDecision` | Sidechain redirect + remove (Phase 4.14), sidechain_create deferred Phase 4.14.X | ✅ **Phase 4.14 done** (1 step, 22 tests, REUSE-only) |
 | `spatial-configurator` | `SpatialDecision` | StereoGain (REUSE) + Mixer.Pan (no device), 7 move types | ✅ **Phase 4.12 done** (1 step, 20 tests, methodology converged) |
 | `chain-assembler` | `ChainBuildDecision` | Ordre absolu devices par track | 🟡 1-2 jours |
 | `automation-writer` | `AutomationDecision` | `<AutomationEnvelope>` XML | 🟡 partiel (eq8_automation.py existe pour Eq8 only) — 1-2 jours pour étendre |

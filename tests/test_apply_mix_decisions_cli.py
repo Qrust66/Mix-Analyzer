@@ -197,6 +197,24 @@ def test_cli_full_pipeline_eq_dyn_spatial(tmp_path):
     assert found_hpf, "Expected HPF 12dB/oct at 30 Hz on Kick 1 Eq8"
 
 
+def test_cli_routing_only_smoke(tmp_path):
+    """Phase 4.14 — routing-only test drive : redirect Arp sidechain."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    routing_json = _SAMPLES / "routing_sample.json"
+    result = _run_cli([
+        "--als", str(ref_copy),
+        "--routing-json", str(routing_json),
+        "--output", str(output),
+    ])
+    assert result.returncode == 0, f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    assert output.exists()
+    assert "Routing" in result.stdout
+    assert "RESULT : OK" in result.stdout
+
+
 def test_cli_dry_run_does_not_write(tmp_path):
     """--dry-run leaves source .als untouched."""
     ref_copy = tmp_path / "ref.als"

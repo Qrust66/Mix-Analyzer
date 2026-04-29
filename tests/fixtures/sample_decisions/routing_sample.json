@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0",
+  "routing": {
+    "repairs": [
+      {
+        "track": "[S/T] Arp Roaming",
+        "fix_type": "sidechain_redirect",
+        "current_trigger": "[H/R] Bass Rythm",
+        "new_trigger": "[H/R] Kick 1",
+        "rationale": "Causal: Arp Roaming sidechain currently triggered by Bass Rythm but Kick 1 makes more rhythmic sense for ducking. Interactional: ducking on kick gives groove pump. Idiomatic: standard EDM/industrial sidechain pattern.",
+        "inspired_by": [
+          {"kind": "user_brief", "path": "test_drive_demo",
+           "excerpt": "Sidechain Arp from Kick"}
+        ]
+      }
+    ]
+  },
+  "cited_by": [
+    {"kind": "diagnostic", "path": "Anomalies",
+     "excerpt": "sidechain trigger could be more rhythmic"}
+  ],
+  "rationale": "Sample test drive : redirect Arp Roaming sidechain Bass Rythm → Kick 1.",
+  "confidence": 0.8
+}

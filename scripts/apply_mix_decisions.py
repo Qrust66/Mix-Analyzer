@@ -58,11 +58,13 @@ import als_utils
 from mix_engine.blueprint import (
     parse_dynamics_corrective_decision,
     parse_eq_corrective_decision,
+    parse_routing_decision,
     parse_spatial_decision,
 )
 from mix_engine.writers import (
     apply_dynamics_corrective_decision,
     apply_eq_corrective_decision,
+    apply_routing_decision,
     apply_spatial_decision,
 )
 
@@ -92,12 +94,17 @@ def _print_report(lane: str, report) -> bool:
         print(f"  moves applied: {len(report.moves_applied)}")
         for m in report.moves_applied:
             print(f"    + {m}")
+    if hasattr(report, "repairs_applied"):
+        print(f"  repairs applied: {len(report.repairs_applied)}")
+        for r in report.repairs_applied:
+            print(f"    + {r}")
 
     # Skipped
     skipped = (
         getattr(report, "bands_skipped", None)
         or getattr(report, "corrections_skipped", None)
         or getattr(report, "moves_skipped", None)
+        or getattr(report, "repairs_skipped", None)
         or ()
     )
     if skipped:
@@ -129,6 +136,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="Dynamics corrective decision JSON.")
     parser.add_argument("--spatial-json", type=Path, default=None,
                         help="Spatial / stereo decision JSON.")
+    parser.add_argument("--routing-json", type=Path, default=None,
+                        help="Routing / sidechain repair decision JSON.")
     parser.add_argument("--no-safety", action="store_true",
                         help="Disable post-write safety_guardian (not recommended).")
     parser.add_argument("--dry-run", action="store_true",
@@ -141,12 +150,14 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if (args.eq_json is None and args.dynamics_json is None
-            and args.spatial_json is None):
+            and args.spatial_json is None and args.routing_json is None):
         print("ERROR: at least one of --eq-json / --dynamics-json / "
-                "--spatial-json must be provided.", file=sys.stderr)
+                "--spatial-json / --routing-json must be provided.",
+                file=sys.stderr)
         return 2
 
-    for json_path in (args.eq_json, args.dynamics_json, args.spatial_json):
+    for json_path in (args.eq_json, args.dynamics_json, args.spatial_json,
+                       args.routing_json):
         if json_path is not None and not json_path.exists():
             print(f"ERROR: decision JSON not found: {json_path}", file=sys.stderr)
             return 2
@@ -204,6 +215,18 @@ def main(argv: list[str] | None = None) -> int:
             invoke_safety_guardian=invoke_safety,
         )
         any_fail = _print_report("Spatial", report) or any_fail
+
+    # 4. Routing / sidechain repairs
+    if args.routing_json is not None:
+        payload = _load_json(args.routing_json)
+        decision = parse_routing_decision(payload)
+        report = apply_routing_decision(
+            working_path, decision,
+            output_path=working_path if not args.dry_run else None,
+            dry_run=args.dry_run,
+            invoke_safety_guardian=invoke_safety,
+        )
+        any_fail = _print_report("Routing", report) or any_fail
 
     print()
     if any_fail:
