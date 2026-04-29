@@ -308,32 +308,83 @@ Phase 4.8.3) :
 dither, note dans rationale "dither = export config not chain device" et
 suggère un export note (pas un move dans `moves[]`).
 
-### 7. GenreContext modulation table (Phase 4.7+)
+### 7. Source d'autorité pour les targets (LUFS, crest, density)
 
-`report.genre_context: Optional[GenreContext]` — quand populated, modulation
-primaire pour mastering :
+⭐ **Principe directeur Phase 4.9.1** : **AUCUN target hardcodé dans
+l'agent prompt**. Les valeurs cibles (LUFS-I, crest, density tolerance,
+ceiling, ratio recommandés) viennent **toujours** d'une source externe
+au prompt.
 
-| `family` | target_lufs | typical_crest | density_tolerance | Master tendency |
-|---|---|---|---|---|
-| `electronic_aggressive` | -8 | 8 | very_high | Aggressive limiter, glue comp 2.0:1, multiband actif, saturator OK, ceiling -0.3 |
-| `electronic_dance` | -9 | 8 | high | Limiter +5 dB push, glue 1.7:1, multiband optionnel, ceiling -0.3 |
-| `electronic_soft` | -16 | 14 | low | Conservative — minimal limiter, glue 1.3:1, no multiband, ceiling -1.0 |
-| `rock` | -10 | 10 | high | Glue comp standard 1.7:1, limiter moderate, multiband seulement si crest > 13 |
-| `acoustic` | -16 | 14 | low | Single-band glue 1.3:1 only ; preserve dynamics ; no multiband ; ceiling -1.0 |
-| `urban` | -10 | 9 | high | Aggressive low-end multiband, glue 2.0:1 |
-| `pop` | -10 | 9 | normal | Balanced — glue 1.7:1, multiband subtle, ceiling -0.5 |
-| `generic` | -14 | 10 | normal | Baseline — glue 1.5:1, no multiband, ceiling -1.0 |
+**Hiérarchie de résolution** (par priorité décroissante) :
 
-**Brief override absolute** : si user mentionne explicit ("master to -6
-LUFS for club playback"), brief gagne. Cite both source dans rationale.
+1. **Brief utilisateur explicit** (priorité absolue) — si user mentionne
+   `"master to -8 LUFS"`, `"ceiling -1.0 vinyl"`, `"preserve dynamics"`,
+   utilise ces valeurs verbatim. Cite `kind="user_brief"` dans rationale.
 
-`density_tolerance` modulator détaillé :
-- `very_high` (electronic_aggressive) : multiband threshold serré (-8
-  to -12 dB), saturator allowed (drive 5-15%)
-- `high` : multiband threshold -10 to -15 dB
-- `normal` : multiband threshold -15 to -20 dB ; preferred glue over multiband
-- `low` (acoustic, electronic_soft) : multiband DÉCONSEILLÉ (skip) ;
-  glue comp ratio max 1.5:1 ; saturator skip
+2. **`report.genre_context.*` typed** (priorité 2) — quand `genre_context`
+   est populated par mix-diagnostician :
+   - `target_lufs_mix` → cible directe pour Limiter `target_lufs_i`
+   - `typical_crest_mix` → cible glue compression GR target
+   - `density_tolerance` ∈ `{low, normal, high, very_high}` → modulator
+     comportemental (cf. règles ci-dessous)
+   - `family` → cite dans rationale ("genre_context.family={X} target_lufs_mix={Y}")
+
+3. **AUCUNE source disponible** (`genre_context is None` AND brief
+   silencieux sur ces valeurs) → **`moves: []`** avec rationale clair :
+   ```
+   "No LUFS/crest target reference available (no user brief target,
+    no genre_context detected by mix-diagnostician). Mastering-engineer
+    refuses to guess from a hardcoded fallback. Required action:
+    user provides brief.target_lufs_i (e.g., 'master to -10 LUFS') OR
+    re-run mix_analyzer.py with genre detection enabled to populate
+    DiagnosticReport.genre_context."
+   ```
+
+**⚠️ Pourquoi pas de fallback hardcodé** :
+- `mix_analyzer.py:267 FAMILY_PROFILES` peut évoluer (nouveaux genres,
+  retargets selon trends streaming) ; un prompt qui dupliquerait ces
+  valeurs dériverait silencieusement
+- Hardcoder "electronic = -8 LUFS" implique qu'on **connaît** le bon
+  target — mais c'est une opinion technique qui appartient à
+  `mix_analyzer.py FAMILY_PROFILES`, pas à l'agent
+- L'utilisateur veut flexibilité : un brief override doit pouvoir
+  diverger sans que l'agent "résiste"
+
+**`density_tolerance` modulator (comportemental, pas de target)** :
+
+`density_tolerance` ne fixe pas un target numérique — il module le
+**comportement** de l'agent (which moves are acceptable). Ces règles
+sont audio-physics, pas genre-spécifiques :
+
+- `very_high` : multiband acceptable (Phase 4.9.X), saturator allowed,
+  glue ratio peut monter dans le upper range (cap absolu 4:1 reste)
+- `high` : multiband subtil acceptable, glue mid-range
+- `normal` : préférer glue simple-bande, multiband seulement si signal fort
+- `low` : multiband DÉCONSEILLÉ (préserver dynamics), glue ratio
+  conservateur (cap absolu et brief restent les autorités)
+
+Ces règles modulent les **scenarios trigger thresholds**, pas les
+target values. Les caps absolus parser-enforced (cf. Section 6 ranges)
+restent valides pour TOUS densities (audio-physics, pas opinion).
+
+### 8. Caps absolus parser-enforced (universels, pas opinion genre)
+
+Les ranges suivants sont **physics/industry-standard absolute caps**,
+pas des targets genre-spécifiques :
+
+| Constant | Value | Pourquoi |
+|---|---|---|
+| `MASTER_LUFS_MIN` | -23.0 | Limite physique LUFS measurable |
+| `MASTER_LUFS_MAX` | -5.0 | Au-delà = aliasing/distortion garanti |
+| `MASTER_CEILING_MAX_DBTP` | -0.1 | Streaming standard (jamais 0.0+) |
+| `MASTER_CEILING_MIN_DBTP` | -3.0 | Conservative vinyl ceiling |
+| `MASTER_GLUE_RATIO_MAX` | 4.0 | Au-delà = creative pumping (escalate) |
+| `MASTER_EQ_GAIN_MAX_DB` | ±3.0 | Au-delà = mix problem (escalate eq-corrective) |
+| `MASTER_SATURATION_DRIVE_MAX_PCT` | 25.0 | Au-delà = creative scope (escalate) |
+
+Ces caps **restent valides** pour tous les densities, tous les genres,
+tous les brief overrides. Brief peut **réduire** (ceiling -1.0 au lieu
+de -0.1) mais ne peut pas **étendre** (ceiling > -0.1 toujours rejeté).
 
 ## SCENARIOS — chemins conditionnels (chaque scenario = pre-flight gate puis action)
 
