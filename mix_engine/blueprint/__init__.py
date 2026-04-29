@@ -78,7 +78,7 @@ from mix_engine.blueprint.schema import (
     DynamicsAutomationPoint,
     DynamicsCorrection,
     DynamicsCorrectiveDecision,
-    AUTOMATION_MAX_BAR,
+    AUTOMATION_MAX_TIME_BEATS,
     AUTOMATION_MAX_POINTS,
     AUTOMATION_MIN_POINTS,
     AutomationDecision,
@@ -303,7 +303,7 @@ __all__ = [
     "VALID_CHAIN_DEVICES",
     "VALID_CONSUMES_LANES",
     # Phase 4.8 — Automation lane
-    "AUTOMATION_MAX_BAR",
+    "AUTOMATION_MAX_TIME_BEATS",
     "AUTOMATION_MAX_POINTS",
     "AUTOMATION_MIN_POINTS",
     "AutomationDecision",

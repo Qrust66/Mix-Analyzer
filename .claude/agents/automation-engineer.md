@@ -430,6 +430,49 @@ JSON pur (no fences) :
 - **Citation discipline** : ≥ 1 cite per envelope ; ≥ 50 chars rationale.
 - **No invention** : signal section-variable obligatoire pour corrective ; genre_context + Sections Timeline pour mastering.
 
+## Phase 4.8.2 — Resolution alignment with mix_analyzer
+
+**Schema field rename** : `AutomationPoint.bar: int` (Phase 4.8) → `AutomationPoint.time_beats: float` (Phase 4.8.2). Justification :
+
+1. **Ableton-native unit** : Ableton's `<FloatEvent Time="X.XX"/>` XML field uses **beats** (1 bar = 4 beats in 4/4). Tier B writes time_beats directly, no unit conversion.
+
+2. **Sub-bar resolution** : `float` allows arbitrary precision down to mix_analyzer's frame-level (~11.6 ms ≈ 0.023 beats @ 120 BPM). Aligns with `analyze_temporal` rms_envelope, `analyze_multiband_timeline` 200 segments, `analyze_dynamic_range_timeline`.
+
+3. **Use case "fast resonance peak tracking"** : un peak qui drift en 200ms (≈ 0.4 beats @ 120 BPM) émettable maintenant via points sub-beat :
+   ```json
+   "points": [
+     {"time_beats": 0.0, "value": 0.0},
+     {"time_beats": 0.25, "value": -1.5},   # 1/16 beat tracking
+     {"time_beats": 0.5, "value": -3.5},
+     {"time_beats": 0.75, "value": -2.0},
+     {"time_beats": 1.0, "value": 0.0}
+   ]
+   ```
+
+**Conversion mix_analyzer time_seconds → time_beats** :
+```
+time_beats = (time_seconds / 60) × tempo_bpm
+```
+Tempo from `analyze_tempo_dynamic` (project-level constant, populated via mix-diagnostician).
+
+**Conversion bar number (1-indexed user-facing) → time_beats** :
+```
+time_beats = (bar_number - 1) × beats_per_bar
+# 4/4 : beats_per_bar = 4 → bar 16 = time_beats 60.0 (zero-indexed bar 15)
+```
+
+⚠️ **Convention 0-indexed** : `time_beats=0.0` = start of bar 0 = start of project. `time_beats=4.0` = start of bar 1 in 4/4.
+
+**Range** : `[0.0, AUTOMATION_MAX_TIME_BEATS]` where `AUTOMATION_MAX_TIME_BEATS = 39996.0` (covers ~10h song @ 4/4 120 BPM).
+
+**Density guidance** :
+- Section-level corrective (sibilance only chorus) : sparse points (start, mid, end of section) — typical 3-5 points.
+- Per-bar tracking (slow drift) : points every bar (4 beats apart in 4/4).
+- Sub-bar tracking (fast drift, beat-level) : points every 0.5-1 beat — ~10-20 points per bar.
+- Frame-level (matching mix_analyzer rms_envelope) : 0.025-beat intervals — 160 points per bar (RARE, only for surgical mastering).
+
+`AUTOMATION_MAX_POINTS = 256` cap accommodates dense sub-bar envelopes without bloat.
+
 ## Phase 4.8 caveats
 
 **Scope strictement narrow (rule-with-consumer)** :

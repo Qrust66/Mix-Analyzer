@@ -72,7 +72,7 @@ from mix_engine.blueprint.schema import (
     TrackChainPlan,
     CHAIN_MAX_POSITION,
     EQ8_MAX_BANDS_PER_INSTANCE,
-    AUTOMATION_MAX_BAR,
+    AUTOMATION_MAX_TIME_BEATS,
     AUTOMATION_MAX_POINTS,
     AUTOMATION_MIN_POINTS,
     AutomationDecision,
@@ -2833,27 +2833,35 @@ def parse_chain_decision_from_response(
 
 
 def _parse_automation_point(item: Any, *, where: str) -> AutomationPoint:
-    """Parse one envelope point. Accepts {bar, value} object OR [bar, value]."""
+    """Parse one envelope point. Accepts {time_beats, value} object OR
+    [time_beats, value] pair. Phase 4.8.2 : float resolution (was int
+    bar) for sub-bar precision matching mix_analyzer's frame-level
+    analysis."""
     if isinstance(item, Mapping):
-        bar = _coerce_int_strict(_require(item, "bar", where=where), where=f"{where}.bar")
+        time_beats = _coerce_float(
+            _require(item, "time_beats", where=where), where=f"{where}.time_beats"
+        )
         value = _coerce_float(_require(item, "value", where=where), where=f"{where}.value")
     elif isinstance(item, (list, tuple)):
         if len(item) != 2:
             raise MixAgentOutputError(
-                f"{where}: expected [bar, value] pair, got len={len(item)}"
+                f"{where}: expected [time_beats, value] pair, got len={len(item)}"
             )
-        bar = _coerce_int_strict(item[0], where=f"{where}[0]")
+        time_beats = _coerce_float(item[0], where=f"{where}[0]")
         value = _coerce_float(item[1], where=f"{where}[1]")
     else:
         raise MixAgentOutputError(
-            f"{where}: expected object or [bar, value] pair, "
+            f"{where}: expected object or [time_beats, value] pair, "
             f"got {type(item).__name__}"
         )
-    if bar < 0 or bar > AUTOMATION_MAX_BAR:
+    if time_beats < 0 or time_beats > AUTOMATION_MAX_TIME_BEATS:
         raise MixAgentOutputError(
-            f"{where}.bar={bar} not in [0, {AUTOMATION_MAX_BAR}]"
+            f"{where}.time_beats={time_beats} not in "
+            f"[0, {AUTOMATION_MAX_TIME_BEATS}] (Ableton native beats unit ; "
+            f"in 4/4 time signature, 1 bar = 4 beats so cap covers ~10h song "
+            f"at 120 BPM)"
         )
-    return AutomationPoint(bar=bar, value=value)
+    return AutomationPoint(time_beats=time_beats, value=value)
 
 
 def _parse_automation_envelope(item: Any, *, where: str) -> AutomationEnvelope:
@@ -2954,12 +2962,12 @@ def _parse_automation_envelope(item: Any, *, where: str) -> AutomationEnvelope:
             f"(sanity cap to prevent runaway envelopes)."
         )
 
-    # #2 — bars strictly ascending no duplicates
-    bars = [p.bar for p in points]
-    if bars != sorted(set(bars)) or len(set(bars)) != len(bars):
+    # #2 — time_beats strictly ascending no duplicates
+    times = [p.time_beats for p in points]
+    if times != sorted(set(times)) or len(set(times)) != len(times):
         raise MixAgentOutputError(
-            f"{where}.points bars must be strictly ascending (no duplicates, "
-            f"no out-of-order). Got bars: {bars}"
+            f"{where}.points time_beats must be strictly ascending (no duplicates, "
+            f"no out-of-order). Got time_beats: {times}"
         )
 
     # #3 — Eq8 target_param requires target_band_index for band-specific params

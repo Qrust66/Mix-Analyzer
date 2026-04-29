@@ -1317,23 +1317,38 @@ MASTER_TRACK_NAME: str = "Master"
 
 AUTOMATION_MIN_POINTS: int = 3                 # Min envelope length (parallel to EQ/Dynamics envelopes)
 AUTOMATION_MAX_POINTS: int = 256                # Sanity cap on envelope size
-AUTOMATION_MAX_BAR: int = 9999                  # Project bar count cap (4-min song @ 4/4 = ~16 bars ; cap is generous)
+AUTOMATION_MAX_TIME_BEATS: float = 39996.0      # Cap = 9999 bars × 4 beats/bar (covers ~10h song @ 4/4 120 BPM)
 
 
 @dataclass(frozen=True)
 class AutomationPoint:
-    """One bar-indexed automation point.
+    """One time-indexed automation point in BEATS (Ableton native unit).
 
-    `bar` is project-absolute bar index (0-based). `value` is the
-    parameter value at this bar — meaning depends on the target_param
-    (dB for Gain/Threshold, Hz for Frequency, dimensionless for Q,
-    seconds/ms for Attack/Release, 0..1 for DryWet).
+    Phase 4.8.2 extension : `time_beats: float` replaces the original
+    Phase 4.8 `bar: int` to support sub-bar resolution that aligns with
+    mix_analyzer.py's frame-level analysis precision (analyze_temporal
+    rms_envelope ≈ 11.6 ms ; analyze_multiband_timeline 200 segments
+    per song).
 
-    Tier B automation-writer interpolates linearly between points unless
-    the target_param's device convention dictates otherwise.
+    Conventions :
+    - `time_beats` is project-absolute position in BEATS (Ableton's
+      native XML Time unit ; <FloatEvent Time="X.XX"/>).
+    - In 4/4 time signature : 1 bar = 4 beats. So bar 16 = 64.0 beats.
+    - In 8/8 time signature : 1 bar = 8 beats. So bar 16 = 128.0 beats.
+    - Sub-beat precision allowed : 0.25 = sixteenth-note within beat 0.
+    - For sample-accurate alignment with mix_analyzer time_seconds : use
+      formula `time_beats = (time_seconds / 60) × tempo_bpm` where
+      tempo_bpm is from `analyze_tempo_dynamic` (project-level constant).
+
+    `value` is the parameter value at this point — meaning depends on
+    the target_param (dB for Gain/Threshold, Hz for Frequency,
+    dimensionless for Q, seconds/ms for Attack/Release, 0..1 for DryWet).
+
+    Tier B automation-writer writes <FloatEvent Time="time_beats"
+    Value="value"/> directly — no unit conversion needed (Ableton-native).
     """
 
-    bar: int
+    time_beats: float
     value: float
 
 
@@ -1567,7 +1582,7 @@ __all__ = [
     "MASTER_TRACK_NAME",
     "AUTOMATION_MIN_POINTS",
     "AUTOMATION_MAX_POINTS",
-    "AUTOMATION_MAX_BAR",
+    "AUTOMATION_MAX_TIME_BEATS",
     "AutomationPoint",
     "AutomationEnvelope",
     "AutomationDecision",

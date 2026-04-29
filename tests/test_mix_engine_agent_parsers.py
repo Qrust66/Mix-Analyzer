@@ -2915,7 +2915,7 @@ def test_phase47_audio_metrics_rolloff_above_24000_raises():
 
 
 from mix_engine.blueprint import (
-    AUTOMATION_MAX_BAR,
+    AUTOMATION_MAX_TIME_BEATS,
     AUTOMATION_MAX_POINTS,
     AUTOMATION_MIN_POINTS,
     AutomationDecision,
@@ -2938,9 +2938,9 @@ def _valid_automation_envelope(**overrides) -> dict:
         "target_param": "Ceiling",
         "target_device_instance": 0,
         "points": [
-            {"bar": 0, "value": -1.0},
-            {"bar": 16, "value": -0.5},
-            {"bar": 32, "value": -1.0},
+            {"time_beats": 0, "value": -1.0},
+            {"time_beats": 16, "value": -0.5},
+            {"time_beats": 32, "value": -1.0},
         ],
         "sections": [0, 1, 2],
         "rationale": "Master Limiter ceiling envelope per section : tighter -0.5 dB ceiling in chorus for loudness, -1 dB safety in verses + outro.",
@@ -3038,9 +3038,9 @@ def test_automation_all_valid_purposes_accepted(purpose):
             target_param="Gain",
             target_band_index=4,  # Eq8 band-specific
             points=[
-                {"bar": 0, "value": 0.0},
-                {"bar": 16, "value": -3.5},
-                {"bar": 32, "value": 0.0},
+                {"time_beats": 0, "value": 0.0},
+                {"time_beats": 16, "value": -3.5},
+                {"time_beats": 32, "value": 0.0},
             ],
             sections=[0, 1, 2],
             rationale="Vocal Lead sibilance only in chorus sections : Eq8 band 4 gain envelope cuts -3.5 dB at 7 kHz only when sibilance present.",
@@ -3077,8 +3077,8 @@ def test_automation_check1_points_too_few_raises():
     """#1 : envelope < 3 points."""
     payload = _valid_automation_payload()
     payload["automation"]["envelopes"][0]["points"] = [
-        {"bar": 0, "value": -1.0},
-        {"bar": 16, "value": -0.5},
+        {"time_beats": 0, "value": -1.0},
+        {"time_beats": 16, "value": -0.5},
     ]
     with pytest.raises(MixAgentOutputError, match="≥ 3 points"):
         parse_automation_decision(payload)
@@ -3088,7 +3088,7 @@ def test_automation_check1_points_above_cap_raises():
     """#1 : envelope > AUTOMATION_MAX_POINTS sanity cap."""
     payload = _valid_automation_payload()
     payload["automation"]["envelopes"][0]["points"] = [
-        {"bar": i, "value": -1.0} for i in range(AUTOMATION_MAX_POINTS + 1)
+        {"time_beats": i, "value": -1.0} for i in range(AUTOMATION_MAX_POINTS + 1)
     ]
     with pytest.raises(MixAgentOutputError, match="cap"):
         parse_automation_decision(payload)
@@ -3098,9 +3098,9 @@ def test_automation_check2_bars_not_ascending_raises():
     """#2 : bars must be strictly ascending no duplicates."""
     payload = _valid_automation_payload()
     payload["automation"]["envelopes"][0]["points"] = [
-        {"bar": 0, "value": -1.0},
-        {"bar": 32, "value": -0.5},
-        {"bar": 16, "value": -1.0},  # out of order
+        {"time_beats": 0, "value": -1.0},
+        {"time_beats": 32, "value": -0.5},
+        {"time_beats": 16, "value": -1.0},  # out of order
     ]
     with pytest.raises(MixAgentOutputError, match="ascending"):
         parse_automation_decision(payload)
@@ -3109,9 +3109,9 @@ def test_automation_check2_bars_not_ascending_raises():
 def test_automation_check2_duplicate_bars_raises():
     payload = _valid_automation_payload()
     payload["automation"]["envelopes"][0]["points"] = [
-        {"bar": 0, "value": -1.0},
-        {"bar": 16, "value": -0.5},
-        {"bar": 16, "value": -0.7},  # duplicate
+        {"time_beats": 0, "value": -1.0},
+        {"time_beats": 16, "value": -0.5},
+        {"time_beats": 16, "value": -0.7},  # duplicate
     ]
     with pytest.raises(MixAgentOutputError, match="ascending"):
         parse_automation_decision(payload)
@@ -3204,9 +3204,9 @@ def test_automation_check8_duplicate_envelope_raises():
     env_a = _valid_automation_envelope()
     env_b = _valid_automation_envelope(
         points=[
-            {"bar": 0, "value": -2.0},
-            {"bar": 16, "value": -1.0},
-            {"bar": 32, "value": -2.0},
+            {"time_beats": 0, "value": -2.0},
+            {"time_beats": 16, "value": -1.0},
+            {"time_beats": 32, "value": -2.0},
         ],
     )  # different points but same (track, device, instance, param) tuple
     payload["automation"]["envelopes"] = [env_a, env_b]
@@ -3248,9 +3248,9 @@ def test_automation_distinct_band_indices_accepted():
 def test_automation_bar_above_max_raises():
     payload = _valid_automation_payload()
     payload["automation"]["envelopes"][0]["points"] = [
-        {"bar": 0, "value": -1.0},
-        {"bar": 16, "value": -0.5},
-        {"bar": AUTOMATION_MAX_BAR + 1, "value": -1.0},  # above cap
+        {"time_beats": 0, "value": -1.0},
+        {"time_beats": 16, "value": -0.5},
+        {"time_beats": AUTOMATION_MAX_TIME_BEATS + 1, "value": -1.0},  # above cap
     ]
     with pytest.raises(MixAgentOutputError, match="bar"):
         parse_automation_decision(payload)
@@ -3259,9 +3259,9 @@ def test_automation_bar_above_max_raises():
 def test_automation_negative_bar_raises():
     payload = _valid_automation_payload()
     payload["automation"]["envelopes"][0]["points"] = [
-        {"bar": -1, "value": -1.0},
-        {"bar": 16, "value": -0.5},
-        {"bar": 32, "value": -1.0},
+        {"time_beats": -1, "value": -1.0},
+        {"time_beats": 16, "value": -0.5},
+        {"time_beats": 32, "value": -1.0},
     ]
     with pytest.raises(MixAgentOutputError, match="bar"):
         parse_automation_decision(payload)
@@ -3282,9 +3282,9 @@ def test_automation_corrective_eq8_band_envelope_happy_path():
         target_param="Gain",
         target_band_index=4,
         points=[
-            {"bar": 0, "value": 0.0},     # verse : no cut
-            {"bar": 16, "value": -3.5},    # chorus : sibilance cut
-            {"bar": 32, "value": 0.0},     # outro : no cut
+            {"time_beats": 0, "value": 0.0},     # verse : no cut
+            {"time_beats": 16, "value": -3.5},    # chorus : sibilance cut
+            {"time_beats": 32, "value": 0.0},     # outro : no cut
         ],
         sections=[0, 1, 2],
         rationale="Vocal Lead sibilance variable per section : audio_metrics.spectral_peaks confirms 7kHz peak only in chorus ; envelope makes static -3.5dB cut dynamic.",
@@ -3304,9 +3304,9 @@ def test_automation_corrective_compressor_threshold_envelope():
         target_device="Compressor2",
         target_param="Threshold",
         points=[
-            {"bar": 0, "value": -18.0},   # verse : less compression
-            {"bar": 16, "value": -22.0},   # chorus : more compression
-            {"bar": 32, "value": -18.0},
+            {"time_beats": 0, "value": -18.0},   # verse : less compression
+            {"time_beats": 16, "value": -22.0},   # chorus : more compression
+            {"time_beats": 32, "value": -18.0},
         ],
         sections=[0, 1, 2],
         rationale="Bass A dynamics range varies per section ; threshold envelope -18 verse / -22 chorus prevents pumping in verses while controlling chorus peaks.",
@@ -3325,9 +3325,9 @@ def test_automation_mastering_eq_tilt_envelope():
         target_param="Gain",
         target_band_index=6,  # presence band
         points=[
-            {"bar": 0, "value": 0.0},
-            {"bar": 16, "value": +1.5},   # subtle brightness in chorus
-            {"bar": 32, "value": 0.0},
+            {"time_beats": 0, "value": 0.0},
+            {"time_beats": 16, "value": +1.5},   # subtle brightness in chorus
+            {"time_beats": 32, "value": 0.0},
         ],
         sections=[0, 1, 2],
         rationale="Master EQ tilt subtle brightness boost in chorus per family electronic_dance preference ; +1.5dB at 6kHz only in chorus sections.",
@@ -3345,9 +3345,9 @@ def test_automation_mastering_stereo_width_envelope():
         target_device="StereoGain",
         target_param="StereoWidth",
         points=[
-            {"bar": 0, "value": 1.0},     # verse : neutral
-            {"bar": 16, "value": 1.4},    # chorus : wider
-            {"bar": 32, "value": 1.0},
+            {"time_beats": 0, "value": 1.0},     # verse : neutral
+            {"time_beats": 16, "value": 1.4},    # chorus : wider
+            {"time_beats": 32, "value": 1.0},
         ],
         sections=[0, 1, 2],
         rationale="Master stereo width envelope : neutral in verses (1.0), wider in chorus (1.4) for impact ; transitions at section boundaries.",
@@ -3415,6 +3415,62 @@ def test_automation_negative_target_device_instance_raises():
     payload["automation"]["envelopes"][0]["target_device_instance"] = -1
     with pytest.raises(MixAgentOutputError, match="target_device_instance"):
         parse_automation_decision(payload)
+
+
+def test_automation_phase482_sub_beat_precision_accepted():
+    """Phase 4.8.2 : float time_beats supports sub-beat precision aligned
+    with mix_analyzer.py:analyze_temporal frame-level resolution (~11.6 ms).
+    Sub-beat values like 0.25 (sixteenth-note) accepted."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["points"] = [
+        {"time_beats": 0.0, "value": -1.0},
+        {"time_beats": 0.25, "value": -0.8},     # 1/16 beat
+        {"time_beats": 0.5, "value": -0.6},      # 1/8 beat
+        {"time_beats": 1.0, "value": -0.5},      # 1/4 beat
+        {"time_beats": 1.75, "value": -0.7},     # 7/16 beat
+        {"time_beats": 2.0, "value": -1.0},      # 1/2 bar
+    ]
+    decision = parse_automation_decision(payload)
+    points = decision.value.envelopes[0].points
+    assert len(points) == 6
+    assert points[1].time_beats == 0.25
+    assert points[4].time_beats == 1.75
+
+
+def test_automation_phase482_strict_ascending_with_floats():
+    """Phase 4.8.2 : ascending order check works with float time_beats."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["points"] = [
+        {"time_beats": 0.0, "value": -1.0},
+        {"time_beats": 0.5, "value": -0.5},
+        {"time_beats": 0.25, "value": -0.7},   # out of order
+    ]
+    with pytest.raises(MixAgentOutputError, match="ascending"):
+        parse_automation_decision(payload)
+
+
+def test_automation_phase482_pair_form_lenient():
+    """Phase 4.8.2 : [time_beats, value] pair form still works (lenient parsing)."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["points"] = [
+        [0.0, -1.0],
+        [0.5, -0.5],
+        [1.0, -0.8],
+    ]
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].points[1].time_beats == 0.5
+
+
+def test_automation_phase482_max_time_beats_accepted():
+    """Phase 4.8.2 : AUTOMATION_MAX_TIME_BEATS = 39996.0 accepted (boundary)."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["points"] = [
+        {"time_beats": 0.0, "value": -1.0},
+        {"time_beats": 100.0, "value": -0.5},
+        {"time_beats": AUTOMATION_MAX_TIME_BEATS, "value": -1.0},  # boundary
+    ]
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].points[2].time_beats == AUTOMATION_MAX_TIME_BEATS
 
 
 def test_automation_corrective_with_master_track_raises_via_purpose_check():
