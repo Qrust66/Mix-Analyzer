@@ -144,6 +144,60 @@ for track in tracks:
 
 Quand ces lanes arrivent (Phase 4.7+), chain-builder s'étend pour les consumer.
 
+### 7. Per-track audio metrics (Phase 4.7+ typed source — informe preexisting positioning)
+
+`blueprint.diagnostic.value.tracks[*].audio_metrics: Optional[TrackAudioMetrics]` — populated by mix-diagnostician via lazy absorption.
+
+**Champs particulièrement pertinents pour chain-builder** :
+
+| Field | Use | Decision impact |
+|---|---|---|
+| `dominant_band` | Per-track frequency profile | Bass/sub-territory tracks → Limiter MAY be omitted (sub doesn't peak hot typically) ; vocal-territory → Limiter at chain_end_limiter mandatory |
+| `crest_factor` | Dynamic range scalar | Already-compressed tracks (`< 6` dB crest) → SKIP additional compression slot ; preserve existing devices with note "track already over-compressed per audio_metrics" |
+| `is_stereo` + `correlation` | Stereo content awareness | Mono tracks → skip StereoGain slot inutilement ajouté ; stereo with `correlation < 0` → flag preexisting needs phase fix (Scenario C in stereo-spatial) |
+| `onsets_per_second` | Rhythmic content density | Drum/percussive (`> 6`) → Gate often beneficial at slot 0 ; sustained (`< 1`) → Gate rarely needed |
+| `is_tonal` + `dominant_note` | Musical context | Tonal tracks → cross_lane_notes pour eq-corrective alerter sur cuts touching dominant_note harmonics |
+
+**Use case principal Phase 4.7.4 — Preexisting positioning data-driven** :
+
+Phase 4.6.1 documented heuristic "preserve relative order of existing devices ; place after Tier A insertions de proximité fonctionnelle". Phase 4.7+ enhances :
+
+```
+For each is_preexisting=True slot in plan :
+    if track.audio_metrics is not None:
+        # Data-driven positioning hint based on track audio character
+        if device == "Reverb" AND track.audio_metrics.is_stereo:
+            # Reverb on stereo track → place at chain_end (post-spatial enhancement)
+            position = chain_end
+        elif device == "Reverb" AND not is_stereo:
+            # Reverb on mono → place pre-spatial for stereo widening effect
+            position = post_dynamics_corrective
+        elif device in {"Saturator", "Soothe2", "ProQ3"}:
+            # Color/correction VSTs → preserve existing position
+            position = original_index_position
+        elif device == "Tuner":
+            # Tuner = monitoring, always at chain_start
+            position = 0
+```
+
+Backward-compat : `audio_metrics is None` → fall to Phase 4.6.1 heuristic (canonical mapping by device family or original_index).
+
+### 8. Genre context (Phase 4.7+ project-level — chain ordering tendencies)
+
+`report.genre_context.family` provides light hints for chain composition :
+
+| `family` | Chain tendencies |
+|---|---|
+| `electronic_aggressive` / `electronic_dance` | Sidechain compression COMMON (kick→bass via Compressor2.SideChain) ; Limiter mandatory on master groups |
+| `rock` | Saturator on bass/guitars typical (eq_creative scope when arrives) ; standard Comp+EQ on drums |
+| `acoustic` | Minimal chain (Comp + light EQ) ; preserve natural dynamics |
+| `urban` / `pop` | Heavy compression on vocals + de-essing (Compressor2 internal_filtered sidechain) ; multiband possible |
+| `electronic_soft` | Light dynamics ; spatial widening common (StereoGain) |
+
+**Cross-lane note** : si `genre_context.family == "electronic_aggressive"` AND track is bass/kick AND no sidechain Compressor2 scheduled → flag in cross_lane_notes "genre suggests sidechain duck commonly used on this track type ; consider dynamics-corrective Scenario B if not already".
+
+Backward-compat : `genre_context is None` → no additional cross-lane notes ; existing canonical chain rules apply.
+
 ## Architecture du chemin de décision
 
 ```
