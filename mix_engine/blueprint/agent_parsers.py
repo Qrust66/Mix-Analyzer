@@ -1372,9 +1372,12 @@ def _parse_dynamics_correction(item: Any, *, where: str) -> DynamicsCorrection:
     inspired_by = _parse_citations(inspired_by_raw, where=f"{where}.inspired_by")
 
     # ------------------------------------------------------------------
-    # Cross-field semantic-contradiction checks (12 total — pure-payload).
+    # Cross-field semantic-contradiction checks (11 numbered — pure-payload).
     # The original Pass-2 list had 13 ; check #2 (gate threshold > 0) was
     # dropped because the threshold_db range [-60, 0] already enforces it.
+    # Plus envelope rules enforced in `_parse_dynamics_envelope_strict`
+    # (≥ 3 points if non-empty, bar-ascending strict, value range checks
+    # per envelope type — total enforcement = 11 here + 3 in helper).
     # ------------------------------------------------------------------
 
     # #1 — compress with effectively-no-compression ratio

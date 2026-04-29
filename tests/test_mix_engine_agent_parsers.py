@@ -965,6 +965,113 @@ def test_dyn_empty_corrections_accepted():
 # ----------------------------------------------------------------------------
 
 
+def test_dyn_chain_position_chain_end_accepted():
+    """Phase 4.3 audit fix : 'chain_end' (generic) added for parity with
+    eq-corrective ; bus_glue on Group track typically lands here."""
+    payload = _valid_dyn_payload()
+    payload["dynamics_corrective"]["corrections"][0] = _valid_dyn_correction(
+        track="Drums Bus",
+        dynamics_type="bus_glue", device="GlueCompressor",
+        threshold_db=-10.0, ratio=2.0, attack_ms=10.0,
+        release_ms=None, release_auto=True,
+        makeup_db=2.0, knee_db=None,
+        chain_position="chain_end",
+        rationale="Drums Bus glue placed at chain_end : GlueComp est le dernier device sur ce Group, pas de Limiter aval.",
+        inspired_by=[
+            {"kind": "user_brief", "path": "brief:glue", "excerpt": "glue the drums bus"},
+        ],
+    )
+    decision = parse_dynamics_corrective_decision(payload)
+    assert decision.value.corrections[0].chain_position == "chain_end"
+
+
+def test_dyn_makeup_envelope_happy_path():
+    """makeup_envelope tracking verse/chorus dynamic compensation."""
+    payload = _valid_dyn_payload()
+    payload["dynamics_corrective"]["corrections"][0].update({
+        "makeup_envelope": [
+            {"bar": 0, "value": 2.0},
+            {"bar": 16, "value": 4.0},
+            {"bar": 32, "value": 2.0},
+        ],
+        "sections": [0, 1, 2],
+    })
+    decision = parse_dynamics_corrective_decision(payload)
+    env = decision.value.corrections[0].makeup_envelope
+    assert len(env) == 3
+    assert env[1].value == 4.0
+
+
+def test_dyn_dry_wet_envelope_happy_path():
+    """dry_wet_envelope for parallel-compress blend changes per section."""
+    payload = _valid_dyn_payload()
+    payload["dynamics_corrective"]["corrections"][0] = _valid_dyn_correction(
+        dynamics_type="parallel_compress", device="Compressor2",
+        threshold_db=-25.0, ratio=6.0, attack_ms=2.0, release_ms=80.0,
+        makeup_db=None, knee_db=None,
+        dry_wet=0.4,
+        dry_wet_envelope=[
+            {"bar": 0, "value": 0.3},
+            {"bar": 16, "value": 0.5},
+            {"bar": 32, "value": 0.3},
+        ],
+        sections=[0, 1, 2],
+        rationale="Parallel comp Bass A : dry_wet envelope 0.3→0.5→0.3 augmente density au chorus puis revient au verse.",
+        inspired_by=[
+            {"kind": "user_brief", "path": "brief:parallel",
+             "excerpt": "parallel comp Bass with denser blend in chorus"},
+        ],
+    )
+    decision = parse_dynamics_corrective_decision(payload)
+    env = decision.value.corrections[0].dry_wet_envelope
+    assert len(env) == 3
+    assert env[1].value == 0.5
+
+
+@pytest.mark.parametrize("mode", ["mid", "side"])
+def test_dyn_processing_mode_ms_accepted(mode):
+    """Phase 4.3 : M/S processing valid for bus master compression. Agent
+    is responsible for verifying correlation < 0.95 (not parser)."""
+    payload = _valid_dyn_payload()
+    payload["dynamics_corrective"]["corrections"][0]["processing_mode"] = mode
+    decision = parse_dynamics_corrective_decision(payload)
+    assert decision.value.corrections[0].processing_mode == mode
+
+
+def test_dyn_invalid_processing_mode_raises():
+    payload = _valid_dyn_payload()
+    payload["dynamics_corrective"]["corrections"][0]["processing_mode"] = "stereo_diff"
+    with pytest.raises(MixAgentOutputError, match="processing_mode"):
+        parse_dynamics_corrective_decision(payload)
+
+
+@pytest.mark.parametrize("position", sorted(VALID_DYNAMICS_CHAIN_POSITIONS))
+def test_dyn_all_valid_chain_positions_parse(position):
+    """Smoke : every value in VALID_DYNAMICS_CHAIN_POSITIONS is accepted.
+    Picks scenarios that legitimize each position (gate_first → Gate,
+    chain_end_limiter → Limiter, etc.) rather than blindly testing the
+    string."""
+    # Build a correction whose dynamics_type/device pair is compatible
+    # with the position. Keep it minimal but valid.
+    base_overrides = {"chain_position": position}
+    if position == "gate_first":
+        base_overrides.update({
+            "dynamics_type": "gate", "device": "Gate",
+            "threshold_db": -40.0, "ratio": None,
+        })
+    elif position == "chain_end_limiter":
+        base_overrides.update({
+            "dynamics_type": "limit", "device": "Limiter",
+            "threshold_db": None, "ratio": None, "attack_ms": None,
+            "release_ms": 50.0, "makeup_db": None, "knee_db": None,
+            "ceiling_db": -1.0,
+        })
+    payload = _valid_dyn_payload()
+    payload["dynamics_corrective"]["corrections"][0] = _valid_dyn_correction(**base_overrides)
+    decision = parse_dynamics_corrective_decision(payload)
+    assert decision.value.corrections[0].chain_position == position
+
+
 def test_dyn_all_valid_dynamics_types_can_be_parsed():
     """Smoke : each valid dynamics_type can produce a coherent correction."""
     valid_combos = [

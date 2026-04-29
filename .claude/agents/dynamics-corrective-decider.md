@@ -646,13 +646,14 @@ Co-designed avec eq-corrective : chaque agent a son vocabulaire device-family-ce
 | `"pre_saturation"` | Avant Saturator/DrumBuss — comp clean signal avant coloration |
 | `"post_saturation"` | Après last Saturator/DrumBuss — clamper peaks générés par sat |
 | `"pre_limiter"` | Avant le Limiter finalizer (typique : final comp puis limit) |
-| `"chain_end_limiter"` | Limiter en dernier (placement obligé pour Limiter device) |
+| `"chain_end"` | Dernier device — générique. Ex: GlueComp en fin de chain sur Group Drums (pas de limiter aval) |
+| `"chain_end_limiter"` | Limiter en dernier (slot obligé spécifique au Limiter device, distinct du `chain_end` générique pour clarté quand les deux pourraient coexister) |
 
 ### Heuristiques par scenario
 
 - **Scenario A (compress)** : `"post_eq_corrective"` (default — comp signal nettoyé)
 - **Scenario B (sidechain duck)** : `"post_eq_corrective"` (default)
-- **Scenario C (bus_glue)** : `"post_eq_corrective"` ou `"chain_end"` (rare car GlueComp a souvent un Limiter aval pour le bus)
+- **Scenario C (bus_glue)** : `"post_eq_corrective"` quand le bus a d'autres devices après ; `"chain_end"` quand GlueComp est le dernier device du Group (cas typique drums bus sans Limiter aval)
 - **Scenario D (gate)** : `"gate_first"` (mandatory — gate doit voir signal raw)
 - **Scenario E (limit per-track)** : `"chain_end_limiter"` (mandatory pour Limiter)
 - **Scenario F (transient_shape)** : `"post_eq_corrective"` (DrumBuss après cleanup)
@@ -756,6 +757,10 @@ JSON pur (no fences) :
 ## Anti-patterns (non négociables)
 
 ### Parser-enforced (raise hard)
+
+11 cross-field semantic-contradiction checks — numbering matches the
+parser source (`agent_parsers.py` `# #1 — ...` comments) :
+
 1. ❌ `dynamics_type="compress"` AND `ratio < 1.1` (no compression)
 2. ❌ `dynamics_type="limit"` AND `ceiling_db > 0` (impossible)
 3. ❌ `dynamics_type="sidechain_duck"` sans `SidechainConfig(mode="external", ...)` ou `mode != "external"`
@@ -764,10 +769,16 @@ JSON pur (no fences) :
 6. ❌ `device="GlueCompressor"` AND `dynamics_type != "bus_glue"`
 7. ❌ `device="DrumBuss"` AND `dynamics_type != "transient_shape"`
 8. ❌ Envelope non-empty AND `sections=()` ambiguous
-9. ❌ Envelope `< 3 points` (2 = ramp = static)
+9. ❌ `rationale < 50 chars` ou `inspired_by` vide (depth-light)
 10. ❌ Sidechain external sans `depth_db` intent
 11. ❌ `release_auto=True` sur `device="Compressor2"` (no auto-release sur Compressor2)
-12. ❌ `rationale < 50 chars` ou `inspired_by` vide
+
+**Plus 3 envelope rules** enforced in `_parse_dynamics_envelope_strict`
+(non-numbered, raised same way) :
+- Envelope `< 3 points` if non-empty (2 = ramp = static change)
+- Envelope bars not strictly ascending (no duplicates, no out-of-order)
+- Envelope value out of its type-specific range (e.g.,
+  `sidechain_depth_envelope` value < -24 or > 0)
 
 ### Agent-prompt enforced (review pass)
 - ❌ Compression sur track avec `Very low crest factor` anomaly per-track (HARD REFUSE)
