@@ -257,6 +257,86 @@ def _write_limiter_params(
     return warnings
 
 
+# ============================================================================
+# Phase 4.11 Step 3 — envelope writing helpers
+# ============================================================================
+#
+# Duplicates `_bar_to_time_beats` + `_remove_envelope_for_pointee` from
+# eq8_configurator (intentional small duplication ; refactor to als_utils
+# planned when a 3rd writer needs the same logic). Same conventions :
+# 4 beats/bar (4/4 assumed), pointee-id-based envelope replacement.
+
+_BEATS_PER_BAR_4_4: float = 4.0
+
+
+def _bar_to_time_beats(bar: int, beats_per_bar: float = _BEATS_PER_BAR_4_4) -> float:
+    return float(bar) * beats_per_bar
+
+
+def _remove_envelope_for_pointee(
+    track_element: ET.Element, pointee_id: str
+) -> bool:
+    """Remove any AutomationEnvelope targeting the given PointeeId.
+
+    Idempotency : when re-applying decisions, replace existing envelopes
+    rather than duplicate. Returns True if removed.
+    """
+    envelopes_node = track_element.find("AutomationEnvelopes/Envelopes")
+    if envelopes_node is None:
+        return False
+    for envelope in list(envelopes_node):
+        pointee = envelope.find("EnvelopeTarget/PointeeId")
+        if pointee is not None and pointee.get("Value") == str(pointee_id):
+            envelopes_node.remove(envelope)
+            return True
+    return False
+
+
+def _write_dynamics_envelope(
+    track_el: ET.Element,
+    device_element: ET.Element,
+    param_name: str,  # "Threshold", "Makeup", "DryWet" (GlueCompressor)
+    points: tuple,    # tuple[DynamicsAutomationPoint, ...]
+    next_id_counter: list[int],
+) -> tuple[bool, list[str]]:
+    """Write one AutomationEnvelope on (device.<param_name>).
+
+    Returns (replaced_existing, warnings).
+
+    Raises ValueError if device has no <param_name>/AutomationTarget — caller
+    decides whether that's a Tier A misconfiguration (envelope on a param
+    the device doesn't have) or a Tier B limitation (param not yet wired).
+    """
+    warnings: list[str] = []
+
+    target_id = als_utils.get_automation_target_id(device_element, param_name)
+    replaced = _remove_envelope_for_pointee(track_el, target_id)
+
+    events: list[tuple[float, float]] = [
+        (_bar_to_time_beats(p.bar), float(p.value)) for p in points
+    ]
+
+    als_utils.write_automation_envelope(
+        track_el,
+        pointee_id=target_id,
+        events=events,
+        next_id_counter=next_id_counter,
+        event_type="FloatEvent",
+    )
+    return replaced, warnings
+
+
+# Mapping : EQBandCorrection envelope field name → device param name to write
+# Phase 4.11 v1 supports threshold/makeup/dry_wet on GlueCompressor only.
+# Limiter envelopes (e.g., dynamic Ceiling) are out of scope (Limiter has
+# different param set ; Phase 4.12 may add).
+_GLUE_ENVELOPE_PARAM_MAP: dict[str, str] = {
+    "threshold_envelope": "Threshold",
+    "makeup_envelope": "Makeup",
+    "dry_wet_envelope": "DryWet",
+}
+
+
 def _find_existing_device(
     track_element: ET.Element,
     device_tag: str,
@@ -334,6 +414,11 @@ def apply_dynamics_corrective_decision(
     corrections_skipped: list[tuple[str, str]] = []
     warnings: list[str] = []
     devices_reused: int = 0
+    automations_written: int = 0
+
+    # Shared next-id counter for envelope event Ids (mutated by
+    # write_automation_envelope). Initialized from current tree max-Id + 1.
+    next_id_counter: list[int] = [als_utils.get_next_id(tree)]
 
     for correction in corrections:
         correction_id = (
@@ -391,6 +476,51 @@ def apply_dynamics_corrective_decision(
         for w in param_warnings:
             warnings.append(f"{correction_id}: {w}")
 
+        # Phase 4.11 Step 3 — write envelopes (4 types ; Phase 4.11 v1 maps
+        # 3 of them onto GlueCompressor params, skips on Limiter)
+        if (correction.threshold_envelope or correction.makeup_envelope
+                or correction.dry_wet_envelope
+                or correction.sidechain_depth_envelope):
+            if correction.sections:
+                warnings.append(
+                    f"{correction_id} : envelopes specified with sections="
+                    f"{correction.sections} — Phase 4.11 v1 only supports "
+                    f"sections=() (project-absolute bars). Envelopes SKIPPED."
+                )
+            elif correction.device == "Limiter":
+                warnings.append(
+                    f"{correction_id} : envelopes on Limiter not yet "
+                    f"supported (no envelope-compatible params in current "
+                    f"Limiter param set). Skipped."
+                )
+            elif correction.device == "GlueCompressor":
+                for env_field, param_name in _GLUE_ENVELOPE_PARAM_MAP.items():
+                    points = getattr(correction, env_field)
+                    if not points:
+                        continue
+                    try:
+                        replaced, env_warns = _write_dynamics_envelope(
+                            track_el, device, param_name, points, next_id_counter,
+                        )
+                        warnings.extend(env_warns)
+                        if replaced:
+                            warnings.append(
+                                f"{correction_id} : existing {param_name} "
+                                f"envelope replaced (idempotency)."
+                            )
+                        automations_written += 1
+                    except ValueError as exc:
+                        warnings.append(
+                            f"{correction_id} : {env_field} write FAILED — "
+                            f"{exc}. Static param still applied."
+                        )
+                if correction.sidechain_depth_envelope:
+                    warnings.append(
+                        f"{correction_id} : sidechain_depth_envelope skipped "
+                        f"— sidechain feature deferred to Phase 4.12 "
+                        f"(requires Compressor2 sidechain block writer)."
+                    )
+
         corrections_applied.append(correction_id)
         _LOGGER.info("Applied %s", correction_id)
 
@@ -399,6 +529,7 @@ def apply_dynamics_corrective_decision(
             corrections_applied=tuple(corrections_applied),
             corrections_skipped=tuple(corrections_skipped),
             devices_reused=devices_reused,
+            automations_written=automations_written,
             warnings=tuple(warnings),
             output_path=str(als_path),
         )
@@ -412,6 +543,7 @@ def apply_dynamics_corrective_decision(
         corrections_applied=tuple(corrections_applied),
         corrections_skipped=tuple(corrections_skipped),
         devices_reused=devices_reused,
+        automations_written=automations_written,
         safety_guardian_status=safety_status,
         warnings=tuple(warnings),
         output_path=str(final_als),

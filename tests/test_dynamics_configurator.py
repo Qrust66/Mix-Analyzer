@@ -549,6 +549,194 @@ def test_apply_limiter_chain_end_limiter_position(tmp_path):
     assert report.devices_reused == 1
 
 
+# ============================================================================
+# Phase 4.11 Step 3 — Envelope writing (threshold/makeup/dry_wet on GlueComp)
+# ============================================================================
+
+from mix_engine.blueprint import DynamicsAutomationPoint  # noqa: E402
+
+
+def _glue_with_envelope(envelope_field: str, points: list, **overrides):
+    """Build a GlueCompressor correction with one envelope on threshold/makeup/dry_wet."""
+    base = dict(
+        track="[H/R] Bass Rythm",
+        dynamics_type="bus_glue",
+        device="GlueCompressor",
+        threshold_db=-10.0,
+        ratio=2.0,
+        attack_ms=10.0,
+        release_ms=100.0,
+        makeup_db=2.0,
+        dry_wet=1.0,
+        chain_position="default",
+        rationale="Dynamic envelope baseline test for envelope writing path Step 3.",
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+        threshold_envelope=(),
+        makeup_envelope=(),
+        dry_wet_envelope=(),
+        sidechain_depth_envelope=(),
+        sections=(),
+    )
+    base.update(overrides)
+    base[envelope_field] = tuple(
+        DynamicsAutomationPoint(bar=b, value=v) for b, v in points
+    )
+    return DynamicsCorrection(**base)
+
+
+def test_apply_threshold_envelope_writes_automation(tmp_path):
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    correction = _glue_with_envelope(
+        "threshold_envelope",
+        [(0, -10.0), (16, -14.0), (32, -10.0)],
+    )
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Test threshold envelope on GlueCompressor.",
+        confidence=0.85,
+    )
+    report = apply_dynamics_corrective_decision(ref_copy, decision, output_path=output)
+    assert report.automations_written == 1
+
+    tree = als_utils.parse_als(str(output))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    envelopes = track.findall(".//AutomationEnvelopes/Envelopes/AutomationEnvelope")
+    assert len(envelopes) >= 1
+    counts = [len(e.findall(".//FloatEvent")) for e in envelopes]
+    # 3 points + 1 default pre-song = 4 events on the new envelope
+    assert 4 in counts
+
+
+def test_apply_multi_envelope_one_correction(tmp_path):
+    """Threshold + Makeup + DryWet envelopes on same GlueComp → 3 envelopes."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    base = dict(
+        track="[H/R] Bass Rythm",
+        dynamics_type="bus_glue",
+        device="GlueCompressor",
+        threshold_db=-10.0,
+        ratio=2.0,
+        attack_ms=10.0,
+        release_ms=100.0,
+        makeup_db=2.0,
+        dry_wet=1.0,
+        chain_position="default",
+        rationale="Triple envelope (threshold+makeup+drywet) on GlueCompressor.",
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+        sections=(),
+    )
+    correction = DynamicsCorrection(
+        threshold_envelope=(DynamicsAutomationPoint(0, -10),
+                             DynamicsAutomationPoint(16, -12),
+                             DynamicsAutomationPoint(32, -10)),
+        makeup_envelope=(DynamicsAutomationPoint(0, 2),
+                          DynamicsAutomationPoint(16, 3),
+                          DynamicsAutomationPoint(32, 2)),
+        dry_wet_envelope=(DynamicsAutomationPoint(0, 1.0),
+                           DynamicsAutomationPoint(16, 0.7),
+                           DynamicsAutomationPoint(32, 1.0)),
+        sidechain_depth_envelope=(),
+        **base,
+    )
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Triple envelope test.",
+        confidence=0.8,
+    )
+    report = apply_dynamics_corrective_decision(ref_copy, decision, output_path=output)
+    assert report.automations_written == 3
+
+
+def test_apply_envelope_with_sections_skipped_with_warning(tmp_path):
+    """sections non-empty + envelope → SKIPPED with warning, static still applied."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    correction = _glue_with_envelope(
+        "threshold_envelope",
+        [(0, -10), (16, -14), (32, -10)],
+        sections=(2,),
+    )
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Envelope with sections — Phase 4.11 v1 limitation expected.",
+        confidence=0.7,
+    )
+    report = apply_dynamics_corrective_decision(ref_copy, decision, output_path=output)
+    assert len(report.corrections_applied) == 1  # static still applied
+    assert report.automations_written == 0  # envelope skipped
+    assert any("sections" in w.lower() and "skipped" in w.lower()
+                for w in report.warnings)
+
+
+def test_apply_envelope_on_limiter_skipped_with_warning(tmp_path):
+    """Limiter envelopes not yet supported (no compatible params) → skipped."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    correction = DynamicsCorrection(
+        track="[H/R] Bass Rythm",
+        dynamics_type="limit",
+        device="Limiter",
+        ceiling_db=-0.5,
+        release_ms=50.0,
+        threshold_envelope=(DynamicsAutomationPoint(0, -3),
+                             DynamicsAutomationPoint(16, -1),
+                             DynamicsAutomationPoint(32, -3)),
+        chain_position="default",
+        rationale="Limiter envelope test — Phase 4.11 v1 should skip with warning.",
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Limiter envelope skip test.",
+        confidence=0.7,
+    )
+    report = apply_dynamics_corrective_decision(ref_copy, decision, output_path=output)
+    # Static Ceiling still written
+    assert len(report.corrections_applied) == 1
+    # Envelope NOT written (Limiter envelopes not supported v1)
+    assert report.automations_written == 0
+    assert any("Limiter" in w and "not yet supported" in w
+                for w in report.warnings)
+
+
+def test_apply_sidechain_depth_envelope_deferred_warning(tmp_path):
+    """sidechain_depth_envelope deferred to Phase 4.12 → warning, no write."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    correction = _glue_with_envelope(
+        "sidechain_depth_envelope",
+        [(0, -3), (16, -8), (32, -3)],
+    )
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Sidechain depth envelope test — Phase 4.12 deferred.",
+        confidence=0.7,
+    )
+    report = apply_dynamics_corrective_decision(ref_copy, decision, output_path=output)
+    assert any("sidechain_depth_envelope" in w and "deferred" in w
+                for w in report.warnings)
+    # 0 envelopes written (sidechain only ; threshold/makeup/dry_wet are
+    # empty in this correction)
+    assert report.automations_written == 0
+
+
 def test_apply_multi_correction_mixed(tmp_path):
     """3 corrections : 1 GlueComp valid + 1 Limiter valid + 1 Compressor2 skipped."""
     ref_copy = tmp_path / "ref.als"
