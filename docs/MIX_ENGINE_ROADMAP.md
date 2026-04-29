@@ -33,7 +33,7 @@ purement décisionnel.
 | Tier B agent | Consomme | Écrit dans .als | Status |
 |---|---|---|---|
 | `eq8-configurator` | `EQCorrectiveDecision` | Eq8 devices, 8 bandes max, Mode 0-7 mapping | ✅ **Phase 4.10 done** (5 steps, 60 tests) |
-| `dynamics-configurator` | `DynamicsCorrectiveDecision` | Compressor2/GlueComp/Limiter/Gate/DrumBuss | 🟡 1-2 jours |
+| `dynamics-configurator` | `DynamicsCorrectiveDecision` | GlueCompressor + Limiter (Phase 4.11), Compressor2/Gate/DrumBuss (Phase 4.12) | ✅ **Phase 4.11 v1 done** (4 steps, 32 tests, REUSE-only) |
 | `routing-configurator` | `RoutingDecision` | Bus, sidechain refs, sends | 🟡 1 jour |
 | `spatial-configurator` | `SpatialDecision` | Utility/StereoGain devices | 🟡 1 jour |
 | `chain-assembler` | `ChainBuildDecision` | Ordre absolu devices par track | 🟡 1-2 jours |

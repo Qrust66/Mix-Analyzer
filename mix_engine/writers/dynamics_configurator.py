@@ -337,6 +337,118 @@ _GLUE_ENVELOPE_PARAM_MAP: dict[str, str] = {
 }
 
 
+# ============================================================================
+# Phase 4.11 Step 4 — Post-write deterministic safety checks
+# ============================================================================
+#
+# Subset of als-safety-guardian (LLM agent) for dynamics-relevant XML.
+# Mirror of eq8_configurator._run_safety_checks (Phase 4.10 Step 5)
+# with dynamics-specific param ranges. Runs ALWAYS post-write unless
+# disabled.
+
+_DYNAMICS_SAFETY_RANGES: dict[str, dict[str, tuple[float, float]]] = {
+    "GlueCompressor": {
+        "Threshold":   (-60.0, 0.0),
+        "Ratio":       (0.0, 100.0),    # GlueCompressor stores enum 0/1/2
+        "Attack":      (0.0, 200.0),    # Eq8/comp range
+        "Release":     (1.0, 5000.0),
+        "Makeup":      (-24.0, 24.0),
+        "DryWet":      (0.0, 1.0),
+    },
+    "Limiter": {
+        "Ceiling":     (-12.0, 0.0),
+        "Release":     (1.0, 5000.0),
+    },
+}
+
+
+def _run_safety_checks(als_path: str | Path) -> tuple[str, list[str]]:
+    """Run deterministic structural checks on a written .als.
+
+    Returns (status, issues). status ∈ {"PASS", "FAIL"}.
+
+    Phase 4.11 Step 4 checks :
+    1. File exists, gunzippable, parses as XML
+    2. NextPointeeId > max(Id) (Ableton load requirement)
+    3. GlueCompressor params within audio-physics bounds
+    4. Limiter params within bounds
+    5. No duplicate AutomationEnvelope on same PointeeId per track
+    """
+    issues: list[str] = []
+    als_path = Path(als_path)
+
+    if not als_path.exists():
+        return "FAIL", [f"File does not exist: {als_path}"]
+
+    try:
+        tree = als_utils.parse_als(str(als_path))
+    except Exception as exc:
+        return "FAIL", [f"Cannot parse as .als: {type(exc).__name__}: {exc}"]
+
+    root = tree.getroot()
+
+    # NextPointeeId > max(Id)
+    next_pid_el = root.find(".//NextPointeeId")
+    max_id = 0
+    for elem in root.iter():
+        raw = elem.get("Id")
+        if raw is not None:
+            try:
+                v = int(raw)
+                if v > max_id:
+                    max_id = v
+            except ValueError:
+                pass
+    if next_pid_el is not None:
+        try:
+            next_pid_val = int(next_pid_el.get("Value", "0"))
+            if next_pid_val <= max_id:
+                issues.append(
+                    f"NextPointeeId={next_pid_val} ≤ max Id ({max_id}) ; "
+                    f"Ableton will refuse to load."
+                )
+        except ValueError:
+            issues.append(
+                f"NextPointeeId Value not an int: {next_pid_el.get('Value')!r}"
+            )
+
+    # Dynamics device param ranges
+    for device_tag, params in _DYNAMICS_SAFETY_RANGES.items():
+        for device in root.findall(f".//{device_tag}"):
+            for param_name, (lo, hi) in params.items():
+                manual = device.find(f"{param_name}/Manual")
+                if manual is None:
+                    continue
+                try:
+                    val = float(manual.get("Value", "0"))
+                    if not (lo <= val <= hi):
+                        issues.append(
+                            f"{device_tag}/{param_name}={val} out of "
+                            f"[{lo}, {hi}]"
+                        )
+                except ValueError:
+                    pass
+
+    # No duplicate AutomationEnvelope on same PointeeId per track
+    for track in root.findall(".//AudioTrack") + root.findall(".//MidiTrack"):
+        envs = track.findall(".//AutomationEnvelopes/Envelopes/AutomationEnvelope")
+        seen: dict[str, int] = {}
+        for env in envs:
+            pointee = env.find(".//PointeeId")
+            if pointee is None:
+                continue
+            pid = pointee.get("Value", "")
+            seen[pid] = seen.get(pid, 0) + 1
+        for pid, count in seen.items():
+            if count > 1:
+                issues.append(
+                    f"Duplicate AutomationEnvelope on PointeeId={pid} "
+                    f"({count} envelopes — non-deterministic Ableton behavior)"
+                )
+
+    return ("PASS" if not issues else "FAIL"), issues
+
+
 def _find_existing_device(
     track_element: ET.Element,
     device_tag: str,
@@ -536,8 +648,14 @@ def apply_dynamics_corrective_decision(
 
     final_als = als_utils.save_als_from_tree(tree, str(output_path))
 
-    # Phase 4.11 Step 4 will add safety_guardian. For Step 1 it stays SKIPPED.
+    # Phase 4.11 Step 4 — deterministic post-write safety checks (subset of
+    # als-safety-guardian LLM agent, mirror of eq8-configurator Step 5).
     safety_status = "SKIPPED"
+    if invoke_safety_guardian:
+        safety_status, safety_issues = _run_safety_checks(final_als)
+        if safety_issues:
+            for issue in safety_issues:
+                warnings.append(f"safety_guardian: {issue}")
 
     return DynamicsConfiguratorReport(
         corrections_applied=tuple(corrections_applied),

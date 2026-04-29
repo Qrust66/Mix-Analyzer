@@ -737,6 +737,111 @@ def test_apply_sidechain_depth_envelope_deferred_warning(tmp_path):
     assert report.automations_written == 0
 
 
+# ============================================================================
+# Phase 4.11 Step 4 — Safety guardian (post-write deterministic checks)
+# ============================================================================
+
+from mix_engine.writers.dynamics_configurator import _run_safety_checks  # noqa: E402
+
+
+def test_safety_check_pass_on_fresh_apply(tmp_path):
+    """Standard apply produces a .als that passes deterministic safety checks."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    correction = _make_correction(threshold_db=-12.0, ratio=2.0)
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Safety baseline test.",
+        confidence=0.85,
+    )
+    report = apply_dynamics_corrective_decision(ref_copy, decision, output_path=output)
+    assert report.safety_guardian_status == "PASS"
+    sg_warnings = [w for w in report.warnings if "safety_guardian:" in w]
+    assert len(sg_warnings) == 0
+
+
+def test_safety_check_skipped_when_disabled(tmp_path):
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    correction = _make_correction()
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Safety skip test.",
+        confidence=0.85,
+    )
+    report = apply_dynamics_corrective_decision(
+        ref_copy, decision, output_path=output, invoke_safety_guardian=False,
+    )
+    assert report.safety_guardian_status == "SKIPPED"
+
+
+def test_safety_check_skipped_for_dry_run(tmp_path):
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    correction = _make_correction()
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Dry-run safety test.",
+        confidence=0.85,
+    )
+    report = apply_dynamics_corrective_decision(ref_copy, decision, dry_run=True)
+    assert report.safety_guardian_status == "SKIPPED"
+
+
+def test_safety_check_unmodified_als_passes():
+    """Reference fixture passes safety check verbatim."""
+    status, issues = _run_safety_checks(_REF_ALS)
+    assert status == "PASS", f"Reference fixture has issues: {issues}"
+
+
+def test_safety_check_detects_corrupted_file(tmp_path):
+    bad = tmp_path / "bad.als"
+    bad.write_bytes(b"not a real .als")
+    status, issues = _run_safety_checks(bad)
+    assert status == "FAIL"
+    assert any("Cannot parse" in i for i in issues)
+
+
+def test_safety_check_idempotent_re_apply(tmp_path):
+    """Re-applying same decision produces same XML output (idempotent)."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    correction = _make_correction(threshold_db=-15.0, ratio=2.0, attack_ms=20.0)
+    decision = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Idempotency test — re-apply should be no-op.",
+        confidence=0.85,
+    )
+    apply_dynamics_corrective_decision(ref_copy, decision, output_path=output)
+
+    # Read GlueComp Threshold after first apply
+    tree1 = als_utils.parse_als(str(output))
+    track1 = als_utils.find_track_by_name(tree1, "[H/R] Bass Rythm")
+    threshold1 = float(track1.find(".//GlueCompressor/Threshold/Manual").get("Value"))
+
+    # Re-apply same decision on output
+    output2 = tmp_path / "out2.als"
+    report2 = apply_dynamics_corrective_decision(output, decision, output_path=output2)
+    tree2 = als_utils.parse_als(str(output2))
+    track2 = als_utils.find_track_by_name(tree2, "[H/R] Bass Rythm")
+    threshold2 = float(track2.find(".//GlueCompressor/Threshold/Manual").get("Value"))
+
+    # Same value (writing -15 onto -15 = no change)
+    assert abs(threshold1 - threshold2) < 0.001
+    assert report2.safety_guardian_status == "PASS"
+
+
 def test_apply_multi_correction_mixed(tmp_path):
     """3 corrections : 1 GlueComp valid + 1 Limiter valid + 1 Compressor2 skipped."""
     ref_copy = tmp_path / "ref.als"
