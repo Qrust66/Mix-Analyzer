@@ -824,6 +824,137 @@ class RoutingDecision:
     repairs: tuple[SidechainRepair, ...] = ()
 
 
+# ============================================================================
+# Stereo & spatial lane — Phase 4.5
+# ============================================================================
+#
+# Tier A schema for pan / width / phase / mono / balance / mid-side moves.
+# Parallel sibling of eq-corrective and dynamics-corrective. Tier B
+# (spatial-configurator, future) writes Mixer.Pan OR StereoGain.* params
+# per move_type.
+#
+# Phase 4.5 scope (rule-with-consumer) :
+# 7 move types covering the StereoGain swiss-army-knife capabilities :
+#   pan, width, mono, bass_mono, phase_flip, balance, ms_balance.
+# Out-of-scope (Phase 4.5.x extensions) :
+#   ChannelMode (Left/Right/Swap routing) — sound design / repair
+#   Trackspacer VST3 dynamic spectral carving — eq-creative scope
+#   Reverb/delay sends spatial depth — fx-decider scope
+#   Per-track stereo_state typed exposure — when 2nd consumer needs it
+#
+# Audit findings applied (cf. Pass 1 v2 + Pass 2 audits) :
+# - StereoWidth range corrected to [0, 4] (catalog real range, was [0, 2])
+# - MidSideBalance range corrected to [0, 2] with neutral=1.0
+#   (was [-1, 1] with neutral=0 — fictive encoding, real catalog uses
+#    0='100M' / 1='neutre' / 2='100S')
+# - BassMonoFrequency range corrected to [50, 500] (was [60, 250])
+# - Scenario C (phase_flip) requires is_stereo gate (mix_analyzer.py:856
+#   only fires Phase correlation anomaly on stereo content)
+
+
+VALID_SPATIAL_MOVE_TYPES = frozenset({
+    "pan",            # Mixer.Pan adjustment (track-level, no device needed)
+    "width",          # StereoGain.StereoWidth ∈ [0, 4] — narrow (<1) OR wide (>1)
+    "mono",           # StereoGain.Mono = True (full mono summing)
+    "bass_mono",      # StereoGain.BassMono = True + BassMonoFrequency cutoff
+    "phase_flip",     # StereoGain.PhaseInvertL OR .PhaseInvertR (one channel only)
+    "balance",        # StereoGain.Balance L/R level adjustment (≠ Pan, for stereo sources)
+    "ms_balance",     # StereoGain.MidSideBalance — mid vs side energy carving
+})
+
+VALID_SPATIAL_CHAIN_POSITIONS = frozenset({
+    "default",                       # Tier B picks
+    "chain_start",                   # phase_flip — fix early before processing
+    "post_eq_corrective",            # standard placement post-EQ
+    "post_dynamics_corrective",      # post-dynamics (after compression shapes signal)
+    "chain_end",                     # last device — typical pan-stage / width
+})
+
+VALID_PHASE_CHANNELS = frozenset({"L", "R"})  # which single channel to flip
+                                              # (both flipped = no-op, agent picks one)
+
+
+# ============================================================================
+# Stereo value ranges — audio-physics bounds (parser-enforced)
+# ============================================================================
+#
+# All ranges verified against ableton/ableton_devices_mapping.json
+# StereoGain.params (Phase 4.5 audit Pass 1 v2 Findings A/B/C).
+
+PAN_MIN: float = -1.0           # full L (Mixer.Pan native)
+PAN_MAX: float = 1.0            # full R
+
+STEREO_WIDTH_MIN: float = 0.0   # full mono
+STEREO_WIDTH_NEUTRAL: float = 1.0   # 100% (default neutre — no-op identity)
+STEREO_WIDTH_MAX: float = 4.0   # 400% (catalog real max ; ear-candy beyond 2.5)
+
+BALANCE_MIN: float = -1.0       # full attenuation R (= more L)
+BALANCE_NEUTRAL: float = 0.0    # center (no-op identity)
+BALANCE_MAX: float = 1.0        # full attenuation L (= more R)
+
+MS_BALANCE_MIN: float = 0.0     # full mid (no side) — '100M' in catalog
+MS_BALANCE_NEUTRAL: float = 1.0 # neutral — no-op identity
+MS_BALANCE_MAX: float = 2.0     # full side (no center) — '100S' in catalog
+
+BASS_MONO_FREQ_MIN_HZ: float = 50.0    # catalog real min
+BASS_MONO_FREQ_MAX_HZ: float = 500.0   # catalog real max
+
+
+@dataclass(frozen=True)
+class SpatialMove:
+    """One spatial / stereo move on a track.
+
+    Phase 4.5 scope : 7 move types (pan / width / mono / bass_mono /
+    phase_flip / balance / ms_balance). Tier B (spatial-configurator,
+    future) writes Mixer.Pan OR StereoGain.* params per move_type.
+
+    Field requirements per move_type (parser-enforced) :
+    - pan        : ``pan`` in [-1, 1] required ; other value-fields None
+    - width      : ``stereo_width`` in [0, 4] \\ {1.0} required ; others None
+    - mono       : (no value field — the move_type itself signals Mono=True) ;
+                   all other value-fields must be None
+    - bass_mono  : ``bass_mono_freq_hz`` in [50, 500] required ; others None
+    - phase_flip : ``phase_channel`` in {"L", "R"} required ; others None
+    - balance    : ``balance`` in [-1, 1] \\ {0.0} required ; others None
+    - ms_balance : ``mid_side_balance`` in [0, 2] \\ {1.0} required ; others None
+    """
+
+    track: str                                  # must match TrackInfo.name
+    move_type: str                              # in VALID_SPATIAL_MOVE_TYPES
+
+    # Per-move-type value fields (Optional ; cross-field enforced)
+    pan: Optional[float] = None                 # for "pan"
+    stereo_width: Optional[float] = None        # for "width"
+    bass_mono_freq_hz: Optional[float] = None   # for "bass_mono"
+    phase_channel: Optional[str] = None         # for "phase_flip" — "L" or "R"
+    balance: Optional[float] = None             # for "balance"
+    mid_side_balance: Optional[float] = None    # for "ms_balance"
+
+    chain_position: str = "default"             # in VALID_SPATIAL_CHAIN_POSITIONS
+    rationale: str = ""
+    inspired_by: tuple[MixCitation, ...] = ()
+
+
+@dataclass(frozen=True)
+class SpatialDecision:
+    """All spatial / stereo decisions for the project.
+
+    `moves` is the list of spatial adjustments (one per track per move_type).
+    Multiple moves on the same track must have distinct ``move_type``
+    (cross-field enforced) — re-emitting same move_type with different
+    values = duplicate ambiguity.
+
+    Idempotence note : only ``move_type="pan"`` is FULLY idempotent
+    (verified via ``report.tracks[track].pan``). Other move types have
+    PARTIAL idempotence via ``track.devices`` StereoGain presence
+    detection — the agent cannot read StereoGain param state today
+    (TrackInfo.devices exposes names only, not params).
+    Phase 4.5.x extension may add ``TrackInfo.stereo_state`` typed.
+    """
+
+    moves: tuple[SpatialMove, ...] = ()
+
+
 @dataclass(frozen=True)
 class MixBlueprint:
     """The immutable carrier of all lane decisions for one mix session.
@@ -841,6 +972,7 @@ class MixBlueprint:
     routing: Optional[MixDecision[RoutingDecision]] = None
     eq_corrective: Optional[MixDecision[EQCorrectiveDecision]] = None
     dynamics_corrective: Optional[MixDecision[DynamicsCorrectiveDecision]] = None
+    stereo_spatial: Optional[MixDecision[SpatialDecision]] = None
     # Future lanes (added with their producing agents):
     # eq_creative: Optional[MixDecision[EQCreativeDecision]] = None
     # ... etc per MIX_LANES
@@ -940,4 +1072,23 @@ __all__ = [
     "STALE_SIDECHAIN_REGEX",
     "SidechainRepair",
     "RoutingDecision",
+    # Stereo & spatial lane (Phase 4.5)
+    "VALID_SPATIAL_MOVE_TYPES",
+    "VALID_SPATIAL_CHAIN_POSITIONS",
+    "VALID_PHASE_CHANNELS",
+    "PAN_MIN",
+    "PAN_MAX",
+    "STEREO_WIDTH_MIN",
+    "STEREO_WIDTH_NEUTRAL",
+    "STEREO_WIDTH_MAX",
+    "BALANCE_MIN",
+    "BALANCE_NEUTRAL",
+    "BALANCE_MAX",
+    "MS_BALANCE_MIN",
+    "MS_BALANCE_NEUTRAL",
+    "MS_BALANCE_MAX",
+    "BASS_MONO_FREQ_MIN_HZ",
+    "BASS_MONO_FREQ_MAX_HZ",
+    "SpatialMove",
+    "SpatialDecision",
 ]

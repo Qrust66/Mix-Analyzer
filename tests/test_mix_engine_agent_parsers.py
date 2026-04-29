@@ -1444,3 +1444,536 @@ def test_routing_all_valid_fix_types_can_be_parsed(ft):
     payload["routing"]["repairs"][0] = repair
     decision = parse_routing_decision(payload)
     assert decision.value.repairs[0].fix_type == ft
+
+
+# ============================================================================
+# Phase 4.5 — Stereo & spatial lane parser
+# ============================================================================
+
+
+from mix_engine.blueprint import (
+    SpatialDecision,
+    SpatialMove,
+    VALID_SPATIAL_MOVE_TYPES,
+    VALID_SPATIAL_CHAIN_POSITIONS,
+    VALID_PHASE_CHANNELS,
+    parse_spatial_decision,
+    parse_spatial_decision_from_response,
+)
+
+
+def _valid_spatial_move(**overrides) -> dict:
+    """Default = pan move (simplest scenario)."""
+    base = {
+        "track": "Vocal Lead",
+        "move_type": "pan",
+        "pan": 0.0,
+        "rationale": "Vocal Lead centered per brief explicit + standard mix anchoring practice for lead vocals.",
+        "inspired_by": [
+            {"kind": "user_brief", "path": "brief:pan", "excerpt": "vocal center"},
+        ],
+    }
+    base.update(overrides)
+    return base
+
+
+def _valid_spatial_payload(**overrides) -> dict:
+    base = {
+        "schema_version": "1.0",
+        "stereo_spatial": {"moves": [_valid_spatial_move()]},
+        "cited_by": [
+            {"kind": "user_brief", "path": "brief", "excerpt": "vocal center"},
+        ],
+        "rationale": "1 spatial move : pan Vocal Lead center.",
+        "confidence": 0.85,
+    }
+    base.update(overrides)
+    return base
+
+
+# ----------------------------------------------------------------------------
+# Happy paths
+# ----------------------------------------------------------------------------
+
+
+def test_spatial_parses_minimum_valid_payload():
+    decision = parse_spatial_decision(_valid_spatial_payload())
+    assert decision.lane == "stereo_spatial"
+    assert isinstance(decision.value, SpatialDecision)
+    assert len(decision.value.moves) == 1
+    assert decision.value.moves[0].move_type == "pan"
+    assert decision.value.moves[0].pan == 0.0
+
+
+def test_spatial_decision_assignable_to_blueprint():
+    from mix_engine.blueprint import MixBlueprint
+    decision = parse_spatial_decision(_valid_spatial_payload())
+    bp = MixBlueprint(name="session").with_decision("stereo_spatial", decision)
+    assert bp.stereo_spatial is decision
+    assert bp.filled_lanes() == ("stereo_spatial",)
+
+
+def test_spatial_unsupported_schema_version_raises():
+    payload = _valid_spatial_payload()
+    payload["schema_version"] = "99.0"
+    with pytest.raises(MixAgentOutputError, match="schema_version"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_error_payload_raises():
+    with pytest.raises(MixAgentOutputError, match="agent refused"):
+        parse_spatial_decision({"error": "no signal", "details": "no spatial issues"})
+
+
+def test_spatial_empty_moves_accepted():
+    """No spatial signal in inputs → moves=[] (NO SIGNAL, NO MOVE)."""
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"] = []
+    payload["rationale"] = "Aucune intervention spatiale justifiée."
+    decision = parse_spatial_decision(payload)
+    assert decision.value.moves == ()
+
+
+@pytest.mark.parametrize("invalid_type", ["panning", "PAN", "wide", "narrow", ""])
+def test_spatial_invalid_move_type_raises(invalid_type):
+    """'wide' / 'narrow' folded into 'width' move_type ; strict casing."""
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0]["move_type"] = invalid_type
+    with pytest.raises(MixAgentOutputError, match="move_type"):
+        parse_spatial_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# Range checks (audit Pass 1 v2 corrected ranges)
+# ----------------------------------------------------------------------------
+
+
+def test_spatial_pan_out_of_range_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0]["pan"] = 1.5
+    with pytest.raises(MixAgentOutputError, match="pan"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_stereo_width_max_4_accepted():
+    """Audit Finding A : range corrected to [0, 4] (was [0, 2])."""
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        track="Pad",
+        move_type="width", pan=None,
+        stereo_width=3.5,
+        rationale="Pad strong stereo widening per brief 'open up the pads' ; ear-candy 3.5 width = ambient territory.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "open up the pads"}],
+    )
+    decision = parse_spatial_decision(payload)
+    assert decision.value.moves[0].stereo_width == 3.5
+
+
+def test_spatial_stereo_width_above_4_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        track="Pad",
+        move_type="width", pan=None,
+        stereo_width=5.0,  # > catalog max 4.0
+        rationale="Out of range width test must reject this value above catalog max 4.0.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "extreme wide"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="stereo_width"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_bass_mono_freq_min_50_accepted():
+    """Audit Finding C : range corrected to [50, 500] (was [60, 250])."""
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        track="Bass",
+        move_type="bass_mono", pan=None,
+        bass_mono_freq_hz=50.0,
+        rationale="Bass sub-mono at 50 Hz cutoff per brief 'mono the sub' ; very low fundamental territory (808-style).",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "mono the sub"}],
+    )
+    decision = parse_spatial_decision(payload)
+    assert decision.value.moves[0].bass_mono_freq_hz == 50.0
+
+
+def test_spatial_bass_mono_freq_max_500_accepted():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        track="Bass",
+        move_type="bass_mono", pan=None,
+        bass_mono_freq_hz=500.0,
+        rationale="Bass aggressive low-mid mono summing at 500 Hz per brief 'tighten the low-mid mud zone' ; rare but legit.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "tighten low mid"}],
+    )
+    decision = parse_spatial_decision(payload)
+    assert decision.value.moves[0].bass_mono_freq_hz == 500.0
+
+
+def test_spatial_bass_mono_freq_below_50_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        track="Bass",
+        move_type="bass_mono", pan=None,
+        bass_mono_freq_hz=30.0,  # below catalog min 50
+        rationale="Below range test for bass_mono_freq_hz catalog minimum bound 50 Hz reject path.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "x"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="bass_mono_freq_hz"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_ms_balance_range_0_to_2():
+    """Audit Finding B : range corrected to [0, 2] (was [-1, 1])."""
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        track="Master Bus",
+        move_type="ms_balance", pan=None,
+        mid_side_balance=1.5,  # in [0, 2]
+        rationale="Master bus slight side emphasis at 1.5 per brief 'open up' + Mix Health Stereo Image 60 modulator.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "open up"}],
+    )
+    decision = parse_spatial_decision(payload)
+    assert decision.value.moves[0].mid_side_balance == 1.5
+
+
+def test_spatial_ms_balance_negative_raises():
+    """Audit Finding B : negative values rejected (real range [0, 2], not [-1, 1])."""
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        track="Master Bus",
+        move_type="ms_balance", pan=None,
+        mid_side_balance=-0.5,  # invalid in real range
+        rationale="Negative MS balance test for audit Finding B fix - the old fictive [-1,1] range is rejected.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "x"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="mid_side_balance"):
+        parse_spatial_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# 11 cross-field checks
+# ----------------------------------------------------------------------------
+
+
+def test_spatial_check1_pan_missing_value_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0]["pan"] = None
+    with pytest.raises(MixAgentOutputError, match="pan"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check2_width_missing_value_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="width", pan=None,  # no stereo_width set
+        rationale="Width move missing stereo_width value should trigger check #2 required field.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "wider"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="stereo_width"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check3_width_neutral_no_op_raises():
+    """#3 : stereo_width == 1.0 (neutre) is no-op identity."""
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="width", pan=None, stereo_width=1.0,
+        rationale="Width move with stereo_width 1.0 = no-op test ; should reject as identity neutre value.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "x"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="no-op"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check4_mono_with_extra_value_raises():
+    """#4 : mono move_type forbids other value fields."""
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="mono", pan=None, stereo_width=0.5,
+        rationale="Mono move with extra stereo_width value field should reject ; mono is the move_type signal.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "mono"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="extra value"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check5_bass_mono_missing_freq_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="bass_mono", pan=None,
+        rationale="Bass mono move without bass_mono_freq_hz cutoff set should reject required field check.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "bass mono"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="bass_mono_freq_hz"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check6_phase_flip_missing_channel_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="phase_flip", pan=None,
+        rationale="Phase flip move without phase_channel L or R selection should reject required field check.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "phase"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="phase_channel"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check6_phase_flip_invalid_channel_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="phase_flip", pan=None, phase_channel="both",
+        rationale="Phase flip move with invalid phase_channel value 'both' should reject ; only L or R allowed.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "phase"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="phase_channel"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check7_balance_missing_value_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="balance", pan=None,
+        rationale="Balance move without balance value field set should reject required field check parser.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "balance"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="balance"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check8_balance_zero_no_op_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="balance", pan=None, balance=0.0,
+        rationale="Balance move with balance 0.0 = center identity no-op test should reject as no shift.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "balance"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="no-op"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check9_ms_balance_missing_value_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="ms_balance", pan=None,
+        rationale="MS balance move without mid_side_balance value field set should reject required field parser.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "ms"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="mid_side_balance"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check10_ms_balance_neutral_1_no_op_raises():
+    """#10 : ms_balance == 1.0 (neutral) — NOT 0.0 which is full mid (audit Finding B/H)."""
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="ms_balance", pan=None, mid_side_balance=1.0,
+        rationale="MS balance at 1.0 neutre identity no-op test ; should reject as no shift in real catalog encoding.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "ms"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="no-op"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check10_ms_balance_zero_is_full_mid_NOT_no_op():
+    """Audit Finding B/H : ms_balance == 0.0 is FULL MID (legitimate),
+    NOT no-op (which is 1.0). Common confusion to test against."""
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        track="Master Bus",
+        move_type="ms_balance", pan=None, mid_side_balance=0.0,
+        rationale="Master bus full mid focus at 0.0 = strong mid emphasis per brief 'kill the side ambience' ; legitimate.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "kill side"}],
+    )
+    decision = parse_spatial_decision(payload)
+    # Should ACCEPT — 0.0 is full mid (extreme but legal), not no-op
+    assert decision.value.moves[0].mid_side_balance == 0.0
+
+
+def test_spatial_check11_short_rationale_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0]["rationale"] = "too short"
+    with pytest.raises(MixAgentOutputError, match="rationale"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check11_no_inspired_by_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0]["inspired_by"] = []
+    with pytest.raises(MixAgentOutputError, match="inspired_by"):
+        parse_spatial_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# Cross-correction duplicate check
+# ----------------------------------------------------------------------------
+
+
+def test_spatial_duplicate_track_move_type_raises():
+    """Multiple SpatialMove on same (track, move_type) = ambiguous."""
+    payload = _valid_spatial_payload()
+    move_a = _valid_spatial_move(pan=0.0)
+    move_b = _valid_spatial_move(pan=0.5)  # same track + same move_type "pan"
+    payload["stereo_spatial"]["moves"] = [move_a, move_b]
+    with pytest.raises(MixAgentOutputError, match="duplicate"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_same_track_distinct_move_types_accepted():
+    """Same track + DIFFERENT move_type = legitimate (e.g. pan + width)."""
+    payload = _valid_spatial_payload()
+    pan_move = _valid_spatial_move(track="Pad", pan=0.3)
+    width_move = _valid_spatial_move(
+        track="Pad", move_type="width", pan=None, stereo_width=1.5,
+        rationale="Pad slight widening at 1.5 per brief 'open up the pads' for ambient depth.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "open up"}],
+    )
+    payload["stereo_spatial"]["moves"] = [pan_move, width_move]
+    decision = parse_spatial_decision(payload)
+    assert len(decision.value.moves) == 2
+    assert decision.value.moves[0].move_type == "pan"
+    assert decision.value.moves[1].move_type == "width"
+
+
+# ----------------------------------------------------------------------------
+# Scenario coverage (happy paths for each move_type)
+# ----------------------------------------------------------------------------
+
+
+def test_spatial_scenario_c_phase_flip_happy_path():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        track="Overheads",
+        move_type="phase_flip", pan=None,
+        phase_channel="L",
+        chain_position="chain_start",
+        rationale="Overheads stereo correlation -0.42 critical anomaly ; flip L channel to restore mono compat per Anomaly trigger.",
+        inspired_by=[
+            {"kind": "diagnostic", "path": "Anomalies!Overheads",
+             "excerpt": "Phase correlation -0.42 - serious mono compatibility issue"},
+        ],
+    )
+    decision = parse_spatial_decision(payload)
+    assert decision.value.moves[0].phase_channel == "L"
+    assert decision.value.moves[0].chain_position == "chain_start"
+
+
+def test_spatial_scenario_e_mono_happy_path():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        track="Kick DI",
+        move_type="mono", pan=None,
+        rationale="Kick DI must be mono per brief 'force kick mono' ; standard practice for sub-content tracks.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "force kick mono"}],
+    )
+    decision = parse_spatial_decision(payload)
+    assert decision.value.moves[0].move_type == "mono"
+    # All other value fields should be None (parser enforces)
+    m = decision.value.moves[0]
+    assert m.pan is None
+    assert m.stereo_width is None
+    assert m.bass_mono_freq_hz is None
+
+
+def test_spatial_scenario_g_ms_balance_more_side_happy_path():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        track="Master Bus",
+        move_type="ms_balance", pan=None,
+        mid_side_balance=1.4,  # > 1.0 = more side
+        rationale="Master bus slight more side emphasis at 1.4 per brief 'more space' + Mix Health Stereo Image 58.",
+        inspired_by=[
+            {"kind": "user_brief", "path": "b", "excerpt": "more space"},
+            {"kind": "diagnostic", "path": "Mix Health Score!Stereo Image",
+             "excerpt": "Stereo Image 58/100"},
+        ],
+    )
+    decision = parse_spatial_decision(payload)
+    assert decision.value.moves[0].mid_side_balance == 1.4
+
+
+# ----------------------------------------------------------------------------
+# Chain position
+# ----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("position", sorted(VALID_SPATIAL_CHAIN_POSITIONS))
+def test_spatial_all_valid_chain_positions_parse(position):
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0]["chain_position"] = position
+    decision = parse_spatial_decision(payload)
+    assert decision.value.moves[0].chain_position == position
+
+
+def test_spatial_invalid_chain_position_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0]["chain_position"] = "post_saturation"
+    with pytest.raises(MixAgentOutputError, match="chain_position"):
+        parse_spatial_decision(payload)
+
+
+# ----------------------------------------------------------------------------
+# from_response (markdown fences, prose around)
+# ----------------------------------------------------------------------------
+
+
+def test_spatial_from_response_handles_fences():
+    payload_str = json.dumps(_valid_spatial_payload())
+    fenced = f"```json\n{payload_str}\n```"
+    decision = parse_spatial_decision_from_response(fenced)
+    assert len(decision.value.moves) == 1
+
+
+def test_spatial_from_response_handles_prose():
+    payload_str = json.dumps(_valid_spatial_payload())
+    prosed = f"Here are spatial decisions:\n{payload_str}\nDone."
+    decision = parse_spatial_decision_from_response(prosed)
+    assert len(decision.value.moves) == 1
+
+
+@pytest.mark.parametrize("mt", sorted(VALID_SPATIAL_MOVE_TYPES))
+def test_spatial_all_valid_move_types_can_be_parsed(mt):
+    """Smoke : each valid move_type can produce a coherent move."""
+    payload = _valid_spatial_payload()
+    if mt == "pan":
+        m = _valid_spatial_move()
+    elif mt == "width":
+        m = _valid_spatial_move(
+            move_type=mt, pan=None, stereo_width=0.7,
+            rationale="Width narrow at 0.7 per Anomaly 'Very wide stereo image' for mono compat protection.",
+            inspired_by=[{"kind": "diagnostic", "path": "Anomalies!x", "excerpt": "Very wide stereo image"}],
+        )
+    elif mt == "mono":
+        m = _valid_spatial_move(
+            track="Kick DI", move_type=mt, pan=None,
+            rationale="Kick DI mono summing per brief 'kick mono' ; sub content best mono for clarity.",
+            inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "kick mono"}],
+        )
+    elif mt == "bass_mono":
+        m = _valid_spatial_move(
+            move_type=mt, pan=None, bass_mono_freq_hz=120.0,
+            rationale="Bass mono at 120 Hz per brief 'tighten low end stereo' standard sub-mono cutoff.",
+            inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "tighten low end"}],
+        )
+    elif mt == "phase_flip":
+        m = _valid_spatial_move(
+            move_type=mt, pan=None, phase_channel="R",
+            chain_position="chain_start",
+            rationale="Phase flip R per Anomaly Phase correlation critical on overheads stereo content.",
+            inspired_by=[{"kind": "diagnostic", "path": "Anomalies!x", "excerpt": "Phase correlation -0.4"}],
+        )
+    elif mt == "balance":
+        m = _valid_spatial_move(
+            move_type=mt, pan=None, balance=0.2,
+            rationale="Balance R+0.2 per brief 'right side too quiet' on stereo recording asymmetry repair.",
+            inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "right side too quiet"}],
+        )
+    elif mt == "ms_balance":
+        m = _valid_spatial_move(
+            move_type=mt, pan=None, mid_side_balance=0.7,
+            rationale="MS balance more mid at 0.7 per brief 'vocal forward focus' + Mix Health Stereo Image 60.",
+            inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "vocal forward"}],
+        )
+    payload["stereo_spatial"]["moves"][0] = m
+    decision = parse_spatial_decision(payload)
+    assert decision.value.moves[0].move_type == mt

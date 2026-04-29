@@ -34,7 +34,22 @@ from mix_engine.blueprint.schema import (
     DynamicsCorrectiveDecision,
     RoutingDecision,
     SidechainRepair,
+    SpatialDecision,
+    SpatialMove,
     STALE_SIDECHAIN_REGEX,
+    PAN_MIN,
+    PAN_MAX,
+    STEREO_WIDTH_MIN,
+    STEREO_WIDTH_NEUTRAL,
+    STEREO_WIDTH_MAX,
+    BALANCE_MIN,
+    BALANCE_NEUTRAL,
+    BALANCE_MAX,
+    MS_BALANCE_MIN,
+    MS_BALANCE_NEUTRAL,
+    MS_BALANCE_MAX,
+    BASS_MONO_FREQ_MIN_HZ,
+    BASS_MONO_FREQ_MAX_HZ,
     DYN_ATTACK_MAX_MS,
     DYN_ATTACK_MIN_MS,
     DYN_CEILING_MAX_DB,
@@ -83,9 +98,12 @@ from mix_engine.blueprint.schema import (
     VALID_EQ_BAND_TYPES,
     VALID_EQ_INTENTS,
     VALID_FILTER_SLOPES_DB_PER_OCT,
+    VALID_PHASE_CHANNELS,
     VALID_PROCESSING_MODES,
     VALID_ROUTING_FIX_TYPES,
     VALID_SIDECHAIN_MODES,
+    VALID_SPATIAL_CHAIN_POSITIONS,
+    VALID_SPATIAL_MOVE_TYPES,
 )
 
 
@@ -93,6 +111,7 @@ SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS = frozenset({"1.0"})
 SUPPORTED_ROUTING_SCHEMA_VERSIONS = frozenset({"1.0"})
+SUPPORTED_SPATIAL_SCHEMA_VERSIONS = frozenset({"1.0"})
 
 # Severity values accepted in Anomaly.severity.
 VALID_ANOMALY_SEVERITIES = frozenset({"critical", "warning", "info"})
@@ -1806,12 +1825,317 @@ def parse_routing_decision_from_response(
     return parse_routing_decision(extract_json_payload(text))
 
 
+# ============================================================================
+# Public parser — stereo & spatial lane (Phase 4.5)
+# ============================================================================
+#
+# Parametric domain (per-track values for pan / width / phase / mono /
+# balance / mid-side). 11 cross-field semantic-contradiction checks
+# pure-payload + duplicate-key cross-corrections check.
+#
+# All ranges verified against StereoGain catalog (audit Pass 1 v2).
+
+
+# Map move_type → (required value-field-name, range_min, range_max,
+# neutral-value-or-None-if-no-no-op-check, error-format-spec).
+# Used to centralize the "required field per move_type" cross-field
+# checks #1-#10.
+_SPATIAL_VALUE_FIELD_SPEC = {
+    "pan":         ("pan",                PAN_MIN,                 PAN_MAX,                 None,                  "[-1, 1]"),
+    "width":       ("stereo_width",       STEREO_WIDTH_MIN,        STEREO_WIDTH_MAX,        STEREO_WIDTH_NEUTRAL,  "[0, 4] excluding 1.0 (neutre)"),
+    "bass_mono":   ("bass_mono_freq_hz",  BASS_MONO_FREQ_MIN_HZ,   BASS_MONO_FREQ_MAX_HZ,   None,                  "[50, 500] Hz"),
+    "balance":     ("balance",            BALANCE_MIN,             BALANCE_MAX,             BALANCE_NEUTRAL,       "[-1, 1] excluding 0.0 (center)"),
+    "ms_balance":  ("mid_side_balance",   MS_BALANCE_MIN,          MS_BALANCE_MAX,          MS_BALANCE_NEUTRAL,    "[0, 2] excluding 1.0 (neutre — NOT 0 which is full mid)"),
+}
+
+# Move types that don't take a numeric value field but use a different
+# encoding : "phase_flip" uses phase_channel ; "mono" uses no value
+# field at all (move_type itself signals Mono=True).
+_SPATIAL_NUMERIC_VALUE_FIELDS = ("pan", "stereo_width", "bass_mono_freq_hz",
+                                 "balance", "mid_side_balance")
+
+
+def _parse_spatial_move(item: Any, *, where: str) -> SpatialMove:
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+
+    track = _coerce_str(_require(item, "track", where=where), where=f"{where}.track").strip()
+    if not track:
+        raise MixAgentOutputError(f"{where}.track must be non-empty")
+
+    move_type = _coerce_str(
+        _require(item, "move_type", where=where), where=f"{where}.move_type"
+    ).strip()
+    if move_type not in VALID_SPATIAL_MOVE_TYPES:
+        raise MixAgentOutputError(
+            f"{where}.move_type={move_type!r} not in {sorted(VALID_SPATIAL_MOVE_TYPES)}"
+        )
+
+    # Read all value fields ; cross-field checks below validate combos.
+    pan = _coerce_optional_float_in_range(
+        item.get("pan"), where=f"{where}.pan",
+        lo=PAN_MIN, hi=PAN_MAX, unit="(pan)",
+    )
+    stereo_width = _coerce_optional_float_in_range(
+        item.get("stereo_width"), where=f"{where}.stereo_width",
+        lo=STEREO_WIDTH_MIN, hi=STEREO_WIDTH_MAX, unit="(width)",
+    )
+    bass_mono_freq_hz = _coerce_optional_float_in_range(
+        item.get("bass_mono_freq_hz"), where=f"{where}.bass_mono_freq_hz",
+        lo=BASS_MONO_FREQ_MIN_HZ, hi=BASS_MONO_FREQ_MAX_HZ, unit="Hz",
+    )
+    balance = _coerce_optional_float_in_range(
+        item.get("balance"), where=f"{where}.balance",
+        lo=BALANCE_MIN, hi=BALANCE_MAX, unit="(balance)",
+    )
+    mid_side_balance = _coerce_optional_float_in_range(
+        item.get("mid_side_balance"), where=f"{where}.mid_side_balance",
+        lo=MS_BALANCE_MIN, hi=MS_BALANCE_MAX, unit="(MS balance)",
+    )
+
+    # phase_channel : optional string, validated below for phase_flip
+    phase_channel_raw = item.get("phase_channel", None)
+    phase_channel = (
+        None if phase_channel_raw is None or phase_channel_raw == ""
+        else _coerce_str(phase_channel_raw, where=f"{where}.phase_channel").strip()
+    )
+
+    chain_position = _coerce_str(
+        item.get("chain_position", "default"),
+        where=f"{where}.chain_position",
+    ).strip()
+    if not chain_position:
+        chain_position = "default"
+    if chain_position not in VALID_SPATIAL_CHAIN_POSITIONS:
+        raise MixAgentOutputError(
+            f"{where}.chain_position={chain_position!r} not in "
+            f"{sorted(VALID_SPATIAL_CHAIN_POSITIONS)}. Use 'default' if no preference."
+        )
+
+    rationale = _coerce_str(item.get("rationale", ""))
+    inspired_by_raw = _coerce_list(
+        item.get("inspired_by", []), where=f"{where}.inspired_by"
+    )
+    inspired_by = _parse_citations(inspired_by_raw, where=f"{where}.inspired_by")
+
+    # ------------------------------------------------------------------
+    # Cross-field semantic-contradiction checks (11 numbered — pure-payload).
+    # Audit Pass 2 corrections applied :
+    # - check #2 range [0, 4] (not [0, 2])
+    # - check #5 range [50, 500] (not [60, 250])
+    # - check #9 range [0, 2] (not [-1, 1])
+    # - check #10 no-op == 1.0 (not 0.0)
+    # ------------------------------------------------------------------
+
+    # Pre-compute : is the agent setting numeric value fields not relevant
+    # to this move_type? Used by checks #4 (mono) and #6 (phase_flip)
+    # which forbid extraneous fields.
+    relevant_field_name = (
+        _SPATIAL_VALUE_FIELD_SPEC[move_type][0]
+        if move_type in _SPATIAL_VALUE_FIELD_SPEC
+        else None
+    )
+    other_numeric_set = []
+    for fname in _SPATIAL_NUMERIC_VALUE_FIELDS:
+        if fname == relevant_field_name:
+            continue
+        val = locals().get(fname)
+        if val is not None:
+            other_numeric_set.append(fname)
+
+    # #1 — pan : pan in [-1, 1] required ; verifies presence (range already enforced above)
+    if move_type == "pan" and pan is None:
+        raise MixAgentOutputError(
+            f"{where}.move_type='pan' requires pan field (in [-1, 1])."
+        )
+
+    # #2 — width : stereo_width required ; range [0, 4] verified above
+    if move_type == "width" and stereo_width is None:
+        raise MixAgentOutputError(
+            f"{where}.move_type='width' requires stereo_width field (in [0, 4] \\ {{1.0}})."
+        )
+
+    # #3 — width with no-op identity value (1.0 = neutre)
+    if move_type == "width" and stereo_width is not None and stereo_width == STEREO_WIDTH_NEUTRAL:
+        raise MixAgentOutputError(
+            f"{where}.move_type='width' but stereo_width={stereo_width} == 1.0 (neutre, no-op identity). "
+            f"Pick a value ≠ 1.0 to actually change the stereo width."
+        )
+
+    # #4 — mono : no other value-field allowed (the move_type itself signals Mono=True)
+    if move_type == "mono":
+        if other_numeric_set or phase_channel is not None:
+            raise MixAgentOutputError(
+                f"{where}.move_type='mono' but extra value fields set : "
+                f"{other_numeric_set + (['phase_channel'] if phase_channel else [])}. "
+                f"For mono, leave all value fields null — Tier B writes StereoGain.Mono=True."
+            )
+
+    # #5 — bass_mono : bass_mono_freq_hz required, in [50, 500]
+    if move_type == "bass_mono" and bass_mono_freq_hz is None:
+        raise MixAgentOutputError(
+            f"{where}.move_type='bass_mono' requires bass_mono_freq_hz field (in [50, 500] Hz)."
+        )
+
+    # #6 — phase_flip : phase_channel in {"L", "R"} required
+    if move_type == "phase_flip":
+        if phase_channel not in VALID_PHASE_CHANNELS:
+            raise MixAgentOutputError(
+                f"{where}.move_type='phase_flip' requires phase_channel in "
+                f"{sorted(VALID_PHASE_CHANNELS)}, got {phase_channel!r}. "
+                f"Flipping both channels = no-op (canceling phase invert)."
+            )
+
+    # #7 — balance : balance in [-1, 1] required
+    if move_type == "balance" and balance is None:
+        raise MixAgentOutputError(
+            f"{where}.move_type='balance' requires balance field (in [-1, 1] \\ {{0.0}})."
+        )
+
+    # #8 — balance with no-op identity (0.0 = center)
+    if move_type == "balance" and balance is not None and balance == BALANCE_NEUTRAL:
+        raise MixAgentOutputError(
+            f"{where}.move_type='balance' but balance={balance} == 0.0 (center, no-op identity). "
+            f"Pick a value ≠ 0.0 to actually shift L/R balance."
+        )
+
+    # #9 — ms_balance : mid_side_balance in [0, 2] required
+    # (audit Pass 1 v2 Finding B : range was incorrectly [-1, 1] before fix)
+    if move_type == "ms_balance" and mid_side_balance is None:
+        raise MixAgentOutputError(
+            f"{where}.move_type='ms_balance' requires mid_side_balance field "
+            f"(in [0, 2] \\ {{1.0}} — 0.0=full mid, 1.0=neutral, 2.0=full side)."
+        )
+
+    # #10 — ms_balance with no-op identity (1.0 = neutre — NOT 0 which is full mid)
+    # (audit Pass 1 v2 Finding B/H : was incorrectly == 0 before fix)
+    if (move_type == "ms_balance" and mid_side_balance is not None
+            and mid_side_balance == MS_BALANCE_NEUTRAL):
+        raise MixAgentOutputError(
+            f"{where}.move_type='ms_balance' but mid_side_balance={mid_side_balance} == 1.0 "
+            f"(neutral, no-op identity — note: 0.0 = full mid, 2.0 = full side, "
+            f"1.0 = balanced). Pick a value ≠ 1.0 to actually shift M/S balance."
+        )
+
+    # #11 — depth-light : rationale ≥ 50 chars + ≥ 1 citation
+    if len(rationale) < 50:
+        raise MixAgentOutputError(
+            f"{where}.rationale too short ({len(rationale)} chars, need ≥ 50). "
+            f"Untraced spatial move = stub : Tier B spatial-configurator can't "
+            f"justify the wiring change to safety-guardian."
+        )
+    if not inspired_by:
+        raise MixAgentOutputError(
+            f"{where}.inspired_by must contain at least one citation. "
+            f"Cite the Anomaly cell, Mix Health Score, or user brief that "
+            f"justifies this spatial move."
+        )
+
+    return SpatialMove(
+        track=track,
+        move_type=move_type,
+        pan=pan,
+        stereo_width=stereo_width,
+        bass_mono_freq_hz=bass_mono_freq_hz,
+        phase_channel=phase_channel,
+        balance=balance,
+        mid_side_balance=mid_side_balance,
+        chain_position=chain_position,
+        rationale=rationale,
+        inspired_by=inspired_by,
+    )
+
+
+def parse_spatial_decision(
+    payload: Mapping[str, Any],
+) -> MixDecision[SpatialDecision]:
+    """Parse a stereo-and-spatial-engineer payload into a MixDecision.
+
+    Expected shape (schema 1.0) :
+        {
+          "schema_version": "1.0",
+          "stereo_spatial": {
+            "moves": [
+              {
+                "track": str,
+                "move_type": str ∈ VALID_SPATIAL_MOVE_TYPES,
+                "pan": Optional[float],                  # for "pan"
+                "stereo_width": Optional[float],          # for "width"
+                "bass_mono_freq_hz": Optional[float],     # for "bass_mono"
+                "phase_channel": Optional[str],           # for "phase_flip"
+                "balance": Optional[float],               # for "balance"
+                "mid_side_balance": Optional[float],      # for "ms_balance"
+                "chain_position": str ∈ VALID_SPATIAL_CHAIN_POSITIONS,
+                "rationale": str (≥ 50 chars),
+                "inspired_by": [{kind, path, excerpt}, …] # ≥ 1 cite
+              },
+              ...
+            ]
+          },
+          "cited_by": [...],
+          "rationale": str,
+          "confidence": float (0..1)
+        }
+
+    Or a refusal: {"error": "...", "details": "..."}
+
+    Strict on output : 11 cross-field semantic-contradiction checks
+    (pure-payload) plus duplicate (track, move_type) cross-correction
+    check. Range bounds verified against ableton_devices_mapping.json
+    StereoGain.params (audit Pass 1 v2 corrections applied).
+    """
+    envelope = _parse_envelope(
+        payload, supported_versions=SUPPORTED_SPATIAL_SCHEMA_VERSIONS
+    )
+
+    spatial_dict = _require(payload, "stereo_spatial", where="root")
+    if not isinstance(spatial_dict, Mapping):
+        raise MixAgentOutputError(
+            f"stereo_spatial: expected object, got {type(spatial_dict).__name__}"
+        )
+
+    moves_raw = _coerce_list(
+        spatial_dict.get("moves", []), where="stereo_spatial.moves"
+    )
+    moves = tuple(
+        _parse_spatial_move(item, where=f"stereo_spatial.moves[{i}]")
+        for i, item in enumerate(moves_raw)
+    )
+
+    # Cross-correction check : duplicate (track, move_type) tuples in moves
+    # (Tier B would have collisions / ambiguous dual-state).
+    seen_keys: set[tuple[str, str]] = set()
+    for i, m in enumerate(moves):
+        key = (m.track, m.move_type)
+        if key in seen_keys:
+            raise MixAgentOutputError(
+                f"stereo_spatial.moves[{i}]: duplicate move "
+                f"(track={m.track!r}, move_type={m.move_type!r}). "
+                f"Multiple SpatialMove on same track must have distinct "
+                f"move_type ; remove or merge the duplicate."
+            )
+        seen_keys.add(key)
+
+    decision_value = SpatialDecision(moves=moves)
+    return MixDecision(value=decision_value, lane="stereo_spatial", **envelope)
+
+
+def parse_spatial_decision_from_response(
+    text: str,
+) -> MixDecision[SpatialDecision]:
+    """End-to-end: raw LLM response → MixDecision[SpatialDecision]."""
+    return parse_spatial_decision(extract_json_payload(text))
+
+
 __all__ = [
     "MixAgentOutputError",
     "SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS",
     "SUPPORTED_EQ_CORRECTIVE_SCHEMA_VERSIONS",
     "SUPPORTED_DYNAMICS_CORRECTIVE_SCHEMA_VERSIONS",
     "SUPPORTED_ROUTING_SCHEMA_VERSIONS",
+    "SUPPORTED_SPATIAL_SCHEMA_VERSIONS",
     "VALID_ANOMALY_SEVERITIES",
     "VALID_TRACK_TYPES",
     "VALID_CITATION_KINDS",
@@ -1827,6 +2151,10 @@ __all__ = [
     "VALID_DYNAMICS_CHAIN_POSITIONS",
     # Phase 4.4 — Routing & sidechain re-exports
     "VALID_ROUTING_FIX_TYPES",
+    # Phase 4.5 — Stereo & spatial re-exports
+    "VALID_SPATIAL_MOVE_TYPES",
+    "VALID_SPATIAL_CHAIN_POSITIONS",
+    "VALID_PHASE_CHANNELS",
     "extract_json_payload",
     "parse_diagnostic_decision",
     "parse_diagnostic_decision_from_response",
@@ -1836,4 +2164,6 @@ __all__ = [
     "parse_dynamics_corrective_decision_from_response",
     "parse_routing_decision",
     "parse_routing_decision_from_response",
+    "parse_spatial_decision",
+    "parse_spatial_decision_from_response",
 ]
