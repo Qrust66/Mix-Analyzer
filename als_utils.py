@@ -509,6 +509,286 @@ def _clone_eq8_with_unique_ids(
     return eq8
 
 
+class ChainPositionUnresolvedError(ValueError):
+    """Raised when a requested chain_position cannot be honored.
+
+    Examples :
+    - chain_position='post_compressor' but no Compressor in track chain
+    - chain_position='post_gate_pre_compressor' but Gate is AFTER Compressor
+
+    Subclass of ValueError so existing ``except ValueError`` blocks catch
+    it ; specific subclass lets callers narrow on this failure mode.
+    """
+
+
+# Device tag → semantic category. Used by find_or_create_eq8_at_position()
+# to resolve chain_position semantics ('pre_compressor', etc.).
+_DEVICE_CATEGORY_MAP: dict[str, str] = {
+    "Gate": "gate",
+    "Compressor2": "compressor",
+    "GlueCompressor": "compressor",
+    "Limiter": "compressor",
+    "Saturator": "saturation",
+    "DrumBuss": "saturation",
+    "Eq8": "eq8",
+    "AutoFilter2": "filter",
+    "AutoFilter": "filter",
+}
+
+
+def _categorize_device(element: ET.Element) -> str:
+    """Return semantic category of a device element by tag.
+
+    Unknown tags map to 'other' (preserves device but doesn't participate
+    in pre/post chain_position resolution).
+    """
+    return _DEVICE_CATEGORY_MAP.get(element.tag, "other")
+
+
+def _resolve_insert_position(
+    categories: list[str], target: str
+) -> int:
+    """Resolve chain_position semantic to an integer insert index.
+
+    Raises ChainPositionUnresolvedError if the target's pre-conditions
+    aren't met (e.g., no Compressor in chain for 'post_compressor').
+    """
+    if target == "chain_start":
+        return 0
+    if target == "chain_end":
+        return len(categories)
+    if target == "pre_compressor":
+        for i, cat in enumerate(categories):
+            if cat == "compressor":
+                return i
+        raise ChainPositionUnresolvedError(
+            f"chain_position='pre_compressor' but no Compressor "
+            f"(Compressor2/GlueCompressor/Limiter) in chain."
+        )
+    if target == "post_compressor":
+        last_comp = -1
+        for i, cat in enumerate(categories):
+            if cat == "compressor":
+                last_comp = i
+        if last_comp == -1:
+            raise ChainPositionUnresolvedError(
+                f"chain_position='post_compressor' but no Compressor in chain."
+            )
+        return last_comp + 1
+    if target == "post_gate_pre_compressor":
+        last_gate = -1
+        first_comp = -1
+        for i, cat in enumerate(categories):
+            if cat == "gate":
+                last_gate = i
+            if cat == "compressor" and first_comp == -1:
+                first_comp = i
+        if last_gate == -1 and first_comp == -1:
+            raise ChainPositionUnresolvedError(
+                "chain_position='post_gate_pre_compressor' but neither "
+                "Gate nor Compressor in chain."
+            )
+        if last_gate == -1:
+            return first_comp  # equivalent to pre_compressor
+        if first_comp == -1:
+            return last_gate + 1  # append after Gate
+        if last_gate >= first_comp:
+            raise ChainPositionUnresolvedError(
+                f"chain_position='post_gate_pre_compressor' impossible : "
+                f"Gate at index {last_gate} comes after Compressor at index "
+                f"{first_comp}. Reorder track chain first."
+            )
+        return last_gate + 1
+    if target == "pre_saturation":
+        for i, cat in enumerate(categories):
+            if cat == "saturation":
+                return i
+        raise ChainPositionUnresolvedError(
+            "chain_position='pre_saturation' but no Saturator/DrumBuss in chain."
+        )
+    if target == "post_saturation":
+        last_sat = -1
+        for i, cat in enumerate(categories):
+            if cat == "saturation":
+                last_sat = i
+        if last_sat == -1:
+            raise ChainPositionUnresolvedError(
+                "chain_position='post_saturation' but no Saturator/DrumBuss in chain."
+            )
+        return last_sat + 1
+    if target in ("pre_eq_creative", "post_eq_creative"):
+        raise ChainPositionUnresolvedError(
+            f"chain_position={target!r} requires distinguishing creative vs "
+            f"corrective Eq8 instances — not yet supported by Tier B writer "
+            f"(needs UserName-based tagging or per-device metadata). Use "
+            f"'default' or a position relative to compressor/saturation."
+        )
+    raise ChainPositionUnresolvedError(
+        f"Unknown chain_position={target!r}. Valid : default, chain_start, "
+        f"chain_end, pre_compressor, post_compressor, post_gate_pre_compressor, "
+        f"pre_saturation, post_saturation."
+    )
+
+
+def _find_existing_eq8_in_region(
+    children: list[ET.Element],
+    categories: list[str],
+    target: str,
+) -> ET.Element | None:
+    """Find an existing Eq8 already located in the target region.
+
+    Used for idempotency : if the agent ran on this .als before and an
+    Eq8 sits where the new request would place one, reuse it instead of
+    creating a duplicate device.
+
+    Returns None if no existing Eq8 matches the target's region (caller
+    creates a new one).
+    """
+    eq8_indices = [i for i, cat in enumerate(categories) if cat == "eq8"]
+    if not eq8_indices:
+        return None
+
+    if target == "chain_start":
+        return children[eq8_indices[0]] if eq8_indices[0] == 0 else None
+
+    if target == "chain_end":
+        return (children[eq8_indices[-1]]
+                if eq8_indices[-1] == len(children) - 1 else None)
+
+    if target == "pre_compressor":
+        first_comp = next(
+            (i for i, cat in enumerate(categories) if cat == "compressor"), -1
+        )
+        if first_comp == -1:
+            return None
+        for idx in eq8_indices:
+            if idx < first_comp:
+                return children[idx]
+        return None
+
+    if target == "post_compressor":
+        last_comp = -1
+        for i, cat in enumerate(categories):
+            if cat == "compressor":
+                last_comp = i
+        if last_comp == -1:
+            return None
+        # Prefer Eq8 closest to last comp (right after it)
+        for idx in eq8_indices:
+            if idx > last_comp:
+                return children[idx]
+        return None
+
+    if target == "post_gate_pre_compressor":
+        last_gate = -1
+        first_comp = -1
+        for i, cat in enumerate(categories):
+            if cat == "gate":
+                last_gate = i
+            if cat == "compressor" and first_comp == -1:
+                first_comp = i
+        # Eq8 must be strictly between last gate and first comp
+        for idx in eq8_indices:
+            after_gate = (last_gate == -1) or (idx > last_gate)
+            before_comp = (first_comp == -1) or (idx < first_comp)
+            if after_gate and before_comp:
+                return children[idx]
+        return None
+
+    if target == "pre_saturation":
+        first_sat = next(
+            (i for i, cat in enumerate(categories) if cat == "saturation"), -1
+        )
+        if first_sat == -1:
+            return None
+        for idx in eq8_indices:
+            if idx < first_sat:
+                return children[idx]
+        return None
+
+    if target == "post_saturation":
+        last_sat = -1
+        for i, cat in enumerate(categories):
+            if cat == "saturation":
+                last_sat = i
+        if last_sat == -1:
+            return None
+        for idx in eq8_indices:
+            if idx > last_sat:
+                return children[idx]
+        return None
+
+    return None
+
+
+def find_or_create_eq8_at_position(
+    track_element: ET.Element,
+    tree: ET.ElementTree,
+    target_chain_position: str,
+    user_name: str | None = None,
+) -> ET.Element:
+    """Find or create an Eq8 honoring chain_position semantics.
+
+    Phase 4.10 Step 2 — extension surgical de :func:`find_or_create_eq8`
+    qui ne tient pas compte de la position dans le chain. Cette fonction-ci
+    place l'Eq8 selon la sémantique demandée (pre_compressor, post_compressor,
+    chain_start, chain_end, post_gate_pre_compressor, pre_saturation,
+    post_saturation).
+
+    Backward-compat : :func:`find_or_create_eq8` (sans suffixe) reste
+    inchangé. Les callers existants (eq8_automation.py, etc.) ne sont pas
+    affectés.
+
+    Args:
+        track_element: Track element (from :func:`find_track_by_name`).
+        tree: Full ElementTree (for ID allocation when creating).
+        target_chain_position: One of the chain_position values defined
+            in mix_engine VALID_CHAIN_POSITIONS. ``'default'`` falls back
+            to :func:`find_or_create_eq8`.
+        user_name: Optional UserName for newly-created Eq8.
+
+    Returns:
+        The Eq8 Element (existing in target region, or newly created and
+        inserted at the resolved index).
+
+    Raises:
+        ValueError: If track has no DeviceChain/Devices container.
+        ChainPositionUnresolvedError: If pre-conditions for the requested
+            chain_position aren't met (e.g., 'post_compressor' but no comp).
+        RuntimeError: If the Eq8 template can't be loaded.
+    """
+    if target_chain_position == "default":
+        return find_or_create_eq8(track_element, tree, user_name=user_name)
+
+    devices = track_element.find(".//DeviceChain/DeviceChain/Devices")
+    if devices is None:
+        devices = track_element.find(".//DeviceChain/Devices")
+    if devices is None:
+        raise ValueError(
+            "Cannot locate a Devices container in the track's DeviceChain. "
+            "The track structure is unexpected."
+        )
+
+    children = list(devices)
+    categories = [_categorize_device(child) for child in children]
+
+    # Idempotency : reuse existing Eq8 in target region if any.
+    existing = _find_existing_eq8_in_region(
+        children, categories, target_chain_position
+    )
+    if existing is not None:
+        return existing
+
+    # Resolve the insert index. Raises ChainPositionUnresolvedError if
+    # pre-conditions aren't met.
+    target_index = _resolve_insert_position(categories, target_chain_position)
+
+    # Clone template and insert at target index.
+    eq8 = _clone_eq8_with_unique_ids(tree, user_name=user_name)
+    devices.insert(target_index, eq8)
+    return eq8
+
+
 def find_or_create_eq8(
     track_element: ET.Element,
     tree: ET.ElementTree,

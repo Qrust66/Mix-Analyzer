@@ -36,6 +36,21 @@ from mix_engine.writers.eq8_configurator import _resolve_eq8_mode
 # first is "[H/R] Kick 1" which already has an Eq8.
 _REF_ALS = Path(__file__).parent / "fixtures" / "reference_project.als"
 
+# Pluggin Mapping.als template — required by als_utils._load_eq8_template
+# to clone a real Eq8 when a track has none. Some local checkouts may not
+# have this file (gitignored history). Tests that exercise CREATE paths
+# (vs reuse-existing) skip when absent.
+_PLUGGIN_TEMPLATE = (
+    Path(__file__).resolve().parent.parent
+    / "ableton" / "projects" / "Pluggin Mapping.als"
+)
+_eq8_template_available = _PLUGGIN_TEMPLATE.exists()
+_skip_if_no_template = pytest.mark.skipif(
+    not _eq8_template_available,
+    reason=f"Pluggin Mapping.als template not present at {_PLUGGIN_TEMPLATE} — "
+            "test requires Eq8 clone source. Existing-Eq8 reuse paths still tested.",
+)
+
 
 # ============================================================================
 # Translation table tests
@@ -288,3 +303,293 @@ def test_apply_multiple_bands_one_track(tmp_path):
     # (no new Eq8 created)
     assert report.eq8_created == 0
     assert report.eq8_reused == 1
+
+
+# ============================================================================
+# Phase 4.10 Step 2 — chain_position resolution (unit tests on helpers)
+# ============================================================================
+
+from als_utils import (  # noqa: E402
+    ChainPositionUnresolvedError,
+    _categorize_device,
+    _find_existing_eq8_in_region,
+    _resolve_insert_position,
+)
+
+
+class _MockElement:
+    """Minimal ET.Element-like for category resolution unit tests."""
+    def __init__(self, tag): self.tag = tag
+
+
+def _categories(tags):
+    return [_categorize_device(_MockElement(t)) for t in tags]
+
+
+def test_resolve_chain_start_returns_zero():
+    cats = _categories(["Eq8", "Compressor2", "Limiter"])
+    assert _resolve_insert_position(cats, "chain_start") == 0
+
+
+def test_resolve_chain_end_returns_len():
+    cats = _categories(["Eq8", "Compressor2", "Limiter"])
+    assert _resolve_insert_position(cats, "chain_end") == 3
+
+
+def test_resolve_pre_compressor_finds_first_compressor():
+    cats = _categories(["Eq8", "Saturator", "Compressor2", "Limiter"])
+    assert _resolve_insert_position(cats, "pre_compressor") == 2
+
+
+def test_resolve_post_compressor_finds_after_last():
+    cats = _categories(["Eq8", "Compressor2", "Saturator", "Limiter"])
+    # Limiter (index 3) is also a compressor → post = 4
+    assert _resolve_insert_position(cats, "post_compressor") == 4
+
+
+def test_resolve_pre_compressor_no_compressor_raises():
+    cats = _categories(["Eq8", "Saturator"])
+    with pytest.raises(ChainPositionUnresolvedError, match="no Compressor"):
+        _resolve_insert_position(cats, "pre_compressor")
+
+
+def test_resolve_post_compressor_no_compressor_raises():
+    cats = _categories(["Eq8", "Saturator"])
+    with pytest.raises(ChainPositionUnresolvedError, match="no Compressor"):
+        _resolve_insert_position(cats, "post_compressor")
+
+
+def test_resolve_post_gate_pre_compressor_typical():
+    cats = _categories(["Gate", "Compressor2"])
+    assert _resolve_insert_position(cats, "post_gate_pre_compressor") == 1
+
+
+def test_resolve_post_gate_pre_compressor_no_gate_falls_back_pre_comp():
+    cats = _categories(["Eq8", "Compressor2"])
+    assert _resolve_insert_position(cats, "post_gate_pre_compressor") == 1
+
+
+def test_resolve_post_gate_pre_compressor_no_comp_appends_after_gate():
+    cats = _categories(["Eq8", "Gate"])
+    assert _resolve_insert_position(cats, "post_gate_pre_compressor") == 2
+
+
+def test_resolve_post_gate_pre_compressor_neither_raises():
+    cats = _categories(["Eq8", "Saturator"])
+    with pytest.raises(ChainPositionUnresolvedError,
+                        match="neither Gate nor Compressor"):
+        _resolve_insert_position(cats, "post_gate_pre_compressor")
+
+
+def test_resolve_post_gate_pre_compressor_inverted_raises():
+    """Gate AFTER Compressor → impossible target."""
+    cats = _categories(["Compressor2", "Gate"])
+    with pytest.raises(ChainPositionUnresolvedError, match="impossible"):
+        _resolve_insert_position(cats, "post_gate_pre_compressor")
+
+
+def test_resolve_pre_saturation():
+    cats = _categories(["Eq8", "Compressor2", "Saturator"])
+    assert _resolve_insert_position(cats, "pre_saturation") == 2
+
+
+def test_resolve_post_saturation_with_drumbuss():
+    cats = _categories(["Eq8", "DrumBuss", "Limiter"])
+    # DrumBuss is "saturation" category → post = 2
+    assert _resolve_insert_position(cats, "post_saturation") == 2
+
+
+def test_resolve_pre_eq_creative_raises_not_supported():
+    cats = _categories(["Eq8", "Compressor2"])
+    with pytest.raises(ChainPositionUnresolvedError,
+                        match="distinguishing creative vs corrective"):
+        _resolve_insert_position(cats, "pre_eq_creative")
+
+
+def test_resolve_unknown_chain_position_raises():
+    cats = _categories(["Eq8"])
+    with pytest.raises(ChainPositionUnresolvedError, match="Unknown"):
+        _resolve_insert_position(cats, "bogus_position")
+
+
+# ============================================================================
+# Phase 4.10 Step 2 — _find_existing_eq8_in_region idempotency tests
+# ============================================================================
+
+
+def test_existing_eq8_at_chain_start_reused():
+    """Eq8 at index 0 → reused for chain_start."""
+    children = [_MockElement("Eq8"), _MockElement("Compressor2")]
+    cats = ["eq8", "compressor"]
+    found = _find_existing_eq8_in_region(children, cats, "chain_start")
+    assert found is children[0]
+
+
+def test_existing_eq8_pre_compressor_reused():
+    """Eq8 before first Compressor → reused for pre_compressor."""
+    children = [_MockElement("Eq8"), _MockElement("Saturator"),
+                _MockElement("Compressor2")]
+    cats = ["eq8", "saturation", "compressor"]
+    found = _find_existing_eq8_in_region(children, cats, "pre_compressor")
+    assert found is children[0]
+
+
+def test_existing_eq8_post_compressor_reused():
+    """Eq8 after last Compressor → reused for post_compressor."""
+    children = [_MockElement("Compressor2"), _MockElement("Eq8")]
+    cats = ["compressor", "eq8"]
+    found = _find_existing_eq8_in_region(children, cats, "post_compressor")
+    assert found is children[1]
+
+
+def test_no_existing_eq8_in_region_returns_none():
+    """No Eq8 in target region → None (caller will create)."""
+    children = [_MockElement("Compressor2"), _MockElement("Limiter")]
+    cats = ["compressor", "compressor"]
+    found = _find_existing_eq8_in_region(children, cats, "pre_compressor")
+    assert found is None
+
+
+def test_no_compressor_at_all_returns_none():
+    """post_compressor target but no comp → None (caller raises)."""
+    children = [_MockElement("Eq8")]
+    cats = ["eq8"]
+    found = _find_existing_eq8_in_region(children, cats, "post_compressor")
+    assert found is None
+
+
+# ============================================================================
+# Phase 4.10 Step 2 — Integration tests on real .als with multiple devices
+# ============================================================================
+
+
+def test_apply_pre_compressor_reuses_existing_eq8(tmp_path):
+    """[H/R] Bass Rythm has Eq8 at index 0, GlueCompressor at index 3.
+    Requesting chain_position=pre_compressor must REUSE the existing Eq8
+    (idempotency) — not create a duplicate."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    band = _make_band(track="[H/R] Bass Rythm", center_hz=120.0,
+                       gain_db=-2.0, q=2.0)
+    band = EQBandCorrection(
+        track=band.track, band_type=band.band_type, intent=band.intent,
+        center_hz=band.center_hz, q=band.q, gain_db=band.gain_db,
+        slope_db_per_oct=band.slope_db_per_oct,
+        chain_position="pre_compressor",  # explicit
+        processing_mode=band.processing_mode,
+        rationale=band.rationale, inspired_by=band.inspired_by,
+    )
+    decision = MixDecision(
+        value=EQCorrectiveDecision(bands=(band,)),
+        lane="eq_corrective",
+        rationale="120 Hz boom on Bass Rythm pre_compressor.",
+        confidence=0.85,
+    )
+    report = apply_eq_corrective_decision(ref_copy, decision, output_path=output)
+    assert report.eq8_reused == 1
+    assert report.eq8_created == 0
+
+    # Verify chain still has only 1 Eq8 (no duplicate created)
+    tree = als_utils.parse_als(str(output))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    devices = track.find(".//DeviceChain/DeviceChain/Devices")
+    eq8_count = sum(1 for c in devices if c.tag == "Eq8")
+    assert eq8_count == 1, "pre_compressor must reuse existing Eq8, not duplicate"
+
+
+@_skip_if_no_template
+def test_apply_post_compressor_creates_new_eq8(tmp_path):
+    """[H/R] Bass Rythm has NO Eq8 after Limiter. post_compressor must
+    CREATE a new Eq8 inserted at chain_end position (after Limiter)."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    band = _make_band(track="[H/R] Bass Rythm", center_hz=2500.0,
+                       gain_db=-1.5, q=3.0)
+    band = EQBandCorrection(
+        track=band.track, band_type=band.band_type, intent=band.intent,
+        center_hz=band.center_hz, q=band.q, gain_db=band.gain_db,
+        slope_db_per_oct=band.slope_db_per_oct,
+        chain_position="post_compressor",
+        processing_mode=band.processing_mode,
+        rationale=band.rationale, inspired_by=band.inspired_by,
+    )
+    decision = MixDecision(
+        value=EQCorrectiveDecision(bands=(band,)),
+        lane="eq_corrective",
+        rationale="Post-comp tame harshness on Bass Rythm.",
+        confidence=0.8,
+    )
+    report = apply_eq_corrective_decision(ref_copy, decision, output_path=output)
+    # Bass Rythm already had an Eq8 → tracks_with_eq8_before_run includes it
+    # → counts as reused. (eq8_created/reused track per-track presence, not
+    # per-position.)
+    assert report.eq8_reused == 1
+    assert report.eq8_created == 0
+
+    # Verify chain now has 2 Eq8 (1 original + 1 newly inserted post_compressor)
+    tree = als_utils.parse_als(str(output))
+    track = als_utils.find_track_by_name(tree, "[H/R] Bass Rythm")
+    devices = list(track.find(".//DeviceChain/DeviceChain/Devices"))
+    eq8_indices = [i for i, c in enumerate(devices) if c.tag == "Eq8"]
+    assert len(eq8_indices) == 2, "post_compressor must create a new Eq8"
+    # New Eq8 must be at the end (after Limiter)
+    assert eq8_indices[-1] == len(devices) - 1
+
+
+def test_apply_pre_compressor_no_compressor_raises(tmp_path):
+    """[H/R] Kick 1 only has [Eq8] — no compressor. Requesting pre_compressor
+    must raise ChainPositionUnresolvedError."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    band = _make_band(track="[H/R] Kick 1")
+    band = EQBandCorrection(
+        track=band.track, band_type=band.band_type, intent=band.intent,
+        center_hz=band.center_hz, q=band.q, gain_db=band.gain_db,
+        slope_db_per_oct=band.slope_db_per_oct,
+        chain_position="post_compressor",  # no comp on Kick 1
+        processing_mode=band.processing_mode,
+        rationale=band.rationale, inspired_by=band.inspired_by,
+    )
+    decision = MixDecision(
+        value=EQCorrectiveDecision(bands=(band,)),
+        lane="eq_corrective",
+        rationale="Test : post_compressor requested but no comp.",
+        confidence=0.5,
+    )
+    with pytest.raises(ChainPositionUnresolvedError, match="no Compressor"):
+        apply_eq_corrective_decision(ref_copy, decision, dry_run=True)
+
+
+def test_apply_chain_start_existing_eq8_reused(tmp_path):
+    """Kick 1 has Eq8 at index 0 → chain_start reuses it (not duplicates)."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    band = _make_band(track="[H/R] Kick 1")
+    band = EQBandCorrection(
+        track=band.track, band_type=band.band_type, intent=band.intent,
+        center_hz=band.center_hz, q=band.q, gain_db=band.gain_db,
+        slope_db_per_oct=band.slope_db_per_oct,
+        chain_position="chain_start",
+        processing_mode=band.processing_mode,
+        rationale=band.rationale, inspired_by=band.inspired_by,
+    )
+    decision = MixDecision(
+        value=EQCorrectiveDecision(bands=(band,)),
+        lane="eq_corrective",
+        rationale="Test chain_start with existing Eq8 at index 0.",
+        confidence=0.8,
+    )
+    report = apply_eq_corrective_decision(ref_copy, decision, output_path=output)
+    assert report.eq8_reused == 1
+
+    tree = als_utils.parse_als(str(output))
+    track = als_utils.find_track_by_name(tree, "[H/R] Kick 1")
+    devices = list(track.find(".//DeviceChain/DeviceChain/Devices"))
+    assert sum(1 for c in devices if c.tag == "Eq8") == 1

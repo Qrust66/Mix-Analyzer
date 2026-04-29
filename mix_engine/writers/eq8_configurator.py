@@ -124,13 +124,11 @@ class EqConfiguratorError(Exception):
     """
 
 
-class ChainPositionUnresolvedError(EqConfiguratorError):
-    """Requested chain_position cannot be honored on this track's chain.
-
-    Example : EQBandCorrection.chain_position='post_compressor' but the
-    track has no Compressor2/GlueCompressor/Limiter device. Phase 4.10
-    Step 1 raises ; Step 2 may add fallback strategies.
-    """
+# ChainPositionUnresolvedError is defined in als_utils (subclass of ValueError)
+# so existing ``except ValueError`` blocks catch it. Re-exported below for
+# convenience — callers can use either als_utils.ChainPositionUnresolvedError
+# or mix_engine.writers.ChainPositionUnresolvedError.
+from als_utils import ChainPositionUnresolvedError  # noqa: E402, F401
 
 
 # ============================================================================
@@ -274,8 +272,13 @@ def apply_eq_corrective_decision(
             track_el = als_utils.find_track_by_name(tree, band.track)
 
             had_eq8_before = band.track in tracks_with_eq8_before_run
-            eq8 = als_utils.find_or_create_eq8(
+
+            # Phase 4.10 Step 2 : route through chain_position-aware function
+            # when band.chain_position != "default". 'default' falls back to
+            # legacy first-Eq8-or-append behavior (backward-compat with Step 1).
+            eq8 = als_utils.find_or_create_eq8_at_position(
                 track_el, tree,
+                target_chain_position=band.chain_position,
                 user_name="eq-configurator" if not had_eq8_before else None,
             )
             # Mark the track as having an Eq8 now (so subsequent bands on the
