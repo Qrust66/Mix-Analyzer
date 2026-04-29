@@ -246,6 +246,13 @@ def apply_eq_corrective_decision(
     bands_applied: list[str] = []
     bands_skipped: list[tuple[str, str]] = []
     warnings: list[str] = []
+    automations_written: int = 0
+
+    # Shared next-id counter for all AutomationEnvelope event Ids written
+    # during this batch. als_utils.write_automation_envelope mutates the
+    # single-element list in-place. Initialized from the tree's current
+    # max-Id + 1 so we don't collide with anything pre-existing.
+    next_id_counter: list[int] = [als_utils.get_next_id(tree)]
 
     # Pre-scan : record which tracks have an Eq8 BEFORE this run.
     # Used to partition unique-tracks-with-bands into created vs reused.
@@ -302,6 +309,57 @@ def apply_eq_corrective_decision(
             if is_on_manual is not None:
                 is_on_manual.set("Value", "true")
 
+            # Phase 4.10 Step 3 — write any non-empty envelopes (gain/freq/Q).
+            # Sections-relative bars require Sections Timeline mapping that
+            # Tier B doesn't have access to ; for Step 3 we accept only
+            # sections=() (whole project) and treat bars as project-absolute.
+            if band.gain_envelope or band.freq_envelope or band.q_envelope:
+                if band.sections:
+                    warnings.append(
+                        f"{band_id} : envelopes specified with sections="
+                        f"{band.sections} — Phase 4.10 Step 3 only supports "
+                        f"sections=() (project-absolute bars). Envelopes "
+                        f"SKIPPED for this band ; static params still applied. "
+                        f"Future Phase will add Sections Timeline mapping."
+                    )
+                else:
+                    if band.gain_envelope:
+                        replaced, env_warns = _write_envelope_for_param(
+                            track_el, band_param, "Gain",
+                            band.gain_envelope, next_id_counter,
+                        )
+                        warnings.extend(env_warns)
+                        if replaced:
+                            warnings.append(
+                                f"{band_id} : existing Gain envelope replaced "
+                                f"(idempotency)."
+                            )
+                        automations_written += 1
+                    if band.freq_envelope:
+                        replaced, env_warns = _write_envelope_for_param(
+                            track_el, band_param, "Freq",
+                            band.freq_envelope, next_id_counter,
+                        )
+                        warnings.extend(env_warns)
+                        if replaced:
+                            warnings.append(
+                                f"{band_id} : existing Freq envelope replaced "
+                                f"(idempotency)."
+                            )
+                        automations_written += 1
+                    if band.q_envelope:
+                        replaced, env_warns = _write_envelope_for_param(
+                            track_el, band_param, "Q",
+                            band.q_envelope, next_id_counter,
+                        )
+                        warnings.extend(env_warns)
+                        if replaced:
+                            warnings.append(
+                                f"{band_id} : existing Q envelope replaced "
+                                f"(idempotency)."
+                            )
+                        automations_written += 1
+
             bands_applied.append(band_id)
             _LOGGER.info(
                 "Applied %s on %r slot=%d Mode=%d", band_id, band.track,
@@ -327,6 +385,7 @@ def apply_eq_corrective_decision(
             bands_skipped=tuple(bands_skipped),
             eq8_created=eq8_created,
             eq8_reused=eq8_reused,
+            automations_written=automations_written,
             warnings=tuple(warnings),
             output_path=str(als_path),
         )
@@ -340,6 +399,7 @@ def apply_eq_corrective_decision(
         bands_skipped=tuple(bands_skipped),
         eq8_created=eq8_created,
         eq8_reused=eq8_reused,
+        automations_written=automations_written,
         warnings=tuple(warnings),
         output_path=str(final_als),
     )
@@ -351,6 +411,77 @@ def apply_eq_corrective_decision(
 
 
 _EQ8_BANDS_PER_INSTANCE: int = 8
+
+# Phase 4.10 Step 3 — bar → time_beats conversion. Assumes 4/4 time signature
+# (4 beats per bar). Future enhancement could extract real time signature
+# from .als <TimeSignatureNumerator>/<TimeSignatureDenominator>. For now,
+# 4/4 covers the vast majority of mix_analyzer-supported genres.
+_BEATS_PER_BAR_4_4: float = 4.0
+
+
+def _bar_to_time_beats(bar: int, beats_per_bar: float = _BEATS_PER_BAR_4_4) -> float:
+    """Convert section-relative bar (int) to Ableton-native time_beats (float).
+
+    Phase 4.10 Step 3 limitation : only supports sections=() (whole project),
+    where 'section-relative bar' equals 'project-absolute bar'. Section→bar
+    mapping (when band.sections is non-empty) requires Sections Timeline
+    integration — punted to Phase 4.X.
+    """
+    return float(bar) * beats_per_bar
+
+
+def _remove_envelope_for_pointee(
+    track_element: ET.Element, pointee_id: str
+) -> bool:
+    """Remove any AutomationEnvelope targeting the given PointeeId.
+
+    Idempotency helper for envelope writes : when re-applying a decision,
+    we replace existing envelopes rather than duplicate. Returns True if
+    an envelope was removed (Phase 4.10 Step 3 logs into report.warnings).
+
+    Mirror of eq8_automation._remove_existing_envelope (kept private there).
+    """
+    envelopes_node = track_element.find("AutomationEnvelopes/Envelopes")
+    if envelopes_node is None:
+        return False
+    for envelope in list(envelopes_node):
+        pointee = envelope.find("EnvelopeTarget/PointeeId")
+        if pointee is not None and pointee.get("Value") == str(pointee_id):
+            envelopes_node.remove(envelope)
+            return True
+    return False
+
+
+def _write_envelope_for_param(
+    track_el: ET.Element,
+    band_param: ET.Element,
+    param_name: str,
+    points: tuple,  # tuple[EQAutomationPoint, ...]
+    next_id_counter: list[int],
+) -> tuple[bool, list[str]]:
+    """Write one AutomationEnvelope on (band_param.<param_name>).
+
+    Returns (replaced_existing: bool, warnings: list[str]).
+
+    points must be non-empty ; caller checks before calling.
+    """
+    warnings: list[str] = []
+
+    target_id = als_utils.get_automation_target_id(band_param, param_name)
+    replaced = _remove_envelope_for_pointee(track_el, target_id)
+
+    events: list[tuple[float, float]] = [
+        (_bar_to_time_beats(p.bar), float(p.value)) for p in points
+    ]
+
+    als_utils.write_automation_envelope(
+        track_el,
+        pointee_id=target_id,
+        events=events,
+        next_id_counter=next_id_counter,
+        event_type="FloatEvent",
+    )
+    return replaced, warnings
 
 
 def _find_available_band_slot(eq8_element: ET.Element) -> int:
