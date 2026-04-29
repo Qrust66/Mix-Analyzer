@@ -1685,13 +1685,65 @@ def test_spatial_check3_width_neutral_no_op_raises():
         parse_spatial_decision(payload)
 
 
-def test_spatial_check4_mono_with_extra_value_raises():
-    """#4 : mono move_type forbids other value fields."""
+def test_spatial_check4_mono_with_extra_numeric_field_raises():
+    """#4 : mono move_type forbids other value fields (numeric extra)."""
     payload = _valid_spatial_payload()
     payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
         move_type="mono", pan=None, stereo_width=0.5,
         rationale="Mono move with extra stereo_width value field should reject ; mono is the move_type signal.",
         inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "mono"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="extra value"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check4_mono_with_extra_phase_channel_raises():
+    """#4 audit Finding 3 : mono with phase_channel set also rejected
+    (covers the second branch of the extras detection)."""
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="mono", pan=None, phase_channel="L",
+        rationale="Mono move with extra phase_channel field should reject ; phase_flip and mono are distinct move types.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "mono"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="extra value"):
+        parse_spatial_decision(payload)
+
+
+# Phase 4.5.1 audit Finding 1 : check #4 strictified to ALL move_types
+# (was previously only mono). Each move_type allows exactly ONE value field.
+
+
+def test_spatial_check4_pan_with_extra_stereo_width_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="pan", pan=0.0, stereo_width=0.7,  # extra
+        rationale="Pan move with extra stereo_width value should reject ; each move_type owns one field.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "pan"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="extra value"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check4_phase_flip_with_extra_pan_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="phase_flip", pan=0.3, phase_channel="L",  # pan extra
+        chain_position="chain_start",
+        rationale="Phase flip move with extra pan field should reject ; phase_flip owns phase_channel only.",
+        inspired_by=[{"kind": "diagnostic", "path": "Anomalies!x",
+                      "excerpt": "Phase correlation -0.4"}],
+    )
+    with pytest.raises(MixAgentOutputError, match="extra value"):
+        parse_spatial_decision(payload)
+
+
+def test_spatial_check4_width_with_extra_balance_raises():
+    payload = _valid_spatial_payload()
+    payload["stereo_spatial"]["moves"][0] = _valid_spatial_move(
+        move_type="width", pan=None, stereo_width=0.7, balance=0.2,  # balance extra
+        rationale="Width move with extra balance field should reject ; width owns stereo_width only.",
+        inspired_by=[{"kind": "user_brief", "path": "b", "excerpt": "narrow"}],
     )
     with pytest.raises(MixAgentOutputError, match="extra value"):
         parse_spatial_decision(payload)

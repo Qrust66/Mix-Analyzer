@@ -1964,14 +1964,23 @@ def _parse_spatial_move(item: Any, *, where: str) -> SpatialMove:
             f"Pick a value ≠ 1.0 to actually change the stereo width."
         )
 
-    # #4 — mono : no other value-field allowed (the move_type itself signals Mono=True)
-    if move_type == "mono":
-        if other_numeric_set or phase_channel is not None:
-            raise MixAgentOutputError(
-                f"{where}.move_type='mono' but extra value fields set : "
-                f"{other_numeric_set + (['phase_channel'] if phase_channel else [])}. "
-                f"For mono, leave all value fields null — Tier B writes StereoGain.Mono=True."
-            )
+    # #4 — every move_type forbids extra value fields beyond its own
+    # (Phase 4.5.1 audit Finding 1 : was previously only enforced for
+    # 'mono' ; extended to all 7 move_types so schema docstring's
+    # "others None" promise actually holds in the parser).
+    extras = list(other_numeric_set)
+    # phase_channel is the move_type-specific field for phase_flip ; for
+    # any OTHER move_type its presence is an extra.
+    if move_type != "phase_flip" and phase_channel is not None:
+        extras.append("phase_channel")
+    if extras:
+        raise MixAgentOutputError(
+            f"{where}.move_type={move_type!r} but extra value fields set : "
+            f"{extras}. Each move_type allows ONE specific value field "
+            f"(pan→pan, width→stereo_width, bass_mono→bass_mono_freq_hz, "
+            f"phase_flip→phase_channel, balance→balance, ms_balance→"
+            f"mid_side_balance ; mono allows none). Leave others null."
+        )
 
     # #5 — bass_mono : bass_mono_freq_hz required, in [50, 500]
     if move_type == "bass_mono" and bass_mono_freq_hz is None:

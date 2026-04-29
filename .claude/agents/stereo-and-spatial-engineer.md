@@ -493,7 +493,7 @@ JSON pur (no fences) :
 1. ❌ `move_type="pan"` AND `pan` None or ∉ [-1, 1]
 2. ❌ `move_type="width"` AND `stereo_width` None or ∉ [0, 4]
 3. ❌ `move_type="width"` AND `stereo_width == 1.0` (no-op identity neutre)
-4. ❌ `move_type="mono"` AND any other value field set (extra fields)
+4. ❌ ANY `move_type` AND value fields beyond its own set (extras) — Phase 4.5.1 audit Finding 1 : was previously only enforced for `mono` ; now strictified to all 7 move_types so schema docstring's "others None" promise holds. Each move_type owns ONE specific field : `pan→pan`, `width→stereo_width`, `bass_mono→bass_mono_freq_hz`, `phase_flip→phase_channel`, `balance→balance`, `ms_balance→mid_side_balance`, `mono→none`.
 5. ❌ `move_type="bass_mono"` AND `bass_mono_freq_hz` None or ∉ [50, 500]
 6. ❌ `move_type="phase_flip"` AND `phase_channel` ∉ {"L", "R"}
 7. ❌ `move_type="balance"` AND `balance` None or ∉ [-1, 1]
@@ -511,7 +511,7 @@ JSON pur (no fences) :
 - ❌ `move_type="width"` direction narrow sur correlation > 0.95 (no-op — déjà mono)
 - ❌ `move_type="width"` direction wide sur Mix Health Stereo Image > 80 (over-engineered, surgical only)
 - ❌ `move_type="phase_flip"` sur track avec correlation > 0 (pas de phase issue mesurable)
-- ❌ `move_type="pan"` avec `pan == report.tracks[track].pan` (idempotence — pas un repan)
+- ❌ `move_type="pan"` avec `abs(pan - report.tracks[track].pan) < 0.05` (idempotence — pas un repan ; cohérent avec gate_A tolérance 0.05)
 - ❌ Multiple `SpatialMove` empilées sur même track sans `move_type` distinct (parser catch via duplicate)
 - ❌ `chain_position="chain_start"` sur move_type ≠ "phase_flip" (semantique reservée)
 - ❌ `move_type="balance"` sur track mono (correlation > 0.95) — Balance no-op, use Pan
