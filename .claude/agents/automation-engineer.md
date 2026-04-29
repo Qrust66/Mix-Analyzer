@@ -430,6 +430,76 @@ JSON pur (no fences) :
 - **Citation discipline** : ≥ 1 cite per envelope ; ≥ 50 chars rationale.
 - **No invention** : signal section-variable obligatoire pour corrective ; genre_context + Sections Timeline pour mastering.
 
+## Phase 4.8.3 — Device coverage extension + Eq8 band_type compatibility
+
+**Phase 4.8.2 → 4.8.3 extension** : `VALID_AUTOMATION_TARGET_DEVICES`
+passe de 7 à **10 devices** pour couvrir l'intégralité des plugins
+mappés dans `ableton_devices_mapping.json` (sauf Trackspacer
+explicitement OOS).
+
+### Devices automatables (10 total)
+
+**9 Ableton native** :
+- Eq8, Compressor2, GlueCompressor, Limiter, Gate, DrumBuss, StereoGain
+- ⭐ **AutoFilter2** (Phase 4.8.3 added) — filter cutoff sweep corrective
+  pour resonance hunt (LPF cutoff envelope chasse les peaks errants)
+- ⭐ **Saturator** (Phase 4.8.3 added) — PreDrive/PostDrive/DryWet
+  envelopes per-section (less drive verse, full drive chorus)
+
+**1 VST3 mastering** :
+- ⭐ **SmartLimit** (Phase 4.8.3 added) — alternative au Limiter natif
+  pour mastering bus (ceiling envelope per section)
+
+**OOS Phase 4.8.3** :
+- Trackspacer (VST3 dynamic spectral carving) — eq-creative scope future agent
+
+### Eq8 band_type ↔ params automatable matrix (anti-pattern guidance)
+
+Eq8's 8 bandes ont 5 params chacune (Mode, Frequency, Gain, Q, On)
+**indépendamment du band_type** assigné par eq-corrective. MAIS la
+**signification audio** varie :
+
+| `band_type` (Mode) | `Frequency` automatable ? | `Gain` automatable ? | `Q` automatable ? | `On` automatable ? |
+|---|---|---|---|---|
+| `bell` (Mode 3) | ✅ peak tracking | ✅ cut/boost dynamic | ✅ width modulation | ✅ on/off |
+| `notch` (Mode 4) | ✅ surgical hunt | ❌ Notch = -∞ implicite | ✅ width (haute Q) | ✅ |
+| `low_shelf` (Mode 2) | ✅ corner sweep | ✅ shelf amount | symbolique (slope flat) | ✅ |
+| `high_shelf` (Mode 5) | ✅ corner sweep | ✅ shelf amount | symbolique | ✅ |
+| `highpass 12dB` (Mode 1) | ✅ cutoff sweep | ❌ filter no gain | n/a (slope = 12 dB/oct fixe) | ✅ |
+| `highpass 48dB` (Mode 0) | ✅ cutoff sweep | ❌ | n/a (slope 48 dB/oct fixe) | ✅ |
+| `lowpass 12dB` (Mode 6) | ✅ cutoff sweep | ❌ | n/a | ✅ |
+| `lowpass 48dB` (Mode 7) | ✅ cutoff sweep | ❌ | n/a | ✅ |
+
+**Anti-pattern agent-prompt** : émettre `target_param="Gain"` sur une band en HPF/LPF/Notch mode = **audio-engineering invalide** (parser permissif, mais agent doit verify).
+
+```
+❌ Eq8 band index=0 with band_type="highpass 48dB" + automate target_param="Gain"
+   → HPF n'a pas de gain meaningful ; Tier B + device-mapping-oracle catches
+✅ Eq8 band index=0 with band_type="highpass 48dB" + automate target_param="Frequency"
+   → cutoff sweep, valid use case
+```
+
+**Source de vérité** : pour chaque band, lit `blueprint.eq_corrective.value.bands[N].band_type` (ou via chain-builder consumes_indices référence) avant émettre envelope. Le band_type étant statique (eq-corrective decides), agent select target_param compatible.
+
+### COMMON_AUTOMATION_PARAMS_BY_DEVICE table (Phase 4.8.3)
+
+Liste non-exhaustive des params typically automated per device :
+
+| Device | Common automatable params |
+|---|---|
+| `Eq8` | Gain, Frequency, Q (per band ; Mode/On rare) |
+| `Compressor2` | Threshold, Ratio, Attack, Release, Makeup, Knee, DryWet |
+| `GlueCompressor` | Threshold, Range, Makeup, DryWet |
+| `Limiter` | Ceiling, Gain, Release |
+| `Gate` | Threshold, Return, Attack, Hold, Release |
+| `DrumBuss` | Drive, Transients, DampFreq, BoostFreq, Output |
+| `StereoGain` | StereoWidth, Balance, MidSideBalance, BassMonoFrequency, Gain |
+| **`AutoFilter2`** (4.8.3) | Filter_Frequency, Filter_Resonance, Filter_Drive, Filter_Morph, Envelope_Amount, Lfo_Amount, Output, DryWet |
+| **`Saturator`** (4.8.3) | PreDrive, PostDrive, DryWet, Type |
+| **`SmartLimit`** (4.8.3 VST3) | General_inputGain, General_outputGain, General_limiterThreshold, General_attack, General_release, General_saturation |
+
+⚠️ Liste indicative. Parser permissif sur `target_param` ; agent-prompt + Tier B device-mapping-oracle valident la compatibilité device↔param.
+
 ## Phase 4.8.2 — Resolution alignment with mix_analyzer
 
 **Schema field rename** : `AutomationPoint.bar: int` (Phase 4.8) → `AutomationPoint.time_beats: float` (Phase 4.8.2). Justification :

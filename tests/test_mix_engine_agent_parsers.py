@@ -3461,6 +3461,111 @@ def test_automation_phase482_pair_form_lenient():
     assert decision.value.envelopes[0].points[1].time_beats == 0.5
 
 
+def test_automation_phase483_autofilter2_corrective_envelope():
+    """Phase 4.8.3 : AutoFilter2 added to VALID_AUTOMATION_TARGET_DEVICES.
+    Corrective use case : LPF cutoff sweep to hunt wandering resonance."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Synth Pad",
+        target_device="AutoFilter2",
+        target_param="Filter_Frequency",
+        points=[
+            {"time_beats": 0.0, "value": 8000.0},     # verse : cutoff at 8kHz
+            {"time_beats": 64.0, "value": 6500.0},    # chorus : roll off resonance
+            {"time_beats": 128.0, "value": 8000.0},
+        ],
+        sections=[0, 1, 2],
+        rationale="AutoFilter2 LPF cutoff envelope on Synth Pad : roll off harsh resonance only in chorus per spectral_peaks evidence ; verse + outro keep full top end.",
+    )
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].target_device == "AutoFilter2"
+    assert decision.value.envelopes[0].target_param == "Filter_Frequency"
+
+
+def test_automation_phase483_saturator_drive_envelope():
+    """Phase 4.8.3 : Saturator added. Corrective use case : Drive
+    modulation per section (less drive in sparse verse, full in chorus)."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Bass A",
+        target_device="Saturator",
+        target_param="PreDrive",
+        points=[
+            {"time_beats": 0.0, "value": 0.0},      # verse : minimal drive
+            {"time_beats": 64.0, "value": 4.0},     # chorus : full drive
+            {"time_beats": 128.0, "value": 0.0},
+        ],
+        sections=[0, 1, 2],
+        rationale="Saturator PreDrive envelope on Bass A : verse needs cleaner low-end (0 drive), chorus benefits from harmonic excitement (4 drive) per density_tolerance + brief 'aggressive chorus'.",
+    )
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].target_device == "Saturator"
+
+
+def test_automation_phase483_smartlimit_mastering_envelope():
+    """Phase 4.8.3 : SmartLimit (VST3) added for mastering scope."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(
+        purpose="mastering_master_bus",
+        target_track="Master",
+        target_device="SmartLimit",
+        target_param="General_limiterThreshold",
+        points=[
+            {"time_beats": 0.0, "value": -1.0},
+            {"time_beats": 64.0, "value": -0.5},   # tighter ceiling in chorus
+            {"time_beats": 128.0, "value": -1.0},
+        ],
+        sections=[0, 1, 2],
+        rationale="SmartLimit threshold envelope on Master per genre electronic_aggressive target -8 LUFS : tighter -0.5dB chorus, -1dB safety verse + outro.",
+    )
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].target_device == "SmartLimit"
+
+
+@pytest.mark.parametrize("device", sorted(VALID_AUTOMATION_TARGET_DEVICES))
+def test_automation_phase483_all_devices_accepted(device):
+    """Smoke : every device in VALID_AUTOMATION_TARGET_DEVICES emittable."""
+    payload = _valid_automation_payload()
+    # For Eq8 require band_index ; for Limiter avoid band_index ; etc.
+    overrides = {"target_device": device, "target_param": "Gain"}
+    if device == "Eq8":
+        overrides["target_param"] = "Gain"
+        overrides["target_band_index"] = 4
+    elif device == "Limiter":
+        overrides["target_param"] = "Ceiling"
+    elif device == "Compressor2":
+        overrides["target_param"] = "Threshold"
+    elif device == "GlueCompressor":
+        overrides["target_param"] = "Threshold"
+    elif device == "Gate":
+        overrides["target_param"] = "Threshold"
+    elif device == "DrumBuss":
+        overrides["target_param"] = "Drive"
+    elif device == "StereoGain":
+        overrides["target_param"] = "StereoWidth"
+    elif device == "AutoFilter2":
+        overrides["target_param"] = "Filter_Frequency"
+    elif device == "Saturator":
+        overrides["target_param"] = "PreDrive"
+    elif device == "SmartLimit":
+        overrides["target_param"] = "General_limiterThreshold"
+        overrides["purpose"] = "mastering_master_bus"
+        overrides["target_track"] = "Master"
+    payload["automation"]["envelopes"][0] = _valid_automation_envelope(**overrides)
+    decision = parse_automation_decision(payload)
+    assert decision.value.envelopes[0].target_device == device
+
+
+def test_automation_phase483_trackspacer_still_rejected():
+    """Phase 4.8.3 : Trackspacer remains OOS (eq-creative scope)."""
+    payload = _valid_automation_payload()
+    payload["automation"]["envelopes"][0]["target_device"] = "Trackspacer"
+    with pytest.raises(MixAgentOutputError, match="target_device"):
+        parse_automation_decision(payload)
+
+
 def test_automation_phase482_max_time_beats_accepted():
     """Phase 4.8.2 : AUTOMATION_MAX_TIME_BEATS = 39996.0 accepted (boundary)."""
     payload = _valid_automation_payload()

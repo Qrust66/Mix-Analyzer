@@ -1287,19 +1287,35 @@ VALID_AUTOMATION_PURPOSES = frozenset({
 
 
 # Target devices that automation-engineer can address.
-# Reuses the catalog of mapped devices (cf. VALID_CHAIN_DEVICES).
+# Phase 4.8.3 — extended to cover ALL mapped automatable devices in the
+# catalog (was 7 in Phase 4.8 ; now 9 Ableton native + 1 VST3 mastering).
+# Trackspacer (VST3 dynamic spectral carving) explicitly OOS — eq-creative
+# scope (cf. Phase 4.5.x docs).
 VALID_AUTOMATION_TARGET_DEVICES = frozenset({
+    # 9 Ableton native mapped devices
     "Eq8", "Compressor2", "GlueCompressor", "Limiter",
     "Gate", "DrumBuss", "StereoGain",
+    "AutoFilter2",          # Phase 4.8.3 added — filter cutoff sweeps (corrective LPF resonance hunt)
+    "Saturator",            # Phase 4.8.3 added — Drive/Output per-section corrective modulation
+    # VST3 mastering plugin
+    "SmartLimit",           # Phase 4.8.3 added — alternative to native Limiter for mastering
 })
 
 
 # Sample of common automatable parameter names per device family.
-# This is NON-exhaustive ; parser accepts any non-empty string for
-# target_param (validation that the param is automatable on the actual
-# device is delegated to Tier B automation-writer + device-mapping-oracle).
+# Phase 4.8.3 — covers ALL automatable devices in VALID_AUTOMATION_TARGET_DEVICES.
+# Parser accepts any non-empty string for target_param (validation per-param
+# delegated to Tier B automation-writer + device-mapping-oracle).
+#
+# Eq8 NOTE : the 5 per-band params (Mode, Frequency, Gain, Q, On) work for
+# ANY band_type (bell/notch/HPF/LPF/shelves). However :
+# - Gain meaningful only for bell/shelf bands (Notch = -inf, HPF/LPF = n/a)
+# - Q meaningful for bell/notch (HPF/LPF use slope_db_per_oct enum, not Q)
+# - Mode (band_type itself) automatable but unusual ; agent typically sets
+#   band_type statically and automates only the active params
+# Agent-prompt enforces band_type/param compatibility (parser permissive).
 COMMON_AUTOMATION_PARAMS_BY_DEVICE = {
-    "Eq8": ("Gain", "Frequency", "Q"),
+    "Eq8": ("Gain", "Frequency", "Q"),  # the 3 typically automated ; Mode/On rare
     "Compressor2": ("Threshold", "Ratio", "Attack", "Release",
                     "Makeup", "Knee", "DryWet"),
     "GlueCompressor": ("Threshold", "Range", "Makeup", "DryWet"),
@@ -1308,6 +1324,14 @@ COMMON_AUTOMATION_PARAMS_BY_DEVICE = {
     "DrumBuss": ("Drive", "Transients", "DampFreq", "BoostFreq", "Output"),
     "StereoGain": ("StereoWidth", "Balance", "MidSideBalance",
                     "BassMonoFrequency", "Gain"),
+    # Phase 4.8.3 additions
+    "AutoFilter2": ("Filter_Frequency", "Filter_Resonance", "Filter_Drive",
+                    "Filter_Morph", "Envelope_Amount", "Lfo_Amount",
+                    "Output", "DryWet"),
+    "Saturator": ("PreDrive", "PostDrive", "DryWet", "Type"),
+    "SmartLimit": ("General_inputGain", "General_outputGain",
+                    "General_limiterThreshold", "General_attack",
+                    "General_release", "General_saturation"),
 }
 
 
