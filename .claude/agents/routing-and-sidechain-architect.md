@@ -208,6 +208,18 @@ SidechainRepair(
 )
 ```
 
+**Format expectations pour `current_trigger`** (parser accepts both ; agent decides which) :
+- ⭐ **Cas typique** (stale ref détectée par `STALE_SIDECHAIN_REGEX`) :
+  `current_trigger="AudioIn/Track.4/PostFxOut"` — la raw form preserved
+  par mix-diagnostician
+- **Cas brief-driven override** (Light #3 cohesion fix) : si le brief dit
+  "redirect Bass A's sidechain from Lead Synth to Kick A", `current_trigger`
+  peut être `"Lead Synth"` (resolved track name) — c'est un override
+  valide même si la ref n'est pas stale au sens XML
+
+Pour `new_trigger`, **toujours** un resolved track name (parser check #7
+rejette toute valeur matching `STALE_SIDECHAIN_REGEX`).
+
 ### Scenario B : `sidechain_remove` (stale ref, no good target)
 
 **Pre-flight gate** :
@@ -373,7 +385,7 @@ parser source (`agent_parsers.py` `# #1 — ...` comments) :
 
 - ❌ `> 2` repairs sur même track = signal de confusion ; refuse + escalate user
 - ❌ `new_trigger NOT in {t.name for t in report.tracks}` (créer une ref vers track inexistante — parser ne voit pas le report, agent doit checker)
-- ❌ Scenario A `current_trigger` NE matche PAS `STALE_SIDECHAIN_REGEX` ET `current_trigger ∈ {t.name}` (= ref VALIDE, pas un repair !)
+- ❌ Scenario A `current_trigger` NE matche PAS `STALE_SIDECHAIN_REGEX` ET `current_trigger ∈ {t.name}` ET **aucun brief explicit "redirect from X to Y" ne mentionne ce `current_trigger`** (= ref VALIDE non-stale et pas d'override brief = pas un repair, juste un track existant). **Cas légitime brief-driven** : si le brief override explicit (ex: "redirect Bass A's sidechain from Lead Synth to Kick A"), `current_trigger="Lead Synth"` est OK même si Lead Synth n'est pas stale.
 - ❌ Scenario C wiring identique à un CDE diagnostic existant (duplication)
 - ❌ Inventer un `new_trigger` sans source (priority 1 ou 2) — fall to Scenario B
 - ❌ Tenter "send_redirect" / "group_assign" / etc. (out-of-scope Phase 4.4)
@@ -452,3 +464,38 @@ ou via un pipeline future.
 **Pas de banque Qrust modulation** : routing est topologique pur, pas
 de paramètres genre-dependent. Pas de M/S, pas de sections, pas
 d'envelopes.
+
+## Known limitations (cohesion)
+
+### Cross-lane non-resolution avec dynamics-corrective
+
+**Constat** : dynamics-corrective Scenario B (sidechain duck CDE-driven) lit
+`report.cde_diagnostics[*].primary_correction.parameters.trigger_track`
+directement et émet une `DynamicsCorrection` avec ce `trigger_track`. Il ne lit
+PAS `MixBlueprint.routing.repairs` pour voir si tu as fait un override.
+
+**Scénario problématique** : si le brief utilisateur te dit "redirect Bass A's
+sidechain from Kick A to Lead Synth" (brief-driven override) :
+- Toi : tu emit `SidechainRepair(track="Bass A", fix_type=redirect, new_trigger="Lead Synth")`
+- dynamics-corrective : reste sur le CDE original `trigger_track="Kick A"` →
+  émet `DynamicsCorrection(sidechain.trigger_track="Kick A")`
+- **Contradiction** : la ref XML pointera vers Lead Synth (ton repair) mais le
+  comp ducking sera configuré pour trigger sur Kick A.
+
+**Résolution** : c'est la responsabilité de `chain-builder` (Phase 4.X future)
+qui réconcilie les Tier A décisions cross-lane. Pour Phase 4.4, on documente
+que le user doit aligner brief avec CDE OR ne pas faire d'override
+brief-driven sur des refs déjà CDE-driven.
+
+**Workaround courant** : si tu détectes ce pattern (brief override sur une
+CDE-driven trigger), note dans le rationale : "WARNING — brief override
+diverges from CDE ; dynamics-corrective will emit CDE original trigger_track ;
+chain-builder reconciliation needed". Cela laisse une trace pour le futur
+agent de réconciliation OR pour l'utilisateur.
+
+### `current_trigger` format expectations (cf. Scenario A action)
+
+Pas un bug, juste un point de clarté résolu :
+- Stale raw form (`AudioIn/Track.N/...`) = cas typique stale-detection
+- Resolved track name = cas brief-driven override
+- Parser accepts both, agent decides per scenario context
