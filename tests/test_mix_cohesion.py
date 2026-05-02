@@ -234,6 +234,10 @@ _EXPECTED_RULES = {
     "sidechain_target_exists_in_routing",        # Phase 4.19.1
     "automation_envelope_targets_active_param",  # Phase 4.19.2
     "chain_order_respects_signal_flow",          # Phase 4.19.3
+    "master_ceiling_below_minus_03_dbtp",        # Phase 4.19.4
+    "eq_cuts_redundant_across_tracks",           # Phase 4.19.5 (renamed
+                                                  # from the audio-incorrect
+                                                  # "phase_holes" name)
 }
 
 
@@ -789,3 +793,277 @@ def test_chain_order_handles_glue_compressor_too():
              if v.rule == "chain_order_respects_signal_flow"]
     assert len(warns) == 1
     assert "Drum Bus" in warns[0].message
+
+
+# ============================================================================
+# Phase 4.19.4 rule — master_ceiling_below_minus_03_dbtp
+# ============================================================================
+
+
+def _mastering_with_limiter(ceiling_dbtp: float = -0.4):
+    move = MasterMove(
+        type="limiter_target",
+        target_track=MASTER_TRACK_NAME,
+        device="Limiter",
+        chain_position="master_dynamics",
+        target_lufs_i=-14.0,
+        ceiling_dbtp=ceiling_dbtp,
+        rationale=(
+            "Causal: Phase 4.19.4 cohesion test fixture — sets a streaming "
+            "limiter target at the configured ceiling for ceiling-rule check."
+        ),
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    return MixDecision(
+        value=MasteringDecision(moves=(move,)),
+        lane="mastering",
+        rationale="Cohesion test wrapper.",
+        confidence=0.85,
+    )
+
+
+def test_master_ceiling_blocks_at_minus_02():
+    """ceiling_dbtp=-0.2 > -0.3 → block."""
+    bp = MixBlueprint(name="too-loud").with_decision(
+        "mastering", _mastering_with_limiter(ceiling_dbtp=-0.2),
+    )
+    report = check_mix_cohesion(bp)
+    blockers = [v for v in report.violations
+                if v.rule == "master_ceiling_below_minus_03_dbtp"]
+    assert len(blockers) == 1
+    assert blockers[0].severity == "block"
+    assert "-0.2" in blockers[0].message
+    assert "streaming-safe" in blockers[0].message
+    assert "--force" in blockers[0].message
+    assert not report.is_clean
+
+
+def test_master_ceiling_silent_at_minus_05():
+    """ceiling_dbtp=-0.5 <= -0.3 → no block."""
+    bp = MixBlueprint(name="safe").with_decision(
+        "mastering", _mastering_with_limiter(ceiling_dbtp=-0.5),
+    )
+    report = check_mix_cohesion(bp)
+    blockers = [v for v in report.violations
+                if v.rule == "master_ceiling_below_minus_03_dbtp"]
+    assert blockers == []
+
+
+def test_master_ceiling_silent_exactly_at_minus_03_boundary():
+    """ceiling_dbtp=-0.3 (boundary) → no block ; rule uses strict >."""
+    bp = MixBlueprint(name="boundary").with_decision(
+        "mastering", _mastering_with_limiter(ceiling_dbtp=-0.3),
+    )
+    report = check_mix_cohesion(bp)
+    blockers = [v for v in report.violations
+                if v.rule == "master_ceiling_below_minus_03_dbtp"]
+    assert blockers == []
+
+
+def test_master_ceiling_skipped_when_no_limiter_target_move():
+    """A mastering decision with only stereo_enhance moves (no
+    limiter_target) is not in scope of this rule."""
+    bp = _mastering_bp()  # uses stereo_enhance, NO limiter_target
+    report = check_mix_cohesion(bp)
+    blockers = [v for v in report.violations
+                if v.rule == "master_ceiling_below_minus_03_dbtp"]
+    assert blockers == []
+
+
+def test_master_ceiling_skipped_when_ceiling_dbtp_is_none():
+    """limiter_target with ceiling_dbtp=None (Tier B picks default) is
+    not flagged — there's no ceiling to validate."""
+    move = MasterMove(
+        type="limiter_target",
+        target_track=MASTER_TRACK_NAME,
+        device="Limiter",
+        chain_position="master_dynamics",
+        target_lufs_i=-14.0,
+        ceiling_dbtp=None,  # explicit None
+        rationale=(
+            "Causal: Phase 4.19.4 cohesion test fixture — limiter without "
+            "explicit ceiling_dbtp ; Tier B picks the default."
+        ),
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    decision = MixDecision(
+        value=MasteringDecision(moves=(move,)),
+        lane="mastering",
+        rationale="Cohesion test wrapper.",
+        confidence=0.85,
+    )
+    bp = MixBlueprint(name="ceiling-none").with_decision("mastering", decision)
+    report = check_mix_cohesion(bp)
+    blockers = [v for v in report.violations
+                if v.rule == "master_ceiling_below_minus_03_dbtp"]
+    assert blockers == []
+
+
+def test_master_ceiling_skipped_when_mastering_lane_absent():
+    """Single-lane rule still respects the lane-skipping contract."""
+    bp = MixBlueprint(name="no-mastering")
+    report = check_mix_cohesion(bp)
+    blockers = [v for v in report.violations
+                if v.rule == "master_ceiling_below_minus_03_dbtp"]
+    assert blockers == []
+
+
+# ============================================================================
+# Phase 4.19.5 rule — eq_cuts_redundant_across_tracks
+# (renamed from the audio-incorrect "phase_holes_with_neighbours")
+# ============================================================================
+
+
+def _eq_band(track: str, center_hz: float, gain_db: float,
+             intent: str = "cut", band_type: str = "bell", q: float = 1.5):
+    from mix_engine.blueprint import EQBandCorrection
+    return EQBandCorrection(
+        track=track,
+        band_type=band_type,
+        intent=intent,
+        center_hz=center_hz,
+        q=q,
+        gain_db=gain_db,
+        chain_position="default",
+        rationale=(
+            "Causal: Phase 4.19.5 cohesion test fixture — band crafted to land "
+            "in or out of the redundant-cluster detection window."
+        ),
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+
+
+def _eq_corrective(*bands):
+    from mix_engine.blueprint import EQCorrectiveDecision
+    return MixDecision(
+        value=EQCorrectiveDecision(bands=tuple(bands)),
+        lane="eq_corrective",
+        rationale="Cohesion test wrapper.",
+        confidence=0.85,
+    )
+
+
+def test_redundant_cuts_warns_on_two_tracks_same_freq_band():
+    """Track A cuts -6 dB at 250 Hz, Track B cuts -6 dB at 245 Hz : both
+    bands fall in the same 1/3-octave window → warn."""
+    bp = MixBlueprint(name="redundant").with_decision(
+        "eq_corrective",
+        _eq_corrective(
+            _eq_band("Bass",     center_hz=250.0, gain_db=-6.0),
+            _eq_band("Synth Pad", center_hz=245.0, gain_db=-6.0),
+        ),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "eq_cuts_redundant_across_tracks"]
+    assert len(warns) == 1
+    assert warns[0].severity == "warn"
+    assert "Bass" in warns[0].message and "Synth Pad" in warns[0].message
+    assert "single bus EQ cut" in warns[0].message
+    # The message must NOT use the audio-incorrect "phase hole" terminology
+    assert "phase hole" not in warns[0].message.lower()
+    assert report.is_clean  # warns don't unclean
+
+
+def test_redundant_cuts_warns_on_three_tracks():
+    """3 tracks all cut around 250 Hz → cluster of 3 → warn."""
+    bp = MixBlueprint(name="three-tracks").with_decision(
+        "eq_corrective",
+        _eq_corrective(
+            _eq_band("Bass",      center_hz=250.0, gain_db=-5.0),
+            _eq_band("Synth Pad",  center_hz=240.0, gain_db=-4.0),
+            _eq_band("Lead Vox",   center_hz=260.0, gain_db=-6.0),
+        ),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "eq_cuts_redundant_across_tracks"]
+    assert len(warns) == 1
+    assert "3 tracks" in warns[0].message
+
+
+def test_redundant_cuts_silent_when_freqs_more_than_third_octave_apart():
+    """Track A at 250 Hz, Track B at 400 Hz → ratio 1.6 > 1.26 → no warn."""
+    bp = MixBlueprint(name="far-apart").with_decision(
+        "eq_corrective",
+        _eq_corrective(
+            _eq_band("Bass",     center_hz=250.0, gain_db=-6.0),
+            _eq_band("Synth Pad", center_hz=400.0, gain_db=-6.0),
+        ),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "eq_cuts_redundant_across_tracks"]
+    assert warns == []
+
+
+def test_redundant_cuts_silent_when_cuts_too_shallow():
+    """Two -2 dB cuts → below -3 dB perceptual threshold → no warn."""
+    bp = MixBlueprint(name="shallow").with_decision(
+        "eq_corrective",
+        _eq_corrective(
+            _eq_band("Bass",     center_hz=250.0, gain_db=-2.0),
+            _eq_band("Synth Pad", center_hz=245.0, gain_db=-2.0),
+        ),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "eq_cuts_redundant_across_tracks"]
+    assert warns == []
+
+
+def test_redundant_cuts_silent_for_same_track_pair():
+    """Two cuts on the SAME track → not a cross-track cluster, no warn."""
+    bp = MixBlueprint(name="same-track").with_decision(
+        "eq_corrective",
+        _eq_corrective(
+            _eq_band("Bass", center_hz=250.0, gain_db=-6.0),
+            _eq_band("Bass", center_hz=245.0, gain_db=-6.0, q=2.5),
+        ),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "eq_cuts_redundant_across_tracks"]
+    assert warns == []
+
+
+def test_redundant_cuts_silent_when_one_band_is_boost():
+    """Track A boosts (+4 dB) at 250 Hz, Track B cuts (-6 dB) at 245 Hz.
+    Boost has intent='boost' → filtered out → cluster has 1 cut from 1
+    track → no warn."""
+    bp = MixBlueprint(name="boost-vs-cut").with_decision(
+        "eq_corrective",
+        _eq_corrective(
+            _eq_band("Bass",     center_hz=250.0, gain_db=4.0,  intent="boost"),
+            _eq_band("Synth Pad", center_hz=245.0, gain_db=-6.0, intent="cut"),
+        ),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "eq_cuts_redundant_across_tracks"]
+    assert warns == []
+
+
+def test_redundant_cuts_silent_for_shelf_band_types():
+    """Two high_shelf cuts → out of v1 scope (only bell). No warn."""
+    bp = MixBlueprint(name="shelves").with_decision(
+        "eq_corrective",
+        _eq_corrective(
+            _eq_band("Bass",     center_hz=250.0, gain_db=-6.0,
+                     band_type="high_shelf"),
+            _eq_band("Synth Pad", center_hz=245.0, gain_db=-6.0,
+                     band_type="high_shelf"),
+        ),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "eq_cuts_redundant_across_tracks"]
+    assert warns == []
+
+
+def test_redundant_cuts_skipped_when_eq_corrective_lane_absent():
+    bp = MixBlueprint(name="no-eq")
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "eq_cuts_redundant_across_tracks"]
+    assert warns == []

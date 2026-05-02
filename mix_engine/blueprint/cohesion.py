@@ -16,8 +16,7 @@ docs/MIX_ENGINE_ARCHITECTURE.md §7) :
 
 | Rule                                              | Severity | Lanes |
 |---------------------------------------------------|----------|-------|
-| eq_cuts_dont_create_phase_holes_with_neighbours   | warn     | eq_corrective × eq_corrective (cross-track) |
-| master_ceiling_below_minus_03_dbtp                | block    | mastering |
+| eq_cuts_redundant_across_tracks                   | warn     | eq_corrective (cluster across tracks) |
 """
 from __future__ import annotations
 
@@ -354,4 +353,183 @@ def chain_order_respects_signal_flow(
                 ),
                 lanes=("chain",),
             )
+    return None
+
+
+# ============================================================================
+# Phase 4.19.4 — master_ceiling_below_minus_03_dbtp
+# ============================================================================
+#
+# Streaming-codec safety ceiling. The PARSER allows up to MASTER_CEILING_MAX_DBTP
+# = -0.1 dBTP (audio-physics PCM limit). Lossy codecs (mp3, AAC, Opus) however
+# can produce inter-sample peaks +1-2 dB above the PCM peak ; mastering at
+# -0.1 dBTP routinely clips on consumer playback gear after codec re-encoding.
+# AES + Spotify Loudness Penalty + Apple Sound Check all converge on -0.3 dBTP
+# as the conservative streaming-safe ceiling.
+#
+# This is a CONTEXT-DEPENDENT recommendation — CD/vinyl-only deliveries don't
+# go through a lossy codec downstream and can legitimately push to -0.1 dBTP.
+# That's why severity is "block" (per archi doc §7) WITH --force override
+# rather than a hard parser bound.
+_STREAMING_SAFE_CEILING_DBTP: float = -0.3
+
+
+@mix_cohesion_rule(lanes=("mastering",))
+def master_ceiling_below_minus_03_dbtp(
+    bp: MixBlueprint,
+) -> Optional[MixCohesionViolation]:
+    """Block when any mastering ``limiter_target`` move sets a ceiling
+    above -0.3 dBTP.
+
+    See module-level comment for the audio rationale (streaming codec
+    inter-sample peaks). Boundary semantics : strict ``>`` — exactly
+    -0.3 dBTP does not fire.
+
+    Empty mastering decisions (no moves), decisions without any
+    ``limiter_target`` move, and ``limiter_target`` moves with
+    ``ceiling_dbtp is None`` (Tier B picks default) all silently
+    pass — there's nothing for cohesion to flag.
+
+    --force override is the documented escape hatch for CD / vinyl /
+    no-codec-downstream contexts.
+    """
+    mastering = bp.mastering
+    assert mastering is not None  # decorator-guaranteed
+
+    for i, move in enumerate(mastering.value.moves):
+        if move.type != "limiter_target":
+            continue
+        if move.ceiling_dbtp is None:
+            continue
+        if move.ceiling_dbtp > _STREAMING_SAFE_CEILING_DBTP:
+            return MixCohesionViolation(
+                rule="master_ceiling_below_minus_03_dbtp",
+                severity="block",
+                message=(
+                    f"limiter_target move #{i} on track {move.target_track!r} "
+                    f"sets ceiling_dbtp={move.ceiling_dbtp} > "
+                    f"{_STREAMING_SAFE_CEILING_DBTP} (streaming-safe ceiling). "
+                    f"Lossy codecs (mp3/AAC/Opus) can produce inter-sample "
+                    f"peaks +1-2 dB above the PCM ceiling, causing clipping "
+                    f"on consumer playback. Lower the ceiling to <= "
+                    f"{_STREAMING_SAFE_CEILING_DBTP} dBTP. For CD/vinyl-only "
+                    f"deliveries (no codec downstream) this warning is "
+                    f"informational — pass --force to apply anyway."
+                ),
+                lanes=("mastering",),
+            )
+    return None
+
+
+# ============================================================================
+# Phase 4.19.5 — eq_cuts_redundant_across_tracks
+# ============================================================================
+#
+# Naming note : the original archi doc §7 listed this rule as
+# "eq_cuts_dont_create_phase_holes_with_neighbours". After a Pass 2 audit it
+# was renamed to "eq_cuts_redundant_across_tracks" because the
+# phase-hole terminology is audio-incorrect : per-track EQ cuts on different
+# tracks do NOT sum logarithmically into a deeper bus cut (the way intra-track
+# stacked cuts would). Phase holes are comb filtering of correlated signals
+# with time/phase offsets — a different physical phenomenon.
+#
+# What this rule TRULY catches is the redundant cleanup pattern : when N tracks
+# all cut the same narrow freq band, the cleanup is often better expressed
+# as a single bus EQ cut (cleaner, less phase smear from N filter passes,
+# easier to revisit). Severity warn because cluster carving is sometimes
+# intentional (carving space for a featured element).
+
+# A "cut" is a band that drops gain enough to be musically audible. -3 dB is
+# the perceptual threshold (3 dB doubling/halving rule of thumb).
+_REDUNDANT_CUT_GAIN_THRESHOLD_DB: float = -3.0
+# 1/3 octave window (factor 2^(1/3) ≈ 1.26). Two centre frequencies F1, F2 are
+# considered "the same band" when F2/F1 ∈ [1/1.26, 1.26]. We implement that
+# by checking whether F2 falls inside the window [F1 / 2^(1/6), F1 * 2^(1/6)]
+# (centred ±1/6 octave) which is identical mathematically.
+_REDUNDANT_CUT_HALF_OCTAVE_WINDOW: float = 2.0 ** (1.0 / 6.0)
+# Minimum number of distinct tracks in the cluster to fire the warning. 2 is
+# the natural threshold (1 track cutting a freq is just a normal EQ move).
+_REDUNDANT_CUT_MIN_TRACKS: int = 2
+
+
+@mix_cohesion_rule(lanes=("eq_corrective",))
+def eq_cuts_redundant_across_tracks(
+    bp: MixBlueprint,
+) -> Optional[MixCohesionViolation]:
+    """Warn when the same narrow freq band is being cut on multiple tracks.
+
+    Audio rationale (the HONEST version) :
+        When tracks A, B, C all cut a bell at ~250 Hz, the cleanup is
+        often better done with a SINGLE bus EQ cut. Reasons :
+        (1) one filter pass instead of N → less cumulative phase smear ;
+        (2) one place to revisit if the cut needs adjustment ;
+        (3) addresses a bus-level masking issue at the bus, not by
+        guessing which tracks contribute the freq buildup.
+
+    This is NOT a phase-hole detector — per-track EQ cuts on DIFFERENT
+    tracks do not sum logarithmically into a deeper bus cut. The
+    original archi doc name was audio-incorrect ; renamed in Phase
+    4.19.5 audit cycle.
+
+    What we DO check :
+    - Filter to bell cuts (band_type == "bell" AND intent == "cut" AND
+      gain_db <= -3 dB)
+    - For each band's centre freq, find all OTHER bands within ±1/6
+      octave (total 1/3 octave window)
+    - If the cluster includes ≥ 2 distinct tracks → warn (one cluster
+      per blueprint, first match wins)
+
+    What we INTENTIONALLY skip :
+    - Non-bell band types (shelves and filters span wide ranges, not
+      narrow cluster targets)
+    - Boost bands (intent != "cut" — different concern)
+    - Shallow cuts (gain_db > -3 dB — under perceptual threshold)
+    - Single-track clusters (one track cutting a freq is normal EQ)
+    """
+    eq = bp.eq_corrective
+    assert eq is not None  # decorator-guaranteed
+
+    bell_cuts = [
+        band for band in eq.value.bands
+        if band.band_type == "bell"
+        and band.intent == "cut"
+        and band.gain_db <= _REDUNDANT_CUT_GAIN_THRESHOLD_DB
+    ]
+    if len(bell_cuts) < _REDUNDANT_CUT_MIN_TRACKS:
+        return None
+
+    # Sort by centre freq to make cluster walking deterministic.
+    sorted_cuts = sorted(bell_cuts, key=lambda b: b.center_hz)
+
+    for anchor in sorted_cuts:
+        if anchor.center_hz <= 0:
+            continue
+        f_lo = anchor.center_hz / _REDUNDANT_CUT_HALF_OCTAVE_WINDOW
+        f_hi = anchor.center_hz * _REDUNDANT_CUT_HALF_OCTAVE_WINDOW
+        cluster = [
+            b for b in sorted_cuts
+            if f_lo <= b.center_hz <= f_hi
+        ]
+        cluster_tracks = sorted({b.track for b in cluster})
+        if len(cluster_tracks) < _REDUNDANT_CUT_MIN_TRACKS:
+            continue
+        # Geometric mean of cluster freqs is a stable cluster centre summary.
+        product = 1.0
+        for b in cluster:
+            product *= b.center_hz
+        cluster_centre_hz = product ** (1.0 / len(cluster))
+        return MixCohesionViolation(
+            rule="eq_cuts_redundant_across_tracks",
+            severity="warn",
+            message=(
+                f"{len(cluster_tracks)} tracks ({cluster_tracks}) all cut a "
+                f"bell band within 1/3 octave of {cluster_centre_hz:.0f} Hz. "
+                f"Often this pattern is cleaner expressed as a single bus EQ "
+                f"cut (one filter pass, less cumulative phase smear, one "
+                f"place to revisit). If each track really has the freq "
+                f"problem independently (e.g., shared resonance from same "
+                f"sample/synth) ignore this warning."
+            ),
+            lanes=("eq_corrective",),
+        )
     return None
