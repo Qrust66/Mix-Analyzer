@@ -226,16 +226,218 @@ def test_info_severity_keeps_report_clean(isolated_rules):
 
 
 # ============================================================================
-# Real-module sanity — Phase 4.19 ships ZERO concrete rules
+# Real-module sanity — Phase 4.19.1 registry invariant
 # ============================================================================
 
 
-def test_phase_4_19_ships_zero_concrete_rules():
-    """Per rule-with-consumer principle, no rule should be registered yet.
-    This test will need an update when the first concrete rule lands."""
-    # No isolated_rules fixture — we want to inspect the real registry.
-    assert cohesion_module._RULES == [], (
-        "Phase 4.19 should ship 0 cohesion rules (rule-with-consumer). "
-        "If a rule was added, update this test AND the docstring of "
-        "cohesion.py to note the first concrete rule's phase."
+_EXPECTED_RULES_AT_PHASE_4_19_1 = {
+    "sidechain_target_exists_in_routing",
+}
+
+
+def test_real_registry_matches_documented_rule_set():
+    """The set of rules registered at module import time must match the
+    set documented in cohesion.py's module docstring + the
+    `_EXPECTED_RULES_AT_PHASE_4_19_1` constant above. This catches both
+    accidental rule deletion AND speculative rule addition without
+    updating the docstring."""
+    # No isolated_rules fixture — inspect the real registry.
+    actual = {r.__name__ for r in cohesion_module._RULES}
+    assert actual == _EXPECTED_RULES_AT_PHASE_4_19_1, (
+        f"Registered rules drifted from documented set. "
+        f"Actual: {actual}. Expected: {_EXPECTED_RULES_AT_PHASE_4_19_1}. "
+        f"If you added/removed a rule, update both the docstring of "
+        f"cohesion.py AND this test's expected set."
     )
+
+
+# ============================================================================
+# Phase 4.19.1 rule — sidechain_target_exists_in_routing
+# ============================================================================
+
+
+def _dynamics_with_external_sidechain(
+    target_track: str = "Bass",
+    trigger_track: str = "Kick",
+):
+    from mix_engine.blueprint import (
+        DynamicsCorrection,
+        DynamicsCorrectiveDecision,
+        SidechainConfig,
+    )
+    correction = DynamicsCorrection(
+        track=target_track,
+        dynamics_type="sidechain_duck",
+        device="Compressor2",
+        threshold_db=-15.0,
+        ratio=4.0,
+        sidechain=SidechainConfig(
+            mode="external",
+            trigger_track=trigger_track,
+            depth_db=-8.0,
+        ),
+        rationale=(
+            "Causal: Phase 4.19.1 cohesion test fixture — needs an external "
+            "sidechain so the rule can compare trigger_track to routing repairs."
+        ),
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    return MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Cohesion test wrapper.",
+        confidence=0.85,
+    )
+
+
+def _routing_with_remove(current_trigger: str = "Kick", track: str = "Bass"):
+    from mix_engine.blueprint import RoutingDecision, SidechainRepair
+    repair = SidechainRepair(
+        track=track,
+        fix_type="sidechain_remove",
+        current_trigger=current_trigger,
+        rationale=(
+            "Causal: Phase 4.19.1 cohesion test fixture — removes the "
+            "sidechain that the dynamics correction depends on."
+        ),
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    return MixDecision(
+        value=RoutingDecision(repairs=(repair,)),
+        lane="routing",
+        rationale="Cohesion test wrapper.",
+        confidence=0.85,
+    )
+
+
+def _routing_with_redirect(
+    current_trigger: str = "Kick",
+    new_trigger: str = "Kick Reinforce",
+    track: str = "Bass",
+):
+    from mix_engine.blueprint import RoutingDecision, SidechainRepair
+    repair = SidechainRepair(
+        track=track,
+        fix_type="sidechain_redirect",
+        current_trigger=current_trigger,
+        new_trigger=new_trigger,
+        rationale=(
+            "Causal: redirect away from the stale trigger to a live one. "
+            "This should NOT trigger the rule — only sidechain_remove does."
+        ),
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    return MixDecision(
+        value=RoutingDecision(repairs=(repair,)),
+        lane="routing",
+        rationale="Cohesion test wrapper.",
+        confidence=0.85,
+    )
+
+
+def test_rule_fires_on_real_contradiction():
+    """dynamics says 'duck Bass via Kick' + routing says 'remove Kick
+    sidechain on Bass' → block."""
+    bp = (
+        MixBlueprint(name="contradiction")
+        .with_decision("dynamics_corrective",
+                       _dynamics_with_external_sidechain("Bass", "Kick"))
+        .with_decision("routing", _routing_with_remove("Kick", "Bass"))
+    )
+    report = check_mix_cohesion(bp)
+    blockers = [v for v in report.violations
+                if v.rule == "sidechain_target_exists_in_routing"]
+    assert len(blockers) == 1
+    assert blockers[0].severity == "block"
+    assert "Kick" in blockers[0].message
+    assert "Bass" in blockers[0].message
+    assert blockers[0].lanes == ("dynamics_corrective", "routing")
+    assert not report.is_clean
+
+
+def test_rule_skipped_when_only_dynamics_filled():
+    """Rule needs both lanes ; only dynamics → silently skipped."""
+    bp = MixBlueprint(name="dyn-only").with_decision(
+        "dynamics_corrective",
+        _dynamics_with_external_sidechain("Bass", "Kick"),
+    )
+    report = check_mix_cohesion(bp)
+    assert report.violations == ()
+    assert report.is_clean
+
+
+def test_rule_skipped_when_only_routing_filled():
+    """Rule needs both lanes ; only routing → silently skipped."""
+    bp = MixBlueprint(name="routing-only").with_decision(
+        "routing", _routing_with_remove("Kick", "Bass"),
+    )
+    report = check_mix_cohesion(bp)
+    assert report.violations == ()
+    assert report.is_clean
+
+
+def test_rule_does_not_fire_for_internal_sidechain():
+    """internal-mode sidechain has no trigger_track to validate → ok."""
+    from mix_engine.blueprint import (
+        DynamicsCorrection,
+        DynamicsCorrectiveDecision,
+        SidechainConfig,
+    )
+    correction = DynamicsCorrection(
+        track="Lead Vox",
+        dynamics_type="deess",
+        device="Compressor2",
+        threshold_db=-22.0,
+        ratio=3.0,
+        sidechain=SidechainConfig(
+            mode="internal_filtered",
+            filter_freq_hz=6500.0,
+            filter_q=1.5,
+        ),
+        rationale=(
+            "Causal: internal-mode sidechain on Lead Vox for de-essing — "
+            "no external trigger track, so the rule should not match."
+        ),
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    dynamics = MixDecision(
+        value=DynamicsCorrectiveDecision(corrections=(correction,)),
+        lane="dynamics_corrective",
+        rationale="Cohesion test wrapper.",
+        confidence=0.85,
+    )
+    bp = (
+        MixBlueprint(name="internal-sc")
+        .with_decision("dynamics_corrective", dynamics)
+        .with_decision("routing", _routing_with_remove("Kick", "Bass"))
+    )
+    report = check_mix_cohesion(bp)
+    assert report.violations == ()
+
+
+def test_rule_does_not_fire_when_remove_targets_different_trigger():
+    """dynamics references Kick, routing removes a Hi-Hat sidechain →
+    independent, no contradiction."""
+    bp = (
+        MixBlueprint(name="diff-trigger")
+        .with_decision("dynamics_corrective",
+                       _dynamics_with_external_sidechain("Bass", "Kick"))
+        .with_decision("routing", _routing_with_remove("Hi-Hat", "Pad"))
+    )
+    report = check_mix_cohesion(bp)
+    assert report.violations == ()
+
+
+def test_rule_does_not_fire_for_sidechain_redirect():
+    """sidechain_redirect is the SAFER fix path (rewires to a live
+    trigger). Out of scope for v1 of the rule — must not block."""
+    bp = (
+        MixBlueprint(name="redirect")
+        .with_decision("dynamics_corrective",
+                       _dynamics_with_external_sidechain("Bass", "Kick"))
+        .with_decision("routing", _routing_with_redirect("Kick",
+                                                          "Kick Reinforce",
+                                                          "Bass"))
+    )
+    report = check_mix_cohesion(bp)
+    assert report.violations == ()
