@@ -798,7 +798,30 @@ def analyze_tempo_dynamic(mono, sr):
     return result
 
 
-def analyze_musical(mono, sr):
+def analyze_musical(mono, sr, preset: ResolutionPreset | None = None):
+    """Per-track musical analysis : chromagram + dominant note + tonal strength.
+
+    Phase F10d (PRESERVE — chroma hop_length=1024 hardcoded by audio physics) :
+        Chromagram is a 12-bin pitch class profile (C, C#, D, ...). Bumping
+        ``preset.cqt_bins_per_octave`` (24 → 36 → 48) does NOT change the
+        result : ``chroma_cqt`` automatically folds all bins into 12 pitch
+        classes. Bumping the hop_length DEGRADES temporal precision for
+        tracking fast melodic changes. The 1024-sample hop (~23 ms at
+        44.1 kHz) is calibrated for melody-precision tracking and has no
+        relation to the spectral_evolution preset's CQT target_fps (which
+        targets a different analysis : peak trajectories on the full
+        spectrum, not pitch class folding).
+
+        The fallback ``chroma_stft`` (rare — only when ``chroma_cqt``
+        raises a librosa internal error) uses the same hop_length=1024
+        for output consistency.
+
+        The ``preset`` argument is accepted for API symmetry with the
+        other ``analyze_*`` functions but is **deliberately ignored**.
+        Test ``test_analyze_musical_preserves_hop_1024_regardless_of_preset``
+        enforces this contract byte-strict across 4 presets.
+    """
+    del preset  # PRESERVE — see docstring
     try:
         chroma = librosa.feature.chroma_cqt(y=mono, sr=sr, hop_length=1024)
     except Exception:
@@ -1327,7 +1350,7 @@ def analyze_track(filepath, compute_tempo=False, preset: ResolutionPreset | None
             'tempogram': None, 'tempogram_times': None, 'tempo_over_time': None,
             'reliable': False,
         }
-    result['musical'] = analyze_musical(mono, sr)
+    result['musical'] = analyze_musical(mono, sr, preset=preset)
     result['stereo'] = analyze_stereo(data, sr, preset=preset)
     # New analyses for v1.6
     result['multiband_timeline'] = analyze_multiband_timeline(mono, sr, preset=preset)
