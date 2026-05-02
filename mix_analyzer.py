@@ -3347,6 +3347,79 @@ def _build_track_onsets_sheet(wb, analyses_with_info, log_fn=None, n_buckets=32)
     log_fn(f"    Excel: _track_onsets done — {len(analyses_with_info)} tracks x {n_buckets} buckets")
 
 
+def _build_analysis_config_sheet(
+    wb,
+    preset: ResolutionPreset | None,
+    peak_threshold_db: float,
+    sample_rate: int,
+    is_shareable: bool = False,
+    log_fn=None,
+):
+    """Build hidden ``_analysis_config`` sheet (Phase F10e — new in v2.8.0).
+
+    14 key/value pairs documenting the resolution / threshold configuration
+    used to generate the report. Consumed by Tier A agents (F10h scope) so
+    they know how to interpret the report's frame counts, freq bins, etc.
+
+    Layout : 2 columns hidden ; column A = key (string), column B = value
+    (string/int/float/bool depending on field). One key per row, no header.
+
+    Args:
+        wb: openpyxl Workbook to add the sheet to.
+        preset: Resolution preset used to generate the report. ``None``
+            resolves to ``RESOLUTION_PRESETS["standard"]`` (v2.7.0
+            backward compat — same default as the analysis pipeline).
+        peak_threshold_db: Threshold in dBFS used (range -80 to -40).
+        sample_rate: Project sample rate detected from the .als (e.g.,
+            44100, 48000). Allows recipients to compute effective hop ms.
+        is_shareable: Toggle for the SHAREABLE-version report flag (F10f
+            uses this to indicate post-filtered data). Default False.
+        log_fn: Optional logging callback.
+    """
+    if log_fn is None:
+        log_fn = lambda msg: None
+    log_fn("    Excel: writing _analysis_config sheet (v2.8.0)...")
+
+    if preset is None:
+        preset = RESOLUTION_PRESETS["standard"]
+
+    sty = _hidden_sheet_style()
+    ws = wb.create_sheet('_analysis_config')
+    ws.sheet_state = 'hidden'
+
+    # 14 key/value pairs documented in spec v1.3 §5.6.
+    # Order matches the spec table for predictability when consumers
+    # (Tier A agents) iterate.
+    rows = [
+        ('preset_name',                     preset.name),
+        ('stft_n_fft',                      preset.stft_n_fft),
+        ('stft_hop_samples',                preset.stft_hop_samples_at_44k),
+        ('stft_hop_ms_at_44k',              round(preset.stft_hop_ms_at_44k, 3)),
+        ('stft_delta_freq_hz_at_44k',       round(preset.stft_delta_freq_hz_at_44k, 4)),
+        ('cqt_target_fps',                  preset.cqt_target_fps),
+        ('cqt_bins_per_octave',             preset.cqt_bins_per_octave),
+        ('cqt_n_bins',                      preset.cqt_n_bins),
+        ('cqt_frames_per_beat_at_128bpm',   round(preset.cqt_frames_per_beat_at_128bpm, 4)),
+        ('sample_rate',                     int(sample_rate)),
+        ('peak_threshold_db',               float(peak_threshold_db)),
+        ('is_shareable_version',            bool(is_shareable)),
+        ('mix_analyzer_version',            f"v{VERSION}"),
+        ('generated_at',                    datetime.now().isoformat(timespec='seconds')),
+    ]
+
+    for r, (key, value) in enumerate(rows, start=1):
+        c_key = ws.cell(row=r, column=1, value=key)
+        c_key.font = sty['header_font']
+        c_key.fill = sty['bg_fill']
+        c_key.border = sty['border']
+        c_val = ws.cell(row=r, column=2, value=value)
+        c_val.font = sty['data_font']
+        c_val.fill = sty['bg_fill']
+        c_val.border = sty['border']
+
+    log_fn(f"    Excel: _analysis_config done — {len(rows)} key/value pairs")
+
+
 def build_ai_context_sheet(workbook, analyses_with_info, style_name, log_fn=None,
                            nav_targets=None, full_mix_info=None):
     """Build the AI Context sheet — dense consolidated metrics for AI ingestion."""
@@ -6589,7 +6662,10 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                            full_mix_info=None, ai_prompt='', log_fn=None,
                            export_mode='full',
                            image_quality='standard',
-                           als_path=None):
+                           als_path=None,
+                           preset: ResolutionPreset | None = None,
+                           peak_threshold_db: float = -70.0,
+                           is_shareable: bool = False):
     """
     Generate complete Excel report.
     analyses_with_info: list of (analysis, track_info) tuples
@@ -6597,6 +6673,15 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                  'globals' (all global sheets, no individual tracks),
                  'ai_optimized' (AI Context + complementary globals only)
     image_quality: 'standard' (200 DPI) or 'high' (400 DPI, sharper images)
+
+    Phase F10e (v2.8.0) :
+        preset: ResolutionPreset used by analyze_track. Default ``None``
+            resolves to ``standard`` (v2.7.0 backward compat). Logged in
+            the new ``_analysis_config`` sheet + Index "Build Info" block.
+        peak_threshold_db: Peak threshold used (passed to
+            ``_analysis_config``). Default -70.0 dBFS (v2.7.0 baseline).
+        is_shareable: True when generating the SHAREABLE post-filtered
+            report (F10f); False for the FULL report.
     """
     import tempfile
     from openpyxl import Workbook
@@ -6719,6 +6804,28 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
                             f'Style: {style_name}{mode_suffix} | Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")} | v{VERSION}')
     # M7.5: Navigation bar
     _xl_add_sheet_nav(ws_index, row - 1, current_sheet='Index', nav_targets=nav_targets)
+
+    # ---- v2.8.0 / Phase F10e : Build Info block (preset + peak_threshold) ----
+    # Surfaces the analysis configuration immediately under the nav bar so
+    # any reader (human or AI) sees what preset generated the report
+    # without having to open the hidden _analysis_config sheet.
+    _bi_preset = preset.name if preset is not None else 'standard'
+    _bi_lines = [
+        ('Preset used', _bi_preset),
+        ('Peak threshold', f'{peak_threshold_db:.1f} dBFS'),
+        ('Mix Analyzer version', f'v{VERSION}'),
+    ]
+    for _key, _val in _bi_lines:
+        c = ws_index.cell(row=row, column=1, value=_key)
+        c.font = header_font
+        c.fill = header_fill
+        c.border = thin_border
+        c2 = ws_index.cell(row=row, column=2, value=_val)
+        c2.font = data_font
+        c2.fill = panel_fill
+        c2.border = thin_border
+        row += 1
+    row += 1  # blank separator before track list
 
     # Track list with hyperlinks
     headers = ['#', 'Track Name', 'Type', 'Category', 'Sheet Link']
@@ -7691,6 +7798,25 @@ def generate_excel_report(analyses_with_info, output_path, style_name,
     _build_track_dynamics_time_sheet(wb, analyses_with_info, log_fn=log_fn, n_buckets=32)
     _build_track_chroma_sheet(wb, analyses_with_info, log_fn=log_fn)
     _build_track_onsets_sheet(wb, analyses_with_info, log_fn=log_fn, n_buckets=32)
+
+    # ---- v2.8.0 / Phase F10e : analysis configuration metadata sheet ----
+    # Documents the resolution preset + threshold + sample rate used for
+    # this report. Consumed by Tier A agents (mix_engine) so they know
+    # how to interpret the report's frame counts, freq bins, etc.
+    # Sample rate inferred from the first track's analysis (all tracks of
+    # a same project share sr by construction). Default 44100 if empty.
+    _detected_sr = (
+        analyses_with_info[0][0].get('sample_rate', 44100)
+        if analyses_with_info else 44100
+    )
+    _build_analysis_config_sheet(
+        wb,
+        preset=preset,
+        peak_threshold_db=peak_threshold_db,
+        sample_rate=_detected_sr,
+        is_shareable=is_shareable,
+        log_fn=log_fn,
+    )
 
     # ---- v2.5.1: Extract automation maps BEFORE v2.5 sheets ----
     auto_maps = {}
