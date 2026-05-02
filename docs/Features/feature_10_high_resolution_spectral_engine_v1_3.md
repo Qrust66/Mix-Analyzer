@@ -744,21 +744,29 @@ Rapport SHAREABLE :
 - `feat(F10): STFT call sites use preset n_fft`
 - `test(F10): unit tests for STFT preset path`
 
-### F10d — Mise à jour sheets time-based via STFT *(modifié en v1.1)*
+### F10d — `analyze_musical` PRESERVE chroma + spec correction *(réécrit en v1.3 après audit)*
 
-**Fichiers modifiés :**
-- Modules générant `_track_multiband_time`, `_track_dynamics_time`, `_track_chroma`
+**Statut :** ✅ **LIVRÉ** — commits `cd412de` (code), `31553f9` (tests), `b8cfcc0` (spec v1.3).
 
-**Modifications :**
-- Adopter `preset.stft_hop_samples_at_44k` cohérent
-- Time columns reflètent la nouvelle résolution
-- Volume scale approprié
+**Note de scope (réécrit en v1.3)** : la phase F10d originale v1.0/v1.1/v1.2 listait 3 modifications (`_track_multiband_time`, `_track_dynamics_time`, `_track_chroma`). Le Pass 2 audit F10d a découvert que cette classification était fausse :
+1. `_track_multiband_time` était **déjà couvert en F10c #4 PRESERVE** (analyze_multiband_timeline = doublon)
+2. `_track_dynamics_time` est **pas STFT du tout** (sliding window peak/RMS sample-domain — `analyze_dynamic_range_timeline` ligne 1077)
+3. `_track_chroma` est **CQT-based** (chroma_cqt avec hop=1024 hardcodé pour précision mélodique — `analyze_musical` ligne 801)
 
-**Durée :** 1h30
-**Tests :** 6-8
-**Commits :**
-- `feat(F10): STFT time-based sheets use preset resolution`
-- `test(F10): unit tests for STFT time-based sheets`
+Cf. §5.7 (Sheets non-impactées par F10) pour le raisonnement audio-physics complet.
+
+**Fichiers modifiés (réel) :**
+- `mix_analyzer.py` : `analyze_musical(mono, sr, preset=None)` accepte preset pour cohérence API mais l'**ignore explicit** (`del preset`) + docstring audio-physics. Threadé depuis `analyze_track`.
+- `tests/test_v25_integration.py` : 3 tests PRESERVE byte-strict sur 5 presets.
+- `docs/Features/feature_10_high_resolution_spectral_engine_v1_3.md` : spec corrigée §5.2 + nouvelle §5.7 + cette §8 mise à jour.
+- `docs/Archives/feature_10_v1_2_ARCHIVED.md` : préservation v1.2 avec header de redirection.
+
+**Durée réelle :** ~1h (vs 1h30 prévu — économie grâce à audit Pass 2 qui a éliminé 2 sites du scope)
+**Tests :** 3 PRESERVE byte-strict (vs 6-8 prévus — réduit en cohérence avec scope final)
+**Commits livrés :**
+- `feat(F10): F10d — analyze_musical PRESERVE chroma hop=1024` (cd412de)
+- `test(F10): F10d — analyze_musical PRESERVE chroma byte-strict tests` (31553f9)
+- `docs(F10): spec v1.2 → v1.3 — corrige §5.2 misclassification après audit F10d` (b8cfcc0)
 
 ### F10e — Mise à jour sheets spectral STFT + nouvelle sheet `_analysis_config` *(modifié en v1.1)*
 
