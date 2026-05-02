@@ -34,8 +34,34 @@ from scipy import signal
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 
+# Phase F10 — resolution preset infrastructure (cf.
+# resolution_presets.py + docs/Features/feature_10_high_resolution_spectral_engine_v1_2.md).
+from resolution_presets import (
+    RESOLUTION_PRESETS,
+    ResolutionPreset,
+)
+
 
 VERSION = '2.7.0'
+
+
+# ============================================================================
+# Phase F10 — minimum peak-detection distance in Hz (audio-engineer correct)
+# ============================================================================
+#
+# In v2.7.0, ``analyze_spectrum`` used ``signal.find_peaks(distance=20)`` at
+# n_fft=8192 (Δf=5.38 Hz/bin), which means peaks had to be at least
+# 20 × 5.38 ≈ **107 Hz** apart to be reported separately. This is a
+# semantic, audio-physics threshold — not a bin count. Hardcoding the bin
+# count breaks at higher n_fft (preset=ultra n_fft=16384 → Δf=2.69 Hz →
+# 20 bins = only 54 Hz, half the original semantic separation, producing
+# false-positive split peaks in the dense mid range).
+#
+# Phase F10 expresses the threshold in Hz and computes the bin-equivalent
+# at runtime as `round(MIN_PEAK_DISTANCE_HZ / (sr / n_fft))`. At
+# preset=standard + sr=44100 this yields exactly distance_bins=20, so the
+# v2.7.0 byte-strict non-regression holds.
+MIN_PEAK_DISTANCE_HZ: float = 107.0
 
 
 # Production Python modules whose version / content hash we stamp into the
@@ -508,8 +534,20 @@ def analyze_loudness(data, sr):
     }
 
 
-def analyze_spectrum(mono, sr):
-    n_fft = 8192
+def analyze_spectrum(mono, sr, preset: ResolutionPreset | None = None):
+    """Per-track spectrum analysis : band energies, descriptors, peak detection.
+
+    Phase F10 (modifié) : ``preset`` controls ``n_fft``. Default ``None``
+    uses the ``standard`` preset (n_fft=8192) for v2.7.0 backward compat.
+
+    The peak detection's ``distance`` parameter is **scaled to preserve
+    the semantic 107 Hz minimum separation** between detected peaks
+    (cf. MIN_PEAK_DISTANCE_HZ). Without this scaling, higher-resolution
+    presets would produce false-positive split peaks in dense mid ranges.
+    """
+    if preset is None:
+        preset = RESOLUTION_PRESETS["standard"]
+    n_fft = preset.stft_n_fft
     S = np.abs(librosa.stft(mono, n_fft=n_fft, hop_length=n_fft//4))
     spectrum_mean = np.mean(S, axis=1)
     freqs = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
@@ -534,7 +572,15 @@ def analyze_spectrum(mono, sr):
         centroid = rolloff = flatness = 0.0
 
     spectrum_db = db(spectrum_mean / (np.max(spectrum_mean) + 1e-12))
-    peaks, properties = signal.find_peaks(spectrum_db, height=-20, distance=20, prominence=6)
+    # Phase F10 : scale the bin-counted ``distance`` to preserve the 107 Hz
+    # semantic minimum separation between detected peaks regardless of preset.
+    # At preset=standard sr=44100 → distance_bins == 20 (v2.7.0 baseline).
+    # At preset=ultra sr=44100 → distance_bins == 40 (preserves 107 Hz).
+    delta_freq_hz = sr / n_fft
+    distance_bins = max(1, round(MIN_PEAK_DISTANCE_HZ / delta_freq_hz))
+    peaks, properties = signal.find_peaks(
+        spectrum_db, height=-20, distance=distance_bins, prominence=6,
+    )
     peak_freqs = freqs[peaks][:8]
     peak_heights = spectrum_db[peaks][:8]
     peak_list = sorted(
@@ -555,9 +601,18 @@ def analyze_spectrum(mono, sr):
     }
 
 
-def compute_hires_band_energies(mono, sr):
-    """Compute band energies for FREQ_BANDS_HIRES (used in masking matrix)."""
-    n_fft = 8192
+def compute_hires_band_energies(mono, sr, preset: ResolutionPreset | None = None):
+    """Compute band energies for FREQ_BANDS_HIRES (used in masking matrix).
+
+    Phase F10 (modifié) : ``preset`` controls ``n_fft``. Default ``None``
+    uses the ``standard`` preset (n_fft=8192) for v2.7.0 backward compat.
+
+    Pure aggregation — higher n_fft only sharpens band edges, the total
+    energy per band converges. Safe to harmonize across all presets.
+    """
+    if preset is None:
+        preset = RESOLUTION_PRESETS["standard"]
+    n_fft = preset.stft_n_fft
     S = np.abs(librosa.stft(mono, n_fft=n_fft, hop_length=n_fft // 4))
     spectrum_mean = np.mean(S, axis=1)
     freqs = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
@@ -766,8 +821,24 @@ def analyze_musical(mono, sr):
     }
 
 
-def analyze_stereo(data, sr):
-    """Stereo analysis including spectral panorama (vectorscope per frequency)."""
+def analyze_stereo(data, sr, preset: ResolutionPreset | None = None):
+    """Stereo analysis including spectral panorama (vectorscope per frequency).
+
+    Phase F10 (PRESERVE — n_fft hardcoded to 4096 by audio physics) :
+        Stereo width is a **time-domain** phenomenon — transients arrive
+        with slight L/R offsets, comb filtering produces narrow time-
+        windowed artefacts, automated panning is sub-second. A 4096-sample
+        FFT window (~93 ms at 44.1 kHz) preserves this transient
+        behaviour. Higher n_fft averages over too long a span (preset=ultra
+        n_fft=16384 = 372 ms = quarter-note at 128 BPM, well past the
+        useful range for stereo tracking).
+
+        The ``preset`` argument is accepted for API symmetry with the
+        other ``analyze_*`` functions but is **deliberately ignored**.
+        Test ``test_analyze_stereo_preserves_4096_regardless_of_preset``
+        enforces this contract byte-strict.
+    """
+    del preset  # PRESERVE — see docstring
     if data.shape[1] < 2:
         return {
             'is_stereo': False,
@@ -954,11 +1025,25 @@ def describe_characteristics(analysis):
     return chars
 
 
-def analyze_multiband_timeline(mono, sr, n_segments=200):
+def analyze_multiband_timeline(mono, sr, n_segments=200, preset: ResolutionPreset | None = None):
     """
     Compute energy per frequency band over time.
     Returns a dict with time axis and energy array per band.
+
+    Phase F10 (PRESERVE — n_fft hardcoded to 2048 by audio physics) :
+        This is a 200-segment time-series with **dynamic hop computed
+        from audio length** (e.g., ~200 ms hop on a 3-min track). The
+        n_fft=2048 (~46 ms) is calibrated to be SHORTER than the typical
+        hop, producing **non-overlapping segments** — each segment
+        sees distinct audio. Increasing n_fft past hop length forces
+        overlap (preset=ultra n_fft=16384 = 372 ms vs ~200 ms hop →
+        47 % forced overlap), which makes successive segments share
+        samples and breaks the "200 distinct snapshots over time" intent.
+
+        The ``preset`` argument is accepted for API symmetry but is
+        **deliberately ignored** to preserve the audio-physics design.
     """
+    del preset  # PRESERVE — see docstring
     n_fft = 2048
     hop_length = max(1, len(mono) // n_segments)
     if hop_length < 256:
@@ -1204,8 +1289,18 @@ def compute_difference_spectrogram(full_mix_mono, individuals_monos, sr):
     return result
 
 
-def analyze_track(filepath, compute_tempo=False):
-    """Complete analysis of a single track."""
+def analyze_track(filepath, compute_tempo=False, preset: ResolutionPreset | None = None):
+    """Complete analysis of a single track.
+
+    Phase F10 (modifié) : ``preset`` is threaded to all analysis
+    sub-functions — both the HARMONIZE sites (analyze_spectrum,
+    compute_hires_band_energies — via downstream callers) and the
+    PRESERVE sites (analyze_stereo, analyze_multiband_timeline —
+    where the preset is ignored by design, see their docstrings).
+
+    Default ``None`` resolves to ``RESOLUTION_PRESETS["standard"]``
+    inside each callee, preserving v2.7.0 byte-strict backward compat.
+    """
     data, sr, is_stereo = load_audio(filepath)
     mono = to_mono(data)
     duration = len(mono) / sr
@@ -1220,7 +1315,7 @@ def analyze_track(filepath, compute_tempo=False):
     }
 
     result['loudness'] = analyze_loudness(data, sr)
-    result['spectrum'] = analyze_spectrum(mono, sr)
+    result['spectrum'] = analyze_spectrum(mono, sr, preset=preset)
     result['temporal'] = analyze_temporal(mono, sr)
     # Tempo is only computed for Full Mix tracks (too unreliable on isolated tracks)
     if compute_tempo:
@@ -1233,17 +1328,18 @@ def analyze_track(filepath, compute_tempo=False):
             'reliable': False,
         }
     result['musical'] = analyze_musical(mono, sr)
-    result['stereo'] = analyze_stereo(data, sr)
+    result['stereo'] = analyze_stereo(data, sr, preset=preset)
     # New analyses for v1.6
-    result['multiband_timeline'] = analyze_multiband_timeline(mono, sr)
+    result['multiband_timeline'] = analyze_multiband_timeline(mono, sr, preset=preset)
     result['dynamic_range_timeline'] = analyze_dynamic_range_timeline(mono, sr)
     result['anomalies'] = detect_anomalies(result)
     result['characteristics'] = describe_characteristics(result)
 
     # v2.5 — Spectral evolution features (CQT-based)
+    # Phase F10 : forward preset to the F10b-ready extract_all_features.
     try:
         from spectral_evolution import extract_all_features as _v25_extract
-        result['_v25_features'] = _v25_extract(mono, sr)
+        result['_v25_features'] = _v25_extract(mono, sr, preset=preset)
     except Exception as e:
         print(f"[v2.5] spectral evolution extraction FAILED: {type(e).__name__}: {e}")
         import traceback as _tb
