@@ -1,8 +1,8 @@
 # Feature 10 — High-Resolution Spectral Engine
 
-**Version spec :** 1.2
+**Version spec :** 1.3
 **Date dernière modification :** 2026-05-02
-**Statut :** **Spec figée pour démarrage dev** — Q1-Q6 validées par Alexandre le 2026-05-02 (cf. §13)
+**Statut :** **Spec figée — dev en cours (F10a + F10b + F10c + F10d livrés)**, F10e-F10h restants
 **Hérite de :** `documentation_discipline.md` (règles de rédaction), `qrust_professional_context.md` (philosophie 100% dynamique justifiant le besoin de haute résolution)
 **Brief méthodologique de référence :** `mix_engineer_brief_v2_3.md`
 **Feature parent dans la roadmap :** voir `roadmap_features_1_8_v2_0.md` (priorité absolue, précède F1 pilote)
@@ -10,6 +10,7 @@
 **Versions archivées précédentes :**
 - `docs/Archives/feature_10_v1_0_ARCHIVED.md` (création initiale, 2026-04-23)
 - `docs/Archives/feature_10_v1_1_ARCHIVED.md` (Pass 2 audit, 2026-05-02)
+- `docs/Archives/feature_10_v1_2_ARCHIVED.md` (Q1-Q6 validées, 2026-05-02)
 
 **Historique d'évolution de la spec :**
 
@@ -17,7 +18,16 @@
 
 - **v1.1** (2026-05-02) — Pass 2 audit du code Mix Analyzer v2.7.0 réel a relevé **5 disconnects critiques** entre la spec v1.0 et le pipeline existant. Préservation intégrale du contenu v1.0 + corrections architecturales motivées. Les modifications sont signalées explicitement section par section.
 
-- **v1.2** (ce document, 2026-05-02) — **Q1-Q6 validées par Alexandre** dans la même session, après walkthrough rapide des 6 questions ouvertes. Aucune modification de contenu vs v1.1 ; uniquement transition de statut "v1.1 — Q en attente" → "v1.2 — figée pour dev". §13 mis à jour avec les résolutions explicites.
+- **v1.2** (2026-05-02) — **Q1-Q6 validées par Alexandre** dans la même session, après walkthrough rapide des 6 questions ouvertes. Aucune modification de contenu vs v1.1 ; uniquement transition de statut "v1.1 — Q en attente" → "v1.2 — figée pour dev". §13 mis à jour avec les résolutions explicites.
+
+- **v1.3** (ce document, 2026-05-02) — **Pass 2 audit F10d a découvert 3 erreurs de classification dans §5.2** :
+  1. `_track_dynamics_time` listée comme "STFT time-based" mais la fonction productrice (`analyze_dynamic_range_timeline` ligne 1077) est **pure sample-domain** (sliding window peak/RMS, pas de `librosa.stft`, pas de n_fft). Aucun preset applicable → **hors scope F10**.
+  2. `_track_chroma` listée comme "STFT time-based" mais la fonction productrice (`analyze_musical` ligne 801) utilise **`chroma_cqt`** (CQT-based, pas STFT). hop=1024 hardcoded pour précision mélodique. Audio-physics impose **PRESERVE** (chromagram = 12 pitch classes, bins_per_octave inopérant ; bumper hop dégrade tracking mélodique).
+  3. `_track_multiband_time` listée comme F10d scope mais la fonction productrice (`analyze_multiband_timeline`) **était déjà couverte en F10c #4 PRESERVE** (overlap-zero design). Doublon.
+
+  v1.3 corrige §5.2 (déplace les 3 sheets vers nouvelle section §5.7 "Sheets non-impactées par F10") et clarifie le scope F10d réel : 1 seule fonction touchée (`analyze_musical`) en mode PRESERVE + tests + spec correction.
+
+  Préservation intégrale du contenu v1.2 — seules §5.2 et §5.7 sont restructurées + entrée historique ajoutée.
 
   **Findings v1.0 → v1.1 corrigés** :
   1. **Pipeline CQT non couvert** (critique) — `_track_peak_trajectories` (consommé par `band-tracking-decider`) est généré via `spectral_evolution.py` qui utilise CQT, pas STFT. La promesse v1.0 "n_fft 16384 → Δf 2.69 Hz uniforme" n'améliorait pas ce sheet. Scope v1.1 étendu pour couvrir le CQT pipeline avec ses propres paramètres preset (`cqt_target_fps`, `cqt_bins_per_octave`).
@@ -435,10 +445,14 @@ Ces sheets sont **directement impactés par `cqt_target_fps`** *(nouveau en v1.1
 
 Ces sheets sont impactés par `stft_n_fft` (Δf) mais **PAS** par le CQT preset :
 
-- `_track_multiband_time` — RMS par bande, scaling avec STFT hop (qui reste 46ms à n_fft=8192 ou 93ms à n_fft=16384)
-- `_track_dynamics_time` — idem
-- `_track_chroma` — basé sur chromagram STFT, n_fft impacté
-- `_track_onsets` — basé sur onset detection STFT (hop=512 hardcodé localement, à auditer en F10d si on veut le piloter par preset)
+- `_track_onsets` — basé sur onset detection STFT (hop=512 hardcodé localement, **explicitement hors scope F10** : très haute résolution temporelle déjà, le preset n'apporte rien)
+
+⚠️ **Trois sheets initialement listées en v1.1 ont été retirées en v1.3** après le Pass 2 audit F10d (cf. historique d'évolution). Elles sont maintenant documentées en **§5.7 (Sheets non-impactées par F10)** :
+- `_track_multiband_time` (couvert F10c #4 PRESERVE — pas un nouvel item F10d)
+- `_track_dynamics_time` (sample-domain peak/RMS — PAS STFT du tout)
+- `_track_chroma` (CQT-based avec hop=1024 — PRESERVE par audio-physics, traité en F10d)
+
+⚠️ **Conséquence pratique** : la phase F10d originalement prévue avec 3 sheets dans son scope se réduit à **1 seule fonction touchée** (`analyze_musical` en mode PRESERVE). Cf. §8 phase F10d ci-dessous + commit `cd412de`.
 
 ### 5.3 Sheets spectral STFT *(modifié en v1.1)*
 
@@ -486,6 +500,19 @@ Ces sheets consomment les sheets ci-dessus et bénéficient automatiquement :
 *(modifié en v1.1)* : v1.0 listait 13 paramètres principalement STFT-centric. v1.1 enrichit avec les paramètres CQT explicites (4 nouveaux : `cqt_target_fps`, `cqt_bins_per_octave`, `cqt_n_bins`, `cqt_frames_per_beat_at_128bpm`).
 
 Cette sheet permet à tout consommateur (Claude en session, Claude Code, F1 CLI, **agents Tier A** *(nouveau en v1.1)*) de savoir exactement dans quelle configuration le rapport a été généré.
+
+### 5.7 Sheets non-impactées par F10 *(nouveau en v1.3 après Pass 2 audit F10d)*
+
+Les sheets suivantes sont **explicitement hors scope F10** par audio-physics. Le Pass 2 audit F10d (2026-05-02) a révélé que la classification v1.1 §5.2 était partiellement incorrecte ; cette section centralise désormais le raisonnement.
+
+| Sheet | Fonction productrice | Raison hors scope F10 |
+|---|---|---|
+| `_track_multiband_time` | `analyze_multiband_timeline` (ligne 957) | **Couvert en F10c #4 PRESERVE** : n_fft=2048 hardcodé pour overlap-zero design (200 segments avec hop dynamique). N'apparaissait dans §5.2 v1.1 que par confusion. |
+| `_track_dynamics_time` | `analyze_dynamic_range_timeline` (ligne 1077) | **Pas STFT du tout** : sliding window 50ms/20ms en pure sample-domain (np.max + np.sqrt(mean²)). Pas de `librosa.stft`, pas de n_fft. Aucun preset applicable mathématiquement. |
+| `_track_chroma` | `analyze_musical` (ligne 801) via `chroma_cqt` | **CQT-based avec hop=1024 hardcodé** pour précision mélodique. Bumper `cqt_bins_per_octave` n'a aucun effet (chromagram = 12 pitch classes fixes). Bumper hop dégrade le tracking de notes rapides. **PRESERVE par audio-physics** ; traité en F10d (`analyze_musical` accepte `preset=None` ignoré pour cohérence API + tests byte-strict 5 presets). |
+| `_track_onsets` | onset detection STFT (hop=512) | Très haute résolution temporelle déjà (hop=512 = 11.6 ms à 44.1 kHz). Le preset.stft_hop n'apporte aucune amélioration possible. |
+
+⚠️ **Note design importante** : la doctrine F10 n'est PAS "tout doit utiliser le preset" — c'est "toute analyse spectrale dont la résolution mérite d'être augmentée doit pouvoir l'être via preset". Les analyses temporelles ou multi-domain (sample-domain RMS, time-series avec hop dynamique, chromagram fold-to-12) restent à leurs paramètres calibrés audio-physics, indépendants du preset. Le `preset` arg leur est passé pour cohérence d'API uniquement, et est documenté `del preset` + docstring.
 
 ---
 
@@ -965,7 +992,7 @@ Suivre `documentation_discipline.md` section 4.
 
 ## 15 — Référence rapide (quick card) *(modifié en v1.1)*
 
-**Statut :** Spec v1.2 — Q1-Q6 validées Alexandre 2026-05-02. **Figée pour démarrage dev (Phase F10a).**
+**Statut :** Spec v1.3 — F10a + F10b + F10c + F10d livrés. F10e-F10h restants (~5-7h estimés).
 
 **Effort estimé total :** 14-20h, ~50-65 tests, **16 micro-commits** (vs 14 en v1.0).
 
@@ -1013,9 +1040,10 @@ Suivre `documentation_discipline.md` section 4.
 - `documentation_discipline.md`
 - `docs/Archives/feature_10_v1_0_ARCHIVED.md` (version précédente — création)
 - `docs/Archives/feature_10_v1_1_ARCHIVED.md` (version précédente — Pass 2 audit)
+- `docs/Archives/feature_10_v1_2_ARCHIVED.md` (version précédente — Q1-Q6 validées)
 
 ---
 
-**Fin spec Feature 10 v1.2 — figée pour démarrage dev.**
+**Fin spec Feature 10 v1.3 — F10a/b/c/d livrés, F10e/f/g/h restants.**
 
-Phase de démarrage : **F10a** (resolution_presets.py infrastructure).
+Phase suivante : **F10e** (STFT spectral sheets `_track_spectra` + `_track_stereo_bands` + `_track_spectral_descriptors` + nouvelle sheet `_analysis_config`).
