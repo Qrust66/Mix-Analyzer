@@ -18,7 +18,6 @@ docs/MIX_ENGINE_ARCHITECTURE.md §7) :
 |---------------------------------------------------|----------|-------|
 | eq_cuts_dont_create_phase_holes_with_neighbours   | warn     | eq_corrective × eq_corrective (cross-track) |
 | master_ceiling_below_minus_03_dbtp                | block    | mastering |
-| automation_envelope_targets_active_param          | block    | automation × any device |
 | chain_order_respects_signal_flow                  | warn     | chain × all devices |
 """
 from __future__ import annotations
@@ -166,4 +165,107 @@ def sidechain_target_exists_in_routing(
                 ),
                 lanes=("dynamics_corrective", "routing"),
             )
+    return None
+
+
+@mix_cohesion_rule(lanes=("automation", "chain"))
+def automation_envelope_targets_active_param(
+    bp: MixBlueprint,
+) -> Optional[MixCohesionViolation]:
+    """Block when an automation envelope (or BandTrack) targets a device
+    that the matching ``chain`` plan does not contain.
+
+    Failure mode caught :
+        automation-engineer says "envelope Eq8 instance 1 band 2 Gain on
+        track 'Bass'" while chain-builder's plan for 'Bass' contains
+        only ONE Eq8 (instance 0). Tier B (automation-writer) skips with
+        reason ; the user gets a silent partial mix.
+
+    What we DO check :
+    - For each AutomationEnvelope and each BandTrack, the target track's
+      chain plan must contain the required (target_device,
+      target_device_instance) pair.
+    - Both ``envelopes[]`` and ``band_tracks[]`` are validated. For
+      band_tracks the device is implicit "Eq8" and the instance comes
+      from ``target_eq8_instance``.
+
+    What we INTENTIONALLY skip (out of scope, would be false positives) :
+    - ``target_track == "Master"`` : the master bus is not modeled in
+      chain.plans (mastering writer handles it directly via MainTrack).
+    - Tracks that have no entry in chain.plans : chain-builder didn't
+      decide on them, so the envelope may legitimately target a device
+      pre-existing in the .als chain. Defer validation to runtime
+      (automation-writer reports `envelopes_skipped` at apply time).
+    - ``target_param`` validity : not checked here — the device-mapping
+      oracle (or the writer's per-device validator) catches that ; we'd
+      duplicate the param schema badly.
+    """
+    automation = bp.automation
+    chain = bp.chain
+    assert automation is not None and chain is not None  # decorator-guaranteed
+
+    # {track_name: {device_name: {instance values present in plan}}}
+    available: dict[str, dict[str, set[int]]] = {}
+    for plan in chain.value.plans:
+        per_device: dict[str, set[int]] = {}
+        for slot in plan.slots:
+            per_device.setdefault(slot.device, set()).add(slot.instance)
+        available[plan.track] = per_device
+
+    def _check(
+        target_track: str,
+        target_device: str,
+        target_instance: int,
+        kind: str,
+        identifier: str,
+    ) -> Optional[str]:
+        if target_track == "Master":
+            return None
+        per_device = available.get(target_track)
+        if per_device is None:
+            return None  # no chain plan for this track ; defer to runtime
+        present_instances = per_device.get(target_device, set())
+        if not present_instances:
+            return (
+                f"{kind} {identifier} targets {target_device} on track "
+                f"{target_track!r}, but the chain plan for {target_track!r} "
+                f"has no {target_device} slot. Tier B would skip the envelope."
+            )
+        if target_instance not in present_instances:
+            return (
+                f"{kind} {identifier} targets {target_device}#{target_instance} "
+                f"on track {target_track!r}, but the chain plan for "
+                f"{target_track!r} only has {target_device} at instance(s) "
+                f"{sorted(present_instances)}."
+            )
+        return None
+
+    for i, env in enumerate(automation.value.envelopes):
+        msg = _check(
+            env.target_track, env.target_device, env.target_device_instance,
+            kind="AutomationEnvelope",
+            identifier=f"#{i} (param={env.target_param!r})",
+        )
+        if msg is not None:
+            return MixCohesionViolation(
+                rule="automation_envelope_targets_active_param",
+                severity="block",
+                message=msg,
+                lanes=("automation", "chain"),
+            )
+
+    for i, bt in enumerate(automation.value.band_tracks):
+        msg = _check(
+            bt.target_track, "Eq8", bt.target_eq8_instance,
+            kind="BandTrack",
+            identifier=f"#{i} (band={bt.target_band_index})",
+        )
+        if msg is not None:
+            return MixCohesionViolation(
+                rule="automation_envelope_targets_active_param",
+                severity="block",
+                message=msg,
+                lanes=("automation", "chain"),
+            )
+
     return None

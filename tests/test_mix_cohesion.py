@@ -230,22 +230,22 @@ def test_info_severity_keeps_report_clean(isolated_rules):
 # ============================================================================
 
 
-_EXPECTED_RULES_AT_PHASE_4_19_1 = {
-    "sidechain_target_exists_in_routing",
+_EXPECTED_RULES = {
+    "sidechain_target_exists_in_routing",        # Phase 4.19.1
+    "automation_envelope_targets_active_param",  # Phase 4.19.2
 }
 
 
 def test_real_registry_matches_documented_rule_set():
     """The set of rules registered at module import time must match the
     set documented in cohesion.py's module docstring + the
-    `_EXPECTED_RULES_AT_PHASE_4_19_1` constant above. This catches both
-    accidental rule deletion AND speculative rule addition without
-    updating the docstring."""
+    `_EXPECTED_RULES` constant above. This catches both accidental rule
+    deletion AND speculative rule addition without updating the docstring."""
     # No isolated_rules fixture — inspect the real registry.
     actual = {r.__name__ for r in cohesion_module._RULES}
-    assert actual == _EXPECTED_RULES_AT_PHASE_4_19_1, (
+    assert actual == _EXPECTED_RULES, (
         f"Registered rules drifted from documented set. "
-        f"Actual: {actual}. Expected: {_EXPECTED_RULES_AT_PHASE_4_19_1}. "
+        f"Actual: {actual}. Expected: {_EXPECTED_RULES}. "
         f"If you added/removed a rule, update both the docstring of "
         f"cohesion.py AND this test's expected set."
     )
@@ -441,3 +441,216 @@ def test_rule_does_not_fire_for_sidechain_redirect():
     )
     report = check_mix_cohesion(bp)
     assert report.violations == ()
+
+
+# ============================================================================
+# Phase 4.19.2 rule — automation_envelope_targets_active_param
+# ============================================================================
+
+
+def _envelope(target_track="Kick", target_device="Eq8",
+              target_device_instance=0, target_band_index=0,
+              target_param="Gain"):
+    from mix_engine.blueprint import (
+        AutomationEnvelope, AutomationPoint, MixCitation,
+    )
+    return AutomationEnvelope(
+        purpose="corrective_per_section",
+        target_track=target_track,
+        target_device=target_device,
+        target_device_instance=target_device_instance,
+        target_band_index=target_band_index,
+        target_param=target_param,
+        points=(
+            AutomationPoint(time_beats=0.0, value=0.0),
+            AutomationPoint(time_beats=4.0, value=-2.0),
+            AutomationPoint(time_beats=8.0, value=0.0),
+        ),
+        sections=(0, 1, 2),
+        rationale=(
+            "Causal: Phase 4.19.2 cohesion test fixture — envelope used to "
+            "check the chain plan reachability rule on the matching track."
+        ),
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+
+
+def _band_track(target_track="Kick", target_eq8_instance=0,
+                target_band_index=0):
+    from mix_engine.blueprint import BandTrack, MixCitation
+    return BandTrack(
+        target_track=target_track,
+        target_eq8_instance=target_eq8_instance,
+        target_band_index=target_band_index,
+        band_mode="bell",
+        purpose="follow_peak",
+        frame_times_sec=(0.0, 0.5, 1.0),
+        freqs_hz=(3000.0, 3050.0, 3080.0),
+        gains_db=(-3.0, -4.0, -3.5),
+        q_values=(8.0, 8.5, 9.0),
+        rationale=(
+            "Causal: Phase 4.19.2 cohesion test fixture — BandTrack used to "
+            "check the chain plan reachability rule for Eq8 instances."
+        ),
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+
+
+def _automation(envelopes=(), band_tracks=()):
+    from mix_engine.blueprint import AutomationDecision
+    return MixDecision(
+        value=AutomationDecision(envelopes=envelopes, band_tracks=band_tracks),
+        lane="automation",
+        rationale="Cohesion test wrapper.",
+        confidence=0.85,
+    )
+
+
+def _chain_plan(track="Kick", devices_with_instances=(("Eq8", 0),)):
+    """Build a TrackChainPlan for `track` with the listed (device, instance)
+    pairs. Each pair becomes one slot at strictly ascending positions."""
+    from mix_engine.blueprint import (
+        ChainBuildDecision, ChainSlot, MixCitation, TrackChainPlan,
+    )
+    slots = tuple(
+        ChainSlot(
+            position=i,
+            device=dev,
+            instance=inst,
+            is_preexisting=True,
+        )
+        for i, (dev, inst) in enumerate(devices_with_instances)
+    )
+    plan = TrackChainPlan(
+        track=track,
+        slots=slots,
+        rationale=(
+            "Causal: Phase 4.19.2 cohesion test fixture — chain plan used to "
+            "validate automation envelope reachability against present devices."
+        ),
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    return MixDecision(
+        value=ChainBuildDecision(plans=(plan,)),
+        lane="chain",
+        rationale="Cohesion test wrapper.",
+        confidence=0.85,
+    )
+
+
+def test_automation_rule_fires_when_target_device_absent_from_plan():
+    """Envelope targets Compressor2 on Kick, but chain plan only has Eq8."""
+    bp = (
+        MixBlueprint(name="bad-device")
+        .with_decision(
+            "automation",
+            _automation(envelopes=(_envelope(
+                target_device="Compressor2", target_band_index=None,
+                target_param="Threshold",
+            ),)),
+        )
+        .with_decision("chain", _chain_plan("Kick", (("Eq8", 0),)))
+    )
+    report = check_mix_cohesion(bp)
+    blockers = [v for v in report.violations
+                if v.rule == "automation_envelope_targets_active_param"]
+    assert len(blockers) == 1
+    assert "Compressor2" in blockers[0].message
+    assert "no Compressor2 slot" in blockers[0].message
+    assert not report.is_clean
+
+
+def test_automation_rule_fires_when_instance_overflow():
+    """Envelope targets Eq8 instance 2, chain plan has only instance 0."""
+    bp = (
+        MixBlueprint(name="instance-overflow")
+        .with_decision(
+            "automation",
+            _automation(envelopes=(_envelope(target_device_instance=2),)),
+        )
+        .with_decision("chain", _chain_plan("Kick", (("Eq8", 0),)))
+    )
+    report = check_mix_cohesion(bp)
+    blockers = [v for v in report.violations
+                if v.rule == "automation_envelope_targets_active_param"]
+    assert len(blockers) == 1
+    assert "Eq8#2" in blockers[0].message
+    assert "instance(s) [0]" in blockers[0].message
+
+
+def test_automation_rule_fires_for_band_track_missing_eq8_instance():
+    """BandTrack targets Eq8 instance 1, chain plan has only instance 0."""
+    bp = (
+        MixBlueprint(name="bt-overflow")
+        .with_decision(
+            "automation",
+            _automation(band_tracks=(_band_track(target_eq8_instance=1),)),
+        )
+        .with_decision("chain", _chain_plan("Kick", (("Eq8", 0),)))
+    )
+    report = check_mix_cohesion(bp)
+    blockers = [v for v in report.violations
+                if v.rule == "automation_envelope_targets_active_param"]
+    assert len(blockers) == 1
+    assert "BandTrack" in blockers[0].message
+    assert "Eq8#1" in blockers[0].message
+
+
+def test_automation_rule_skipped_when_only_automation_filled():
+    """Rule needs both lanes ; only automation → silently skipped."""
+    bp = MixBlueprint(name="auto-only").with_decision(
+        "automation",
+        _automation(envelopes=(_envelope(target_device_instance=2),)),
+    )
+    report = check_mix_cohesion(bp)
+    auto_blockers = [v for v in report.violations
+                     if v.rule == "automation_envelope_targets_active_param"]
+    assert auto_blockers == []
+
+
+def test_automation_rule_does_not_fire_when_envelope_matches_plan():
+    """Envelope targets Eq8 instance 0, chain plan has Eq8 instance 0 → ok."""
+    bp = (
+        MixBlueprint(name="happy")
+        .with_decision("automation",
+                       _automation(envelopes=(_envelope(),)))
+        .with_decision("chain", _chain_plan("Kick", (("Eq8", 0),)))
+    )
+    report = check_mix_cohesion(bp)
+    auto_blockers = [v for v in report.violations
+                     if v.rule == "automation_envelope_targets_active_param"]
+    assert auto_blockers == []
+
+
+def test_automation_rule_skips_master_target_track():
+    """target_track=='Master' is not in chain.plans (handled by mastering
+    writer) — rule must skip without raising even if no Master plan exists."""
+    bp = (
+        MixBlueprint(name="master-env")
+        .with_decision("automation", _automation(envelopes=(_envelope(
+            target_track="Master", target_device="Limiter",
+            target_band_index=None, target_param="Ceiling",
+        ),)))
+        .with_decision("chain", _chain_plan("Kick", (("Eq8", 0),)))
+    )
+    report = check_mix_cohesion(bp)
+    auto_blockers = [v for v in report.violations
+                     if v.rule == "automation_envelope_targets_active_param"]
+    assert auto_blockers == []
+
+
+def test_automation_rule_skips_track_without_chain_plan():
+    """When target_track has no entry in chain.plans, the rule defers to
+    runtime (envelope may target a pre-existing device the .als has but
+    chain-builder didn't decide on)."""
+    bp = (
+        MixBlueprint(name="no-plan-for-track")
+        .with_decision("automation", _automation(envelopes=(_envelope(
+            target_track="Vox",  # Vox has no chain plan below
+        ),)))
+        .with_decision("chain", _chain_plan("Kick", (("Eq8", 0),)))
+    )
+    report = check_mix_cohesion(bp)
+    auto_blockers = [v for v in report.violations
+                     if v.rule == "automation_envelope_targets_active_param"]
+    assert auto_blockers == []
