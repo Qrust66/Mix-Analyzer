@@ -1,19 +1,23 @@
 # Feature 10 — High-Resolution Spectral Engine
 
-**Version spec :** 1.1
+**Version spec :** 1.2
 **Date dernière modification :** 2026-05-02
-**Statut :** Planifiée, non démarrée — Pass 2 audit appliqué (5 critical findings résolus, 2 medium documentés)
+**Statut :** **Spec figée pour démarrage dev** — Q1-Q6 validées par Alexandre le 2026-05-02 (cf. §13)
 **Hérite de :** `documentation_discipline.md` (règles de rédaction), `qrust_professional_context.md` (philosophie 100% dynamique justifiant le besoin de haute résolution)
 **Brief méthodologique de référence :** `mix_engineer_brief_v2_3.md`
 **Feature parent dans la roadmap :** voir `roadmap_features_1_8_v2_0.md` (priorité absolue, précède F1 pilote)
 **Dépendances technique :** Mix Analyzer v2.7.0 livré ✅
-**Version archivée précédente :** `docs/Archives/feature_10_v1_0_ARCHIVED.md`
+**Versions archivées précédentes :**
+- `docs/Archives/feature_10_v1_0_ARCHIVED.md` (création initiale, 2026-04-23)
+- `docs/Archives/feature_10_v1_1_ARCHIVED.md` (Pass 2 audit, 2026-05-02)
 
 **Historique d'évolution de la spec :**
 
 - **v1.0** (2026-04-23) — création initiale. Trigger : question d'Alexandre sur la résolution du rapport Excel. Analyse des données Acid Drops : résolution temporelle 166 ms (2.82 frames/beat à 128 BPM), résolution spectrale non uniforme (~2.5 Hz dans graves, ~600 Hz dans l'air). Cible : >4 frames/beat + résolution uniforme. Architecture validée : 5 presets + threshold configurable + double rapport. Status spec : pas de Q en attente, validée upfront pour passage v1.0 → v1.2.
 
-- **v1.1** (ce document, 2026-05-02) — Pass 2 audit du code Mix Analyzer v2.7.0 réel a relevé **5 disconnects critiques** entre la spec v1.0 et le pipeline existant. Préservation intégrale du contenu v1.0 + corrections architecturales motivées. Les modifications sont signalées explicitement section par section.
+- **v1.1** (2026-05-02) — Pass 2 audit du code Mix Analyzer v2.7.0 réel a relevé **5 disconnects critiques** entre la spec v1.0 et le pipeline existant. Préservation intégrale du contenu v1.0 + corrections architecturales motivées. Les modifications sont signalées explicitement section par section.
+
+- **v1.2** (ce document, 2026-05-02) — **Q1-Q6 validées par Alexandre** dans la même session, après walkthrough rapide des 6 questions ouvertes. Aucune modification de contenu vs v1.1 ; uniquement transition de statut "v1.1 — Q en attente" → "v1.2 — figée pour dev". §13 mis à jour avec les résolutions explicites.
 
   **Findings v1.0 → v1.1 corrigés** :
   1. **Pipeline CQT non couvert** (critique) — `_track_peak_trajectories` (consommé par `band-tracking-decider`) est généré via `spectral_evolution.py` qui utilise CQT, pas STFT. La promesse v1.0 "n_fft 16384 → Δf 2.69 Hz uniforme" n'améliorait pas ce sheet. Scope v1.1 étendu pour couvrir le CQT pipeline avec ses propres paramètres preset (`cqt_target_fps`, `cqt_bins_per_octave`).
@@ -912,39 +916,39 @@ Rapport SHAREABLE :
 
 ---
 
-## 13 — Q en attente validation *(réécrit en v1.1)*
+## 13 — Q validées (figées en v1.2) *(modifié en v1.2)*
 
-**Modifié en v1.1** : la spec v1.0 disait "pas de Q en attente, validée upfront". Le Pass 2 audit a relevé 6 choix de design qui méritent validation explicite avant passage en v1.2 → dev.
+**Modifié en v1.2** : les 6 Q ouvertes en v1.1 ont été validées par Alexandre le 2026-05-02 lors d'un walkthrough rapide. La spec est figée pour démarrage dev (Phase F10a). Préservation des questions originales pour traçabilité historique.
 
-**Q1 — Définition stricte du preset `standard`**
-> Le preset `standard` doit-il être **byte-identique** à v2.7.0 (recommandation v1.1 = oui, défaut backward compat strict), ou est-on OK d'avoir une légère dérive (ex : enrichissement Index sheet seulement) ?
+**Q1 — Définition stricte du preset `standard`** ✅ VALIDÉ
+> Le preset `standard` doit-il être **byte-identique** à v2.7.0 ?
 
-Recommandation v1.1 : **strict equivalent** modulo nouvelles sheets. Test de non-régression en F10b enforce ça.
+**Réponse 2026-05-02 : oui, strict equivalent.** Test de non-régression en F10b enforce — le standard preset doit produire output byte-identique à v2.7.0 sur la même entrée, modulo l'enrichissement de `_analysis_config` + Index sheet (cosmétique). Sans cette garantie, tout script existant qui ne passe pas `--resolution` voit son output changer = breaking change silencieux.
 
-**Q2 — Paradigme `peak_threshold_db`**
-> Le `peak_threshold_db` opère-t-il bien comme **post-filtre** sur les trajectories CQT (recommandation v1.1), ou faut-il revoir et tenter d'unifier avec un threshold de détection ?
+**Q2 — Paradigme `peak_threshold_db`** ✅ VALIDÉ
+> Le `peak_threshold_db` opère-t-il bien comme **post-filtre** sur les trajectories CQT, ou faut-il revoir et tenter d'unifier avec un threshold de détection ?
 
-Recommandation v1.1 : **post-filtre uniquement**. Préserve la sensibilité de la détection prominence-based.
+**Réponse 2026-05-02 : post-filtre uniquement.** Préserve la sensibilité de la détection prominence-based pour les usages internes (corrélations cross-track) tout en permettant au rapport sortant d'être plus ou moins sélectif. Détection ↔ reporting = concerns séparés, séparation propre.
 
-**Q3 — Inclusion du CQT pipeline dans le scope F10**
-> Le CQT pipeline (peak_trajectories) doit-il être touché par le preset (recommandation v1.1 = oui), ou laissé tel quel et seul le STFT pipeline modifié ?
+**Q3 — Inclusion du CQT pipeline dans le scope F10** ✅ VALIDÉ
+> Le CQT pipeline (peak_trajectories) doit-il être touché par le preset, ou laissé tel quel et seul le STFT pipeline modifié ?
 
-Recommandation v1.1 : **oui, CQT inclus**. Sinon `band-tracking-decider` reste à 6 fps et le pilote F1 sur la résolution est biaisé.
+**Réponse 2026-05-02 : oui, CQT inclus.** Sans ça, `band-tracking-decider` reste à 6 fps et le pilote F1 sur la résolution est biaisé — exactement ce que F10 doit éviter. +1.5h justifiés.
 
-**Q4 — Module structure flat vs package**
-> On garde flat à la racine du repo (recommandation v1.1) ou on refactor en `mix_analyzer/` package en même temps que F10 ?
+**Q4 — Module structure flat vs package** ✅ VALIDÉ
+> On garde flat à la racine du repo ou on refactor en `mix_analyzer/` package en même temps que F10 ?
 
-Recommandation v1.1 : **flat**. Refactor en package = F11 séparé pour scope-control.
+**Réponse 2026-05-02 : flat.** Refactor en package = preuve sociale de complexité (≥20 fichiers liés), pas un prérequis F10. F11 séparée plus tard si justifié par usage. Scope F10 reste contenu.
 
-**Q5 — Phase F10h Tier A prompt updates**
-> Les patches de prompts pour les 5 agents Tier A (lecture `_analysis_config`) sont-ils dans le scope F10 (recommandation v1.1 = oui, +1-2h) ou laissés pour une phase ultérieure ?
+**Q5 — Phase F10h Tier A prompt updates** ✅ VALIDÉ
+> Les patches de prompts pour les 5 agents Tier A (lecture `_analysis_config`) sont-ils dans le scope F10 ?
 
-Recommandation v1.1 : **dans le scope F10**. Sinon les rapports F10 sont sous-exploités par les Tier A et le bénéfice de F10 est partiel.
+**Réponse 2026-05-02 : dans le scope F10.** Sinon les 5 agents Tier A ignorent le preset utilisé → décisions incohérentes avec la résolution disponible. +1-2h.
 
-**Q6 — Preset values des nouveaux tiers**
-> Les valeurs proposées pour `economy / fine / ultra / maximum` (cf. tableau §2.1) sont-elles acceptables, ou tu veux ajuster certains paramètres ?
+**Q6 — Preset values des nouveaux tiers** ✅ VALIDÉ
+> Les valeurs proposées pour `economy / fine / ultra / maximum` (cf. tableau §2.1) sont-elles acceptables ?
 
-Recommandation v1.1 : valeurs proposées (4/6/10/12/24 fps CQT, n_fft 8192/8192/16384/16384/16384). Si Alexandre veut ajuster (ex : `ultra` à 16 fps au lieu de 12), v1.1 → v1.1.X avant dev.
+**Réponse 2026-05-02 : oui, valeurs validées telles quelles.** Progression logique : economy=½ standard, fine=⁵⁄³ standard, ultra=2× standard, maximum=4× standard. Mappées aux use cases réels (re-runs / défaut / validation / production / debug). Pas d'ajustement nécessaire.
 
 ---
 
@@ -961,7 +965,7 @@ Suivre `documentation_discipline.md` section 4.
 
 ## 15 — Référence rapide (quick card) *(modifié en v1.1)*
 
-**Statut :** Spec v1.1 — 6 Q en attente validation Alexandre avant passage v1.2 → dev.
+**Statut :** Spec v1.2 — Q1-Q6 validées Alexandre 2026-05-02. **Figée pour démarrage dev (Phase F10a).**
 
 **Effort estimé total :** 14-20h, ~50-65 tests, **16 micro-commits** (vs 14 en v1.0).
 
@@ -1007,10 +1011,11 @@ Suivre `documentation_discipline.md` section 4.
 - `mix_engineer_brief_v2_3.md`
 - `roadmap_features_1_8_v2_0.md` (mise à jour prévue après livraison F10)
 - `documentation_discipline.md`
-- `docs/Archives/feature_10_v1_0_ARCHIVED.md` (version précédente)
+- `docs/Archives/feature_10_v1_0_ARCHIVED.md` (version précédente — création)
+- `docs/Archives/feature_10_v1_1_ARCHIVED.md` (version précédente — Pass 2 audit)
 
 ---
 
-**Fin spec Feature 10 v1.1.**
+**Fin spec Feature 10 v1.2 — figée pour démarrage dev.**
 
-Si Alexandre valide les recommandations Q1-Q6 telles quelles, passage direct v1.1 → v1.2 → démarrage dev. Si ajustements, itération v1.1.X avant v1.2.
+Phase de démarrage : **F10a** (resolution_presets.py infrastructure).
