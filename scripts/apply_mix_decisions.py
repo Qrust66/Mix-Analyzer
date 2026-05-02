@@ -17,6 +17,9 @@ Workflow :
         1. EQ corrective → eq8-configurator
         2. Dynamics corrective → dynamics-configurator (Phase 4.11 v1 = GlueComp + Limiter)
         3. Stereo/spatial → spatial-configurator
+        4. Routing → routing-configurator
+        5. Mastering → master-bus-configurator
+        6. Chain assembly → chain-assembler (absolute per-track ordering — last)
                               ↓
     Modified .als + aggregated report (PASS/FAIL + skipped + warnings)
 
@@ -27,6 +30,7 @@ Usage :
         --eq-json eq_decision.json \\
         --dynamics-json dynamics_decision.json \\
         --spatial-json spatial_decision.json \\
+        --chain-json chain_decision.json \\
         --output output.als
 
 Any of the decision flags is optional — if absent, that lane is skipped
@@ -56,6 +60,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 import als_utils
 from mix_engine.blueprint import (
+    parse_chain_decision,
     parse_dynamics_corrective_decision,
     parse_eq_corrective_decision,
     parse_mastering_decision,
@@ -63,6 +68,7 @@ from mix_engine.blueprint import (
     parse_spatial_decision,
 )
 from mix_engine.writers import (
+    apply_chain_decision,
     apply_dynamics_corrective_decision,
     apply_eq_corrective_decision,
     apply_mastering_decision,
@@ -100,6 +106,20 @@ def _print_report(lane: str, report) -> bool:
         print(f"  repairs applied: {len(report.repairs_applied)}")
         for r in report.repairs_applied:
             print(f"    + {r}")
+    if hasattr(report, "plans_applied"):
+        print(f"  plans applied: {len(report.plans_applied)}")
+        for p in report.plans_applied:
+            print(f"    + {p} (reordered)")
+        if getattr(report, "plans_no_op", ()):
+            print(f"  plans no-op: {len(report.plans_no_op)}")
+            for p in report.plans_no_op:
+                print(f"    = {p} (already in target order)")
+        if getattr(report, "devices_reordered", 0):
+            print(f"  devices repositioned: {report.devices_reordered}")
+        if getattr(report, "slots_unmatched", ()):
+            print(f"  slots unmatched: {len(report.slots_unmatched)}")
+            for sid, reason in report.slots_unmatched:
+                print(f"    - {sid} : {reason}")
 
     # Skipped
     skipped = (
@@ -107,6 +127,7 @@ def _print_report(lane: str, report) -> bool:
         or getattr(report, "corrections_skipped", None)
         or getattr(report, "moves_skipped", None)
         or getattr(report, "repairs_skipped", None)
+        or getattr(report, "plans_skipped", None)
         or ()
     )
     if skipped:
@@ -142,6 +163,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="Routing / sidechain repair decision JSON.")
     parser.add_argument("--mastering-json", type=Path, default=None,
                         help="Mastering decision JSON (master bus + sub-bus glue).")
+    parser.add_argument("--chain-json", type=Path, default=None,
+                        help="Chain-build decision JSON (per-track absolute device ordering).")
     parser.add_argument("--no-safety", action="store_true",
                         help="Disable post-write safety_guardian (not recommended).")
     parser.add_argument("--dry-run", action="store_true",
@@ -155,14 +178,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if (args.eq_json is None and args.dynamics_json is None
             and args.spatial_json is None and args.routing_json is None
-            and args.mastering_json is None):
+            and args.mastering_json is None and args.chain_json is None):
         print("ERROR: at least one of --eq-json / --dynamics-json / "
-                "--spatial-json / --routing-json / --mastering-json must "
-                "be provided.", file=sys.stderr)
+                "--spatial-json / --routing-json / --mastering-json / "
+                "--chain-json must be provided.", file=sys.stderr)
         return 2
 
     for json_path in (args.eq_json, args.dynamics_json, args.spatial_json,
-                       args.routing_json, args.mastering_json):
+                       args.routing_json, args.mastering_json, args.chain_json):
         if json_path is not None and not json_path.exists():
             print(f"ERROR: decision JSON not found: {json_path}", file=sys.stderr)
             return 2
@@ -244,6 +267,19 @@ def main(argv: list[str] | None = None) -> int:
             invoke_safety_guardian=invoke_safety,
         )
         any_fail = _print_report("Mastering", report) or any_fail
+
+    # 6. Chain assembly (absolute per-track device ordering — runs last so
+    #    it sees devices created/configured by all earlier writers).
+    if args.chain_json is not None:
+        payload = _load_json(args.chain_json)
+        decision = parse_chain_decision(payload)
+        report = apply_chain_decision(
+            working_path, decision,
+            output_path=working_path if not args.dry_run else None,
+            dry_run=args.dry_run,
+            invoke_safety_guardian=invoke_safety,
+        )
+        any_fail = _print_report("Chain assembly", report) or any_fail
 
     print()
     if any_fail:

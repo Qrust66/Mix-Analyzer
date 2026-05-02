@@ -56,6 +56,12 @@ from mix_engine.writers.master_bus_configurator import (
     MasterTrackNotFoundError,
     apply_mastering_decision,
 )
+from mix_engine.writers.chain_assembler import (
+    ChainAssemblerError,
+    ChainAssemblerReport,
+    DevicesContainerNotFoundError,
+    apply_chain_decision,
+)
 
 __all__ = [
     "EqConfiguratorError",
@@ -78,4 +84,8 @@ __all__ = [
     "MasterDeviceNotFoundError",
     "MasterTrackNotFoundError",
     "apply_mastering_decision",
+    "ChainAssemblerError",
+    "ChainAssemblerReport",
+    "DevicesContainerNotFoundError",
+    "apply_chain_decision",
 ]
