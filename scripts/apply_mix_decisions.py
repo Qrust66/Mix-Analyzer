@@ -79,15 +79,37 @@ _FLAG_TO_LANE_PARSER: tuple[tuple[str, str, callable], ...] = (
 )
 
 
+# Per-lane display names for CLI output. Keep these exact strings —
+# tests/test_apply_mix_decisions_cli.py asserts on substrings ("EQ
+# corrective", "Mastering", "Routing", "Spatial", etc.) for backward
+# compatibility with the pre-Director CLI output format.
+_LANE_DISPLAY_NAME: dict[str, str] = {
+    "eq_corrective":       "EQ corrective",
+    "dynamics_corrective": "Dynamics corrective",
+    "stereo_spatial":      "Spatial",
+    "routing":             "Routing",
+    "mastering":           "Mastering",
+    "chain":               "Chain assembly",
+    "automation":          "Automation",
+}
+
+
 def _load_json(path: Path):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def _print_lane_report(lane: str, report) -> None:
-    """Pretty-print one lane's writer report."""
+    """Pretty-print one lane's writer report.
+
+    The header uses the human-readable display name from
+    :data:`_LANE_DISPLAY_NAME` for backward compat with the
+    pre-Director CLI output (e.g., "=== EQ corrective ===" rather than
+    "=== eq_corrective ===").
+    """
     print()
-    print(f"=== {lane} ===")
+    display = _LANE_DISPLAY_NAME.get(lane, lane)
+    print(f"=== {display} ===")
     print(f"  output: {report.output_path}")
     print(f"  safety: {report.safety_guardian_status}")
 
@@ -134,7 +156,7 @@ def _print_lane_report(lane: str, report) -> None:
         if getattr(report, "breakpoints_written", 0):
             print(f"  breakpoints written: {report.breakpoints_written}")
         if getattr(report, "notch_coercions", 0):
-            print(f"  notch→bell coercions: {report.notch_coercions}")
+            print(f"  notch->bell coercions: {report.notch_coercions}")
         if getattr(report, "band_tracks_skipped", ()):
             print(f"  band_tracks skipped: {len(report.band_tracks_skipped)}")
             for bt_id, reason in report.band_tracks_skipped:
@@ -262,7 +284,9 @@ def main(argv: list[str] | None = None) -> int:
     apply_report = result.apply_report
     assert apply_report is not None  # cleared by the COHESION_BLOCKED branch
     print()
-    print(f"Execution order : {' → '.join(apply_report.execution_order)}")
+    # ASCII arrow for Windows console (cp1252) compatibility — the U+2192
+    # right arrow crashes Python print on cp1252 default consoles.
+    print(f"Execution order : {' -> '.join(apply_report.execution_order)}")
     if apply_report.skipped_lanes:
         print(f"Skipped lanes : {len(apply_report.skipped_lanes)}")
         for lane, reason in apply_report.skipped_lanes:
