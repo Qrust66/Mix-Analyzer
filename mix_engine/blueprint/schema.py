@@ -1411,17 +1411,123 @@ class AutomationEnvelope:
     inspired_by: tuple[MixCitation, ...] = ()    # ≥ 1 cite
 
 
+# ============================================================================
+# BandTrack — Phase 4.17 high-level Eq8 band-tracking primitive
+# ============================================================================
+#
+# A BandTrack is a HIGH-LEVEL automation directive that the Tier B
+# automation-writer EXPANDS into 1-3 AutomationEnvelopes (Freq + Gain + Q,
+# minus envelopes that would target gain-inoperative modes).
+#
+# Use cases (the 8 Eq8 modes) :
+# - "bell" cut    : follow a peak/resonance ; freq glides, gain dips when peak loud
+# - "bell" boost  : follow a fundamental ; gain lifts when source weak (presence)
+# - "lowshelf" / "highshelf" : track the shelf transition + gain
+# - "lowcut_*" / "highcut_*" : automate the cutoff frequency (filter sweep)
+# - "notch" : silently coerced to "bell" Mode 3 with deep gain
+#   (Eq8 Mode 4 has gain_inoperative_modes — known mitigation)
+#
+# Each BandTrack consumes exactly ONE Eq8 band. Tier A chain-builder is
+# responsible for cascading Eq8 instances when n_band_tracks_for_track > 8.
+
+VALID_BAND_MODES = frozenset({
+    "lowcut_48",   # Mode 0 — gain inop ; envelope Freq + Q (resonance)
+    "lowcut_12",   # Mode 1 — gain inop ; envelope Freq + Q
+    "lowshelf",    # Mode 2 — envelope Freq + Gain + Q (slope)
+    "bell",        # Mode 3 — envelope Freq + Gain + Q (the workhorse)
+    "notch",       # Mode 4 — coerced to Mode 3 Bell with deep Gain (writer warns)
+    "highshelf",   # Mode 5 — envelope Freq + Gain + Q
+    "highcut_12",  # Mode 6 — gain inop ; envelope Freq + Q
+    "highcut_48",  # Mode 7 — gain inop ; envelope Freq + Q
+})
+
+# Modes where Gain is inoperative in Eq8 hardware (gain envelope skipped by writer)
+BAND_MODES_GAIN_INOPERATIVE = frozenset({
+    "lowcut_48", "lowcut_12", "highcut_12", "highcut_48",
+})
+
+VALID_BAND_TRACK_PURPOSES = frozenset({
+    "follow_peak",        # cut a moving resonance/peak
+    "follow_dip",         # boost a moving valley (fill the gap)
+    "boost_resonance",    # supportive boost on a moving fundamental
+    "shelf_track",        # animate a shelf gain/slope
+    "cutoff_track",       # animate a filter cutoff
+    "sweep_filter",       # creative-feeling sweep (corrective scope only Phase 4.17)
+})
+
+VALID_INTERPOLATIONS = frozenset({
+    "linear",       # straight line between consecutive points
+    "parabolic",    # 3-point parabolic refinement around local max ; sub-bin freq
+    "cubic",        # CatmullRom — smooth glides ; no monotonic guarantee
+})
+
+BAND_TRACK_MIN_FRAMES: int = 3
+BAND_TRACK_MAX_FRAMES: int = 24000   # 20fps × 20 minutes (very long song budget)
+BAND_TRACK_MAX_SUB_FRAME_FACTOR: int = 8
+
+
+@dataclass(frozen=True)
+class BandTrack:
+    """One Eq8 band tracked dynamically across time.
+
+    Phase 4.17 — translated by Tier B automation-writer into 1-3 AutomationEnvelopes
+    (Freq + Gain + Q, minus envelopes targeting gain-inoperative modes).
+
+    Time series MUST all share the same length n_frames :
+    - frame_times_sec : absolute project time per frame (seconds)
+    - freqs_hz : freq target per frame (Hz, in [10, 22050])
+    - gains_db : gain target per frame (dB) ; None when band_mode is gain-inop
+                 OR when caller wants static gain at the current band default
+    - q_values : Q target per frame ; None = static Q (use q_static)
+    - source_amps_db : source signal amplitude (dBFS) ; OPTIONAL — when present,
+                       writer can derive gains_db proportionally
+                       (gain ∝ (amp - threshold_db) / -threshold_db × gain_max_db)
+
+    Sub-frame interpolation : when sub_frame_factor > 1, the writer densifies
+    each pair of adjacent frames into k points using `interpolation` mode.
+    Parabolic interp uses 3-point centered window and yields sub-bin freq accuracy.
+    """
+
+    target_track: str
+    target_eq8_instance: int                    # 0-indexed for cascade
+    target_band_index: int                      # 0-7
+    band_mode: str                              # in VALID_BAND_MODES
+    purpose: str                                # in VALID_BAND_TRACK_PURPOSES
+
+    frame_times_sec: tuple[float, ...]
+    freqs_hz: tuple[float, ...]
+    gains_db: Optional[tuple[float, ...]] = None
+    q_values: Optional[tuple[float, ...]] = None
+    source_amps_db: Optional[tuple[float, ...]] = None
+
+    q_static: float = 8.0                       # used when q_values is None
+    gain_max_db: float = 6.0                    # |gain| cap (positive for boosts)
+    threshold_db: float = -40.0                 # source_amp floor for prop. gain
+    interpolation: str = "parabolic"
+    sub_frame_factor: int = 1
+
+    rationale: str = ""
+    inspired_by: tuple[MixCitation, ...] = ()
+
+
 @dataclass(frozen=True)
 class AutomationDecision:
     """All automation decisions for the project.
 
-    `envelopes` is the list of automation envelopes. Multiple envelopes
-    on the same (track, device, instance, param, band_index) tuple are
-    rejected (parser duplicate check) — would create ambiguous Tier B
-    write target.
+    Two coexisting collections (Phase 4.17) :
+
+    - `envelopes` : param-level envelopes. Multiple envelopes on the same
+      (track, device, instance, param, band_index) tuple are rejected
+      (parser duplicate check).
+    - `band_tracks` : high-level Eq8 band tracking directives expanded by
+      Tier B into 1-3 envelopes per BandTrack. Multiple BandTracks on the
+      same (track, eq8_instance, band_index) are rejected (parser
+      duplicate check) — would target the same Eq8 band with conflicting
+      time series.
     """
 
     envelopes: tuple[AutomationEnvelope, ...] = ()
+    band_tracks: tuple[BandTrack, ...] = ()
 
 
 # ============================================================================
@@ -1779,6 +1885,15 @@ __all__ = [
     "AutomationPoint",
     "AutomationEnvelope",
     "AutomationDecision",
+    # BandTrack — Phase 4.17 (high-level Eq8 band tracking primitive)
+    "VALID_BAND_MODES",
+    "BAND_MODES_GAIN_INOPERATIVE",
+    "VALID_BAND_TRACK_PURPOSES",
+    "VALID_INTERPOLATIONS",
+    "BAND_TRACK_MIN_FRAMES",
+    "BAND_TRACK_MAX_FRAMES",
+    "BAND_TRACK_MAX_SUB_FRAME_FACTOR",
+    "BandTrack",
     # Mastering lane (Phase 4.9 — master bus + sub-bus glue, static-only)
     "VALID_MASTER_MOVE_TYPES",
     "MASTER_DEVICES_BY_TYPE",

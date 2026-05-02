@@ -19,7 +19,8 @@ Workflow :
         3. Stereo/spatial → spatial-configurator
         4. Routing → routing-configurator
         5. Mastering → master-bus-configurator
-        6. Chain assembly → chain-assembler (absolute per-track ordering — last)
+        6. Chain assembly → chain-assembler (absolute per-track ordering)
+        7. Automation → automation-writer (envelopes + band_tracks — runs last)
                               ↓
     Modified .als + aggregated report (PASS/FAIL + skipped + warnings)
 
@@ -60,6 +61,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 import als_utils
 from mix_engine.blueprint import (
+    parse_automation_decision,
     parse_chain_decision,
     parse_dynamics_corrective_decision,
     parse_eq_corrective_decision,
@@ -68,6 +70,7 @@ from mix_engine.blueprint import (
     parse_spatial_decision,
 )
 from mix_engine.writers import (
+    apply_automation_decision,
     apply_chain_decision,
     apply_dynamics_corrective_decision,
     apply_eq_corrective_decision,
@@ -120,6 +123,24 @@ def _print_report(lane: str, report) -> bool:
             print(f"  slots unmatched: {len(report.slots_unmatched)}")
             for sid, reason in report.slots_unmatched:
                 print(f"    - {sid} : {reason}")
+    if hasattr(report, "envelopes_applied") and hasattr(report, "band_tracks_applied"):
+        print(f"  envelopes applied: {len(report.envelopes_applied)}")
+        for e in report.envelopes_applied[:8]:
+            print(f"    + {e}")
+        if len(report.envelopes_applied) > 8:
+            print(f"    + ... ({len(report.envelopes_applied) - 8} more)")
+        if getattr(report, "band_tracks_applied", ()):
+            print(f"  band_tracks applied: {len(report.band_tracks_applied)}")
+            for bt in report.band_tracks_applied:
+                print(f"    + {bt}")
+        if getattr(report, "breakpoints_written", 0):
+            print(f"  breakpoints written: {report.breakpoints_written}")
+        if getattr(report, "notch_coercions", 0):
+            print(f"  notch→bell coercions: {report.notch_coercions}")
+        if getattr(report, "band_tracks_skipped", ()):
+            print(f"  band_tracks skipped: {len(report.band_tracks_skipped)}")
+            for bt_id, reason in report.band_tracks_skipped:
+                print(f"    - {bt_id} : {reason}")
 
     # Skipped
     skipped = (
@@ -128,6 +149,7 @@ def _print_report(lane: str, report) -> bool:
         or getattr(report, "moves_skipped", None)
         or getattr(report, "repairs_skipped", None)
         or getattr(report, "plans_skipped", None)
+        or getattr(report, "envelopes_skipped", None)
         or ()
     )
     if skipped:
@@ -165,6 +187,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="Mastering decision JSON (master bus + sub-bus glue).")
     parser.add_argument("--chain-json", type=Path, default=None,
                         help="Chain-build decision JSON (per-track absolute device ordering).")
+    parser.add_argument("--automation-json", type=Path, default=None,
+                        help="Automation decision JSON (envelopes + band_tracks).")
     parser.add_argument("--no-safety", action="store_true",
                         help="Disable post-write safety_guardian (not recommended).")
     parser.add_argument("--dry-run", action="store_true",
@@ -178,14 +202,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if (args.eq_json is None and args.dynamics_json is None
             and args.spatial_json is None and args.routing_json is None
-            and args.mastering_json is None and args.chain_json is None):
+            and args.mastering_json is None and args.chain_json is None
+            and args.automation_json is None):
         print("ERROR: at least one of --eq-json / --dynamics-json / "
                 "--spatial-json / --routing-json / --mastering-json / "
-                "--chain-json must be provided.", file=sys.stderr)
+                "--chain-json / --automation-json must be provided.",
+                file=sys.stderr)
         return 2
 
     for json_path in (args.eq_json, args.dynamics_json, args.spatial_json,
-                       args.routing_json, args.mastering_json, args.chain_json):
+                       args.routing_json, args.mastering_json, args.chain_json,
+                       args.automation_json):
         if json_path is not None and not json_path.exists():
             print(f"ERROR: decision JSON not found: {json_path}", file=sys.stderr)
             return 2
@@ -268,8 +295,9 @@ def main(argv: list[str] | None = None) -> int:
         )
         any_fail = _print_report("Mastering", report) or any_fail
 
-    # 6. Chain assembly (absolute per-track device ordering — runs last so
-    #    it sees devices created/configured by all earlier writers).
+    # 6. Chain assembly (absolute per-track device ordering — runs after the
+    #    per-device writers so it sees the devices created/configured upstream,
+    #    but BEFORE automation so envelopes target the final chain layout).
     if args.chain_json is not None:
         payload = _load_json(args.chain_json)
         decision = parse_chain_decision(payload)
@@ -280,6 +308,19 @@ def main(argv: list[str] | None = None) -> int:
             invoke_safety_guardian=invoke_safety,
         )
         any_fail = _print_report("Chain assembly", report) or any_fail
+
+    # 7. Automation (envelopes + band_tracks) — runs LAST so envelopes
+    #    target the final device layout (post chain-assembly).
+    if args.automation_json is not None:
+        payload = _load_json(args.automation_json)
+        decision = parse_automation_decision(payload)
+        report = apply_automation_decision(
+            working_path, decision,
+            output_path=working_path if not args.dry_run else None,
+            dry_run=args.dry_run,
+            invoke_safety_guardian=invoke_safety,
+        )
+        any_fail = _print_report("Automation", report) or any_fail
 
     print()
     if any_fail:

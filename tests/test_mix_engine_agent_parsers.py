@@ -3648,6 +3648,229 @@ def test_automation_corrective_with_master_track_raises_via_purpose_check():
     assert decision.value.envelopes[0].target_track == "Master"
 
 
+# ============================================================================
+# Phase 4.17 — BandTrack parser tests
+# ============================================================================
+
+
+def _valid_band_track(**overrides) -> dict:
+    """Default = bell-mode peak follower on a single track, 5 frames."""
+    base = {
+        "target_track": "Vocal",
+        "target_eq8_instance": 0,
+        "target_band_index": 3,
+        "band_mode": "bell",
+        "purpose": "follow_peak",
+        "frame_times_sec": [0.0, 0.5, 1.0, 1.5, 2.0],
+        "freqs_hz": [3000.0, 3050.0, 3100.0, 3120.0, 3080.0],
+        "gains_db": [-3.0, -4.5, -6.0, -5.0, -3.5],
+        "q_values": [8.0, 8.5, 9.0, 9.0, 8.5],
+        "source_amps_db": [-25.0, -22.0, -18.0, -20.0, -24.0],
+        "q_static": 8.0,
+        "gain_max_db": 6.0,
+        "threshold_db": -40.0,
+        "interpolation": "parabolic",
+        "sub_frame_factor": 1,
+        "rationale": "Track a sibilant 3 kHz peak that drifts +120 Hz over 2 seconds during the chorus build. Proportional gain reduction tied to source amplitude.",
+        "inspired_by": [
+            {"kind": "diagnostic", "path": "tracks[Vocal].peak_trajectories[0]",
+             "excerpt": "stable 3kHz peak, mean -20 dBFS, drifts within demi-octave"},
+        ],
+    }
+    base.update(overrides)
+    return base
+
+
+def _payload_with_band_tracks(*band_tracks, envelopes=None) -> dict:
+    return {
+        "schema_version": "1.0",
+        "automation": {
+            "envelopes": envelopes if envelopes is not None else [],
+            "band_tracks": list(band_tracks),
+        },
+        "cited_by": [
+            {"kind": "diagnostic", "path": "x", "excerpt": "x"},
+        ],
+        "rationale": "BandTrack parser test wrapper.",
+        "confidence": 0.85,
+    }
+
+
+def test_band_track_parses_minimum_valid():
+    decision = parse_automation_decision(_payload_with_band_tracks(_valid_band_track()))
+    assert len(decision.value.band_tracks) == 1
+    bt = decision.value.band_tracks[0]
+    assert bt.band_mode == "bell"
+    assert bt.target_band_index == 3
+    assert len(bt.freqs_hz) == 5
+    assert bt.q_values == (8.0, 8.5, 9.0, 9.0, 8.5)
+
+
+def test_band_track_optional_series_become_none():
+    """Optional gains_db/q_values/source_amps_db default to None when absent."""
+    bt_dict = _valid_band_track()
+    del bt_dict["gains_db"]
+    del bt_dict["q_values"]
+    del bt_dict["source_amps_db"]
+    decision = parse_automation_decision(_payload_with_band_tracks(bt_dict))
+    bt = decision.value.band_tracks[0]
+    assert bt.gains_db is None
+    assert bt.q_values is None
+    assert bt.source_amps_db is None
+
+
+@pytest.mark.parametrize("mode", sorted(["lowcut_48", "lowcut_12", "lowshelf",
+                                          "bell", "notch", "highshelf",
+                                          "highcut_12", "highcut_48"]))
+def test_band_track_all_8_modes_accepted(mode):
+    decision = parse_automation_decision(
+        _payload_with_band_tracks(_valid_band_track(band_mode=mode))
+    )
+    assert decision.value.band_tracks[0].band_mode == mode
+
+
+def test_band_track_invalid_mode_rejected():
+    with pytest.raises(MixAgentOutputError, match="band_mode"):
+        parse_automation_decision(
+            _payload_with_band_tracks(_valid_band_track(band_mode="parametric"))
+        )
+
+
+def test_band_track_invalid_purpose_rejected():
+    with pytest.raises(MixAgentOutputError, match="purpose"):
+        parse_automation_decision(
+            _payload_with_band_tracks(_valid_band_track(purpose="random_thing"))
+        )
+
+
+def test_band_track_band_index_out_of_range_rejected():
+    with pytest.raises(MixAgentOutputError, match="target_band_index"):
+        parse_automation_decision(
+            _payload_with_band_tracks(_valid_band_track(target_band_index=8))
+        )
+
+
+def test_band_track_freqs_out_of_range_rejected():
+    bt = _valid_band_track()
+    bt["freqs_hz"] = [3000.0, 3050.0, 30000.0, 3120.0, 3080.0]  # index 2 too high
+    with pytest.raises(MixAgentOutputError, match="freqs_hz.*out of"):
+        parse_automation_decision(_payload_with_band_tracks(bt))
+
+
+def test_band_track_time_series_length_mismatch_rejected():
+    bt = _valid_band_track()
+    bt["gains_db"] = [-3.0, -4.5, -6.0]  # length 3 != n_frames 5
+    with pytest.raises(MixAgentOutputError, match="length"):
+        parse_automation_decision(_payload_with_band_tracks(bt))
+
+
+def test_band_track_non_monotone_times_rejected():
+    bt = _valid_band_track()
+    bt["frame_times_sec"] = [0.0, 1.0, 0.5, 1.5, 2.0]  # decrease at index 2
+    with pytest.raises(MixAgentOutputError, match="strictly increasing"):
+        parse_automation_decision(_payload_with_band_tracks(bt))
+
+
+def test_band_track_too_few_frames_rejected():
+    bt = _valid_band_track(
+        frame_times_sec=[0.0, 0.5],
+        freqs_hz=[3000.0, 3050.0],
+        gains_db=[-3.0, -4.5],
+        q_values=[8.0, 8.5],
+        source_amps_db=[-25.0, -22.0],
+    )
+    with pytest.raises(MixAgentOutputError, match="need >= 3"):
+        parse_automation_decision(_payload_with_band_tracks(bt))
+
+
+def test_band_track_invalid_interpolation_rejected():
+    with pytest.raises(MixAgentOutputError, match="interpolation"):
+        parse_automation_decision(
+            _payload_with_band_tracks(_valid_band_track(interpolation="bezier"))
+        )
+
+
+def test_band_track_sub_frame_factor_out_of_range_rejected():
+    with pytest.raises(MixAgentOutputError, match="sub_frame_factor"):
+        parse_automation_decision(
+            _payload_with_band_tracks(_valid_band_track(sub_frame_factor=99))
+        )
+
+
+def test_band_track_q_values_out_of_eq8_range_rejected():
+    bt = _valid_band_track()
+    bt["q_values"] = [8.0, 8.5, 25.0, 9.0, 8.5]  # 25.0 > 18.0 max
+    with pytest.raises(MixAgentOutputError, match="out of \\[0.1, 18.0\\]"):
+        parse_automation_decision(_payload_with_band_tracks(bt))
+
+
+def test_band_track_duplicate_band_alloc_rejected():
+    """Two BandTracks targeting the same Eq8 band → parser collision."""
+    bt_a = _valid_band_track(target_band_index=3, target_track="Vocal")
+    bt_b = _valid_band_track(target_band_index=3, target_track="Vocal",
+                              band_mode="highshelf",
+                              rationale="Different mode but same band — should still reject because two BandTracks cannot share an Eq8 band.")
+    with pytest.raises(MixAgentOutputError, match="duplicate BandTrack"):
+        parse_automation_decision(_payload_with_band_tracks(bt_a, bt_b))
+
+
+def test_band_track_distinct_instances_or_bands_accepted():
+    bt_a = _valid_band_track(target_band_index=3, target_eq8_instance=0)
+    bt_b = _valid_band_track(target_band_index=4, target_eq8_instance=0)
+    bt_c = _valid_band_track(target_band_index=3, target_eq8_instance=1)
+    decision = parse_automation_decision(
+        _payload_with_band_tracks(bt_a, bt_b, bt_c)
+    )
+    assert len(decision.value.band_tracks) == 3
+
+
+def test_band_track_collides_with_envelope_on_same_eq8_band_rejected():
+    """An AutomationEnvelope targeting (Vocal, Eq8, instance=0, band=3, Gain)
+    + a BandTrack targeting the same band → cross-collection collision."""
+    envelope = _valid_automation_envelope(
+        purpose="corrective_per_section",
+        target_track="Vocal",
+        target_device="Eq8",
+        target_param="Gain",
+        target_band_index=3,
+        sections=[0, 1, 2],
+    )
+    bt = _valid_band_track(
+        target_track="Vocal", target_eq8_instance=0, target_band_index=3,
+    )
+    with pytest.raises(MixAgentOutputError, match="collides with"):
+        parse_automation_decision(
+            _payload_with_band_tracks(bt, envelopes=[envelope])
+        )
+
+
+def test_band_track_default_interpolation_is_parabolic():
+    bt = _valid_band_track()
+    del bt["interpolation"]
+    decision = parse_automation_decision(_payload_with_band_tracks(bt))
+    assert decision.value.band_tracks[0].interpolation == "parabolic"
+
+
+def test_band_track_rationale_too_short_rejected():
+    bt = _valid_band_track(rationale="too short")
+    with pytest.raises(MixAgentOutputError, match="depth-light"):
+        parse_automation_decision(_payload_with_band_tracks(bt))
+
+
+def test_band_track_no_inspired_by_rejected():
+    bt = _valid_band_track()
+    bt["inspired_by"] = []
+    with pytest.raises(MixAgentOutputError, match="at least 1 citation"):
+        parse_automation_decision(_payload_with_band_tracks(bt))
+
+
+def test_band_track_empty_band_tracks_accepted():
+    """band_tracks=[] coexists with envelopes=[]."""
+    decision = parse_automation_decision(_payload_with_band_tracks())
+    assert decision.value.band_tracks == ()
+    assert decision.value.envelopes == ()
+
+
 def test_phase47_full_integration_audio_metrics_plus_genre_context():
     payload = _valid_payload()
     payload["diagnostic"]["tracks"][0]["audio_metrics"] = _valid_audio_metrics(

@@ -37,10 +37,10 @@ purement décisionnel.
 | `routing-configurator` | `RoutingDecision` | Sidechain redirect + remove (Phase 4.14), sidechain_create deferred Phase 4.14.X | ✅ **Phase 4.14 done** (1 step, 22 tests, REUSE-only) |
 | `spatial-configurator` | `SpatialDecision` | StereoGain (REUSE) + Mixer.Pan (no device), 7 move types | ✅ **Phase 4.12 done** (1 step, 20 tests, methodology converged) |
 | `chain-assembler` | `ChainBuildDecision` | Ordre absolu devices par track | ✅ **Phase 4.16 done** (1 step, 17 tests, REUSE-only ; reorders existing children, preserves extras at end) |
-| `automation-writer` | `AutomationDecision` | `<AutomationEnvelope>` XML | 🟡 partiel (eq8_automation.py existe pour Eq8 only) — 1-2 jours pour étendre |
+| `automation-writer` | `AutomationDecision` | `<AutomationEnvelope>` XML | ✅ **Phase 4.17 done** (1 step, 26 tests, generic param writer + BandTrack expander all 8 Eq8 modes) |
 | `master-bus-configurator` | `MasteringDecision` | Master (LiveSet/MainTrack) + sub-bus glue, 6 move types | ✅ **Phase 4.15 done** (1 step, 19 tests, REUSE-only) |
 
-**Total Tier B restant** : seul `automation-writer` extension reste (au-delà d'Eq8) — 1-2 jours. Tous les autres writers livrés (Phases 4.10-4.16).
+**Total Tier B restant** : 0 — TOUS les Tier B writers livrés (Phases 4.10-4.17). `automation-writer` Phase 4.17 introduit le primitive `BandTrack` (high-level Eq8 band tracking) + son expander Tier B-2 (1 BandTrack → 1-3 envelopes Freq+Gain+Q via parabolic sub-frame interp ; tous les 8 Eq8 modes supportés).
 
 ### Pattern Tier B établi (référence Phase 4.10)
 

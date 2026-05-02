@@ -142,8 +142,15 @@ from mix_engine.blueprint.schema import (
     VALID_EQ_INTENTS,
     VALID_AUTOMATION_PURPOSES,
     VALID_AUTOMATION_TARGET_DEVICES,
+    VALID_BAND_MODES,
+    VALID_BAND_TRACK_PURPOSES,
     VALID_CHAIN_DEVICES,
     VALID_CONSUMES_LANES,
+    VALID_INTERPOLATIONS,
+    BAND_TRACK_MIN_FRAMES,
+    BAND_TRACK_MAX_FRAMES,
+    BAND_TRACK_MAX_SUB_FRAME_FACTOR,
+    BandTrack,
     VALID_FILTER_SLOPES_DB_PER_OCT,
     VALID_PHASE_CHANNELS,
     VALID_PROCESSING_MODES,
@@ -3058,6 +3065,203 @@ def _parse_automation_envelope(item: Any, *, where: str) -> AutomationEnvelope:
     )
 
 
+def _parse_band_track(item: Any, *, where: str) -> BandTrack:
+    """Parse one BandTrack dict — Phase 4.17.
+
+    Strict on the time-series tuples : same length, freqs in [10, 22050],
+    sub_frame_factor in [1, BAND_TRACK_MAX_SUB_FRAME_FACTOR].
+    """
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+
+    target_track = _coerce_str(
+        _require(item, "target_track", where=where),
+        where=f"{where}.target_track",
+    ).strip()
+    if not target_track:
+        raise MixAgentOutputError(f"{where}.target_track must be non-empty")
+
+    target_eq8_instance = _coerce_int_strict(
+        _require(item, "target_eq8_instance", where=where),
+        where=f"{where}.target_eq8_instance",
+    )
+    if target_eq8_instance < 0:
+        raise MixAgentOutputError(
+            f"{where}.target_eq8_instance={target_eq8_instance} must be >= 0"
+        )
+
+    target_band_index = _coerce_int_strict(
+        _require(item, "target_band_index", where=where),
+        where=f"{where}.target_band_index",
+    )
+    if not 0 <= target_band_index <= 7:
+        raise MixAgentOutputError(
+            f"{where}.target_band_index={target_band_index} must be in [0, 7] "
+            f"(Eq8 has 8 bands)"
+        )
+
+    band_mode = _coerce_str(
+        _require(item, "band_mode", where=where),
+        where=f"{where}.band_mode",
+    ).strip()
+    if band_mode not in VALID_BAND_MODES:
+        raise MixAgentOutputError(
+            f"{where}.band_mode={band_mode!r} not in {sorted(VALID_BAND_MODES)}"
+        )
+
+    purpose = _coerce_str(
+        _require(item, "purpose", where=where), where=f"{where}.purpose"
+    ).strip()
+    if purpose not in VALID_BAND_TRACK_PURPOSES:
+        raise MixAgentOutputError(
+            f"{where}.purpose={purpose!r} not in {sorted(VALID_BAND_TRACK_PURPOSES)}"
+        )
+
+    # ---- Time series — required: frame_times_sec + freqs_hz ; same length ----
+    frame_times_raw = _coerce_list(
+        _require(item, "frame_times_sec", where=where),
+        where=f"{where}.frame_times_sec",
+    )
+    frame_times_sec = tuple(
+        _coerce_float(v, where=f"{where}.frame_times_sec[{i}]")
+        for i, v in enumerate(frame_times_raw)
+    )
+    n_frames = len(frame_times_sec)
+    if n_frames < BAND_TRACK_MIN_FRAMES:
+        raise MixAgentOutputError(
+            f"{where}.frame_times_sec : need >= {BAND_TRACK_MIN_FRAMES} frames "
+            f"(got {n_frames})"
+        )
+    if n_frames > BAND_TRACK_MAX_FRAMES:
+        raise MixAgentOutputError(
+            f"{where}.frame_times_sec : exceeds cap "
+            f"{BAND_TRACK_MAX_FRAMES} frames (got {n_frames}). "
+            f"Reduce frame rate or split BandTrack."
+        )
+    # Strictly monotone increasing
+    for i in range(1, n_frames):
+        if frame_times_sec[i] <= frame_times_sec[i - 1]:
+            raise MixAgentOutputError(
+                f"{where}.frame_times_sec : not strictly increasing at index "
+                f"{i} ({frame_times_sec[i - 1]} >= {frame_times_sec[i]})"
+            )
+
+    freqs_raw = _coerce_list(
+        _require(item, "freqs_hz", where=where), where=f"{where}.freqs_hz",
+    )
+    if len(freqs_raw) != n_frames:
+        raise MixAgentOutputError(
+            f"{where}.freqs_hz : length {len(freqs_raw)} != n_frames {n_frames}"
+        )
+    freqs_hz = tuple(
+        _coerce_float(v, where=f"{where}.freqs_hz[{i}]")
+        for i, v in enumerate(freqs_raw)
+    )
+    for i, f in enumerate(freqs_hz):
+        if not 10.0 <= f <= 22050.0:
+            raise MixAgentOutputError(
+                f"{where}.freqs_hz[{i}]={f} out of [10, 22050] Hz"
+            )
+
+    # ---- Optional time series ----
+    def _opt_series(field_name: str, allow_neg: bool = True) -> Optional[tuple[float, ...]]:
+        if field_name not in item or item[field_name] is None:
+            return None
+        raw = _coerce_list(item[field_name], where=f"{where}.{field_name}")
+        if len(raw) != n_frames:
+            raise MixAgentOutputError(
+                f"{where}.{field_name} : length {len(raw)} != n_frames {n_frames}"
+            )
+        return tuple(
+            _coerce_float(v, where=f"{where}.{field_name}[{i}]")
+            for i, v in enumerate(raw)
+        )
+
+    gains_db = _opt_series("gains_db")
+    q_values = _opt_series("q_values")
+    source_amps_db = _opt_series("source_amps_db")
+
+    if q_values is not None:
+        for i, q in enumerate(q_values):
+            if not 0.1 <= q <= 18.0:
+                raise MixAgentOutputError(
+                    f"{where}.q_values[{i}]={q} out of [0.1, 18.0] (Eq8 Q range)"
+                )
+
+    # ---- Static fallbacks + thresholds ----
+    q_static = _coerce_float(item.get("q_static", 8.0), where=f"{where}.q_static")
+    if not 0.1 <= q_static <= 18.0:
+        raise MixAgentOutputError(
+            f"{where}.q_static={q_static} out of [0.1, 18.0]"
+        )
+    gain_max_db = _coerce_float(
+        item.get("gain_max_db", 6.0), where=f"{where}.gain_max_db"
+    )
+    if not 0.0 <= gain_max_db <= 15.0:
+        raise MixAgentOutputError(
+            f"{where}.gain_max_db={gain_max_db} out of [0.0, 15.0] dB"
+        )
+    threshold_db = _coerce_float(
+        item.get("threshold_db", -40.0), where=f"{where}.threshold_db"
+    )
+
+    interpolation = _coerce_str(
+        item.get("interpolation", "parabolic"), where=f"{where}.interpolation",
+    ).strip()
+    if interpolation not in VALID_INTERPOLATIONS:
+        raise MixAgentOutputError(
+            f"{where}.interpolation={interpolation!r} not in "
+            f"{sorted(VALID_INTERPOLATIONS)}"
+        )
+
+    sub_frame_factor = _coerce_int_strict(
+        item.get("sub_frame_factor", 1), where=f"{where}.sub_frame_factor",
+    )
+    if not 1 <= sub_frame_factor <= BAND_TRACK_MAX_SUB_FRAME_FACTOR:
+        raise MixAgentOutputError(
+            f"{where}.sub_frame_factor={sub_frame_factor} out of [1, "
+            f"{BAND_TRACK_MAX_SUB_FRAME_FACTOR}]"
+        )
+
+    rationale = _coerce_str(
+        item.get("rationale", ""), where=f"{where}.rationale"
+    ).strip()
+    if len(rationale) < 50:
+        raise MixAgentOutputError(
+            f"{where}.rationale : depth-light requires >= 50 chars (got {len(rationale)})"
+        )
+
+    inspired_by = _parse_citations(
+        item.get("inspired_by", []), where=f"{where}.inspired_by",
+    )
+    if not inspired_by:
+        raise MixAgentOutputError(
+            f"{where}.inspired_by : at least 1 citation required (depth-light)"
+        )
+
+    return BandTrack(
+        target_track=target_track,
+        target_eq8_instance=target_eq8_instance,
+        target_band_index=target_band_index,
+        band_mode=band_mode,
+        purpose=purpose,
+        frame_times_sec=frame_times_sec,
+        freqs_hz=freqs_hz,
+        gains_db=gains_db,
+        q_values=q_values,
+        source_amps_db=source_amps_db,
+        q_static=q_static,
+        gain_max_db=gain_max_db,
+        threshold_db=threshold_db,
+        interpolation=interpolation,
+        sub_frame_factor=sub_frame_factor,
+        rationale=rationale,
+        inspired_by=inspired_by,
+    )
+
+
 def parse_automation_decision(
     payload: Mapping[str, Any],
 ) -> MixDecision[AutomationDecision]:
@@ -3134,7 +3338,54 @@ def parse_automation_decision(
             )
         seen_keys.add(key)
 
-    decision_value = AutomationDecision(envelopes=envelopes)
+    # Phase 4.17 — band_tracks (high-level Eq8 band tracking primitive)
+    band_tracks_raw = _coerce_list(
+        auto_dict.get("band_tracks", []), where="automation.band_tracks",
+    )
+    band_tracks = tuple(
+        _parse_band_track(bt, where=f"automation.band_tracks[{i}]")
+        for i, bt in enumerate(band_tracks_raw)
+    )
+
+    # #9 (Phase 4.17) — duplicate-key check for band_tracks :
+    # (track, eq8_instance, band_index) must be unique — Tier B writer
+    # otherwise gets two BandTracks targeting the same Eq8 band, which
+    # would create envelope collisions (the band has only ONE Freq/Gain/Q).
+    seen_band_keys: set[tuple] = set()
+    for i, bt in enumerate(band_tracks):
+        key = (bt.target_track, bt.target_eq8_instance, bt.target_band_index)
+        if key in seen_band_keys:
+            raise MixAgentOutputError(
+                f"automation.band_tracks[{i}] : duplicate BandTrack on "
+                f"(track={bt.target_track!r}, eq8_instance={bt.target_eq8_instance}, "
+                f"band_index={bt.target_band_index}). Two BandTracks cannot "
+                f"share an Eq8 band ; chain-builder must allocate distinct bands "
+                f"or cascade Eq8 instances."
+            )
+        seen_band_keys.add(key)
+
+    # Cross-collection collision : an envelopes[] entry targeting the SAME Eq8
+    # band as a band_tracks[] entry would create write collisions. Reject.
+    for i, bt in enumerate(band_tracks):
+        for j, env in enumerate(envelopes):
+            if (
+                env.target_device == "Eq8"
+                and env.target_track == bt.target_track
+                and env.target_device_instance == bt.target_eq8_instance
+                and env.target_band_index == bt.target_band_index
+            ):
+                raise MixAgentOutputError(
+                    f"automation.band_tracks[{i}] collides with "
+                    f"automation.envelopes[{j}] on "
+                    f"(track={bt.target_track!r}, eq8_instance="
+                    f"{bt.target_eq8_instance}, band_index="
+                    f"{bt.target_band_index}). Choose ONE primitive per band : "
+                    f"either param-level envelope OR high-level BandTrack."
+                )
+
+    decision_value = AutomationDecision(
+        envelopes=envelopes, band_tracks=band_tracks,
+    )
     return MixDecision(value=decision_value, lane="automation", **envelope_meta)
 
 

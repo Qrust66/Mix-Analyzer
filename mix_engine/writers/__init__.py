@@ -61,6 +61,12 @@ from mix_engine.writers.chain_assembler import (
     ChainAssemblerReport,
     apply_chain_decision,
 )
+from mix_engine.writers.automation_writer import (
+    AutomationTargetNotFoundError,
+    AutomationWriterError,
+    AutomationWriterReport,
+    apply_automation_decision,
+)
 
 __all__ = [
     "EqConfiguratorError",
@@ -86,4 +92,8 @@ __all__ = [
     "ChainAssemblerError",
     "ChainAssemblerReport",
     "apply_chain_decision",
+    "AutomationTargetNotFoundError",
+    "AutomationWriterError",
+    "AutomationWriterReport",
+    "apply_automation_decision",
 ]
