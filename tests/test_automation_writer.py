@@ -46,6 +46,7 @@ from mix_engine.writers.automation_writer import (
     _resolve_param_root,
     _run_safety_checks,
     _seconds_to_beats,
+    _thin_breakpoints,
 )
 
 
@@ -596,6 +597,129 @@ def test_combined_envelopes_and_band_tracks(tmp_path):
     assert report.safety_guardian_status == "PASS"
     assert len(report.envelopes_applied) == 1 + 3  # direct + 3 from BandTrack
     assert len(report.band_tracks_applied) == 1
+
+
+# ============================================================================
+# Phase 4.17.1 audit fix F-A3 — breakpoint thinning cap
+# ============================================================================
+
+
+def test_thin_breakpoints_under_cap_passthrough():
+    bps = [(0.0, 1.0), (1.0, 2.0), (2.0, 3.0)]
+    assert _thin_breakpoints(bps, max_points=10) == bps
+
+
+def test_thin_breakpoints_caps_to_max_points():
+    bps = [(float(i), float(i)) for i in range(100)]
+    out = _thin_breakpoints(bps, max_points=10)
+    assert len(out) == 10
+    # Endpoints preserved
+    assert out[0] == (0.0, 0.0)
+    assert out[-1] == (99.0, 99.0)
+    # Strict-ascending time
+    times = [t for t, _ in out]
+    assert times == sorted(set(times))
+
+
+def test_thin_breakpoints_max_3_keeps_first_mid_last():
+    bps = [(float(i), 0.0) for i in range(11)]
+    out = _thin_breakpoints(bps, max_points=3)
+    assert out[0] == (0.0, 0.0)
+    assert out[-1] == (10.0, 0.0)
+    assert len(out) == 3
+
+
+def test_apply_thinning_emits_warning_and_caps_breakpoints(tmp_path):
+    """Build an envelope with 200 points + cap=20 → writer thins, warns,
+    and the report's breakpoints_written reflects the post-thinning count."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    points = tuple(
+        AutomationPoint(time_beats=float(i) * 0.05, value=float(i % 5))
+        for i in range(200)
+    )
+    env = _envelope(target_band_index=0, points=points)
+    report = apply_automation_decision(
+        ref_copy, _decision([env]), dry_run=True,
+        invoke_safety_guardian=False,
+        max_points_per_envelope=20,
+    )
+    assert len(report.envelopes_applied) == 1
+    assert report.breakpoints_written == 20
+    thin_warnings = [w for w in report.warnings if "thinned" in w.lower()]
+    assert len(thin_warnings) == 1
+    assert "200" in thin_warnings[0] and "20" in thin_warnings[0]
+
+
+def test_apply_thinning_skipped_when_under_cap(tmp_path):
+    """Envelope with 3 points + default cap (1000) → no thinning, no warning."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+
+    env = _envelope(target_band_index=0)
+    report = apply_automation_decision(
+        ref_copy, _decision([env]), dry_run=True,
+        invoke_safety_guardian=False,
+    )
+    assert report.breakpoints_written == 3
+    thin_warnings = [w for w in report.warnings if "thinned" in w.lower()]
+    assert thin_warnings == []
+
+
+# ============================================================================
+# Phase 4.17.1 audit fix F-A4 — static Mode + IsOn config before envelope
+# ============================================================================
+
+
+def test_band_track_writes_static_mode_and_ison(tmp_path):
+    """For a BandTrack on band 0 with band_mode='highshelf', the writer must
+    set static Mode=5 + IsOn=true on that band BEFORE writing envelopes."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    bt = _band_track(band_mode="highshelf", target_band_index=0)
+    apply_automation_decision(
+        ref_copy, _decision(band_tracks=[bt]), output_path=output,
+        invoke_safety_guardian=False,
+    )
+
+    tree = als_utils.parse_als(str(output))
+    track_el = als_utils.find_track_by_name(tree, "[H/R] Kick 1")
+    container = track_el.find(".//DeviceChain/DeviceChain/Devices")
+    if container is None:
+        container = track_el.find(".//DeviceChain/Devices")
+    eq8_el = next(c for c in container if c.tag == "Eq8")
+    band_param = als_utils.get_eq8_band(eq8_el, 0)
+    mode_manual = band_param.find("Mode/Manual")
+    ison_manual = band_param.find("IsOn/Manual")
+    assert mode_manual is not None and mode_manual.get("Value") == "5"
+    assert ison_manual is not None and ison_manual.get("Value") == "true"
+
+
+def test_band_track_notch_static_mode_coerced_to_3(tmp_path):
+    """band_mode='notch' → static Mode written as 3 (Bell), per the
+    coercion-keeps-gain-automatable contract."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    bt = _band_track(band_mode="notch", target_band_index=0)
+    apply_automation_decision(
+        ref_copy, _decision(band_tracks=[bt]), output_path=output,
+        invoke_safety_guardian=False,
+    )
+
+    tree = als_utils.parse_als(str(output))
+    track_el = als_utils.find_track_by_name(tree, "[H/R] Kick 1")
+    container = track_el.find(".//DeviceChain/DeviceChain/Devices")
+    if container is None:
+        container = track_el.find(".//DeviceChain/Devices")
+    eq8_el = next(c for c in container if c.tag == "Eq8")
+    band_param = als_utils.get_eq8_band(eq8_el, 0)
+    mode_manual = band_param.find("Mode/Manual")
+    assert mode_manual is not None and mode_manual.get("Value") == "3"
 
 
 def test_dry_run_does_not_mutate(tmp_path):

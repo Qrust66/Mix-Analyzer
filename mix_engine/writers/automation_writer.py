@@ -139,6 +139,52 @@ _BAND_MODE_TO_EQ8_MODE: dict[str, int] = {
 }
 
 
+# Phase 4.17.1 audit fix F-A3 — breakpoint thinning cap.
+# Sanity ceiling on points per envelope. At 50ms/frame × 4 minutes × factor=2
+# we'd produce 9600 raw points per envelope ; thinning to 1000 keeps Ableton
+# load times reasonable while preserving the curve shape. Configurable via
+# the public API arg `max_points_per_envelope`.
+DEFAULT_MAX_POINTS_PER_ENVELOPE: int = 1000
+
+
+def _thin_breakpoints(
+    breakpoints: list[tuple[float, float]],
+    max_points: int,
+) -> list[tuple[float, float]]:
+    """Keep first + last + uniformly-distributed intermediate points.
+
+    Phase 4.17.1 F-A3 fix : avoid emitting ten-thousand-point envelopes
+    that bloat the .als XML and slow Ableton's load.
+
+    The thinning preserves :
+    - The very first and very last breakpoint (envelope end-points)
+    - Every k-th intermediate point where k = ceil(N / max_points)
+
+    This is intentionally simple — RDP-style geometric thinning could
+    preserve more curve shape but adds complexity. v1 uniform thinning is
+    enough at the 50ms-frame target.
+    """
+    n = len(breakpoints)
+    if n <= max_points or max_points < 3:
+        return list(breakpoints)
+    if max_points == 3:
+        return [breakpoints[0], breakpoints[n // 2], breakpoints[-1]]
+    # Pick max_points evenly across [0, n-1] including endpoints
+    out: list[tuple[float, float]] = []
+    for i in range(max_points):
+        idx = round(i * (n - 1) / (max_points - 1))
+        out.append(breakpoints[idx])
+    # Strict-ascending guarantee : drop dupes if rounding aliasing produced
+    # the same time twice
+    deduped: list[tuple[float, float]] = []
+    last_t: Optional[float] = None
+    for t, v in out:
+        if last_t is None or t > last_t:
+            deduped.append((t, v))
+            last_t = t
+    return deduped
+
+
 # ============================================================================
 # Device locator helpers
 # ============================================================================
@@ -263,19 +309,26 @@ def _write_param_envelope(
     breakpoints: list[tuple[float, float]],
     next_id_counter: list[int],
     event_type: str = "FloatEvent",
-) -> int:
+    max_points: Optional[int] = None,
+) -> tuple[int, int]:
     """Write one envelope on a (track, param_root, param_name) tuple.
 
-    Returns the number of breakpoints actually emitted. Performs the
-    idempotent pre-write delete.
+    Returns ``(emitted_count, raw_count)``. ``emitted_count`` is the number of
+    breakpoints actually written (post-thinning). ``raw_count`` is the input
+    length, used by the caller to compose a thinning warning when emitted < raw.
+
+    Performs the idempotent pre-write delete.
     """
+    raw_count = len(breakpoints)
+    if max_points is not None and raw_count > max_points:
+        breakpoints = _thin_breakpoints(breakpoints, max_points)
     target_id = als_utils.get_automation_target_id(param_root, param_name_xml)
     _remove_existing_envelope(track_element, target_id)
     als_utils.write_automation_envelope(
         track_element, target_id, breakpoints, next_id_counter,
         event_type=event_type,
     )
-    return len(breakpoints)
+    return len(breakpoints), raw_count
 
 
 # ============================================================================
@@ -370,6 +423,22 @@ def _seconds_to_beats(time_sec: float, tempo_bpm: float) -> float:
     return time_sec * (tempo_bpm / 60.0)
 
 
+def _band_track_static_eq8_mode(bt: BandTrack) -> tuple[int, str]:
+    """Return (numeric_mode, effective_mode_name) for the band's static config.
+
+    Phase 4.17.1 audit fix F-A4 : the writer must set the band's STATIC Mode
+    to match `band_mode` BEFORE writing the envelopes ; otherwise a gain
+    envelope on a band that has Mode 4 (Notch) statically would be ignored
+    by Eq8 (Mode 4 has gain_inoperative_modes).
+
+    'notch' is silently coerced to Mode 3 Bell here too — the writer's
+    consistent contract is "narrow Bell with deep gain produces the notch
+    behaviour while remaining gain-automatable".
+    """
+    effective = "bell" if bt.band_mode == "notch" else bt.band_mode
+    return _BAND_MODE_TO_EQ8_MODE[effective], effective
+
+
 def _build_envelopes_from_band_track(
     bt: BandTrack,
     tempo_bpm: float,
@@ -387,9 +456,8 @@ def _build_envelopes_from_band_track(
       data to drive it)
     """
     warnings: list[str] = []
-    effective_mode = bt.band_mode
+    _, effective_mode = _band_track_static_eq8_mode(bt)
     if bt.band_mode == "notch":
-        effective_mode = "bell"  # silent coercion ; warned below
         warnings.append(
             f"BandTrack {_band_track_id(bt)} : band_mode='notch' coerced to "
             f"Mode 3 Bell with narrow Q (Eq8 Mode 4 has gain_inoperative_modes ; "
@@ -481,6 +549,7 @@ def apply_automation_decision(
     output_path: str | Path | None = None,
     dry_run: bool = False,
     invoke_safety_guardian: bool = True,
+    max_points_per_envelope: int = DEFAULT_MAX_POINTS_PER_ENVELOPE,
 ) -> AutomationWriterReport:
     """Apply an AutomationDecision (envelopes + band_tracks) to an .als file.
 
@@ -491,12 +560,24 @@ def apply_automation_decision(
       apply parabolic sub-frame interp, write
     - Idempotent : pre-write delete by AutomationTarget Id
 
+    Phase 4.17.1 audit fix F-A4 : for each BandTrack, the writer ensures the
+    target Eq8 band's STATIC Mode matches `band_mode` (notch coerced to Mode 3
+    Bell), AND IsOn is set true. Without this step, gain envelopes on bands
+    with Mode-4-Notch (or any gain-inoperative mode) would be silently ignored
+    by the Eq8 device.
+
+    Phase 4.17.1 audit fix F-A3 : breakpoint thinning per envelope, capped
+    at `max_points_per_envelope` (default 1000). Prevents the .als XML from
+    bloating at 50ms-frame target.
+
     Args:
         als_path: Source .als file.
         decision: Tier A automation decision (typed).
         output_path: Where to write modified .als. None = overwrite source.
         dry_run: Validate without writing.
         invoke_safety_guardian: Run post-write deterministic checks.
+        max_points_per_envelope: Cap on FloatEvent count per envelope. 1000
+            is enough for visually-smooth curves at most frame rates.
 
     Returns:
         :class:`AutomationWriterReport`.
@@ -540,6 +621,43 @@ def apply_automation_decision(
     for bt in band_tracks:
         bt_id = _band_track_id(bt)
         try:
+            # Phase 4.17.1 F-A4 — configure static Mode + IsOn on the target
+            # Eq8 band BEFORE writing envelopes. Otherwise a Gain envelope on
+            # a band with Mode-4-Notch (or 0/1/4/6/7 gain-inoperative) would
+            # be silently ignored by Eq8.
+            track_el = _resolve_track_for_target(tree, bt.target_track)
+            if track_el is None:
+                band_tracks_skipped.append((
+                    bt_id, f"track {bt.target_track!r} not found",
+                ))
+                continue
+            eq8_el = _find_device_instance(
+                track_el, "Eq8", bt.target_eq8_instance,
+            )
+            if eq8_el is None:
+                band_tracks_skipped.append((
+                    bt_id,
+                    f"Eq8 instance {bt.target_eq8_instance} not present on "
+                    f"track {bt.target_track!r} ; REUSE-only, no creation in v1",
+                ))
+                continue
+            try:
+                band_param = als_utils.get_eq8_band(eq8_el, bt.target_band_index)
+            except (ValueError, IndexError) as exc:
+                band_tracks_skipped.append((
+                    bt_id, f"Eq8 band {bt.target_band_index} unreachable : {exc}",
+                ))
+                continue
+            mode_int, _ = _band_track_static_eq8_mode(bt)
+            # Set static Mode (notch → 3) + IsOn=true. Q is set static here ONLY
+            # when q_values is None AND user provided q_static ; otherwise the
+            # Q envelope (or stored Q) will drive the band.
+            static_q = bt.q_static if bt.q_values is None else None
+            als_utils.configure_eq8_band(band_param, mode=mode_int, q=static_q)
+            ison = band_param.find("IsOn/Manual")
+            if ison is not None:
+                ison.set("Value", "true")
+
             new_envs, bt_warnings = _build_envelopes_from_band_track(bt, tempo_bpm)
             warnings.extend(bt_warnings)
             if bt.band_mode == "notch":
@@ -589,10 +707,11 @@ def apply_automation_decision(
 
         param_name_xml = _normalize_param_name(env.target_device, env.target_param)
         try:
-            count = _write_param_envelope(
+            emitted, raw = _write_param_envelope(
                 track_el, param_root, param_name_xml,
                 _envelope_to_breakpoints(env), next_id,
                 event_type="FloatEvent",
+                max_points=max_points_per_envelope,
             )
         except (ValueError, AutomationTargetNotFoundError) as exc:
             envelopes_skipped.append((
@@ -607,8 +726,15 @@ def apply_automation_decision(
             continue
 
         envelopes_applied.append(full_id)
-        breakpoints_written += count
-        _LOGGER.info("Wrote envelope %s (%d points)", full_id, count)
+        breakpoints_written += emitted
+        if emitted < raw:
+            warnings.append(
+                f"envelope {full_id} : thinned {raw} → {emitted} breakpoints "
+                f"(cap = max_points_per_envelope={max_points_per_envelope})"
+            )
+        _LOGGER.info(
+            "Wrote envelope %s (%d points, raw %d)", full_id, emitted, raw,
+        )
 
     if dry_run:
         return AutomationWriterReport(
