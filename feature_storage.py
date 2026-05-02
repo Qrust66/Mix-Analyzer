@@ -229,6 +229,33 @@ def build_v25_spectral_descriptors_sheet(wb: 'Workbook',
 # Sheet builders — Phase 2
 # ---------------------------------------------------------------------------
 
+def filter_peak_trajectories_by_threshold(
+    trajectories: List[PeakTrajectory],
+    threshold_db: float,
+) -> List[PeakTrajectory]:
+    """Drop trajectories whose ``mean_amplitude`` is below ``threshold_db``.
+
+    Phase F10f (Mix Analyzer v2.8.0+) — pure functional filter used to
+    reduce the size of the SHAREABLE report by retaining only the
+    loudest peaks/valleys. The filter is applied at sheet-write time
+    only ; the in-memory ``feat.peak_trajectories`` list (consumed by
+    CDE engine + Tier A agents directly) stays full.
+
+    Args:
+        trajectories: List of :class:`PeakTrajectory` (peaks or valleys
+            — same dataclass for both).
+        threshold_db: Minimum ``mean_amplitude`` in dBFS to retain
+            (typically negative, e.g., -60.0). Trajectories at exactly
+            ``threshold_db`` ARE kept (>= comparison).
+
+    Returns:
+        New list containing only trajectories whose mean_amplitude is
+        ``>= threshold_db``. Relative ordering preserved. Empty input
+        → empty output. Pure functional — never mutates the input list.
+    """
+    return [t for t in trajectories if t.mean_amplitude >= threshold_db]
+
+
 def build_v25_peak_trajectories_sheet(wb: 'Workbook',
                                        features_with_info: List[Tuple[TrackFeatures, dict]],
                                        log_fn=None) -> None:
