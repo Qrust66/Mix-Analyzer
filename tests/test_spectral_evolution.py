@@ -304,5 +304,128 @@ class TestFeatureStorage:
         assert ws.cell(row=2, column=2).value is not None  # first data cell
 
 
+# ===========================================================================
+# Phase F10b — preset-aware CQT pipeline tests (5 cases)
+# ===========================================================================
+#
+# These tests exercise the new ``preset`` parameter of ``generate_matrix``
+# and ``extract_all_features``. The most critical is the byte-identity
+# non-regression test : it guarantees that any existing script that does
+# NOT pass a preset (= the default `None` → standard) gets exactly the
+# v2.7.0 output, frame-by-frame, sample-by-sample.
+
+from resolution_presets import RESOLUTION_PRESETS
+
+
+class TestPhaseF10bPresetSupport:
+    """Phase F10b — preset parameter on generate_matrix + extract_all_features."""
+
+    def test_no_preset_byte_identical_to_explicit_standard(self):
+        """The most important test of F10b : default behaviour preserved.
+
+        ``generate_matrix(mono, sr)`` without preset must produce a result
+        byte-identical to ``generate_matrix(mono, sr, preset=standard)``.
+        Both must equal the v2.7.0 output (the 22 pre-existing tests
+        verify the latter empirically).
+
+        If this test ever fails after a refactor of spectral_evolution.py,
+        backward compatibility is broken — every script that doesn't pass
+        ``--resolution`` will start producing different output.
+        """
+        mono, sr = _load_mono('01_flat_wideband.wav')
+        m_default = generate_matrix(mono, sr)
+        m_standard = generate_matrix(
+            mono, sr, preset=RESOLUTION_PRESETS["standard"],
+        )
+        # Strict byte-identity (np.array_equal). If librosa ever introduces
+        # float non-determinism this would fall back to
+        # np.allclose(rtol=0, atol=1e-15) — but for now we keep the strict
+        # check because it catches REAL regressions silently.
+        assert np.array_equal(m_default.cqt_db, m_standard.cqt_db), (
+            "cqt_db diverges between no-preset and explicit-standard "
+            "— backward compat broken"
+        )
+        assert np.array_equal(m_default.freqs, m_standard.freqs)
+        assert np.array_equal(m_default.times, m_standard.times)
+        assert m_default.hop_length == m_standard.hop_length
+        assert m_default.sr == m_standard.sr
+
+    def test_preset_ultra_changes_hop(self):
+        """Ultra preset (12 fps CQT) → hop ≈ sr / 12 instead of sr / 6."""
+        mono, sr = _load_mono('01_flat_wideband.wav')
+        m_standard = generate_matrix(
+            mono, sr, preset=RESOLUTION_PRESETS["standard"],
+        )
+        m_ultra = generate_matrix(
+            mono, sr, preset=RESOLUTION_PRESETS["ultra"],
+        )
+        # Standard = 6 fps target, ultra = 12 fps target. Ultra hop should
+        # be approximately half of standard hop (modulo rounding + 512 floor).
+        expected_ultra_hop = max(round(sr / 12), 512)
+        assert m_ultra.hop_length == expected_ultra_hop
+        # Sanity : ultra hop is roughly half of standard
+        assert m_ultra.hop_length < m_standard.hop_length
+        # Frame count scales inversely : ultra has more frames
+        assert m_ultra.n_frames > m_standard.n_frames
+
+    def test_preset_ultra_changes_n_bins_effective(self):
+        """Ultra preset (36 bins/oct) → n_bins effective scales with bpo,
+        capped by Nyquist.
+
+        At sr=44.1 kHz, max_octaves ≈ 10.007. Standard (24 bpo) caps at
+        floor(10.007 × 24) = 240. Ultra (36 bpo) caps at
+        floor(10.007 × 36) = 360.
+        """
+        mono, sr = _load_mono('01_flat_wideband.wav')
+        m_standard = generate_matrix(
+            mono, sr, preset=RESOLUTION_PRESETS["standard"],
+        )
+        m_ultra = generate_matrix(
+            mono, sr, preset=RESOLUTION_PRESETS["ultra"],
+        )
+        # Compute expected n_bins from the audit math
+        max_octaves = np.log2((sr / 2.0) / 20.0) - 0.1
+        expected_standard_bins = min(256, int(np.floor(max_octaves * 24)))
+        expected_ultra_bins = min(384, int(np.floor(max_octaves * 36)))
+        assert m_standard.n_bins == expected_standard_bins
+        assert m_ultra.n_bins == expected_ultra_bins
+        # Sanity : ultra has 1.5× more bins than standard (36/24 ratio)
+        assert m_ultra.n_bins > m_standard.n_bins
+
+    def test_preset_maximum_pushes_to_highest_resolution(self):
+        """Maximum preset (24 fps + 48 bpo) — highest resolution tier.
+
+        At sr=44.1 kHz : hop ≈ 1838, n_bins ≈ 480 (= floor(10.007 × 48)
+        capped by 512 requested).
+        """
+        mono, sr = _load_mono('01_flat_wideband.wav')
+        m_max = generate_matrix(
+            mono, sr, preset=RESOLUTION_PRESETS["maximum"],
+        )
+        expected_hop = max(round(sr / 24), 512)
+        max_octaves = np.log2((sr / 2.0) / 20.0) - 0.1
+        expected_bins = min(512, int(np.floor(max_octaves * 48)))
+        assert m_max.hop_length == expected_hop
+        assert m_max.n_bins == expected_bins
+
+    def test_extract_all_features_with_ultra_preset_returns_full_features(self):
+        """End-to-end : extract_all_features with non-default preset must
+        return a complete TrackFeatures (peak_trajectories non-empty,
+        all sub-fields populated)."""
+        mono, sr = _load_mono('02_wideband_one_resonance_500hz.wav')
+        feat = extract_all_features(
+            mono, sr, preset=RESOLUTION_PRESETS["ultra"],
+        )
+        assert isinstance(feat, TrackFeatures)
+        # Resonance fixture has a clear peak — must be tracked at any preset
+        assert feat.peak_trajectories is not None
+        assert len(feat.peak_trajectories) > 0
+        # Other fields populated
+        assert feat.zone_energy is not None
+        assert feat.descriptors is not None
+        assert feat.crest_by_zone is not None
+        assert feat.delta_spectrum is not None
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
