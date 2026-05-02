@@ -17,14 +17,26 @@ import librosa
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
+from resolution_presets import (
+    RESOLUTION_PRESETS,
+    ResolutionPreset,
+    get_effective_cqt_hop_samples,
+)
+
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 
-CQT_N_BINS = 256
-CQT_BINS_PER_OCTAVE = 24
-TARGET_FRAMES_PER_SEC = 6
-FMIN = 20.0  # Hz – lowest CQT bin
+# ⚠️ Phase F10 (Mix Analyzer v2.8.0+) : these constants are now
+# backward-compat references for the standard preset (v2.7.0 strict
+# equivalent). New code should use ResolutionPreset
+# (cf. resolution_presets.py). Kept exported because legacy callers
+# (notably tests/test_spectral_evolution.py) import them directly.
+
+CQT_N_BINS = 256                     # = RESOLUTION_PRESETS["standard"].cqt_n_bins
+CQT_BINS_PER_OCTAVE = 24             # = RESOLUTION_PRESETS["standard"].cqt_bins_per_octave
+TARGET_FRAMES_PER_SEC = 6            # = RESOLUTION_PRESETS["standard"].cqt_target_fps
+FMIN = 20.0                          # Hz – lowest CQT bin (preset-invariant)
 
 # Perceptual zones (v2.5 spec §4.3) — intentionally overlapping
 ZONE_RANGES: Dict[str, Tuple[float, float]] = {
@@ -144,25 +156,80 @@ class TrackFeatures:
 # ---------------------------------------------------------------------------
 
 def _safe_n_bins(sr: int) -> int:
-    """Compute max CQT bins that fit within Nyquist for the given sample rate."""
+    """Compute max CQT bins that fit within Nyquist for the given sample rate.
+
+    ⚠️ Phase F10 backward-compat — equivalent to
+    ``_safe_n_bins_for_preset(sr, RESOLUTION_PRESETS["standard"])``.
+    Preserved for any legacy caller that imports this private symbol.
+    """
     nyquist = sr / 2.0
     max_octaves = np.log2(nyquist / FMIN) - 0.1  # small margin for filter rolloff
     max_bins = int(np.floor(max_octaves * CQT_BINS_PER_OCTAVE))
     return min(CQT_N_BINS, max_bins)
 
 
-def generate_matrix(mono: np.ndarray, sr: int) -> SpectralMatrix:
+def _safe_n_bins_for_preset(sr: int, preset: ResolutionPreset) -> int:
+    """Phase F10 — preset-aware safe n_bins.
+
+    Computes ``min(preset.cqt_n_bins, floor(max_octaves × preset.cqt_bins_per_octave))``
+    where ``max_octaves`` accounts for FMIN floor and Nyquist cap.
+
+    The preset's ``cqt_n_bins`` is the **requested ceiling** ; in practice
+    Nyquist always lowers it for ``standard`` (240 effective at 44.1 kHz
+    vs 256 requested) and for ``ultra`` (360 effective vs 384 requested).
+    """
+    nyquist = sr / 2.0
+    max_octaves = np.log2(nyquist / FMIN) - 0.1  # small margin for filter rolloff
+    max_bins_for_bpo = int(np.floor(max_octaves * preset.cqt_bins_per_octave))
+    return min(preset.cqt_n_bins, max_bins_for_bpo)
+
+
+def _compute_cqt_hop(sr: int, preset: ResolutionPreset) -> int:
+    """Phase F10 — preset-aware CQT hop computation.
+
+    Wraps ``get_effective_cqt_hop_samples`` from ``resolution_presets`` to
+    keep the call site readable. Floors at 512 samples (librosa CQT
+    practical lower bound, enforced by the helper).
+
+    Backward-compat note : equivalent to ``_compute_hop_length(sr)`` when
+    ``preset == RESOLUTION_PRESETS["standard"]``.
+    """
+    return get_effective_cqt_hop_samples(preset, sr)
+
+
+def generate_matrix(
+    mono: np.ndarray,
+    sr: int,
+    preset: Optional[ResolutionPreset] = None,
+) -> SpectralMatrix:
     """Generate a CQT spectral matrix from mono audio.
 
     Args:
         mono: 1-D mono audio signal.
         sr: Sample rate in Hz.
+        preset: Phase F10 — resolution preset driving CQT params
+            (``cqt_target_fps``, ``cqt_bins_per_octave``, ``cqt_n_bins``).
+            ``None`` = ``RESOLUTION_PRESETS["standard"]``, which preserves
+            the v2.7.0 strict configuration (6 fps, 24 bins/oct,
+            256 requested n_bins → 240 effective at 44.1 kHz).
 
     Returns:
         SpectralMatrix with dBFS amplitudes, frequency axis, and time axis.
+
+    Backward compatibility :
+        Calling ``generate_matrix(mono, sr)`` with no preset argument
+        produces a matrix byte-identical to the v2.7.0 output for the
+        same input — verified by ``test_no_preset_byte_identical_to_v270``.
     """
-    hop_length = _compute_hop_length(sr)
-    n_bins = _safe_n_bins(sr)
+    # Phase F10 : default preset preserves v2.7.0 backward-compat strict.
+    # The "preset is None" sentinel is distinct from any valid preset name
+    # so callers can pass preset=RESOLUTION_PRESETS["standard"] explicitly
+    # and get identical output to the no-preset call.
+    if preset is None:
+        preset = RESOLUTION_PRESETS["standard"]
+
+    hop_length = _compute_cqt_hop(sr, preset)
+    n_bins = _safe_n_bins_for_preset(sr, preset)
 
     cqt_complex = librosa.cqt(
         y=mono,
@@ -170,7 +237,7 @@ def generate_matrix(mono: np.ndarray, sr: int) -> SpectralMatrix:
         hop_length=hop_length,
         fmin=FMIN,
         n_bins=n_bins,
-        bins_per_octave=CQT_BINS_PER_OCTAVE,
+        bins_per_octave=preset.cqt_bins_per_octave,
     )
 
     cqt_mag = np.abs(cqt_complex)
@@ -179,7 +246,7 @@ def generate_matrix(mono: np.ndarray, sr: int) -> SpectralMatrix:
     freqs = librosa.cqt_frequencies(
         n_bins=n_bins,
         fmin=FMIN,
-        bins_per_octave=CQT_BINS_PER_OCTAVE,
+        bins_per_octave=preset.cqt_bins_per_octave,
     )
 
     n_frames = cqt_db.shape[1]
@@ -197,7 +264,12 @@ def generate_matrix(mono: np.ndarray, sr: int) -> SpectralMatrix:
 
 
 def _compute_hop_length(sr: int) -> int:
-    """Compute hop_length targeting ~6 frames/sec."""
+    """Compute hop_length targeting ~6 frames/sec.
+
+    ⚠️ Phase F10 backward-compat — equivalent to
+    ``_compute_cqt_hop(sr, RESOLUTION_PRESETS["standard"])``.
+    Preserved for any legacy caller that imports this private symbol.
+    """
     target = sr / TARGET_FRAMES_PER_SEC
     hop = int(round(target))
     hop = max(hop, 512)
@@ -574,7 +646,11 @@ def extract_rolloff_curves(matrix: SpectralMatrix,
 # Full extraction pipeline
 # ---------------------------------------------------------------------------
 
-def extract_all_features(mono: np.ndarray, sr: int) -> TrackFeatures:
+def extract_all_features(
+    mono: np.ndarray,
+    sr: int,
+    preset: Optional[ResolutionPreset] = None,
+) -> TrackFeatures:
     """Run complete v2.5 feature extraction pipeline for one track.
 
     Generates CQT matrix, extracts all features, then discards the matrix.
@@ -582,6 +658,9 @@ def extract_all_features(mono: np.ndarray, sr: int) -> TrackFeatures:
     Args:
         mono: 1-D mono audio signal (must be at least 0.1 s long).
         sr: Sample rate in Hz.
+        preset: Phase F10 — resolution preset forwarded to
+            :func:`generate_matrix`. ``None`` = standard preset
+            (v2.7.0 backward-compat).
 
     Returns:
         TrackFeatures with all extracted features.
@@ -597,7 +676,7 @@ def extract_all_features(mono: np.ndarray, sr: int) -> TrackFeatures:
         )
 
     mono = np.asarray(mono, dtype=np.float32)
-    matrix = generate_matrix(mono, sr)
+    matrix = generate_matrix(mono, sr, preset=preset)
 
     zone_energy = extract_zone_energy(matrix)
     descriptors = extract_spectral_descriptors(matrix)
