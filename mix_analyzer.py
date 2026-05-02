@@ -8311,6 +8311,29 @@ def generate_shareable_report(
     shutil.copy(str(full_xlsx_path), str(output_path))
     log_fn(f"  Shareable: copied FULL → {output_path.name}")
 
+    # Phase F10f audit fix : early return if FULL already fits the target.
+    # The copy above is essentially the SHAREABLE in this case (no filter
+    # needed). We still update the _analysis_config sheet's
+    # is_shareable_version flag so consumers can distinguish FULL vs
+    # SHAREABLE — but skip the expensive sheet recreation loop.
+    full_size_mb = full_xlsx_path.stat().st_size / (1024 * 1024)
+    if full_size_mb <= target_size_mb:
+        log_fn(
+            f"  Shareable: FULL is {full_size_mb:.2f} MB ≤ target "
+            f"{target_size_mb} MB → no filter needed, marking copy as "
+            f"shareable."
+        )
+        wb = load_workbook(str(output_path))
+        if '_analysis_config' in wb.sheetnames:
+            ws_cfg = wb['_analysis_config']
+            for r in range(1, ws_cfg.max_row + 1):
+                if ws_cfg.cell(row=r, column=1).value == 'is_shareable_version':
+                    ws_cfg.cell(row=r, column=2).value = True
+                    break
+            wb.save(str(output_path))
+        # final_threshold = the user's initial preference (no retry happened)
+        return (output_path, float(initial_threshold_db))
+
     final_threshold = float(initial_threshold_db)
     final_size_mb = 0.0
 

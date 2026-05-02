@@ -786,23 +786,37 @@ Cf. §5.7 (Sheets non-impactées par F10) pour le raisonnement audio-physics com
 - `feat(F10): STFT spectral sheets + analysis_config sheet`
 - `test(F10): unit tests for spectral sheets + config metadata`
 
-### F10f — Post-filtrage peak_trajectories + double rapport *(modifié en v1.1)*
+### F10f — Post-filtrage peak_trajectories + double rapport *(réécrit en v1.3 après livraison)*
 
-**Fichiers modifiés :**
-- `feature_storage.py` (post-filtrage des peak_trajectories par threshold)
-- Orchestrateur principal (`mix_analyzer.py`)
+**Statut :** ✅ **LIVRÉ** — commits `83779d3` (filter), `6eb3eec` (shareable report Approach B2), `8914009` (tests), `<audit-fix>` (audit findings).
 
-**Fonctions implémentées :**
-- `filter_peak_trajectories_by_threshold(trajectories, threshold_db)` — drop les trajectories whose mean amplitude < threshold
-- `generate_shareable_report` avec l'algorithme d'ajustement dynamique
-- Logique de retry threshold -60, -55, -50, -45, -40
-- Warning si target non atteignable
+**Note de scope (réécrit en v1.3)** : la spec v1.0/v1.1/v1.2 décrivait F10f comme 1 commit feat + 1 commit test. La livraison effective a séparé en 3 commits atomiques (feat filter / feat shareable / test) per la convention anti-timeout micro-commits, plus 1 commit fix après audit post-livraison.
 
-**Durée :** 2h
-**Tests :** 6-7 (avec fixtures .als de différentes complexités)
-**Commits :**
-- `feat(F10): peak_trajectories threshold filter + dual report generation`
-- `test(F10): integration tests for threshold filter and dual report`
+**Fichiers modifiés (réel) :**
+- `feature_storage.py` : ajout `filter_peak_trajectories_by_threshold(trajectories, threshold_db)` — pure functional, retourne nouvelle liste sans muter l'input.
+- `mix_analyzer.py` : ajout `generate_shareable_report(full_xlsx_path, analyses_with_info, output_path, target_size_mb=25.0, initial_threshold_db=-60.0, log_fn=None)` — Approach B2.
+- `tests/test_shareable_report.py` : nouveau fichier (4 unit filter + 2 mock retry + 2 e2e).
+- `docs/Features/feature_10_high_resolution_spectral_engine_v1_3.md` : cette §8 mise à jour.
+
+**Approach B2 décidée Pass 2 (Q1=B utilisateur, interprétation pragmatique)** :
+Au lieu de re-runner `generate_excel_report` 5× (Approach A) ou de faire du `delete_rows()` in-place (Approach B littéral, lent + bug-prone openpyxl), la livraison :
+1. Copie `FULL.xlsx` → `SHAREABLE.xlsx` (1×, fast)
+2. Pour chaque threshold T dans [-60, -55, -50, -45, -40] :
+   a. Filtre peak_trajectories ET valley_trajectories à T (in-memory via `dataclasses.replace` ; original `feat` jamais muté)
+   b. Delete `_track_peak_trajectories` + `_track_valley_trajectories` sheets, recreate via existing builders avec data filtrée
+   c. Modifier les cells `peak_threshold_db` et `is_shareable_version` du `_analysis_config` sheet en place
+   d. Save → measure size
+   e. Si fits → return (path, T)
+
+**Audit fix post-livraison** : early return si `FULL.size <= target_size_mb` (économie de la copie inutile + 1 attempt) + test e2e enrichi avec assertion `SHAREABLE.size < FULL.size` après forçage du retry path.
+
+**Durée réelle :** 2h code + 1h tests + 30min audit fix = ~3h30 (vs 2h spec — bump justifié par l'algorithme B2 plus complexe + audit triple coverage)
+**Tests réels :** 8 (4 filter unit + 2 retry mock + 2 e2e dont la nouvelle assertion size reduction)
+**Commits livrés :**
+- `feat(F10): F10f part 1 — filter_peak_trajectories_by_threshold` (83779d3)
+- `feat(F10): F10f part 2 — generate_shareable_report (Approach B2)` (6eb3eec)
+- `test(F10): F10f part 3 — filter unit + retry mock + e2e (7 tests)` (8914009)
+- `fix(F10): F10f audit findings — spec §8 + early return + size reduction test` (this commit)
 
 ### F10g — CLI integration
 
