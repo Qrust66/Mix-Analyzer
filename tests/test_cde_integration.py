@@ -132,14 +132,19 @@ def test_cde_engine_is_in_the_build_stamped_modules_list():
     )
 
 
-def test_version_is_bumped_to_2_7_0():
-    """v2.7.0 bump — the canonical VERSION constant and the cde_engine
-    docstring tag must be in lockstep per CLAUDE.md."""
+def test_version_is_bumped_to_2_8_0():
+    """v2.8.0 bump (Phase F10e) — the canonical VERSION constant and the
+    cde_engine docstring tag must be in lockstep per CLAUDE.md.
+
+    Phase F10e bumped 2.7.0 → 2.8.0 because the new sheet
+    `_analysis_config` (introduced in F10e) changes the .xlsx output
+    schema visibly. Minor bump is the right SemVer call.
+    """
     import cde_engine  # noqa: E402
 
     src = _MIX_ANALYZER_SRC.read_text(encoding="utf-8")
-    assert "VERSION = '2.7.0'" in src, (
-        "mix_analyzer.VERSION must be '2.7.0'"
+    assert "VERSION = '2.8.0'" in src, (
+        "mix_analyzer.VERSION must be '2.8.0'"
     )
     # cde_engine carries its version tag in the module docstring.
-    assert "v2.7.0" in (cde_engine.__doc__ or "")
+    assert "v2.8.0" in (cde_engine.__doc__ or "")

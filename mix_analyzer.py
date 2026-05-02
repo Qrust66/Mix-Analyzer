@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Mix Analyzer v2.7.0 - Visual audio mix analysis tool
+Mix Analyzer v2.8.0 - Visual audio mix analysis tool
 Generates detailed Excel reports for audio tracks to aid mixing and mastering decisions.
 
 Usage:
@@ -42,7 +42,7 @@ from resolution_presets import (
 )
 
 
-VERSION = '2.7.0'
+VERSION = '2.8.0'
 
 
 # ============================================================================

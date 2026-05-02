@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Section Detector v2.7.0 — Feature 3 (complete) + Feature 3.5 (TFP) + Feature 3.6 hooks (conflicts / accumulations persisted on Section).
+Section Detector v2.8.0 — Feature 3 (complete) + Feature 3.5 (TFP) + Feature 3.6 hooks (conflicts / accumulations persisted on Section).
 
 Detects musical sections from spectral analysis, or reads existing Locators
 from an Ableton .als file when the user has already placed them.

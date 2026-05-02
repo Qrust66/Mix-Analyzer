@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-ALS Utilities v2.7.0 - Ableton Live Set file manipulation tools.
+ALS Utilities v2.8.0 - Ableton Live Set file manipulation tools.
 
 Ableton .als files are gzip-compressed XML. This module provides tools to:
 - Decompress .als -> .xml (for reading/editing/version control)
