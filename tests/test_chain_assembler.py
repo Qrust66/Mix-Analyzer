@@ -378,8 +378,10 @@ def test_multi_instance_eq8_synthetic(tmp_path):
     pre = _read_chain_tags(ref_copy, "[H/M] Acid Bass")
     assert pre.count("Eq8") == 2
 
-    # Plan : keep both Eq8 but swap their order. Don't try to enumerate
-    # all 10 devices ; just claim the 2 Eq8 + Limiter and let extras land at end.
+    # Plan : keep both Eq8 + claim Limiter terminal. Don't try to enumerate
+    # all 10 devices ; let the 7 extras splice in BEFORE Limiter (Phase 4.16.1
+    # F1 fix : extras inserted pre-Limiter to preserve hard rule
+    # 'chain_end_limiter — Limiter terminal absolute').
     plan = _plan(
         "[H/M] Acid Bass",
         _slot(0, "Eq8", instance=1),  # the appended one comes first
@@ -394,9 +396,14 @@ def test_multi_instance_eq8_synthetic(tmp_path):
     assert "[H/M] Acid Bass" in report.plans_applied
 
     post = _read_chain_tags(output, "[H/M] Acid Bass")
+    # First two slots claimed : both Eq8 (in plan-requested order)
     assert post[0] == "Eq8"
     assert post[1] == "Eq8"
-    assert post[2] == "Limiter"
+    # Limiter must be terminal (Phase 4.16.1 F1 — extras spliced before it)
+    assert post[-1] == "Limiter"
+    # Extras (7 children non-claimed) sit between the 2 Eq8 and the Limiter
+    assert "InstrumentGroupDevice" in post[2:-1]
+    assert "StereoGain" in post[2:-1]
     # Verify Id-level identity : appended Eq8 (Id=999999) is now first
     tree_post = als_utils.parse_als(str(output))
     track_post = als_utils.find_track_by_name(tree_post, "[H/M] Acid Bass")
@@ -459,3 +466,161 @@ def test_safety_guardian_directly():
     status, issues = _run_safety_checks(_REF_ALS, decision)
     assert status == "PASS"
     assert issues == []
+
+
+# ============================================================================
+# Phase 4.16.1 — F1 (Limiter terminal preservation under extras)
+# ============================================================================
+
+
+def test_extras_spliced_before_limiter_in_plan():
+    """F1 fix : when plan contains a Limiter slot AND extras exist, extras
+    must be inserted BEFORE the Limiter (preserving hard rule
+    'chain_end_limiter — Limiter terminal absolute')."""
+    children = _make_devices("PluginDevice", "GlueCompressor", "Limiter")
+    plug, glue, lim = children
+    # Plan only references PluginDevice + Limiter ; GlueCompressor is an extra.
+    plan = _plan(
+        "T",
+        _slot(0, "PluginDevice", is_preexisting=True),
+        _slot(1, "Limiter", consumes_lane="dynamics_corrective"),
+    )
+    new_order, unmatched, extras = _build_target_order(children, plan)
+    assert [c.tag for c in new_order] == ["PluginDevice", "GlueCompressor", "Limiter"]
+    assert new_order[-1] is lim  # Limiter still terminal
+    assert unmatched == []
+    assert ("T", "GlueCompressor") in extras
+
+
+def test_extras_appended_at_end_when_no_limiter_in_plan():
+    """F1 control : without a Limiter slot, the legacy 'extras at end'
+    behavior is preserved (extras don't have to be spliced anywhere)."""
+    children = _make_devices("Eq8", "GlueCompressor", "Reverb")
+    eq8, glue, rev = children
+    plan = _plan(
+        "T",
+        _slot(0, "Eq8"),
+        _slot(1, "GlueCompressor", consumes_lane="dynamics_corrective"),
+    )
+    new_order, unmatched, extras = _build_target_order(children, plan)
+    assert [c.tag for c in new_order] == ["Eq8", "GlueCompressor", "Reverb"]
+    assert new_order[-1] is rev  # Reverb extra at end (no Limiter to protect)
+    assert unmatched == []
+    assert extras == [("T", "Reverb")]
+
+
+def test_apply_decision_bus_kick_extras_before_limiter(tmp_path):
+    """End-to-end on real fixture : plan claims only PluginDevice + Limiter ;
+    GlueCompressor is the extra. Without F1 fix it would land after Limiter ;
+    with the fix it lands between PluginDevice and Limiter."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    plan = _plan(
+        "BUS Kick",
+        _slot(0, "PluginDevice", is_preexisting=True),
+        _slot(1, "Limiter", consumes_lane="dynamics_corrective"),
+    )
+    report = apply_chain_decision(
+        ref_copy, _decision(plan), output_path=output,
+        invoke_safety_guardian=True,  # safety must PASS — Limiter terminal
+    )
+    assert report.safety_guardian_status == "PASS"
+
+    post = _read_chain_tags(output, "BUS Kick")
+    assert post[-1] == "Limiter"  # Limiter terminal preserved
+    assert "GlueCompressor" in post[:-1]  # extra is BEFORE Limiter
+
+
+# ============================================================================
+# Phase 4.16.1 — F2 (safety guardian Limiter-terminal check)
+# ============================================================================
+
+
+def test_safety_guardian_fails_when_limiter_not_terminal(tmp_path):
+    """Tamper post-write : after a clean reorder, manually move a non-Limiter
+    device after the Limiter and re-run the safety guardian. It must FAIL
+    because the Limiter slot's hard rule is violated."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    plan = _plan(
+        "BUS Kick",
+        _slot(0, "PluginDevice", is_preexisting=True),
+        _slot(1, "GlueCompressor", consumes_lane="dynamics_corrective"),
+        _slot(2, "Limiter", consumes_lane="dynamics_corrective"),
+    )
+    report = apply_chain_decision(
+        ref_copy, _decision(plan), output_path=output,
+        invoke_safety_guardian=True,
+    )
+    assert report.safety_guardian_status == "PASS"
+
+    # Tamper : move PluginDevice to AFTER Limiter (simulate corruption)
+    tree = als_utils.parse_als(str(output))
+    track_el = als_utils.find_track_by_name(tree, "BUS Kick")
+    container = _find_devices_container(track_el)
+    children = list(container)
+    # Find Limiter and PluginDevice
+    plug_idx = next(i for i, c in enumerate(children) if c.tag == "PluginDevice")
+    lim_idx = next(i for i, c in enumerate(children) if c.tag == "Limiter")
+    # If plug is already before Limiter, pop it and re-append at end
+    if plug_idx < lim_idx:
+        plug_el = children[plug_idx]
+        container.remove(plug_el)
+        container.append(plug_el)
+    als_utils.save_als_from_tree(tree, str(output))
+
+    # Direct safety check : same plan, but chain now has PluginDevice after Limiter
+    decision = _decision(plan)
+    status, issues = _run_safety_checks(output, decision)
+    assert status == "FAIL"
+    assert any("Limiter not terminal" in i for i in issues)
+
+
+# ============================================================================
+# Phase 4.16.1 — F4 (round-trip on 10-device chain + safety PASS)
+# ============================================================================
+
+
+def test_acid_bass_full_round_trip_safety_pass(tmp_path):
+    """Apply a plan to the 10-device Acid Bass chain and verify safety PASS
+    (Phase 4.16.1 F4 — stress test on a rich fixture, full safety guardian)."""
+    ref_copy = tmp_path / "ref.als"
+    shutil.copy(_REF_ALS, ref_copy)
+    output = tmp_path / "out.als"
+
+    pre = _read_chain_tags(ref_copy, "[H/M] Acid Bass")
+    # Sanity check on fixture composition
+    assert pre[-1] == "Limiter"
+    assert pre.count("Eq8") == 1
+    assert pre.count("GlueCompressor") == 1
+
+    # Plan : claim Eq8 + GlueCompressor + Limiter (the 3 "mapped" devices),
+    # leave the 7 InstrumentGroupDevice/StereoGain/PluginDevice as extras.
+    # F1 fix splices them before Limiter.
+    plan = _plan(
+        "[H/M] Acid Bass",
+        _slot(0, "Eq8", consumes_lane="eq_corrective"),
+        _slot(1, "GlueCompressor", consumes_lane="dynamics_corrective"),
+        _slot(2, "Limiter", consumes_lane="dynamics_corrective"),
+    )
+    report = apply_chain_decision(
+        ref_copy, _decision(plan), output_path=output,
+        invoke_safety_guardian=True,
+    )
+    assert report.safety_guardian_status == "PASS"
+    assert "[H/M] Acid Bass" in report.plans_applied
+
+    post = _read_chain_tags(output, "[H/M] Acid Bass")
+    # All 10 devices preserved
+    assert len(post) == len(pre)
+    # Eq8 slot 0, GlueCompressor slot 1 (in plan-requested order at the start)
+    assert post[0] == "Eq8"
+    assert post[1] == "GlueCompressor"
+    # Limiter terminal preserved
+    assert post[-1] == "Limiter"
+    # 7 extras in between
+    assert len(post[2:-1]) == 7

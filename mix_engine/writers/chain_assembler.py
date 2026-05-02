@@ -63,15 +63,6 @@ class ChainAssemblerError(Exception):
     """Base exception for chain-assembler failures."""
 
 
-class DevicesContainerNotFoundError(ChainAssemblerError):
-    """Raised when a track has no DeviceChain/Devices container.
-
-    This is structurally unexpected for any normal Ableton track and
-    indicates a malformed .als (or a track that has never had a device
-    chain initialized).
-    """
-
-
 # ============================================================================
 # Report dataclass
 # ============================================================================
@@ -147,8 +138,13 @@ def _build_target_order(
     matching child by ``(device, instance)`` — instance counted as
     "n-th occurrence of this tag in original children list".
 
-    Children not claimed by any slot are appended at the end of new_order
-    in their original relative order, and reported as extras_preserved.
+    Children not claimed by any slot are :
+    - inserted **BEFORE** the last Limiter when the plan contains a Limiter
+      slot (preserves the chain-builder hard rule "Limiter terminal absolute"
+      — extras must not process post-Limiter signal).
+    - appended at the end of new_order otherwise.
+    Either way, extras keep their original relative order and are reported
+    in extras_preserved.
 
     Slots whose device+instance can't be located in the chain are returned
     in unmatched_slots with a human reason.
@@ -159,7 +155,11 @@ def _build_target_order(
         by_tag.setdefault(child.tag, []).append(i)
 
     claimed_indices: set[int] = set()
+    # claimed_order tracks the new_order positions of slots that were
+    # successfully claimed, so we can locate the Limiter slot and insert
+    # extras before it.
     new_order: list[ET.Element] = []
+    limiter_new_order_idx: Optional[int] = None
     unmatched: list[tuple[str, str]] = []
 
     # Sort slots by position to enforce monotone order in the new chain.
@@ -190,15 +190,33 @@ def _build_target_order(
 
         claimed_indices.add(original_idx)
         new_order.append(children[original_idx])
+        # Track the LAST matched Limiter — chain-builder hard rule says
+        # Limiter at max position in plan, so the last sorted-slot Limiter
+        # is the terminal one we must protect.
+        if slot.device == "Limiter":
+            limiter_new_order_idx = len(new_order) - 1
 
-    # Preserve extras (un-claimed children) at end, in original order
-    extras: list[tuple[str, str]] = []
+    # Build the extras list (un-claimed children, original relative order)
+    extras_elements: list[ET.Element] = []
+    extras_report: list[tuple[str, str]] = []
     for i, child in enumerate(children):
         if i not in claimed_indices:
-            new_order.append(child)
-            extras.append((plan.track, child.tag))
+            extras_elements.append(child)
+            extras_report.append((plan.track, child.tag))
 
-    return new_order, unmatched, extras
+    # Insert extras : BEFORE the terminal Limiter when plan has one,
+    # otherwise APPEND at end.
+    if limiter_new_order_idx is not None and extras_elements:
+        # Splice extras at index limiter_new_order_idx (just before Limiter)
+        new_order = (
+            new_order[:limiter_new_order_idx]
+            + extras_elements
+            + new_order[limiter_new_order_idx:]
+        )
+    else:
+        new_order.extend(extras_elements)
+
+    return new_order, unmatched, extras_report
 
 
 def _apply_plan_to_track(
@@ -431,6 +449,10 @@ def _run_safety_checks(
     4. For each plan : no device referenced by a non-preexisting slot was
        removed from the chain (verify slot.device tag still present at
        requested instance index)
+    5. For each plan with a Limiter slot : the corresponding Limiter must
+       be the LAST device in the post-write chain (chain-builder hard rule
+       "chain_end_limiter — Limiter terminal absolute"). Phase 4.16.1
+       audit fix.
     """
     issues: list[str] = []
     als_path = Path(als_path)
@@ -527,5 +549,21 @@ def _run_safety_checks(
                     f"out of order (chain index {idx} <= prev {prev_idx})"
                 )
             prev_idx = idx
+
+        # Phase 4.16.1 audit fix — Limiter-terminal hard rule check.
+        # Chain-builder enforces "chain_end_limiter — Limiter terminal
+        # absolute" at plan level. Verify the post-write chain still
+        # honors it : if any slot is a Limiter, that Limiter instance
+        # must be the LAST child of the Devices container.
+        limiter_slots = [s for s in plan.slots if s.device == "Limiter"]
+        if limiter_slots and children:
+            last_child = children[-1]
+            if last_child.tag != "Limiter":
+                # Some non-Limiter device sits after the planned Limiter
+                issues.append(
+                    f"plan {plan.track!r} : Limiter not terminal in "
+                    f"post-write chain (last device is {last_child.tag!r}). "
+                    f"Hard rule 'chain_end_limiter' violated."
+                )
 
     return ("PASS" if not issues else "FAIL"), issues

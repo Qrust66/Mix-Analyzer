@@ -59,7 +59,6 @@ from mix_engine.writers.master_bus_configurator import (
 from mix_engine.writers.chain_assembler import (
     ChainAssemblerError,
     ChainAssemblerReport,
-    DevicesContainerNotFoundError,
     apply_chain_decision,
 )
 
@@ -86,6 +85,5 @@ __all__ = [
     "apply_mastering_decision",
     "ChainAssemblerError",
     "ChainAssemblerReport",
-    "DevicesContainerNotFoundError",
     "apply_chain_decision",
 ]
