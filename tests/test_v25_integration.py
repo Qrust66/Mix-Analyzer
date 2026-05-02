@@ -298,6 +298,92 @@ class TestPhaseF10cPresetSupport:
         )
 
 
+# ===========================================================================
+# Phase F10d — preset PRESERVE contracts on chroma analysis (3 cases)
+# ===========================================================================
+#
+# Spec v1.2 §5.2 misclassified _track_chroma as STFT-based. Pass 2 audit
+# discovered : analyze_musical uses chroma_cqt (CQT-based) with hop=1024
+# hardcoded for melody-precision tracking. Audio physics imposes PRESERVE :
+#
+# - Chromagram = 12 pitch classes (fixed). bins_per_octave doesn't matter.
+# - hop=1024 (~23 ms) is calibrated for fast melodic changes.
+# - No relation to spectral_evolution preset's CQT target_fps.
+#
+# These tests enforce the PRESERVE contract byte-strict across 4 presets,
+# protecting against silent regressions if someone "harmonizes by
+# coherence" 6 months from now.
+
+
+class TestPhaseF10dPresetSupport:
+    """Phase F10d — analyze_musical PRESERVE contract."""
+
+    @staticmethod
+    def _fixture_path(name: str = '02_wideband_one_resonance_500hz.wav') -> str:
+        return os.path.join(FIXTURES_DIR, name)
+
+    def test_analyze_musical_preserves_chroma_byte_strict_no_preset_vs_standard(self):
+        """⭐ Most critical F10d test : default behaviour byte-strict
+        equivalent to explicit standard preset.
+
+        analyze_musical(mono, sr) ≡ analyze_musical(mono, sr, preset=standard)
+        on chroma matrix, dominant_note, tonal_strength.
+        """
+        from mix_analyzer import analyze_musical
+        from resolution_presets import RESOLUTION_PRESETS
+
+        mono, sr = _load_like_mix_analyzer(self._fixture_path())
+        r_default = analyze_musical(mono, sr)
+        r_standard = analyze_musical(mono, sr, preset=RESOLUTION_PRESETS["standard"])
+        assert np.array_equal(r_default['chroma'], r_standard['chroma'])
+        assert r_default['dominant_note'] == r_standard['dominant_note']
+        assert r_default['tonal_strength'] == r_standard['tonal_strength']
+        assert r_default['is_tonal'] == r_standard['is_tonal']
+
+    def test_analyze_musical_preserves_hop_1024_regardless_of_preset(self):
+        """⭐ PRESERVE contract : output strictly identical across all 5
+        presets. Enforces audio-physics decision (hop=1024 hardcoded for
+        melody-precision tracking, preset arg ignored)."""
+        from mix_analyzer import analyze_musical
+        from resolution_presets import RESOLUTION_PRESETS
+
+        mono, sr = _load_like_mix_analyzer(self._fixture_path())
+        r_baseline = analyze_musical(mono, sr)  # no preset
+        for preset_name in ["economy", "standard", "fine", "ultra", "maximum"]:
+            r = analyze_musical(mono, sr, preset=RESOLUTION_PRESETS[preset_name])
+            assert np.array_equal(r['chroma'], r_baseline['chroma']), (
+                f"PRESERVE broken : preset={preset_name} altered chroma matrix"
+            )
+            assert r['dominant_note'] == r_baseline['dominant_note'], (
+                f"PRESERVE broken : preset={preset_name} altered dominant_note"
+            )
+            assert r['tonal_strength'] == r_baseline['tonal_strength'], (
+                f"PRESERVE broken : preset={preset_name} altered tonal_strength"
+            )
+
+    def test_analyze_musical_signature_accepts_preset_arg(self):
+        """API symmetry contract : analyze_musical signature mirrors the
+        other analyze_* functions even though preset is ignored. This
+        catches accidental signature drift (e.g., a future refactor
+        removing preset arg "because it's unused") which would break
+        analyze_track callers passing preset=preset."""
+        import inspect
+        from mix_analyzer import analyze_musical
+
+        sig = inspect.signature(analyze_musical)
+        assert "preset" in sig.parameters, (
+            "F10d API symmetry broken : analyze_musical lost its preset arg. "
+            "If you intentionally removed it, also update analyze_track at "
+            "line ~1239 which currently passes preset=preset."
+        )
+        param = sig.parameters["preset"]
+        # Default must be None (backward compat for callers that don't pass it)
+        assert param.default is None, (
+            f"F10d contract : analyze_musical preset arg must default to None, "
+            f"got {param.default!r}"
+        )
+
+
 if __name__ == '__main__':
     print("=" * 60)
     print("v2.5 Integration Tests")
