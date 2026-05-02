@@ -3,26 +3,18 @@
 """apply_mix_decisions.py — CLI orchestrator for mix_engine Tier B writers.
 
 Phase 4.13 — applies a batch of Tier A decisions (EQ corrective, dynamics
-corrective, stereo/spatial) to an Ableton .als file via the corresponding
-Tier B writers. End-to-end test drive entry point.
+corrective, stereo/spatial, routing, mastering, chain, automation) to an
+Ableton .als file via the corresponding Tier B writers. End-to-end test
+drive entry point.
 
-Workflow :
+Phase 4.19 — refactored to delegate orchestration to
+:class:`mix_engine.director.Director`. The CLI now :
 
-    Tier A subagents (eq-corrective-decider, dynamics-corrective-decider,
-    stereo-and-spatial-engineer) produce JSON decisions
-                              ↓
-    User saves each decision to a .json file
-                              ↓
-    This CLI reads them, applies via Tier B writers in canonical order :
-        1. EQ corrective → eq8-configurator
-        2. Dynamics corrective → dynamics-configurator (Phase 4.11 v1 = GlueComp + Limiter)
-        3. Stereo/spatial → spatial-configurator
-        4. Routing → routing-configurator
-        5. Mastering → master-bus-configurator
-        6. Chain assembly → chain-assembler (absolute per-track ordering)
-        7. Automation → automation-writer (envelopes + band_tracks — runs last)
-                              ↓
-    Modified .als + aggregated report (PASS/FAIL + skipped + warnings)
+1. Parses each JSON flag into a typed ``MixDecision``.
+2. Assembles them into a :class:`mix_engine.blueprint.MixBlueprint`.
+3. Hands the blueprint to ``Director.apply_mix()`` which runs cohesion
+   checks, then delegates to ``als_writer.apply_blueprint()`` (which
+   calls each Tier B writer in MIX_DEPENDENCIES topological order).
 
 Usage :
 
@@ -34,23 +26,26 @@ Usage :
         --chain-json chain_decision.json \\
         --output output.als
 
-Any of the decision flags is optional — if absent, that lane is skipped
-in the orchestration. So you can apply only EQ moves, or only spatial
-moves, etc.
+Any of the decision flags is optional — if absent, that lane is omitted
+from the blueprint.
 
 Each Tier B writer's safety_guardian runs post-write per lane. A
 ``--no-safety`` flag disables all of them (not recommended).
+
+If cross-lane cohesion checks find block-severity violations, the apply
+is halted and a ``COHESION_BLOCKED`` exit (3) is returned. Use
+``--force`` to override (not recommended — the violations are real).
 
 Exit codes :
     0 — all writers applied successfully (status PASS or all SKIPPED)
     1 — at least one writer reported safety_guardian = FAIL
     2 — CLI argument or input file error
+    3 — cohesion blocked (cross-lane block-severity violation)
 """
 from __future__ import annotations
 
 import argparse
 import json
-import shutil
 import sys
 from pathlib import Path
 
@@ -59,8 +54,8 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-import als_utils
 from mix_engine.blueprint import (
+    MixBlueprint,
     parse_automation_decision,
     parse_chain_decision,
     parse_dynamics_corrective_decision,
@@ -69,14 +64,18 @@ from mix_engine.blueprint import (
     parse_routing_decision,
     parse_spatial_decision,
 )
-from mix_engine.writers import (
-    apply_automation_decision,
-    apply_chain_decision,
-    apply_dynamics_corrective_decision,
-    apply_eq_corrective_decision,
-    apply_mastering_decision,
-    apply_routing_decision,
-    apply_spatial_decision,
+from mix_engine.director import Director
+
+
+# CLI flag → (lane_name, parser_fn) mapping.
+_FLAG_TO_LANE_PARSER: tuple[tuple[str, str, callable], ...] = (
+    ("eq_json",         "eq_corrective",       parse_eq_corrective_decision),
+    ("dynamics_json",   "dynamics_corrective", parse_dynamics_corrective_decision),
+    ("spatial_json",    "stereo_spatial",      parse_spatial_decision),
+    ("routing_json",    "routing",             parse_routing_decision),
+    ("mastering_json",  "mastering",           parse_mastering_decision),
+    ("chain_json",      "chain",               parse_chain_decision),
+    ("automation_json", "automation",          parse_automation_decision),
 )
 
 
@@ -85,14 +84,13 @@ def _load_json(path: Path):
         return json.load(f)
 
 
-def _print_report(lane: str, report) -> bool:
-    """Print one lane's report. Returns True if status is FAIL."""
+def _print_lane_report(lane: str, report) -> None:
+    """Pretty-print one lane's writer report."""
     print()
     print(f"=== {lane} ===")
     print(f"  output: {report.output_path}")
     print(f"  safety: {report.safety_guardian_status}")
 
-    # Universal fields
     if hasattr(report, "bands_applied"):
         print(f"  bands applied: {len(report.bands_applied)}")
         for b in report.bands_applied:
@@ -142,7 +140,6 @@ def _print_report(lane: str, report) -> bool:
             for bt_id, reason in report.band_tracks_skipped:
                 print(f"    - {bt_id} : {reason}")
 
-    # Skipped
     skipped = (
         getattr(report, "bands_skipped", None)
         or getattr(report, "corrections_skipped", None)
@@ -159,12 +156,10 @@ def _print_report(lane: str, report) -> bool:
 
     if report.warnings:
         print(f"  warnings: {len(report.warnings)}")
-        for w in report.warnings[:10]:  # cap to first 10
+        for w in report.warnings[:10]:
             print(f"    ! {w}")
         if len(report.warnings) > 10:
             print(f"    ! ... ({len(report.warnings) - 10} more warnings)")
-
-    return report.safety_guardian_status == "FAIL"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -193,142 +188,97 @@ def main(argv: list[str] | None = None) -> int:
                         help="Disable post-write safety_guardian (not recommended).")
     parser.add_argument("--dry-run", action="store_true",
                         help="Validate without writing the .als.")
+    parser.add_argument("--force", action="store_true",
+                        help="Apply even if cohesion check has block-severity "
+                             "violations (not recommended).")
     args = parser.parse_args(argv)
 
-    # Validate inputs
     if not args.als.exists():
         print(f"ERROR: --als path not found: {args.als}", file=sys.stderr)
         return 2
 
-    if (args.eq_json is None and args.dynamics_json is None
-            and args.spatial_json is None and args.routing_json is None
-            and args.mastering_json is None and args.chain_json is None
-            and args.automation_json is None):
-        print("ERROR: at least one of --eq-json / --dynamics-json / "
-                "--spatial-json / --routing-json / --mastering-json / "
-                "--chain-json / --automation-json must be provided.",
-                file=sys.stderr)
-        return 2
-
-    for json_path in (args.eq_json, args.dynamics_json, args.spatial_json,
-                       args.routing_json, args.mastering_json, args.chain_json,
-                       args.automation_json):
-        if json_path is not None and not json_path.exists():
+    # Build MixBlueprint from supplied JSON flags, lane by lane.
+    bp = MixBlueprint(name=args.als.stem)
+    any_decision = False
+    for flag, lane, parse_fn in _FLAG_TO_LANE_PARSER:
+        json_path: Path | None = getattr(args, flag)
+        if json_path is None:
+            continue
+        if not json_path.exists():
             print(f"ERROR: decision JSON not found: {json_path}", file=sys.stderr)
             return 2
+        try:
+            decision = parse_fn(_load_json(json_path))
+        except Exception as exc:
+            print(
+                f"ERROR: failed to parse {json_path} as {lane} decision : "
+                f"{type(exc).__name__}: {exc}",
+                file=sys.stderr,
+            )
+            return 2
+        bp = bp.with_decision(lane, decision)
+        any_decision = True
 
-    output_path = args.output if args.output else args.als
-    invoke_safety = not args.no_safety
-
-    # If output != source, copy source first so each writer mutates in place.
-    # If output == source, writers overwrite naturally.
-    if not args.dry_run and args.output is not None and args.output != args.als:
-        shutil.copy(args.als, args.output)
-        working_path = args.output
-    else:
-        working_path = args.als
+    if not any_decision:
+        print(
+            "ERROR: at least one of --eq-json / --dynamics-json / "
+            "--spatial-json / --routing-json / --mastering-json / "
+            "--chain-json / --automation-json must be provided.",
+            file=sys.stderr,
+        )
+        return 2
 
     print(f"Source .als : {args.als}")
-    print(f"Output .als : {working_path}")
+    print(f"Output .als : {args.output if args.output else args.als}")
     print(f"Dry-run : {args.dry_run}")
-    print(f"Safety guardian : {'DISABLED' if not invoke_safety else 'enabled per-writer'}")
+    print(f"Safety guardian : "
+          f"{'DISABLED' if args.no_safety else 'enabled per-writer'}")
+    print(f"Filled lanes : {', '.join(bp.filled_lanes())}")
 
-    any_fail = False
-
-    # 1. EQ corrective
-    if args.eq_json is not None:
-        payload = _load_json(args.eq_json)
-        decision = parse_eq_corrective_decision(payload)
-        report = apply_eq_corrective_decision(
-            working_path, decision,
-            output_path=working_path if not args.dry_run else None,
-            dry_run=args.dry_run,
-            invoke_safety_guardian=invoke_safety,
-        )
-        any_fail = _print_report("EQ corrective", report) or any_fail
-
-    # 2. Dynamics corrective
-    if args.dynamics_json is not None:
-        payload = _load_json(args.dynamics_json)
-        decision = parse_dynamics_corrective_decision(payload)
-        report = apply_dynamics_corrective_decision(
-            working_path, decision,
-            output_path=working_path if not args.dry_run else None,
-            dry_run=args.dry_run,
-            invoke_safety_guardian=invoke_safety,
-        )
-        any_fail = _print_report("Dynamics corrective", report) or any_fail
-
-    # 3. Stereo / spatial
-    if args.spatial_json is not None:
-        payload = _load_json(args.spatial_json)
-        decision = parse_spatial_decision(payload)
-        report = apply_spatial_decision(
-            working_path, decision,
-            output_path=working_path if not args.dry_run else None,
-            dry_run=args.dry_run,
-            invoke_safety_guardian=invoke_safety,
-        )
-        any_fail = _print_report("Spatial", report) or any_fail
-
-    # 4. Routing / sidechain repairs
-    if args.routing_json is not None:
-        payload = _load_json(args.routing_json)
-        decision = parse_routing_decision(payload)
-        report = apply_routing_decision(
-            working_path, decision,
-            output_path=working_path if not args.dry_run else None,
-            dry_run=args.dry_run,
-            invoke_safety_guardian=invoke_safety,
-        )
-        any_fail = _print_report("Routing", report) or any_fail
-
-    # 5. Mastering (master bus + sub-bus glue)
-    if args.mastering_json is not None:
-        payload = _load_json(args.mastering_json)
-        decision = parse_mastering_decision(payload)
-        report = apply_mastering_decision(
-            working_path, decision,
-            output_path=working_path if not args.dry_run else None,
-            dry_run=args.dry_run,
-            invoke_safety_guardian=invoke_safety,
-        )
-        any_fail = _print_report("Mastering", report) or any_fail
-
-    # 6. Chain assembly (absolute per-track device ordering — runs after the
-    #    per-device writers so it sees the devices created/configured upstream,
-    #    but BEFORE automation so envelopes target the final chain layout).
-    if args.chain_json is not None:
-        payload = _load_json(args.chain_json)
-        decision = parse_chain_decision(payload)
-        report = apply_chain_decision(
-            working_path, decision,
-            output_path=working_path if not args.dry_run else None,
-            dry_run=args.dry_run,
-            invoke_safety_guardian=invoke_safety,
-        )
-        any_fail = _print_report("Chain assembly", report) or any_fail
-
-    # 7. Automation (envelopes + band_tracks) — runs LAST so envelopes
-    #    target the final device layout (post chain-assembly).
-    if args.automation_json is not None:
-        payload = _load_json(args.automation_json)
-        decision = parse_automation_decision(payload)
-        report = apply_automation_decision(
-            working_path, decision,
-            output_path=working_path if not args.dry_run else None,
-            dry_run=args.dry_run,
-            invoke_safety_guardian=invoke_safety,
-        )
-        any_fail = _print_report("Automation", report) or any_fail
+    director = Director()
+    result = director.apply_mix(
+        bp=bp,
+        als_path=args.als,
+        output_path=args.output,
+        dry_run=args.dry_run,
+        invoke_safety_guardian=not args.no_safety,
+        force=args.force,
+    )
 
     print()
-    if any_fail:
-        print("=== RESULT : FAIL (at least one writer reported safety_guardian=FAIL) ===")
+    print(f"Cohesion : {len(result.cohesion.violations)} violation(s) "
+          f"({len(result.cohesion.blockers)} block, "
+          f"{len(result.cohesion.warnings)} warn)")
+    for v in result.cohesion.violations:
+        print(f"  [{v.severity}] {v.rule} ({', '.join(v.lanes)}) : {v.message}")
+
+    if result.overall_status == "COHESION_BLOCKED":
+        print()
+        print("=== RESULT : COHESION_BLOCKED — cohesion check has "
+              "block-severity violations, no .als written. ===")
+        print("Pass --force to override (the violations are real).")
+        return 3
+
+    apply_report = result.apply_report
+    assert apply_report is not None  # cleared by the COHESION_BLOCKED branch
+    print()
+    print(f"Execution order : {' → '.join(apply_report.execution_order)}")
+    if apply_report.skipped_lanes:
+        print(f"Skipped lanes : {len(apply_report.skipped_lanes)}")
+        for lane, reason in apply_report.skipped_lanes:
+            print(f"  - {lane} : {reason}")
+
+    for lane in apply_report.execution_order:
+        _print_lane_report(lane, apply_report.lane_reports[lane])
+
+    print()
+    if not result.ok:
+        print("=== RESULT : FAIL "
+              "(at least one writer reported safety_guardian=FAIL) ===")
         return 1
 
     print("=== RESULT : OK ===")
-    print(f"Modified .als ready: {working_path}")
+    print(f"Modified .als ready: {apply_report.output_path}")
     print("Open in Ableton Live to verify.")
     return 0
 

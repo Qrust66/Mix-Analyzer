@@ -174,6 +174,18 @@ from mix_engine.blueprint.schema import (
     VALID_MASTER_MOVE_TYPES,
     VALID_SATURATION_TYPES,
 )
+from mix_engine.blueprint.als_writer import (
+    AlsWriterReport,
+    apply_blueprint,
+    lanes_with_writer,
+)
+from mix_engine.blueprint.cohesion import (
+    MixCohesionFn,
+    MixCohesionReport,
+    MixCohesionViolation,
+    check_mix_cohesion,
+    mix_cohesion_rule,
+)
 from mix_engine.blueprint.agent_parsers import (
     MixAgentOutputError,
     SUPPORTED_DIAGNOSTIC_SCHEMA_VERSIONS,
@@ -208,6 +220,16 @@ from mix_engine.blueprint.agent_parsers import (
 
 __all__ = [
     "MIX_LANES",
+    # Phase 4.19 — cohesion infrastructure
+    "MixCohesionFn",
+    "MixCohesionReport",
+    "MixCohesionViolation",
+    "check_mix_cohesion",
+    "mix_cohesion_rule",
+    # Phase 4.19 — als_writer (apply MixBlueprint → .als)
+    "AlsWriterReport",
+    "apply_blueprint",
+    "lanes_with_writer",
     # Foundation types
     "Anomaly",
     "DiagnosticReport",
