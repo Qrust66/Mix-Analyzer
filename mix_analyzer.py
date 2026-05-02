@@ -8205,6 +8205,187 @@ def _format_row(idx, type_tag, analysis, track_info):
         dom_band,
         width,
     ]
+
+
+# ============================================================================
+# Phase F10f (Mix Analyzer v2.8.0+) — SHAREABLE report generator
+# ============================================================================
+
+
+def generate_shareable_report(
+    full_xlsx_path,
+    analyses_with_info,
+    output_path,
+    target_size_mb: float = 25.0,
+    initial_threshold_db: float = -60.0,
+    log_fn=None,
+):
+    """Generate a SHAREABLE .xlsx report from a FULL .xlsx by iteratively
+    raising the peak-trajectories threshold until size fits the target.
+
+    Phase F10f part 2 — companion to F10f part 1
+    (``filter_peak_trajectories_by_threshold`` in feature_storage.py).
+
+    Algorithm (Approach B2 — modify the FULL workbook in place by
+    deleting + recreating only the 2 trajectory sheets, never re-running
+    the audio analysis or the other 20+ sheets) :
+
+    1. Copy ``full_xlsx_path`` → ``output_path``.
+    2. For each threshold T in [-60, -55, -50, -45, -40] starting at
+       ``initial_threshold_db`` :
+       a. Filter every track's peak_trajectories AND valley_trajectories
+          at T (in-memory, via ``dataclasses.replace`` — original
+          ``feat`` objects untouched, downstream consumers stay full).
+       b. Open ``output_path`` with openpyxl, delete the
+          ``_track_peak_trajectories`` and ``_track_valley_trajectories``
+          sheets, rebuild them via the existing builders with the
+          filtered data.
+       c. Modify the ``_analysis_config`` sheet cells in place to
+          reflect the new threshold + ``is_shareable_version=True``.
+       d. Save → measure size.
+       e. If size ≤ ``target_size_mb`` → return ``(output_path, T)``.
+    3. If even -40 dBFS doesn't fit → log a warning, return the last
+       attempt (the user can switch to a lighter preset for a leaner
+       FULL upstream).
+
+    Args:
+        full_xlsx_path: Path to the FULL report (already written by
+            ``generate_excel_report``).
+        analyses_with_info: Same list of ``(analysis, track_info)``
+            tuples used to write the FULL report. Used to recompute
+            filtered trajectories ; never mutated.
+        output_path: Destination for the SHAREABLE report. Must differ
+            from ``full_xlsx_path`` (else we'd corrupt the FULL).
+        target_size_mb: Maximum acceptable size for the SHAREABLE
+            report. Default 25 MB (Claude.ai upload limit).
+        initial_threshold_db: First threshold to try. Default -60.
+            Higher values (less negative) start more selectively, useful
+            when prior runs revealed -60 still too big.
+        log_fn: Optional logging callback.
+
+    Returns:
+        Tuple ``(output_path, final_threshold_db_used)``.
+
+    Raises:
+        ValueError: If ``output_path`` resolves to the same file as
+            ``full_xlsx_path`` (would corrupt the FULL report).
+        FileNotFoundError: If ``full_xlsx_path`` doesn't exist.
+    """
+    import shutil
+    import dataclasses
+    from openpyxl import load_workbook
+    from feature_storage import (
+        build_v25_peak_trajectories_sheet,
+        build_v25_valley_trajectories_sheet,
+        filter_peak_trajectories_by_threshold,
+    )
+
+    if log_fn is None:
+        log_fn = lambda msg: None
+
+    full_xlsx_path = Path(full_xlsx_path)
+    output_path = Path(output_path)
+
+    if not full_xlsx_path.exists():
+        raise FileNotFoundError(
+            f"Full report not found : {full_xlsx_path}"
+        )
+    if output_path.resolve() == full_xlsx_path.resolve():
+        raise ValueError(
+            "output_path must differ from full_xlsx_path — overwriting "
+            "the FULL report with a filtered SHAREABLE version would "
+            "lose the unfiltered data."
+        )
+
+    # Threshold candidates : monotonically more selective.
+    # Starts at initial_threshold_db (skip earlier candidates if user
+    # already knows -60 won't fit).
+    _all_candidates = [-60, -55, -50, -45, -40]
+    if initial_threshold_db in _all_candidates:
+        _start = _all_candidates.index(initial_threshold_db)
+        candidates = _all_candidates[_start:]
+    else:
+        candidates = _all_candidates
+
+    # Initial copy : FULL → SHAREABLE_candidate.
+    shutil.copy(str(full_xlsx_path), str(output_path))
+    log_fn(f"  Shareable: copied FULL → {output_path.name}")
+
+    final_threshold = float(initial_threshold_db)
+    final_size_mb = 0.0
+
+    for threshold in candidates:
+        log_fn(f"  Shareable: trying threshold {threshold} dBFS ...")
+
+        # Build a list of (filtered_feat, ti) for every track.
+        # ``dataclasses.replace`` creates a new TrackFeatures with the
+        # filtered trajectories ; the original ``feat`` is never mutated.
+        filtered = []
+        for analysis, ti in analyses_with_info:
+            feat = analysis.get('_v25_features')
+            if feat is None:
+                # Track without v2.5 features — pass through unchanged.
+                filtered.append((feat, ti))
+                continue
+            new_peak = filter_peak_trajectories_by_threshold(
+                feat.peak_trajectories or [], float(threshold),
+            )
+            new_valley = filter_peak_trajectories_by_threshold(
+                feat.valley_trajectories or [], float(threshold),
+            )
+            new_feat = dataclasses.replace(
+                feat,
+                peak_trajectories=new_peak,
+                valley_trajectories=new_valley,
+            )
+            filtered.append((new_feat, ti))
+
+        # Open the candidate workbook + replace the 2 trajectory sheets +
+        # update the _analysis_config sheet cells in place.
+        wb = load_workbook(str(output_path))
+
+        if '_track_peak_trajectories' in wb.sheetnames:
+            del wb['_track_peak_trajectories']
+        build_v25_peak_trajectories_sheet(wb, filtered, log_fn=log_fn)
+
+        if '_track_valley_trajectories' in wb.sheetnames:
+            del wb['_track_valley_trajectories']
+        build_v25_valley_trajectories_sheet(wb, filtered, log_fn=log_fn)
+
+        if '_analysis_config' in wb.sheetnames:
+            ws_cfg = wb['_analysis_config']
+            for r in range(1, ws_cfg.max_row + 1):
+                key_cell = ws_cfg.cell(row=r, column=1)
+                if key_cell.value == 'peak_threshold_db':
+                    ws_cfg.cell(row=r, column=2).value = float(threshold)
+                elif key_cell.value == 'is_shareable_version':
+                    ws_cfg.cell(row=r, column=2).value = True
+
+        wb.save(str(output_path))
+
+        size_mb = output_path.stat().st_size / (1024 * 1024)
+        final_threshold = float(threshold)
+        final_size_mb = size_mb
+        log_fn(
+            f"  Shareable: threshold {threshold} dBFS → {size_mb:.2f} MB "
+            f"(target {target_size_mb} MB)"
+        )
+
+        if size_mb <= target_size_mb:
+            log_fn(f"  Shareable: ✓ target met at threshold {threshold} dBFS")
+            return (output_path, final_threshold)
+
+    # All thresholds exhausted, none fit.
+    log_fn(
+        f"  Shareable WARNING: target {target_size_mb} MB unreachable "
+        f"even at threshold {final_threshold} dBFS (final size "
+        f"{final_size_mb:.2f} MB). Consider regenerating the FULL "
+        f"report with a lighter preset (economy/standard) to reduce "
+        f"upstream data volume."
+    )
+    return (output_path, final_threshold)
+
+
 # ============================================================================
 # TKINTER USER INTERFACE - Multi-tab with list+details pattern
 # ============================================================================
