@@ -233,6 +233,7 @@ def test_info_severity_keeps_report_clean(isolated_rules):
 _EXPECTED_RULES = {
     "sidechain_target_exists_in_routing",        # Phase 4.19.1
     "automation_envelope_targets_active_param",  # Phase 4.19.2
+    "chain_order_respects_signal_flow",          # Phase 4.19.3
 }
 
 
@@ -654,3 +655,137 @@ def test_automation_rule_skips_track_without_chain_plan():
     auto_blockers = [v for v in report.violations
                      if v.rule == "automation_envelope_targets_active_param"]
     assert auto_blockers == []
+
+
+# ============================================================================
+# Phase 4.19.3 rule — chain_order_respects_signal_flow
+# ============================================================================
+
+
+def _chain_with_slots(track: str, slots_spec):
+    """Build a chain MixDecision from a list of (device, instance,
+    is_preexisting, consumes_lane) tuples. consumes_indices defaults
+    to (0,) when consumes_lane is set, () when None."""
+    from mix_engine.blueprint import (
+        ChainBuildDecision, ChainSlot, MixCitation, TrackChainPlan,
+    )
+    slots = tuple(
+        ChainSlot(
+            position=i,
+            device=dev,
+            instance=inst,
+            is_preexisting=preex,
+            consumes_lane=lane,
+            consumes_indices=(0,) if lane is not None else (),
+        )
+        for i, (dev, inst, preex, lane) in enumerate(slots_spec)
+    )
+    plan = TrackChainPlan(
+        track=track,
+        slots=slots,
+        rationale=(
+            "Causal: Phase 4.19.3 cohesion test fixture — chain plan used to "
+            "validate signal-flow conventions on corrective EQ vs compressor."
+        ),
+        inspired_by=(MixCitation(kind="diagnostic", path="x", excerpt="x"),),
+    )
+    return MixDecision(
+        value=ChainBuildDecision(plans=(plan,)),
+        lane="chain",
+        rationale="Cohesion test wrapper.",
+        confidence=0.85,
+    )
+
+
+def test_chain_order_warns_when_corrective_eq_after_compressor():
+    """Compressor2 at slot 0 + corrective Eq8 at slot 1 → warn."""
+    bp = MixBlueprint(name="bad-flow").with_decision(
+        "chain",
+        _chain_with_slots("Bass", [
+            ("Compressor2", 0, False, "dynamics_corrective"),
+            ("Eq8",         0, False, "eq_corrective"),
+        ]),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "chain_order_respects_signal_flow"]
+    assert len(warns) == 1
+    assert warns[0].severity == "warn"
+    assert "position(s) [1]" in warns[0].message
+    assert "position 0" in warns[0].message
+    # Warn-only does not unclean the report
+    assert report.is_clean
+
+
+def test_chain_order_silent_when_eq_before_compressor():
+    """Eq8 at slot 0 + Compressor2 at slot 1 → canonical, no warn."""
+    bp = MixBlueprint(name="canonical-flow").with_decision(
+        "chain",
+        _chain_with_slots("Bass", [
+            ("Eq8",         0, False, "eq_corrective"),
+            ("Compressor2", 0, False, "dynamics_corrective"),
+        ]),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "chain_order_respects_signal_flow"]
+    assert warns == []
+
+
+def test_chain_order_skips_preexisting_eq():
+    """A pre-existing Eq8 at slot 1 (after a comp at slot 0) should NOT
+    trigger the rule — we don't know its semantic role."""
+    bp = MixBlueprint(name="preexisting-eq").with_decision(
+        "chain",
+        _chain_with_slots("Bass", [
+            ("Compressor2", 0, False, "dynamics_corrective"),
+            ("Eq8",         0, True,  None),  # pre-existing, lane unknown
+        ]),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "chain_order_respects_signal_flow"]
+    assert warns == []
+
+
+def test_chain_order_skips_creative_eq_after_compressor():
+    """An Eq8 with consumes_lane=='eq_creative' AFTER a comp is a
+    legitimate flavour move — don't warn."""
+    bp = MixBlueprint(name="creative-eq").with_decision(
+        "chain",
+        _chain_with_slots("Bass", [
+            ("Compressor2", 0, False, "dynamics_corrective"),
+            ("Eq8",         0, False, "eq_creative"),
+        ]),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "chain_order_respects_signal_flow"]
+    assert warns == []
+
+
+def test_chain_order_skipped_when_chain_lane_absent():
+    """Single-lane rule still respects the lane-skipping contract : if
+    chain isn't filled, rule must not run."""
+    bp = MixBlueprint(name="no-chain")
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "chain_order_respects_signal_flow"]
+    assert warns == []
+
+
+def test_chain_order_handles_glue_compressor_too():
+    """GlueCompressor counts as a compressor for this rule, same as
+    Compressor2."""
+    bp = MixBlueprint(name="glue-flow").with_decision(
+        "chain",
+        _chain_with_slots("Drum Bus", [
+            ("GlueCompressor", 0, False, "dynamics_corrective"),
+            ("Eq8",            0, False, "eq_corrective"),
+        ]),
+    )
+    report = check_mix_cohesion(bp)
+    warns = [v for v in report.violations
+             if v.rule == "chain_order_respects_signal_flow"]
+    assert len(warns) == 1
+    assert "Drum Bus" in warns[0].message

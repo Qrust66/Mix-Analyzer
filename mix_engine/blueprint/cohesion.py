@@ -18,7 +18,6 @@ docs/MIX_ENGINE_ARCHITECTURE.md §7) :
 |---------------------------------------------------|----------|-------|
 | eq_cuts_dont_create_phase_holes_with_neighbours   | warn     | eq_corrective × eq_corrective (cross-track) |
 | master_ceiling_below_minus_03_dbtp                | block    | mastering |
-| chain_order_respects_signal_flow                  | warn     | chain × all devices |
 """
 from __future__ import annotations
 
@@ -268,4 +267,91 @@ def automation_envelope_targets_active_param(
                 lanes=("automation", "chain"),
             )
 
+    return None
+
+
+# Compressor-family device names. Reuse only here ; if other rules need
+# this list later we can promote it to schema.py.
+_DYNAMICS_DEVICES_THAT_AMPLIFY_PRE_EQ_NOISE: frozenset[str] = frozenset({
+    "Compressor2",
+    "GlueCompressor",
+})
+
+
+@mix_cohesion_rule(lanes=("chain",))
+def chain_order_respects_signal_flow(
+    bp: MixBlueprint,
+) -> Optional[MixCohesionViolation]:
+    """Warn when a chain plan places corrective EQ AFTER a compressor on
+    the same track.
+
+    Audio rationale :
+        Corrective EQ removes problem frequencies (resonances, mud,
+        sibilance). If you compress FIRST, the compressor grabs those
+        problem freqs along with the rest of the signal and amplifies
+        their relative weight in the residual. The downstream EQ then
+        cuts them, but the dynamic damage (pumping, transient
+        flattening) is already baked in. Canonical signal flow puts
+        corrective EQ BEFORE compression.
+
+    Severity is **warn**, not block : creative chain orderings exist
+    (e.g., parallel comp on a Group with EQ taste afterwards) and we
+    don't want to halt the apply on a stylistic call. The cohesion
+    report surfaces the issue ; user decides.
+
+    What we DO check :
+    - Per chain plan, find slots that are :
+        * is_preexisting=False AND device == "Eq8"
+          AND consumes_lane == "eq_corrective"
+        * is_preexisting=False AND device IN
+          _DYNAMICS_DEVICES_THAT_AMPLIFY_PRE_EQ_NOISE
+    - If ANY corrective EQ slot's position > ANY compressor slot's
+      position on the same track → warn (one violation per blueprint,
+      first match wins).
+
+    What we INTENTIONALLY skip :
+    - Pre-existing slots (is_preexisting=True) — we can't know what
+      they're doing semantically (consumes_lane is None)
+    - Eq8 slots whose consumes_lane != "eq_corrective" — creative EQ
+      AFTER compression is a legitimate flavour move
+    - Limiter/Gate/DrumBuss positioning — out of scope for v1 (the
+      Limiter terminal-position rule is enforced upstream by the
+      chain-builder parser)
+    """
+    chain = bp.chain
+    assert chain is not None  # decorator-guaranteed
+
+    for plan in chain.value.plans:
+        corrective_eq_positions: list[int] = []
+        compressor_positions: list[int] = []
+        for slot in plan.slots:
+            if slot.is_preexisting:
+                continue
+            if (slot.device == "Eq8"
+                    and slot.consumes_lane == "eq_corrective"):
+                corrective_eq_positions.append(slot.position)
+            elif slot.device in _DYNAMICS_DEVICES_THAT_AMPLIFY_PRE_EQ_NOISE:
+                compressor_positions.append(slot.position)
+
+        if not corrective_eq_positions or not compressor_positions:
+            continue
+
+        first_comp = min(compressor_positions)
+        late_eqs = [p for p in corrective_eq_positions if p > first_comp]
+        if late_eqs:
+            return MixCohesionViolation(
+                rule="chain_order_respects_signal_flow",
+                severity="warn",
+                message=(
+                    f"Track {plan.track!r} : corrective Eq8 at position(s) "
+                    f"{late_eqs} is placed AFTER a compressor at position "
+                    f"{first_comp}. Canonical signal flow puts corrective EQ "
+                    f"BEFORE compression so the comp doesn't amplify the "
+                    f"problem freqs that the EQ is meant to remove. If this "
+                    f"order is intentional (parallel processing, creative "
+                    f"chain) flag it in the chain plan rationale ; otherwise "
+                    f"swap the slot positions."
+                ),
+                lanes=("chain",),
+            )
     return None
