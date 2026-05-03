@@ -59,10 +59,19 @@ PEAK_THRESHOLD_MAX_DB: float = -40.0
 _STFT_N_FFT_MIN: int = 2048
 _STFT_N_FFT_MAX: int = 32768
 
-# CQT fps doit rester réaliste (1 fps = 1 frame/sec très lent ; 60 fps
-# = visual cinema, déjà excessif pour mix analyse).
+# CQT fps doit rester réaliste (1 fps = 1 frame/sec très lent ; 100 fps
+# = 10 ms/frame, target user pour band-tracking ultra-fin ; 120 fps cap
+# laisse 20 % de marge sans inviter des configs aberrantes).
 _CQT_FPS_MIN: int = 1
-_CQT_FPS_MAX: int = 60
+_CQT_FPS_MAX: int = 120
+
+# STFT hop_ratio : fraction du n_fft utilisée comme hop. Convention
+# v2.7.0 = 0.25 (overlap 75 %, presets economy/standard/fine/ultra/maximum).
+# Phase F11 : preset extreme override à 0.125 (overlap 87.5 %) pour
+# gagner ~2x en résolution temporelle STFT sans toucher n_fft (= garde
+# la même résolution fréquentielle).
+_STFT_HOP_RATIO_MIN: float = 0.0625  # = 1/16, raisonnable upper bound CPU
+_STFT_HOP_RATIO_MAX: float = 0.5     # = 1/2, lower bound utile (overlap 50 %)
 
 # CQT bins_per_octave : 12 = semitone, 24 = quart de ton (v2.7.0),
 # 36 = 1/3 ton, 48 = 1/4 ton. Au-delà, coût FFT prohibitif sans bénéfice.
@@ -115,6 +124,12 @@ class ResolutionPreset:
     stft_n_fft: int
     cqt_target_fps: int
     cqt_bins_per_octave: int
+    # Phase F11 (v2.8.x) : stft_hop_ratio paramétrable per-preset.
+    # Default 0.25 préserve la convention v2.7.0 (overlap 75%) pour les
+    # 5 presets historiques. Preset ``extreme`` override à 0.125 (overlap
+    # 87.5%) pour atteindre ~46 ms/frame STFT à n_fft=16384, sans
+    # sacrifier la résolution fréquentielle.
+    stft_hop_ratio: float = 0.25
 
     # ========================================================================
     # Properties (valeurs dérivées — calculées à la volée)
@@ -124,12 +139,12 @@ class ResolutionPreset:
     def stft_hop_samples_at_44k(self) -> int:
         """Hop STFT en samples à 44.1 kHz.
 
-        Convention v2.7.0 : ``hop = n_fft / 4`` (overlap 75%). Tous les
-        presets héritent de cette convention — pas exposé comme
-        paramètre car aucun cas d'usage justifie de déconnecter le hop
-        de n_fft.
+        Convention v2.7.0 = 0.25 (= ``n_fft / 4``, overlap 75 %). Phase
+        F11 expose ``stft_hop_ratio`` per-preset pour permettre des
+        ratios plus serrés (0.125 = overlap 87.5 % pour preset extreme)
+        sans toucher n_fft (= garde la même résolution fréquentielle).
         """
-        return self.stft_n_fft // 4
+        return int(self.stft_n_fft * self.stft_hop_ratio)
 
     @property
     def stft_hop_ms_at_44k(self) -> float:
@@ -174,6 +189,7 @@ def _validate_preset_params(
     stft_n_fft: int,
     cqt_target_fps: int,
     cqt_bins_per_octave: int,
+    stft_hop_ratio: float = 0.25,
 ) -> None:
     """Valide les paramètres d'un preset au build-time.
 
@@ -202,6 +218,11 @@ def _validate_preset_params(
             f"hors range [{_CQT_BINS_PER_OCTAVE_MIN}, "
             f"{_CQT_BINS_PER_OCTAVE_MAX}]."
         )
+    if not (_STFT_HOP_RATIO_MIN <= stft_hop_ratio <= _STFT_HOP_RATIO_MAX):
+        raise ValueError(
+            f"Preset {name!r}: stft_hop_ratio={stft_hop_ratio} hors "
+            f"range [{_STFT_HOP_RATIO_MIN}, {_STFT_HOP_RATIO_MAX}]."
+        )
 
 
 def _build_preset(
@@ -210,6 +231,7 @@ def _build_preset(
     stft_n_fft: int,
     cqt_target_fps: int,
     cqt_bins_per_octave: int,
+    stft_hop_ratio: float = 0.25,
 ) -> ResolutionPreset:
     """Helper de construction qui valide AVANT instanciation."""
     _validate_preset_params(
@@ -217,6 +239,7 @@ def _build_preset(
         stft_n_fft=stft_n_fft,
         cqt_target_fps=cqt_target_fps,
         cqt_bins_per_octave=cqt_bins_per_octave,
+        stft_hop_ratio=stft_hop_ratio,
     )
     return ResolutionPreset(
         name=name,
@@ -224,6 +247,7 @@ def _build_preset(
         stft_n_fft=stft_n_fft,
         cqt_target_fps=cqt_target_fps,
         cqt_bins_per_octave=cqt_bins_per_octave,
+        stft_hop_ratio=stft_hop_ratio,
     )
 
 
@@ -272,6 +296,18 @@ RESOLUTION_PRESETS: dict[str, ResolutionPreset] = {
         stft_n_fft=16384,
         cqt_target_fps=24,
         cqt_bins_per_octave=48,
+    ),
+    "extreme": _build_preset(
+        name="extreme",
+        description="Phase F11 — target user 10 ms/frame CQT (100 fps) "
+                    "+ ~46 ms/frame STFT (hop_ratio=0.125 sur n_fft=16384). "
+                    "Coût compute ~4x maximum ; fichier FULL ~5x ; "
+                    "SHAREABLE filtering kick in systématique. "
+                    "Réservé band-tracking ultra-fin terrain.",
+        stft_n_fft=16384,
+        cqt_target_fps=100,
+        cqt_bins_per_octave=48,
+        stft_hop_ratio=0.125,
     ),
 }
 

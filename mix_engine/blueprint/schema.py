@@ -463,7 +463,7 @@ class GenreContext:
 # baseline = standard preset" for backward compatibility.
 
 VALID_PRESET_NAMES: frozenset[str] = frozenset({
-    "economy", "standard", "fine", "ultra", "maximum",
+    "economy", "standard", "fine", "ultra", "maximum", "extreme",
 })
 
 
