@@ -443,7 +443,8 @@ def build_v25_transients_sheet(wb: 'Workbook',
 def build_all_v25_sheets(wb: 'Workbook',
                           features_with_info: List[Tuple[TrackFeatures, dict]],
                           log_fn=None,
-                          n_buckets: int = 32) -> None:
+                          n_buckets: int = 32,
+                          skip_trajectories: bool = False) -> None:
     """Build all v2.5 hidden sheets at once.
 
     Args:
@@ -451,6 +452,13 @@ def build_all_v25_sheets(wb: 'Workbook',
         features_with_info: List of (TrackFeatures, track_info) tuples.
         log_fn: Logging function.
         n_buckets: Time buckets for downsampled sheets.
+        skip_trajectories: Phase F11 — when True, skip the 2 heaviest
+            sheets ``_track_peak_trajectories`` and
+            ``_track_valley_trajectories`` (~97% of FULL file size on
+            real projects). Used by ``excel_export_mode='ai_optimized'``
+            to deliver a small file fit for AI consumption — Tier A
+            agents read ``AI Context``/``Anomalies``/``Mix Health``,
+            never the raw trajectory dumps.
     """
     if log_fn is None:
         log_fn = lambda msg: None
@@ -458,8 +466,13 @@ def build_all_v25_sheets(wb: 'Workbook',
 
     build_v25_zone_energy_sheet(wb, features_with_info, log_fn, n_buckets)
     build_v25_spectral_descriptors_sheet(wb, features_with_info, log_fn, n_buckets)
-    build_v25_peak_trajectories_sheet(wb, features_with_info, log_fn)
-    build_v25_valley_trajectories_sheet(wb, features_with_info, log_fn)
+    if skip_trajectories:
+        log_fn("  v2.5: SKIPPED _track_peak_trajectories + "
+               "_track_valley_trajectories (ai_optimized mode, "
+               "Phase F11)")
+    else:
+        build_v25_peak_trajectories_sheet(wb, features_with_info, log_fn)
+        build_v25_valley_trajectories_sheet(wb, features_with_info, log_fn)
     build_v25_crest_by_zone_sheet(wb, features_with_info, log_fn, n_buckets)
     build_v25_transients_sheet(wb, features_with_info, log_fn)
 
