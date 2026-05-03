@@ -37,9 +37,11 @@ from resolution_presets import (
 # ============================================================================
 
 
-def test_five_presets_registered():
+def test_six_presets_registered():
+    """Phase F11 added the 6th preset 'extreme' (100 fps CQT,
+    hop_ratio=0.125 STFT)."""
     assert set(RESOLUTION_PRESETS) == {
-        "economy", "standard", "fine", "ultra", "maximum",
+        "economy", "standard", "fine", "ultra", "maximum", "extreme",
     }
 
 
@@ -74,11 +76,12 @@ def test_standard_preset_is_v270_strict_equivalent():
 
 
 @pytest.mark.parametrize("name,n_fft,fps,bpo", [
-    ("economy",  8192,  4,  24),
-    ("standard", 8192,  6,  24),
-    ("fine",     16384, 10, 24),
-    ("ultra",    16384, 12, 36),
-    ("maximum",  16384, 24, 48),
+    ("economy",  8192,  4,   24),
+    ("standard", 8192,  6,   24),
+    ("fine",     16384, 10,  24),
+    ("ultra",    16384, 12,  36),
+    ("maximum",  16384, 24,  48),
+    ("extreme",  16384, 100, 48),  # Phase F11 — user target 10 ms/frame CQT
 ])
 def test_preset_fundamental_values_match_spec_table(name, n_fft, fps, bpo):
     p = RESOLUTION_PRESETS[name]
@@ -98,6 +101,7 @@ def test_preset_fundamental_values_match_spec_table(name, n_fft, fps, bpo):
     ("fine",     4096, 2.69),
     ("ultra",    4096, 2.69),
     ("maximum",  4096, 2.69),
+    ("extreme",  2048, 2.69),  # Phase F11 — hop_ratio=0.125 -> hop_samples=16384*0.125=2048, df unchanged (n_fft same)
 ])
 def test_stft_derived_properties(name, expected_hop_samples, expected_df_hz):
     p = RESOLUTION_PRESETS[name]
@@ -113,6 +117,7 @@ def test_stft_derived_properties(name, expected_hop_samples, expected_df_hz):
     ("fine",     256, 4.6875),   # 10 * 60/128
     ("ultra",    384, 5.625),    # 12 * 60/128
     ("maximum",  512, 11.25),    # 24 * 60/128
+    ("extreme",  512, 46.875),   # 100 * 60/128 (Phase F11)
 ])
 def test_cqt_derived_properties(name, expected_n_bins, expected_fpb):
     p = RESOLUTION_PRESETS[name]
@@ -261,12 +266,16 @@ def test_build_preset_rejects_n_fft_below_min():
 
 
 def test_build_preset_rejects_cqt_fps_above_max():
+    """Phase F11 bumped _CQT_FPS_MAX from 60 to 120 ; this test now uses
+    121 to verify the new bound (the dedicated F11 test
+    test_build_preset_rejects_cqt_fps_above_new_max also covers the
+    boundary explicitly)."""
     with pytest.raises(ValueError, match="cqt_target_fps"):
         _build_preset(
             name="invalid",
             description="x",
             stft_n_fft=8192,
-            cqt_target_fps=120,  # above _CQT_FPS_MAX=60
+            cqt_target_fps=200,  # above new _CQT_FPS_MAX=120
             cqt_bins_per_octave=24,
         )
 
@@ -279,6 +288,96 @@ def test_build_preset_rejects_cqt_bpo_below_min():
             stft_n_fft=8192,
             cqt_target_fps=6,
             cqt_bins_per_octave=6,  # below min=12
+        )
+
+
+# ============================================================================
+# Phase F11 — extreme preset + stft_hop_ratio paramétrable
+# ============================================================================
+
+
+def test_extreme_preset_meets_user_targets():
+    """User targets validated 2026-05-03 :
+    - 10 ms/frame CQT (= 100 fps)
+    - close to 50 ms/frame STFT (= hop_samples ~2200)
+    - same freq resolution as ultra/maximum (= n_fft=16384)
+    """
+    p = RESOLUTION_PRESETS['extreme']
+    # CQT 10 ms target
+    assert p.cqt_target_fps == 100
+    cqt_ms = 1000.0 / p.cqt_target_fps
+    assert math.isclose(cqt_ms, 10.0, rel_tol=0, abs_tol=0.01)
+    # STFT ~46-50 ms target via hop_ratio=0.125
+    assert p.stft_hop_ratio == 0.125
+    assert p.stft_hop_samples_at_44k == 2048
+    # 2048 samples at 44.1k = 46.44 ms — close to 50 ms target
+    assert math.isclose(p.stft_hop_ms_at_44k, 46.44, rel_tol=0, abs_tol=0.5)
+    # Freq resolution preserved (same n_fft as maximum)
+    assert p.stft_n_fft == 16384
+    assert math.isclose(p.stft_delta_freq_hz_at_44k, 2.69, rel_tol=0, abs_tol=0.01)
+
+
+@pytest.mark.parametrize("name", ["economy", "standard", "fine", "ultra", "maximum"])
+def test_historic_5_presets_have_default_hop_ratio_025(name):
+    """Backward compat strict : the 5 historic presets must keep the
+    v2.7.0 hop ratio (0.25 = n_fft / 4 = overlap 75%). Phase F11 added
+    stft_hop_ratio as a paramètre but defaults to 0.25 for all 5."""
+    p = RESOLUTION_PRESETS[name]
+    assert p.stft_hop_ratio == 0.25, (
+        f"{name} must have hop_ratio=0.25 to preserve v2.7.0 byte-identical "
+        f"output. Got {p.stft_hop_ratio}."
+    )
+
+
+def test_extreme_preset_overrides_hop_ratio():
+    """extreme is the only preset overriding the 0.25 default."""
+    p = RESOLUTION_PRESETS['extreme']
+    assert p.stft_hop_ratio == 0.125
+
+
+def test_build_preset_rejects_cqt_fps_above_new_max():
+    """Phase F11 bumped _CQT_FPS_MAX from 60 to 120. Verify the new bound."""
+    from resolution_presets import _build_preset
+    # 121 should be rejected (just over the new max of 120)
+    with pytest.raises(ValueError, match="cqt_target_fps"):
+        _build_preset(
+            name="too_fast",
+            description="too fast",
+            stft_n_fft=8192,
+            cqt_target_fps=121,
+            cqt_bins_per_octave=24,
+        )
+    # 120 should be accepted (= new max)
+    p = _build_preset(
+        name="at_max",
+        description="at max",
+        stft_n_fft=8192,
+        cqt_target_fps=120,
+        cqt_bins_per_octave=24,
+    )
+    assert p.cqt_target_fps == 120
+
+
+def test_build_preset_rejects_invalid_hop_ratio():
+    """Phase F11 added stft_hop_ratio validation in [0.0625, 0.5]."""
+    from resolution_presets import _build_preset
+    with pytest.raises(ValueError, match="stft_hop_ratio"):
+        _build_preset(
+            name="bad_hop",
+            description="hop_ratio out of range",
+            stft_n_fft=8192,
+            cqt_target_fps=6,
+            cqt_bins_per_octave=24,
+            stft_hop_ratio=0.05,  # below min 0.0625
+        )
+    with pytest.raises(ValueError, match="stft_hop_ratio"):
+        _build_preset(
+            name="bad_hop2",
+            description="hop_ratio out of range",
+            stft_n_fft=8192,
+            cqt_target_fps=6,
+            cqt_bins_per_octave=24,
+            stft_hop_ratio=0.6,  # above max 0.5
         )
 
 
