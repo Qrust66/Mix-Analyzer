@@ -23,6 +23,7 @@ import re
 from typing import Any, Mapping, Optional
 
 from mix_engine.blueprint.schema import (
+    AnalysisConfig,
     Anomaly,
     BandConflict,
     CANONICAL_BAND_COUNT,
@@ -60,6 +61,7 @@ from mix_engine.blueprint.schema import (
     TrackAudioMetrics,
     VALID_DENSITY_TOLERANCES,
     VALID_GENRE_FAMILIES,
+    VALID_PRESET_NAMES,
     DynamicsAutomationPoint,
     DynamicsCorrection,
     DynamicsCorrectiveDecision,
@@ -720,6 +722,101 @@ def _parse_genre_context(item: Any, *, where: str) -> GenreContext:
     )
 
 
+def _parse_analysis_config(item: Any, *, where: str) -> AnalysisConfig:
+    """Parse the ``analysis_config`` JSON object emitted by mix-diagnostician
+    (Phase F10h). Mirrors the 14 key/value pairs of the hidden
+    ``_analysis_config`` Excel sheet 1:1.
+
+    All 14 fields are required — the diagnostician must populate every
+    field from the sheet. None values are not accepted ; if the report
+    has no sheet, the diagnostician must omit the whole ``analysis_config``
+    key (handled by the caller in ``_parse_diagnostic_internal``).
+    """
+    if not isinstance(item, Mapping):
+        raise MixAgentOutputError(
+            f"{where}: expected object, got {type(item).__name__}"
+        )
+    preset_name = _coerce_str(
+        _require(item, "preset_name", where=where),
+        where=f"{where}.preset_name",
+    ).strip()
+    if preset_name not in VALID_PRESET_NAMES:
+        raise MixAgentOutputError(
+            f"{where}.preset_name={preset_name!r} not in "
+            f"{sorted(VALID_PRESET_NAMES)}."
+        )
+    stft_n_fft = _coerce_int_strict(
+        _require(item, "stft_n_fft", where=where),
+        where=f"{where}.stft_n_fft",
+    )
+    stft_hop_samples = _coerce_int_strict(
+        _require(item, "stft_hop_samples", where=where),
+        where=f"{where}.stft_hop_samples",
+    )
+    stft_hop_ms_at_44k = _coerce_float(
+        _require(item, "stft_hop_ms_at_44k", where=where),
+        where=f"{where}.stft_hop_ms_at_44k",
+    )
+    stft_delta_freq_hz_at_44k = _coerce_float(
+        _require(item, "stft_delta_freq_hz_at_44k", where=where),
+        where=f"{where}.stft_delta_freq_hz_at_44k",
+    )
+    cqt_target_fps = _coerce_int_strict(
+        _require(item, "cqt_target_fps", where=where),
+        where=f"{where}.cqt_target_fps",
+    )
+    cqt_bins_per_octave = _coerce_int_strict(
+        _require(item, "cqt_bins_per_octave", where=where),
+        where=f"{where}.cqt_bins_per_octave",
+    )
+    cqt_n_bins = _coerce_int_strict(
+        _require(item, "cqt_n_bins", where=where),
+        where=f"{where}.cqt_n_bins",
+    )
+    cqt_frames_per_beat_at_128bpm = _coerce_float(
+        _require(item, "cqt_frames_per_beat_at_128bpm", where=where),
+        where=f"{where}.cqt_frames_per_beat_at_128bpm",
+    )
+    sample_rate = _coerce_int_strict(
+        _require(item, "sample_rate", where=where),
+        where=f"{where}.sample_rate",
+    )
+    peak_threshold_db = _coerce_float_nonan_in_range(
+        _require(item, "peak_threshold_db", where=where),
+        where=f"{where}.peak_threshold_db",
+        lo=-80.0, hi=-40.0, unit="dBFS",
+    )
+    is_shareable_version = _coerce_bool(
+        _require(item, "is_shareable_version", where=where),
+        where=f"{where}.is_shareable_version",
+    )
+    mix_analyzer_version = _coerce_str(
+        _require(item, "mix_analyzer_version", where=where),
+        where=f"{where}.mix_analyzer_version",
+    ).strip()
+    generated_at = _coerce_str(
+        _require(item, "generated_at", where=where),
+        where=f"{where}.generated_at",
+    ).strip()
+
+    return AnalysisConfig(
+        preset_name=preset_name,
+        stft_n_fft=stft_n_fft,
+        stft_hop_samples=stft_hop_samples,
+        stft_hop_ms_at_44k=stft_hop_ms_at_44k,
+        stft_delta_freq_hz_at_44k=stft_delta_freq_hz_at_44k,
+        cqt_target_fps=cqt_target_fps,
+        cqt_bins_per_octave=cqt_bins_per_octave,
+        cqt_n_bins=cqt_n_bins,
+        cqt_frames_per_beat_at_128bpm=cqt_frames_per_beat_at_128bpm,
+        sample_rate=sample_rate,
+        peak_threshold_db=peak_threshold_db,
+        is_shareable_version=is_shareable_version,
+        mix_analyzer_version=mix_analyzer_version,
+        generated_at=generated_at,
+    )
+
+
 def _parse_track_info(item: Any, *, where: str) -> TrackInfo:
     if not isinstance(item, Mapping):
         raise MixAgentOutputError(
@@ -1194,6 +1291,17 @@ def parse_diagnostic_decision(
         else _parse_genre_context(genre_context_raw, where="diagnostic.genre_context")
     )
 
+    # Phase F10h — optional analysis configuration metadata. None when
+    # the report is pre-F10h and lacks the ``_analysis_config`` sheet ;
+    # downstream agents treat None as v2.7.0 baseline (= standard preset).
+    analysis_config_raw = diag_dict.get("analysis_config", None)
+    analysis_config = (
+        None if analysis_config_raw is None
+        else _parse_analysis_config(
+            analysis_config_raw, where="diagnostic.analysis_config",
+        )
+    )
+
     report = DiagnosticReport(
         project_name=project_name,
         full_mix=full_mix,
@@ -1205,6 +1313,7 @@ def parse_diagnostic_decision(
         freq_conflicts_meta=freq_conflicts_meta,
         freq_conflicts_bands=freq_conflicts_bands,
         genre_context=genre_context,
+        analysis_config=analysis_config,
     )
     return MixDecision(value=report, lane="diagnostic", **envelope)
 

@@ -449,6 +449,77 @@ class GenreContext:
 
 
 # ============================================================================
+# Analysis configuration — Phase F10h (v2.8.0)
+# ============================================================================
+#
+# Mirrors the 14 key/value pairs of the hidden ``_analysis_config`` Excel
+# sheet produced by mix_analyzer.py:_build_analysis_config_sheet (line
+# 3392+). Tier A agents read this sheet to know which preset generated
+# the report and adapt their decisions / rationale to the actual
+# spectral resolution achieved.
+#
+# Optional on DiagnosticReport — pre-F10h reports without the sheet
+# resolve to None ; downstream consumers MUST treat None as "v2.7.0
+# baseline = standard preset" for backward compatibility.
+
+VALID_PRESET_NAMES: frozenset[str] = frozenset({
+    "economy", "standard", "fine", "ultra", "maximum",
+})
+
+
+@dataclass(frozen=True)
+class AnalysisConfig:
+    """Analysis configuration metadata read from the ``_analysis_config``
+    sheet (Phase F10h). 14 fields mirror the sheet's key/value pairs
+    1:1, in the same order as ``mix_analyzer.py:3398`` for predictable
+    cross-referencing.
+
+    Methods ``cqt_frames_per_beat_at(bpm)`` and ``stft_delta_freq_hz_at(sr)``
+    rescale the stored ``_at_128bpm`` / ``_at_44k`` reference values to
+    arbitrary tempo / sample rate. Single source of truth = the stored
+    fields ; methods are pure derivations.
+    """
+
+    preset_name: str                          # in VALID_PRESET_NAMES
+    stft_n_fft: int                           # > 0
+    stft_hop_samples: int                     # > 0
+    stft_hop_ms_at_44k: float                 # > 0
+    stft_delta_freq_hz_at_44k: float          # > 0
+    cqt_target_fps: int                       # > 0
+    cqt_bins_per_octave: int                  # > 0
+    cqt_n_bins: int                           # > 0
+    cqt_frames_per_beat_at_128bpm: float      # > 0
+    sample_rate: int                          # > 0
+    peak_threshold_db: float                  # in [-80, -40]
+    is_shareable_version: bool                # True for filtered SHAREABLE report
+    mix_analyzer_version: str                 # e.g. "v2.8.0"
+    generated_at: str                         # ISO 8601 timespec=seconds
+
+    def cqt_frames_per_beat_at(self, bpm: float) -> float:
+        """Rescale the stored at-128-BPM frames/beat to arbitrary BPM.
+
+        At 128 BPM, one beat lasts 60/128 = 0.46875 s and contains
+        ``cqt_target_fps × 0.46875`` frames. At any other tempo, the
+        ratio scales as 128/bpm. Used by band-tracking-decider to know
+        the realistic upper bound of its frame_times_sec resolution.
+        """
+        if bpm <= 0:
+            raise ValueError(f"bpm must be positive, got {bpm}")
+        return self.cqt_frames_per_beat_at_128bpm * (128.0 / bpm)
+
+    def stft_delta_freq_hz_at(self, sample_rate: int) -> float:
+        """Rescale the stored at-44.1k delta-freq to arbitrary sample rate.
+
+        delta_freq = sr / n_fft ; the stored at_44k value assumes
+        sr=44100. For any other sr, ``stored × (sr/44100)``. Used by
+        eq-corrective for narrow-band cut precision sanity checks.
+        """
+        if sample_rate <= 0:
+            raise ValueError(f"sample_rate must be positive, got {sample_rate}")
+        return self.stft_delta_freq_hz_at_44k * (sample_rate / 44100.0)
+
+
+# ============================================================================
 # Diagnostic lane DiagnosticReport — Phase 4.1 + extensions Phase 4.2.8 + 4.7
 # ============================================================================
 
@@ -474,6 +545,10 @@ class DiagnosticReport:
     freq_conflicts_bands: tuple[BandConflict, ...] = ()  # rows of the matrix
     # Phase 4.7 : project-level genre context
     genre_context: Optional[GenreContext] = None    # FAMILY_PROFILES typed
+    # Phase F10h (v2.8.0) : analysis configuration metadata from
+    # ``_analysis_config`` Excel sheet. None = pre-F10h report ; treat as
+    # the v2.7.0 baseline (= ``standard`` preset) for backward compat.
+    analysis_config: Optional[AnalysisConfig] = None
 
     def get_health_category_score(self, category: str) -> Optional[float]:
         """Lookup a Mix Health Score category score by name (case-insensitive).
