@@ -36,10 +36,14 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 
 # Phase F10 — resolution preset infrastructure (cf.
-# resolution_presets.py + docs/Features/feature_10_high_resolution_spectral_engine_v1_2.md).
+# resolution_presets.py + docs/Features/feature_10_high_resolution_spectral_engine_v1_4.md).
 from resolution_presets import (
+    InvalidPresetError,
+    InvalidThresholdError,
     RESOLUTION_PRESETS,
     ResolutionPreset,
+    get_preset_by_name,
+    validate_peak_threshold_db,
 )
 
 
@@ -9697,6 +9701,16 @@ class MixAnalyzerApp:
         self.excel_export_mode = tk.StringVar(value='full')
         self.image_quality = tk.StringVar(value='standard')
 
+        # Phase F10g.5 (v2.8.0+) — Resolution & Output controls.
+        # Defaults match the F10g CLI defaults : standard preset (= v2.7.0
+        # backward compat), -70 dBFS threshold (very permissive ; FULL is
+        # essentially unfiltered), shareable ON (Claude.ai upload helper).
+        self.resolution_preset = tk.StringVar(value='standard')
+        self.peak_threshold_db = tk.DoubleVar(value=-70.0)
+        self.generate_shareable = tk.BooleanVar(value=True)
+        self.shareable_target_mb = tk.DoubleVar(value=25.0)
+        self.shareable_initial_threshold = tk.DoubleVar(value=-60.0)
+
         # Analysis results
         self.analysis_results = None
         self.output_dir_after_run = None
@@ -10039,6 +10053,21 @@ class MixAnalyzerApp:
 
         if 'image_quality' in existing_config:
             self.image_quality.set(existing_config['image_quality'])
+
+        # F10g.5 — Resolution & Output (per-project persistence). Each block
+        # is wrapped in `if key in existing_config` so configs from older
+        # versions (pre-F10g.5) keep the dataclass defaults.
+        if 'resolution_preset' in existing_config:
+            self.resolution_preset.set(existing_config['resolution_preset'])
+        if 'peak_threshold_db' in existing_config:
+            self.peak_threshold_db.set(existing_config['peak_threshold_db'])
+        if 'generate_shareable' in existing_config:
+            self.generate_shareable.set(existing_config['generate_shareable'])
+        if 'shareable_target_mb' in existing_config:
+            self.shareable_target_mb.set(existing_config['shareable_target_mb'])
+        if 'shareable_initial_threshold' in existing_config:
+            self.shareable_initial_threshold.set(
+                existing_config['shareable_initial_threshold'])
 
         self.setup_status.config(
             text=f"Loaded {len(files)} audio files. "
@@ -10605,7 +10634,9 @@ class MixAnalyzerApp:
                                       bg=UI_THEME['panel'],
                                       fg=UI_THEME['fg'],
                                       font=get_font('body_small'))
-        export_frame.pack(side='left', fill='x', expand=True)
+        # F10g.5 audit fix #3 : changed expand=True -> fill='both' so
+        # res_frame can fit beside without crowding.
+        export_frame.pack(side='left', fill='both')
 
         export_options = [
             ('full',
@@ -10634,6 +10665,73 @@ class MixAnalyzerApp:
                                  activeforeground=UI_THEME['fg'],
                                  font=get_font('body_small'))
             rb.pack(anchor='w', padx=SPACING['sm'], pady=2)
+
+        # F10g.5 \u2014 Resolution & Output controls (5 widgets in a grid).
+        # Mirrors the F10g CLI flags : --resolution, --peak-threshold,
+        # --no-shareable, --shareable-target-mb, --shareable-initial-threshold.
+        res_frame = tk.LabelFrame(options_inner, text='Resolution & Output',
+                                   bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                                   font=get_font('body_small'))
+        res_frame.pack(side='left', fill='both', padx=(SPACING['md'], 0))
+
+        # Row 0 : Preset combobox
+        tk.Label(res_frame, text='Preset:',
+                 bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                 font=get_font('body_small')).grid(
+            row=0, column=0, sticky='w', padx=SPACING['sm'], pady=2)
+        preset_combo = ttk.Combobox(
+            res_frame, textvariable=self.resolution_preset,
+            values=list(RESOLUTION_PRESETS.keys()),
+            state='readonly', width=10,
+            font=get_font('body_small'))
+        preset_combo.grid(row=0, column=1, sticky='w', padx=SPACING['sm'], pady=2)
+
+        # Row 1 : Peak threshold spinbox
+        tk.Label(res_frame, text='Peak threshold (dBFS):',
+                 bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                 font=get_font('body_small')).grid(
+            row=1, column=0, sticky='w', padx=SPACING['sm'], pady=2)
+        threshold_spin = ttk.Spinbox(
+            res_frame, textvariable=self.peak_threshold_db,
+            from_=-80.0, to=-40.0, increment=5.0, width=8,
+            font=get_font('body_small'))
+        threshold_spin.grid(row=1, column=1, sticky='w', padx=SPACING['sm'], pady=2)
+
+        # Row 2 : Generate shareable checkbox (spans 2 cols for label width)
+        share_check = tk.Checkbutton(
+            res_frame, text='Generate shareable Excel (for Claude.ai upload)',
+            variable=self.generate_shareable,
+            bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+            selectcolor=UI_THEME['bg'],
+            activebackground=UI_THEME['panel'],
+            activeforeground=UI_THEME['fg'],
+            font=get_font('body_small'))
+        share_check.grid(row=2, column=0, columnspan=2, sticky='w',
+                          padx=SPACING['sm'], pady=2)
+
+        # Row 3 : Shareable target size spinbox (indented to show dependency)
+        tk.Label(res_frame, text='  \u21b3 Target size (MB):',
+                 bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                 font=get_font('body_small')).grid(
+            row=3, column=0, sticky='w', padx=SPACING['sm'], pady=2)
+        share_target_spin = ttk.Spinbox(
+            res_frame, textvariable=self.shareable_target_mb,
+            from_=5.0, to=100.0, increment=5.0, width=8,
+            font=get_font('body_small'))
+        share_target_spin.grid(row=3, column=1, sticky='w',
+                                padx=SPACING['sm'], pady=2)
+
+        # Row 4 : Shareable initial threshold spinbox (indented)
+        tk.Label(res_frame, text='  \u21b3 Initial threshold (dBFS):',
+                 bg=UI_THEME['panel'], fg=UI_THEME['fg'],
+                 font=get_font('body_small')).grid(
+            row=4, column=0, sticky='w', padx=SPACING['sm'], pady=2)
+        share_init_spin = ttk.Spinbox(
+            res_frame, textvariable=self.shareable_initial_threshold,
+            from_=-80.0, to=-40.0, increment=5.0, width=8,
+            font=get_font('body_small'))
+        share_init_spin.grid(row=4, column=1, sticky='w',
+                              padx=SPACING['sm'], pady=2)
 
         tk.Label(options_inner, text='  Image quality:',
                  bg=UI_THEME['panel'], fg=UI_THEME['fg'],
@@ -11001,15 +11099,69 @@ class MixAnalyzerApp:
                 if _als_path:
                     self.log(f"    ALS detected: {Path(_als_path).name}")
 
+                # F10g.5 audit fix #2 : validate preset + threshold before
+                # use, fall back to defaults with warning if invalid (e.g.
+                # user typed -100 in the spinbox or config file is corrupt).
+                try:
+                    _preset = get_preset_by_name(self.resolution_preset.get())
+                except (InvalidPresetError, KeyError, ValueError) as e:
+                    self.log(f"WARNING: invalid preset "
+                             f"{self.resolution_preset.get()!r} -> "
+                             f"falling back to 'standard' ({e})")
+                    _preset = get_preset_by_name('standard')
+                try:
+                    validate_peak_threshold_db(self.peak_threshold_db.get())
+                    _threshold = self.peak_threshold_db.get()
+                except (InvalidThresholdError, ValueError) as e:
+                    self.log(f"WARNING: invalid peak threshold "
+                             f"{self.peak_threshold_db.get()!r} -> "
+                             f"falling back to -70.0 ({e})")
+                    _threshold = -70.0
+
                 generate_excel_report(
                     analyses_with_info, str(xlsx_path), self.style.get(),
                     full_mix_info=full_mix_info, ai_prompt=ai_prompt,
                     log_fn=self.log,
                     export_mode=export_mode,
                     image_quality=self.image_quality.get(),
-                    als_path=_als_path)
+                    als_path=_als_path,
+                    preset=_preset,
+                    peak_threshold_db=_threshold,
+                    is_shareable=False)
                 generated_files.append(xlsx_path)
                 self.log(f"Excel report: {xlsx_path.name}")
+
+                # F10g.5 — Conditional SHAREABLE report (Claude.ai upload helper).
+                # Mirrors the CLI flow at _run_cli line ~11594. Failure here
+                # must NOT block the overall analysis — log + continue.
+                if self.generate_shareable.get():
+                    share_path = output_folder / f'{report_prefix}_shareable.xlsx'
+                    if share_path.exists():
+                        share_path.unlink()
+                    self.log(
+                        f"Generating SHAREABLE report (target "
+                        f"{self.shareable_target_mb.get():.0f} MB, "
+                        f"initial threshold "
+                        f"{self.shareable_initial_threshold.get():.0f} dBFS)...")
+                    try:
+                        generate_shareable_report(
+                            full_xlsx_path=str(xlsx_path),
+                            analyses_with_info=analyses_with_info,
+                            output_path=str(share_path),
+                            target_size_mb=self.shareable_target_mb.get(),
+                            initial_threshold_db=
+                                self.shareable_initial_threshold.get(),
+                            log_fn=self.log,
+                        )
+                        generated_files.append(share_path)
+                        share_size_mb = share_path.stat().st_size / (1024 * 1024)
+                        self.log(
+                            f"SHAREABLE report: {share_path.name} "
+                            f"({share_size_mb:.2f} MB)")
+                    except Exception as e_share:
+                        self.log(f"WARNING: SHAREABLE report failed: "
+                                 f"{type(e_share).__name__}: {e_share}")
+                        traceback.print_exc()
             except Exception as e:
                 self.log(f"ERROR Excel report: {e}")
                 traceback.print_exc()
@@ -11164,6 +11316,13 @@ class MixAnalyzerApp:
                 'tracks': self.track_configs,
                 'excel_export_mode': self.excel_export_mode.get(),
                 'image_quality': self.image_quality.get(),
+                # F10g.5 — Resolution & Output controls (per-project).
+                'resolution_preset': self.resolution_preset.get(),
+                'peak_threshold_db': self.peak_threshold_db.get(),
+                'generate_shareable': self.generate_shareable.get(),
+                'shareable_target_mb': self.shareable_target_mb.get(),
+                'shareable_initial_threshold':
+                    self.shareable_initial_threshold.get(),
                 'full_mix': {
                     'state': self.mix_state.get(),
                     'plugins': active_plugins,
