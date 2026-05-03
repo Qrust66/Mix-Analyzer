@@ -14,6 +14,7 @@ Dependencies:
 import os
 import sys
 import json
+import argparse
 import threading
 import traceback
 import webbrowser
@@ -11325,7 +11326,234 @@ Start your analysis with a concise executive summary (3-4 sentences) before divi
 # ============================================================================
 
 
+def _peak_threshold_arg_type(value: str) -> float:
+    """argparse type validator for ``--peak-threshold`` (range -80 to -40)."""
+    try:
+        v = float(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            f"--peak-threshold must be a float, got {value!r}"
+        )
+    if not (-80.0 <= v <= -40.0):
+        raise argparse.ArgumentTypeError(
+            f"--peak-threshold {v} out of range [-80, -40]"
+        )
+    return v
+
+
+def _run_cli(args: argparse.Namespace) -> int:
+    """Phase F10g — run Mix Analyzer in headless CLI mode.
+
+    Triggered by ``main()`` when ``--input-dir`` is provided. Iterates
+    every WAV in ``--input-dir``, builds the same data structures the
+    GUI ``_run_analysis`` builds, then calls ``analyze_track`` +
+    ``generate_excel_report`` (+ optionally ``generate_shareable_report``)
+    with the F10 preset/threshold flags wired through.
+
+    Returns exit code (0 = OK, 1 = input/validation error,
+    2 = analysis/write error, 3 = generic exception).
+    """
+    from resolution_presets import (
+        InvalidPresetError,
+        InvalidThresholdError,
+        get_preset_by_name,
+        validate_peak_threshold_db,
+    )
+
+    # 1. Validate input dir
+    input_dir = Path(args.input_dir)
+    if not input_dir.exists() or not input_dir.is_dir():
+        print(
+            f"ERROR: --input-dir not found or not a directory: {input_dir}",
+            file=sys.stderr,
+        )
+        return 1
+
+    # 2. Resolve preset + validate threshold (defensive — argparse already
+    # constrains them but resolving here surfaces helpful errors if users
+    # bypass argparse later)
+    try:
+        preset = get_preset_by_name(args.resolution)
+        validate_peak_threshold_db(args.peak_threshold)
+    except (InvalidPresetError, InvalidThresholdError) as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+
+    # 3. Discover WAVs (sorted, predictable order)
+    wavs = sorted(input_dir.glob('*.wav'))
+    if not wavs:
+        print(f"ERROR: no .wav files found in {input_dir}", file=sys.stderr)
+        return 1
+
+    # 4. Output dir mkdir -p
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # 5. Console banner
+    print(f"Mix Analyzer v{VERSION} — CLI mode")
+    print(f"  Input dir         : {input_dir}")
+    print(f"  Output dir        : {output_dir}")
+    print(f"  Style             : {args.style}")
+    print(f"  Resolution preset : {args.resolution} "
+          f"(STFT n_fft={preset.stft_n_fft}, CQT {preset.cqt_target_fps} fps, "
+          f"{preset.cqt_bins_per_octave} bins/oct)")
+    print(f"  Peak threshold    : {args.peak_threshold} dBFS")
+    print(f"  Generate shareable: {not args.no_shareable}"
+          f"{' (target {} MB)'.format(args.shareable_target_mb) if not args.no_shareable else ''}")
+    print(f"  WAVs found        : {len(wavs)}")
+    if args.full_mix_wav:
+        print(f"  Full Mix WAV      : {args.full_mix_wav}")
+
+    # 6. Run audio analyses
+    analyses_with_info = []
+    for i, wav in enumerate(wavs, 1):
+        is_full_mix = bool(
+            args.full_mix_wav and wav.name == args.full_mix_wav
+        )
+        track_type = 'Full Mix' if is_full_mix else 'Individual'
+        category = auto_detect_category(wav.name)
+        track_info = {
+            'type': track_type,
+            'category': category,
+            'name': wav.name,
+            'parent_bus': 'None',
+        }
+        print(f"  [{i}/{len(wavs)}] Analyzing {wav.name} "
+              f"({track_type}, category={category})...")
+        try:
+            analysis = analyze_track(
+                str(wav), compute_tempo=is_full_mix, preset=preset,
+            )
+        except Exception as e:
+            print(f"ERROR: analyze_track({wav.name}) failed : "
+                  f"{type(e).__name__}: {e}", file=sys.stderr)
+            return 2
+        analyses_with_info.append((analysis, track_info))
+
+    # 7. Generate FULL report
+    project_name = input_dir.name
+    full_path = output_dir / f"{project_name}_MixAnalyzer_full.xlsx"
+    print(f"\n  Generating FULL report: {full_path.name}")
+
+    def _log(msg):
+        print(msg)
+
+    try:
+        generate_excel_report(
+            analyses_with_info=analyses_with_info,
+            output_path=str(full_path),
+            style_name=args.style,
+            log_fn=_log,
+            als_path=args.als,
+            preset=preset,
+            peak_threshold_db=args.peak_threshold,
+            is_shareable=False,
+        )
+    except Exception as e:
+        print(f"ERROR: generate_excel_report failed : "
+              f"{type(e).__name__}: {e}", file=sys.stderr)
+        traceback.print_exc()
+        return 2
+
+    full_size_mb = full_path.stat().st_size / (1024 * 1024)
+    print(f"  FULL report : {full_path} ({full_size_mb:.2f} MB)")
+
+    # 8. Generate SHAREABLE report (optional)
+    if not args.no_shareable:
+        share_path = output_dir / f"{project_name}_MixAnalyzer_shareable.xlsx"
+        print(f"\n  Generating SHAREABLE report: {share_path.name}")
+        try:
+            _, final_threshold = generate_shareable_report(
+                full_xlsx_path=str(full_path),
+                analyses_with_info=analyses_with_info,
+                output_path=str(share_path),
+                target_size_mb=args.shareable_target_mb,
+                initial_threshold_db=args.shareable_initial_threshold,
+                log_fn=_log,
+            )
+        except Exception as e:
+            print(f"ERROR: generate_shareable_report failed : "
+                  f"{type(e).__name__}: {e}", file=sys.stderr)
+            traceback.print_exc()
+            return 2
+        share_size_mb = share_path.stat().st_size / (1024 * 1024)
+        print(f"  SHAREABLE report : {share_path} "
+              f"({share_size_mb:.2f} MB, threshold {final_threshold} dBFS)")
+
+    print("\n=== DONE ===")
+    return 0
+
+
 def main():
+    parser = argparse.ArgumentParser(
+        prog='mix_analyzer',
+        description=(
+            'Mix Analyzer — visual audio mix analysis tool. '
+            'Without arguments : launches the tkinter GUI. '
+            'With --input-dir : runs in headless CLI mode (Phase F10g).'
+        ),
+    )
+    parser.add_argument(
+        '--version', action='version', version=f'Mix Analyzer v{VERSION}',
+    )
+
+    # CLI-mode trigger + main inputs
+    parser.add_argument(
+        '--input-dir', type=str, default=None,
+        help='Input directory containing WAV files. Triggers CLI mode.',
+    )
+    parser.add_argument(
+        '--output-dir', type=str, default='reports',
+        help='Output directory for the .xlsx reports (default: ./reports/). '
+             'Created if it does not exist.',
+    )
+    parser.add_argument(
+        '--style', type=str, default='Industrial',
+        help='Mix analysis style name (default: Industrial). Free-form '
+             'string ; cosmetic only.',
+    )
+    parser.add_argument(
+        '--full-mix-wav', type=str, default=None,
+        help='Filename (in --input-dir) to mark as Full Mix type. All '
+             'other WAVs default to Individual.',
+    )
+    parser.add_argument(
+        '--als', type=str, default=None,
+        help='Optional .als path forwarded to the CDE pipeline downstream.',
+    )
+
+    # F10 flags
+    parser.add_argument(
+        '--resolution', type=str, default='standard',
+        choices=['economy', 'standard', 'fine', 'ultra', 'maximum'],
+        help='Resolution preset (default: standard = v2.7.0 backward-compat).',
+    )
+    parser.add_argument(
+        '--peak-threshold', type=_peak_threshold_arg_type, default=-70.0,
+        help='Peak detection threshold in dBFS, range [-80, -40] (default: -70).',
+    )
+    parser.add_argument(
+        '--no-shareable', action='store_true',
+        help='Skip SHAREABLE report generation (only FULL report).',
+    )
+    parser.add_argument(
+        '--shareable-target-mb', type=float, default=25.0,
+        help='Target size for SHAREABLE report in MB (default: 25 — '
+             'Claude.ai upload limit).',
+    )
+    parser.add_argument(
+        '--shareable-initial-threshold', type=_peak_threshold_arg_type,
+        default=-60.0,
+        help='Initial threshold for SHAREABLE retry sequence (default: -60).',
+    )
+
+    args = parser.parse_args()
+
+    # Phase F10g — branch on --input-dir : headless CLI vs GUI
+    if args.input_dir is not None:
+        sys.exit(_run_cli(args))
+
+    # GUI mode (default if no --input-dir)
     root = tk.Tk()
     app = MixAnalyzerApp(root)
     root.mainloop()
