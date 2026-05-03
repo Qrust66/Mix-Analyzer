@@ -359,6 +359,15 @@ DynamicsCorrection(
  Agent enrichment: <pourquoi tu choisis chain_position=X>"
 ```
 
+**Phase F10h — citer le preset si non-standard** : si
+`report.analysis_config is not None and
+report.analysis_config.preset_name != "standard"`, mentionne-le dans
+ton rationale (ex. "Analysis at ultra preset, 12 fps CQT — fast
+transient envelope detection reliable for attack/release tuning").
+Cela trace pourquoi des temps d'attack très courts (< 5ms) sont
+proposés alors qu'en standard la résolution temporelle ne le
+justifierait pas.
+
 **Construction de `inspired_by`** (≥ 2 cites) :
 ```
 inspired_by = [

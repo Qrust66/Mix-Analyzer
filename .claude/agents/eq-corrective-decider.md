@@ -417,6 +417,13 @@ rationale global.
     processing_mode=Y>"
    ```
 
+   **Phase F10h — citer le preset si non-standard** : si
+   `report.analysis_config is not None and
+   report.analysis_config.preset_name != "standard"`, mentionne-le dans
+   ton rationale (ex. "Analysis at ultra preset, 2.69 Hz/bin STFT —
+   precise narrow-band cut achievable"). Cela trace pourquoi un cut Q
+   très étroit est proposé alors qu'il serait imprudent en standard.
+
    **Construction de `inspired_by` (Phase 4.2.7 fix #2)** :
 
    Au minimum 2 citations, jusqu'à 4 quand pertinent :

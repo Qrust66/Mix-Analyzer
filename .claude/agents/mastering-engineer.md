@@ -938,6 +938,20 @@ JSON pur (no fences) :
 }
 ```
 
+### Phase F10h — Citer le preset si non-standard
+
+Si `report.analysis_config is not None and
+report.analysis_config.preset_name != "standard"`, mentionne-le dans
+ton rationale top-level (ex. "Analysis at maximum preset, 24 fps CQT
++ 4096 stft_n_fft — LUFS-I measurement very fine-grained, accurate
+LUFS targeting reliable"). Cela trace pourquoi un push agressif vers
+un target serré (-7 LUFS ± 0.2) est proposé alors qu'en standard la
+résolution loudness ne le justifierait pas.
+
+Si `analysis_config is None` (rapport pre-F10h), assume v2.7.0 baseline
+= standard preset — aucune mention nécessaire (le rationale reste
+généric).
+
 ## Anti-patterns (non négociables — parser-enforced quand mesurable)
 
 - ❌ **Move sans signal mesuré** (règle do-no-harm). Si rien dans les

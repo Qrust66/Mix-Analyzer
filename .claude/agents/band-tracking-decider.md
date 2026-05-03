@@ -332,3 +332,35 @@ gain-inoperative) avec parabolic sub-frame interpolation.
 — quand le rapport upgrade à 50ms, rien à changer ici. La résolution
 fréquentielle vient des `freqs_hz` per frame ; la résolution temporelle
 de `frame_times_sec`.
+
+## Phase F10h — Adaptation au preset de résolution
+
+Le `DiagnosticReport.analysis_config` (Phase F10h, optional) expose le
+preset utilisé par mix-analyzer pour générer le rapport. Si présent,
+tu DOIS l'utiliser pour cap la résolution temporelle de tes
+`frame_times_sec`. Règle :
+
+```python
+report = ...  # DiagnosticReport reçu
+if report.analysis_config is not None:
+    fps = report.analysis_config.cqt_target_fps
+    min_frame_interval_sec = 1.0 / fps  # plancher physique
+    # ne pas générer de frame_times_sec avec interval < min_frame_interval_sec
+```
+
+**Conséquences pratiques par preset** :
+- `economy` (4 fps) → min interval 250ms — band tracks grossiers, pas
+  de mode `peak_track` haute-précision réaliste
+- `standard` (6 fps) → 167ms — comportement v2.7.0
+- `fine` (8 fps) → 125ms
+- `ultra` (12 fps) → 83ms — proche du target user 50ms
+- `maximum` (24 fps) → 42ms — plus fin que target user
+
+Si `analysis_config is None` (rapport pre-F10h), assume v2.7.0 baseline
+= 6 fps, soit 167ms/frame. Ne PAS promettre une résolution plus fine
+qu'on ne peut produire.
+
+**Citation rationale** : si tu utilises un preset != standard, mentionne-le
+explicitement dans ton `rationale` (ex. "frame_times_sec capped at 83ms
+per ultra preset 12 fps"). Cela aide le user à comprendre pourquoi un
+band track ultra-rapide n'est pas proposé.

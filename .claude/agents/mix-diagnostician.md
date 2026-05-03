@@ -313,6 +313,9 @@ Sheets pertinents :
 - **Freq Conflicts** → matrice masking (énergie % par bande × track)
 - **Mix Health Score** → score global + breakdown par catégorie
 - **Sections Timeline** → frontières de sections (Feature 3.5+)
+- **`_analysis_config`** *(hidden, F10e+)* → 14 paires key/value
+  documentant le preset utilisé par mix_analyzer (v2.8.0+). À lire pour
+  populer le champ `diagnostic.analysis_config` (cf. F10h ci-dessous).
 
 Utiliser `openpyxl` via Bash pour parser. Exemple minimal :
 ```python
@@ -321,6 +324,42 @@ wb = openpyxl.load_workbook(xlsx_path, data_only=True)
 sheet = wb["Full Mix Analysis"]
 # read named cells / row offsets per the sheet's documented schema
 ```
+
+### Phase F10h — Lecture de `_analysis_config`
+
+La sheet hidden `_analysis_config` (créée par
+`mix_analyzer.py:_build_analysis_config_sheet`) documente le preset de
+résolution utilisé pour générer le rapport. Tu DOIS la lire et populer
+le champ `diagnostic.analysis_config` du JSON de sortie quand elle
+existe. Si le rapport est pre-F10e (pas de sheet), omettre le champ
+ou le mettre à `null` — les agents downstream traitent l'absence
+comme "v2.7.0 baseline = standard preset".
+
+**Lecture en 3 lignes** :
+```python
+ws_cfg = wb["_analysis_config"]
+config_dict = {ws_cfg.cell(row=r, column=1).value:
+                ws_cfg.cell(row=r, column=2).value
+                for r in range(1, ws_cfg.max_row + 1)}
+# config_dict contient les 14 paires (preset_name, stft_n_fft, ...)
+```
+
+**14 champs requis** (mirror exact du sheet) :
+- `preset_name` ∈ {economy, standard, fine, ultra, maximum}
+- `stft_n_fft`, `stft_hop_samples` (int positifs)
+- `stft_hop_ms_at_44k`, `stft_delta_freq_hz_at_44k` (float positifs)
+- `cqt_target_fps`, `cqt_bins_per_octave`, `cqt_n_bins` (int positifs)
+- `cqt_frames_per_beat_at_128bpm` (float positif)
+- `sample_rate` (int, 44100 typique)
+- `peak_threshold_db` ∈ [-80, -40] dBFS
+- `is_shareable_version` (bool — True pour le rapport SHAREABLE filtré)
+- `mix_analyzer_version` (str, ex. "v2.8.0")
+- `generated_at` (str ISO 8601 timespec=seconds)
+
+Le parser `_parse_analysis_config` (mix_engine/blueprint/agent_parsers.py)
+valide ces 14 champs strictement et lève `MixAgentOutputError` si
+preset_name n'est pas dans VALID_PRESET_NAMES ou si peak_threshold_db
+est hors range.
 
 ## Schema de sortie
 
@@ -367,7 +406,23 @@ JSON pur (pas de markdown autour) :
     },
     "routing_warnings": [
       "Sidechain on 'Bass A' compressor points to 'AudioIn/Track.4/PostFxOut' but Track.4 is currently named 'Synth' — verify intent"
-    ]
+    ],
+    "analysis_config": {
+      "preset_name": "ultra",
+      "stft_n_fft": 16384,
+      "stft_hop_samples": 4096,
+      "stft_hop_ms_at_44k": 92.879,
+      "stft_delta_freq_hz_at_44k": 2.6917,
+      "cqt_target_fps": 12,
+      "cqt_bins_per_octave": 36,
+      "cqt_n_bins": 252,
+      "cqt_frames_per_beat_at_128bpm": 5.625,
+      "sample_rate": 44100,
+      "peak_threshold_db": -65.0,
+      "is_shareable_version": false,
+      "mix_analyzer_version": "v2.8.0",
+      "generated_at": "2026-05-03T14:22:18"
+    }
   },
   "cited_by": [
     {"kind": "diagnostic", "path": "Full Mix Analysis!B7",
