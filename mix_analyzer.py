@@ -8310,7 +8310,7 @@ def generate_shareable_report(
 
     # Initial copy : FULL → SHAREABLE_candidate.
     shutil.copy(str(full_xlsx_path), str(output_path))
-    log_fn(f"  Shareable: copied FULL → {output_path.name}")
+    log_fn(f"  Shareable: copied FULL -> {output_path.name}")
 
     # Phase F10f audit fix : early return if FULL already fits the target.
     # The copy above is essentially the SHAREABLE in this case (no filter
@@ -8320,8 +8320,8 @@ def generate_shareable_report(
     full_size_mb = full_xlsx_path.stat().st_size / (1024 * 1024)
     if full_size_mb <= target_size_mb:
         log_fn(
-            f"  Shareable: FULL is {full_size_mb:.2f} MB ≤ target "
-            f"{target_size_mb} MB → no filter needed, marking copy as "
+            f"  Shareable: FULL is {full_size_mb:.2f} MB <= target "
+            f"{target_size_mb} MB -> no filter needed, marking copy as "
             f"shareable."
         )
         wb = load_workbook(str(output_path))
@@ -8391,12 +8391,12 @@ def generate_shareable_report(
         final_threshold = float(threshold)
         final_size_mb = size_mb
         log_fn(
-            f"  Shareable: threshold {threshold} dBFS → {size_mb:.2f} MB "
+            f"  Shareable: threshold {threshold} dBFS -> {size_mb:.2f} MB "
             f"(target {target_size_mb} MB)"
         )
 
         if size_mb <= target_size_mb:
-            log_fn(f"  Shareable: ✓ target met at threshold {threshold} dBFS")
+            log_fn(f"  Shareable: [OK] target met at threshold {threshold} dBFS")
             return (output_path, final_threshold)
 
     # All thresholds exhausted, none fit.
@@ -11390,7 +11390,7 @@ def _run_cli(args: argparse.Namespace) -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # 5. Console banner
-    print(f"Mix Analyzer v{VERSION} — CLI mode")
+    print(f"Mix Analyzer v{VERSION} -- CLI mode")
     print(f"  Input dir         : {input_dir}")
     print(f"  Output dir        : {output_dir}")
     print(f"  Style             : {args.style}")
