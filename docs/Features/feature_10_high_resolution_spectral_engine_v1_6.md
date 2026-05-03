@@ -1130,6 +1130,43 @@ Process change v1.4 (§8 spec sync bundled in test commit) appliqué dès F10g.5
 - **Modification du paradigme de détection des peaks per-track** *(nouveau en v1.1)* — reste prominence-based en F10. Un éventuel passage à amplitude-based (ou hybride) serait F12 si besoin.
 - **Onset detection hop sample dynamique** *(nouveau en v1.1)* — reste hardcodé `hop_length=512` car opère à très haute résolution déjà.
 
+### Phase F12 candidates *(nouveau en v1.6, post-F11 fix-audit)*
+
+Options techniques explorées mais **deferred** lors du fix-audit Phase F11 (option A choisie = accepter 11.61 ms/frame CQT comme optimum pleine bande). Notées ici au cas où le besoin ressurgit après tests terrain.
+
+**Option B — Lever le floor 512 samples dans `get_effective_cqt_hop_samples`** :
+- Modif triviale du code (1 ligne dans `resolution_presets.py:414`)
+- Risque librosa : peut produire NaN frames ou crasher sur les bords selon la version librosa et la couverture octave réelle. L'avertissement "limite pratique librosa CQT" du commentaire actuel n'a pas été stress-testé.
+- À tester avant adoption : si stable empiriquement, le preset `extreme` atteindrait son target 100 fps réel (10 ms/frame).
+- Effort : 30 min code + 1-2h validation cross-projet (risk audit sur 5+ .als variés).
+
+**Option C — Switch vers `librosa.pseudo_cqt` ou `librosa.hybrid_cqt`** :
+- Implementations alternatives qui n'utilisent pas le subsampling récursif → pas de contrainte `hop divisible par 2^(n_octaves-1)`.
+- Trade-off : `pseudo_cqt` perd la propriété "constant Q" stricte sur les graves (résolution freq dégradée < ~150 Hz). `hybrid_cqt` est un compromis (CQT classique pour graves, FFT pour aigus).
+- Refactor `spectral_evolution.py:_compute_cqt_hop` + nouveau preset extension OR override per-preset.
+- Effort : ~2h refactor + 2h validation musicale (l'analyse spectrale change subtilement, les anomalies détectées peuvent shifter).
+
+**Option D — Pipeline dual basses/aigus** *(idée user originale 2026-05-03)* :
+- 1 CQT classique pour basses-mids : `hop=512` samples (~11.6 ms), couverture 20 Hz - 700 Hz
+- 1 CQT haute-résolution OU STFT mini-window pour aigus-transients : `hop=44 samples` (~1 ms), couverture 700 Hz - 24 kHz
+- 2 sheets séparées dans l'Excel : `_track_peak_trajectories_lo` et `_track_peak_trajectories_hi` (ou suffix `_bass` / `_air`)
+- Justification physique : l'uncertainty principle bride les graves à ≥ 16-50 ms window minimum. Au-dessous, l'over-sampling est redondant. Mais les transitents aigus (snare attack, hi-hat) peuvent réellement bouger en 1 ms.
+- Coût : ~3-4h refactor `spectral_evolution.py` pour gérer 2 pipelines parallèles, sheet builder dédoublé, schema doc mise à jour. Compute time +30-50 % (le pipeline aigus est moins lourd que le full-band).
+- Use case : analyse transient micro-précise (étude de phase d'attaque kick/snare) — utile pour fine-tuning compression attack/release.
+
+**Option E — STFT mini-window dédié transients** :
+- Un nouveau sheet hidden `_track_transients_hires` avec `n_fft=1024, hop=44 samples` (= 1.45 ms time / 43 Hz/bin freq).
+- Plus simple que option D : pas de pipeline CQT supplémentaire, juste un STFT léger en plus.
+- Trade-off : 43 Hz/bin = inutile pour distinguer 60 Hz vs 80 Hz (basses) mais OK pour transient detection en bande large (kick attack < 1ms précision).
+- Coût : ~1-2h (1 nouvelle fonction `_compute_hires_transients` + sheet builder + intégration `build_all_v25_sheets`).
+- Use case : feature transient-shape per kick/snare pour drum design.
+
+**Quand reconsidérer ces options** : si après livraison F11, le user terrain trouve que :
+- Les agents Tier A produisent des décisions qui auraient bénéficié d'un tracking sub-10ms (rare — le band-tracking-decider opère à l'échelle de la mesure ~500 ms à 128 BPM)
+- Une analyse spécifique drum-design / transient-shape se présente
+
+→ Évaluer Option B (peu de risque si validé empiriquement) avant Option C/D/E.
+
 ---
 
 ## 13 — Q validées (figées en v1.2) *(modifié en v1.2)*
