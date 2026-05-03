@@ -41,7 +41,7 @@
   Préservation intégrale du contenu v1.4 — §8 entrée F10h transitionne "à livrer" → "✅ LIVRÉ" + section Total mise à jour avec totaux finaux + entrée historique v1.5 ajoutée.
 
 - **v1.6** (ce document, 2026-05-03) — **Phase F11 ajoutée : 6e preset `extreme` + skip trajectories en `ai_optimized`**. Trigger : test terrain user — au preset `maximum`, le rapport FULL Acid Drops fait 19 MB, soit ~6 MB sous le target SHAREABLE 25 MB. User demande "résolution 10ms CQT, 50ms STFT" + "version AI sans couleurs pour économiser". **Pass 2 audit invalide la branche color-strip** (test empirique : 0.03 % réduction sur 19 MB dû à shared style table openpyxl) et **pivote vers skip trajectories** en `ai_optimized` (97 % du fichier = 2 sheets `_track_peak_trajectories` + `_track_valley_trajectories`). Livrable :
-  1. **`resolution_presets.py`** : nouveau field `ResolutionPreset.stft_hop_ratio: float = 0.25` (default backward compat strict v2.7.0), property `stft_hop_samples_at_44k` recalculée via `int(n_fft * hop_ratio)`, `_CQT_FPS_MAX: 60 → 120`, nouvelles bornes `_STFT_HOP_RATIO_MIN=0.0625` / `MAX=0.5`, validation étendue. 6e preset `"extreme"` : `stft_n_fft=16384, cqt_target_fps=100, cqt_bins_per_octave=48, stft_hop_ratio=0.125` → **10.00 ms/frame CQT** (cible user) + **46.44 ms/frame STFT** (proche cible 50 ms) + **2.69 Hz/bin STFT** (= ultra/maximum, freq res préservée).
+  1. **`resolution_presets.py`** : nouveau field `ResolutionPreset.stft_hop_ratio: float = 0.25` (default backward compat strict v2.7.0), property `stft_hop_samples_at_44k` recalculée via `int(n_fft * hop_ratio)`, `_CQT_FPS_MAX: 60 → 120`, nouvelles bornes `_STFT_HOP_RATIO_MIN=0.0625` / `MAX=0.5`, validation étendue. 6e preset `"extreme"` : `stft_n_fft=16384, cqt_target_fps=100, cqt_bins_per_octave=48, stft_hop_ratio=0.125` → **CQT target 10 ms / EFFECTIVE 11.61 ms** (capped par floor 512 samples = limite physique librosa CQT pour 10.67-octave coverage ; cf. fix audit ci-dessous) + **46.44 ms/frame STFT** (proche cible 50 ms) + **2.69 Hz/bin STFT** (= ultra/maximum, freq res préservée).
   2. **`mix_engine/blueprint/schema.py`** : `VALID_PRESET_NAMES` étendu avec `"extreme"`.
   3. **`feature_storage.py`** : `build_all_v25_sheets` accepte param `skip_trajectories: bool = False` (default backward compat) ; quand `True`, skip les 2 sheets trajectories (les 4 autres v25 sheets restent générées).
   4. **`mix_analyzer.py`** : conditional gate `skip_trajectories=(export_mode == 'ai_optimized')` thread vers `build_all_v25_sheets`. Mode `full` / `globals` inchangés.
@@ -990,7 +990,26 @@ Le premier run du test e2e a crashé sur Windows cp1252 console parce que les fo
 **Commits livrés :**
 - `feat(F11): extreme preset — 100 fps CQT (10ms) + hop_ratio=0.125 (46ms STFT)` (2f070f6)
 - `feat(F11): skip _track_peak/valley trajectories in ai_optimized mode` (637efbc)
-- `test(F11): extreme preset + skip trajectories smoke + spec v1.5 -> v1.6 + archive` (this commit)
+- `test(F11): extreme preset + skip trajectories smoke + spec v1.5 -> v1.6 + archive` (e48c124)
+- `fix(F11): extreme preset effective fps capped at 86 (option A)` (this commit)
+
+**Fix audit Pass 4 (option A choisie par user)** : Pass 2 audit avait
+loupé que le hop CQT a un floor à **512 samples** (`get_effective_cqt_hop_samples`,
+`resolution_presets.py:414`) — c'est une limite physique librosa CQT
+pour 10.67 octaves de couverture (`2^(n_octaves-1)` divisibility
+requirement). Le preset `extreme` avec `cqt_target_fps=100` produit un
+target hop de 441 samples → floor cap à 512 → **effective 86.13 fps =
+11.61 ms/frame** (PAS 10 ms comme target). Test
+`test_extreme_preset_meets_user_targets` corrigé pour valider la
+réalité post-floor (assert `eff_hop == 512`, `eff_fps == 86.13`,
+`eff_ms == 11.61`). Description du preset corrigée. Options B (lever le
+floor → risque librosa NaN) et C (switch pseudo_cqt → ~2h refactor)
+non poursuivies — option A "accepter 11.61 ms" choisie : c'est l'optimum
+CQT atteignable sans perdre l'analyse < 254 Hz (zone bass/kick).
+**5 ms (200 fps) impossible CQT pleine bande**. **1 ms (1000 fps)
+physiquement impossible CQT** (principe d'incertitude temps-fréquence
+pour analyser 60 Hz fondamental requires ≥ 16.7 ms window). Documentation
+inline du preset reflète maintenant ces limites.
 
 ### Total *(modifié en v1.6 — F11 extension ajoutée)*
 

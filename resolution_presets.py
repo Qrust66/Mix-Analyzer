@@ -299,11 +299,17 @@ RESOLUTION_PRESETS: dict[str, ResolutionPreset] = {
     ),
     "extreme": _build_preset(
         name="extreme",
-        description="Phase F11 — target user 10 ms/frame CQT (100 fps) "
-                    "+ ~46 ms/frame STFT (hop_ratio=0.125 sur n_fft=16384). "
-                    "Coût compute ~4x maximum ; fichier FULL ~5x ; "
-                    "SHAREABLE filtering kick in systématique. "
-                    "Réservé band-tracking ultra-fin terrain.",
+        description="Phase F11 — target_fps=100 demandé mais cap par "
+                    "le floor CQT 512 samples (limite physique librosa "
+                    "CQT pour 10.67 octaves de couverture). Effective "
+                    "fps réel à sr=44.1k = 86.13 fps = 11.61 ms/frame "
+                    "CQT. STFT : hop_ratio=0.125 sur n_fft=16384 = "
+                    "46.44 ms/frame. Best CQT temporal resolution "
+                    "atteignable sans perdre l'analyse < 254 Hz "
+                    "(bass/kick zone). Coût compute ~4x maximum ; "
+                    "fichier FULL ~5x ; SHAREABLE filtering kick in "
+                    "systématique. Réservé band-tracking ultra-fin "
+                    "terrain.",
         stft_n_fft=16384,
         cqt_target_fps=100,
         cqt_bins_per_octave=48,

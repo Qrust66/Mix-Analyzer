@@ -297,16 +297,33 @@ def test_build_preset_rejects_cqt_bpo_below_min():
 
 
 def test_extreme_preset_meets_user_targets():
-    """User targets validated 2026-05-03 :
-    - 10 ms/frame CQT (= 100 fps)
+    """User targets validated 2026-05-03 + post-Pass-3-audit corrections :
+    - CQT target 10 ms (100 fps) requested, EFFECTIVE 11.6 ms (86.13 fps)
+      due to librosa CQT hop floor at 512 samples for 10.67-octave coverage.
+      Going below requires reducing freq coverage (losing bass < 254 Hz)
+      or switching to pseudo_cqt — out of F11 scope (option A chosen).
     - close to 50 ms/frame STFT (= hop_samples ~2200)
     - same freq resolution as ultra/maximum (= n_fft=16384)
     """
+    from resolution_presets import get_effective_cqt_hop_samples
     p = RESOLUTION_PRESETS['extreme']
-    # CQT 10 ms target
+
+    # CQT target stored as 100 fps (= what user asked for)
     assert p.cqt_target_fps == 100
-    cqt_ms = 1000.0 / p.cqt_target_fps
-    assert math.isclose(cqt_ms, 10.0, rel_tol=0, abs_tol=0.01)
+
+    # EFFECTIVE CQT post-floor = max(44100/100, 512) = max(441, 512) = 512
+    # Effective fps at 44.1k = 44100/512 = 86.13
+    # Effective ms/frame at 44.1k = 512/44100*1000 = 11.61
+    eff_hop = get_effective_cqt_hop_samples(p, 44100)
+    assert eff_hop == 512, (
+        f"extreme preset effective CQT hop should be capped at 512 "
+        f"(librosa CQT floor for 10.67-octave coverage), got {eff_hop}"
+    )
+    eff_fps = 44100 / eff_hop
+    eff_ms = eff_hop / 44100 * 1000
+    assert math.isclose(eff_fps, 86.13, rel_tol=0, abs_tol=0.1)
+    assert math.isclose(eff_ms, 11.61, rel_tol=0, abs_tol=0.05)
+
     # STFT ~46-50 ms target via hop_ratio=0.125
     assert p.stft_hop_ratio == 0.125
     assert p.stft_hop_samples_at_44k == 2048
