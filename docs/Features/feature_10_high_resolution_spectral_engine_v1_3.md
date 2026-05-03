@@ -818,22 +818,35 @@ Au lieu de re-runner `generate_excel_report` 5× (Approach A) ou de faire du `de
 - `test(F10): F10f part 3 — filter unit + retry mock + e2e (7 tests)` (8914009)
 - `fix(F10): F10f audit findings — spec §8 + early return + size reduction test` (this commit)
 
-### F10g — CLI integration
+### F10g — argparse CLI mode for headless analysis *(réécrit en v1.3 après livraison)*
 
-**Fichiers modifiés :**
-- Script CLI principal de Mix Analyzer
+**Statut :** ✅ **LIVRÉ** — commits `12d8d66` (feat argparse + _run_cli), `5af06dd` (tests + Windows console unicode fixes), `<audit-fix>` (spec §8 + memory rule).
 
-**Fonctions implémentées :**
-- Parsing des nouveaux flags
-- Validation des inputs
-- Affichage console pré/post exécution avec preset description v1.1
-- Exit codes
+**Décision Pass 1/2 (Q1 user reco) — Option B headless folder** :
+La spec v1.0/v1.1/v1.2 §7 mentionnait `python -m mix_analyzer.analyze --als file.als`, ce qui **ne mappe pas à l'architecture actuelle** (Mix Analyzer prend un dossier de WAVs, pas un .als). Pass 2 audit a clarifié : `--als` reste optionnel pour la pipeline CDE downstream, mais l'input principal est `--input-dir <dossier de WAVs>`.
 
-**Durée :** 1h
-**Tests :** 4-5 (smoke tests CLI)
-**Commits :**
-- `feat(F10-cli): new flags for resolution and shareable`
-- `test(F10-cli): smoke tests for CLI`
+**Fichiers modifiés (réel) :**
+- `mix_analyzer.py` :
+  - `import argparse` ajouté au top
+  - Nouvelle fonction `_peak_threshold_arg_type(value)` : custom argparse type validator pour la range [-80, -40] dBFS (réutilisé pour `--peak-threshold` ET `--shareable-initial-threshold`)
+  - Nouvelle fonction `_run_cli(args) -> int` : iterate WAVs, build track_info dicts, run analyze_track + generate_excel_report (+ generate_shareable_report si applicable). Retourne exit code (0/1/2/3).
+  - `main()` modifiée : argparse avec branchement `if args.input_dir → _run_cli ; else → tk.Tk() GUI`. Backward compat strict.
+- `tests/test_cli_mix_analyzer.py` : nouveau fichier (5 unit subprocess + 2 e2e).
+- `docs/Features/feature_10_high_resolution_spectral_engine_v1_3.md` : cette §8 mise à jour.
+
+**Argparse flags livrés :**
+- `--input-dir`, `--output-dir` (default `reports/`), `--style` (default `Industrial`), `--full-mix-wav`, `--als`, `--version`
+- F10 flags : `--resolution` (choices=5 presets, default `standard`), `--peak-threshold` (range -80 à -40, default -70), `--no-shareable`, `--shareable-target-mb` (default 25 MB), `--shareable-initial-threshold` (default -60)
+
+**Bug unicode catché par test e2e (3e occurrence du pattern)** :
+Le premier run du test e2e a crashé sur Windows cp1252 console parce que les fonctions `generate_shareable_report` (F10f) utilisaient des chars unicode (`→`, `≤`, `—`, `✓`) dans `print()` et `log_fn()`. Tous remplacés par ASCII (`->`, `<=`, `--`, `[OK]`). Comments + docstrings gardent unicode (jamais imprimés au runtime).
+
+**Durée réelle :** 1h code + 1h tests + 30 min unicode debug + 15 min audit fix = ~3h (vs 1h spec — bump for tests rigor + bug fix in-flight)
+**Tests réels :** 7 (5 fast argparse validation + 2 slow e2e subprocess)
+**Commits livrés :**
+- `feat(F10): F10g — argparse CLI mode for headless analysis` (12d8d66)
+- `test(F10): F10g — CLI tests + Windows console unicode fixes` (5af06dd)
+- `fix(F10): F10g audit — spec §8 + memory rule` (this commit)
 
 ### F10h — Tier A agent prompt updates *(nouveau en v1.1)*
 
