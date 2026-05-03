@@ -25,3 +25,9 @@ Obsidian/
 # Claude Code: ignore only the per-machine permissions file.
 # .claude/agents/, .claude/commands/, .claude/settings.json (shared) stay tracked.
 .claude/settings.local.json
+
+# Phase F10g (v2.8.0+) — default output dir for the CLI mode.
+# Mix Analyzer CLI generates ``<project>_MixAnalyzer_full.xlsx`` (+
+# optional shareable) under ``reports/`` by default ; never tracked
+# in git (output artefacts, not source).
+reports/

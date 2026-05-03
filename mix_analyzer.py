@@ -11369,6 +11369,24 @@ def _run_cli(args: argparse.Namespace) -> int:
         )
         return 1
 
+    # 1b. Validate --als path if provided (Phase F10g review fix : was
+    # accepted but never checked, leading to confusing crashes in the
+    # downstream CDE pipeline when forwarded to generate_excel_report).
+    if args.als is not None:
+        als_path = Path(args.als)
+        if not als_path.exists():
+            print(
+                f"ERROR: --als file not found: {als_path}",
+                file=sys.stderr,
+            )
+            return 1
+        if not als_path.is_file():
+            print(
+                f"ERROR: --als is not a file: {als_path}",
+                file=sys.stderr,
+            )
+            return 1
+
     # 2. Resolve preset + validate threshold (defensive — argparse already
     # constrains them but resolving here surfaces helpful errors if users
     # bypass argparse later)
@@ -11404,8 +11422,12 @@ def _run_cli(args: argparse.Namespace) -> int:
     if args.full_mix_wav:
         print(f"  Full Mix WAV      : {args.full_mix_wav}")
 
-    # 6. Run audio analyses
+    # 6. Run audio analyses (Phase F10g review fix : continue-on-failure
+    # default — log the error + keep iterating + summarize at end. If
+    # ALL tracks fail, return exit 2 ; otherwise generate the report on
+    # the successful subset and return 0 with a non-fatal warning.)
     analyses_with_info = []
+    failures = []  # list of (wav.name, error_message)
     for i, wav in enumerate(wavs, 1):
         is_full_mix = bool(
             args.full_mix_wav and wav.name == args.full_mix_wav
@@ -11425,10 +11447,37 @@ def _run_cli(args: argparse.Namespace) -> int:
                 str(wav), compute_tempo=is_full_mix, preset=preset,
             )
         except Exception as e:
-            print(f"ERROR: analyze_track({wav.name}) failed : "
-                  f"{type(e).__name__}: {e}", file=sys.stderr)
-            return 2
+            err_msg = f"{type(e).__name__}: {e}"
+            print(
+                f"  WARNING: analyze_track({wav.name}) failed : "
+                f"{err_msg} -- skipping this track, continuing with the rest.",
+                file=sys.stderr,
+            )
+            failures.append((wav.name, err_msg))
+            continue
         analyses_with_info.append((analysis, track_info))
+
+    # If ALL tracks failed, no report to generate.
+    if not analyses_with_info:
+        print(
+            f"\nERROR: all {len(wavs)} WAV(s) failed analysis. No report "
+            f"generated.\nFailures:",
+            file=sys.stderr,
+        )
+        for name, err in failures:
+            print(f"  - {name}: {err}", file=sys.stderr)
+        return 2
+
+    # Some succeeded ; warn about partial success but proceed.
+    if failures:
+        print(
+            f"\n  WARNING: {len(failures)}/{len(wavs)} WAV(s) failed "
+            f"analysis. Report will cover the {len(analyses_with_info)} "
+            f"successful track(s) only.",
+            file=sys.stderr,
+        )
+        for name, err in failures:
+            print(f"    - {name}: {err}", file=sys.stderr)
 
     # 7. Generate FULL report
     project_name = input_dir.name
